@@ -1,7 +1,7 @@
 /*
- * @(#)ServiceUI.java	1.9 03/01/23
+ * @(#)ServiceUI.java	1.11 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,10 @@ package javax.print;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.Window;
+import java.awt.KeyboardFocusManager;
 import javax.print.attribute.Attribute;
 import javax.print.attribute.AttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -92,7 +96,7 @@ public class ServiceUI {
      * If the user cancels the dialog, the returned attributes will not reflect
      * any changes made by the user.
      *
-     * A typical basic usage of this method may be : 
+     * A typical basic usage of this method may be :
      * <pre>
      * PrintService[] services = PrintServiceLookup.lookupPrintServices(
      *                            DocFlavor.INPUT_STREAM.JPEG, null);
@@ -157,11 +161,32 @@ public class ServiceUI {
         } else {
             defaultIndex = 0;
         }
+		
+	boolean newFrame = false;
+	Window owner = 
+	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
+       	    getActiveWindow();
 
-        ServiceDialog dialog = new ServiceDialog(gc, x, y, 
-                                                 services, defaultIndex,
-                                                 flavor, attributes);
+	if (!(owner instanceof Dialog || owner instanceof Frame)) {
+	    owner = new Frame();
+	    newFrame = true;
+	}
+
+	ServiceDialog dialog;
+	if (owner instanceof Frame) {
+	    dialog = new ServiceDialog(gc, x, y,
+         	                       services, defaultIndex,
+				       flavor, attributes,
+				       (Frame)owner);
+	} else {
+            dialog = new ServiceDialog(gc, x, y,
+		                       services, defaultIndex,
+				       flavor, attributes,
+				       (Dialog)owner);
+	}
+
         dialog.show();
+		
 
         if (dialog.getStatus() == ServiceDialog.APPROVE) {
             PrintRequestAttributeSet newas = dialog.getAttributes();
@@ -191,6 +216,10 @@ public class ServiceUI {
                 }
             }
         }
+
+        if (newFrame) {
+   	    owner.dispose();
+	}
 
 	return dialog.getPrintService();
     }

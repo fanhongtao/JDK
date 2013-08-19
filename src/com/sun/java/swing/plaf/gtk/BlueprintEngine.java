@@ -1,7 +1,7 @@
 /*
- * @(#)BlueprintEngine.java	1.18 03/07/25
+ * @(#)BlueprintEngine.java	1.21 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -18,7 +18,7 @@ import sun.security.action.GetPropertyAction;
  * GTKEngine implementation that renders using images. The images to render
  * are dictated by the <code>BlueprintStyle.Info</code>.
  *
- * @version 1.18 07/25/03
+ * @version 1.21 01/13/04
  * @author Joshua Outwater
  */
 class BlueprintEngine extends GTKEngine implements GTKConstants {
@@ -56,7 +56,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     public void paintSlider(SynthContext context, Graphics g, int state,
                            int shadowType, String info,
                            int x, int y, int w, int h, int orientation) {
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true, 
                 ((BlueprintStyle)context.getStyle()).
                          getInfo("SLIDER", info, state, shadowType, orientation,
                                  UNDEFINED, UNDEFINED, null))) {
@@ -89,7 +89,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                         state, UNDEFINED, GTKConstants.HORIZONTAL,
                         UNDEFINED, UNDEFINED, null);
         if (blueprintInfo != null && blueprintInfo.getImage() != null) {
-            themeBlueprintRender(g, x, y, w, h,
+            themeBlueprintRender(context, g, x, y, w, h, 
                     blueprintInfo.getImage(), blueprintInfo.getImageInsets(),
                     COMPONENT_ALL, blueprintInfo.getStretch(), false,
                     blueprintInfo.isBkgMask(), blueprintInfo.isRecolorable(),
@@ -106,7 +106,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                         state, UNDEFINED, GTKConstants.VERTICAL,
                         UNDEFINED, UNDEFINED, null);
         if (blueprintInfo != null && blueprintInfo.getImage() != null) {
-            themeBlueprintRender(g, x, y, w, h, blueprintInfo.getImage(),
+            themeBlueprintRender(context, g, x, y, w, h, blueprintInfo.getImage(),
                     blueprintInfo.getImageInsets(), COMPONENT_ALL,
                     blueprintInfo.getStretch(), false,
                     blueprintInfo.isBkgMask(), blueprintInfo.isRecolorable(),
@@ -138,7 +138,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
             }
         }
 
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                         getInfo("ARROW", info, state, shadowType,
                             UNDEFINED, UNDEFINED, direction, parentType))) {
@@ -192,13 +192,13 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                     parentContext.dispose();                    
                 }
 
-                if (paintSimpleImage(g, x, y, w, h, true,
+                if (paintSimpleImage(context, g, x, y, w, h, true,
                         ((BlueprintStyle)style).getInfo("STEPPER", info,
                                 state, UNDEFINED, UNDEFINED, UNDEFINED,
                                 direction, null))) {
                     return;
                 }
-                if (!paintSimpleImage(g, x, y, w, h, true,
+                if (paintSimpleImage(context, g, x, y, w, h, true,
                     ((BlueprintStyle)style).getInfo("BOX", info, state,
                                 shadowType, UNDEFINED, UNDEFINED,
                                 UNDEFINED, null))) {
@@ -260,21 +260,11 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
             }
         }
 
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)style).getInfo("BOX", info, state,
                         shadowType, orientation, UNDEFINED, UNDEFINED,
                         parentType))) {
             super.paintBox(context, g, state, shadowType, info, x, y, w, h);
-        }
-
-        // Draw a bounding box around buttons using the foreground color.
-        if ("button" == info && state == SynthConstants.MOUSE_OVER &&
-                !hasAncestorOfType(context.getComponent(), "GtkCombo")) {
-            Color origColor = g.getColor();
-            g.setColor(((BlueprintStyle)style).getColor(context.getComponent(),
-                    id, state, ColorType.FOREGROUND));
-            g.drawRect(x + 3, y + 3, w - 7, h - 7);
-            g.setColor(origColor);
         }
     }
 
@@ -303,7 +293,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
             h -=1;
         }
 
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                         getInfo("HANDLE", info, paintState, shadowType,
                                 orientation, UNDEFINED, UNDEFINED, null))) {
@@ -315,7 +305,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     public void paintOption(SynthContext context, Graphics g, int paintState,
                             int shadowType, String info, int x, int y,
                             int w, int h) {
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                     ((BlueprintStyle)context.getStyle()).
                          getInfo("OPTION", info, paintState, shadowType,
                                  UNDEFINED, UNDEFINED, UNDEFINED, null))) {
@@ -326,7 +316,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
 
     public void paintFocus(SynthContext context, Graphics g, int state,
                            String key, int x, int y, int w, int h) {
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                         getInfo("FOCUS", key, state, UNDEFINED, UNDEFINED,
                                 UNDEFINED, UNDEFINED, null))) {
@@ -380,7 +370,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
             return;
         }
 
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)style).getInfo("SHADOW", info, state,
                         shadowType, UNDEFINED, UNDEFINED, UNDEFINED,
                         parentType))) {
@@ -398,7 +388,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     public void paintCheck(SynthContext context, Graphics g, int state,
                            int shadowType, String info, int x, int y,
                            int w, int h) {
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                         getInfo("CHECK", info, state, shadowType, UNDEFINED,
                                 UNDEFINED, UNDEFINED, null))) {
@@ -409,7 +399,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     public void paintExtension(SynthContext context, Graphics g, int state,
                                int shadowType, String info, int x, int y,
                                int w, int h, int placement) {
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                          getInfo("EXTENSION", info, state, shadowType,
                                  UNDEFINED, placement, UNDEFINED, null))) {
@@ -428,11 +418,14 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
 
         String parentType = null;
         c = c.getParent();
+        if (c instanceof CellRendererPane) {
+            c = c.getParent();
+        }
         if (c != null && c instanceof JComponent) {
             parentType = getComponentType((JComponent)c);
         }
 
-        if (!paintSimpleImage(g, x, y, w, h, true,
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                          getInfo("FLAT_BOX", key, state, UNDEFINED, UNDEFINED,
                                  UNDEFINED, UNDEFINED, parentType))) {
@@ -444,7 +437,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
             Color color, int x, int y, int w, int h) {
         JComponent c = context.getComponent();
         if (c instanceof JPopupMenu) {
-            if (paintSimpleImage(g, x, y, w, h, true,
+            if (paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                          getInfo("BACKGROUND", null, state, UNDEFINED,
                              UNDEFINED, UNDEFINED, UNDEFINED, null))) {
@@ -603,7 +596,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                 break;
             }
 
-            themeBlueprintRender(g, x, y, w, h, info.getImage(),
+            themeBlueprintRender(context, g, x, y, w, h, info.getImage(),
                     info.getImageInsets(), componentMask, true, false,
                     info.isBkgMask(), info.isRecolorable(),
                     info.getColorizeColor());
@@ -612,17 +605,17 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
             // stretch should be queried from the info, but there is currently
             // no support for that field for gap images in BlueprintStyle.Info.
             if (startImage != null) {
-                themeBlueprintRender(g, r1.x, r1.y, r1.width, r1.height,
+                themeBlueprintRender(context, g, r1.x, r1.y, r1.width, r1.height,
                         startImage, info.getGapStartInsets(), COMPONENT_ALL,
                         true, false, false, false, null);
             }
             if (image != null) {
-                themeBlueprintRender(g, r2.x, r2.y, r2.width, r2.height,
+                themeBlueprintRender(context, g, r2.x, r2.y, r2.width, r2.height,
                         image, info.getGapInsets(), COMPONENT_ALL,
                         true, false, false, false, null);
             }
             if (endImage != null) {
-                themeBlueprintRender(g, r3.x, r3.y, r3.width, r3.height,
+                themeBlueprintRender(context, g, r3.x, r3.y, r3.width, r3.height,
                         endImage, info.getGapEndInsets(), COMPONENT_ALL,
                         true, false, false, false, null);
             }
@@ -632,6 +625,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     /**
      * Paints the image and overlay image from the passed in style.
      *
+     * @param context SynthContext identifying the hosting component
      * @param g Graphics object to paint to
      * @param x X origin
      * @param y Y origin
@@ -640,21 +634,22 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
      * @param drawCenter Whether the center of the image should be drawn
      * @param info Used to fetch image, insets and overlay image from
      */
-    private boolean paintSimpleImage(Graphics g, int x, int y,
-            int w, int h, boolean drawCenter, BlueprintStyle.Info info) {
+    private boolean paintSimpleImage(SynthContext context, Graphics g,
+                        int x, int y, int w, int h,
+                        boolean drawCenter, BlueprintStyle.Info info) {
         if (info != null) {
             Rectangle clip = g.getClipBounds();
             _clipX1 = clip.x;
             _clipY1 = clip.y;
             _clipX2 = _clipX1 + clip.width;
             _clipY2 = _clipY1 + clip.height;
-            themeBlueprintRender(g, x, y, w, h, info.getImage(),
+            themeBlueprintRender(context, g, x, y, w, h, info.getImage(),
                     info.getImageInsets(), drawCenter ? COMPONENT_ALL :
                     COMPONENT_ALL | COMPONENT_CENTER, info.getStretch(),
                     false, info.isBkgMask(), info.isRecolorable(),
                     info.getColorizeColor());
             if (drawCenter) {
-                themeBlueprintRender(g, x, y, w, h,
+                themeBlueprintRender(context, g, x, y, w, h,
                         info.getOverlayImage(), info.getOverlayInsets(),
                         COMPONENT_ALL, info.getOverlayStretch(), true,
                         false, false, null);
@@ -667,6 +662,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     /**
      * Paints the image in the specified region.
      *
+     * @param context SynthContext identifying the hosting component
      * @param g Graphics object to paint to
      * @param x X origin
      * @param y Y origin
@@ -681,12 +677,12 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
      * @param isRecolorable If the image is recolorable.
      * @param colorizeColor Color to use if image is recolorable.
      */
-    private void themeBlueprintRender(Graphics g,
-                                      int x, int y, int w, int h, Image image,
-                                      Insets insets, int componentMask,
-                                      boolean stretch, boolean center,
-                                      boolean isBkgMask, boolean isRecolorable,
-                                      Color colorizeColor) {
+private void themeBlueprintRender(SynthContext context, Graphics g,
+                                  int x, int y, int w, int h, Image image,
+                                  Insets insets, int componentMask,
+                                  boolean stretch, boolean center,
+                                  boolean isBkgMask, boolean isRecolorable,
+                                  Color colorizeColor) {
         if (image == null) {
             return;
         }
@@ -695,12 +691,46 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
         }
         int iw = image.getWidth(null);
         int ih = image.getHeight(null);
-
+        
         if (isBkgMask) {
             // Colorize mask using the colorizeColor from info.
             BufferedImage i = new BufferedImage(iw, ih,
                     BufferedImage.TYPE_INT_ARGB);
             Graphics2D g3 = i.createGraphics();
+            
+            boolean topParentReached = false;
+            int steps = 0;
+            
+            Component compParent = context.getComponent();
+            
+            while (!topParentReached && steps <= 2)
+            {
+                compParent = compParent.getParent ();
+                steps ++;
+                
+                if (compParent != null)
+                {
+                    Color color = compParent.getBackground ();
+                    if (color != null)
+                    {
+                        if (!color.equals (colorizeColor) && 
+                                !color.equals (Color.black) && 
+                                !(compParent  instanceof JFileChooser))
+                        {
+                            colorizeColor = color;
+                            topParentReached = true;
+                        }
+                    }
+                }
+                else
+                    topParentReached = true;
+            }
+            
+            if (colorizeColor == null) {
+                colorizeColor = ((GTKStyle)context.getStyle()).getGTKColor(
+                        context.getComponent(), context.getRegion(),
+                        context.getComponentState(), ColorType.BACKGROUND);
+            }
             g3.setColor(colorizeColor);
             g3.fillRect(0, 0, iw, ih);
             g3.setComposite(AlphaComposite.DstIn);
@@ -921,7 +951,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
      * @param image Image to render.
      * @param g Graphics to render to
      * @param srcX X origin to draw from
-     * @param srxY Y origin to draw from
+     * @param srcY Y origin to draw from
      * @param srcWidth Width of source
      * @param srcHeight Height of source
      * @param destX X origin to draw to

@@ -1,7 +1,7 @@
 /*
- * @(#)SynthComboBoxUI.java	1.11 03/05/05
+ * @(#)SynthComboBoxUI.java	1.13 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import sun.awt.AppContext;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.11, 05/05/03 (based on BasicComboBoxUI v 1.154)
+ * @version 1.13, 01/13/04 (based on BasicComboBoxUI v 1.154)
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -1192,7 +1192,7 @@ class SynthComboBoxUI extends ComboBoxUI implements SynthUI,
             c = renderer.getListCellRendererComponent( listBox,
                                                        comboBox.getSelectedItem(),
                                                        -1,
-                                                       true,
+                                                       false,
                                                        false );
         }
         else {

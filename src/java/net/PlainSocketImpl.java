@@ -1,7 +1,7 @@
 /*
- * @(#)PlainSocketImpl.java	1.61 03/01/23
+ * @(#)PlainSocketImpl.java	1.63 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.61, 01/23/03
+ * @version 1.63, 01/13/04
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -438,6 +438,9 @@ class PlainSocketImpl extends SocketImpl
 	synchronized(fdLock) {
 	    if (fd != null) {
 		if (fdUseCount == 0) {
+                    if (closePending) {
+                        return;
+                    }
 		    closePending = true;
 		    /*
 		     * We close the FileDescriptor in two-steps - first the

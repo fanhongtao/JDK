@@ -1,7 +1,7 @@
 /*
- * @(#)Pattern.java	1.95 03/01/23
+ * @(#)Pattern.java	1.97 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -571,7 +571,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.95, 03/01/23
+ * @version 	1.97, 04/01/13
  * @since       1.4
  * @spec	JSR-51
  */
@@ -2652,17 +2652,12 @@ loop:   for(int x=0; x<input.length(); x++) {
             return new BitClass(bits, not);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (i < matcher.to) {
-                int c = seq.charAt(i);
-                if (c > 255)
-                    return false;
-                if (complementMe)
-                    return ((!bits[c]) &&
-                            next.match(matcher, i+1, seq));
-                if (bits[c])
-                    return next.match(matcher, i+1, seq);
-            }
-            return false;
+            if (i >= matcher.to)
+                return false;
+            int c = seq.charAt(i);
+            boolean charMatches =
+                (c > 255) ? complementMe : (bits[c] ^ complementMe);
+            return charMatches && next.match(matcher, i+1, seq);
         }
         boolean study(TreeInfo info) {
             info.minLength++;

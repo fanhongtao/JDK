@@ -1,7 +1,7 @@
 /*
- * @(#)SynthFileChooserUI.java	1.7 03/04/09
+ * @(#)SynthFileChooserUI.java	1.9 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -25,7 +25,7 @@ import javax.swing.plaf.basic.BasicDirectoryModel;
  *
  * Note: This class is abstract. It does not actually create the file chooser GUI.
  *
- * @version 1.7, 04/09/03
+ * @version 1.9, 01/13/04
  * @author Leif Samuelsson
  * @author Jeff Dinkins
  */
@@ -202,7 +202,10 @@ abstract class SynthFileChooserUI extends FileChooserUI implements SynthUI {
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
-	    return (InputMap)UIManager.get("FileChooser.ancestorInputMap");
+        SynthContext context = getContext(filechooser, ENABLED);
+        InputMap inputMap = (InputMap)context.getStyle().get(context, "FileChooser.ancestorInputMap");
+        context.dispose();
+        return inputMap;
 	}
 	return null;
     }

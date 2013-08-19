@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.78 03/02/17
+ * @(#)WindowsFileChooserUI.java	1.80 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.78 02/17/03
+ * @version 1.80 01/13/04
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -344,23 +344,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	topPanel.add(detailsViewButton);
 	viewButtonGroup.add(detailsViewButton);
 
-	// Use ShellFolder class to populate shortcut panel and combobox
-	// only if FileSystemView.getRoots() returns the desktop folder,
-	// i.e. the normal Windows hierarchy.
-	{
-	    useShellFolder = false;
-	    File[] roots = fsv.getRoots();
-	    if (roots != null && roots.length == 1) {
-		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
-		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
-		    useShellFolder = true;
-		}
-	    }
-	}
-	if (OS_LEVEL >= WIN_2k && useShellFolder) {
-	    shortCutPanel = new ShortCutPanel();
-	    fc.add(shortCutPanel, BorderLayout.BEFORE_LINE_BEGINS);
-	}
+	updateUseShellFolder();
 
 	// ************************************** //
 	// ******* Add the directory pane ******* //
@@ -476,6 +460,41 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	if(fc.getControlButtonsAreShown()) {
 	    addControlButtons();
+	}
+    }
+
+    private void updateUseShellFolder() {
+	// Decide whether to use the ShellFolder class to populate shortcut
+	// panel and combobox.
+	JFileChooser fc = getFileChooser();
+	Boolean prop =
+	    (Boolean)fc.getClientProperty("FileChooser.useShellFolder");
+	if (prop != null) {
+	    useShellFolder = prop.booleanValue();
+	} else {
+	    // See if FileSystemView.getRoots() returns the desktop folder,
+	    // i.e. the normal Windows hierarchy.
+	    useShellFolder = false;
+	    File[] roots = fc.getFileSystemView().getRoots();
+	    if (roots != null && roots.length == 1) {
+		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
+		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
+		    useShellFolder = true;
+		}
+	    }
+	}
+	if (OS_LEVEL >= WIN_2k) {
+	    if (useShellFolder) {
+		if (shortCutPanel == null) {
+		    shortCutPanel = new ShortCutPanel();
+		    fc.add(shortCutPanel, BorderLayout.BEFORE_LINE_BEGINS);
+		}
+	    } else {
+		if (shortCutPanel != null) {
+		    fc.remove(shortCutPanel);
+		    shortCutPanel = null;
+		}
+	    }
 	}
     }
 
@@ -1750,6 +1769,9 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 			detailsTable.setComponentOrientation(o);
 			detailsTable.getParent().getParent().setComponentOrientation(o);
 		    }
+		} else if (s == "FileChooser.useShellFolder") {
+		    updateUseShellFolder();
+		    doDirectoryChanged(e);
 		} else if (s.equals("ancestor")) {
 		    if (e.getOldValue() == null && e.getNewValue() != null) {
 			// Ancestor was added, set initial focus
@@ -1945,7 +1967,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	    // create File instances of each directory leading up to the top
 	    try {
-		File sf = ShellFolder.getShellFolder(canonical);
+		File sf = useShellFolder ? ShellFolder.getShellFolder(canonical)
+					 : canonical;
 		File f = sf;
 		Vector path = new Vector(10);
 		do {

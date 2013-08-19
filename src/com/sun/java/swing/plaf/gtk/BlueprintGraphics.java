@@ -1,7 +1,7 @@
 /*
- * @(#)BlueprintGraphics.java	1.2 03/07/24
+ * @(#)BlueprintGraphics.java	1.4 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -9,7 +9,7 @@ package com.sun.java.swing.plaf.gtk;
 import java.awt.*;
 
 /**
- * @version 1.2 07/24/03
+ * @version 1.4 01/13/04
  * @author Joshua Outwater
  */
 class BlueprintGraphics extends SynthGraphics {
@@ -26,10 +26,6 @@ class BlueprintGraphics extends SynthGraphics {
                 ((state & SynthConstants.SELECTED) == SynthConstants.SELECTED
                     && region == Region.MENU)) {
             Color oldColor = g.getColor();
-
-            g.setColor(context.getStyle().getColor(context,
-                        GTKColorType.DARK));
-            super.paintText(context, g, text, x + 2, y + 2, mnemonicIndex);
 
             g.setColor(context.getStyle().getColor(context,
                         GTKColorType.BLACK));

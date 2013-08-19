@@ -1,17 +1,18 @@
 /*
- * @(#)GTKGraphics.java	1.8 03/01/23
+ * @(#)GTKGraphics.java	1.10 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import javax.swing.*;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
 /**
- * @version 1.8, 01/23/03
+ * @version 1.10, 01/13/04
  * @author Joshua Outwater
  */
 class GTKGraphics extends SynthGraphics {
@@ -20,7 +21,7 @@ class GTKGraphics extends SynthGraphics {
         int componentState = context.getComponentState();
         if ((componentState & SynthConstants.DISABLED) ==
                               SynthConstants.DISABLED){
-            Color oldColor = g.getColor();
+            Color orgColor = g.getColor();
             g.setColor(context.getStyle().getColor(context,
                                                    GTKColorType.WHITE));
             x += 1;
@@ -29,7 +30,7 @@ class GTKGraphics extends SynthGraphics {
 
             x -= 1;
             y -= 1;
-            g.setColor(oldColor);
+            g.setColor(orgColor);
             super.paintText(context, g, text, x, y, mnemonicIndex);
         }
         else {
@@ -48,6 +49,7 @@ class GTKGraphics extends SynthGraphics {
      * @param bounds Bounds of the text to be drawn.
      * @param mnemonicIndex Index to draw string at.
      */
+
     public void paintText(SynthContext context, Graphics g, String text,
                           Rectangle bounds, int mnemonicIndex) {
         Color color = g.getColor();
@@ -60,8 +62,8 @@ class GTKGraphics extends SynthGraphics {
                     context, g, SynthConstants.ENABLED,
                         "checkbutton", bounds.x - 2, bounds.y - 2,
                         bounds.width + 4, bounds.height + 4);
+            g.setColor(color);
         }
-        g.setColor(color);
         super.paintText(context, g, text, bounds, mnemonicIndex);
     }
 }

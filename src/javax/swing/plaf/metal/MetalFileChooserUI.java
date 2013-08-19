@@ -1,7 +1,7 @@
 /*
- * @(#)MetalFileChooserUI.java	1.69 03/02/17
+ * @(#)MetalFileChooserUI.java	1.71 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.69 02/17/03
+ * @version 1.71 01/13/04
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -301,19 +301,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	topButtonPanel.add(detailsViewButton);
 	viewButtonGroup.add(detailsViewButton);
 
-	// Use ShellFolder class to populate combobox only if
-	// FileSystemView.getRoots() returns one folder and that is
-	// the same as the first item in the ShellFolder combobox list.
-	{
-	    useShellFolder = false;
-	    File[] roots = fsv.getRoots();
-	    if (roots != null && roots.length == 1) {
-		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
-		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
-		    useShellFolder = true;
-		}
-	    }
-	}
+	updateUseShellFolder();
 
 	// ************************************** //
 	// ******* Add the directory pane ******* //
@@ -407,6 +395,28 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	}
 
 	groupLabels(new AlignedLabel[] { fileNameLabel, filesOfTypeLabel });
+    }
+
+    private void updateUseShellFolder() {
+	// Decide whether to use the ShellFolder class to populate shortcut
+	// panel and combobox.
+	JFileChooser fc = getFileChooser();
+	Boolean prop =
+	    (Boolean)fc.getClientProperty("FileChooser.useShellFolder");
+	if (prop != null) {
+	    useShellFolder = prop.booleanValue();
+	} else {
+	    // See if FileSystemView.getRoots() returns the desktop folder,
+	    // i.e. the normal Windows hierarchy.
+	    useShellFolder = false;
+	    File[] roots = fc.getFileSystemView().getRoots();
+	    if (roots != null && roots.length == 1) {
+		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
+		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
+		    useShellFolder = true;
+		}
+	    }
+	}
     }
 
     protected JPanel getButtonPanel() {
@@ -1501,6 +1511,9 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 			detailsTable.setComponentOrientation(o);
 			detailsTable.getParent().getParent().setComponentOrientation(o);
 		    }
+		} else if (s == "FileChooser.useShellFolder") {
+		    updateUseShellFolder();
+		    doDirectoryChanged(e);
 		} else if (s.equals("ancestor")) {
 		    if (e.getOldValue() == null && e.getNewValue() != null) {
 			// Ancestor was added, set initial focus
@@ -1694,7 +1707,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
 	    // create File instances of each directory leading up to the top
 	    try {
-		File sf = ShellFolder.getShellFolder(canonical);
+		File sf = useShellFolder ? ShellFolder.getShellFolder(canonical)
+					 : canonical;
 		File f = sf;
 		Vector path = new Vector(10);
 		do {

@@ -1,7 +1,7 @@
 /*
- * @(#)GTKEngine.java	1.51 03/01/23
+ * @(#)GTKEngine.java	1.53 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -21,7 +21,7 @@ import javax.swing.*;
  * <tr><td>GTKConstants.MOUSE_OVER<td>PRELIGHT
  * <tr><td>GTKConstants.DISABLED<td>INSENSITIVE
  * </table>
- * @version 1.51, 01/23/03
+ * @version 1.53, 01/13/04
  * @author Josh Outwater
  * @author Scott Violet
  */
@@ -121,7 +121,7 @@ class GTKEngine {
             }
             break;
         }
-        g.translate(-x, -y);	
+        g.translate(-x, -y);
     }
 
     public void paintBox(SynthContext context, Graphics g, int state,
@@ -130,10 +130,18 @@ class GTKEngine {
         GTKStyle style = (GTKStyle)context.getStyle();
         Region region = context.getRegion();
         // This should really happen after the shadow is drawn.
-        paintBackground(context, g, state, 
-            style.getGTKColor(context.getComponent(), region, state,
+         if (info == "menuitem" && state == SynthConstants.MOUSE_OVER &&
+                                   GTKLookAndFeel.is2_2()) {
+             paintBackground(context, g, state,
+                    style.getGTKColor(context.getComponent(), region,
+                  SynthConstants.SELECTED, GTKColorType.BACKGROUND), x, y, w,h);
+         }
+         else {
+             paintBackground(context, g, state,
+                style.getGTKColor(context.getComponent(), region, state,
                 GTKColorType.BACKGROUND), x, y, w, h);
-        paintShadow(context, g, state, shadowType, info, x, y, w, h);
+         }
+         paintShadow(context, g, state, shadowType, info, x, y, w, h);
     }
 
     public void paintBoxGap(SynthContext context, Graphics g, int state,
@@ -344,7 +352,7 @@ class GTKEngine {
         // Paint check mark in center if selected.
         if ((componentState & SynthConstants.SELECTED) != 0) {
             g.setColor(
-                style.getGTKColor(component, r, state, GTKColorType.BLACK));
+                style.getGTKColor(component, r, state, GTKColorType.FOREGROUND));
             g.drawLine(3, centerY + 2, 4, centerY + 2);
             g.drawLine(5, centerY + 3, 6, centerY + 3);
             g.drawLine(6, centerY + 2, 6, centerY + 4);
@@ -354,12 +362,14 @@ class GTKEngine {
             g.drawLine(8, centerY - 1, 9, centerY - 1);
             g.drawLine(9, centerY - 1, 9, centerY - 2);
 
-            if ((componentState & SynthConstants.PRESSED) != 0) {
-                g.setColor(style.getGTKColor(component, r,
+            if (!GTKLookAndFeel.is2_2()) {
+                if ((componentState & SynthConstants.PRESSED) != 0) {
+                    g.setColor(style.getGTKColor(component, r,
                     SynthConstants.PRESSED, GTKColorType.DARK));
-            } else {
-                g.setColor(style.getGTKColor(component, r,
+                } else {
+                    g.setColor(style.getGTKColor(component, r,
                     SynthConstants.ENABLED, GTKColorType.DARK));
+                }
             }
             g.drawLine(3, centerY + 1, 4, centerY + 1);
             g.drawLine(4, centerY + 3, 4, centerY + 3);
@@ -405,7 +415,7 @@ class GTKEngine {
         Color innerRight =
             style.getGTKColor(c, region, state, innerRightType);
         Color white = style.getGTKColor(c, region, state, GTKColorType.WHITE);
-        
+
         int tabIndex = tabContext.getTabIndex();
         int selectedIndex = ((JTabbedPane)c).getSelectedIndex();
 
@@ -440,7 +450,7 @@ class GTKEngine {
                 g.setColor(bottomRight);
                 g.drawLine(w - 1, 1, w - 1, h - 1);
             }
-            
+
         } else if (placement == GTKConstants.TOP) {
             // Fill the background.
             paintBackground(context, g, state, background, 0, 0, w, h - 1);
@@ -477,7 +487,7 @@ class GTKEngine {
             paintBackground(context, g, state, background, 1, 0, w, h);
 
             if (tabIndex == selectedIndex || tabIndex == 0) {
-                g.setColor(upperLeft); 
+                g.setColor(upperLeft);
                 g.drawLine(1, 0, w - 1, 0);
                 g.drawLine(0, 1, 0, h - 2);
                 if (paintWhite) {
@@ -486,7 +496,7 @@ class GTKEngine {
                     g.drawLine(1, 1, 1, h - 3);
                 }
             } else {
-                g.setColor(upperLeft); 
+                g.setColor(upperLeft);
                 g.drawLine(0, 0, 0, h - 2);
                 if (paintWhite) {
                     g.setColor(white);
@@ -763,12 +773,12 @@ class GTKEngine {
             g.drawLine(11, centerY + 5, 11, centerY + 5);
             g.drawLine(9, centerY + 6, 10, centerY + 6);
             g.drawLine(5, centerY + 7, 8, centerY + 7);
-    
+
             // Paint dark shadow.
             g.setColor(style.getGTKColor(component, region, paintState,
                                          GTKColorType.DARK));
             g.drawOval(1, 0, 11, 11);
-    
+
             // Paint black shadow.
             g.setColor(style.getGTKColor(component, region, paintState,
                                          GTKColorType.BLACK));
@@ -784,7 +794,7 @@ class GTKEngine {
         if ((componentState & SynthConstants.SELECTED) != 0) {
             if (region == Region.RADIO_BUTTON_MENU_ITEM) {
                 g.setColor(style.getGTKColor(component, region, paintState,
-                                             GTKColorType.BLACK));
+                                             GTKColorType.FOREGROUND));
             }
             g.fillRect(5, centerY, 5, 3);
             g.drawLine(6, centerY - 1, 8, centerY - 1);
@@ -1109,7 +1119,7 @@ class GTKEngine {
             }
             break;
         }
-        g.translate(-x, -y);	
+        g.translate(-x, -y);
     }
 
     public void paintSlider(SynthContext context, Graphics g, int state,
@@ -1133,6 +1143,9 @@ class GTKEngine {
 
         GTKStyle style = (GTKStyle)context.getStyle();
         int centerY = h / 2;
+        if (h == 2) {
+            centerY = 0;
+        }
         g.setColor(style.getGTKColor(context.getComponent(),
                                      context.getRegion(), state,
                                      GTKColorType.DARK));
@@ -1180,7 +1193,7 @@ class GTKEngine {
         else {
             Image image = style.getBackgroundImage(context, state);
             int iW;
-            int iH; 
+            int iH;
 
             if (image != null && (iW = image.getWidth(null)) > 0 &&
                                  (iH = image.getHeight(null)) > 0) {
@@ -1194,7 +1207,7 @@ class GTKEngine {
                        !(parent instanceof java.applet.Applet)) {
                     Component nextParent = parent.getParent();
 
-                    if (parent instanceof JRootPane && 
+                    if (parent instanceof JRootPane &&
                                !(nextParent instanceof Window) &&
                                !(nextParent instanceof java.applet.Applet)) {
                         x2 += parent.getX();

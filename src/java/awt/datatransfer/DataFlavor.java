@@ -1,7 +1,7 @@
 /*
- * @(#)DataFlavor.java	1.73 03/01/23
+ * @(#)DataFlavor.java	1.75 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.awt.datatransfer.DataTransferer;
  * instantiated.
  * </p>
  *
- * @version     1.73, 01/23/03
+ * @version     1.75, 01/13/04
  * @author      Blake Sullivan
  * @author      Laurence P. G. Cable
  * @author      Jeff Dunn
@@ -1231,6 +1231,8 @@ public class DataFlavor implements Externalizable, Cloneable {
        } else {
            os.writeObject(null);
        }
+
+       os.writeObject(representationClass);
    }
 
    /**
@@ -1238,19 +1240,27 @@ public class DataFlavor implements Externalizable, Cloneable {
     */
 
    public synchronized void readExternal(ObjectInput is) throws IOException , ClassNotFoundException {
+	String rcn = null;
         mimeType = (MimeType)is.readObject();
 
         if (mimeType != null) {
             humanPresentableName =
                 mimeType.getParameter("humanPresentableName");
             mimeType.removeParameter("humanPresentableName");
-            String rcn = mimeType.getParameter("class");
+            rcn = mimeType.getParameter("class");
             if (rcn == null) {
                 throw new IOException("no class parameter specified in: " +
                                       mimeType);
             }
-            representationClass =
-                DataFlavor.tryToLoadClass(rcn, getClass().getClassLoader());
+        }
+
+	try {
+            representationClass = (Class)is.readObject();
+        } catch (OptionalDataException ode) {
+            if (rcn != null) {
+                representationClass =
+                    DataFlavor.tryToLoadClass(rcn, getClass().getClassLoader());
+            }
         }
    }
 

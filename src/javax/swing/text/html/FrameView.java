@@ -1,7 +1,7 @@
 /*
- * @(#)FrameView.java	1.23 03/01/23
+ * @(#)FrameView.java	1.25 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * marginwidth and marginheight attributes.
  *
  * @author    Sunita Mani
- * @version   1.23, 01/23/03
+ * @version   1.25, 01/13/04
  */
 
 class FrameView extends ComponentView implements HyperlinkListener {
@@ -54,7 +54,7 @@ class FrameView extends ComponentView implements HyperlinkListener {
 	    try {
 		URL base = ((HTMLDocument)elem.getDocument()).getBase();
 		src = new URL(base, srcAtt);
-                htmlPane = new JEditorPane();
+                htmlPane = new FrameEditorPane();
                 htmlPane.addHyperlinkListener(this);
                 JEditorPane host = getHostPane();
                 if (host != null) {
@@ -367,6 +367,23 @@ class FrameView extends ComponentView implements HyperlinkListener {
     public float getMaximumSpan(int axis) {
 	return Integer.MAX_VALUE;
     }
-
+   
+    /** Editor pane rendering frame of HTML document
+     *  It uses the same editor kits classes as outermost JEditorPane
+     */
+    private class FrameEditorPane extends JEditorPane {
+        public EditorKit getEditorKitForContentType(String type) {
+            EditorKit editorKit = super.getEditorKitForContentType(type); 
+            JEditorPane outerMostJEditorPane = null;
+            if ((outerMostJEditorPane = getOutermostJEditorPane()) != null) {
+                EditorKit inheritedEditorKit = outerMostJEditorPane.getEditorKitForContentType(type);
+                if (! editorKit.getClass().equals(inheritedEditorKit.getClass())) {
+                    editorKit = (EditorKit) inheritedEditorKit.clone();
+                    setEditorKitForContentType(type, editorKit);
+                }
+            } 
+            return editorKit;
+        }
+    }
 }
 

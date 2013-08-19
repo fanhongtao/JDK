@@ -1,7 +1,7 @@
 /*
- * @(#)PixmapEngine.java	1.11 03/01/23
+ * @(#)PixmapEngine.java	1.13 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -16,7 +16,7 @@ import sun.security.action.GetPropertyAction;
  * GTKEngine implementation that renders using images. The images to render
  * are dictated by the <code>PixmapStyle.Info</code>.
  *
- * @version 1.11, 01/23/03
+ * @version 1.13, 01/13/04
  * @author Scott Violet
  */
 class PixmapEngine extends GTKEngine implements GTKConstants {
@@ -45,7 +45,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                            int x, int y, int w, int h, int orientation) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("SLIDER", info,state, shadowType, orientation,
-                                 UNDEFINED, UNDEFINED))) {
+                                 UNDEFINED, UNDEFINED), true)) {
             super.paintSlider(context, g, state, shadowType, info,
                               x, y, w, h, orientation);
         }
@@ -55,7 +55,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                            String info, int x, int y, int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("HLINE", info, state, UNDEFINED, UNDEFINED,
-                         UNDEFINED, UNDEFINED))) {
+                         UNDEFINED, UNDEFINED), true)) {
             super.paintHline(context, g, state, info, x, y, w, h);
         }
     }
@@ -64,7 +64,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                            String info, int x, int y, int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("VLINE", info, state, UNDEFINED, UNDEFINED,
-                                 UNDEFINED, UNDEFINED))) {
+                                 UNDEFINED, UNDEFINED), true)) {
             super.paintVline(context, g, state, info, x, y, w, h);
         }
     }
@@ -74,7 +74,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                            int x, int y, int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("ARROW", info, state, shadowType, UNDEFINED,
-                         UNDEFINED, direction))) {
+                         UNDEFINED, direction), true)) {
             super.paintArrow(context, g, state, shadowType, direction, info,
                              x, y, w, h);
         }
@@ -108,7 +108,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
         }
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("BOX", info, state, shadowType, orientation,
-                                 UNDEFINED, UNDEFINED))) {
+                                 UNDEFINED, UNDEFINED), true)) {
             super.paintBox(context, g, state, shadowType, info, x, y, w, h);
         }
     }
@@ -122,8 +122,8 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
 
         if (info != null) {
             // Yes, this appears to paint before the gap does.
-            paintPixmap(g, x, y, w, h, info);
-
+            paintPixmap(g, x, y, w, h, info, true);
+            
             // Determine the size of the opposite axis of the gap.
             int size = 0;
             Image startImage = info.getGapStartImage();
@@ -174,7 +174,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                             int w, int h, int orientation) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("HANDLE", info, paintState, shadowType,
-                                 orientation, UNDEFINED, UNDEFINED))) {
+                                 orientation, UNDEFINED, UNDEFINED), true)) {
             super.paintHandle(context, g, paintState, shadowType, info, x, y,
                               w, h, orientation);
         }
@@ -185,7 +185,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                             int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("OPTION", info, paintState, shadowType,
-                                 UNDEFINED, UNDEFINED, UNDEFINED))) {
+                                 UNDEFINED, UNDEFINED, UNDEFINED), true)) {
             super.paintOption(context, g, paintState, shadowType, info, x, y,
                               w, h);
         }
@@ -195,7 +195,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                            String key, int x, int y, int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo( "FOCUS", key, state, UNDEFINED, UNDEFINED,
-                         UNDEFINED, UNDEFINED))) {
+                         UNDEFINED, UNDEFINED), true)) {
             super.paintFocus(context, g, state, key, x, y, w, h);
         }
     }
@@ -205,7 +205,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                             int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("SHADOW", info, state, shadowType, UNDEFINED,
-                                 UNDEFINED, UNDEFINED))) {
+                                 UNDEFINED, UNDEFINED), false)) {
             super.paintShadow(context, g, state, shadowType, info, x, y, w, h);
         }
     }
@@ -222,7 +222,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                            int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                         getInfo("CHECK", info, state, shadowType, UNDEFINED,
-                                UNDEFINED, UNDEFINED))) {
+                                UNDEFINED, UNDEFINED), true)) {
             super.paintCheck(context, g, state, shadowType, info, x, y, w, h);
         }
     }
@@ -232,7 +232,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                                int w, int h, int placement) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("EXTENSION", info, state, shadowType,
-                                 UNDEFINED, placement, UNDEFINED))) {
+                                 UNDEFINED, placement, UNDEFINED), true)) {
             super.paintExtension(context, g, state, shadowType, info, x, y,
                                  w, h, placement);
         }
@@ -242,7 +242,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                              String key, int x, int y, int w, int h) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("FLAT_BOX", key, state, UNDEFINED, UNDEFINED,
-                                 UNDEFINED, UNDEFINED))) {
+                                 UNDEFINED, UNDEFINED), true)) {
             super.paintFlatBox(context, g, state, key, x, y, w, h);
         }
     }
@@ -285,23 +285,23 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
             case LEFT:
                 paintImage(g, x, y + gapStart, Math.min(w, size),
                       Math.min(h - y - gapStart, gapSize), image,insets, true,
-                           false);
+                           false, true);
                 break;
             case RIGHT:
                 paintImage(g, x + w - Math.min(w, size),
                            y + gapStart, Math.min(w, size),
                            Math.min(h - y - gapStart, gapSize), image,
-                           insets, true, false);
+                           insets, true, false, true);
                 break;
             case TOP:
                 paintImage(g, x + gapStart, y, Math.min(w - x - gapStart,
                            gapSize), Math.min(h, size), image, insets, true,
-                           false);
+                           false, true);
                 break;
             case BOTTOM:
                 paintImage(g, x + gapStart, y + h - Math.min(h, size),
                            Math.min(w - x - gapStart, gapSize),
-                           Math.min(h, size), image, insets, true, false);
+                           Math.min(h, size), image, insets, true, false,true);
                 break;
             }
          }
@@ -318,7 +318,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
      * @param info Used to fetch image, insets and overlay image from
      */
     private boolean paintPixmap(Graphics g, int x, int y, int w, int h,
-                                PixmapStyle.Info info) {
+                                PixmapStyle.Info info, boolean drawCenter) {
         if (info != null) {
             Rectangle clip = g.getClipBounds();
             _clipX1 = clip.x;
@@ -326,10 +326,10 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
             _clipX2 = _clipX1 + clip.width;
             _clipY2 = _clipY1 + clip.height;
             paintImage(g, x, y, w, h, info.getImage(), info.getImageInsets(),
-                       info.getStretch(), false);
+                       info.getStretch(), false, drawCenter);
             paintImage(g, x, y, w, h, info.getOverlayImage(),
                        info.getOverlayInsets(), info.getOverlayStretch(),
-                       true);
+                       true, drawCenter);
             return true;
          }
         return false;
@@ -348,7 +348,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
      */
     private void paintImage(Graphics g, int x, int y, int w, int h,
                             Image image, Insets insets, boolean stretch,
-                            boolean overlay) {
+                            boolean overlay, boolean drawCenter) {
         if (image == null) {
             return;
         }
@@ -408,10 +408,10 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
             int ir = insets.right;
 
             // Constrain the insets to the size of the image
-            if (it + ib >= ih - 3) {
+            if (it + ib >= ih) {
                 ib = it = Math.max(0, ih / 2 - 1);
             }
-            if (il + ir >= iw - 3) {
+            if (il + ir >= iw) {
                 il = ir = Math.max(0, iw / 2 - 1);
             }
             // Constrain the insets to the size of the region we're painting
@@ -462,7 +462,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
                             y + h, 0, ih - ib, il, ih, null);
             }
             // center
-            if (il + ir < iw && it + ib < ih) {
+            if (drawCenter && il + ir < iw && it + ib < ih) {
                 g.drawImage(image, x + il, y + it, x + w - ir, y + h - ib,
                             il, it, iw - ir, ih - ib, null);
             }

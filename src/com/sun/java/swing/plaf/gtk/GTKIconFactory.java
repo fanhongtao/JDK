@@ -1,7 +1,7 @@
 /*
- * @(#)GTKIconFactory.java	1.19 03/01/23
+ * @(#)GTKIconFactory.java	1.22 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -13,7 +13,7 @@ import javax.swing.plaf.*;
 import java.util.HashMap;
 
 /**
- * @version 1.19, 01/23/03
+ * @version 1.22, 01/13/04
  */
 class GTKIconFactory {
     // Tree icons
@@ -36,11 +36,9 @@ class GTKIconFactory {
     private static SynthIcon radioButtonMenuItemArrowIcon;
     private static SynthIcon radioButtonMenuItemCheckIcon;
 
-    private static SynthIcon toolBarHandleIcon;
-
     //
     // Tree methods
-    // 
+    //
     public static SynthIcon getTreeExpandedIcon() {
         if (expandedIcon == null) {
             expandedIcon =
@@ -132,7 +130,7 @@ class GTKIconFactory {
 
     //
     // Menus
-    // 
+    //
     public static SynthIcon getMenuArrowIcon() {
         if (menuArrowIcon == null) {
             menuArrowIcon = new DelegatingIcon("paintMenuArrowIcon", 13, 13);
@@ -201,15 +199,12 @@ class GTKIconFactory {
         GTKStyle style = (GTKStyle)context.getStyle();
         int state = context.getComponentState();
         int shadowType = GTKConstants.SHADOW_OUT;
-        int gtkState;
-        if ((state & SynthConstants.SELECTED) != 0) {
-            gtkState = SynthConstants.SELECTED;
-        }
-        else {
-            gtkState = GTKLookAndFeel.synthStateToGTKState(
+        int gtkState = GTKLookAndFeel.synthStateToGTKState(
                                       context.getRegion(), state);
+        if ((state & SynthConstants.MOUSE_OVER) !=0 ) {
+            gtkState = SynthConstants.MOUSE_OVER;
         }
-        if (gtkState == SynthConstants.SELECTED) {
+        if ((state & SynthConstants.SELECTED) !=0 ) {
             shadowType = GTKConstants.SHADOW_IN;
         }
         style.getEngine(context).paintCheck(context, g, gtkState,
@@ -244,11 +239,11 @@ class GTKIconFactory {
         int state = context.getComponentState();
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                                       context.getRegion(), state);
+        if ((state & SynthConstants.MOUSE_OVER) != 0) {
+            gtkState = SynthConstants.MOUSE_OVER;
+        }
         int shadowType = GTKConstants.SHADOW_OUT;
         if ((state & SynthConstants.SELECTED) != 0) {
-            gtkState = SynthConstants.SELECTED;
-        }
-        if (gtkState == SynthConstants.SELECTED) {
             shadowType = GTKConstants.SHADOW_IN;
         }
         ((GTKStyle)context.getStyle()).getEngine(
@@ -258,13 +253,9 @@ class GTKIconFactory {
 
     //
     // ToolBar Handle
-    // 
+    //
     public static SynthIcon getToolBarHandleIcon() {
-        if (toolBarHandleIcon == null) {
-            toolBarHandleIcon =
-                new ToolBarHandleIcon("paintToolBarHandleIcon");
-        }
-        return toolBarHandleIcon;
+        return new ToolBarHandleIcon();
     }
 
     public static void paintToolBarHandleIcon(SynthContext context,
@@ -388,27 +379,19 @@ class GTKIconFactory {
         }
     }
 
+
+    // GTK has a separate widget for the handle box, to mirror this
+    // we create a unique icon per ToolBar and lookup the style for the
+    // HandleBox.
     private static class ToolBarHandleIcon extends SynthIcon {
-        private static final Class[] PARAM_TYPES = new Class[] {
-            SynthContext.class, Graphics.class, int.class, int.class,
-            int.class, int.class };
-
-            private Object method;
-
-        ToolBarHandleIcon(String method) {
-            this.method = method;
-        }
+        private SynthStyle style;
 
         public void paintIcon(SynthContext context, Graphics g, int x, int y,
                               int w, int h) {
             if (context != null) {
-                try {
-                    getMethod().invoke(GTKIconFactory.class, new Object[] {
-                                context, g, new Integer(x), new Integer(y),
-                                new Integer(w), new Integer(h) });
-                } catch (IllegalAccessException iae) {
-                } catch (InvocationTargetException ite) {
-                }
+                context = getContext(context);
+                paintToolBarHandleIcon(context, g, x, y, w, h);
+                context.dispose();
             }
         }
 
@@ -430,17 +413,14 @@ class GTKIconFactory {
             }
         }
 
-        private Method getMethod() {
-            if (method instanceof String) {
-                Method[] methods = GTKIconFactory.class.getMethods();
-                try {
-                    method = GTKIconFactory.class.getMethod((String)method,
-                                                            PARAM_TYPES);
-                } catch (NoSuchMethodException nsme) {
-                    System.out.println("NSME: " + nsme);
-                }
+        private SynthContext getContext(SynthContext context) {
+            if (style == null) {
+                style = SynthLookAndFeel.getStyleFactory().getStyle(
+                             context.getComponent(), GTKRegion.HANDLE_BOX);
             }
-            return (Method)method;
+            return SynthContext.getContext(SynthContext.class,
+                                context.getComponent(), GTKRegion.HANDLE_BOX,
+                                style, SynthConstants.ENABLED);
         }
     }
 }

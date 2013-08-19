@@ -1,7 +1,7 @@
 /*
- * @(#)GTKStyleFactory.java	1.21 03/01/23
+ * @(#)GTKStyleFactory.java	1.26 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -18,8 +18,8 @@ import javax.swing.plaf.*;
  * the corresponding gtk class name. Similarly styles registered for
  * CLASS are mapped to the corresponding gtk class name, including the
  * corresponding gtk class hierarchy.
- * 
- * @version 1.21, 01/23/03
+ *
+ * @version 1.26, 01/13/04
  * @author Scott Violet
  */
 class GTKStyleFactory extends SynthStyleFactory {
@@ -93,7 +93,16 @@ class GTKStyleFactory extends SynthStyleFactory {
     private GTKStyle _tooltipStyle;
 
     /**
-     * Maps from List to the resolved DefaultSynthStyle.
+    * Default style for progressbars.
+      */
+     private GTKStyle _pbStyle;
+
+     /**
+      * Default style for menu items.
+      */
+     private GTKStyle _menuItemStyle;
+
+     /** * Maps from List to the resolved DefaultSynthStyle.
      */
     private Map _resolvedStyles;
 
@@ -125,6 +134,7 @@ class GTKStyleFactory extends SynthStyleFactory {
         REGION_MAP.put(Region.DESKTOP_ICON, "GtkLabel");
         REGION_MAP.put(Region.EDITOR_PANE, "GtkTextView");
         REGION_MAP.put(Region.FORMATTED_TEXT_FIELD, "GtkEntry");
+        REGION_MAP.put(GTKRegion.HANDLE_BOX, "GtkHandleBox");
         REGION_MAP.put(Region.INTERNAL_FRAME, "GtkFrame");
         REGION_MAP.put(Region.INTERNAL_FRAME_TITLE_PANE, "GtkLabel");
         REGION_MAP.put(Region.LABEL, "GtkLabel");
@@ -137,7 +147,7 @@ class GTKStyleFactory extends SynthStyleFactory {
         REGION_MAP.put(Region.MENU_ITEM_ACCELERATOR, "GtkLabel");
         REGION_MAP.put(Region.OPTION_PANE, "GtkMessageDialog");
         REGION_MAP.put(Region.PANEL, "GtkContainer");
-        REGION_MAP.put(Region.PASSWORD_FIELD, "GtkEntry"); 
+        REGION_MAP.put(Region.PASSWORD_FIELD, "GtkEntry");
         // GTK does not have a distinct class for popups.
         REGION_MAP.put(Region.POPUP_MENU, "GtkMenu");
         REGION_MAP.put(Region.POPUP_MENU_SEPARATOR, "GtkSeparatorMenuItem");
@@ -182,6 +192,7 @@ class GTKStyleFactory extends SynthStyleFactory {
 
 
         GTK_CLASS_MAP = new HashMap();
+        GTK_CLASS_MAP.put("GtkHandleBox", "GtkBin");
         GTK_CLASS_MAP.put("GtkFrame", "GtkBin");
         GTK_CLASS_MAP.put("GtkProgress", "GtkWidget");
         GTK_CLASS_MAP.put("GtkViewport", "GtkBin");
@@ -335,6 +346,25 @@ class GTKStyleFactory extends SynthStyleFactory {
      * @param id ID of the Component
      */
     public synchronized SynthStyle getStyle(JComponent c, Region id) {
+        if ((id == Region.FORMATTED_TEXT_FIELD &&
+                c.getName() == "Spinner.formattedTextField") ||
+            (id == Region.ARROW_BUTTON &&
+                (c.getName() == "Spinner.previousButton" ||
+                 c.getName() == "Spinner.nextButton"))) {
+
+            // Force all the widgets of a spinner to be treated like a spinner
+            id = Region.SPINNER;
+            Container parent = c.getParent();
+            if (parent != null) {
+                parent = parent.getParent();
+                if (parent instanceof JSpinner) {
+                    c = (JComponent)parent;
+                }
+            }
+        }
+        else if (id == Region.LABEL && c.getName() == "ComboBox.renderer") {
+            id = Region.TEXT_FIELD;
+        }
         SynthStyle style = _getStyle(c, id);
 
         if (isLabelBearing(id)) {
@@ -392,6 +422,17 @@ class GTKStyleFactory extends SynthStyleFactory {
         if (id == Region.TOOL_TIP) {
             matches.add(getToolTipStyle());
         }
+        else if (id == Region.PROGRESS_BAR && GTKLookAndFeel.is2_2()) {
+             matches.add(getProgressBarStyle());
+         }
+         else if ((id == Region.MENU || id == Region.MENU_ITEM ||
+                   id == Region.POPUP_MENU_SEPARATOR ||
+                   id == Region.CHECK_BOX_MENU_ITEM ||
+                   id == Region.RADIO_BUTTON_MENU_ITEM ||
+                   id == Region.MENU_ITEM_ACCELERATOR) &&
+                  GTKLookAndFeel.is2_2()) {
+             matches.add(getMenuItemStyle());
+         }
         matches.add(_defaultStyle);
     }
 
@@ -662,11 +703,67 @@ class GTKStyleFactory extends SynthStyleFactory {
         return null;
     }
 
+
+    private GTKStyle getProgressBarStyle() {
+         if (_pbStyle == null) {
+             Color[] moColors = new Color[GTKColorType.MAX_COUNT];
+             Color[] normalColors = new Color[GTKColorType.MAX_COUNT];
+             moColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
+                 0x4B6983);
+             normalColors[GTKColorType.BACKGROUND.getID()] =
+                   new ColorUIResource(0xBAB5AB);
+             _pbStyle = new GTKStyle(new GTKStyle.GTKStateInfo[]
+                 { new GTKStyle.GTKStateInfo(SynthConstants.ENABLED, null, null,
+                                             null, normalColors, null),
+                   new GTKStyle.GTKStateInfo(SynthConstants.MOUSE_OVER, null, null,
+                                            null, moColors, null)
+                 }, null, null, GTKStyle.UNDEFINED_THICKNESS,
+                 GTKStyle.UNDEFINED_THICKNESS, null);
+         }
+         return _pbStyle;
+     }
+
+     private GTKStyle getMenuItemStyle() {
+         if (_menuItemStyle == null) {
+             Color[] moColors = new Color[GTKColorType.MAX_COUNT];
+             Color[] selectedColors = new Color[GTKColorType.MAX_COUNT];
+             moColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
+                 0x9db8d2);
+             moColors[GTKColorType.FOREGROUND.getID()] = GTKStyle.WHITE_COLOR;
+             moColors[GTKColorType.TEXT_FOREGROUND.getID()] =
+                                   new ColorUIResource(0xFFFFFF);
+             selectedColors[GTKColorType.TEXT_FOREGROUND.getID()] =
+                   new ColorUIResource(0xFFFFFF);
+             _menuItemStyle = new GTKStyle(new GTKStyle.GTKStateInfo[]
+                 {
+                   new GTKStyle.GTKStateInfo(SynthConstants.MOUSE_OVER, null, null,
+                                             null, moColors, null),
+                   new GTKStyle.GTKStateInfo(SynthConstants.SELECTED, null, null,
+                                             null, selectedColors, null),
+                 }, null, null, GTKStyle.UNDEFINED_THICKNESS,
+                 GTKStyle.UNDEFINED_THICKNESS, null);
+         }
+         return _menuItemStyle;
+    }
+
     private GTKStyle getToolTipStyle() {
         if (_tooltipStyle == null) {
             // PENDING: this should have a priority of gtk, but we don't
             // yet supported priority.
             Color[] ttColors = new Color[GTKColorType.MAX_COUNT];
+
+            if (GTKLookAndFeel.is2_2()) {
+                 ttColors[GTKColorType.BACKGROUND.getID()] =
+                                  new ColorUIResource(0xEEE1B3);
+                 ttColors[GTKColorType.FOREGROUND.getID()] =
+                                  new ColorUIResource(0x000000);
+             }
+             else {
+                 ttColors[GTKColorType.BACKGROUND.getID()] =
+                                  new ColorUIResource(0xFFFFC0);
+                 ttColors[GTKColorType.FOREGROUND.getID()] =
+                                  new ColorUIResource(0x000000);
+             }
             ttColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
                 0xFFFFC0);
             ttColors[GTKColorType.FOREGROUND.getID()] =  new ColorUIResource(

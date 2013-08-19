@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemView.java	1.41 03/02/17
+ * @(#)FileSystemView.java	1.43 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import sun.awt.shell.*;
  * Java Licensees may want to provide a different implementation of
  * FileSystemView to better handle a given operating system.
  *
- * @version 1.41 02/17/03
+ * @version 1.43 01/13/04
  * @author Jeff Dinkins
  */
 
@@ -137,7 +137,7 @@ public abstract class FileSystemView {
 	String name = null;
 	if (f != null) {
 	    name = f.getName();
-	    if (!name.equals("..") &&
+	    if (!name.equals("..") && !name.equals(".") &&
 		((f instanceof ShellFolder) ||
 		 f.exists())) {
 

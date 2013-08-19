@@ -1,7 +1,7 @@
 /*
- * @(#)ShutdownUtilDelegate.java	1.16 03/01/23
+ * @(#)ShutdownUtilDelegate.java	1.18 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.corba.se.internal.iiop;
@@ -36,7 +36,10 @@ public class ShutdownUtilDelegate extends com.sun.corba.se.internal.javax.rmi.CO
 
         try {
 	    org.omg.CORBA.portable.Delegate delegate = stub._get_delegate() ;
-	    return ((ClientSubcontract)delegate).useLocalInvocation( stub ) ;
+            if (delegate instanceof ClientSubcontract)
+	       return ((ClientSubcontract)delegate).useLocalInvocation( stub ) ;
+            else
+               return delegate.is_local( stub );
         } catch (SystemException e) {
             throw javax.rmi.CORBA.Util.mapSystemException(e);
         }

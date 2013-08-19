@@ -1,7 +1,7 @@
 /*
- * @(#)IIOPOutputStream.java	1.30 03/01/23
+ * @(#)IIOPOutputStream.java	1.33 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -91,8 +91,9 @@ public class IIOPOutputStream
      * @since     JDK1.1.6
      */
     public final void writeObjectDelegate(Object obj)
-    /* throws IOException */
+        throws IOException 
     {
+	writeUDOWI();
 	Util.writeAbstractObject((OutputStream)orbStream, obj);
     	//orbStream.write_value((java.io.Serializable)obj);
     }
@@ -155,6 +156,7 @@ public class IIOPOutputStream
     public final void defaultWriteObjectDelegate()
     /* throws IOException */
     {
+        UDOW = true;
         try {
 	    if (currentObject == null || currentClassDesc == null)
 		throw new NotActiveException("defaultWriteObjectDelegate");
@@ -242,7 +244,22 @@ public class IIOPOutputStream
 	    }
     }
 
+    boolean UDOWI_Pending = false;
+    boolean UDOW = true;
+    
+    private void writeUDOWI() throws IOException {
+        if (UDOWI_Pending) {
+            UDOWI_Pending = false;
+            try {
+		//System.out.println("write UDOWI: " + UDOW);
+                writeBoolean(UDOW);
+            } catch(Error e) {
+                throw new IOException(e.getMessage());
+            }
+        }
+    }
     public final void write(byte b[]) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_octet_array(b, 0, b.length);
         }
@@ -253,6 +270,7 @@ public class IIOPOutputStream
     }
 
     public final void write(byte b[], int off, int len) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_octet_array(b, off, len);
         }
@@ -263,6 +281,7 @@ public class IIOPOutputStream
     }
 
     public final void write(int data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_octet((byte)(data & 0xFF));
         }
@@ -273,6 +292,7 @@ public class IIOPOutputStream
     }
 
     public final void writeBoolean(boolean data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_boolean(data);
         }
@@ -283,6 +303,7 @@ public class IIOPOutputStream
     }
 
     public final void writeByte(int data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_octet((byte)data);
         }
@@ -293,6 +314,7 @@ public class IIOPOutputStream
     }
 
     public final void writeBytes(String data) throws IOException{
+        writeUDOWI();
         try{
             byte buf[] = data.getBytes();
             orbStream.write_octet_array(buf, 0, buf.length);
@@ -304,6 +326,7 @@ public class IIOPOutputStream
     }
 
     public final void writeChar(int data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_wchar((char)data);
         }
@@ -314,6 +337,7 @@ public class IIOPOutputStream
     }
 
     public final void writeChars(String data) throws IOException{
+        writeUDOWI();
         try{
             char buf[] = data.toCharArray();
             orbStream.write_wchar_array(buf, 0, buf.length);
@@ -325,6 +349,7 @@ public class IIOPOutputStream
     }
 
     public final void writeDouble(double data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_double(data);
         }
@@ -335,6 +360,7 @@ public class IIOPOutputStream
     }
 
     public final void writeFloat(float data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_float(data);
         }
@@ -345,6 +371,7 @@ public class IIOPOutputStream
     }
 
     public final void writeInt(int data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_long(data);
         }
@@ -355,6 +382,7 @@ public class IIOPOutputStream
     }
 
     public final void writeLong(long data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_longlong(data);
         }
@@ -365,6 +393,7 @@ public class IIOPOutputStream
     }
 
     public final void writeShort(int data) throws IOException{
+        writeUDOWI();
         try{
             orbStream.write_short((short)data);
         }
@@ -391,6 +420,7 @@ public class IIOPOutputStream
     }
 
     public final void writeUTF(String data) throws IOException{
+        writeUDOWI();
         try{
             internalWriteUTF(orbStream, data);
         }
@@ -512,19 +542,27 @@ public class IIOPOutputStream
 	throws IOException
     {
     	try {
-			
 	    // Write format version
 	    writeByte(kFormatVersionOne);
 
 	    // Write defaultWriteObject indicator
-	    // - We write this as false, but may have to go back and undo this if it is later called
-
-            // Changed to true since this is what will happen in most cases.  We still need
-            // to go back and fix this at some point.
-	    writeBoolean(true);
-
+            // we delay writing this indicator
+            // because until the object first start
+            // writing we dont know whether
+            // it uses defaultWriteObject or not.
+	    UDOWI_Pending = true;
+            UDOW = false;
+            // when the writeObject tries to write its
+            // first byte, we will intercept in the
+            // writeXXX method and write out the UDOWI flag
+            // if defaultWriteObject has been called before that,
+            // UDOWI will be overwritten to true
 	    writeObject(obj, c, this);
-
+            if (UDOWI_Pending) {
+                // this is only possible if the call to writeObject
+                // doesnt write anything. 
+                writeUDOWI();
+            }    
     	} catch (InvocationTargetException e) {
     	    Throwable t = e.getTargetException();
     	    if (t instanceof IOException)
@@ -542,6 +580,7 @@ public class IIOPOutputStream
     }
 
     void writeField(ObjectStreamField field, Object value) throws IOException {
+        writeUDOWI();
         switch (field.getTypeCode()) {
             case 'B':
                 if (value == null)
@@ -661,7 +700,7 @@ public class IIOPOutputStream
     private void outputClassFields(Object o, Class cl,
 				   ObjectStreamField[] fields)
 	throws IOException, InvalidClassException {
-
+        writeUDOWI();
     	for (int i = 0; i < fields.length; i++) {
     	    if (fields[i].getField() == null)
     		throw new InvalidClassException(cl.getName(),

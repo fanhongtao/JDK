@@ -1,7 +1,7 @@
 /*
- * @(#)SynthTreeUI.java	1.18 03/01/23
+ * @(#)SynthTreeUI.java	1.20 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -33,7 +33,7 @@ import javax.swing.text.Position;
  * renderer - <code>Tree.trailingLegBufferOffset</code>.
  * <p>
  *
- * @version 1.18, 01/23/03 (based on BasicTreeUI v 1.155)
+ * @version 1.20, 01/13/04 (based on BasicTreeUI v 1.155)
  * @author Scott Violet
  */
 class SynthTreeUI extends TreeUI implements PropertyChangeListener, SynthUI,
@@ -646,6 +646,10 @@ class SynthTreeUI extends TreeUI implements PropertyChangeListener, SynthUI,
 		("scrollRightChangeLead", SwingConstants.EAST, false, false));
 	map.put("scrollLeftChangeLead", new ScrollAndSelectAction
 		("scrollLeftChangeLead", SwingConstants.WEST, false, false));
+        
+        map.put("expand", new TreeExpandAction());
+        map.put("collapse", new TreeCollapseAction());
+        map.put("moveSelectionToParent", new TreeMoveSelectionToParentAction());
 
         map.put(TransferHandler.getCutAction().getValue(Action.NAME),
                 TransferHandler.getCutAction());
@@ -2244,6 +2248,33 @@ class SynthTreeUI extends TreeUI implements PropertyChangeListener, SynthUI,
 	}
     }
 
+    private class TreeExpandAction extends AbstractAction {
+        public void actionPerformed(ActionEvent e) {
+            int selRow = getLeadSelectionRow();
+            tree.expandRow(selRow); 
+        }
+    }
+
+    private class TreeCollapseAction extends AbstractAction {
+        public void actionPerformed(ActionEvent e) {
+            int selRow = getLeadSelectionRow(); 
+            tree.collapseRow(selRow);  
+        }
+    }
+
+    private class TreeMoveSelectionToParentAction extends AbstractAction {
+        public void actionPerformed(ActionEvent e) {
+            int selRow = getLeadSelectionRow();
+            TreePath path = getPathForRow(tree, selRow);
+            if (path != null && path.getPathCount() > 1) {
+                int  newIndex = getRowForPath(tree, path.getParentPath());
+                if (newIndex != -1) { 
+                    tree.setSelectionInterval(newIndex, newIndex);
+                    ensureRowsAreVisible(tree, newIndex, newIndex);
+                }
+            } 
+        }
+    }
 
     /**
      * Forwards all TreeModel events to the TreeState.

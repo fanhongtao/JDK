@@ -1,7 +1,7 @@
 /*
- * @(#)GTKPainter.java	1.55 03/05/05
+ * @(#)GTKPainter.java	1.58 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -12,7 +12,7 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 
 /**
- * @version 1.55, 05/05/03
+ * @version 1.58, 01/13/04
  * @author Joshua Outwater
  * @author Scott Violet
  */
@@ -23,7 +23,7 @@ import javax.swing.plaf.*;
 // focus-line-width: Integer giving size of focus border
 // focus-padding: Integer giving padding between border and focus
 //        indicator.
-// focus-line-pattern: 
+// focus-line-pattern:
 //
 class GTKPainter extends SynthPainter {
     static final GTKPainter INSTANCE = new GTKPainter();
@@ -225,7 +225,7 @@ class GTKPainter extends SynthPainter {
         if (id == Region.BUTTON || id == Region.TOGGLE_BUTTON
                 || id == Region.CHECK_BOX || id == Region.RADIO_BUTTON
                 || id == Region.ARROW_BUTTON || id == Region.TOGGLE_BUTTON
-                || id == Region.MENU 
+                || id == Region.MENU
                 || id == Region.MENU_ITEM
                 || id == Region.RADIO_BUTTON_MENU_ITEM
                 || id == Region.CHECK_BOX_MENU_ITEM) {
@@ -420,10 +420,10 @@ class GTKPainter extends SynthPainter {
         int shadowType;
 
         if (state == SynthConstants.PRESSED) {
-            shadowType = GTKConstants.SHADOW_OUT;
+            shadowType = GTKConstants.SHADOW_IN;
         }
         else {
-            shadowType = GTKConstants.SHADOW_IN;
+            shadowType = GTKConstants.SHADOW_OUT;
         }
         int direction = ((SynthArrowButton)context.getComponent()).
                         getDirection();
@@ -455,6 +455,10 @@ class GTKPainter extends SynthPainter {
                     detail = "vscrollbar";
                 }
             }
+        }
+        else if (name == "Spinner.nextButton" ||
+                name == "Spinner.previousButton") {
+            detail = "spinbutton";
         }
 
         // Note quite sure what their algorithm is, but this works pretty
@@ -492,7 +496,7 @@ class GTKPainter extends SynthPainter {
     }
 
     //
-    // CHECK_BUTTON 
+    // CHECK_BUTTON
     //
     private void paintCheckButtonBackground(SynthContext context,
                                             GTKEngine engine, Graphics g,
@@ -516,11 +520,16 @@ class GTKPainter extends SynthPainter {
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                 context.getRegion(), context.getComponentState());
         if ((context.getComponentState() & SynthConstants.MOUSE_OVER) != 0) {
+              if (GTKLookAndFeel.is2_2()) {
+                 engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_NONE,
+                                 "menuitem", x, y, w, h);
+             }
+             else {
             engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_OUT,
                 "menuitem", x, y, w, h);
+           }
         }
     }
-
 
     //
     // LIST
@@ -574,8 +583,14 @@ class GTKPainter extends SynthPainter {
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                 context.getRegion(), context.getComponentState());
         if (gtkState == SynthConstants.MOUSE_OVER) {
+            if (GTKLookAndFeel.is2_2()) {
+                 engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_NONE,
+                                 "menuitem", x, y, w, h);
+             }
+             else {
             engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_OUT,
                 "menuitem", x, y, w, h);
+            }
         }
     }
 
@@ -599,8 +614,14 @@ class GTKPainter extends SynthPainter {
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                 context.getRegion(), context.getComponentState());
         if ((context.getComponentState() & SynthConstants.MOUSE_OVER) != 0) {
-            engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_OUT,
-                "menuitem", x, y, w, h);
+             if (GTKLookAndFeel.is2_2()) {
+                 engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_NONE,
+                                 "menuitem", x, y, w, h);
+             }
+             else {
+                engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_OUT,
+                                "menuitem", x, y, w, h);
+             }
         }
     }
 
@@ -608,7 +629,7 @@ class GTKPainter extends SynthPainter {
         insets.left = insets.right = insets.top = insets.bottom = 2;
         return insets;
     }
-    
+
     private void paintPopupMenuBackground(SynthContext context,
                                         GTKEngine engine, Graphics g,
                                         int x, int y, int w, int h) {
@@ -641,8 +662,6 @@ class GTKPainter extends SynthPainter {
                                             GTKEngine engine, Graphics g,
                                             int x, int y, int w, int h) {
         GTKStyle style = (GTKStyle)context.getStyle();
-        w -= style.getXThickness();
-        h -= style.getYThickness();
         // Draw the trough.
         engine.paintBox(context, g, SynthConstants.ENABLED,
                             GTKConstants.SHADOW_IN, "trough", x, y, w, h);
@@ -654,7 +673,7 @@ class GTKPainter extends SynthPainter {
                                             int x, int y, int w, int h) {
         // Draw the actual progress of the progress bar.
         if (w != 0 || h != 0) {
-            engine.paintBox(context, g, SynthConstants.ENABLED,
+            engine.paintBox(context, g, SynthConstants.MOUSE_OVER,
                 GTKConstants.SHADOW_OUT, "bar", x, y, w, h);
         }
     }
@@ -765,19 +784,11 @@ class GTKPainter extends SynthPainter {
     private void paintSpinnerBackground(SynthContext context,
                                         GTKEngine engine, Graphics g,
                                         int x, int y, int w, int h) {
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(context.getRegion(),
-                context.getComponentState());
-        engine.paintBox(context, g, gtkState, GTKConstants.SHADOW_IN,
-            "spinbutton", x, y, w, h);
+        // This is handled in paintTextFieldBackground
     }
 
     private Insets getSpinnerInsets(SynthContext context, Insets insets) {
-        GTKStyle style = (GTKStyle)context.getStyle();
-        int xThickness = style.getXThickness();
-        int yThickness = style.getYThickness();
-        insets.top = insets.bottom = yThickness;
-        insets.right = 1;
-        insets.left = xThickness;
+        // Spinner's have no insets, the text field gets the insets.
         return insets;
     }
 
@@ -968,14 +979,18 @@ class GTKPainter extends SynthPainter {
         else {
             focusSize = 0;
         }
-        engine.paintFlatBoxText(context, g, SynthConstants.ENABLED, "entry_bg",
-               x + xThickness, y + yThickness, w - (2 * xThickness),
-               h - (2 * yThickness));
 
-        if (context.getComponent().getName() != "Spinner.formattedTextField") {
-            engine.paintShadow(context, g, SynthConstants.ENABLED,
-                           GTKConstants.SHADOW_IN, "entry", x, y, w, h);
-        }
+        engine.paintShadow(context, g, SynthConstants.ENABLED,
+                GTKConstants.SHADOW_IN, "entry", x, y, w, h);
+        g.setColor(style.getGTKColor(context.getComponent(),
+                context.getRegion(), SynthConstants.ENABLED,
+                GTKColorType.TEXT_BACKGROUND));
+        g.fillRect(x + xThickness, y + yThickness, w - (2 * xThickness),
+                h - (2 * yThickness));
+
+        engine.paintFlatBoxText(context, g, SynthConstants.ENABLED, "entry_bg",
+                x + xThickness, y + yThickness, w - (2 * xThickness),
+                h - (2 * yThickness));
 
         if (focusSize > 0) {
             x -= focusSize;

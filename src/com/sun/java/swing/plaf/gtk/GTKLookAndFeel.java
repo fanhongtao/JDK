@@ -1,7 +1,7 @@
 /*
- * @(#)GTKLookAndFeel.java	1.55 03/05/08
+ * @(#)GTKLookAndFeel.java	1.57 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -16,15 +16,41 @@ import javax.swing.plaf.*;
 import javax.swing.text.DefaultEditorKit;
 import java.io.IOException;
 
+import sun.security.action.GetPropertyAction;
 /**
- * @version 1.55, 05/08/03
+ * @version 1.57, 01/13/04
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
+    private static final boolean IS_22;
     /**
      * Font to use in places where there is no widget.
      */
     private Font fallbackFont;
+
+    static {
+          // Backup for specifying the version, this isn't currently documented.
+          // If you pass in anything but 2.2 you got the 2.0 colors/look.
+          String version = (String)java.security.AccessController.doPrivileged(
+                 new GetPropertyAction("swing.gtk.version"));
+          if (version != null) {
+              IS_22 = version.equals("2.2");
+          }
+          else {
+              IS_22 = true;
+          }
+      }
+
+      /**
+       * Returns true if running on system containing at least 2.2.
+      */
+      static boolean is2_2() {
+          // NOTE: We're currently hard coding to use 2.2.
+          // If we want to support both GTK 2.0 and 2.2, we'll
+          // need to get the major/minor/micro version from the .so.
+          // Refer to bug 4912613 for details.
+          return IS_22;
+      }
 
     /**
      * Maps a swing constant to a GTK constant.
@@ -45,7 +71,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
     }
 
     /**
-     * Maps from a Synth state to the corresponding GTK state. 
+     * Maps from a Synth state to the corresponding GTK state.
      * The GTK states are named differently than Synth's states, the
      * following gives the mapping:
      * <table><tr><td>Synth<td>GTK
@@ -213,7 +239,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 // 1 - environment variable GTK2_RC_FILES, which is colon
                 //     separated list of rc files or
                 // 2 - SYSCONFDIR/gtk-2.0/gtkrc and ~/.gtkrc-2.0
-                // 
+                //
                 // Additionally the default Theme file is parsed last. The default
                 // theme name comes from the desktop property gnome.Net/ThemeName
                 //     Default theme is looked for in ~/.themes/THEME/gtk-2.0/gtkrc
@@ -227,7 +253,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 // named gnome.Gtk/KeyThemeName.
 
                 // Try system property override first:
-                String filename = System.getProperty("swing.gtkthemefile");        
+                String filename = System.getProperty("swing.gtkthemefile");
                 if (filename == null || !parseThemeFile(filename, parser)) {
 	            // Try to load user's theme first
 	            String userHome = System.getProperty("user.home");
@@ -367,21 +393,21 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             if (splits.length != 2) {
                 return false;
             }
-            
+
             String size = splits[0].trim().intern();
             if (size.length() < 1) {
                 return false;
             }
 
             splits = splits[1].split(",");
-            
+
             if (splits.length != 2) {
                 return false;
             }
-            
+
             String width = splits[0].trim();
             String height = splits[1].trim();
-            
+
             if (width.length() < 1 || height.length() < 1) {
                 return false;
             }
@@ -405,7 +431,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 System.err.println("Invalid size in gtk-icon-sizes: " + w + "," + h);
             }
         }
-        
+
         return true;
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)LogManager.java	1.24 03/01/23
+ * @(#)LogManager.java	1.27 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -107,7 +107,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.24, 01/23/03
+ * @version 1.27, 01/13/04
  * @since 1.4
 */
 
@@ -141,11 +141,22 @@ public class LogManager {
 	AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
                     String cname = null;
+		    String contextLoading = null;
                     try {
                         cname = System.getProperty("java.util.logging.manager");
                         if (cname != null) {
-                            Class clz = ClassLoader.getSystemClassLoader().loadClass(cname);
-                            manager = (LogManager) clz.newInstance();
+			    try {
+                                Class clz = ClassLoader.getSystemClassLoader().loadClass(cname);
+                                manager = (LogManager) clz.newInstance();
+			    } catch (ClassNotFoundException ex) {
+				contextLoading = System.getProperty("java.util.logging.manager.altclassloader");
+				if (contextLoading != null) {
+				    Class clz = Thread.currentThread().getContextClassLoader().loadClass(cname);
+				    manager = (LogManager) clz.newInstance();
+				} else {
+				    throw ex;
+				}
+			    }
                         }
                     } catch (Exception ex) {
                         System.err.println("Could not load Logmanager \"" + cname + "\"");
@@ -454,14 +465,25 @@ public class LogManager {
 
 	// if a configuration class is specified, load it and use it.
 	String cname = System.getProperty("java.util.logging.config.class");
+	String contextLoadingConfig = System.getProperty("java.util.logging.manager.altclassloader");
 	if (cname != null) {
 	    try {
 		// Instantiate the named class.  It its contructor's
 		// repsonsibility to initialize the logging configuration, by
 		// calling readConfiguration(InputStream) with a suitable stream.
-		Class clz = ClassLoader.getSystemClassLoader().loadClass(cname);
-		clz.newInstance();
-		return;
+		try {	
+		    Class clz = ClassLoader.getSystemClassLoader().loadClass(cname);
+		    clz.newInstance();
+		    return;
+		} catch (ClassNotFoundException ex) {
+			   if (null != contextLoadingConfig) {	
+		    		Class clz = Thread.currentThread().getContextClassLoader().loadClass(cname);
+		    		clz.newInstance();
+				return;
+			    }else {
+				throw ex;
+			    }
+		}
 	    } catch (Exception ex) {
 	        System.err.println("Logging configuration class \"" + cname + "\" failed");
 	        System.err.println("" + ex);	    

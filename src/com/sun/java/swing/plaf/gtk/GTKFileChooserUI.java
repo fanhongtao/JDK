@@ -1,7 +1,7 @@
 /*
- * @(#)GTKFileChooserUI.java	1.10 03/05/05
+ * @(#)GTKFileChooserUI.java	1.19 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -12,6 +12,7 @@ import java.beans.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 
 import javax.swing.*;
@@ -19,6 +20,7 @@ import javax.swing.border.*;
 import javax.swing.filechooser.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
+import javax.swing.plaf.basic.BasicDirectoryModel;
 import javax.swing.table.*;
 
 /**
@@ -34,6 +36,10 @@ class GTKFileChooserUI extends SynthFileChooserUI {
     private JPanel accessoryPanel = null;
 
     private String newFolderButtonText = null;
+    private String newFolderErrorSeparator = null;
+    private String newFolderErrorText = null;
+    private String newFolderDialogText = null;
+
     private String deleteFileButtonText = null;
     private String renameFileButtonText = null;
 
@@ -45,7 +51,10 @@ class GTKFileChooserUI extends SynthFileChooserUI {
     private int deleteFileButtonMnemonic = 0;
     private int renameFileButtonMnemonic = 0;
 
-
+    private String renameFileDialogText = null; 
+    private String renameFileErrorTitle = null;
+    private String renameFileErrorText = null; 
+ 
 
     // From Motif
 
@@ -84,14 +93,52 @@ class GTKFileChooserUI extends SynthFileChooserUI {
     private DirectoryComboBoxModel directoryComboBoxModel;
     private Action directoryComboBoxAction = new DirectoryComboBoxAction();
     private JPanel bottomButtonPanel;
-
-
+    private GTKDirectoryModel model = null;
+    private Action newFolderAction;
+    private boolean readOnly;
+    private Action approveSelectionAction = new GTKApproveSelectionAction();
+    
     public String getFileName() {
-	if (fileNameTextField != null) {
-	    return fileNameTextField.getText();
-	} else {
-	    return null;
-	}
+        JFileChooser fc = getFileChooser();
+        String typedInName = fileNameTextField != null ?
+                                 fileNameTextField.getText() : null;
+        
+        if (!fc.isMultiSelectionEnabled()) {
+            return typedInName; 
+        }
+        
+        int mode = fc.getFileSelectionMode();
+        JList list = mode == JFileChooser.DIRECTORIES_ONLY ?
+                                 directoryList : fileList;
+        Object[] files = list.getSelectedValues();
+        int len = files.length;
+        Vector result = new Vector(len + 1);
+        
+        // we return all selected file names
+        for (int i = 0; i < len; i++) {
+            File file = (File)files[i];
+            result.add(file.getName());
+        }
+        // plus the file name typed into the text field, if not already there
+        if (typedInName != null && !result.contains(typedInName)) {
+            result.add(typedInName);
+        }
+        
+        StringBuffer buf = new StringBuffer();
+        len = result.size();
+        
+        // construct the resulting string
+        for (int i=0; i<len; i++) {
+            if (len > 1) {
+                buf.append(" \"");
+            }
+            buf.append(result.get(i));
+            if (len > 1) {
+                buf.append("\"");
+            }
+        }
+        
+        return buf.toString();
     }
 
     public void setFileName(String fileName) {
@@ -113,7 +160,7 @@ class GTKFileChooserUI extends SynthFileChooserUI {
     }
 
     public void rescanCurrentDirectory(JFileChooser fc) {
-	// PENDING
+	getModel().validateFileCache();
     }
 
     protected JPanel getAccessoryPanel() {
@@ -249,8 +296,12 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 			// That's ok, we'll use f as is
 		    }
 		    if (getFileChooser().isTraversable(f)) {
-			list.clearSelection();
-			getFileChooser().setCurrentDirectory(f);
+                        list.clearSelection();
+                        if (getFileChooser().getCurrentDirectory().equals(f)){
+                            rescanCurrentDirectory(getFileChooser());
+                        } else {
+                            getFileChooser().setCurrentDirectory(f);
+                        }
 		    } else {
 			getFileChooser().approveSelection();
 		    }
@@ -371,7 +422,9 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	deleteFileButton.setEnabled(false);
 	topButtonPanel.add(deleteFileButton);
 
-	JButton renameFileButton = new JButton(renameFileButtonText);
+        RenameFileAction rfa = new RenameFileAction();
+        JButton renameFileButton = new JButton(rfa);
+        renameFileButton.setText(renameFileButtonText); 
 	renameFileButton.setName("GTKFileChooser.renameFileButton");
 	renameFileButton.setMnemonic(renameFileButtonMnemonic);
 	renameFileButton.setToolTipText(renameFileButtonToolTipText);
@@ -515,19 +568,22 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 
 	// add the fileName field
 	fileNameTextField = new JTextField() {
-	    public boolean isManagingFocus() {
-		return true;
-	    }
-
 	    public Dimension getMaximumSize() {
 		Dimension d = super.getMaximumSize();
 		d.height = getPreferredSize().height;
 		return d;
 	    }
 	};
+        
+        Set forwardTraversalKeys = fileNameTextField.getFocusTraversalKeys(
+            KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS);
+        forwardTraversalKeys = new HashSet(forwardTraversalKeys);
+        forwardTraversalKeys.remove(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0));
+        fileNameTextField.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, forwardTraversalKeys);
+
 	fileNameTextField.setName("GTKFileChooser.fileNameTextField");
 	fileNameTextField.getActionMap().put("fileNameCompletionAction", getFileNameCompletionAction());
-	fileNameTextField.getInputMap().put(KeyStroke.getKeyStroke('\t'), "fileNameCompletionAction");
+	fileNameTextField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), "fileNameCompletionAction");
 	interior.add(fileNameTextField);
 
 	// Add buttons
@@ -548,11 +604,19 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	fc.add(bottomButtonPanel, BorderLayout.SOUTH);
     }
 
+    protected void installDefaults(JFileChooser jFileChooser) {
+        super.installDefaults(jFileChooser);
+        readOnly = UIManager.getBoolean("FileChooser.readOnly");
+    }
+
     protected void installStrings(JFileChooser fc) {
 	super.installStrings(fc);
 
         Locale l = fc.getLocale();
 
+        newFolderDialogText = UIManager.getString("FileChooser.newFolderDialogText", l);
+        newFolderErrorText = UIManager.getString("FileChooser.newFolderErrorText",l);
+        newFolderErrorSeparator = UIManager.getString("FileChooser.newFolderErrorSeparator",l);
 	newFolderButtonText = UIManager.getString("FileChooser.newFolderButtonText", l);
 	deleteFileButtonText = UIManager.getString("FileChooser.deleteFileButtonText", l);
 	renameFileButtonText = UIManager.getString("FileChooser.renameFileButtonText", l);
@@ -564,6 +628,10 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	newFolderButtonToolTipText = UIManager.getString("FileChooser.newFolderButtonToolTipText", l);
 	deleteFileButtonToolTipText = UIManager.getString("FileChooser.deleteFileButtonToolTipText", l);
 	renameFileButtonToolTipText = UIManager.getString("FileChooser.renameFileButtonToolTipText", l);
+
+        renameFileDialogText = UIManager.getString("FileChooser.renameFileDialogText", l); 
+        renameFileErrorTitle = UIManager.getString("FileChooser.renameFileErrorTitle", l);
+        renameFileErrorText = UIManager.getString("FileChooser.renameFileErrorText", l);
 
 	foldersLabelText = UIManager.getString("FileChooser.foldersLabelText",l);
 	filesLabelText = UIManager.getString("FileChooser.filesLabelText",l);
@@ -582,6 +650,10 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	newFolderButtonToolTipText = null;
 	deleteFileButtonToolTipText = null;
 	renameFileButtonToolTipText = null;
+
+        renameFileDialogText = null; 
+        renameFileErrorTitle = null; 
+        renameFileErrorText = null; 
 
 	foldersLabelText = null;
 	filesLabelText = null;
@@ -630,30 +702,67 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	return scrollpane;
     }
 
+    protected void createModel() {
+        model = new GTKDirectoryModel();
+    }
+
+    public BasicDirectoryModel getModel() {
+        return model;
+    }
+
+    public Action getApproveSelectionAction() {
+        return approveSelectionAction;
+    }
+
+    private class GTKDirectoryModel extends BasicDirectoryModel {
+        FileSystemView fsv;
+        private Comparator fileComparator = new Comparator() {
+            public int compare(Object o, Object o1) {
+                return fsv.getSystemDisplayName((File) o).compareTo
+                      (fsv.getSystemDisplayName((File) o1));
+            }
+        };
+
+        public GTKDirectoryModel() {
+            super(getFileChooser());
+        }
+
+        protected void sort(Vector v) {
+            fsv = getFileChooser().getFileSystemView();
+            Collections.sort(v, fileComparator);
+        }
+    }
+
     protected class GTKDirectoryListModel extends AbstractListModel implements ListDataListener {
+        File curDir;
 	public GTKDirectoryListModel() {
 	    getModel().addListDataListener(this);
 	}
 
 	public int getSize() {
-	    return getModel().getDirectories().size();
+	    return getModel().getDirectories().size() + 1;
 	}
 
 	public Object getElementAt(int index) {
-	    return getModel().getDirectories().elementAt(index);
+            return index > 0 ? getModel().getDirectories().elementAt(index - 1):
+                    curDir;
 	}
 
 	public void intervalAdded(ListDataEvent e) {
+            fireContentsChanged();
 	}
 
 	// PENDING - implement
 	public void intervalRemoved(ListDataEvent e) {
+            fireContentsChanged();
 	}
 
 	// PENDING - this is inefficient - should sent out
 	// incremental adjustment values instead of saying that the
 	// whole list has changed.
 	public void fireContentsChanged() {
+            curDir = getFileChooser().getFileSystemView().createFileObject(
+                    getFileChooser().getCurrentDirectory(), ".");
 	    fireContentsChanged(this, 0, getModel().getDirectories().size()-1);
 	}
 
@@ -687,10 +796,11 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	}
 
 	public void intervalAdded(ListDataEvent e) {
+            fireContentsChanged();
 	}
 
-	// PENDING - implement
 	public void intervalRemoved(ListDataEvent e) {
+            fireContentsChanged();
 	}
 
 	// PENDING - this is inefficient - should sent out
@@ -716,6 +826,19 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	    setText(getFileChooser().getName((File) value));
 	    return this;
 	}
+
+        public boolean isOpaque() { 
+            Color back = getBackground();
+            Component p = getParent(); 
+            if (p != null) { 
+                p = p.getParent(); 
+            }
+            // p should now be the JList. 
+            boolean colorMatch = (back != null) && (p != null) && 
+                back.equals(p.getBackground()) && 
+                            p.isOpaque();
+            return !colorMatch && super.isOpaque(); 
+        }
     }
 
     protected class DirectoryCellRenderer extends DefaultListCellRenderer  {
@@ -726,6 +849,19 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	    setText(getFileChooser().getName((File) value) + "/");
 	    return this;
 	}
+
+        public boolean isOpaque() { 
+            Color back = getBackground();
+            Component p = getParent(); 
+            if (p != null) { 
+                p = p.getParent(); 
+            }
+            // p should now be the JList. 
+            boolean colorMatch = (back != null) && (p != null) && 
+                back.equals(p.getBackground()) && 
+                            p.isOpaque();
+            return !colorMatch && super.isOpaque(); 
+        }
     }
 
     public Dimension getPreferredSize(JComponent c) {
@@ -758,6 +894,14 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 
     protected DirectoryComboBoxRenderer createDirectoryComboBoxRenderer(JFileChooser fc) {
 	return new DirectoryComboBoxRenderer();
+    }
+
+    public Action getNewFolderAction() {
+        if (newFolderAction == null) {
+            newFolderAction = new NewFolderAction();
+            newFolderAction.setEnabled(!readOnly);
+        }
+        return newFolderAction;
     }
 
     //
@@ -878,4 +1022,94 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	}
     }
 
+    /**
+     * Creates a new folder.
+     */
+    private class NewFolderAction extends AbstractAction {
+        protected NewFolderAction() {
+            super("New Folder");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (readOnly) {
+                return;
+            }
+            JFileChooser fc = getFileChooser();
+            File currentDirectory = fc.getCurrentDirectory();
+            String dirName = (String) JOptionPane.showInputDialog(fc, 
+                    newFolderDialogText, newFolderButtonText, 
+                    JOptionPane.PLAIN_MESSAGE);
+            
+            if (dirName != null) {
+                File newDir = fc.getFileSystemView().createFileObject
+                        (currentDirectory, dirName);
+                if (newDir == null || !newDir.mkdir()) {
+                    JOptionPane.showMessageDialog(fc,
+                            newFolderErrorText + newFolderErrorSeparator + " \"" + 
+                            dirName + "\"",
+                            newFolderErrorText, JOptionPane.ERROR_MESSAGE);
+                }
+                fc.rescanCurrentDirectory();
+            }
+        }
+    }
+
+    private class GTKApproveSelectionAction extends ApproveSelectionAction {
+        public void actionPerformed(ActionEvent e) {
+            if (isDirectorySelected()) {
+                File dir = getDirectory();
+                try {
+                    if (dir != null) {
+                        dir = dir.getCanonicalFile();
+                    }
+                    // Strip trailing ".."
+                } catch (IOException ex) {
+                    // Ok, use f as is
+                }
+                if (getFileChooser().getCurrentDirectory().equals(dir)) {
+                    directoryList.clearSelection();
+                    rescanCurrentDirectory(getFileChooser());
+                    return;
+                }
+            }
+            super.actionPerformed(e);
+        }
+    }
+
+    /**
+     * Renames file
+     */
+    private class RenameFileAction extends AbstractAction {
+        protected RenameFileAction() {
+            super("editFileName");
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (getFileName().equals("") || readOnly) {
+                return;
+            }
+            JFileChooser fc = getFileChooser();
+            File currentDirectory = fc.getCurrentDirectory();
+            String newFileName = (String) JOptionPane.showInputDialog
+                   (fc, new MessageFormat(renameFileDialogText).format
+                           (new Object[] { getFileName() }),
+                           renameFileButtonText, JOptionPane.PLAIN_MESSAGE, null, null,
+                           getFileName());
+            
+            if (newFileName != null) {
+                File oldFile = fc.getFileSystemView().createFileObject
+                        (currentDirectory, getFileName());
+                File newFile = fc.getFileSystemView().createFileObject
+                        (currentDirectory, newFileName);
+                if (oldFile == null || newFile == null || 
+                        !getModel().renameFile(oldFile, newFile)) {
+                    JOptionPane.showMessageDialog(fc,
+                            new MessageFormat(renameFileErrorText).
+                            format(new Object[] { getFileName(), newFileName}),
+                            renameFileErrorTitle, JOptionPane.ERROR_MESSAGE);
+                } else {
+                    setFileName(getFileChooser().getName(newFile));
+                    fc.rescanCurrentDirectory();
+                }
+            }
+        }
+    }
 }

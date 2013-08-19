@@ -198,14 +198,17 @@ public class Parser2
     private boolean disallowDoctypeDecl = false ;    
     private String propertyEntityExpansionLimit = null;
     private String propertyDisallowDoctypeDecl = null ;
+    private String propertyElementAttributeLimit = null;
     
     //restricting entity expansions
     //set this value to zero, initially no entity is expanded
     private int entityExpansionCount = 0 ;
     //this can be set to any arbitrary value, it would be reset by the value obtained from system property.
     private int entityExpansionLimit = -1 ;
+    private int elementAttributeLimit = -1;
 
     private static final int DEFAULT_ENTITY_EXPANSION_LIMIT = 64000 ;
+    private static final int DEFAULT_ELEMENT_ATTRIBUTE_LIMIT = 10000;
     
     // Compile time option:  disable validation support for a better
     // fit in memory-critical environments (P-Java etc).  Doing that
@@ -223,6 +226,7 @@ public class Parser2
     // system properties
     static final String SYSTEM_PROPERTY_ENTITY_EXPANSION_LIMIT = "entityExpansionLimit" ;
     static final String SYSTEM_PROPERTY_DISALLOW_DOCTYPE_DECL = "disallowDoctypeDecl" ;
+    static final String SYSTEM_PROPERTY_ELEMENT_ATTRIBUTE_LIMIT = "elementAttributeLimit";
     
     static final boolean SECURITY_DEBUG = false ;
 
@@ -449,9 +453,14 @@ public class Parser2
         if(entityExpansionLimit < 0){
             entityExpansionLimit = DEFAULT_ENTITY_EXPANSION_LIMIT ;
         }
+        //if there is no limit set by the application.. set the default element attribute limit to DEFAULT_ELEMENT_ATTRIBUTE_LIMIT
+        if(elementAttributeLimit < 0){
+            elementAttributeLimit  = DEFAULT_ELEMENT_ATTRIBUTE_LIMIT;
+        }
         if(SECURITY_DEBUG){ 
             System.out.println(" Entity expansion limit in effect = " + entityExpansionLimit );
             System.out.println(" DisallowDoctypeDecl in effect = " + disallowDoctypeDecl );
+            System.out.println(" Element Attribute limit in effect = " + elementAttributeLimit );
         }
         
     }//init()
@@ -485,9 +494,24 @@ public class Parser2
             //This exception can happen in case we are running as an applet
         }
 
+        //SYSTEM PROPERTY ELEMENT ATTRIBUTE LIMIT
+	//get the value of elementAttributeLimit from system property
+	//put this code in doPriviliged block so it can still be executed if the caller have less privileges
+	try {
+            propertyElementAttributeLimit = (String) AccessController.doPrivileged( new PrivilegedAction(){
+		public Object run(){
+                    return System.getProperty(SYSTEM_PROPERTY_ELEMENT_ATTRIBUTE_LIMIT);
+		}
+            });
+
+	} catch ( SecurityException se ) {
+            //This exception can happen in case we are running as an applet
+	}
+
         if(SECURITY_DEBUG){
             System.out.println(" ENTITY_EXPANSION_LIMIT SET FROM SYSTEM PROPERTY = " + propertyEntityExpansionLimit );
             System.out.println(" DISALLOW_DOCTYPE_DECL SET FROM SYSTEM PROPERTY = " + propertyDisallowDoctypeDecl );
+            System.out.println(" ELEMENT_ATTRIBUT_LIMIT SET FROM SYSTEM PROPERTY = " + propertyElementAttributeLimit );
         }
         
         //if either of the value is not set.. try to get the value from jaxp.properties file.. 
@@ -543,6 +567,15 @@ public class Parser2
         if(propertyDisallowDoctypeDecl != null && (propertyDisallowDoctypeDecl.equals("true") || propertyDisallowDoctypeDecl.equals("TRUE"))){
             disallowDoctypeDecl = true;
         }    
+
+        //get the value of elementAttributeLimit
+        try{
+            if(propertyElementAttributeLimit != null){
+                elementAttributeLimit = Integer.parseInt(propertyElementAttributeLimit);
+            }
+        }catch(NumberFormatException nfe){
+            //ignore the exception..
+	}
         
         
     }//getSecurityConstraintValues()
@@ -1503,8 +1536,12 @@ public class Parser2
 
         // Each pass through this loop reads
         //      Name eq AttValue S?
-        // Loop exits on ">", "/>", or error
-        for (;;) {
+        // Loop exits on ">", "/>", error, or when the elementAttributeLimit has been reached
+        for (int attributeCount = 0 ; ; attributeCount++ ) {
+            if (attributeCount > elementAttributeLimit ){
+                fatal ("P-087", new Object[] {new Integer(elementAttributeLimit)}); 
+            }
+
             if (in.peekc ('>'))
                 break;
 
