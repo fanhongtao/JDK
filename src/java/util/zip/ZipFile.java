@@ -1,5 +1,5 @@
 /*
- * @(#)ZipFile.java	1.62 04/12/09
+ * @(#)ZipFile.java	1.63 05/03/15
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import java.security.AccessController;
 /**
  * This class is used to read entries from a zip file.
  *
- * @version   1.62, 12/09/04 
+ * @version   1.63, 03/15/05
  * @author	David Connelly
  */
 public
@@ -35,19 +35,18 @@ class ZipFile implements ZipConstants {
      * Mode flag to open a zip file for reading.
      */
     public static final int OPEN_READ = 0x1;
-        
+
     /**
      * Mode flag to open a zip file and mark it for deletion.  The file will be
      * deleted some time between the moment that it is opened and the moment
      * that it is closed, but its contents will remain accessible via the
-     * <tt>ZipFile</tt> object until either the close method is invoked or the 
+     * <tt>ZipFile</tt> object until either the close method is invoked or the
      * virtual machine exits.
      */
     public static final int OPEN_DELETE = 0x4;
-    
+
     static {
-	AccessController.doPrivileged(
-			  new sun.security.action.LoadLibraryAction("zip"));
+	/* zip library is loaded by java.lang.System */
 	initIDs();
     }
 
@@ -55,16 +54,16 @@ class ZipFile implements ZipConstants {
 
     /**
      * Opens a zip file for reading.
-     * 
+     *
      * <p>First, if there is a security
      * manager, its <code>checkRead</code> method
      * is called with the <code>name</code> argument
      * as its argument to ensure the read is allowed.
-     * 
+     *
      * @param name the name of the zip file
      * @exception ZipException if a ZIP format error has occurred
      * @exception IOException if an I/O error has occurred
-     * @exception  SecurityException  if a security manager exists and its  
+     * @exception  SecurityException  if a security manager exists and its
      *             <code>checkRead</code> method doesn't allow read access to the file.
      * @see SecurityManager#checkRead(java.lang.String)
      */
@@ -78,7 +77,7 @@ class ZipFile implements ZipConstants {
      * Opens a new <code>ZipFile</code> to read from the specified
      * <code>File</code> object in the specified mode.  The mode argument
      * must be either <tt>OPEN_READ</tt> or <tt>OPEN_READ | OPEN_DELETE</tt>.
-     * 
+     *
      * <p>First, if there is a security manager, its <code>checkRead</code>
      * method is called with the <code>name</code> argument as its argument to
      * ensure the read is allowed.
@@ -87,7 +86,7 @@ class ZipFile implements ZipConstants {
      * @param mode the mode in which the file is to be opened
      * @exception ZipException if a ZIP format error has occurred
      * @exception IOException if an I/O error has occurred
-     * @exception  SecurityException  if a security manager exists and its  
+     * @exception  SecurityException  if a security manager exists and its
      *             <code>checkRead</code> method doesn't allow read access to the file,
      *             or <code>checkDelete</code> method doesn't allow deleting the file
      *             when <tt>OPEN_DELETE</tt> flag is set.
@@ -96,9 +95,9 @@ class ZipFile implements ZipConstants {
      * @see SecurityManager#checkRead(java.lang.String)
      */
     public ZipFile(File file, int mode) throws IOException {
-        if (((mode & OPEN_READ) == 0) || 
+        if (((mode & OPEN_READ) == 0) ||
             ((mode & ~(OPEN_READ | OPEN_DELETE)) != 0)) {
-            throw new IllegalArgumentException("Illegal mode: 0x"+ 
+            throw new IllegalArgumentException("Illegal mode: 0x"+
                                                Integer.toHexString(mode));
         }
         String name = file.getPath();
@@ -160,7 +159,7 @@ class ZipFile implements ZipConstants {
 
     private static native long getEntry(long jzfile, String name);
 
-    // freeEntry releases the C jzentry struct.  
+    // freeEntry releases the C jzentry struct.
     private static native void freeEntry(long jzfile, long jzentry);
 
     /**
@@ -170,7 +169,7 @@ class ZipFile implements ZipConstants {
      * Returns an input stream for reading the contents of the specified
      * zip file entry.
      *
-     * <p> Closing this ZIP file will, in turn, close all input 
+     * <p> Closing this ZIP file will, in turn, close all input
      * streams that have been returned by invocations of this method.
      *
      * @param entry the zip file entry
@@ -212,7 +211,7 @@ class ZipFile implements ZipConstants {
 	    if (size <= 0) size = 4096;
 	    return new InflaterInputStream(zfin, getInflater(), size) {
 		private boolean isClosed = false;
-                
+
 		public void close() throws IOException {
                     if (!isClosed) {
                          releaseInflater(inf);
@@ -380,12 +379,12 @@ class ZipFile implements ZipConstants {
      * called when there are no more references to it.
      *
      * <p>
-     * Since the time when GC would invoke this method is undetermined, 
-     * it is strongly recommanded that applications invoke the <code>close</code> 
+     * Since the time when GC would invoke this method is undetermined,
+     * it is strongly recommanded that applications invoke the <code>close</code>
      * method as soon they have finished accessing this <code>ZipFile</code>.
-     * This will prevent holding up system resources for an undetermined 
+     * This will prevent holding up system resources for an undetermined
      * length of time.
-     * 
+     *
      * @exception  IOException  if an I/O error occurs.
      * @see        java.util.zip.ZipFile#close()
      */
@@ -400,9 +399,9 @@ class ZipFile implements ZipConstants {
 	    throw new IllegalStateException("zip file closed");
 	}
     }
-	
+
     /*
-     * Inner class implementing the input stream used to read a 
+     * Inner class implementing the input stream used to read a
      * (possible compressed) zip file entry.
      */
     private class ZipFileInputStream extends InputStream {
@@ -411,7 +410,7 @@ class ZipFile implements ZipConstants {
 	private int rem;	// number of remaining bytes within entry
         private int size;       // uncompressed size of this entry
         private ZipFile handle; // this would prevent the zip file from being GCed
-       
+
 	ZipFileInputStream(long jzentry, ZipFile zf) {
 	    pos = 0;
 	    rem = getCSize(jzentry);
@@ -491,7 +490,7 @@ class ZipFile implements ZipConstants {
     private static native int getCSize(long jzentry);
 
     private static native int getSize(long jzentry);
-    
+
     // Temporary add on for bug troubleshooting
     private static native String getZipMessage(long jzfile);
 }

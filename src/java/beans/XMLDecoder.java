@@ -1,7 +1,7 @@
 /*
- * @(#)XMLDecoder.java	1.20 03/01/23
+ * @(#)XMLDecoder.java	1.22 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -80,7 +80,6 @@ public class XMLDecoder {
         this.in = in;  
         setOwner(owner);  
         setExceptionListener(exceptionListener); 
-        Statement.setCaching(true); 
         SAXParserFactory factory = SAXParserFactory.newInstance();
         try {
            SAXParser saxParser = factory.newSAXParser();
@@ -104,12 +103,12 @@ public class XMLDecoder {
      * with this stream. 
      */
     public void close() { 
-        Statement.setCaching(false); 
-        try { 
-            in.close(); 
-        } 
-        catch (IOException e) { 
-            getExceptionListener().exceptionThrown(e); 
+	if (in != null) {
+            try { 
+                in.close(); 
+            } catch (IOException e) { 
+                getExceptionListener().exceptionThrown(e); 
+            }
         }
     }
     
@@ -134,7 +133,8 @@ public class XMLDecoder {
      * @see #setExceptionListener
      */ 
     public ExceptionListener getExceptionListener() { 
-        return (exceptionListener != null) ? exceptionListener : Statement.defaultExceptionListener;
+        return (exceptionListener != null) ? exceptionListener :  
+            Statement.defaultExceptionListener; 
     } 
     
     /** 
@@ -142,7 +142,8 @@ public class XMLDecoder {
      *
      * @return the next object read
      *
-     * @throws ArrayIndexOutOfBoundsException if the stream contains no objects (or no more objects)
+     * @throws ArrayIndexOutOfBoundsException if the stream contains no objects
+     *         (or no more objects) 
      *
      * @see XMLEncoder#writeObject
      */ 
@@ -223,6 +224,35 @@ class MutableExpression extends Expression {
 }
 
 class ObjectHandler extends HandlerBase {
+
+    public static Class typeNameToClass(String typeName) {
+      typeName = typeName.intern();
+      if (typeName == "boolean") return Boolean.class;
+      if (typeName == "byte") return Byte.class;
+      if (typeName == "char") return Character.class;
+      if (typeName == "short") return Short.class;
+      if (typeName == "int") return Integer.class;
+      if (typeName == "long") return Long.class;
+      if (typeName == "float") return Float.class;
+      if (typeName == "double") return Double.class;
+      if (typeName == "void") return Void.class;
+      return null;
+    }
+
+    public static Class typeNameToPrimitiveClass(String typeName) {
+      typeName = typeName.intern();
+      if (typeName == "boolean") return boolean.class;
+      if (typeName == "byte") return byte.class;
+      if (typeName == "char") return char.class;
+      if (typeName == "short") return short.class;
+      if (typeName == "int") return int.class;
+      if (typeName == "long") return long.class;
+      if (typeName == "float") return float.class;
+      if (typeName == "double") return double.class;
+      if (typeName == "void") return void.class;
+      return null;
+    }
+
     private Hashtable environment; 
     private Vector expStack; 
     private StringBuffer chars; 
@@ -273,7 +303,7 @@ class ObjectHandler extends HandlerBase {
     }
     
     private boolean isPrimitive(String name) { 
-        return name != "void" && Statement.typeNameToClass(name) != null;
+        return name != "void" && typeNameToClass(name) != null;
     }
     
     private void simulateException(String message) { 
@@ -281,10 +311,19 @@ class ObjectHandler extends HandlerBase {
     	e.fillInStackTrace(); 
         is.getExceptionListener().exceptionThrown(e); 
     } 
-	
-    private Class classForName(String name) { 
+
+    static Class classForName(String name) throws ClassNotFoundException { 
+      Class primitiveType = typeNameToPrimitiveClass(name);
+      if (primitiveType != null) {
+          return primitiveType;
+      }
+      return Class.forName(name, false,
+			   Thread.currentThread().getContextClassLoader());
+    }
+
+    private Class classForName2(String name) { 
         try { 
-            return Statement.classForName(name); 
+            return classForName(name); 
         }
         catch (ClassNotFoundException e) { 
             is.getExceptionListener().exceptionThrown(e);
@@ -319,7 +358,7 @@ class ObjectHandler extends HandlerBase {
         // Target
         String className = (String)attributes.get("class"); 
         if (className != null) {
-            e.setTarget(classForName(className));
+            e.setTarget(classForName2(className));
         } 
         
         // Property
@@ -347,7 +386,7 @@ class ObjectHandler extends HandlerBase {
     	else if (name == "array") { 
             // The class attribute means sub-type for arrays. 
             String subtypeName = (String)attributes.get("class"); 
-            Class subtype = (subtypeName == null) ? Object.class : classForName(subtypeName); 
+            Class subtype = (subtypeName == null) ? Object.class : classForName2(subtypeName); 
             String length = (String)attributes.get("length"); 
             if (length != null) { 
                 e.setTarget(java.lang.reflect.Array.class); 
@@ -439,11 +478,11 @@ class ObjectHandler extends HandlerBase {
             return; 
         }
         if (name == "class") { 
-            addArg(classForName(chars.toString())); 
+            addArg(classForName2(chars.toString())); 
             return; 
         }
         if (isPrimitive(name)) { 
-            Class wrapper = Expression.typeNameToClass(name); 
+            Class wrapper = typeNameToClass(name); 
             Expression e = new Expression(wrapper, "new", new Object[]{chars.toString()}); 
             addArg(getValue(e)); 
             return; 

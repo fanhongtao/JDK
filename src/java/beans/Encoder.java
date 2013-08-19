@@ -1,7 +1,7 @@
 /*
- * @(#)Encoder.java	1.16 03/01/27
+ * @(#)Encoder.java	1.18 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -27,10 +27,10 @@ import java.util.*;
  */
         
 public class Encoder { 
-    private HashMap bindings = new IdentityHashtable(); 
+    private Map bindings = new IdentityHashMap(); 
     private ExceptionListener exceptionListener; 
     boolean executeStatements = true; 
-    private HashMap attributes;
+    private Map attributes;
 
     /** 
      * Write the specified object to the output stream. 
@@ -47,7 +47,6 @@ public class Encoder {
      * @see XMLDecoder#readObject
      */ 
     protected void writeObject(Object o) { 
-    	// System.out.println("Encoder::writeObject: " + NameGenerator.instanceName(o));
     	if (o == this) { 
     	    return; 
         }
@@ -88,17 +87,7 @@ public class Encoder {
             throw new RuntimeException("failed to evaluate: " + exp.toString()); 
         }
     }
-        
-    void execute(Statement smt) { 
-        try { 
-            smt.execute(); 
-        }
-        catch (Exception e) { 
-            getExceptionListener().exceptionThrown(e); 
-            getExceptionListener().exceptionThrown(new Exception("discarding statement " + smt)); 
-        }
-    }
-        
+
     /**
      * Returns the persistence delegate for the given type. 
      * The persistence delegate is calculated 
@@ -179,7 +168,8 @@ public class Encoder {
      * @return The object, null if the object has not been seen before. 
      */
     public Object get(Object oldInstance) { 
-        if (oldInstance == null || oldInstance == this || oldInstance.getClass() == String.class) { 
+        if (oldInstance == null || oldInstance == this ||
+            oldInstance.getClass() == String.class) { 
             return oldInstance; 
         }
         Expression exp = (Expression)bindings.get(oldInstance); 
@@ -235,7 +225,13 @@ public class Encoder {
         // System.out.println("writeStatement: " + oldExp); 
         Statement newStm = cloneStatement(oldStm); 
         if (oldStm.getTarget() != this && executeStatements) { 
-            execute(newStm); 
+            try {  
+                newStm.execute();  
+            } catch (Exception e) {  
+                getExceptionListener().exceptionThrown (
+                  new Exception ("Encoder: discarding statement " + newStm, e));
+            } 
+
         }
     } 
     

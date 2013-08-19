@@ -1,5 +1,5 @@
 /*
- * @(#)MotifFileChooserUI.java	1.44 05/02/07
+ * @(#)MotifFileChooserUI.java	1.45 05/05/18
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.44 02/07/05
+ * @version 1.45 05/18/05
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -168,6 +168,9 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 			    setDirectoryName(((File)e.getNewValue()).getCanonicalPath());
 			} catch (IOException ioe) {
 			    setDirectoryName(((File)e.getNewValue()).getAbsolutePath());
+			}
+			if ((getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) && !getFileChooser().isMultiSelectionEnabled()) {
+			    setFileName(getDirectoryName());
 			}
 		    }
 		} else if(prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {

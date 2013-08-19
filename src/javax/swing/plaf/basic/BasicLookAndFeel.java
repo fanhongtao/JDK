@@ -1,7 +1,7 @@
 /*
- * @(#)BasicLookAndFeel.java	1.208 03/01/23
+ * @(#)BasicLookAndFeel.java	1.210 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ import javax.swing.text.DefaultEditorKit;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.208 01/23/03
+ * @version 1.210 04/29/05
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -289,7 +289,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         Object loweredBevelBorder = new UIDefaults.ProxyLazyValue(
 			  "javax.swing.plaf.BorderUIResource",
 			  "getLoweredBevelBorderUIResource");
-	
+
 	Object popupMenuBorder = new UIDefaults.ProxyLazyValue(
 			  "javax.swing.plaf.basic.BasicBorders",
 			  "getInternalFrameBorder");
@@ -315,17 +315,17 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** Button value objects
 
-	Object buttonBorder = 
+	Object buttonBorder =
 	    new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getButtonBorder");
 
-	Object buttonToggleBorder = 
+	Object buttonToggleBorder =
 	    new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getToggleButtonBorder");
 
-	Object radioButtonBorder = 
+	Object radioButtonBorder =
 	    new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getRadioButtonBorder");
@@ -347,7 +347,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	// *** InternalFrame value objects
 
 	Object internalFrameBorder = new UIDefaults.ProxyLazyValue(
-                "javax.swing.plaf.basic.BasicBorders", 
+                "javax.swing.plaf.basic.BasicBorders",
 		"getInternalFrameBorder");
 
 	// *** List value objects
@@ -361,45 +361,45 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** Menus value objects
 
-	Object menuBarBorder = 
+	Object menuBarBorder =
 	    new UIDefaults.ProxyLazyValue(
-                "javax.swing.plaf.basic.BasicBorders", 
+                "javax.swing.plaf.basic.BasicBorders",
 		"getMenuBarBorder");
 
-	Object menuItemCheckIcon = 
+	Object menuItemCheckIcon =
 	    new UIDefaults.ProxyLazyValue(
-		"javax.swing.plaf.basic.BasicIconFactory", 
+		"javax.swing.plaf.basic.BasicIconFactory",
 		"getMenuItemCheckIcon");
 
-	Object menuItemArrowIcon = 
+	Object menuItemArrowIcon =
 	    new UIDefaults.ProxyLazyValue(
-		"javax.swing.plaf.basic.BasicIconFactory", 
+		"javax.swing.plaf.basic.BasicIconFactory",
 		"getMenuItemArrowIcon");
 
 
-	Object menuArrowIcon = 
+	Object menuArrowIcon =
 	    new UIDefaults.ProxyLazyValue(
-		"javax.swing.plaf.basic.BasicIconFactory", 
+		"javax.swing.plaf.basic.BasicIconFactory",
 		"getMenuArrowIcon");
 
-	Object checkBoxIcon = 
+	Object checkBoxIcon =
 	    new UIDefaults.ProxyLazyValue(
-		"javax.swing.plaf.basic.BasicIconFactory", 
+		"javax.swing.plaf.basic.BasicIconFactory",
 		"getCheckBoxIcon");
 
-	Object radioButtonIcon = 
+	Object radioButtonIcon =
 	    new UIDefaults.ProxyLazyValue(
-		"javax.swing.plaf.basic.BasicIconFactory", 
+		"javax.swing.plaf.basic.BasicIconFactory",
 		"getRadioButtonIcon");
 
-	Object checkBoxMenuItemIcon = 
+	Object checkBoxMenuItemIcon =
 	    new UIDefaults.ProxyLazyValue(
-		"javax.swing.plaf.basic.BasicIconFactory", 
+		"javax.swing.plaf.basic.BasicIconFactory",
 		"getCheckBoxMenuItemIcon");
 
-	Object radioButtonMenuItemIcon = 
+	Object radioButtonMenuItemIcon =
 	    new UIDefaults.ProxyLazyValue(
-		"javax.swing.plaf.basic.BasicIconFactory", 
+		"javax.swing.plaf.basic.BasicIconFactory",
 		"getRadioButtonMenuItemIcon");
 
 	Object menuItemAcceleratorDelimiter = new String("+");
@@ -417,7 +417,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         Object optionPaneBorder = new UIDefaults.ProxyLazyValue(
 			   "javax.swing.plaf.BorderUIResource$EmptyBorderUIResource",
 			   new Object[] {ten, ten, twelve, ten});
-	
+
         Object optionPaneButtonAreaBorder = new UIDefaults.ProxyLazyValue(
 			   "javax.swing.plaf.BorderUIResource$EmptyBorderUIResource",
 			   new Object[] {new Integer(6), zero, zero, zero});
@@ -425,7 +425,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** ProgessBar value objects
 
-	Object progressBarBorder = 
+	Object progressBarBorder =
 	    new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getProgressBarBorder");
@@ -444,11 +444,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** SplitPane value objects
 
-	Object splitPaneBorder = 
+	Object splitPaneBorder =
 	    new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getSplitPaneBorder");
-	Object splitPaneDividerBorder = 
+	Object splitPaneDividerBorder =
 	    new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getSplitPaneDividerBorder");
@@ -466,7 +466,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** Text value objects
 
-	Object textFieldBorder = 
+	Object textFieldBorder =
 	    new UIDefaults.ProxyLazyValue(
 			    "javax.swing.plaf.basic.BasicBorders",
 			    "getTextFieldBorder");
@@ -607,9 +607,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		         "END", "endPassThrough",
 		       "ENTER", "enterPressed"
 		 }),
- 
-	    // *** FileChooser 
-	 
+
+	    // *** FileChooser
+
 
             "FileChooser.cancelButtonMnemonic", new Integer(KeyEvent.VK_C),
             "FileChooser.saveButtonMnemonic", new Integer(KeyEvent.VK_S),
@@ -623,7 +623,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "FileChooser.homeFolderIcon", homeFolderIcon,
             "FileChooser.detailsViewIcon", detailsViewIcon,
             "FileChooser.listViewIcon", listViewIcon,
-	    "FileChooser.ancestorInputMap", 
+	    "FileChooser.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		     "ESCAPE", "cancelSelection"
 		 }),
@@ -645,19 +645,19 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "InternalFrame.icon", LookAndFeel.makeIcon(getClass(), "icons/JavaCup.gif"),
 
             /* Default frame icons are undefined for Basic. */
-            "InternalFrame.maximizeIcon", 
+            "InternalFrame.maximizeIcon",
 	    new UIDefaults.ProxyLazyValue(
 			   "javax.swing.plaf.basic.BasicIconFactory",
 			   "createEmptyFrameIcon"),
-            "InternalFrame.minimizeIcon", 
+            "InternalFrame.minimizeIcon",
 	    new UIDefaults.ProxyLazyValue(
 			   "javax.swing.plaf.basic.BasicIconFactory",
 			   "createEmptyFrameIcon"),
-            "InternalFrame.iconifyIcon", 
+            "InternalFrame.iconifyIcon",
 	    new UIDefaults.ProxyLazyValue(
 			   "javax.swing.plaf.basic.BasicIconFactory",
 			   "createEmptyFrameIcon"),
-            "InternalFrame.closeIcon", 
+            "InternalFrame.closeIcon",
 	    new UIDefaults.ProxyLazyValue(
 			   "javax.swing.plaf.basic.BasicIconFactory",
 			   "createEmptyFrameIcon"),
@@ -682,9 +682,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Desktop.background", table.get("desktop"),
 	    "Desktop.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
-		 "ctrl F5", "restore", 
+		 "ctrl F5", "restore",
 		 "ctrl F4", "close",
-		 "ctrl F7", "move", 
+		 "ctrl F7", "move",
 		 "ctrl F8", "resize",
 		   "RIGHT", "right",
 		"KP_RIGHT", "right",
@@ -703,7 +703,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
               "shift DOWN", "shrinkDown",
            "shift KP_DOWN", "shrinkDown",
 		  "ESCAPE", "escape",
-		 "ctrl F9", "minimize", 
+		 "ctrl F9", "minimize",
 		"ctrl F10", "maximize",
 		 "ctrl F6", "selectNextFrame",
 		"ctrl TAB", "selectNextFrame",
@@ -1455,17 +1455,17 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     /**
      * Returns an <code>ActionMap</code>.
      * <P>
-     * This <code>ActionMap</code> contains <code>Actions</code> that 
-     * embody the ability to render an auditory cue. These auditory 
-     * cues map onto user and system activities that may be useful 
+     * This <code>ActionMap</code> contains <code>Actions</code> that
+     * embody the ability to render an auditory cue. These auditory
+     * cues map onto user and system activities that may be useful
      * for an end user to know about (such as a dialog box appearing).
      * <P>
-     * At the appropriate time in a <code>JComponent</code> UI's lifecycle, 
-     * the ComponentUI is responsible for getting the appropriate 
-     * <code>Action</code> out of the <code>ActionMap</code> and passing 
+     * At the appropriate time in a <code>JComponent</code> UI's lifecycle,
+     * the ComponentUI is responsible for getting the appropriate
+     * <code>Action</code> out of the <code>ActionMap</code> and passing
      * it on to <code>playSound</code>.
      * <P>
-     * The <code>Actions</code> in this <code>ActionMap</code> are 
+     * The <code>Actions</code> in this <code>ActionMap</code> are
      * created by the <code>createAudioAction</code> method.
      *
      * @return      an ActionMap containing Actions
@@ -1497,8 +1497,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
      * <P>
      * This Action contains the information and logic to render an
      * auditory cue. The <code>Object</code> that is passed to this
-     * method contains the information needed to render the auditory 
-     * cue. Normally, this <code>Object</code> is a <code>String</code> 
+     * method contains the information needed to render the auditory
+     * cue. Normally, this <code>Object</code> is a <code>String</code>
      * that points to an audio file relative to the current package.
      * This <code>Action</code>'s <code>actionPerformed</code> method
      * is fired by the <code>playSound</code> method.
@@ -1519,9 +1519,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     }
 
     /**
-     * Pass the name String to the super constructor. This is used 
-     * later to identify the Action and decide whether to play it or 
-     * not. Store the resource String. I is used to get the audio 
+     * Pass the name String to the super constructor. This is used
+     * later to identify the Action and decide whether to play it or
+     * not. Store the resource String. I is used to get the audio
      * resource. In this case, the resource is an audio file.
      *
      * @since 1.4
@@ -1620,15 +1620,15 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     }
 
     /**
-     * Utility method that loads audio bits for the specified 
+     * Utility method that loads audio bits for the specified
      * <code>soundFile</code> filename. If this method is unable to
-     * build a viable path name from the <code>baseClass</code> and 
-     * <code>soundFile</code> passed into this method, it will 
+     * build a viable path name from the <code>baseClass</code> and
+     * <code>soundFile</code> passed into this method, it will
      * return <code>null</code>.
      *
      * @param baseClass    used as the root class/location to get the
      *                     soundFile from
-     * @param soundFile    the name of the audio file to be retrieved 
+     * @param soundFile    the name of the audio file to be retrieved
      *                     from disk
      * @return             A byte[] with audio data or null
      * @since 1.4
@@ -1651,11 +1651,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 			InputStream resource = BasicLookAndFeel.this.
 			    getClass().getResourceAsStream(soundFile);
 			if (resource == null) {
-			    return; 
+			    return;
 			}
-			BufferedInputStream in = 
+			BufferedInputStream in =
 			    new BufferedInputStream(resource);
-			ByteArrayOutputStream out = 
+			ByteArrayOutputStream out =
 			    new ByteArrayOutputStream(1024);
 			buffer[0] = new byte[1024];
 			int n;
@@ -1672,12 +1672,12 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		}
 	    });
 	if (buffer[0] == null) {
-	    System.err.println(getClass().getName() + "/" + 
+	    System.err.println(getClass().getName() + "/" +
 			       soundFile + " not found.");
 	    return null;
 	}
 	if (buffer[0].length == 0) {
-	    System.err.println("warning: " + soundFile + 
+	    System.err.println("warning: " + soundFile +
 			       " is zero-length");
 	    return null;
 	}
@@ -1686,11 +1686,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
     /**
      * Decides whether to fire the <code>Action</code> that is passed into
-     * it and, if needed, fires the <code>Action</code>'s 
+     * it and, if needed, fires the <code>Action</code>'s
      * <code>actionPerformed</code> method. This has the effect
      * of rendering the audio appropriate for the situation.
      * <P>
-     * The set of possible cues to be played are stored in the default 
+     * The set of possible cues to be played are stored in the default
      * table value "AuditoryCues.cueList". The cues that will be played
      * are stored in "AuditoryCues.playList".
      *
@@ -1713,8 +1713,8 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		String actionName = (String)audioAction.getValue(Action.NAME);
 		// if the actionName is in the audioCues HashSet, play it.
 		if (audioCues.contains(actionName)) {
-		    audioAction.actionPerformed(new 
-			ActionEvent(this, ActionEvent.ACTION_PERFORMED, 
+		    audioAction.actionPerformed(new
+			ActionEvent(this, ActionEvent.ACTION_PERFORMED,
 				    actionName));
 		}
 	    }
@@ -1723,7 +1723,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
     // At this point we need this method here. But we assume that there
     // will be a common method for this purpose in the future releases.
-    static void compositeRequestFocus(Component component) {
+    static Component compositeRequestFocus(Component component) {
  	if (component instanceof Container) {
  	    Container container = (Container)component;
  	    if (container.isFocusCycleRoot()) {
@@ -1731,21 +1731,25 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
  		Component comp = policy.getDefaultComponent(container);
  		if (comp!=null) {
  		    comp.requestFocus();
- 		    return;
+ 		    return comp;
  		}
  	    }
  	    Container rootAncestor = container.getFocusCycleRootAncestor();
  	    if (rootAncestor!=null) {
  		FocusTraversalPolicy policy = rootAncestor.getFocusTraversalPolicy();
  		Component comp = policy.getComponentAfter(rootAncestor, container);
- 		
+
  		if (comp!=null && SwingUtilities.isDescendingFrom(comp, container)) {
  		    comp.requestFocus();
- 		    return;
+ 		    return comp;
  		}
  	    }
  	}
- 	component.requestFocus();
+ 	if (component.isFocusable()) {
+		component.requestFocus();
+		return component;
+	}
+	return null;
     }
-    
+
 }

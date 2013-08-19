@@ -1,7 +1,7 @@
 /*
- * @(#)EventHandler.java	1.10 03/01/23
+ * @(#)EventHandler.java	1.13 05/06/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans; 
@@ -10,8 +10,12 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import java.util.EventObject;
+import sun.reflect.misc.MethodUtil;
 
 /**
  * The <code>EventHandler</code> class provides 
@@ -206,6 +210,7 @@ public class EventHandler implements InvocationHandler {
     private String action;
     private String eventPropertyName;
     private String listenerMethodName; 
+    private AccessControlContext acc;
     
     /**
      * Creates a new <code>EventHandler</code> object;
@@ -225,6 +230,7 @@ public class EventHandler implements InvocationHandler {
      * @see #getListenerMethodName
      */
     public EventHandler(Object target, String action, String eventPropertyName, String listenerMethodName) {
+        this.acc = AccessController.getContext();
         this.target = target;
         this.action = action;
         this.eventPropertyName = eventPropertyName;
@@ -279,17 +285,6 @@ public class EventHandler implements InvocationHandler {
         return listenerMethodName;
     } 
     
-    private String capitalize(String propertyName) { 
-        if (propertyName.length() == 0) { 
-            return propertyName; 
-        }
-        return propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
-    } 
-    
-    private Method getMethod(Class targetClass, String methodName, Class[] argClasses) { 
-        return Statement.getMethod(targetClass, methodName, argClasses); 
-    }
-    
     private Object applyGetters(Object target, String getters) { 
         if (getters == null || getters.equals("")) { 
             return target; 
@@ -302,23 +297,30 @@ public class EventHandler implements InvocationHandler {
         String rest = getters.substring(Math.min(firstDot + 1, getters.length())); 
         
         try { 
-            Method getter = getMethod(target.getClass(), "get" + capitalize(first), new Class[]{});
+            Method getter = ReflectionUtils.getMethod(target.getClass(),  
+                                      "get" + NameGenerator.capitalize(first), 
+                                      new Class[]{}); 
             if (getter == null) { 
-                getter = getMethod(target.getClass(), "is" + capitalize(first), new Class[]{});
+                getter = ReflectionUtils.getMethod(target.getClass(),  
+                                   "is" + NameGenerator.capitalize(first),  
+                                   new Class[]{}); 
             } 
             if (getter == null) { 
-                getter = getMethod(target.getClass(), first, new Class[]{});
+                getter = ReflectionUtils.getMethod(target.getClass(), first,
+						   new Class[]{}); 
             } 
             if (getter == null) { 
-                System.err.println("No method called: " + first + " defined on " + target); 
+                System.err.println("No method called: " + first +
+				   " defined on " + target); 
                 return null; 
             } 
-            Object newTarget = getter.invoke(target, new Object[]{}); 
+            Object newTarget = MethodUtil.invoke(getter, target, new Object[]{});
             return applyGetters(newTarget, rest); 
         } 
         catch (Throwable e) { 
             System.out.println(e); 
-            System.err.println("Failed to call method: " + first + " on " + target); 
+            System.err.println("Failed to call method: " + first +
+			       " on " + target); 
         }
         return null; 
     }
@@ -334,7 +336,15 @@ public class EventHandler implements InvocationHandler {
      * 
      * @see EventHandler
      */
-    public Object invoke(Object proxy, Method method, Object[] arguments) {
+    public Object invoke(final Object proxy, final Method method, final Object[] arguments) { 
+         return AccessController.doPrivileged(new PrivilegedAction() { 
+             public Object run() { 
+                 return invokeInternal(proxy, method, arguments); 
+             } 
+         }, acc); 
+    } 
+ 
+    private Object invokeInternal(Object proxy, Method method, Object[] arguments) {
 
         String methodName = method.getName();
         if (method.getDeclaringClass() == Object.class)  {
@@ -363,15 +373,19 @@ public class EventHandler implements InvocationHandler {
             }
             try {
                 if (targetMethod == null) { 
-                    targetMethod = getMethod(target.getClass(), action, argTypes);
+                    targetMethod = ReflectionUtils.getMethod(target.getClass(),
+                                                             action, argTypes); 
                 }
                 if (targetMethod == null) { 
-                    targetMethod = getMethod(target.getClass(), "set" + capitalize(action), argTypes);
+                    targetMethod = ReflectionUtils.getMethod(target.getClass(),
+                        "set" + NameGenerator.capitalize(action), argTypes);
                 }
                 if (targetMethod == null) { 
-                    System.err.println("No target method called: " + action + " defined on class " + target.getClass() + " with argument type " + argTypes[0]); 
+                    System.err.println("No target method called: " + action +
+			" defined on class " + target.getClass() +
+			" with argument type " + argTypes[0]); 
                 }
-                return targetMethod.invoke(target, newArgs);
+                return MethodUtil.invoke(targetMethod, target, newArgs);
             } 
             catch (IllegalAccessException ex) {
                 ex.printStackTrace();

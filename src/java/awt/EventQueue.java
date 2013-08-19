@@ -1,7 +1,7 @@
 /*
- * @(#)EventQueue.java	1.88 03/01/28
+ * @(#)EventQueue.java	1.90 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,8 +22,11 @@ import java.awt.peer.LightweightPeer;
 import java.util.EmptyStackException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
+import java.security.PrivilegedActionException;
 import sun.awt.PeerEvent;
 import sun.awt.SunToolkit;
 import sun.awt.DebugHelper;
@@ -73,7 +76,7 @@ import sun.awt.AppContext;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.88, 01/28/03
+ * @version 	1.90, 04/29/05
  * @since 	1.1
  */
 public class EventQueue {
@@ -90,6 +93,27 @@ public class EventQueue {
     private static final int HIGH_PRIORITY = 2;
 
     private static final int NUM_PRIORITIES = HIGH_PRIORITY + 1;
+
+    private static Method m = null;
+    static {
+	try {
+	     m = (Method)AccessController.doPrivileged(new 
+ 	        PrivilegedExceptionAction() {
+		    public Object run() {
+		        Method method = null;
+		        try {
+			    method = InvocationEvent.class.getDeclaredMethod("getThrowableObject", null);
+			    method.setAccessible(true);
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
+		        return method;
+		    }
+		 });       
+	} catch (PrivilegedActionException ex) {
+	        ex.printStackTrace();
+	}
+    }
 
     /*
      * We maintain one Queue for each priority that the EventQueue supports.
@@ -829,10 +853,18 @@ public class EventQueue {
             lock.wait();
         }
 
-        Exception eventException = event.getException();
-        if (eventException != null) {
-            throw new InvocationTargetException(eventException);
-        }
+	if (m == null) {
+	    return;
+	}
+	//Using reflection to get access to the private getThrowableObject method of InvocationEvent
+	try {
+            Throwable eventThrowable = (Throwable)m.invoke(event, null);
+            if (eventThrowable != null) {
+                throw new InvocationTargetException(eventThrowable);
+            }
+	} catch (IllegalAccessException ie) {
+	    ie.printStackTrace();
+	}
     }
 
     /*

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicFileChooserUI.java	1.47 03/01/23
+ * @(#)BasicFileChooserUI.java	1.49 05/05/26
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -799,10 +799,17 @@ public class BasicFileChooserUI extends FileChooserUI {
 		}
 	    }
 	    if (selectedFiles != null || selectedFile != null) {
-		if (selectedFiles != null) {
+		if (selectedFiles != null || chooser.isMultiSelectionEnabled()) {
+                    if (selectedFiles == null) {
+                        selectedFiles = new File[] { selectedFile };
+                    } 
+
 		    chooser.setSelectedFiles(selectedFiles);
-		} else if (chooser.isMultiSelectionEnabled()) {
-		    chooser.setSelectedFiles(new File[] { selectedFile });
+
+                    // Do it again. This is a fix for bug 4949273 to force the
+                    // selected value in case the ListSelectionModel clears it
+                    // for non-existing file names.
+		    chooser.setSelectedFiles(selectedFiles);
 		} else {
 		    chooser.setSelectedFile(selectedFile);
 		}

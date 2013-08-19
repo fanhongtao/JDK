@@ -1,7 +1,7 @@
 /*
- * @(#)Inflater.java	1.39 03/02/07
+ * @(#)Inflater.java	1.42 05/05/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util.zip;
  * This class provides support for general purpose decompression using
  * popular ZLIB compression library. The ZLIB compression library was
  * initially developed as part of the PNG graphics standard and is not
- * protected by patents. It is fully described in the specifications at 
+ * protected by patents. It is fully described in the specifications at
  * the <a href="package-summary.html#package_description">java.util.zip
  * package description</a>.
  *
@@ -43,7 +43,7 @@ package java.util.zip;
  * </pre></blockquote>
  *
  * @see		Deflater
- * @version 	1.39, 02/07/03
+ * @version 	1.42, 05/16/05
  * @author 	David Connelly
  *
  */
@@ -59,8 +59,7 @@ class Inflater {
      * Loads the ZLIB library.
      */
     static {
-	java.security.AccessController.doPrivileged(
-		  new sun.security.action.LoadLibraryAction("zip"));
+	/* zip library is loaded by java.lang.System */
 	initIDs();
     }
 
@@ -293,6 +292,7 @@ class Inflater {
 	if (strm != 0) {
 	    end(strm);
 	    strm = 0;
+	    buf = null;
 	}
     }
 

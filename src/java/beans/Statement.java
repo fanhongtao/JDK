@@ -1,13 +1,14 @@
 /*
- * @(#)Statement.java	1.20 05/02/10
+ * @(#)Statement.java	1.23 05/06/07
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.*; 
+import java.util.*; 
+import sun.reflect.misc.MethodUtil;
 
 /**
  * A <code>Statement</code> object represents a primitive statement
@@ -23,14 +24,13 @@ import java.util.*;
  *
  * @since 1.4
  *
- * @version 1.20 02/10/05
+ * @version 1.23 06/07/05
  * @author Philip Milne
  */
 
 public class Statement {
 
     private static Object[] emptyArray = new Object[]{};
-    private static HashMap methodCache = null;
 
     static ExceptionListener defaultExceptionListener = new ExceptionListener() {
         public void exceptionThrown(Exception e) {
@@ -119,53 +119,7 @@ public class Statement {
         invoke();
     }
 
-    /*pp*/ static Class typeToClass(Class type) {
-        return type.isPrimitive() ? typeNameToClass(type.getName()) : type;
-
-    }
-
-    /*pp*/ static Class typeNameToClass(String typeName) {
-        typeName = typeName.intern();
-        if (typeName == "boolean") return Boolean.class;
-        if (typeName == "byte") return Byte.class;
-        if (typeName == "char") return Character.class;
-        if (typeName == "short") return Short.class;
-        if (typeName == "int") return Integer.class;
-        if (typeName == "long") return Long.class;
-        if (typeName == "float") return Float.class;
-        if (typeName == "double") return Double.class;
-        if (typeName == "void") return Void.class;
-        return null;
-    }
-
-    private static Class typeNameToPrimitiveClass(String typeName) {
-        typeName = typeName.intern();
-        if (typeName == "boolean") return boolean.class;
-        if (typeName == "byte") return byte.class;
-        if (typeName == "char") return char.class;
-        if (typeName == "short") return short.class;
-        if (typeName == "int") return int.class;
-        if (typeName == "long") return long.class;
-        if (typeName == "float") return float.class;
-        if (typeName == "double") return double.class;
-        if (typeName == "void") return void.class;
-        return null;
-    }
-
-    /*pp*/ static Class primitiveTypeFor(Class wrapper) {
-        if (wrapper == Boolean.class) return Boolean.TYPE;
-        if (wrapper == Byte.class) return Byte.TYPE;
-        if (wrapper == Character.class) return Character.TYPE;
-        if (wrapper == Short.class) return Short.TYPE;
-        if (wrapper == Integer.class) return Integer.TYPE;
-        if (wrapper == Long.class) return Long.TYPE;
-        if (wrapper == Float.class) return Float.TYPE;
-        if (wrapper == Double.class) return Double.TYPE;
-        if (wrapper == Void.class) return Void.TYPE;
-        return null;
-    }
-
-    static Class classForName(String name) throws ClassNotFoundException {
+    /*static Class classForName(String name) throws ClassNotFoundException {
         // l.loadClass("int") fails.
         Class primitiveType = typeNameToPrimitiveClass(name);
         if (primitiveType != null) {
@@ -173,216 +127,11 @@ public class Statement {
         }
         ClassLoader l = Thread.currentThread().getContextClassLoader();
         return l.loadClass(name);
-    }
-
-    /**
-     * Tests each element on the class arrays for assignability.
-     *
-     * @param argClasses arguments to be tested
-     * @param argTypes arguments from Method
-     * @return true if each class in argTypes is assignable from the 
-     *         corresponding class in argClasses.
-     */
-    private static boolean matchArguments(Class[] argClasses, Class[] argTypes) {
-        boolean match = (argClasses.length == argTypes.length);
-	for(int j = 0; j < argClasses.length && match; j++) {
-	    Class argType = argTypes[j];
-	    if (argType.isPrimitive()) {
-		argType = typeToClass(argType);
-	    }
-	    // Consider null an instance of all classes.
-	    if (argClasses[j] != null && !(argType.isAssignableFrom(argClasses[j]))) {
-		match = false;
-	    }
-	}
-        return match;
-    }
-
-    /**
-     * Tests each element on the class arrays for equality.
-     *
-     * @param argClasses arguments to be tested
-     * @param argTypes arguments from Method
-     * @return true if each class in argTypes is equal to the 
-     *         corresponding class in argClasses.
-     */
-    private static boolean matchExplicitArguments(Class[] argClasses, Class[] argTypes) {
-        boolean match = (argClasses.length == argTypes.length);
-	for(int j = 0; j < argClasses.length && match; j++) {
-	    Class argType = argTypes[j];
-	    if (argType.isPrimitive()) {
-		argType = typeToClass(argType);
-	    }
-	    if (argClasses[j] != argType) {
-		match = false;
-	    }
-	}
-        return match;
-    }
-
-    // Pending: throw when the match is ambiguous.
-    private static Method findPublicMethod(Class declaringClass, String methodName, Class[] argClasses) {
-        // Many methods are "getters" which take no arguments.
-        // This permits the following optimisation which
-        // avoids the expensive call to getMethods().
-        if (argClasses.length == 0) {
-            try {
-                return declaringClass.getMethod(methodName, argClasses);
-            }
-            catch (NoSuchMethodException e) {
-            	  return null;
-            }
-        }
-        // System.out.println("getMethods " + declaringClass + " for " + methodName);
-        Method[] methods = declaringClass.getMethods();
-	ArrayList list = new ArrayList();
-        for(int i = 0; i < methods.length; i++) {
-	    // Collect all the methods which match the signature.
-            Method method = methods[i];
-            if (method.getName().equals(methodName)) {
-                if (matchArguments(argClasses, method.getParameterTypes())) {
-		    list.add(method);
-                }
-            }
-	}
-	if (list.size() > 0) {
-	    if (list.size() == 1) {
-		return (Method)list.get(0);
-	    }
-	    else {
-		ListIterator iterator = list.listIterator();
-		Method method;
-		while (iterator.hasNext()) {
-		    method = (Method)iterator.next();
-		    if (matchExplicitArguments(argClasses, method.getParameterTypes())) {
-			return method;
-		    }
-		}
-		// This list is valid. Should return something.
-		return (Method)list.get(0);		
-	    }
-	}	    
-        return null;
-    }
-
-    // Pending: throw when the match is ambiguous.
-    private static Method findMethod(Class targetClass, String methodName, Class[] argClasses) {
-        Method m = findPublicMethod(targetClass, methodName, argClasses);
-        if (m != null && Modifier.isPublic(m.getDeclaringClass().getModifiers())) {
-            return m;
-        }
-
-        /*
-        Search the interfaces for a public version of this method.
-
-        Example: the getKeymap() method of a JTextField
-        returns a package private implementation of the
-        of the public Keymap interface. In the Keymap
-        interface there are a number of "properties" one
-        being the "resolveParent" property implied by the
-        getResolveParent() method. This getResolveParent()
-        cannot be called reflectively because the class
-        itself is not public. Instead we search the class's
-        interfaces and find the getResolveParent()
-        method of the Keymap interface - on which invoke
-        may be applied without error.
-
-        So in :-
-
-            JTextField o = new JTextField("Hello, world");
-            Keymap km = o.getKeymap();
-            Method m1 = km.getClass().getMethod("getResolveParent", new Class[0]);
-            Method m2 = Keymap.class.getMethod("getResolveParent", new Class[0]);
-
-        Methods m1 and m2 are different. The invocation of method
-        m1 unconditionally throws an IllegalAccessException where
-        the invocation of m2 will invoke the implementation of the
-        method. Note that (ignoring the overloading of arguments)
-        there is only one implementation of the named method which
-        may be applied to this target.
-        */
-        for(Class type = targetClass; type != null; type = type.getSuperclass()) {
-            Class[] interfaces = type.getInterfaces();
-            for(int i = 0; i < interfaces.length; i++) {
-                m = findPublicMethod(interfaces[i], methodName, argClasses);
-                if (m != null) {
-                    return m;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static class Signature {
-        Class targetClass;
-        String methodName;
-        Class[] argClasses;
-
-        public Signature(Class targetClass, String methodName, Class[] argClasses) {
-            this.targetClass = targetClass;
-            this.methodName = methodName;
-            this.argClasses = argClasses;
-        }
-
-        public boolean equals(Object o2) {
-            Signature that = (Signature)o2;
-            if (!(targetClass == that.targetClass)) {
-                return false;
-            }
-            if (!(methodName.equals(that.methodName))) {
-                return false;
-            }
-            if (argClasses.length != that.argClasses.length) {
-                return false;
-            }
-            for (int i = 0; i < argClasses.length; i++) {
-                if (!(argClasses[i] == that.argClasses[i])) {
-                  return false;
-                }
-            }
-            return true;
-        }
-
-        // Pending(milne) Seek advice an a suitable hash function to use here.
-        public int hashCode() {
-            return targetClass.hashCode() * 35 + methodName.hashCode();
-        }
-    }
-
-    /** A wrapper to findMethod(), which will cache its results if
-      * isCaching() returns true. See clear().
-      */
-    static Method getMethod(Class targetClass, String methodName, Class[] argClasses) {
-        if (!isCaching()) {
-            return findMethod(targetClass, methodName, argClasses);
-        }
-        Object signature = new Signature(targetClass, methodName, argClasses);
-        Method m = (Method)methodCache.get(signature);
-        if (m != null) {
-            // System.out.println("findMethod found " + methodName + " for " + targetClass);
-            return m;
-        }
-        // System.out.println("findMethod searching " + targetClass + " for " + methodName);
-        m = findMethod(targetClass, methodName, argClasses);
-        if (m != null) {
-            methodCache.put(signature, m);
-        }
-        return m;
-    }
-
-    static void setCaching(boolean b) {
-        methodCache = b ? new HashMap() : null;
-    }
-
-    private static boolean isCaching() {
-        return methodCache != null;
-    }
+    }*/
 
     Object invoke() throws Exception {
-        // System.out.println("Invoking: " + toString());
         Object target = getTarget();
         String methodName = getMethodName();
-        SecurityManager security = System.getSecurityManager();
 
         if (target == null || methodName == null) {
 	    throw new NullPointerException((target == null ? "target" : 
@@ -394,7 +143,7 @@ public class Statement {
         // of core from a class inside core. Special
         // case this method.
         if (target == Class.class && methodName == "forName") {
-            return classForName((String)arguments[0]);
+            return ObjectHandler.classForName((String)arguments[0]);
         }
         Class[] argClasses = new Class[arguments.length];
         for(int i = 0; i < arguments.length; i++) {
@@ -430,50 +179,17 @@ public class Statement {
                 // for Java's primitive types have a String constructor so we
                 // fake such a constructor here so that this special case can be
                 // ignored elsewhere.
-                if (target == Character.class && arguments.length == 1 && argClasses[0] == String.class) {
+                if (target == Character.class && arguments.length == 1 &&  
+                    argClasses[0] == String.class) { 
                     return new Character(((String)arguments[0]).charAt(0));
                 }
-                Constructor[] constructors = ((Class)target).getConstructors();
-                // PENDING: Implement the resolutuion of ambiguities properly.
-                for(int i = 0; i < constructors.length; i++) {
-                    Constructor constructor = constructors[i];
-                    if (matchArguments(argClasses, constructor.getParameterTypes())) {
-                        m = constructor;
-                    }
-                }
-                if (m != null && security != null) {
-		    String name = ((Class)target).getName();
-		    int i = name.lastIndexOf('.');
-		    if (i != -1) {
-		        security.checkPackageAccess(name.substring(0, i));
-		    }
-		}
+                m = ReflectionUtils.getConstructor((Class)target, argClasses); 
             }
             if (m == null && target != Class.class) {
-                m = getMethod((Class)target, methodName, argClasses);
+                m = ReflectionUtils.getMethod((Class)target, methodName, argClasses); 
             }
             if (m == null) {
-                m = getMethod(Class.class, methodName, argClasses);
-                if (m != null && security != null) {
-                    if (methodName.equals("forName")) {
-                        return classForName((String)arguments[0]);
-           	    }
-                    if (methodName.equals("newInstance") ||
-		        methodName.equals("getClasses") ||
-		        methodName.startsWith("getConstructor") ||
-		        methodName.startsWith("getField") ||
-		        methodName.startsWith("getMethod")) {
-		        String name = ((Class)target).getName();
-		        int i = name.lastIndexOf('.');
-		        if (i != -1) {
-		             security.checkPackageAccess(name.substring(0, i));
-		        }
-                    }
-                    if (methodName.startsWith("getDeclared")) {
-                        throw new Exception("Statement cannot invoke: " + 
-			      methodName + " on " + target.getClass());
-                    }
-		}
+                m = ReflectionUtils.getMethod(Class.class, methodName, argClasses); 
             }
         }
         else {
@@ -495,32 +211,21 @@ public class Statement {
                     return null;
                 }
             }
-            m = getMethod(target.getClass(), methodName, argClasses);
+            m = ReflectionUtils.getMethod(target.getClass(), methodName, argClasses); 
         }
         if (m != null) {
-            // System.err.println("Calling \"" + methodName + "\"" + " on " + ((o == null) ? null : target.getClass()));
-            try {                
+            try {
                 if (m instanceof Method) {
-                    if (security != null) {
-         	        if (target instanceof Method &&
- 			    methodName.equals("invoke")) {
-             	            throw new Exception("Statement cannot invoke: " + 
- 			        methodName + " on " + target.getClass());
-         	        }
- 		        Class rt = ((Method)m).getReturnType();
- 		        if (ClassLoader.class.isAssignableFrom(rt)) {
-            		    throw new Exception("Statement cannot invoke: " + 
- 			        methodName + " on " + target.getClass());
- 		        }
-                     }
-                    return ((Method)m).invoke(target, arguments);
+                    return MethodUtil.invoke((Method)m, target, arguments); 
                 }
                 else {
                     return ((Constructor)m).newInstance(arguments);
                 }
             }
             catch (IllegalAccessException iae) {
-                throw new IllegalAccessException(toString());
+                throw new Exception("Statement cannot invoke: " +  
+                                    methodName + " on " + target.getClass(), 
+                                    iae); 
             }
             catch (InvocationTargetException ite) {
                 Throwable te = ite.getTargetException();
@@ -535,10 +240,14 @@ public class Statement {
         throw new NoSuchMethodException(toString());
     }
 
-    /*pp*/ String instanceName(Object instance) { 
-        return (instance != null && instance.getClass() == String.class) 
-            ? "\""+(String)instance + "\"" 
-            : NameGenerator.instanceName(instance);
+    String instanceName(Object instance) {  
+        if (instance == null) { 
+            return "null"; 
+        } else if (instance.getClass() == String.class) { 
+            return "\""+(String)instance + "\""; 
+        } else { 
+            return NameGenerator.unqualifiedClassName(instance.getClass()); 
+        } 
     }
 
     /**

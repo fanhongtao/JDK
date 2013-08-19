@@ -90,6 +90,8 @@ import org.apache.xpath.res.XPATHErrorResources;
 import javax.xml.transform.Result;
 import javax.xml.transform.OutputKeys;
 
+import java.security.*;
+
 /**
  * <meta name="usage" content="general"/>
  * SerializerToXML formats SAX-style events into XML.
@@ -289,8 +291,15 @@ public class SerializerToXML
    * Map that tells which XML characters should have special treatment, and it
    *  provides character to entity name lookup.
    */
-  protected static CharInfo m_xmlcharInfo =
-    new CharInfo(CharInfo.XML_ENTITIES_RESOURCE);
+  protected static CharInfo m_xmlcharInfo = null;
+    
+  static {
+    m_xmlcharInfo = (CharInfo)AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+       return new CharInfo(CharInfo.XML_ENTITIES_RESOURCE);
+      }
+    });
+  }
 
   /**
    * Map that tells which characters should have special treatment, and it

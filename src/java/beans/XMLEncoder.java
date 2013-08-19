@@ -1,7 +1,7 @@
 /*
- * @(#)XMLEncoder.java	1.25 03/01/27
+ * @(#)XMLEncoder.java	1.27 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -175,7 +175,7 @@ import java.lang.reflect.*;
  *
  * @since 1.4
  *
- * @version 1.25 01/27/03
+ * @version 1.27 04/29/05
  * @author Philip Milne
  */
 public class XMLEncoder extends Encoder {
@@ -186,9 +186,10 @@ public class XMLEncoder extends Encoder {
     private Object owner;
     private int indentation = 0;
     private boolean internal = false;
-    private HashMap valueToExpression;
-    private HashMap targetToStatementList;
+    private Map valueToExpression; 
+    private Map targetToStatementList; 
     private boolean preambleWritten = false;
+    private NameGenerator nameGenerator;
 
     private class ValueData {
         public int refs = 0;
@@ -208,9 +209,9 @@ public class XMLEncoder extends Encoder {
      */
     public XMLEncoder(OutputStream out) {
         this.out = out;
-        valueToExpression = new IdentityHashtable();
-        targetToStatementList = new IdentityHashtable();
-        Statement.setCaching(true);
+        valueToExpression = new IdentityHashMap(); 
+        targetToStatementList = new IdentityHashMap(); 
+        nameGenerator = new NameGenerator(); 
     }
 
     /**
@@ -221,7 +222,6 @@ public class XMLEncoder extends Encoder {
      * @see #getOwner
      */
     public void setOwner(Object owner) {
-    	// System.out.println("setOwner: " + instanceName(owner));
         this.owner = owner;
         writeExpression(new Expression(this, "getOwner", new Object[0]));
     }
@@ -245,7 +245,6 @@ public class XMLEncoder extends Encoder {
      * @see XMLDecoder#readObject
      */
     public void writeObject(Object o) {
-        // System.out.println("XMLEncoder::writeObject: " + instanceName(o));
         if (internal) {
             super.writeObject(o);
         }
@@ -266,7 +265,6 @@ public class XMLEncoder extends Encoder {
 
     
     private void mark(Object o, boolean isArgument) {
-        // System.out.println("mark: " + instanceName(o));
         if (o == null || o == this) {
             return;
         }
@@ -336,7 +334,7 @@ public class XMLEncoder extends Encoder {
             statementList(oldStm.getTarget()).add(oldStm);
         }
         catch (Exception e) {
-            getExceptionListener().exceptionThrown(new Exception("discarding statement " + oldStm, e));
+            getExceptionListener().exceptionThrown(new Exception("XMLEncoder: discarding statement " + oldStm, e)); 
         }
         this.internal = internal;
     }
@@ -400,12 +398,14 @@ public class XMLEncoder extends Encoder {
         catch (IOException e) {
 	    getExceptionListener().exceptionThrown(e);
 	}
+        clear();
+    }
 
-	NameGenerator.clear();
-	super.clear();
-	valueToExpression.clear();
-	targetToStatementList.clear();
-        Statement.setCaching(false); // Clears method cache.
+    void clear() { 
+        super.clear();
+        nameGenerator.clear();
+        valueToExpression.clear();
+        targetToStatementList.clear();
     }
 
     /**
@@ -426,14 +426,6 @@ public class XMLEncoder extends Encoder {
 
     private String quote(String s) {
         return "\"" + s + "\"";
-    }
-
-    private String instanceName(Object instance) {
-        return NameGenerator.instanceName(instance);
-    }
-
-    private String propertyName(String methodName) {
-        return java.beans.Introspector.decapitalize(methodName.substring(3));
     }
 
     private ValueData getValueData(Object o) {
@@ -493,7 +485,6 @@ public class XMLEncoder extends Encoder {
     }
 
     private void outputValue(Object value, Object outer, boolean isArgument) {
-        // System.out.println("outputValue: " + instanceName(value));
         if (value == null) {
             writeln("<null/>");
             return;
@@ -511,7 +502,7 @@ public class XMLEncoder extends Encoder {
             return;
         }        
         
-        Class primitiveType = Statement.primitiveTypeFor(value.getClass());
+        Class primitiveType = ReflectionUtils.primitiveTypeFor(value.getClass());
         if (primitiveType != null && d.exp.getTarget() == value.getClass() && d.exp.getMethodName() == "new") {
             String primitiveTypeName = primitiveType.getName();
 	    // Make sure that character types are quoted correctly.
@@ -536,7 +527,6 @@ public class XMLEncoder extends Encoder {
     }
 
     private void outputStatement(Statement exp, Object outer, boolean isArgument) {
-        // System.out.println("outputStatement: " + exp + " outer: " + instanceName(outer) + " isArg: " + isArgument);
         Object target = exp.getTarget();
         String methodName = exp.getMethodName();
         Object[] args = exp.getArguments();
@@ -548,7 +538,7 @@ public class XMLEncoder extends Encoder {
         ValueData d = getValueData(value);
         if (expression) {
             if (d.refs > 1) {
-                String instanceName = instanceName(value);
+                String instanceName = nameGenerator.instanceName(value); 
                 d.name = instanceName;
                 attributes = attributes + " id=" + quote(instanceName);
             }
@@ -579,10 +569,12 @@ public class XMLEncoder extends Encoder {
              (expression && methodName == "get" && args.length == 1 && args[0] instanceof Integer)) {
             attributes = attributes + " index=" + quote(args[0].toString());
             args = (args.length == 1) ? new Object[]{} : new Object[]{args[1]};
+
         }
         else if ((!expression && methodName.startsWith("set") && args.length == 1) ||
                   (expression && methodName.startsWith("get") && args.length == 0)) {
-             attributes = attributes + " property=" + quote(propertyName(methodName));
+            attributes = attributes + " property=" +  
+                quote(Introspector.decapitalize(methodName.substring(3))); 
         }
         else if (methodName != "new" && methodName != "newInstance") {
             attributes = attributes + " method=" + quote(methodName);

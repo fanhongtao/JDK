@@ -1,7 +1,7 @@
 /*
- * @(#)InvocationEvent.java	1.14 03/01/23
+ * @(#)InvocationEvent.java	1.16 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@ package java.awt.event;
 
 import java.awt.ActiveEvent;
 import java.awt.AWTEvent;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * An event which executes the <code>run()</code> method on a <code>Runnable
@@ -24,7 +25,7 @@ import java.awt.AWTEvent;
  *
  * @author	Fred Ecks
  * @author	David Mendenhall
- * @version	1.14, 01/23/03
+ * @version	1.16, 04/29/05
  *
  * @see		java.awt.ActiveEvent
  * @see		java.awt.EventQueue#invokeLater
@@ -74,6 +75,13 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * instance does not catch exceptions.
      */
     private Exception exception = null;
+
+    /**
+     * The (potentially null) Throwable thrown during execution of the
+     * Runnable.run() method. This variable will also be null if a particular
+     * instance does not catch exceptions.
+     */
+    private Throwable throwable = null;
 
     /**
      * The timestamp of when this event occurred.
@@ -170,8 +178,11 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
 	    try {
 		runnable.run();
 	    } 
-	    catch (Exception e) {
-		exception = e;
+	    catch (Throwable t) {
+                if (t instanceof Exception) {
+                    exception = (Exception) t;
+                }
+                throwable = t;
 	    }
 	}
 	else {
@@ -195,6 +206,18 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      */
     public Exception getException() {
 	return (catchExceptions) ? exception : null;
+    }
+
+    /**
+     * Returns any Throwable caught while executing the Runnable's <code>run()
+     * </code> method.
+     *
+     * @return	A reference to the Throwable if one was thrown; null if no
+     *		Throwable was thrown or if this InvocationEvent does not
+     *		catch Throwables
+     */
+    private Throwable getThrowableObject() {
+	return (catchExceptions) ? throwable : null;
     }
 
     /**

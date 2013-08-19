@@ -1,5 +1,5 @@
 /*
- * @(#)Introspector.java	1.133 05/01/15
+ * @(#)Introspector.java	1.133 05/06/07
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,6 +25,7 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * The Introspector class provides a standard way for tools to learn about
@@ -148,6 +149,9 @@ public class Introspector {
      * @see #flushFromCaches
      */
     public static BeanInfo getBeanInfo(Class beanClass) throws IntrospectionException {	
+	if (!ReflectUtil.isPackageAccessible(beanClass)) {
+		return (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
+	}
 	BeanInfo bi = (BeanInfo)beanInfoCache.get(beanClass);
 	if (bi == null) {
 	    bi = (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
@@ -1250,7 +1254,9 @@ public class Introspector {
 	// Looking up Class.getDeclaredMethods is relatively expensive,
 	// so we cache the results.
 	Method[] result = null;
-	
+	if (!ReflectUtil.isPackageAccessible(clz)) { 
+		return new Method[0]; 
+	} 
 	final Class fclz = clz;
 	Reference ref = (Reference)declaredMethodCache.get(fclz);
 	if (ref != null) {

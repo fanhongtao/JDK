@@ -1,7 +1,7 @@
 /*
- * @(#)ZipEntry.java	1.35 03/01/23
+ * @(#)ZipEntry.java	1.37 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.35, 01/23/03
+ * @version	1.37, 04/29/05
  * @author	David Connelly
  */
 public
@@ -41,9 +41,7 @@ class ZipEntry implements ZipConstants, Cloneable {
     public static final int DEFLATED = 8;
 
     static {
-        /* load the zip library */
-	java.security.AccessController.doPrivileged(
-		  new sun.security.action.LoadLibraryAction("zip"));
+        /* zip library is loaded by java.lang.System */
 	initIDs();
     }
 
@@ -251,7 +249,7 @@ class ZipEntry implements ZipConstants, Cloneable {
      * @see #getComment()
      */
     public void setComment(String comment) {
-	if (comment != null && comment.length() > 0xffff/3 
+	if (comment != null && comment.length() > 0xffff/3
                     && ZipOutputStream.getUTF8Length(comment) > 0xffff) {
 	    throw new IllegalArgumentException("invalid entry comment length");
 	}

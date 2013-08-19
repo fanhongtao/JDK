@@ -1,7 +1,7 @@
 /*
- * @(#)GTKFileChooserUI.java	1.19 04/01/13
+ * @(#)GTKFileChooserUI.java	1.21 05/05/26
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -204,6 +204,9 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 		setDirectoryName(((File)e.getNewValue()).getCanonicalPath());
 	    } catch (IOException ioe) {
 		setDirectoryName(((File)e.getNewValue()).getAbsolutePath());
+	    }
+	    if ((getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) && !getFileChooser().isMultiSelectionEnabled()) {
+		setFileName(pathField.getText());
 	    }
 	    directoryComboBoxModel.addItem(currentDirectory);
 	}

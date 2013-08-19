@@ -1,7 +1,7 @@
 /*
- * @(#)AnyImpl.java	1.61 03/01/23
+ * @(#)AnyImpl.java	1.63 05/05/26
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -558,7 +558,7 @@ public void read_value(org.omg.CORBA.portable.InputStream in, TypeCode tc)
 	java.lang.Object[] objholder = new java.lang.Object[1];
 	objholder[0] = object;
 	long[] longholder = new long[1];
-	TCUtility.unmarshalIn(in, typeCode, longholder, objholder);
+	TCUtility.unmarshalIn(in, realType(), longholder, objholder);
 	value = longholder[0];
 	object = objholder[0];
 	stream = null;

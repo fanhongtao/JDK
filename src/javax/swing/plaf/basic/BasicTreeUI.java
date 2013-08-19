@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTreeUI.java	1.156 03/01/23
+ * @(#)BasicTreeUI.java	1.159 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import javax.swing.text.Position;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.156 01/23/03
+ * @version 1.159 04/29/05
  * @author Scott Violet
  */
 
@@ -588,7 +588,7 @@ public class BasicTreeUI extends TreeUI
 	if(tree.getBackground() == null ||
 	   tree.getBackground() instanceof UIResource) {
 	    tree.setBackground(UIManager.getColor("Tree.background"));
-	} 
+	}
 	if(getHashColor() == null || getHashColor() instanceof UIResource) {
 	    setHashColor(UIManager.getColor("Tree.hash"));
 	}
@@ -721,7 +721,7 @@ public class BasicTreeUI extends TreeUI
 	map.put("selectParent", new TreeTraverseAction
 		(-1, "selectParent", true));
 	map.put("selectParentChangeLead", new TreeTraverseAction
-		(-1, "selectParentLead", false));	
+		(-1, "selectParentLead", false));
 
 	map.put("scrollUpChangeSelection", new TreePageAction
 		(-1, "scrollUpChangeSelection", false, true));
@@ -1164,7 +1164,7 @@ public class BasicTreeUI extends TreeUI
                     //This is the quick fix for bug 4259260.  Somewhere we
                     //are out by 4 pixels in the RTL layout.  Its probably
                     //due to built in right-side padding in some icons.  Rather
-                    //than ferret out problem at the source, this compensates. 
+                    //than ferret out problem at the source, this compensates.
             	    if (!leftToRight) {
                         bounds.x +=4;
                     }
@@ -1210,7 +1210,7 @@ public class BasicTreeUI extends TreeUI
 	if (leftToRight) {
 	    int leftX = bounds.x - getRightChildIndent();
 	    int nodeX = bounds.x - getHorizontalLegBuffer();
-	
+
 	    if(lineY >= clipTop && lineY <= clipBottom && nodeX >= clipLeft &&
 	                                                 leftX <= clipRight ) {
 	        leftX = Math.max(Math.max(insets.left, leftX), clipLeft);
@@ -1224,7 +1224,7 @@ public class BasicTreeUI extends TreeUI
 	}
 	else {
 	    int leftX = bounds.x + bounds.width + getRightChildIndent();
-	    int nodeX = bounds.x + bounds.width + 
+	    int nodeX = bounds.x + bounds.width +
 	                                  getHorizontalLegBuffer() - 1;
 
 	    if(lineY >= clipTop && lineY <= clipBottom &&
@@ -1376,9 +1376,9 @@ public class BasicTreeUI extends TreeUI
 	              (tree, path.getLastPathComponent(),
 		       tree.isRowSelected(row), isExpanded, isLeaf, row,
 		       (leadIndex == row));
-	
+
 	rendererPane.paintComponent(g, component, tree, bounds.x, bounds.y,
-				    bounds.width, bounds.height, true);	
+				    bounds.width, bounds.height, true);
     }
 
     /**
@@ -1422,7 +1422,7 @@ public class BasicTreeUI extends TreeUI
      */
     protected int getVerticalLegBuffer() {
 	return 0;
-    } 
+    }
 
     /**
      * The horizontal element of legs between nodes starts at the
@@ -1431,7 +1431,7 @@ public class BasicTreeUI extends TreeUI
      */
     protected int getHorizontalLegBuffer() {
 	return 0;
-    } 
+    }
 
     //
     // Generic painting methods
@@ -1513,7 +1513,7 @@ public class BasicTreeUI extends TreeUI
 	if(treeModel != null) {
 	    int         childCount = treeModel.getChildCount
 		(parent.getLastPathComponent());
-	    
+
 	    if(childCount > 0)
 		return parent.pathByAddingChild(treeModel.getChild
 			   (parent.getLastPathComponent(), childCount - 1));
@@ -1537,7 +1537,7 @@ public class BasicTreeUI extends TreeUI
 	    depthOffset = 0;
     }
 
-    /** 
+    /**
       * Updates the cellEditor based on the editability of the JTree that
       * we're contained in.  If the tree is editable but doesn't have a
       * cellEditor, a basic one will be used.
@@ -1900,7 +1900,7 @@ public class BasicTreeUI extends TreeUI
 	    TreePath              oldPath = editingPath;
 	    TreeCellEditor        oldEditor = cellEditor;
 	    Object                newValue = oldEditor.getCellEditorValue();
-	    Rectangle             editingBounds = getPathBounds(tree, 
+	    Rectangle             editingBounds = getPathBounds(tree,
 								editingPath);
 	    boolean               requestFocus = (tree != null &&
 		                   (tree.hasFocus() || SwingUtilities.
@@ -1939,86 +1939,99 @@ public class BasicTreeUI extends TreeUI
                                !stopEditing(tree)) {
             return false;
         }
-	completeEditing();
-	if(cellEditor != null && tree.isPathEditable(path)) {
-	    int           row = getRowForPath(tree, path);
+    completeEditing();
+    if(cellEditor != null && tree.isPathEditable(path)) {
+        int           row = getRowForPath(tree, path);
 
-	    if(cellEditor.isCellEditable(event)) {
+        if(cellEditor.isCellEditable(event)) {
                 editingComponent = cellEditor.getTreeCellEditorComponent
-		      (tree, path.getLastPathComponent(),
-		       tree.isPathSelected(path), tree.isExpanded(path),
-		       treeModel.isLeaf(path.getLastPathComponent()), row);
+              (tree, path.getLastPathComponent(),
+               tree.isPathSelected(path), tree.isExpanded(path),
+               treeModel.isLeaf(path.getLastPathComponent()), row);
 
-		Rectangle           nodeBounds = getPathBounds(tree, path);
+        Rectangle           nodeBounds = getPathBounds(tree, path);
 
-		editingRow = row;
+        editingRow = row;
 
-		Dimension editorSize = editingComponent.getPreferredSize();
+        Dimension editorSize = editingComponent.getPreferredSize();
 
-		// Only allow odd heights if explicitly set.
-		if(editorSize.height != nodeBounds.height &&
-		   getRowHeight() > 0)
-		    editorSize.height = getRowHeight();
+        // Only allow odd heights if explicitly set.
+        if(editorSize.height != nodeBounds.height &&
+           getRowHeight() > 0)
+            editorSize.height = getRowHeight();
 
-		if(editorSize.width != nodeBounds.width ||
-		   editorSize.height != nodeBounds.height) {
-		    // Editor wants different width or height, invalidate 
-		    // treeState and relayout.
-		    editorHasDifferentSize = true;
-		    treeState.invalidatePathBounds(path);
-		    updateSize();
-		}
-		else
-		    editorHasDifferentSize = false;
-		tree.add(editingComponent);
-		editingComponent.setBounds(nodeBounds.x, nodeBounds.y,
-					   editorSize.width,
-					   editorSize.height);
-		editingPath = path;
-		editingComponent.validate();
+        if(editorSize.width != nodeBounds.width ||
+           editorSize.height != nodeBounds.height) {
+            // Editor wants different width or height, invalidate
+            // treeState and relayout.
+            editorHasDifferentSize = true;
+            treeState.invalidatePathBounds(path);
+            updateSize();
+        }
+        else
+            editorHasDifferentSize = false;
+        tree.add(editingComponent);
+        editingComponent.setBounds(nodeBounds.x, nodeBounds.y,
+                       editorSize.width,
+                       editorSize.height);
+        editingPath = path;
+        editingComponent.validate();
 
-		Rectangle              visRect = tree.getVisibleRect();
+        Rectangle              visRect = tree.getVisibleRect();
 
-		tree.paintImmediately(nodeBounds.x, nodeBounds.y,
-				      visRect.width + visRect.x - nodeBounds.x,
-				      editorSize.height);
-		if(cellEditor.shouldSelectCell(event)) {
-		    stopEditingInCompleteEditing = false;
-		    try {
-			tree.setSelectionRow(row);
-		    } catch (Exception e) {
-			System.err.println("Editing exception: " + e);
-		    }
-		    stopEditingInCompleteEditing = true;
-		}
+        tree.paintImmediately(nodeBounds.x, nodeBounds.y,
+                      visRect.width + visRect.x - nodeBounds.x,
+                      editorSize.height);
+        if(cellEditor.shouldSelectCell(event)) {
+            stopEditingInCompleteEditing = false;
+            try {
+            tree.setSelectionRow(row);
+            } catch (Exception e) {
+            System.err.println("Editing exception: " + e);
+            }
+            stopEditingInCompleteEditing = true;
+        }
 
-		BasicLookAndFeel.compositeRequestFocus(editingComponent);
-		
-		if(event != null && event instanceof MouseEvent) {
-		    /* Find the component that will get forwarded all the
-		       mouse events until mouseReleased. */
-		    Point          componentPoint = SwingUtilities.convertPoint
-			(tree, new Point(event.getX(), event.getY()),
-			 editingComponent);
+        // While entering edit mode, if the container is having a
+        // text component - select all the text and high light it.
+        Component focusedComponent = null; // the contained component
 
-		    /* Create an instance of BasicTreeMouseListener to handle
-		       passing the mouse/motion events to the necessary
-		       component. */
-		    // We really want similar behavior to getMouseEventTarget,
-		    // but it is package private.
-		    Component activeComponent = SwingUtilities.
-			            getDeepestComponentAt(editingComponent,
-				       componentPoint.x, componentPoint.y);
-		    if (activeComponent != null) {
-			new MouseInputHandler(tree, activeComponent, event);
-		    }
-		}
-		return true;
-	    }
-	    else
-		editingComponent = null;
-	}
-	return false;
+        boolean selectAll = true; // requires selection ?
+        focusedComponent = BasicLookAndFeel.compositeRequestFocus(
+                               editingComponent);
+
+        if(event != null && event instanceof MouseEvent) {
+            /* Find the component that will get forwarded all the
+               mouse events until mouseReleased. */
+            Point          componentPoint = SwingUtilities.convertPoint
+            (tree, new Point(event.getX(), event.getY()),
+             editingComponent);
+
+            /* Create an instance of BasicTreeMouseListener to handle
+            passing the mouse/motion events to the necessary
+            component. */
+            // We really want similar behavior to getMouseEventTarget,
+            // but it is package private.
+            Component activeComponent = SwingUtilities.
+                         getDeepestComponentAt(editingComponent,
+                            componentPoint.x, componentPoint.y);
+            if (activeComponent != null) {
+                new MouseInputHandler(tree, activeComponent,
+                                      event, focusedComponent);
+                // The MouseInputHandler is required to handle
+                // the mouse click events.
+                selectAll = false;
+            }
+        }
+        if (selectAll && focusedComponent instanceof JTextField) {
+            ((JTextField)focusedComponent).selectAll();
+        }
+        return true;
+        }
+        else
+        editingComponent = null;
+    }
+    return false;
     }
 
     //
@@ -2042,7 +2055,7 @@ public class BasicTreeUI extends TreeUI
      * in the area of row that is used to expand/collapse the node and
      * the node at <code>row</code> does not represent a leaf.
      */
-    protected boolean isLocationInExpandControl(TreePath path, 
+    protected boolean isLocationInExpandControl(TreePath path,
 						int mouseX, int mouseY) {
 	if(path != null && !treeModel.isLeaf(path.getLastPathComponent())){
 	    int                     boxWidth;
@@ -2061,7 +2074,7 @@ public class BasicTreeUI extends TreeUI
 		              boxWidth / 2;
 	    }
 	    else {
-	        boxLeftX += lastWidth - 1 - 
+	        boxLeftX += lastWidth - 1 -
 		            ((path.getPathCount() - 2 + depthOffset) *
 			     totalChildIndent) - getLeftChildIndent() -
 		            boxWidth / 2;
@@ -2140,7 +2153,7 @@ public class BasicTreeUI extends TreeUI
 	if(clickCount <= 0) {
 	    return false;
 	}
-	return (event.getClickCount() == clickCount);
+	return (event.getClickCount() % clickCount  ==  0);
     }
 
     /**
@@ -2216,7 +2229,7 @@ public class BasicTreeUI extends TreeUI
 	ignoreLAChange = true;
 	try {
 	    tree.setAnchorSelectionPath(newPath);
-	} finally{ 
+	} finally{
 	    ignoreLAChange = false;
 	}
     }
@@ -2352,7 +2365,7 @@ public class BasicTreeUI extends TreeUI
 		    updateSize();
 		else {
 		    scrollBar = scrollPane.getVerticalScrollBar();
-		    if(scrollBar == null || 
+		    if(scrollBar == null ||
 			!scrollBar.getValueIsAdjusting()) {
 			// Try the horizontal scrollbar.
 			if((scrollBar = scrollPane.getHorizontalScrollBar())
@@ -2597,11 +2610,11 @@ public class BasicTreeUI extends TreeUI
 
 	/**
 	 * Invoked when a key has been typed.
-	 * 
+	 *
 	 * Moves the keyboard focus to the first element
-	 * whose first letter matches the alphanumeric key 
-	 * pressed by the user. Subsequent same key presses 
-	 * move the keyboard focus to the next object that 
+	 * whose first letter matches the alphanumeric key
+	 * pressed by the user. Subsequent same key presses
+	 * move the keyboard focus to the next object that
 	 * starts with the same letter.
 	 */
 	public void keyTyped(KeyEvent e) {
@@ -2829,13 +2842,13 @@ public class BasicTreeUI extends TreeUI
 		    // the Event to do this it self!
 		    if(SwingUtilities.isLeftMouseButton(e))
 			checkForClickInExpandControl(path, e.getX(), e.getY());
-		    
+
 		    int x = e.getX();
-		    
+
 		    // Perhaps they clicked the cell itself. If so,
 		    // select it.
 		    if (x > bounds.x) {
-			if (x <= (bounds.x + bounds.width) && 
+			if (x <= (bounds.x + bounds.width) &&
 			    !startEditing(path, e)) {
 			    selectPathForEvent(path, e);
 			}
@@ -3400,7 +3413,7 @@ public class BasicTreeUI extends TreeUI
 	    }
 	    component.scrollRectToVisible(visRect);
 	}
-	
+
     }
 
 
@@ -3581,11 +3594,19 @@ public class BasicTreeUI extends TreeUI
 	protected Component        source;
 	/** Destination that receives all events. */
 	protected Component        destination;
+	private Component          focusComponent;
+	private boolean            dispatchedEvent;
 
 	public MouseInputHandler(Component source, Component destination,
-	                              MouseEvent event){
+	                         MouseEvent event){
+	    this(source, destination, event, null);
+	}
+
+	MouseInputHandler(Component source, Component destination,
+	                  MouseEvent event, Component focusComponent){
 	    this.source = source;
 	    this.destination = destination;
+	    this.focusComponent = focusComponent;
 	    this.source.addMouseListener(this);
 	    this.source.addMouseMotionListener(this);
 	    /* Dispatch the editing event! */
@@ -3593,11 +3614,13 @@ public class BasicTreeUI extends TreeUI
 					  (source, event, destination));
 	}
 
-	public void mouseClicked(MouseEvent e) {
-	    if(destination != null)
-		destination.dispatchEvent(SwingUtilities.convertMouseEvent
-					  (source, e, destination));
-	}
+    public void mouseClicked(MouseEvent e) {
+        if(destination != null) {
+            dispatchedEvent = true;
+            destination.dispatchEvent(SwingUtilities.convertMouseEvent
+                                      (source, e, destination));
+        }
+    }
 
 	public void mousePressed(MouseEvent e) {
 	}
@@ -3614,30 +3637,36 @@ public class BasicTreeUI extends TreeUI
 		removeFromSource();
 	    }
 	}
-	
+
 	public void mouseExited(MouseEvent e) {
 	    if (!SwingUtilities.isLeftMouseButton(e)) {
 		removeFromSource();
 	    }
 	}
 
-	public void mouseDragged(MouseEvent e) {
-	    if(destination != null)
-		destination.dispatchEvent(SwingUtilities.convertMouseEvent
-					  (source, e, destination));
-	}
+    public void mouseDragged(MouseEvent e) {
+        if(destination != null) {
+            dispatchedEvent = true;
+            destination.dispatchEvent(SwingUtilities.convertMouseEvent
+                                      (source, e, destination));
+        }
+    }
 
 	public void mouseMoved(MouseEvent e) {
 	    removeFromSource();
 	}
 
-	protected void removeFromSource() {
-	    if(source != null) {
-		source.removeMouseListener(this);
-		source.removeMouseMotionListener(this);
-	    }
-	    source = destination = null;
-	}
+    protected void removeFromSource() {
+        if(source != null) {
+            source.removeMouseListener(this);
+            source.removeMouseMotionListener(this);
+            if (!dispatchedEvent && focusComponent == destination
+                && focusComponent instanceof JTextField) {
+                ((JTextField)focusComponent).selectAll();
+            }
+        }
+        source = destination = null;
+    }
 
     } // End of class BasicTreeUI.MouseInputHandler
 
@@ -3694,7 +3723,7 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	/**
-	 * called to restore the state of a component 
+	 * called to restore the state of a component
 	 * because a drop was not performed.
 	 */
         protected void restoreComponentState(JComponent comp) {
@@ -3721,7 +3750,7 @@ public class BasicTreeUI extends TreeUI
     private static final TransferHandler defaultTransferHandler = new TreeTransferHandler();
 
     static class TreeTransferHandler extends TransferHandler implements UIResource, Comparator {
-	
+
 	private JTree tree;
 
 	/**
@@ -3730,50 +3759,50 @@ public class BasicTreeUI extends TreeUI
 	 * @param c  The component holding the data to be transfered.  This
 	 *  argument is provided to enable sharing of TransferHandlers by
 	 *  multiple components.
-	 * @return  The representation of the data to be transfered. 
-	 *  
+	 * @return  The representation of the data to be transfered.
+	 *
 	 */
         protected Transferable createTransferable(JComponent c) {
 	    if (c instanceof JTree) {
 		tree = (JTree) c;
 		TreePath[] paths = tree.getSelectionPaths();
-		
+
 		if (paths == null || paths.length == 0) {
 		    return null;
 		}
-		
+
                 StringBuffer plainBuf = new StringBuffer();
                 StringBuffer htmlBuf = new StringBuffer();
-                
+
                 htmlBuf.append("<html>\n<body>\n<ul>\n");
-                
+
                 TreeModel model = tree.getModel();
                 TreePath lastPath = null;
                 TreePath[] displayPaths = getDisplayOrderPaths(paths);
 
                 for (int i = 0; i < displayPaths.length; i++) {
                     TreePath path = displayPaths[i];
-                    
+
                     Object node = path.getLastPathComponent();
                     boolean leaf = model.isLeaf(node);
                     String label = getDisplayString(path, true, leaf);
-                    
+
                     plainBuf.append(label + "\n");
                     htmlBuf.append("  <li>" + label + "\n");
                 }
-                
+
                 // remove the last newline
                 plainBuf.deleteCharAt(plainBuf.length() - 1);
                 htmlBuf.append("</ul>\n</body>\n</html>");
-                
+
                 tree = null;
-                
+
                 return new BasicTransferable(plainBuf.toString(), htmlBuf.toString());
 	    }
 
 	    return null;
 	}
-	
+
         public int compare(Object o1, Object o2) {
             int row1 = tree.getRowForPath((TreePath)o1);
             int row2 = tree.getRowForPath((TreePath)o2);
@@ -3784,10 +3813,10 @@ public class BasicTreeUI extends TreeUI
             int row = tree.getRowForPath(path);
             boolean hasFocus = tree.getLeadSelectionRow() == row;
             Object node = path.getLastPathComponent();
-            return tree.convertValueToText(node, selected, tree.isExpanded(row), 
+            return tree.convertValueToText(node, selected, tree.isExpanded(row),
                                            leaf, row, hasFocus);
         }
-        
+
         /**
          * Selection paths are in selection order.  The conversion to
          * HTML requires display order.  This method resorts the paths

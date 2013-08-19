@@ -1,7 +1,7 @@
 /*
- * @(#)BasicListUI.java	1.96 05/01/15
+ * @(#)BasicListUI.java	1.95 04/09/16
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.beans.PropertyChangeEvent;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.96 01/15/05
+ * @version 1.95 09/16/04
  * @author Hans Muller
  * @author Philip Milne
  */

@@ -79,6 +79,8 @@ import org.apache.xalan.templates.OutputProperties;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 
+import java.security.*;
+
 /**
  * <meta name="usage" content="general"/>
  * SerializerToHTML formats SAX-style events into XML.
@@ -98,8 +100,15 @@ public class SerializerToHTML extends SerializerToXML
    * Map that tells which XML characters should have special treatment, and it
    *  provides character to entity name lookup.
    */
-  protected static CharInfo m_htmlcharInfo =
-    new CharInfo(CharInfo.HTML_ENTITIES_RESOURCE);
+  protected static CharInfo m_htmlcharInfo = null;
+  
+  static {
+    m_htmlcharInfo = (CharInfo)AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+         return new CharInfo(CharInfo.HTML_ENTITIES_RESOURCE);
+      }
+    });
+  }
 
   /** A digital search trie for fast, case insensitive lookup of ElemDesc objects. */
   static Trie m_elementFlags = new Trie();

@@ -1,7 +1,7 @@
 /*
- * @(#)MetaData.java	1.31 03/01/23
+ * @(#)MetaData.java	1.33 05/04/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -23,7 +23,7 @@ import java.util.Enumeration;
  *
  * @see java.beans.Intropector
  *
- * @version 1.31 01/23/03
+ * @version 1.33 04/29/05
  * @author Philip Milne
  * @author Steve Langley
  */
@@ -143,8 +143,10 @@ class java_lang_Class_PersistenceDelegate extends PersistenceDelegate {
         // so we have to generate different code for primitive types.
         // This is needed for arrays whose subtype may be primitive.
         if (c.isPrimitive()) {
-            Field field = MetaData.typeToField(c);
-            if (field == null) {
+            Field field = null; 
+            try { 
+                field = ReflectionUtils.typeToClass(c).getDeclaredField("TYPE");
+            } catch (NoSuchFieldException ex) { 
                 System.err.println("Unknown primitive type: " + c);
             }
             return new Expression(oldInstance, field, "get", new Object[]{null});
@@ -355,10 +357,16 @@ class java_awt_Component_PersistenceDelegate extends DefaultPersistenceDelegate 
             String[] fieldNames = new String[]{"background", "foreground", "font"};
             for(int i = 0; i < fieldNames.length; i++) {
                 String name = fieldNames[i];
-                Object oldValue = MetaData.getPrivateField(oldInstance, java.awt.Component.class, name, out.getExceptionListener());
-                Object newValue = (newInstance == null) ? null : MetaData.getPrivateField(newInstance, java.awt.Component.class, name, out.getExceptionListener());
+                Object oldValue = ReflectionUtils.getPrivateField (
+                                  oldInstance, java.awt.Component.class, name,
+                                  out.getExceptionListener()); 
+                Object newValue = (newInstance == null) ? null
+                                  : ReflectionUtils.getPrivateField(newInstance,
+                    java.awt.Component.class, name, out.getExceptionListener());
                 if (oldValue != null && !oldValue.equals(newValue)) {
-                    invokeStatement(oldInstance, "set" + MetaData.capitalize(name), new Object[]{oldValue}, out);
+                    invokeStatement(oldInstance,
+                                    "set" + NameGenerator.capitalize(name),
+                                    new Object[]{oldValue}, out); 
                 }
             }
         }
@@ -455,16 +463,27 @@ class java_awt_List_PersistenceDelegate extends DefaultPersistenceDelegate {
 
 // BorderLayout
 class java_awt_BorderLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class type, Object oldInstance,  
+                              Object newInstance, Encoder out) { 
+
         super.initialize(type, oldInstance, newInstance, out);
         String[] locations = {"north", "south", "east", "west", "center"};
-        String[] names = {java.awt.BorderLayout.NORTH, java.awt.BorderLayout.SOUTH, java.awt.BorderLayout.EAST, java.awt.BorderLayout.WEST, java.awt.BorderLayout.CENTER};
+        String[] names = {
+            java.awt.BorderLayout.NORTH, java.awt.BorderLayout.SOUTH,  
+            java.awt.BorderLayout.EAST, java.awt.BorderLayout.WEST,  
+            java.awt.BorderLayout.CENTER
+        }; 
         for(int i = 0; i < locations.length; i++) {
-            Object oldC = MetaData.getPrivateField(oldInstance, java.awt.BorderLayout.class, locations[i], out.getExceptionListener());
-            Object newC = MetaData.getPrivateField(newInstance, java.awt.BorderLayout.class, locations[i], out.getExceptionListener());
+            Object oldC = ReflectionUtils.getPrivateField(oldInstance,  
+                               java.awt.BorderLayout.class,  
+                               locations[i], out.getExceptionListener()); 
+            Object newC = ReflectionUtils.getPrivateField(newInstance,  
+                               java.awt.BorderLayout.class,  
+                               locations[i], out.getExceptionListener()); 
             // Pending, assume any existing elements are OK.
             if (oldC != null && newC == null) {
-                invokeStatement(oldInstance, "addLayoutComponent", new Object[]{oldC, names[i]}, out);
+                invokeStatement(oldInstance, "addLayoutComponent",  
+                                new Object[]{oldC, names[i]}, out); 
             }
         }
     }
@@ -472,14 +491,17 @@ class java_awt_BorderLayout_PersistenceDelegate extends DefaultPersistenceDelega
 
 // CardLayout
 class java_awt_CardLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class type, Object oldInstance,  
+                              Object newInstance, Encoder out) { 
         super.initialize(type, oldInstance, newInstance, out);
-        Hashtable tab = (Hashtable)MetaData.getPrivateField(oldInstance, java.awt.CardLayout.class, "tab", out.getExceptionListener());
+        Hashtable tab = (Hashtable)ReflectionUtils.getPrivateField(oldInstance,
+                             java.awt.CardLayout.class,  
+                             "tab", out.getExceptionListener()); 
         if (tab != null) {
             for(Enumeration e = tab.keys(); e.hasMoreElements();) {
                 Object child = e.nextElement();
                 invokeStatement(oldInstance, "addLayoutComponent",
-                                new Object[]{child, (String)tab.get(child)}, out);
+                     new Object[]{child, (String)tab.get(child)}, out);
             }
         }
     }
@@ -487,9 +509,12 @@ class java_awt_CardLayout_PersistenceDelegate extends DefaultPersistenceDelegate
 
 // GridBagLayout
 class java_awt_GridBagLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class type, Object oldInstance,  
+                              Object newInstance, Encoder out) { 
         super.initialize(type, oldInstance, newInstance, out);
-        Hashtable comptable = (Hashtable)MetaData.getPrivateField(oldInstance, java.awt.GridBagLayout.class, "comptable", out.getExceptionListener());
+        Hashtable comptable = (Hashtable)ReflectionUtils.getPrivateField (
+                                  oldInstance, java.awt.GridBagLayout.class,  
+                                  "comptable", out.getExceptionListener()); 
         if (comptable != null) {
             for(Enumeration e = comptable.keys(); e.hasMoreElements();) {
                 Object child = e.nextElement();
@@ -590,10 +615,15 @@ class javax_swing_JComponent_PersistenceDelegate extends DefaultPersistenceDeleg
         String[] fieldNames = new String[]{"minimumSize", "preferredSize", "maximumSize"};
         for(int i = 0; i < fieldNames.length; i++) {
             String name = fieldNames[i];
-            Object value = MetaData.getPrivateField(c, javax.swing.JComponent.class, name, out.getExceptionListener());
+            Object value = ReflectionUtils.getPrivateField (c,
+                               javax.swing.JComponent.class, name,
+                               out.getExceptionListener()); 
+
             if (value != null) {
                 // System.out.println("Setting " + name);
-                invokeStatement(oldInstance, "set" + MetaData.capitalize(name), new Object[]{value}, out);
+                invokeStatement(oldInstance, "set" +
+                  NameGenerator.capitalize(name), new Object[]{value}, out);
+
             }
         }
     }
@@ -830,43 +860,18 @@ class MetaData {
         return (o1 == null) ? (o2 == null) : o1.equals(o2);
     }
 
-    /*pp*/ static Field typeToField(Class type) {
-        try {
-            return Statement.typeToClass(type).getDeclaredField("TYPE");
-        }
-        catch (NoSuchFieldException e) {
-            return null;
-        }
+    // Entry points for Encoder. 
+
+    public synchronized static void setPersistenceDelegate(Class type,  
+                                    PersistenceDelegate persistenceDelegate) { 
+        setBeanAttribute(type, "persistenceDelegate", persistenceDelegate);
     }
 
-    /*pp*/ static Object getPrivateField(Object instance, Class declaringClass, String name, ExceptionListener el) {
-        try {
-            Field f = declaringClass.getDeclaredField(name);
-            f.setAccessible(true);
-            return f.get(instance);
-        }
-        catch (Exception e) {
-            el.exceptionThrown(e);
-        }
-        return null;
-    }
-
-    private static boolean isPrimitive(Class type) {
-        // return type == Boolean.class || type == Character.class || Number.class.isAssignableFrom(type);
-        return Statement.primitiveTypeFor(type) != null;
-    }
-
-// Package private entry points for Encoder.
-
-    /*pp*/ static void setPersistenceDelegate(Class type, PersistenceDelegate persistenceDelegate) {
-	setBeanAttribute(type, "persistenceDelegate", persistenceDelegate);
-    }
-
-    /*pp*/ static PersistenceDelegate getPersistenceDelegate(Class type) {
+    public synchronized static PersistenceDelegate getPersistenceDelegate(Class type) { 
         if (type == null) {
             return nullPersistenceDelegate;
         }
-        if (isPrimitive(type)) {
+        if (ReflectionUtils.isPrimitive(type)) { 
             return primitivePersistenceDelegate;
         }
         // The persistence delegate for arrays is non-trivial; instantiate it lazily.
@@ -905,17 +910,18 @@ class MetaData {
 
         PersistenceDelegate pd = (PersistenceDelegate)getBeanAttribute(type, "persistenceDelegate");
         if (pd == null) {
-            pd = getInternalPersistenceDelegate(typeName);
+            pd = (PersistenceDelegate)internalPersistenceDelegates.get(typeName); 
             if (pd != null) {
                 return pd;
             }
-            setInternalPersistenceDelegate(typeName, defaultPersistenceDelegate);
+            internalPersistenceDelegates.put (
+                typeName, defaultPersistenceDelegate); 
             try {
                 String name =  type.getName();
-                // String unqualifiedClassName = name.substring(name.lastIndexOf('.')+1);
-                Class c = Class.forName("java.beans." + name.replace('.', '_') + "_PersistenceDelegate");
+                Class c = Class.forName("java.beans." + name.replace('.', '_')  
+                                        + "_PersistenceDelegate"); 
                 pd = (PersistenceDelegate)c.newInstance();
-                setInternalPersistenceDelegate(typeName, pd);
+                internalPersistenceDelegates.put(typeName, pd); 
             }
             catch (ClassNotFoundException e) {}
             catch (Exception e) {
@@ -926,14 +932,9 @@ class MetaData {
         return (pd != null) ? pd : defaultPersistenceDelegate;
     }
 
-    /*pp*/ static String capitalize(String propertyName) {
-        return propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
-    }
-
-    //
     // Wrapper for Introspector.getBeanInfo to handle exception handling.
     // Note: this relys on new 1.4 Introspector semantics which cache the BeanInfos
-    /*pp*/ static BeanInfo getBeanInfo(Class type) {
+    public static BeanInfo getBeanInfo(Class type) {
 	BeanInfo info = null;
 	try {
 	    info = Introspector.getBeanInfo(type);
@@ -976,16 +977,10 @@ class MetaData {
 
 // MetaData registration
 
-    private static void setInternalPersistenceDelegate(String typeName, PersistenceDelegate persistenceDelegate) {
-        internalPersistenceDelegates.put(typeName, persistenceDelegate);
-    }
-
-    private static void registerConstructor(String typeName, String[] constructor) {
-        setInternalPersistenceDelegate(typeName, new DefaultPersistenceDelegate(constructor));
-    }
-
-    private static PersistenceDelegate getInternalPersistenceDelegate(String typeName) {
-        return (PersistenceDelegate)internalPersistenceDelegates.get(typeName);
+    private synchronized static void registerConstructor(String typeName,  
+                                                         String[] constructor) {
+        internalPersistenceDelegates.put(typeName,  
+                             new DefaultPersistenceDelegate(constructor)); 
     }
 
     private static void removeProperty(String typeName, String property) {

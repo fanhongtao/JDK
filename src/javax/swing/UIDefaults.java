@@ -1,7 +1,7 @@
 /*
- * @(#)UIDefaults.java	1.55 03/06/26
+ * @(#)UIDefaults.java	1.57 05/06/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,6 +11,8 @@ package javax.swing;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.border.*;
 import javax.swing.event.SwingPropertyChangeSupport;
+
+import sun.reflect.misc.MethodUtil;
 
 import java.lang.reflect.*;
 import java.util.HashMap;
@@ -47,7 +49,7 @@ import java.security.PrivilegedAction;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see UIManager
- * @version 1.55 06/26/03
+ * @version 1.57 06/07/05
  * @author Hans Muller
  */
 public class UIDefaults extends Hashtable
@@ -726,7 +728,7 @@ public class UIDefaults extends Hashtable
 		    m = uiClass.getMethod("createUI", new Class[]{acClass});
 		    put(uiClass, m);
 		}
-		uiObject = m.invoke(null, new Object[]{target});
+                uiObject = MethodUtil.invoke(m, null, new Object[]{target});
             }
             catch (NoSuchMethodException e) {
                 getUIError("static createUI() method not found in " + uiClass);
@@ -1056,7 +1058,7 @@ public class UIDefaults extends Hashtable
                         if (methodName != null) {
                             Class[] types = getClassArray(args);
                             Method m = c.getMethod(methodName, types);
-                            return m.invoke(c, args);
+                            return MethodUtil.invoke(m, c, args);
                         } else {
                             Class[] types = getClassArray(args);
                             Constructor constructor = c.getConstructor(types);
