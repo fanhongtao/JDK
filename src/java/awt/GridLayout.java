@@ -1,5 +1,5 @@
 /*
- * @(#)GridLayout.java	1.31 01/12/03
+ * @(#)GridLayout.java	1.32 02/03/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -63,7 +63,7 @@ package java.awt;
  * the number of columns affects the layout only when the 
  * number of rows is set to zero.
  *
- * @version 1.31, 12/03/01
+ * @version 1.32, 03/11/02
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
@@ -279,12 +279,12 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * this grid layout. 
      * <p>
      * The preferred width of a grid layout is the largest preferred 
-     * width of any of the widths in the container times the number of 
+     * width of any of the components in the container times the number of 
      * columns, plus the horizontal padding times the number of columns 
      * plus one, plus the left and right insets of the target container. 
      * <p>
      * The preferred height of a grid layout is the largest preferred 
-     * height of any of the heights in the container times the number of 
+     * height of any of the components in the container times the number of 
      * rows, plus the vertical padding times the number of rows plus one, 
      * plus the top and bottom insets of the target container. 
      * 
@@ -328,12 +328,12 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * grid layout. 
      * <p>
      * The minimum width of a grid layout is the largest minimum width 
-     * of any of the widths in the container times the number of columns, 
+     * of any of the components in the container times the number of columns, 
      * plus the horizontal padding times the number of columns plus one, 
      * plus the left and right insets of the target container. 
      * <p>
      * The minimum height of a grid layout is the largest minimum height 
-     * of any of the heights in the container times the number of rows, 
+     * of any of the components in the container times the number of rows, 
      * plus the vertical padding times the number of rows plus one, plus 
      * the top and bottom insets of the target container. 
      *  

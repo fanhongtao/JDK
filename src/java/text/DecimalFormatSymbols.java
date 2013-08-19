@@ -1,5 +1,5 @@
 /*
- * @(#)DecimalFormatSymbols.java	1.35 01/12/03
+ * @(#)DecimalFormatSymbols.java	1.37 02/01/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import sun.text.resources.LocaleData;
  *
  * @see          java.util.Locale
  * @see          DecimalFormat
- * @version      1.35, 12/03/01
+ * @version      1.37, 01/16/02
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -398,15 +398,13 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
         boolean needCacheUpdate = false;
         Object[] data = (Object[]) cachedLocaleData.get(locale);
         if (data == null) {  /* cache miss */
-            data = new Object[4];
+            data = new Object[3];
             ResourceBundle rb = LocaleData.getLocaleElements(locale);
             data[0] = rb.getStringArray("NumberElements");
-            data[1] = rb.getString("Currency");
             needCacheUpdate = true;
         }
 
         String[] numberElements = (String[]) data[0];;
-        String currencyCode = (String) data[1];
 
         decimalSeparator = numberElements[0].charAt(0);
         groupingSeparator = numberElements[1].charAt(0);
@@ -420,23 +418,25 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
         infinity  = numberElements[9];
         NaN = numberElements[10];
         
-        try {
-            if (currencyCode != null && !currencyCode.equals("")) {
-                currency = Currency.getInstance(currencyCode);
-            } else {
+        // Try to obtain the currency used in the locale's country.
+        // Check for empty country string separately because it's a valid
+        // country ID for Locale (and used for the C locale), but not a valid
+        // ISO 3166 country code, and exceptions are expensive.
+        if (!"".equals(locale.getCountry())) {
+            try {
                 currency = Currency.getInstance(locale);
+            } catch (IllegalArgumentException e) {
+                // use default values below for compatibility
             }
-        } catch (IllegalArgumentException e) {
-            // use default values below for compatibility
         }
         if (currency != null) {
             intlCurrencySymbol = currency.getCurrencyCode();
-            if (data[2] != null && data[2] == intlCurrencySymbol) {
-                currencySymbol = (String) data[3];
+            if (data[1] != null && data[1] == intlCurrencySymbol) {
+                currencySymbol = (String) data[2];
             } else {
                 currencySymbol = currency.getSymbol(locale);
-                data[2] = intlCurrencySymbol;
-                data[3] = currencySymbol;
+                data[1] = intlCurrencySymbol;
+                data[2] = currencySymbol;
                 needCacheUpdate = true;
             }
         } else {

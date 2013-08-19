@@ -1,5 +1,5 @@
 /*
- * @(#)XMLDecoder.java	1.18 01/12/03
+ * @(#)XMLDecoder.java	1.19 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -138,9 +138,12 @@ public class XMLDecoder {
     } 
     
     /** 
-     * Reads the next object from the input. 
+     * Reads the next object from the underlying input stream. 
+     *
+     * @return the next object read
      *
      * @throws ArrayIndexOutOfBoundsException if the stream contains no objects (or no more objects)
+     *
      * @see XMLEncoder#writeObject
      */ 
     public Object readObject() { 

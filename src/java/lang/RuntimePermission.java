@@ -1,5 +1,5 @@
 /*
- * @(#)RuntimePermission.java	1.40 01/12/03
+ * @(#)RuntimePermission.java	1.41 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -245,7 +245,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.40 01/12/03
+ * @version 1.41 02/02/01
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -271,9 +271,7 @@ public final class RuntimePermission extends BasicPermission {
     /**
      * Creates a new RuntimePermission object with the specified name.
      * The name is the symbolic name of the RuntimePermission, and the
-     * actions String is currently unused and should be null. This
-     * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new Permission objects.
+     * actions String is currently unused and should be null.
      *
      * @param name the name of the RuntimePermission.
      * @param actions should be null.

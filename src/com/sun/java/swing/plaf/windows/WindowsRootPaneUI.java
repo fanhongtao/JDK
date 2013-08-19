@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsRootPaneUI.java	1.5 01/12/03
+ * @(#)WindowsRootPaneUI.java	1.8 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,14 +32,14 @@ import javax.swing.plaf.basic.BasicRootPaneUI;
  * Windows implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.5 12/03/01
+ * @version 1.8 04/17/02
  * @author Mark Davidson
  * @since 1.4
  */
 public class WindowsRootPaneUI extends BasicRootPaneUI {
 
     private final static WindowsRootPaneUI windowsRootPaneUI = new WindowsRootPaneUI();
-    private final static RepaintAction repaintAction = new RepaintAction();
+    private final static AltAction altAction = new AltAction();
 
     public static ComponentUI createUI(JComponent c) {
 	return windowsRootPaneUI;
@@ -49,11 +49,11 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
 	super.installKeyboardActions(root);
 
 	InputMap km = SwingUtilities.getUIInputMap(root, 
-				     JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+				     JComponent.WHEN_IN_FOCUSED_WINDOW);
 	if (km == null) {
 	    km = new InputMapUIResource();
 	    SwingUtilities.replaceUIInputMap(root, 
-				     JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, km);
+				     JComponent.WHEN_IN_FOCUSED_WINDOW, km);
 	}
 	km.put(KeyStroke.getKeyStroke(KeyEvent.VK_ALT, Event.ALT_MASK, false), "repaint");
 
@@ -62,37 +62,25 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
 	    am = new ActionMapUIResource();
 	    SwingUtilities.replaceUIActionMap(root, am);
 	}
-	am.put("repaint", repaintAction);
+	am.put("repaint", altAction);
     }    
 
     protected void uninstallKeyboardActions(JRootPane root) {
 	super.uninstallKeyboardActions(root);
 	
-	SwingUtilities.replaceUIInputMap(root, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, null);
+	SwingUtilities.replaceUIInputMap(root, JComponent.WHEN_IN_FOCUSED_WINDOW, null);
 	SwingUtilities.replaceUIActionMap(root, null);
     }
 
     /**
-     * Repaints the hiearchy if the Alt key is pressed.
+     * Repaints the hierarchy if the Alt key is pressed.
      */
-    static class RepaintAction extends AbstractAction {
-
+    static class AltAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 	    WindowsLookAndFeel.setMnemonicHidden(false);
 	    Object object = e.getSource();
 	    if (object instanceof Component) {
-                // Find the topmost root pane and invoke repaint() on it
-                JRootPane root = null;
-                for (Component c=(Component)object; c!=null; c=c.getParent()) {
-                    if (c instanceof JRootPane) {
-                        root = (JRootPane)c;
-                    }
-                }
-                if (root != null) {
-                    root.repaint();
-                } else {
-                    ((Component)object).repaint();
-                }
+                WindowsLookAndFeel.repaintRootPane((Component)object);
 	    }
 	}
     }

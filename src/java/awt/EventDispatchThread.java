@@ -1,5 +1,5 @@
 /*
- * @(#)EventDispatchThread.java	1.43 02/02/22
+ * @(#)EventDispatchThread.java	1.44 02/03/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,7 @@ import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
 import sun.awt.DebugHelper;
 import sun.awt.AWTAutoShutdown;
+import sun.awt.SunToolkit;
 
 
 /**
@@ -34,7 +35,7 @@ import sun.awt.AWTAutoShutdown;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.43, 02/22/02
+ * @version 1.44, 03/07/02
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -118,7 +119,12 @@ class EventDispatchThread extends Thread {
                  * events are posted after this thread died all events that 
                  * currently are in the queue will never be dispatched.
                  */
-                if (theQueue.peekEvent() != null) {
+                /*
+                 * Fix for 4648733. Check both the associated java event
+                 * queue and the PostEventQueue.
+                 */
+                if (theQueue.peekEvent() != null || 
+                    !SunToolkit.isPostEventQueueEmpty()) { 
                     theQueue.initDispatchThread();
                 }
 		AWTAutoShutdown.getInstance().notifyThreadFree(this);

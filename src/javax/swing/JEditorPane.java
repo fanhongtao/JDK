@@ -1,5 +1,5 @@
 /*
- * @(#)JEditorPane.java	1.113 01/12/03
+ * @(#)JEditorPane.java	1.115 02/04/03
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -163,7 +163,7 @@ import javax.accessibility.*;
  * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.113 12/03/01
+ * @version 1.115 04/03/02
  */
 public class JEditorPane extends JTextComponent {
 
@@ -518,7 +518,7 @@ public class JEditorPane extends JTextComponent {
 	    try {
 		doc.remove(0, doc.getLength());
 	    } catch (BadLocationException e) {}
-	    doc.putProperty("IgnoreCharsetDirective", new Boolean(true));
+	    doc.putProperty("IgnoreCharsetDirective", Boolean.valueOf(true));
 	    read(in, doc);
 	}
     }
@@ -1284,6 +1284,9 @@ public class JEditorPane extends JTextComponent {
         try {
 	    Document doc = getDocument();
 	    doc.remove(0, doc.getLength());
+	    if (t == null || t.equals("")) {
+		return;
+	    }
 	    Reader r = new StringReader(t);
 	    EditorKit kit = getEditorKit();
             kit.read(r, doc, 0);

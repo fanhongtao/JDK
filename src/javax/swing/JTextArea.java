@@ -1,5 +1,5 @@
 /*
- * @(#)JTextArea.java	1.83 01/12/03
+ * @(#)JTextArea.java	1.84 02/04/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -102,7 +102,7 @@ import java.io.IOException;
  * description: A multi-line area that displays plain text.
  * 
  * @author  Timothy Prinzing
- * @version 1.83 12/03/01
+ * @version 1.84 04/01/02
  * @see JTextPane
  * @see JEditorPane
  */
@@ -198,7 +198,7 @@ public class JTextArea extends JTextComponent {
 	    throw new IllegalArgumentException("rows: " + rows);
 	}
 	if (columns < 0) {
-	    throw new IllegalArgumentException("columns: " + rows);
+	    throw new IllegalArgumentException("columns: " + columns);
 	}
 	setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
 			   JComponent.getManagingFocusForwardTraversalKeys());

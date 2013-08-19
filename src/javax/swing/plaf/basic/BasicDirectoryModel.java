@@ -1,5 +1,5 @@
 /*
- * @(#)BasicDirectoryModel.java	1.26 01/12/03
+ * @(#)BasicDirectoryModel.java	1.27 02/04/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -195,11 +195,19 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 
 	    Vector acceptsList = new Vector();
 
+	    if (isInterrupted()) {
+		return;
+	    }
+
 	    // run through the file list, add directories and selectable files to fileCache
 	    for (int i = 0; i < list.length; i++) {
 		if(filechooser.accept(list[i])) {
 		    acceptsList.addElement(list[i]);
 		}
+	    }
+
+	    if (isInterrupted()) {
+		return;
 	    }
 
 	    // First sort alphabetically by filename
@@ -217,15 +225,8 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 		    newFiles.addElement(f);
 		}
 		if(isInterrupted()) {
-		    // interrupted, cancel all runnables
-		    cancelRunnables(runnables);
 		    return;
 		}
-	    }
-	    if(isInterrupted()) {
-		// interrupted, blow out
-		cancelRunnables(runnables);
-		return;
 	    }
 
 	    Vector newFileCache = new Vector(newDirectories);
@@ -253,7 +254,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 		if (start >= 0 && end > start
 		    && newFileCache.subList(end, newSize).equals(fileCache.subList(start, oldSize))) {
 		    invokeLater(new DoChangeContents(newFileCache.subList(start, end), start, null, 0, fid));
-		    return;
+		    newFileCache = null;
 		}
 	    } else if (newSize < oldSize) {
 		//see if interval is removed
@@ -270,11 +271,14 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 		    && fileCache.subList(end, oldSize).equals(newFileCache.subList(start, newSize))) {
 		    invokeLater(new DoChangeContents(null, 0, new Vector(fileCache.subList(start, end)),
 						     start, fid));
-		    return;
+		    newFileCache = null;
 		}
 	    }
-	    if (!fileCache.equals(newFileCache)) {
+	    if (newFileCache != null && !fileCache.equals(newFileCache)) {
 		invokeLater(new DoChangeContents(newFileCache, 0, fileCache, 0, fid));
+	    }
+	    if (isInterrupted()) {
+		cancelRunnables(runnables);
 	    }
 	}
 

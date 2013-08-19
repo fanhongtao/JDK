@@ -1,5 +1,5 @@
 /*
- * @(#)AnyImpl.java	1.59 01/12/03
+ * @(#)AnyImpl.java	1.60 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -113,7 +113,7 @@ public class AnyImpl extends Any
 	false,  // objref
 	true,   // struct
 	true,   // union
-	true,   // enum
+	false,  // enum
     	false,  // string
 	true,   // sequence
 	true,   // array
@@ -1009,9 +1009,17 @@ public void insert_Object(org.omg.CORBA.Object o)
     if ( o == null ) {
 	typeCode = TypeCodeImpl.get_primitive_tc(TCKind.tk_objref);
     } else {
-	ObjectImpl objImpl = (ObjectImpl)o;
-	String[] ids = objImpl._ids();
-	typeCode = new TypeCodeImpl(orb, TCKind._tk_objref, ids[0], "");
+        if (o instanceof ObjectImpl) {
+            ObjectImpl objImpl = (ObjectImpl)o;
+            String[] ids = objImpl._ids();
+            typeCode = new TypeCodeImpl(orb, TCKind._tk_objref, ids[0], "");
+        } else {
+            throw new BAD_PARAM("Attempted to insert non-ObjectImpl "
+                                + o.getClass().getName()
+                                + " into an Any",
+                                MinorCodes.BAD_INSERTOBJ_PARAM,
+                                CompletionStatus.COMPLETED_MAYBE);
+        }
     }
     
     object = o;
@@ -1358,6 +1366,9 @@ private TypeCode getPrimitiveTypeCodeForClass (Class c,
                 case TCKind._tk_short:
                     returnValue.insert_short(stream.read_short());
                     break;
+                case TCKind._tk_enum:
+                    // Set the type first and then fall through to long
+                    returnValue.type(realType());
                 case TCKind._tk_long:
                     returnValue.insert_long(stream.read_long());
                     break;
@@ -1439,9 +1450,6 @@ private TypeCode getPrimitiveTypeCodeForClass (Class c,
                     unionValue.write_value(out);
                     discriminator.write_value(out);
                     returnValue.read_value(out.create_input_stream(), realType);
-                    break;
-                case TCKind._tk_enum:
-                    returnValue.read_value(create_input_stream(), realType);
                     break;
 
                 case TCKind._tk_alias:

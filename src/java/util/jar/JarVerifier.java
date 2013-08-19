@@ -1,5 +1,5 @@
 /*
- * @(#)JarVerifier.java	1.29 01/12/03
+ * @(#)JarVerifier.java	1.30 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.29 01/12/03
+ * @version 	1.30 02/02/06
  * @author	Roland Schemers
  */
 class JarVerifier {
@@ -107,7 +107,7 @@ class JarVerifier {
 	 */
 
 	if (parsingMeta) {
-	    String uname = name.toUpperCase();
+	    String uname = name.toUpperCase(Locale.ENGLISH);
 	    if ((uname.startsWith("META-INF/") ||
 		 uname.startsWith("/META-INF/"))) {
 
@@ -215,7 +215,8 @@ class JarVerifier {
 		    debug.println("processEntry: processing block");
 		}
 
-		String uname = mev.getEntry().getName().toUpperCase();
+		String uname = mev.getEntry().getName()
+                                             .toUpperCase(Locale.ENGLISH);
 
 		if (uname.endsWith(".SF")) {
 		    String key = uname.substring(0, uname.length()-3);

@@ -1,5 +1,5 @@
 /*
- * @(#)Deflater.java	1.35 01/12/03
+ * @(#)Deflater.java	1.36 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,9 +14,36 @@ package java.util.zip;
  * protected by patents. It is fully described in the specifications at 
  * the <a href="package-summary.html#package_description">java.util.zip
  * package description</a>.
+ *
+ * <p>The following code fragment demonstrates a trivial compression
+ * and decompression of a string using <tt>Deflater</tt> and
+ * <tt>Inflater</tt>.
+ *
+ * <blockquote><pre>
+ * // Encode a String into bytes
+ * String inputString = "blahblahblah\u20AC\u20AC";
+ * byte[] input = inputString.getBytes("UTF-8");
+ *
+ * // Compress the bytes
+ * byte[] output = new byte[100];
+ * Deflater compresser = new Deflater();
+ * compresser.setInput(input);
+ * compresser.finish();
+ * int compressedDataLength = compresser.deflate(output);
+ *
+ * // Decompress the bytes
+ * Inflater decompresser = new Inflater();
+ * decompresser.setInput(output, 0, compressedDataLength);
+ * byte[] result = new byte[100];
+ * int resultLength = decompresser.inflate(result);
+ * decompresser.end();
+ *
+ * // Decode the bytes into a String
+ * String outputString = new String(result, 0, resultLength, "UTF-8");
+ * </pre></blockquote>
  * 
  * @see		Inflater
- * @version 	1.35, 12/03/01
+ * @version 	1.36, 02/06/02
  * @author 	David Connelly
  */
 public

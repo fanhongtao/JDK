@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTextAreaUI.java	1.65 01/12/03
+ * @(#)BasicTextAreaUI.java	1.66 02/04/24
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import javax.swing.plaf.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.65 12/03/01
+ * @version 1.66 04/24/02
  */
 public class BasicTextAreaUI extends BasicTextUI {
 
@@ -77,6 +77,8 @@ public class BasicTextAreaUI extends BasicTextUI {
 	    evt.getPropertyName().equals("wrapStyleWord")) {
 	    // rebuild the view
 	    modelChanged();
+	} else if ("editable".equals(evt.getPropertyName())) {
+	    updateFocusTraversalKeys();
 	}
     }
 

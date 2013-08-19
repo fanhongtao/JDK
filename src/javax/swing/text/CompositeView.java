@@ -1,5 +1,5 @@
 /*
- * @(#)CompositeView.java	1.64 02/05/14
+ * @(#)CompositeView.java	1.64 02/01/31
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -54,7 +54,7 @@ import javax.swing.SwingConstants;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.64 05/14/02
+ * @version 1.64 01/31/02
  */
 public abstract class CompositeView extends View {
 
@@ -593,10 +593,10 @@ public abstract class CompositeView extends View {
 	    }
 
 	    childAlloc.setBounds(alloc);
-            childAlloc.x += getLeftInset();
-            childAlloc.y += getTopInset();
-            childAlloc.width -= getLeftInset() + getRightInset();
-            childAlloc.height -= getTopInset() + getBottomInset();
+	    childAlloc.x += getLeftInset();
+	    childAlloc.y += getTopInset();
+	    childAlloc.width -= getLeftInset() + getRightInset();
+	    childAlloc.height -= getTopInset() + getBottomInset();
 	    return childAlloc;
 	}
 	return null;

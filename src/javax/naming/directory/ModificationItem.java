@@ -1,5 +1,5 @@
 /*
- * @(#)ModificationItem.java	1.5 01/12/03
+ * @(#)ModificationItem.java	1.6 01/12/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ package javax.naming.directory;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.5 01/12/03
+  * @version 1.6 01/12/12
   * @since 1.3
   */
 
@@ -104,7 +104,7 @@ public class ModificationItem implements java.io.Serializable {
 	    return ("Replace attribute: " + attr.toString());
 
 	case DirContext.REMOVE_ATTRIBUTE:
-	    return ("Remove attribute: " + attr.getID().toString());
+	    return ("Remove attribute: " + attr.toString());
 	}
 	return "";	// should never happen
     }

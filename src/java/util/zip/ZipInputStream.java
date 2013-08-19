@@ -1,5 +1,5 @@
 /*
- * @(#)ZipInputStream.java	1.29 01/12/03
+ * @(#)ZipInputStream.java	1.30 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.29, 12/03/01
+ * @version	1.30, 02/06/02
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -50,6 +50,7 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      */
     public ZipInputStream(InputStream in) {
 	super(new PushbackInputStream(in, 512), new Inflater(true), 512);
+        usesDefaultInflater = true;
         if(in == null) {
             throw new NullPointerException("in is null");
         }
@@ -201,9 +202,13 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-	super.close();
-        closed = true;
+        if (!closed) {
+	    super.close();
+            closed = true;
+        }
     }
+
+    private byte[] b = new byte[256];
 
     /*
      * Reads local file (LOC) header for next entry.
@@ -222,7 +227,13 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	if (len == 0) {
 	    throw new ZipException("missing entry name");
 	}
-	byte[] b = new byte[len];
+        int blen = b.length;
+        if (len > blen) {
+            do 
+                blen = blen * 2;
+            while (len > blen); 
+            b = new byte[blen];
+        } 
 	readFully(b, 0, len);
 	ZipEntry e = createZipEntry(getUTF8String(b, 0, len));
 	// now get the remaining fields for the entry
@@ -246,9 +257,9 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	}
 	len = get16(tmpbuf, LOCEXT);
 	if (len > 0) {
-	    b = new byte[len];
-	    readFully(b, 0, len);
-	    e.extra = b;
+	    byte[] bb = new byte[len];
+	    readFully(bb, 0, len);
+	    e.extra = bb;
 	}
 	return e;
     }

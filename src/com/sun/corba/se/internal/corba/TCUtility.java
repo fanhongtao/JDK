@@ -1,5 +1,5 @@
 /*
- * @(#)TCUtility.java	1.19 01/12/03
+ * @(#)TCUtility.java	1.20 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,6 +61,7 @@ public final class TCUtility {
 	    s.write_ushort((short)(l & 0xFFFFL));
 	    break;
 
+	case TCKind._tk_enum:
 	case TCKind._tk_long:
 	    s.write_long((int)(l & 0xFFFFFFFFL));
 	    break;
@@ -150,7 +151,6 @@ public final class TCUtility {
 
 	case TCKind._tk_struct:
 	case TCKind._tk_union:
-	case TCKind._tk_enum:
 	case TCKind._tk_sequence:
 	case TCKind._tk_array:
 	case TCKind._tk_alias:
@@ -190,6 +190,7 @@ public final class TCUtility {
 	    l = s.read_ushort() & 0xFFFFL;
 	    break;
 
+	case TCKind._tk_enum:
 	case TCKind._tk_long:
 	    l = s.read_long() & 0xFFFFFFFFL;
 	    break;
@@ -282,7 +283,6 @@ public final class TCUtility {
 
 	case TCKind._tk_struct:
 	case TCKind._tk_union:
-	case TCKind._tk_enum:
 	case TCKind._tk_sequence:
 	case TCKind._tk_array:
 	case TCKind._tk_alias:

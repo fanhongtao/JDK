@@ -1,5 +1,5 @@
 /*
- * @(#)TimeZone.java	1.61 01/12/03
+ * @(#)TimeZone.java	1.62 02/01/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -108,7 +108,7 @@ import sun.util.calendar.ZoneInfoFile;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.61 12/03/01
+ * @version      1.62 01/21/02
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since        JDK1.1
  */
@@ -625,6 +625,16 @@ abstract public class TimeZone implements Serializable, Cloneable {
 	    return null;
 	}
 
+	ZoneInfo zi;
+
+	// First, we try to find it in the cache with the given
+	// id. Even the id is not normalized, the returned ZoneInfo
+	// should have its normalized id.
+	zi = ZoneInfoFile.getZoneInfo(id);
+	if (zi != null) {
+	    return zi;
+	}
+
 	int index = GMT_ID_LENGTH;
 	boolean negative = false;
 	char c = id.charAt(index++);
@@ -680,7 +690,6 @@ abstract public class TimeZone implements Serializable, Cloneable {
 	}
 	int gmtOffset =  hours * 60 + num;
 
-	ZoneInfo zi;
 	if (gmtOffset == 0) {
 	    zi = ZoneInfoFile.getZoneInfo(GMT_ID);
 	    if (negative) {
@@ -689,7 +698,7 @@ abstract public class TimeZone implements Serializable, Cloneable {
 		zi.setID("GMT+00:00");
 	    }
 	} else {
-	    zi = ZoneInfoFile.getCustomTimeZone(negative ? -gmtOffset : gmtOffset);
+	    zi = ZoneInfoFile.getCustomTimeZone(id, negative ? -gmtOffset : gmtOffset);
 	}
 	return zi;
     }

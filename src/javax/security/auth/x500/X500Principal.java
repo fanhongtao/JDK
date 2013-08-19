@@ -1,5 +1,5 @@
 /*
- * @(#)X500Principal.java	1.15 01/12/03
+ * @(#)X500Principal.java	1.17 02/04/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,11 +36,14 @@ import sun.security.util.*;
  * <code>X509Certificate</code> return X500Principals representing the
  * issuer and subject fields of the certificate.
  *
- * @version 1.15, 12/03/01
+ * @version 1.17, 04/05/02
  * @see java.security.cert.X509Certificate
  * @since 1.4
  */
 public final class X500Principal implements Principal, java.io.Serializable {
+
+    private static final long serialVersionUID = -500463348111345721L;
+
     /**
      * RFC 1779 String format of Distinguished Names. 
      */
@@ -54,11 +57,23 @@ public final class X500Principal implements Principal, java.io.Serializable {
      */
     public static final String CANONICAL = "CANONICAL";
 
-    private transient String name;
-
     private transient X500Name thisX500Name;
     
     private transient byte[] encByte = null;
+    
+    /**
+     * Creates an X500Principal by wrapping an X500Name without cloning it.
+     * Note that use of this constructor requires care because modifying
+     * the underlying X500Name would violate the X500Principal immutability
+     * contract. Code using it must guarantee that this will never happen.
+     *
+     * The constructor is package private. It is intended to be accessed
+     * using privileged reflection from classes in sun.security.*.
+     * Currently referenced from sun.security.x509.X500Name.asX500Principal().
+     */
+    X500Principal(X500Name x500Name) {
+        thisX500Name = x500Name;
+    }
 
     /**
      * Creates an <code>X500Principal</code> from a string representation of
@@ -97,7 +112,6 @@ public final class X500Principal implements Principal, java.io.Serializable {
 	    throw iae;
 	}
 
-	this.name = name;
     }
 
     /**
@@ -137,10 +151,10 @@ public final class X500Principal implements Principal, java.io.Serializable {
     public X500Principal(byte[] name) {
 	try {
 	    thisX500Name = new X500Name(name);
-	} catch (IOException ioe) {
+	} catch (Exception e) {
 	    IllegalArgumentException iae = new IllegalArgumentException
 			("improperly specified input name");
-	    iae.initCause(ioe);
+	    iae.initCause(e);
 	    throw iae;
 	}
     }
@@ -173,7 +187,7 @@ public final class X500Principal implements Principal, java.io.Serializable {
 		is.mark(is.available() + 1);
 	    DerValue der = new DerValue(is);
 	    thisX500Name = new X500Name(der.data);
-	} catch (IOException e) {
+	} catch (Exception e) {
 	    if (is.markSupported()) {
 		try {
 		    is.reset();

@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities.java	1.114 01/12/03
+ * @(#)SwingUtilities.java	1.116 02/03/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import sun.awt.AppContext;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.114 12/03/01
+ * @version 1.116 03/18/02
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -385,8 +385,16 @@ public class SwingUtilities implements SwingConstants
     }
 
     /**
-     * Convenience to calculate the union of two rectangles without allocating a new rectangle
-     * Return dest
+     * Convenience method that calculates the union of two rectangles
+     * without allocating a new rectangle.
+     *
+     * @param x the x-coordinate of the first rectangle
+     * @param y the y-coordinate of the first rectangle
+     * @param width the width of the first rectangle
+     * @param height the height of the first rectangle
+     * @param dest  the coordinates of the second rectangle; the union
+     *    of the two rectangles is returned in this rectangle
+     * @return the <code>dest</code> <code>Rectangle</code>
      */
     public static Rectangle computeUnion(int x,int y,int width,int height,Rectangle dest) {
         int x1 = (x < dest.x) ? x : dest.x;
@@ -1005,7 +1013,8 @@ public class SwingUtilities implements SwingConstants
      * A lightweight component is one whose "lightweight" property
      * (returned by the <code>Component</code>
      * <code>isLightweight</code> method)
-     * is true.
+     * is true. If the Component is not lightweight, bad things map happen:
+     * crashes, exceptions, painting problems...
      * <p>
      *
      * @param g  the <code>Graphics</code> object to draw on
@@ -1039,7 +1048,8 @@ public class SwingUtilities implements SwingConstants
      * A lightweight component is one whose "lightweight" property
      * (returned by the <code>Component</code>
      * <code>isLightweight</code> method)
-     * is true.
+     * is true. If the Component is not lightweight, bad things map happen:
+     * crashes, exceptions, painting problems...
      * <p>
      *
      * @param g  the <code>Graphics</code> object to draw on

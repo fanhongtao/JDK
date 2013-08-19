@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractSelectableChannel.java	1.18 01/12/03
+ * @(#)AbstractSelectableChannel.java	1.19 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import java.nio.channels.*;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.18, 01/12/03
+ * @version 1.19, 02/02/25
  * @since 1.4
  */
 
@@ -115,7 +115,7 @@ public abstract class AbstractSelectableChannel
 		    keys[i] = null;
 		    keyCount--;
 		}
-	    // ## assert (i <= keyCount)
+	    assert (i <= keyCount);
 	}
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)LoggingPermission.java	1.5 01/12/03
+ * @(#)LoggingPermission.java	1.6 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.security.*;
  * the security policy file.
  *
  *
- * @version 1.5, 12/03/01
+ * @version 1.6, 02/01/02
  * @since 1.4
  * @see java.security.BasicPermission
  * @see java.security.Permission
@@ -38,8 +38,7 @@ import java.security.*;
 public final class LoggingPermission extends java.security.BasicPermission {
 
     /**
-     * Creates a new LoggingPermission object. This constructor exists for
-     * use by the Policy object to instantiate new Permission objects.
+     * Creates a new LoggingPermission object.
      *
      * @param name Permission name.  Must be "control".
      * @param actions Must be either null or the empty string.

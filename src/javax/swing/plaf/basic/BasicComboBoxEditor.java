@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxEditor.java	1.23 02/03/20
+ * @(#)BasicComboBoxEditor.java	1.24 02/02/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,10 +20,8 @@ import java.lang.reflect.Method;
 
 /**
  * The default editor for editable combo boxes. The editor is implemented as a JTextField.
- * If the text field is used to edit <code>java.lang.Number</code> objects, then
- * its constrained to only accept numbers.
  *
- * @version 1.23 03/20/02
+ * @version 1.24 02/20/02
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -103,15 +101,13 @@ public class BasicComboBoxEditor implements ComboBoxEditor,FocusListener {
             super(value,n);
         }
 
- 
-//Added for the fix #4530952
-
-public void setText(String s) {
-             if (getText().equals(s)) {
-                 return;
-             }
-             super.setText(s);
-         }
+        // workaround for 4530952
+        public void setText(String s) {
+            if (getText().equals(s)) {
+                return;
+            }
+            super.setText(s);
+        }
 
         public void setBorder(Border b) {}
     }

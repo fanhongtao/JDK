@@ -1,5 +1,5 @@
 /*
- * @(#)CompoundName.java	1.7 01/12/03
+ * @(#)CompoundName.java	1.8 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -125,7 +125,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.7 01/12/03
+ * @version 1.8 02/04/18
  * @since 1.3
  */
 
@@ -161,6 +161,9 @@ public class CompoundName implements Name {
       *			contents of properties.
       */
     protected CompoundName(Enumeration comps, Properties syntax) {
+	if (syntax == null) {
+	    throw new NullPointerException();
+	}
 	mySyntax = syntax;
 	impl = new NameImpl(syntax, comps);
     }
@@ -177,6 +180,9 @@ public class CompoundName implements Name {
       *			by <code>syntax</code>.
       */
     public CompoundName(String n, Properties syntax) throws InvalidNameException {
+	if (syntax == null) {
+	    throw new NullPointerException();
+	}
 	mySyntax = syntax;
 	impl = new NameImpl(syntax, n);
     }

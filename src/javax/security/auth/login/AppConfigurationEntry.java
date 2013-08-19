@@ -1,5 +1,5 @@
 /*
- * @(#)AppConfigurationEntry.java	1.30 01/12/03
+ * @(#)AppConfigurationEntry.java	1.31 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,12 +21,11 @@ import java.util.Collections;
  * options.  Please refer to the <code>Configuration</code> class for
  * more information on the different control flags and their semantics.
  *
- * @version 1.30, 12/03/01
+ * @version 1.31, 02/21/02
  * @see javax.security.auth.login.Configuration
  */
 public class AppConfigurationEntry {
 
-    Object module;	// actually allow any object to be a LoginModule
     private String loginModuleName;
     private LoginModuleControlFlag controlFlag;
     private Map options;

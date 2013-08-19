@@ -1,5 +1,5 @@
 /*
- * @(#)TypeCodeImpl.java	1.88 01/12/03
+ * @(#)TypeCodeImpl.java	1.90 02/02/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -153,6 +153,10 @@ class WrapperInputStream extends org.omg.CORBA_2_3.portable.InputStream implemen
         // This is never actually called on a WrapperInputStream, but
         // exists to satisfy the interface requirement.
         stream.performORBVersionSpecificInit();
+    }
+
+    public void resetCodeSetConverters() {
+        stream.resetCodeSetConverters();
     }
 
     //public void printBuffer() { stream.printBuffer(); }
@@ -1907,12 +1911,8 @@ void read_value_body(InputStream is) {
 				_unionLabels[i].insert_char(_encap.read_char());
 				break;
 			    case TCKind._tk_enum:
-				int value = _encap.read_long();
-				org.omg.CORBA.portable.OutputStream out = 
-				    _unionLabels[i].create_output_stream();
-				out.write_long(value);
-				_unionLabels[i].read_value(out.create_input_stream(),
-							   _discriminator);
+				_unionLabels[i].type(_discriminator);
+				_unionLabels[i].insert_long(_encap.read_long());
 				break;
 			    case TCKind._tk_longlong:
 				_unionLabels[i].insert_longlong(_encap.read_longlong());
@@ -2224,9 +2224,7 @@ public void write_value(TypeCodeOutputStream tcos) {
 				_encap.write_char(_unionLabels[i].extract_char());
 				break;
 			    case TCKind._tk_enum:
-				int value = _unionLabels[i].create_input_stream().
-				    read_long();
-				_encap.write_long(value);
+				_encap.write_long(_unionLabels[i].extract_long());
 				break;
 			    case TCKind._tk_longlong:
 				_encap.write_longlong(_unionLabels[i].extract_longlong());
@@ -2582,10 +2580,7 @@ protected void copy(org.omg.CORBA.portable.InputStream src, org.omg.CORBA.portab
 		{
 		    int value = src.read_long();
 		    tagValue.type(_discriminator);
-		    org.omg.CORBA.portable.OutputStream out = 
-			tagValue.create_output_stream();
-		    out.write_long(value);
-		    tagValue.read_value(out.create_input_stream(), _discriminator);
+		    tagValue.insert_long(value);
 		    dst.write_long(value);
 		    break;
 		}
@@ -2865,7 +2860,10 @@ protected void copy(org.omg.CORBA.portable.InputStream src, org.omg.CORBA.portab
 	        break;
 
             case TCKind._tk_string:
-                s.print("string[" + _length + "] " + _name);
+                if (_length == 0)
+                    s.print("unbounded string " + _name);
+                else
+                    s.print("bounded string(" + _length + ") " + _name);
 	        break;
 
             case TCKind._tk_sequence:

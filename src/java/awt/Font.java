@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.171 01/12/03
+ * @(#)Font.java	1.177 02/04/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,33 +7,28 @@
 
 package java.awt;
 
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
+import java.awt.font.TransformAttribute;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.peer.FontPeer;
+import java.io.*;
+import java.lang.ref.SoftReference;
 import java.text.AttributedCharacterIterator.Attribute;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.MissingResourceException;
+import java.util.HashMap;
 import java.util.Hashtable;
-import sun.awt.font.FontNameAliases;
+import java.util.Locale;
 import java.util.Map;
 import sun.awt.font.NativeFontWrapper;
 import sun.awt.font.StandardGlyphVector;
-import java.awt.font.FontRenderContext;
-import java.awt.font.LineMetrics;
-import java.awt.font.GlyphVector;
-import java.awt.font.TextLayout;
-import java.awt.font.TransformAttribute;
 import sun.java2d.FontSupport;
 import sun.java2d.SunGraphicsEnvironment;
-import java.lang.StringIndexOutOfBoundsException;
-import java.lang.ArrayIndexOutOfBoundsException;
-import java.io.*;
-import sun.text.resources.LocaleData;
 
 /**
  * The <code>Font</code> class represents fonts, which are used to
@@ -131,7 +126,7 @@ import sun.text.resources.LocaleData;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  *
- * @version 	1.171, 12/03/01
+ * @version 	1.177, 04/27/02
  */
 public class Font implements java.io.Serializable
 {
@@ -274,10 +269,8 @@ public class Font implements java.io.Serializable
     //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
     final FontPeer getPeer_NoClientCode() {
         if(peer == null) {
-            if (true /* || RasterOutputManager.usesPlatformFont() */) {
-                Toolkit tk = Toolkit.getDefaultToolkit();
-                this.peer = tk.getFontPeer(name, style);
-            }
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            this.peer = tk.getFontPeer(name, style);
         }
         return peer;
     }
@@ -311,7 +304,7 @@ public class Font implements java.io.Serializable
             GraphicsEnvironment.getLocalGraphicsEnvironment();
         String localName = this.name;
         if (env instanceof FontSupport) {
-            localName = ((FontSupport)env).mapFamilyName(
+            localName = ((FontSupport)env).mapFontName(
                 this.name, this.style);
         }
 
@@ -414,8 +407,129 @@ public class Font implements java.io.Serializable
             return font;
         }
 
-	return new Font(attributes);
+	return get(new Key(attributes));
     }
+
+    private static SoftReference cacheRef = new SoftReference(new HashMap());
+    private static Font get(Key key) {
+	Font f = null;
+	Map cache = (Map)cacheRef.get();
+	if (cache == null) {
+	    cache = new HashMap();
+	    cacheRef = new SoftReference(cache);
+	} else {
+	    f = (Font)cache.get(key);
+	}
+
+	if (f == null) {
+	    f = new Font(key.attrs);
+	    cache.put(key, f);
+	}
+
+	return f;
+    }
+
+    // ideally we would construct a font directly from a key, and not
+    // bother to keep the map around for this.  That ought to be a bit 
+    // faster than picking out the params from the Map again, but the
+    // cache ought to hide this overhead, so I'll skip it for now.
+
+    private static class Key {
+	String family = "Dialog"; // defaults chosen to match Font implementation
+	float weight = 1.0f;
+	float posture = 0.0f;
+	float size = 12.0f;
+	double[] txdata = null; // identity
+
+	Map attrs;
+	int hashCode = 0;
+
+	Key(Map map) {
+	    attrs = map;
+
+	    Object o = map.get(TextAttribute.FAMILY);
+	    if (o != null) {
+		family = (String)o;
+	    }
+	    hashCode = family.hashCode();
+
+	    o = map.get(TextAttribute.WEIGHT);
+	    if (o != null && o != TextAttribute.WEIGHT_REGULAR) {
+		// ugh, force to the only values we understand
+		// weight is either bold, or it's not...
+		float xweight = ((Float)o).floatValue();
+		if (xweight == TextAttribute.WEIGHT_BOLD.floatValue()) {
+		    weight = xweight;
+		    hashCode = (hashCode << 3) ^ Float.floatToIntBits(weight);
+		}
+	    }
+
+	    o = map.get(TextAttribute.POSTURE);
+	    if (o != null && o != TextAttribute.POSTURE_REGULAR) {
+		// ugh, same problem as with weight
+		float xposture = ((Float)o).floatValue();
+		if (xposture == TextAttribute.POSTURE_OBLIQUE.floatValue()) {
+		    posture = xposture;
+		    hashCode = (hashCode << 3) ^ Float.floatToIntBits(posture);
+		}
+	    }
+
+	    o = map.get(TextAttribute.SIZE);
+	    if (o != null) {
+		size = ((Float)o).floatValue();
+		if (size != 12.0f) {
+		    hashCode = (hashCode << 3) ^ Float.floatToIntBits(size);
+		}
+	    }
+
+	    o = map.get(TextAttribute.TRANSFORM);
+	    if (o != null) {
+		AffineTransform tx = null;
+		if (o instanceof TransformAttribute) {
+		    TransformAttribute ta = (TransformAttribute)o;
+		    if (!ta.isIdentity()) {
+			tx = ta.getTransform();
+		    }
+		} else if (o instanceof AffineTransform) {
+		    AffineTransform at = (AffineTransform)o;
+		    if (!at.isIdentity()) {
+			tx = at;
+		    }
+		}
+		if (tx != null) {
+		    txdata = new double[6];
+		    tx.getMatrix(txdata);
+		    hashCode = (hashCode << 3) ^ new Double(txdata[0]).hashCode();
+		}
+	    }
+	}
+
+	public int hashCode() {
+	    return hashCode;
+	}
+
+	public boolean equals(Object rhs) {
+	    Key rhskey = (Key)rhs;
+	    if (this.hashCode == rhskey.hashCode && 
+		this.size == rhskey.size &&
+		this.weight == rhskey.weight &&
+		this.posture == rhskey.posture &&
+		this.family.equals(rhskey.family) &&
+		((this.txdata == null) == (rhskey.txdata == null))) {
+		
+		if (this.txdata != null) {
+		    for (int i = 0; i < this.txdata.length; ++i) {
+			if (this.txdata[i] != rhskey.txdata[i]) {
+			    return false;
+			}
+		    }
+		}
+		return true;
+	    }
+	    return false;
+	}
+    }
+    
 
   /**
    * Returns a new <code>Font</code> with the specified font type
@@ -569,7 +683,10 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public String getFamily(Locale l) {
-	short lcid = getLcidFromLocale(l);
+        if (SunGraphicsEnvironment.isLogicalFont(name)) {
+            return name;
+        }
+	short lcid = NativeFontWrapper.getLCIDFromLocale(l);
         return NativeFontWrapper.getFamilyName(this, lcid);
     }
 
@@ -582,7 +699,8 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public String getPSName() {
-	return getFontName();
+	String psName = NativeFontWrapper.getPostscriptName(this);
+	return (psName == null ? getFontName() : psName);
     }
 
     /**
@@ -626,7 +744,10 @@ public class Font implements java.io.Serializable
      * @see java.util.Locale
      */
     public String getFontName(Locale l) {
-	short lcid = getLcidFromLocale(l);
+        if (SunGraphicsEnvironment.isLogicalFont(name)) {
+            return name + "." + SunGraphicsEnvironment.styleStr(style);
+        }
+	short lcid = NativeFontWrapper.getLCIDFromLocale(l);
         return NativeFontWrapper.getFullName(this, lcid);
     }
 
@@ -935,8 +1056,10 @@ public class Font implements java.io.Serializable
     /**
      * Compares this <code>Font</code> object to the specified 
      * <code>Object</code>.
-     * @param obj the <code>Object</code> to compare.
-     * @return <code>true</code> if the objects are the same; 
+     * @param obj the <code>Object</code> to compare
+     * @return <code>true</code> if the objects are the same
+     *          or if the argument is a <code>Font</code> object
+     *          describing the same font as this object; 
      *		<code>false</code> otherwise.
      * @since JDK1.0
      */
@@ -1919,33 +2042,4 @@ public class Font implements java.io.Serializable
         }
         super.finalize();
     }
-
-  // Return a Microsoft LCID from the given Locale.
-  // Used when getting localized font data.
-  private short getLcidFromLocale(Locale l) {
-
-    short lcid = 0x0409;  // US English - default
-
-    // optimize for common case:
-    if (l.equals(Locale.US)) {
-      return lcid;
-    }
-
-    String lcidAsString;
-    try {
-      ResourceBundle bundle = LocaleData.getLocaleElements(l);
-      lcidAsString = bundle.getString("LocaleID");
-    }
-    catch(MissingResourceException e) {
-      return lcid;
-    }
-
-    try {
-      lcid = (short) Integer.parseInt(lcidAsString, 16);
-    }
-    catch(NumberFormatException e) {
-    }
-
-    return lcid;
-  }
 }

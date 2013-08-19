@@ -1,5 +1,5 @@
 /*
- * @(#)StringBuffer.java	1.70 01/12/03
+ * @(#)StringBuffer.java	1.73 02/03/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,7 +62,7 @@ package java.lang;
  * automatically made larger. 
  *
  * @author	Arthur van Hoff
- * @version 	1.70, 12/03/01
+ * @version 	1.73, 03/05/02
  * @see     java.io.ByteArrayOutputStream
  * @see     java.lang.String
  * @since   JDK1.0
@@ -124,6 +124,7 @@ public final class StringBuffer
      * <code>16</code> plus the length of the string argument. 
      *
      * @param   str   the initial contents of the buffer.
+     * @exception NullPointerException if <code>str</code> is <code>null</code>
      */
     public StringBuffer(String str) {
 	this(str.length() + 16);
@@ -212,7 +213,7 @@ public final class StringBuffer
      * index <i>k</i> in the new character sequence is the same as the 
      * character at index <i>k</i> in the old sequence if <i>k</i> is less 
      * than the length of the old character sequence; otherwise, it is the 
-     * null character <code>'\u0000'</code>. 
+     * null character <code>'&#92;u0000'</code>. 
      *  
      * In other words, if the <code>newLength</code> argument is less than 
      * the current length of the string buffer, the string buffer is 
@@ -248,16 +249,7 @@ public final class StringBuffer
 	    }
 	} else {
             count = newLength;
-            if (shared) {
-                if (newLength > 0) {
-                    copy();
-                } else {
-                    // If newLength is zero, assume the StringBuffer is being
-                    // stripped for reuse; Make new buffer of default size
-                    value = new char[16];
-                    shared = false;
-                }
-            }
+            if (shared) copy();
         }
     }
 
@@ -335,7 +327,7 @@ public final class StringBuffer
      * except that it contains the character <code>ch</code> at position 
      * <code>index</code>. 
      * <p>
-     * The offset argument must be greater than or equal to 
+     * The index argument must be greater than or equal to 
      * <code>0</code>, and less than the length of this string buffer. 
      *
      * @param      index   the index of the character to modify.

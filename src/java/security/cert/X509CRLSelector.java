@@ -1,5 +1,5 @@
 /*
- * @(#)X509CRLSelector.java	1.8 01/12/03
+ * @(#)X509CRLSelector.java	1.9 02/03/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import javax.security.auth.x500.X500Principal;
-import sun.security.util.BigInt;
 import sun.security.util.Debug;
 import sun.security.util.DerInputStream;
 import sun.security.x509.CRLNumberExtension;
@@ -50,7 +49,7 @@ import sun.security.x509.X500Name;
  * @see CRLSelector
  * @see X509CRL
  *
- * @version 	1.8 12/03/01
+ * @version 	1.9 03/13/02
  * @since	1.4
  * @author	Steve Hanna
  */

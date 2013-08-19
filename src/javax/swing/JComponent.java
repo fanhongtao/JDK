@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.200 01/12/03
+ * @(#)JComponent.java	2.205 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -167,6 +167,10 @@ public abstract class JComponent extends Container implements Serializable
      */
     private static boolean checkedSuppressDropSupport;
 
+    // Following are the possible return values from getObscuredState.
+    private static final int NOT_OBSCURED = 0;
+    private static final int PARTIALLY_OBSCURED = 1;
+    private static final int COMPLETELY_OBSCURED = 2;
 
     /* The following fields support set methods for the corresponding
      * java.awt.Component properties.
@@ -381,7 +385,7 @@ public abstract class JComponent extends Container implements Serializable
 				  getManagingFocusBackwardTraversalKeys());
 	}
 
-        setLocale( JComponent.getDefaultLocale() );
+        super.setLocale( JComponent.getDefaultLocale() );
     }
 
 
@@ -615,8 +619,8 @@ public abstract class JComponent extends Container implements Serializable
 				     (clipBounds.x, clipBounds.y,
 				      clipBounds.width, clipBounds.height, cr);
 
-				if(rectangleIsObscuredBySibling(i, cr.x, cr.y,
-						      cr.width, cr.height)) {
+				if(getObscuredState(i, cr.x, cr.y, cr.width,
+                                         cr.height) == COMPLETELY_OBSCURED) {
 				    continue;
 				}
 				cr.x = x;
@@ -1075,13 +1079,18 @@ public abstract class JComponent extends Container implements Serializable
     }
   
     private boolean runInputVerifier() {
+	Component focusOwner =
+	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
+	        getFocusOwner();
+
+        if (focusOwner == this) {
+            return true;
+        }
+
 	if (!getVerifyInputWhenFocusTarget()) {
 	    return true;
 	}
   
-	Component focusOwner =
-	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
-	        getFocusOwner();
 	if (focusOwner == null || !(focusOwner instanceof JComponent)) {
 	    return true;
 	}
@@ -1097,7 +1106,7 @@ public abstract class JComponent extends Container implements Serializable
     }
   
     public void requestFocus() {
-	if (runInputVerifier()) {
+        if (runInputVerifier()) {
 	    super.requestFocus();
 	}
     }
@@ -1128,6 +1137,7 @@ public abstract class JComponent extends Container implements Serializable
 	    ? super.requestFocus(temporary)
 	    : false;
     }
+
     public boolean requestFocusInWindow() {
 	return (runInputVerifier())
 	    ? super.requestFocusInWindow()
@@ -1354,6 +1364,7 @@ public abstract class JComponent extends Container implements Serializable
      *
      * @return true if <code>minimumSize</code> is non-<code>null</code>,
      *		false otherwise
+     * @since 1.3
      */ 
     public boolean isMinimumSizeSet() { 
 	return minimumSize != null; 
@@ -1365,6 +1376,7 @@ public abstract class JComponent extends Container implements Serializable
      *
      * @return true if <code>preferredSize</code> is non-<code>null</code>,
      *		false otherwise
+     * @since 1.3
      */ 
     public boolean isPreferredSizeSet() { 
 	return preferredSize != null; 
@@ -1376,6 +1388,7 @@ public abstract class JComponent extends Container implements Serializable
      *
      * @return true if <code>maximumSize</code> is non-<code>null</code>,
      *		false otherwise
+     * @since 1.3
      */ 
     public boolean isMaximumSizeSet() { 
 	return maximumSize != null; 
@@ -2706,7 +2719,7 @@ public abstract class JComponent extends Container implements Serializable
      *    and from the component
      *
      * @see TransferHandler
-     * @see getTransferHandler
+     * @see #getTransferHandler
      * @since 1.4
      * @beaninfo
      *        bound: true
@@ -2736,7 +2749,7 @@ public abstract class JComponent extends Container implements Serializable
      * @return  the value of the <code>transferHandler</code> property
      *
      * @see TransferHandler
-     * @see setTransferHandler
+     * @see #setTransferHandler
      * @since 1.4
      */
     public TransferHandler getTransferHandler() {
@@ -2981,8 +2994,8 @@ public abstract class JComponent extends Container implements Serializable
      */
 
     /**
-     * Overridden to ensure <code>Accessibility</code> support.
-     * Please use {@alink java.awt.Component.setEnable(boolean)}.
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>java.awt.Component.setEnable(boolean)</code>.
      */
     public void enable() {
         if (isEnabled() != true) {
@@ -2996,8 +3009,8 @@ public abstract class JComponent extends Container implements Serializable
     }
 
     /**
-     * Overridden to ensure <code>Accessibility</code> support.
-     * Please use {@alink java.awt.Component.setEnable(boolean)}.
+     * @deprecated As of JDK version 1.1,
+     * replaced by <code>java.awt.Component.setEnable(boolean)</code>.
      */
     public void disable() {
         if (isEnabled() != false) {
@@ -3933,7 +3946,7 @@ public abstract class JComponent extends Container implements Serializable
      */
     public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {
         if ((changeSupport != null) && (oldValue != newValue)) {
-            changeSupport.firePropertyChange(propertyName, new Boolean(oldValue), new Boolean(newValue));
+            changeSupport.firePropertyChange(propertyName, Boolean.valueOf(oldValue), Boolean.valueOf(newValue));
         }
     }
 
@@ -4532,44 +4545,67 @@ public abstract class JComponent extends Container implements Serializable
         for (c = this, child = null;
              c != null && !(c instanceof Window) && !(c instanceof Applet);
              child = c, c = c.getParent()) {
+                JComponent jc = (c instanceof JComponent) ? (JComponent)c :
+                                null;
 	        path.addElement(c);
-		if(!ontop && (c instanceof JComponent) &&
-                   !(((JComponent)c).isOptimizedDrawingEnabled())) {
+		if(!ontop && jc != null && !jc.isOptimizedDrawingEnabled()) {
+                    boolean resetPC;
 
-                    // Aren't we obscured by sibling?
+                    // Children of c may overlap, three possible cases for the
+                    // painting region:
+                    // . Completely obscured by an opaque sibling, in which
+                    //   case there is no need to paint.
+                    // . Partially obscured by a sibling: need to start
+                    //   painting from c.
+                    // . Otherwise we aren't obscured and thus don't need to
+                    //   start painting from parent.
                     if (c != this) {
                         Component[] children = c.getComponents();
                         int i = 0;
                         for (; i<children.length; i++) {
                             if (children[i] == child) break;
                         }
-                        if (((JComponent)c).rectangleIsObscuredBySibling(i,
-                            paintImmediatelyClip.x, paintImmediatelyClip.y,
-                            paintImmediatelyClip.width,
-                            paintImmediatelyClip.height)) return;
+                        switch (jc.getObscuredState(i, paintImmediatelyClip.x,
+                                            paintImmediatelyClip.y,
+                                            paintImmediatelyClip.width,
+                                            paintImmediatelyClip.height)) {
+                        case NOT_OBSCURED:
+                            resetPC = false;
+                            break;
+                        case COMPLETELY_OBSCURED:
+                            return;
+                        default:
+                            resetPC = true;
+                            break;
+                        }
+                    }
+                    else {
+                        resetPC = false;
                     }
 
-		    paintingComponent = (JComponent)c;
-		    pIndex = pCount;
-		    offsetX = offsetY = 0;
-		    hasBuffer = false; /** Get rid of any buffer since we draw from here and
-					*  we might draw something larger
-					*/
+                    if (resetPC) {
+                        // Get rid of any buffer since we draw from here and
+                        // we might draw something larger
+                        paintingComponent = jc;
+                        pIndex = pCount;
+                        offsetX = offsetY = 0;
+                        hasBuffer = false;
+                    }
 		}
 		pCount++;
 		
 		// look to see if the parent (and therefor this component)
 		// is double buffered
-		if(repaintManager.isDoubleBufferingEnabled() &&
-		   (c instanceof JComponent) && ((JComponent)c).isDoubleBuffered()) {
+		if(repaintManager.isDoubleBufferingEnabled() && jc != null &&
+                                  jc.isDoubleBuffered()) {
 		    hasBuffer = true;
-		    bufferedComponent = (JComponent) c;
+		    bufferedComponent = jc;
 		}
 
 		// if we aren't on top, include the parent's clip 
-		if(!ontop) {
-		    if(c instanceof JComponent) {
-			b = ((JComponent)c)._bounds;
+		if (!ontop) {
+		    if (jc != null) {
+			b = jc._bounds;
 		    } else {
 			b = c.getBounds();
 		    }
@@ -4754,49 +4790,54 @@ public abstract class JComponent extends Container implements Serializable
     }
 
     /**
-     *  Returns true if the component at index <code>compIndex</code>
-     *  is obscured by an opaque sibling that is painted after it.
-     *  The rectangle is in this component's coordinate system.
+     * Returns whether or not the region of the specified component is
+     * obscured by a sibling.
      *
-     * @param compIndex  the index of the component of interest1
-     * @param x  the x location of the component
-     * @param y  the y location of the component
-     * @param width  the width of the component
-     * @param height  the height of the component
-     * @return true if the component is obscured by an opaque sibling,
-     *		otherwise false
+     * @return NOT_OBSCURED if non of the siblings above the Component obscure
+     *         it, COMPLETELY_OBSCURED if one of the siblings completely
+     *         obscures the Component or PARTIALLY_OBSCURED if the Comonent is
+     *         only partially obscured.
      */
     // NOTE: This will tweak tmpRect!
-    boolean rectangleIsObscuredBySibling(int compIndex, int x, int y,
-					 int width, int height) {
-	int i;
-	Component sibling;
-	Rectangle siblingRect;
+    private int getObscuredState(int compIndex, int x, int y, int width,
+                                 int height) {
+        int retValue = NOT_OBSCURED;
 
-	for(i = compIndex - 1 ; i >= 0 ; i--) {
-	    sibling = getComponent(i);
-	    if(!sibling.isVisible())
+	for (int i = compIndex - 1 ; i >= 0 ; i--) {
+	    Component sibling = getComponent(i);
+	    if (!sibling.isVisible()) {
 		continue;
-	    if(sibling instanceof JComponent) {
-		if(!((JComponent)sibling).isOpaque())
-		    continue;
+            }
+            Rectangle siblingRect;
+            boolean opaque;
+	    if (sibling instanceof JComponent) {
+                opaque = ((JComponent)sibling).isOpaque();
+		if (!opaque) {
+                    if (retValue == PARTIALLY_OBSCURED) {
+                        continue;
+                    }
+                }
 		siblingRect = ((JComponent)sibling).getBounds(tmpRect);
 	    }
 	    else {
 		siblingRect = sibling.getBounds();
+                opaque = true;
 	    }
-	    // NOTE(sky): I could actually intersect x,y,width,height here.
-	    // This tests for COMPLETE obscuring by another component,
-	    // if multiple siblings obscure the region true should be
-	    // returned.
-	    if (x >= siblingRect.x && (x + width) <=
-		(siblingRect.x + siblingRect.width) &&
-		y >= siblingRect.y && (y + height) <=
-		(siblingRect.y + siblingRect.height)) {
-		return true;
+	    if (opaque && x >= siblingRect.x && (x + width) <=
+		     (siblingRect.x + siblingRect.width) &&
+		     y >= siblingRect.y && (y + height) <=
+		     (siblingRect.y + siblingRect.height)) {
+		return COMPLETELY_OBSCURED;
 	    }
+            else if (retValue == NOT_OBSCURED &&
+                     !((x + width <= siblingRect.x) ||
+                       (y + height <= siblingRect.y) ||
+                       (x >= siblingRect.x + siblingRect.width) ||
+                       (y >= siblingRect.y + siblingRect.height))) {
+                retValue = PARTIALLY_OBSCURED;
+            }
 	}
-	return false;
+	return retValue;
     }
 
     /**

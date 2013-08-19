@@ -1,5 +1,5 @@
 /*
- * @(#)ClientDelegate.java	1.83 01/12/03
+ * @(#)ClientDelegate.java	1.84 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -117,6 +117,12 @@ public class ClientDelegate
     protected ClassLoader servantClassLoader ;
 
     protected short addressingDisposition = KeyAddr.value;
+
+    protected ThreadLocal isNextIsLocalValid = new ThreadLocal( ) {
+        protected Object initialValue( ) {
+            return Boolean.TRUE;
+        }
+    };
 
     // the connection with which to store the codebase returned by the
     // server
@@ -874,6 +880,11 @@ public class ClientDelegate
 
     /**
      * Returns true if this object is implemented by a local servant.
+     * We maintain a ThreadLocal to keep track of isLocal() calls to make
+     * sure that we do not loop more than 2 times. In the first call we
+     * set the isNextIsLocalValid to false so that the next call on the same
+     * thread would force to return false in case servant_preinvoke() returns
+     * null. 
      *
      * @param self The object reference which delegated to this delegate.
      * @return true only if the servant incarnating this object is located in
@@ -882,22 +893,11 @@ public class ClientDelegate
      * behavior of is_local() is to return false.
      */
     public boolean is_local(org.omg.CORBA.Object self) {
-        // FIX (Bug # 4427356)
-	//return servant != null;
-	// Note that we MUST check whether servant is null, since returning
-	// is_local TRUE with a null servant will cause a stack overflow in
-	// the rmi-iiop stub.
-
-	/*
-	ClassLoader myClassLoader = self.getClass().getClassLoader() ;
-        return 
-	    (myClassLoader == servantClassLoader) &&
-	    orb.allowLocalOptimization && 
-	    ior.isLocal() && 
-	    (servant != null) ;
-	*/
-
-	return ior.isLocal() ;
+        if ( ((Boolean) isNextIsLocalValid.get()).booleanValue( ) == true ) {
+	    return ior.isLocal();
+        }
+        isNextIsLocalValid.set( Boolean.TRUE );
+        return false;
     }
 
     public boolean useLocalInvocation( org.omg.CORBA.Object self )
@@ -948,6 +948,9 @@ public class ClientDelegate
 
 	    return servant;
 	}
+        // Set it to false to disallow isLocal to be called again and again
+        // in case of servant being null in _servant_preinvoke() call
+        isNextIsLocalValid.set( Boolean.FALSE );
 	return null;
     }
 

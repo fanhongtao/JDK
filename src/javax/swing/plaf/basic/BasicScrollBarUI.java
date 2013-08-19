@@ -1,5 +1,5 @@
 /*
- * @(#)BasicScrollBarUI.java	1.70 01/12/03
+ * @(#)BasicScrollBarUI.java	1.72 02/03/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.70 12/03/01
+ * @version 1.72 03/13/02
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller
@@ -863,9 +863,14 @@ public class BasicScrollBarUI
     {
 	protected transient int offset;
 	protected transient int currentMouseX, currentMouseY;
+ 	private transient int direction = +1;
 		
         public void mouseReleased(MouseEvent e)
         {
+	    if (SwingUtilities.isRightMouseButton(e) ||
+		(!getSupportsAbsolutePositioning() &&
+		 SwingUtilities.isMiddleMouseButton(e)))
+		return;
 	    if(!scrollbar.isEnabled())
 		return;
 
@@ -891,10 +896,10 @@ public class BasicScrollBarUI
 	 */
         public void mousePressed(MouseEvent e) 
 	{
-	    if ((SwingUtilities.isRightMouseButton(e)||
-		(UIManager.getLookAndFeel() instanceof com.sun.java.swing.plaf.windows.WindowsLookAndFeel) &&
-		 !SwingUtilities.isLeftMouseButton(e)))
-			return;
+	    if (SwingUtilities.isRightMouseButton(e) ||
+		(!getSupportsAbsolutePositioning() &&
+		 SwingUtilities.isMiddleMouseButton(e)))
+		return;
 	    if(!scrollbar.isEnabled())
 		return;
 
@@ -937,7 +942,7 @@ public class BasicScrollBarUI
 	    isDragging = false;
 							
             Dimension sbSize = scrollbar.getSize();
-            int direction = +1;
+            direction = +1;
 
             switch (scrollbar.getOrientation()) {
             case JScrollBar.VERTICAL:
@@ -979,22 +984,31 @@ public class BasicScrollBarUI
 	 * track.
 	 */
 	public void mouseDragged(MouseEvent e) {
-	    setValueFrom(e);
+	    if (SwingUtilities.isRightMouseButton(e) ||
+		(!getSupportsAbsolutePositioning() &&
+		 SwingUtilities.isMiddleMouseButton(e)))
+		return;
+	    if(!scrollbar.isEnabled() || getThumbBounds().isEmpty()) {
+		return;
+	    }
+	    if (isDragging) {
+		setValueFrom(e);
+	    } else {
+		currentMouseX = e.getX();
+		currentMouseY = e.getY();
+		startScrollTimerIfNecessary();
+	    }
 	}
 
 	private void setValueFrom(MouseEvent e) {
-	    if(!scrollbar.isEnabled() || !isDragging) {
-		return;
-	    }
-
 	    BoundedRangeModel model = scrollbar.getModel();
 	    Rectangle thumbR = getThumbBounds();
 	    float trackLength;
 	    int thumbMin, thumbMax, thumbPos;
-
-            if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
+	    
+	    if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
 		thumbMin = decrButton.getY() + decrButton.getHeight();
-		thumbMax = incrButton.getY() - getThumbBounds().height;
+		thumbMax = incrButton.getY() - thumbR.height;
 		thumbPos = Math.min(thumbMax, Math.max(thumbMin, (e.getY() - offset)));
 		setThumbBounds(thumbR.x, thumbPos, thumbR.width, thumbR.height);
 		trackLength = getTrackBounds().height;
@@ -1002,22 +1016,22 @@ public class BasicScrollBarUI
 	    else {
 		if (scrollbar.getComponentOrientation().isLeftToRight()) {
 		    thumbMin = decrButton.getX() + decrButton.getWidth();
-		    thumbMax = incrButton.getX() - getThumbBounds().width;
+		    thumbMax = incrButton.getX() - thumbR.width;
 		} else {
 		    thumbMin = incrButton.getX() + incrButton.getWidth();
-		    thumbMax = decrButton.getX() - getThumbBounds().width;
+		    thumbMax = decrButton.getX() - thumbR.width;
 		}
 		thumbPos = Math.min(thumbMax, Math.max(thumbMin, (e.getX() - offset)));
 		setThumbBounds(thumbPos, thumbR.y, thumbR.width, thumbR.height);
 		trackLength = getTrackBounds().width;
 	    }
-
+	    
 	    /* Set the scrollbars value.  If the thumb has reached the end of
 	     * the scrollbar, then just set the value to its maximum.  Otherwise
 	     * compute the value as accurately as possible.
 	     */
 	    if (thumbPos == thumbMax) {
-                if (scrollbar.getOrientation() == JScrollBar.VERTICAL || 
+		if (scrollbar.getOrientation() == JScrollBar.VERTICAL || 
 		    scrollbar.getComponentOrientation().isLeftToRight()) {
 		    scrollbar.setValue(model.getMaximum() - model.getExtent());
 		} else {
@@ -1030,7 +1044,7 @@ public class BasicScrollBarUI
 		float thumbValue = thumbPos - thumbMin;
 		float thumbRange = thumbMax - thumbMin;
 		int value;
-                if (scrollbar.getOrientation() == JScrollBar.VERTICAL || 
+		if (scrollbar.getOrientation() == JScrollBar.VERTICAL || 
 		    scrollbar.getComponentOrientation().isLeftToRight()) {
 		    value = (int)(0.5 + ((thumbValue / thumbRange) * valueRange));
 		} else {
@@ -1038,7 +1052,37 @@ public class BasicScrollBarUI
 		}
 		scrollbar.setValue(value + model.getMinimum());
 	    }
-        }
+	}
+
+	private void startScrollTimerIfNecessary() {
+	    if (scrollTimer.isRunning()) {
+		return;
+	    }
+	    switch (scrollbar.getOrientation()) {
+	    case JScrollBar.VERTICAL:
+		if (direction >0) {
+		    if (getThumbBounds().y + getThumbBounds().height <
+			trackListener.currentMouseY) {
+			scrollTimer.start();
+		    }
+		} else if (getThumbBounds().y >
+			   trackListener.currentMouseY) {
+		    scrollTimer.start();
+		}
+		break;
+	    case JScrollBar.HORIZONTAL:
+		if (direction >0) {
+		    if (getThumbBounds().x + getThumbBounds().width <
+			trackListener.currentMouseX) {
+			scrollTimer.start();
+		    }
+		} else if (getThumbBounds().x >
+			   trackListener.currentMouseX) {
+		    scrollTimer.start();
+		}
+		break;
+	    }
+	}
 		
 	public void mouseMoved(MouseEvent e) {
 	}

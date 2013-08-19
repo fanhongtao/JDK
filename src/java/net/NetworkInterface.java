@@ -1,5 +1,5 @@
 /*
- * @(#)NetworkInterface.java	1.11 01/12/03
+ * @(#)NetworkInterface.java	1.14 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -129,14 +129,26 @@ public final class NetworkInterface {
     }
  
     /**
-     * Get a network interface knowing its name.
+     * Searches for the network interface with the specified name.
      *
-     * @param name s String representing the name of the interface
-     * @return the NetworkInterface obtained from its name
-     * @exception  SocketException  if an I/O error occurs.
+     * @param   name 
+     *		The name of the network interface.
+     *
+     * @return  A <tt>NetworkInterface</tt> with the specified name,
+     *          or <tt>null</tt> if there is no network interface
+     *		with the specified name.
+     *
+     * @throws	SocketException  
+     *	        If an I/O error occurs.
+     *
+     * @throws  NullPointerException
+     *		If the specified name is <tt>null</tt>.
      */
-    public native static NetworkInterface getByName(String name) 
-	throws SocketException;
+    public static NetworkInterface getByName(String name) throws SocketException {
+	if (name == null) 
+	    throw new NullPointerException();
+	return getByName0(name);
+    }
 
     /**
      * Get a network interface given its index.
@@ -149,15 +161,32 @@ public final class NetworkInterface {
 	throws SocketException;
 
     /**
-     * Convenience method to get a network interface given its IP
-     * address.
+     * Convenience method to search for a network interface that
+     * has the specified Internet Protocol (IP) address bound to
+     * it.
+     * <p>
+     * If the specified IP address is bound to multiple network 
+     * interfaces it is not defined which network interface is
+     * returned.
      *
-     * @param addr an InetAddress the interface is bound to
-     * @return the NetworkInterface obtained from its IP address
-     * @exception  SocketException  if an I/O error occurs.
+     * @param   addr
+     *		The <tt>InetAddress</tt> to search with.
+     *
+     * @return  A <tt>NetworkInterface</tt> 
+     *          or <tt>null</tt> if there is no network interface
+     *          with the specified IP address.
+     *
+     * @throws  SocketException  
+     *          If an I/O error occurs. 
+     *
+     * @throws  NullPointerException
+     *          If the specified address is <tt>null</tt>.
      */
-    public native static NetworkInterface getByInetAddress(InetAddress addr) 
-	throws SocketException;
+    public static NetworkInterface getByInetAddress(InetAddress addr) throws SocketException {
+	if (addr == null)
+	    throw new NullPointerException();
+	return getByInetAddress0(addr);
+    }
 
     /**
      * Returns all the interfaces on this machine. Returns null if no
@@ -173,6 +202,10 @@ public final class NetworkInterface {
     public static Enumeration getNetworkInterfaces() 
 	throws SocketException {
 	final NetworkInterface[] netifs = getAll();
+
+	// specified to return null if no network interfaces
+	if (netifs == null) 
+	    return null;
 	
 	return new Enumeration() {
 	    private int i = 0;
@@ -192,6 +225,12 @@ public final class NetworkInterface {
     }
 
     private native static NetworkInterface[] getAll() 
+	throws SocketException;
+
+    private native static NetworkInterface getByName0(String name) 
+	throws SocketException;
+
+    private native static NetworkInterface getByInetAddress0(InetAddress addr) 
 	throws SocketException;
 
     
@@ -269,7 +308,7 @@ public final class NetworkInterface {
 	int count = 0;
 	if (addrs != null) {
 	    for (int i = 0; i < addrs.length; i++) {
-		count += addrs.hashCode();
+		count += addrs[i].hashCode();
 	    }
 	}
 	return count;

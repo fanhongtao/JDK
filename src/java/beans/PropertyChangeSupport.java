@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyChangeSupport.java	1.37 01/12/03
+ * @(#)PropertyChangeSupport.java	1.38 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -296,7 +296,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
 	if (oldValue == newValue) {
 	    return;
 	}
-	firePropertyChange(propertyName, new Boolean(oldValue), new Boolean(newValue));
+	firePropertyChange(propertyName, Boolean.valueOf(oldValue), Boolean.valueOf(newValue));
     }
 
     /**

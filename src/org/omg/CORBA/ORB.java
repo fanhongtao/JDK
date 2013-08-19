@@ -1,5 +1,5 @@
 /*
- * @(#)ORB.java	1.124 01/12/03
+ * @(#)ORB.java	1.126 02/04/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -287,17 +287,6 @@ abstract public class ORB {
 
     private static ORB create_impl(String className) {
         
-        try {
-            return (ORB) Class.forName(className).newInstance();
-	} catch (ClassNotFoundException ex) {
-	    // Eat the exception and try again below...
-        } catch (Exception ex) {
-	    throw new INITIALIZE(
-                "can't instantiate default ORB implementation " + className);
-        }
-        
-
-        
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         if (cl == null)
             cl = ClassLoader.getSystemClassLoader();
@@ -305,8 +294,10 @@ abstract public class ORB {
         try {
             return (ORB) Class.forName(className, true, cl).newInstance();
         } catch (Exception ex) {
-	    throw new INITIALIZE(
-                "can't instantiate default ORB implementation " + className);
+	    SystemException systemException = new INITIALIZE(
+               "can't instantiate default ORB implementation " + className);
+	    systemException.initCause(ex);
+	    throw systemException;
         }
     }
 

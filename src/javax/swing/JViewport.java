@@ -1,5 +1,5 @@
 /*
- * @(#)JViewport.java	1.104 02/05/16
+ * @(#)JViewport.java	1.104 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -74,7 +74,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.104 05/16/02
+ * @version 1.104 03/20/02
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -487,7 +487,7 @@ public class JViewport extends JComponent implements Accessible
 	}
     }
 
-     /*  This method is used by the scrollToRect method to determine the
+     /*  Used by the scrollRectToVisible method to determine the
       *  proper direction and amount to move by. The integer variables are named
       *  width, but this method is applicable to height also. The code assumes that
       *  parentWidth/childWidth are positive and childAt can be negative.
@@ -936,7 +936,7 @@ public class JViewport extends JComponent implements Accessible
          */
         int n = getComponentCount();
         for(int i = n - 1; i >= 0; i--) {
-           remove(getComponent(i)); 
+            remove(getComponent(i));
         }
 
         isViewSizeSet = false;
@@ -1463,11 +1463,11 @@ public class JViewport extends JComponent implements Accessible
 		g.setClip(0, 0, getWidth(), getHeight());
 	    }
 	    g.clipRect(dirty.x, dirty.y, dirty.width, dirty.height);
-	    clip = g.getClipBounds();
-	    // Only paint the dirty region if it is visible.
-	    if (clip.width > 0 && clip.height > 0) {
-	    	paintView(g);
-	    }
+            clip = g.getClipBounds();
+            // Only paint the dirty region if it is visible.
+            if (clip.width > 0 && clip.height > 0) {
+                paintView(g);
+            }
 	}		
     }
 

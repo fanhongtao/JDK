@@ -1,5 +1,5 @@
 /*
- * @(#)Throwable.java	1.49 01/12/03
+ * @(#)Throwable.java	1.50 02/02/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -66,7 +66,7 @@ import  java.io.*;
  * <pre>
  *     try {
  *         lowLevelOp();
- *     } catch LowLevelException(le) {
+ *     } catch (LowLevelException le) {
  *         throw new HighLevelException(le);  // Chaining-aware constructor
  *     }
  * </pre>
@@ -77,7 +77,7 @@ import  java.io.*;
  * <pre>
  *     try {
  *         lowLevelOp();
- *     } catch LowLevelException(le) {
+ *     } catch (LowLevelException le) {
  *         throw (HighLevelException)
                  new HighLevelException().initCause(le);  // Legacy constructor
  *     }
@@ -123,7 +123,7 @@ import  java.io.*;
  * @author  unascribed
  * @author  Josh Bloch (Added exception chaining and programmatic access to
  *          stack trace in 1.4.)
- * @version 1.49, 12/03/01
+ * @version 1.50, 02/19/02
  * @since JDK1.0
  */
 public class Throwable implements Serializable {

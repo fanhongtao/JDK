@@ -1,5 +1,5 @@
 /*
- * @(#)InternationalFormatter.java	1.10 01/12/03
+ * @(#)InternationalFormatter.java	1.12 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -302,7 +302,10 @@ public class InternationalFormatter extends DefaultFormatter {
     public Object stringToValue(String text) throws ParseException {
         Object value = stringToValue(text, getFormat());
 
-        if (value != null && getValueClass() != null) {
+        // Convert to the value class if the Value returned from the
+        // Format does not match.
+        if (value != null && getValueClass() != null &&
+                             !getValueClass().isInstance(value)) {
             value = super.stringToValue(value.toString());
         }
         try {
@@ -327,6 +330,11 @@ public class InternationalFormatter extends DefaultFormatter {
      *         given position.
      */
     public Format.Field[] getFields(int offset) {
+        if (getAllowsInvalid()) {
+            // This will work if the currently edited value is valid.
+            updateMask();
+        }
+
         Map attrs = getAttributes(offset);
 
         if (attrs != null && attrs.size() > 0) {

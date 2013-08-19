@@ -1,5 +1,5 @@
 /*
- * @(#)CompositeName.java	1.9 01/12/03
+ * @(#)CompositeName.java	1.10 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -178,7 +178,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.9 01/12/03
+ * @version 1.10 02/04/02
  * @since 1.3
  */
 
@@ -186,17 +186,6 @@ import java.util.Properties;
 public class CompositeName implements Name {
 
     private transient NameImpl impl;
-    static private Properties compositeSyntax = new Properties();
-
-    static {
-	compositeSyntax.put("jndi.syntax.direction", "left_to_right");
-	compositeSyntax.put("jndi.syntax.separator", "/");
-	compositeSyntax.put("jndi.syntax.ignorecase", "false");
-	compositeSyntax.put("jndi.syntax.escape", "\\");
-	compositeSyntax.put("jndi.syntax.beginquote", "\"");
-	compositeSyntax.put("jndi.syntax.beginquote2", "'");
-    }
-
     /**
       * Constructs a new composite name instance using the components
       * specified by 'comps'. This protected method is intended to be
@@ -209,7 +198,7 @@ public class CompositeName implements Name {
       *               elements.
       */
     protected CompositeName(Enumeration comps) {
-	impl = new NameImpl(compositeSyntax, comps);
+	impl = new NameImpl(null, comps); // null means use default syntax
     }
 
     /**
@@ -222,7 +211,7 @@ public class CompositeName implements Name {
       * @exception InvalidNameException If n has invalid composite name syntax.
       */
     public CompositeName(String n) throws InvalidNameException {
-	impl = new NameImpl(compositeSyntax, n);
+	impl = new NameImpl(null, n);  // null means use default syntax
     }
 
     /**
@@ -230,7 +219,7 @@ public class CompositeName implements Name {
       * when <code>isEmpty()</code> is invoked on it.
       */
     public CompositeName() {
-	impl = new NameImpl(compositeSyntax);
+	impl = new NameImpl(null);  // null means use default syntax
     }
 
     /**
@@ -562,7 +551,7 @@ public class CompositeName implements Name {
      */
     private void readObject(java.io.ObjectInputStream s)
 	    throws java.io.IOException, ClassNotFoundException {
-	impl = new NameImpl(compositeSyntax);
+	impl = new NameImpl(null);  // null means use default syntax
 	int n = s.readInt();	// number of components
 	try {
 	    while (--n >= 0) {

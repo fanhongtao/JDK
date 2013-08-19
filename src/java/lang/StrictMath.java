@@ -1,5 +1,5 @@
 /*
- * @(#)StrictMath.java	1.13 01/12/03
+ * @(#)StrictMath.java	1.14 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import java.util.Random;
  * the letter <code>e</code>). 
  *
  * @author  unascribed
- * @version 1.13, 12/03/01
+ * @version 1.14, 02/06/02
  * @since   1.3
  */
 
@@ -201,7 +201,7 @@ public final strictfp class StrictMath {
      * <li>If the argument is positive zero or negative zero, then the 
      * result is the same as the argument.</ul>
      * Otherwise, the result is the <code>double</code> value closest to 
-     * the true mathetmatical square root of the argument value.
+     * the true mathematical square root of the argument value.
      *
      * @param   a   a value.
      * <!--@return  the value of &radic;&nbsp;<code>a</code>.-->
@@ -589,7 +589,7 @@ public final strictfp class StrictMath {
     /**
      * Returns the greater of two <code>long</code> values. That is, the 
      * result is the argument closer to the value of 
-     * <code>Long.MAX_VALUE</code>. If the argumens have the same value, 
+     * <code>Long.MAX_VALUE</code>. If the arguments have the same value, 
      * the result is that same value. 
      *
      * @param   a   an argument.

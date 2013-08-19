@@ -1,5 +1,5 @@
 /*
- * @(#)JMenu.java	1.165 02/04/25
+ * @(#)JMenu.java	1.166 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -72,7 +72,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.165 04/25/02
+ * @version 1.166 04/18/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber

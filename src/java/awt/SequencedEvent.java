@@ -1,7 +1,7 @@
 /*
- * @(#)SequencedEvent.java	1.8 03/02/14
+ * @(#)SequencedEvent.java	1.5 02/03/14
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.awt.SunToolkit;
  * before the wrapping SequencedEvent was able to be dispatched. In this case,
  * the nested event is never dispatched.
  *
- * @version 1.8, 02/14/03
+ * @version 1.5, 03/14/02
  * @author David Mendenhall
  */
 class SequencedEvent extends AWTEvent implements ActiveEvent {
@@ -55,42 +55,28 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
      * have been dispatched, then this method blocks until such a point is
      * reached.
      * While waiting disposes nested events to disposed AppContext
+     *
+     * NOTE: Locking protocol.  Since dispose() can get EventQueue lock, 
+     * dispatch() shall never call dispose() while holding the lock on the list, 
+     * as EventQueue lock is held during dispatching.  The locks should be acquired 
+     * in the same order.
      */
     public final void dispatch() {
         try {
-            boolean shouldBother;
             appContext = AppContext.getAppContext();
 
-            synchronized (SequencedEvent.class) {
-                shouldBother = (list.getFirst() != this);
-            }
-
-            if (shouldBother) {
+            if (getFirst() != this) {
                 if (EventQueue.isDispatchThread()) {
                     EventDispatchThread edt = (EventDispatchThread)
                         Thread.currentThread();
                     edt.pumpEvents(SentEvent.ID, new Conditional() {
-                            public boolean evaluate() {
-                                synchronized (SequencedEvent.class) {
-                                    SequencedEvent first = (SequencedEvent)list.getFirst();
-                                    while(isOwnerAppContextDisposed(first)) {
-                                        first.dispose();
-                                        first = (SequencedEvent)list.getFirst();
-                                    }
-                                    return first != SequencedEvent.this
-                                        && !disposed;
-
-                                }
-                            }
-                        });
+                        public boolean evaluate() {
+                            return !SequencedEvent.this.isFirstOrDisposed();
+                        }
+                    });
                 } else {
-                    synchronized (SequencedEvent.class) {
-                        while (list.getFirst() != this && !disposed) {
-                            SequencedEvent first = (SequencedEvent)list.getFirst();
-                            while(isOwnerAppContextDisposed(first)) {
-                                first.dispose();
-                                first = (SequencedEvent)list.getFirst();
-                            }
+                    while(!isFirstOrDisposed()) {
+                        synchronized (SequencedEvent.class) {
                             try {                             
                                 SequencedEvent.class.wait(1000);
                             } catch (InterruptedException e) {
@@ -102,8 +88,6 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
             }
 
             if (!disposed) {
-	            KeyboardFocusManager.getCurrentKeyboardFocusManager().
-	                     setCurrentSequencedEvent(this);
                 Toolkit.getEventQueue().dispatchEvent(nested);
             }
         } finally {
@@ -123,7 +107,36 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
         }
         return false;
     }
-         
+
+    /**
+     * Sequenced events are dispatched in order, so we cannot dispatch
+     * until we are the first sequenced event in the queue (i.e. it's our
+     * turn).  But while we wait for our turn to dispatch, the event
+     * could have been disposed for a number of reasons.
+     */    
+    public final boolean isFirstOrDisposed() {
+        if (disposed) {
+            return true;
+        }
+        // getFirstWithContext can dispose this
+        return this == getFirstWithContext() || disposed;
+    }
+
+    private final synchronized static SequencedEvent getFirst() {
+        return (SequencedEvent)list.getFirst();
+    }
+
+    /* Disposes all events from disposed AppContext 
+     * return first valid event
+     */
+    private final static SequencedEvent getFirstWithContext() {
+        SequencedEvent first = getFirst();
+        while(isOwnerAppContextDisposed(first)) {
+            first.dispose();
+            first = getFirst();
+        }        
+        return first;
+    }
 
     /**
      * Disposes of this instance. This method is invoked once the nested event
@@ -136,43 +149,35 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
      * lock on the list. The locks should be acquired in the same order.
      */
     final void dispose() {
-        synchronized (SequencedEvent.class) {
+      synchronized (SequencedEvent.class) {
             if (disposed) {
                 return;
             }
-            if (KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                getCurrentSequencedEvent() == this) {
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                    setCurrentSequencedEvent(null);
-            }
-            disposed = true;
+          disposed = true;
         }
-
         // Wake myself up
         if (appContext != null) {
             SunToolkit.postEvent(appContext, new SentEvent());
         }
-       
+        
         SequencedEvent next = null;
-       
+        
         synchronized (SequencedEvent.class) {
-            SequencedEvent.class.notifyAll();
-            if (list.getFirst() == this) {
-                list.removeFirst();
-                // Wake up waiting threads
-       	        if (!list.isEmpty()) {
+          SequencedEvent.class.notifyAll();
+
+          if (list.getFirst() == this) {
+              list.removeFirst();
+
+              if (!list.isEmpty()) {
                     next = (SequencedEvent)list.getFirst();
-                }
-            } else {
-                list.remove(this);
-            }
-        }
+              }
+          } else {
+              list.remove(this);
+          }
+      }
         // Wake up waiting threads
         if (next != null && next.appContext != null) {
             SunToolkit.postEvent(next.appContext, new SentEvent());
         }
     }
 }
-
-
-	

@@ -1,5 +1,5 @@
 /*
- * @(#)ScrollPaneLayout.java	1.54 01/12/03
+ * @(#)ScrollPaneLayout.java	1.55 01/12/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import java.io.Serializable;
  * @see JScrollPane
  * @see JViewport
  *
- * @version 1.54 12/03/01
+ * @version 1.55 12/07/01
  * @author Hans Muller
  */
 public class ScrollPaneLayout
@@ -699,7 +699,8 @@ public class ScrollPaneLayout
 	Rectangle colHeadR = new Rectangle(0, availR.y, 0, 0);
 
 	if ((colHead != null) && (colHead.isVisible())) {
-	    int colHeadHeight = colHead.getPreferredSize().height;
+	    int colHeadHeight = Math.min(availR.height,
+                                         colHead.getPreferredSize().height);
 	    colHeadR.height = colHeadHeight; 
 	    availR.y += colHeadHeight;
 	    availR.height -= colHeadHeight;
@@ -713,7 +714,8 @@ public class ScrollPaneLayout
 	Rectangle rowHeadR = new Rectangle(0, 0, 0, 0);
 	
 	if ((rowHead != null) && (rowHead.isVisible())) {
-	    int rowHeadWidth = rowHead.getPreferredSize().width;
+	    int rowHeadWidth = Math.min(availR.width,
+                                        rowHead.getPreferredSize().width);
 	    rowHeadR.width = rowHeadWidth;
 	    availR.width -= rowHeadWidth;
             if ( leftToRight ) {
@@ -774,8 +776,12 @@ public class ScrollPaneLayout
 
 	boolean viewTracksViewportWidth = false;
 	boolean viewTracksViewportHeight = false;
+        boolean isEmpty = (availR.width < 0 || availR.height < 0);
 	Scrollable sv;
-	if (view instanceof Scrollable) {
+        // Don't bother checking the Scrollable methods if there is no room
+        // for the viewport, we aren't going to show any scrollbars in this
+        // case anyway.
+	if (!isEmpty && view instanceof Scrollable) {
 	    sv = (Scrollable)view;
 	    viewTracksViewportWidth = sv.getScrollableTracksViewportWidth();
 	    viewTracksViewportHeight = sv.getScrollableTracksViewportHeight();
@@ -792,7 +798,10 @@ public class ScrollPaneLayout
 	Rectangle vsbR = new Rectangle(0, availR.y - vpbInsets.top, 0, 0);
 
 	boolean vsbNeeded;
-	if (vsbPolicy == VERTICAL_SCROLLBAR_ALWAYS) {
+        if (isEmpty) {
+            vsbNeeded = false;
+        }
+	else if (vsbPolicy == VERTICAL_SCROLLBAR_ALWAYS) {
 	    vsbNeeded = true;
 	}
 	else if (vsbPolicy == VERTICAL_SCROLLBAR_NEVER) {
@@ -815,7 +824,10 @@ public class ScrollPaneLayout
 
 	Rectangle hsbR = new Rectangle(availR.x - vpbInsets.left, 0, 0, 0);
 	boolean hsbNeeded;
-	if (hsbPolicy == HORIZONTAL_SCROLLBAR_ALWAYS) {
+        if (isEmpty) {
+            hsbNeeded = false;
+        }
+	else if (hsbPolicy == HORIZONTAL_SCROLLBAR_ALWAYS) {
 	    hsbNeeded = true;
 	}
 	else if (hsbPolicy == HORIZONTAL_SCROLLBAR_NEVER) {
@@ -984,13 +996,17 @@ public class ScrollPaneLayout
      * the vertical scrollbar is needed (<code>wantsVSB</code>).
      * The location of the vsb is updated in <code>vsbR</code>, and
      * the viewport border insets (<code>vpbInsets</code>) are used to offset
-     * the vsb.
+     * the vsb. This is only called when <code>wantsVSB</code> has
+     * changed, eg you shouldn't invoke adjustForVSB(true) twice.
      */
     private void adjustForVSB(boolean wantsVSB, Rectangle available,
 			      Rectangle vsbR, Insets vpbInsets, 
                               boolean leftToRight) {
-	int vsbWidth = vsb.getPreferredSize().width;
+        int oldWidth = vsbR.width;
 	if (wantsVSB) {
+            int vsbWidth = Math.max(0, Math.min(vsb.getPreferredSize().width,
+                                                available.width));
+
 	    available.width -= vsbWidth;
 	    vsbR.width = vsbWidth;
             
@@ -1002,7 +1018,7 @@ public class ScrollPaneLayout
             }
 	}
 	else {
-	    available.width += vsbWidth;
+	    available.width += oldWidth;
 	}
     }
 
@@ -1011,18 +1027,22 @@ public class ScrollPaneLayout
      * the horizontal scrollbar is needed (<code>wantsHSB</code>).
      * The location of the hsb is updated in <code>hsbR</code>, and
      * the viewport border insets (<code>vpbInsets</code>) are used to offset
-     * the hsb.
+     * the hsb.  This is only called when <code>wantsHSB</code> has
+     * changed, eg you shouldn't invoked adjustForHSB(true) twice.
      */
     private void adjustForHSB(boolean wantsHSB, Rectangle available,
 			      Rectangle hsbR, Insets vpbInsets) {
-	int hsbHeight = hsb.getPreferredSize().height;
+        int oldHeight = hsbR.height;
 	if (wantsHSB) {
+            int hsbHeight = Math.max(0, Math.min(available.height,
+                                              hsb.getPreferredSize().height));
+
 	    available.height -= hsbHeight;
 	    hsbR.y = available.y + available.height + vpbInsets.bottom;
 	    hsbR.height = hsbHeight;
 	}
 	else {
-	    available.height += hsbHeight;
+	    available.height += oldHeight;
 	}
     }
 

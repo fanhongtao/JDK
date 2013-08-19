@@ -1,5 +1,5 @@
 /*
- * @(#)Attributes.java	1.38 01/12/03
+ * @(#)Attributes.java	1.40 02/03/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,12 +19,15 @@ import java.util.Iterator;
 
 /**
  * The Attributes class maps Manifest attribute names to associated string
- * values. Attribute names are case-insensitive and restricted to the ASCII
- * characters in the set [0-9a-zA-Z_-]. Attribute values can contain any
- * characters and will be UTF8-encoded when written to the output stream.
+ * values. Valid attribute names are case-insensitive, are restricted to 
+ * the ASCII characters in the set [0-9a-zA-Z_-], and cannot exceed 70 
+ * characters in length. Attribute values can contain any characters and 
+ * will be UTF8-encoded when written to the output stream.  See the 
+ * <a href="../../../../guide/jar/jar.html">JAR File Specification</a> 
+ * for more information about valid attribute names and values.
  *
  * @author  David Connelly
- * @version 1.38, 12/03/01
+ * @version 1.40, 03/12/02
  * @see	    Manifest
  * @since   1.2
  */
@@ -87,6 +90,7 @@ public class Attributes implements Map, Cloneable {
      * @param name the attribute name as a string
      * @return the String value of the specified attribute name, or null if
      *         not found.
+     * @throws IllegalArgumentException if the attribute name is invalid
      */
     public String getValue(String name) {
         return (String)get(new Attributes.Name((String)name));
@@ -368,8 +372,12 @@ public class Attributes implements Map, Cloneable {
 
     /**
      * The Attributes.Name class represents an attribute name stored in
-     * this Map. Attribute names are case-insensitive and restricted to
-     * the ASCII characters in the set [0-9a-zA-Z_-].
+     * this Map. Valid attribute names are case-insensitive, are restricted 
+     * to the ASCII characters in the set [0-9a-zA-Z_-], and cannot exceed 
+     * 70 characters in length. Attribute values can contain any characters 
+     * and will be UTF8-encoded when written to the output stream.  See the 
+     * <a href="../../../../guide/jar/jar.html">JAR File Specification</a> 
+     * for more information about valid attribute names and values.
      */
     public static class Name {
 	private String name;

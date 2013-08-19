@@ -1,5 +1,5 @@
 /*
- * @(#)InitialNamingImpl.java	1.17 01/12/03
+ * @(#)InitialNamingImpl.java	1.18 02/03/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import com.sun.corba.se.ActivationIDL._InitialNameServiceImplBase;
 
 /**
  * 
- * @version 	1.17, 02/01/30
+ * @version 	1.18, 02/08/29
  * @author	Rohit Garg
  * @since	JDK1.2
  */
@@ -42,12 +42,12 @@ public class InitialNamingImpl extends _InitialNameServiceImplBase
     synchronized public void bind(String name, Object obj, boolean save)
 	throws NameAlreadyBound 
     {
-	try {
-	    Object obj2 = orb.resolve_initial_references(name);
-	    throw new NameAlreadyBound();     
-	} catch (InvalidName ex) {
+        // If no Service is registered with the name then register the Service
+        if( bootServer.getService( name ) == null ) {
 	    bootServer.addService(name, orb.object_to_string(obj), save);
-	}
+        } else {
+	    throw new NameAlreadyBound();     
+        }
     }
 
     ORB orb;

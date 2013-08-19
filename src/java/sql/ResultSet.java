@@ -1,5 +1,5 @@
 /*
- * @(#)ResultSet.java	1.40 01/12/03
+ * @(#)ResultSet.java	1.42 02/03/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -748,7 +748,7 @@ public interface ResultSet {
      * specification. If the value is an SQL <code>NULL</code>, 
      * the driver returns a Java <code>null</code>.
      *
-     * <p>This method may also be used to read datatabase-specific
+     * <p>This method may also be used to read database-specific
      * abstract data types.
      *
      * In the JDBC 2.0 API, the behavior of method
@@ -776,7 +776,7 @@ public interface ResultSet {
      * specification. If the value is an SQL <code>NULL</code>, 
      * the driver returns a Java <code>null</code>.
      * <P>
-     * This method may also be used to read datatabase-specific
+     * This method may also be used to read database-specific
      * abstract data types.
      * <P>
      * In the JDBC 2.0 API, the behavior of the method
@@ -1123,7 +1123,7 @@ public interface ResultSet {
      *
      * @param rows the number of rows to fetch
      * @exception SQLException if a database access error occurs or the
-     * condition <code>0 <= rows <= this.getMaxRows()</code> is not satisfied
+     * condition <code>0 <= rows <= Statement.getMaxRows()</code> is not satisfied
      * @since 1.2
      * @see #getFetchSize
      */

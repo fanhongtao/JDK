@@ -1,5 +1,5 @@
 /*
- * @(#)BeanContextMembershipEvent.java	1.12 01/12/03
+ * @(#)BeanContextMembershipEvent.java	1.13 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import java.util.Iterator;
  * </code> method. 
  *
  * @author	Laurence P. G. Cable
- * @version	1.12
+ * @version	1.13
  * @since	1.2
  * @see		java.beans.beancontext.BeanContext
  * @see		java.beans.beancontext.BeanContextEvent
@@ -44,6 +44,7 @@ public class BeanContextMembershipEvent extends BeanContextEvent {
      *
      * @param bc	The BeanContext source
      * @param changes	The Children affected
+     * @throws NullPointerException if <CODE>changes</CODE> is <CODE>null</CODE>
      */
 
     public BeanContextMembershipEvent(BeanContext bc, Collection changes) {

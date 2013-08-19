@@ -1,7 +1,7 @@
 /*
- * @(#)URLClassLoader.java	1.78 03/02/14
+ * @(#)URLClassLoader.java	1.77 02/07/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import sun.net.www.ParseUtil;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.78, 02/14/03
+ * @version 1.77, 07/18/02
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -219,17 +219,21 @@ public class URLClassLoader extends SecureClassLoader {
 	    Manifest man = res.getManifest();
 	    if (pkg != null) {
 		// Package found, so check package sealing.
-		boolean ok;
 		if (pkg.isSealed()) {
 		    // Verify that code source URL is the same.
-		    ok = pkg.isSealed(url);
+		    if (!pkg.isSealed(url)) {
+			throw new SecurityException(
+			    "sealing violation: package " + pkgname + " is sealed");
+		    }
+
 		} else {
 		    // Make sure we are not attempting to seal the package
 		    // at this code source URL.
-		    ok = (man == null) || !isSealed(pkgname, man);
-		}
-		if (!ok) {
-		    throw new SecurityException("sealing violation");
+		    if ((man != null) && isSealed(pkgname, man)) {
+			throw new SecurityException(
+			    "sealing violation: can't seal package " + pkgname + 
+			    ": already loaded");
+		    }
 		}
 	    } else {
 		if (man != null) {
@@ -341,14 +345,14 @@ public class URLClassLoader extends SecureClassLoader {
 	/*
 	 * The same restriction to finding classes applies to resources
 	 */
-	Resource res =
-	    (Resource) AccessController.doPrivileged(new PrivilegedAction() {
-		    public Object run() {
-			return ucp.getResource(name, true);
-		    }
-		}, acc);
-	
-        return res != null ? ucp.checkURL(res.getURL()) : null;
+	URL url = 
+	    (URL) AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    return ucp.findResource(name, true);
+                }
+            }, acc);
+
+	return url != null ? ucp.checkURL(url) : null;
     }
 
     /**
@@ -360,36 +364,42 @@ public class URLClassLoader extends SecureClassLoader {
      * @return an <code>Enumeration</code> of <code>URL</code>s
      */
     public Enumeration findResources(final String name) throws IOException {
-        final Enumeration e = ucp.getResources(name, true);
+        final Enumeration e = ucp.findResources(name, true);
 
 	return new Enumeration() {
-	    private URL res;
+	    private URL url = null;
+
+	    private boolean next() {
+		if (url != null) {
+		    return true;
+		}
+		do {
+		    URL u = (URL)
+			AccessController.doPrivileged(new PrivilegedAction() {
+			    public Object run() {
+				if (!e.hasMoreElements())
+                               	    return null;
+                            	return e.nextElement();
+			    }
+			}, acc);
+		    if (u == null) 
+			break;
+		    url = ucp.checkURL(u);
+		} while (url == null);
+		return url != null;
+	    }
 
 	    public Object nextElement() {
-		if (res == null)
+		if (!next()) {
 		    throw new NoSuchElementException();
-		URL url = res;
-	        res = null;
-		return url;
+		}
+		URL u = url;
+		url = null;
+		return u;
 	    }
 
 	    public boolean hasMoreElements() {
-		if (res != null)
-		    return true;
-		do {
-		    Resource r = (Resource)
-		        AccessController.doPrivileged(new PrivilegedAction() {
-			public Object run() {
-			    if (!e.hasMoreElements())
-				return null;
-			    return e.nextElement();
-			}
-		    }, acc);
-		    if (r == null)
-			break;
-		    res = ucp.checkURL(r.getURL());
-		} while (res == null);
-		return res != null;
+		return next();
 	    }
 	};
     }
@@ -424,7 +434,6 @@ public class URLClassLoader extends SecureClassLoader {
 	    urlConnection = url.openConnection();
 	    p = urlConnection.getPermission();
 	} catch (java.io.IOException ioe) {
-
 	    p = null;
 	    urlConnection = null;
 	}

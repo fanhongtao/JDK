@@ -1,5 +1,5 @@
 /*
- * @(#)StringCoding.java	1.8 01/12/03
+ * @(#)StringCoding.java	1.9 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,6 +26,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import sun.io.ByteToCharConverter;
 import sun.io.CharToByteConverter;
 import sun.io.Converters;
+import sun.misc.MessageUtils;
 import sun.nio.cs.HistoricallyNamedCharset;
 
 
@@ -88,10 +89,11 @@ class StringCoding {
 
     private static void warnUnsupportedCharset(String csn) {
 	if (warnUnsupportedCharset) {
-	    // Use System.err rather than the Logging API since it may not
-	    // have been loaded.
-	    System.err.println("WARNING: Default charset " + csn +
-			       " not supported, using ISO-8859-1 instead");
+	    // Use sun.misc.MessageUtils rather than the Logging API or
+	    // System.err since this method may be called during VM
+	    // initialization before either is available.
+	    MessageUtils.err("WARNING: Default charset " + csn +
+			     " not supported, using ISO-8859-1 instead");
 	    warnUnsupportedCharset = false;
 	}
     }
@@ -225,12 +227,20 @@ class StringCoding {
 	try {
 	    return decode(csn, ba, off, len);
 	} catch (UnsupportedEncodingException x) {
+	    Converters.resetDefaultEncodingName();
 	    warnUnsupportedCharset(csn);
 	}
 	try {
 	    return decode("ISO-8859-1", ba, off, len);
 	} catch (UnsupportedEncodingException x) {
-	    throw new Error("ISO-8859-1 charset not available", x);
+	    // If this code is hit during VM initialization, MessageUtils is
+	    // the only way we will be able to get any kind of error message.
+	    MessageUtils.err("ISO-8859-1 charset not available: "
+			     + x.toString());
+	    // If we can not find ISO-8859-1 (a required encoding) then things
+	    // are seriously wrong with the installation.
+	    System.exit(1);
+	    return null;
 	}
     }
 
@@ -367,12 +377,20 @@ class StringCoding {
 	try {
 	    return encode(csn, ca, off, len);
 	} catch (UnsupportedEncodingException x) {
+	    Converters.resetDefaultEncodingName();
 	    warnUnsupportedCharset(csn);
 	}
 	try {
 	    return encode("ISO-8859-1", ca, off, len);
 	} catch (UnsupportedEncodingException x) {
-	    throw new Error("ISO-8859-1 charset not available", x);
+	    // If this code is hit during VM initialization, MessageUtils is
+	    // the only way we will be able to get any kind of error message.
+	    MessageUtils.err("ISO-8859-1 charset not available: "
+			     + x.toString());
+	    // If we can not find ISO-8859-1 (a required encoding) then things
+	    // are seriously wrong with the installation.
+	    System.exit(1);
+	    return null;
 	}
     }
 

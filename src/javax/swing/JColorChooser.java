@@ -1,5 +1,5 @@
 /*
- * @(#)JColorChooser.java	1.41 01/12/03
+ * @(#)JColorChooser.java	1.42 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -56,7 +56,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.41 12/03/01
+ * @version 1.42 03/20/02
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -176,7 +176,7 @@ public class JColorChooser extends JComponent implements Accessible {
      * Creates a color chooser pane with the specified
      * <code>ColorSelectionModel</code>.
      *
-     * @param initialColor the initial color set in the chooser
+     * @param model the <code>ColorSelectionModel</code> to be used
      */
     public JColorChooser(ColorSelectionModel model) {
 	selectionModel = model;
@@ -347,7 +347,7 @@ public class JColorChooser extends JComponent implements Accessible {
      * This will fire a <code>PropertyChangeEvent</code> for the property
      * named "previewPanel".
      *
-     * @param color the color to be set in the color chooser
+     * @param preview the <code>JComponent</code> which displays the current color
      * @see JComponent#addPropertyChangeListener
      *
      * @beaninfo

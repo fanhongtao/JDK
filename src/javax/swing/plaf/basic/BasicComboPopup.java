@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboPopup.java	1.69 03/02/14
+ * @(#)BasicComboPopup.java	1.71 02/03/20
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.69 02/14/03
+ * @version 1.71 03/20/02
  * @author Tom Santos
  * @author Mark Davidson
  */
@@ -270,7 +270,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      * Removes the listeners from the combo box model
      *
      * @param model The combo box model to install listeners
-     * @see installComboBoxModelListeners
+     * @see #installComboBoxModelListeners
      */
     protected void uninstallComboBoxModelListeners( ComboBoxModel model ) {
 	if (model != null && listDataListener != null) {
@@ -459,7 +459,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      * popup. This method is called when the UI class
      * is created.
      *
-     * @see createList
+     * @see #createList
      */
     protected void configureList() {
         list.setFont( comboBox.getFont() );
@@ -558,7 +558,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      * <code>uninstallComboBoxModelListeners</code>.
      *
      * @param model The combo box model to install listeners
-     * @see uninstallComboBoxModelListeners
+     * @see #uninstallComboBoxModelListeners
      */
     protected void installComboBoxModelListeners( ComboBoxModel model ) {
 	if (model != null && (listDataListener = createListDataListener()) != null) {
@@ -727,7 +727,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      * <p>
      * The functionality has been migrated into <code>ItemHandler</code>.
      *
-     * @see createItemListener
+     * @see #createItemListener
      */
     public class ListDataHandler implements ListDataListener {
         public void contentsChanged( ListDataEvent e ) {}
@@ -748,6 +748,11 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         public void mouseReleased(MouseEvent anEvent) {
             comboBox.setSelectedIndex( list.getSelectedIndex() );
 	    comboBox.setPopupVisible(false);
+            // workaround for cancelling an edited item (bug 4530953)
+            if (comboBox.isEditable() && comboBox.getEditor() != null) {
+                comboBox.configureEditor(comboBox.getEditor(), 
+                                         comboBox.getSelectedItem()); 
+            }
         }
     }
 
@@ -787,7 +792,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      * call the superclass methods to ensure that the combo popup correctly 
      * handles property changes.
      * 
-     * @see createPropertyChangeListener
+     * @see #createPropertyChangeListener
      */
     protected class PropertyChangeHandler implements PropertyChangeListener {
         public void propertyChange( PropertyChangeEvent e ) {
@@ -1030,29 +1035,41 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         return height == 0 ? 100 : height;
     }
 
-    /* REMIND: All this menu placement logic is now handled by 
-     * javax.swing.DefaultPopupFactory
-     * so this code should eventually be migrated to take advantage of it.
+    /**
+     * Calculate the placement and size of the popup portion of the combo box based
+     * on the combo box location and the enclosing screen bounds. If
+     * no transformations are required, then the returned rectangle will
+     * have the same values as the parameters.
+     * 
+     * @param px starting x location
+     * @param py starting y location
+     * @param pw starting width
+     * @param ph starting height
+     * @return a rectangle which represents the placement and size of the popup
      */
     protected Rectangle computePopupBounds(int px,int py,int pw,int ph) {
-        Rectangle rect = new Rectangle(px,py,pw,ph);
-        Point p = new Point();
-        GraphicsConfiguration gc = comboBox.getGraphicsConfiguration();
-        Rectangle absBounds;
+	Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Rectangle screenBounds;
 
+	// Calculate the desktop dimensions relative to the combo box.
+        GraphicsConfiguration gc = comboBox.getGraphicsConfiguration();
+        Point p = new Point();
         SwingUtilities.convertPointFromScreen(p, comboBox);
         if (gc != null) {
-            absBounds = gc.getBounds();
-            absBounds.x += p.x;
-            absBounds.y += p.y;
+	    Insets screenInsets = toolkit.getScreenInsets(gc);
+            screenBounds = gc.getBounds();
+	    screenBounds.width -= (screenInsets.left + screenInsets.right);
+	    screenBounds.height -= (screenInsets.top + screenInsets.bottom);
+            screenBounds.x += (p.x + screenInsets.left);
+            screenBounds.y += (p.y + screenInsets.top);
         }
         else {
-            absBounds = new Rectangle(p, Toolkit.getDefaultToolkit().
-                                      getScreenSize());
+            screenBounds = new Rectangle(p, toolkit.getScreenSize());
         }
 
-        if (py+ph > p.y+absBounds.height 
-	    && ph < absBounds.height) {
+        Rectangle rect = new Rectangle(px,py,pw,ph);
+        if (!SwingUtilities.isRectangleContainingRectangle(screenBounds, rect) 
+	    && ph < screenBounds.height) {
 	    rect.y = -rect.height;
 	}
 	return rect;

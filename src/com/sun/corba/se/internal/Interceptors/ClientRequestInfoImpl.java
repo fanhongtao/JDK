@@ -1,5 +1,5 @@
 /*
- * @(#)ClientRequestInfoImpl.java	1.40 01/12/03
+ * @(#)ClientRequestInfoImpl.java	1.41 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -749,10 +749,23 @@ public final class ClientRequestInfoImpl
     public org.omg.IOP.ServiceContext get_reply_service_context( int id ) {
         checkAccess( MID_GET_REPLY_SERVICE_CONTEXT );       
 
-	// In the event this is called from a oneway, we will have no 
-	// response object.  Instead of throwing a NullPointer, we will
-	// "gracefully" handle this with a BAD_PARAM with minor code 25.
-	if( response == null ) {
+	// In the event this is called from a oneway, we will have no
+	// response object.
+	//
+	// In the event this is called after a IIOPConnection.purge_calls,
+	// we will have a response object, but that object will
+	// not contain a header (which would hold the service context
+	// container).  See bug 4624102.
+	//
+	// REVISIT: this is the only thing used
+	// from response at this time.  However, a more general solution
+	// would avoid accessing other parts of response's header.
+	//
+	// Instead of throwing a NullPointer, we will
+	// "gracefully" handle these with a BAD_PARAM with minor code 25.
+	if( response == null ||
+	    response.getServiceContexts() == null )
+	{                     
 	    throw new BAD_PARAM( "No such service context " +
 				 "(note: inaccessible from oneway calls)",
 				 MinorCodes.INVALID_SERVICE_CONTEXT_ID,

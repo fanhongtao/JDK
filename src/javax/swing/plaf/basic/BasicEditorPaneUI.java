@@ -1,5 +1,5 @@
 /*
- * @(#)BasicEditorPaneUI.java	1.28 01/12/03
+ * @(#)BasicEditorPaneUI.java	1.29 02/04/24
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.28 12/03/01
+ * @version 1.29 04/24/02
  */
 public class BasicEditorPaneUI extends BasicTextUI {
 
@@ -126,6 +126,9 @@ public class BasicEditorPaneUI extends BasicTextUI {
 		    }
 		}
 	    }
+	    updateFocusTraversalKeys();
+	} else if ("editable".equals(evt.getPropertyName())) {
+	    updateFocusTraversalKeys();
 	}
     }
 

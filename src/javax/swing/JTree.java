@@ -1,5 +1,5 @@
 /*
- * @(#)JTree.java	1.159 02/03/08
+ * @(#)JTree.java	1.161 02/05/03
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,10 @@ import javax.accessibility.*;
  * <code>TreePath</code> (an object
  * that encapsulates a node and all of its ancestors), or by its
  * display row, where each row in the display area displays one node.
- * An <i>expanded</i> node is one displays its children. A <i>collapsed</i>
+ * An <i>expanded</i> node is a non-leaf node (as identified by
+ * <code>TreeModel.isLeaf(node)</code> returning false) that will displays
+ * its children when all its ancestors are <i>expanded</i>.
+ * A <i>collapsed</i>
  * node is one which hides them. A <i>hidden</i> node is one which is
  * under a collapsed ancestor. All of a <i>viewable</i> nodes parents
  * are expanded, but may or may not be displayed. A <i>displayed</i> node
@@ -113,7 +116,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version 1.159, 03/08/02
+ * @version 1.161, 05/03/02
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -1731,7 +1734,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
 
     /**
      * Ensures that the node identified by the specified path is 
-     * expanded and viewable.
+     * expanded and viewable. If the last item in the path is a
+     * leaf, this will have no effect.
      * 
      * @param path  the <code>TreePath</code> identifying a node
      */
@@ -1989,7 +1993,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
         if (accessibleContext != null) {
             accessibleContext.firePropertyChange(
                     AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY,
-                    new Boolean(false), new Boolean(true));
+                    Boolean.valueOf(false), Boolean.valueOf(true));
         }
     }
 
@@ -3486,8 +3490,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
          *
          */
         public void valueChanged(TreeSelectionEvent e) {
-	    TreePath oldLeadSelectionPath = e.getOldLeadSelectionPath();
+            // Fixes 4546503 - JTree is sending incorrect active 
+            // descendant events
+            TreePath oldLeadSelectionPath = e.getOldLeadSelectionPath();
             leadSelectionPath = e.getNewLeadSelectionPath();
+
 	    if (oldLeadSelectionPath != leadSelectionPath) {
 		Accessible oldLSA = leadSelectionAccessible;
 		leadSelectionAccessible = (leadSelectionPath != null) 
@@ -3499,7 +3506,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
                                    oldLSA, leadSelectionAccessible);
 	    }
             firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY,
-                               new Boolean(false), new Boolean(true));
+                               Boolean.valueOf(false), Boolean.valueOf(true));
 	}
 
         /**
@@ -3513,7 +3520,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
          */
         public void fireVisibleDataPropertyChange() {
            firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
-                              new Boolean(false), new Boolean(true));
+                              Boolean.valueOf(false), Boolean.valueOf(true));
         }
  
         // Fire the visible data changes for the model changes.

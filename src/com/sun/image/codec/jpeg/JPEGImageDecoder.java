@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGImageDecoder.java	1.5 01/12/03
+ * @(#)JPEGImageDecoder.java	1.6 02/03/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -82,7 +82,7 @@ import java.awt.image.WritableRaster;
  * <p>
  * 
  * @see JPEGCodec
- * @see JPEGDecoderParam
+ * @see JPEGDecodeParam
  * @see Raster
  * @see BufferedImage
  * @version 4 December 1997

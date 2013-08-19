@@ -1,5 +1,5 @@
 /*
- * @(#)StubDelegateImpl.java	1.10 01/12/03
+ * @(#)StubDelegateImpl.java	1.11 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,6 +17,8 @@ package com.sun.corba.se.internal.javax.rmi.CORBA;
 
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.BAD_OPERATION;
+import org.omg.CORBA.BAD_INV_ORDER;
+import org.omg.CORBA.SystemException;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import javax.rmi.CORBA.Tie;
@@ -211,15 +213,18 @@ public class StubDelegateImpl
                         // ignore it...
                                 
                         if (existingOrb != orb) {
-                            
-                            // No, so this is an error. 
-                                
-                        error = true;
+                            // No, so this is an error.
+                            error = true;
                         }
                             
-                    } catch (org.omg.CORBA.BAD_OPERATION e) {
-                           
-                        // No, so connect it...
+                    } catch (SystemException se) { 
+
+                        // Should be BAD_OPERATION or BAD_INV_ORDER
+                        if (!(se instanceof BAD_OPERATION) &&
+                            !(se instanceof BAD_INV_ORDER))
+                            throw se;
+
+                        // Not connected, so connect it...
                         if( tie instanceof ObjectImpl )  {
                             tie.orb(orb);
                                                 
@@ -228,9 +233,15 @@ public class StubDelegateImpl
                         
                             self._set_delegate(((ObjectImpl)tie)._get_delegate());
                         } else {
-                            // If tie is not an instance of ObjectImpl
-                            // then connect is invalid.
-                            error = true;
+                            // Tie must be Servant
+                            tie.orb(orb);
+                            try {
+                                org.omg.CORBA.Object ref =
+                                    ((org.omg.PortableServer.Servant)tie)._this_object( );
+                                self._set_delegate(((ObjectImpl)ref)._get_delegate());
+                            } catch( org.omg.CORBA.BAD_INV_ORDER bad) {
+                                error = true;
+                            }
                         }
                     }
                                                 

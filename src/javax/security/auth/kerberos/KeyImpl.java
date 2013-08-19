@@ -1,5 +1,5 @@
 /*
- * @(#)KeyImpl.java	1.5 01/12/03
+ * @(#)KeyImpl.java	1.8 02/04/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import sun.security.util.DerValue;
  * with a principal and may represent an ephemeral session key.
  *
  * @author Mayank Upadhyay
- * @version 1.5, 12/03/01
+ * @version 1.8, 04/21/02
  * @since 1.4
  */
 class KeyImpl implements SecretKey, Destroyable, Serializable {
@@ -63,12 +63,11 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
 		   char[] password,
 		   String algorithm) {
 
-	// For now, we only support DES so ignore parameter "algorithm"
-
 	try {
 	    PrincipalName princ = new PrincipalName(principal.getName());
-	    String passStr = new String(password);
-	    EncryptionKey key = new EncryptionKey(passStr, princ.getSalt());
+	    EncryptionKey key = 
+		new EncryptionKey(new StringBuffer().append(password), 
+				princ.getSalt(),algorithm);
 	    this.keyBytes = key.getBytes();
 	    this.keyType = key.getEType();
 	} catch (KrbException e) {

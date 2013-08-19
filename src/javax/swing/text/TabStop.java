@@ -1,5 +1,5 @@
 /*
- * @(#)TabStop.java	1.17 01/12/03
+ * @(#)TabStop.java	1.18 02/02/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 12/03/01
+ * @version 1.18 02/07/02
  */
 public class TabStop implements Serializable {
 
@@ -128,7 +128,7 @@ public class TabStop implements Serializable {
      * @return the hashCode for the object
      */
     public int hashCode() { 
-	return super.hashCode();
+	return alignment ^ leader ^ Math.round(position);
     }
 
     /* This is for debugging; perhaps it should be removed before release */

@@ -1,5 +1,5 @@
 /*
- * @(#)Preferences.java	1.13 01/12/03
+ * @(#)Preferences.java	1.16 02/05/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,9 +7,13 @@
 
 package java.util.prefs;
 
-import java.util.*;
-import java.io.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.security.AccessController; 
 import java.security.Permission;
+import java.security.PrivilegedAction;
+
 
 // These imports needed only as a workaround for a JavaDoc bug
 import java.lang.RuntimePermission;
@@ -126,7 +130,7 @@ import java.lang.Double;
  *    &lt;!ELEMENT preferences (root)&gt;
  *  
  *    &lt;!-- The preferences element contains an optional version attribute,
- *          which specifies version of DTD.
+ *          which specifies version of DTD. --&gt;
  *    &lt;!ATTLIST preferences EXTERNAL_XML_VERSION CDATA "0.0" &gt  
  *
  *    &lt;!-- The root element has a map representing the root's preferences
@@ -170,7 +174,7 @@ import java.lang.Double;
  * qualified name of a class implementing the <tt>PreferencesFactory</tt>.
  *
  * @author  Josh Bloch
- * @version 1.13, 12/03/01
+ * @version 1.16, 05/06/02
  * @since   1.4
  */
 public abstract class Preferences {
@@ -181,7 +185,13 @@ public abstract class Preferences {
     private static final PreferencesFactory factory;
     static {
         String factoryName =
-            System.getProperty("java.util.prefs.PreferencesFactory");
+        (String) AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                  return System.getProperty(
+                                        "java.util.prefs.PreferencesFactory");
+              }
+        });
+
         if (factoryName == null)
             throw new InternalError(
                 "System property java.util.prefs.PreferencesFactory not set");
@@ -844,7 +854,7 @@ public abstract class Preferences {
      *         it contains multiple consecutive slash characters, or ends
      *         with a slash character and is more than one character long).
      * @throws NullPointerException if path name is <tt>null</tt>.
-     * @throws IllegalStateException if this node (or an ancestor) has been
+s     * @throws IllegalStateException if this node (or an ancestor) has been
      *         removed with the {@link #removeNode()} method and
      *         <tt>pathName</tt> is not the empty string (<tt>""</tt>).
      */
@@ -872,6 +882,9 @@ public abstract class Preferences {
      * path name may may return a (different) <tt>Preferences</tt> instance
      * representing a non-empty collection of preferences and/or children.
      *
+     * @throws BackingStoreException if this operation cannot be completed
+     *         due to a failure in the backing store, or inability to 
+     *         communicate with it.
      * @throws IllegalStateException if this node (or an ancestor) has already
      *         been removed with the {@link #removeNode()} method.
      * @throws UnsupportedOperationException if this method is invoked on 

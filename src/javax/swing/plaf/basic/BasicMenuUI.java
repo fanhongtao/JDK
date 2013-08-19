@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuUI.java	1.141 01/12/03
+ * @(#)BasicMenuUI.java	1.144 02/04/24
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import javax.swing.border.*;
  * A default L&F implementation of MenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.141 12/03/01
+ * @version 1.144 04/24/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -44,6 +44,8 @@ public class BasicMenuUI extends BasicMenuItemUI
     private static final boolean VERBOSE = false; // show reuse hits/misses
     private static final boolean DEBUG =   false;  // show bad params, misc.
 
+    private static boolean crossMenuMnemonic = true;
+
     public static ComponentUI createUI(JComponent x) {
 	return new BasicMenuUI();
     }
@@ -51,6 +53,7 @@ public class BasicMenuUI extends BasicMenuItemUI
     protected void installDefaults() {
 	super.installDefaults();
 	((JMenu)menuItem).setDelay(200);
+        crossMenuMnemonic = UIManager.getBoolean("Menu.crossMenuMnemonic");
     }
 
     protected String getPropertyPrefix() {
@@ -217,6 +220,13 @@ public class BasicMenuUI extends BasicMenuItemUI
 	}
 	
 	public void actionPerformed(ActionEvent e) {
+            if (!crossMenuMnemonic) {
+                JPopupMenu pm = getActivePopupMenu();
+                if (pm != null && pm != menu.getParent()) {
+                    return;
+                }
+            }
+
 	    final MenuSelectionManager defaultManager = MenuSelectionManager.defaultManager();
             if(force) {
                 Container cnt = menu.getParent();
@@ -463,36 +473,134 @@ public class BasicMenuUI extends BasicMenuItemUI
 	public void menuDragMouseReleased(MenuDragMouseEvent e) {}	    
     }
 
-    private class MenuKeyHandler implements MenuKeyListener {
-	public void menuKeyTyped(MenuKeyEvent e) { 
-        int key = menuItem.getMnemonic();
-        if(key == 0)
-            return;
-        MenuElement path[] = e.getPath();
-        if(lower(key) == lower((int)(e.getKeyChar()))) {
-            JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
-            MenuElement sub[] = popupMenu.getSubElements();
-            if(sub.length > 0) {
-                MenuSelectionManager manager = e.getMenuSelectionManager();
-                MenuElement newPath[] = new MenuElement[path.length + 2];
-                System.arraycopy(path,0,newPath,0,path.length);
-                newPath[path.length] = popupMenu;
-                newPath[path.length+1] = sub[0];
-                manager.setSelectedPath(newPath);
+    static JPopupMenu getActivePopupMenu() {
+        MenuElement[] path = MenuSelectionManager.defaultManager().
+            getSelectedPath();
+        for (int i=path.length-1; i>=0; i--) {
+            MenuElement elem = path[i];
+            if (elem instanceof JPopupMenu) {
+                return (JPopupMenu)elem;
             }
-            e.consume();
         }
+        return null;
+    }
+
+    /**
+     * Handles the mnemonic handling for the JMenu and JMenuItems.
+     */
+    private class MenuKeyHandler implements MenuKeyListener {
+	
+	// fields for handling duplicate mnemonics.
+	private int indexes[];
+	private char lastMnemonic;
+	private int lastIndex;
+	private int matches;
+	
+	/**
+	 * Opens the SubMenu
+	 */
+	public void menuKeyTyped(MenuKeyEvent e) {
+	    if (DEBUG) {
+		System.out.println("in BasicMenuUI.menuKeyTyped for " + menuItem.getText());
+	    }
+            if (!crossMenuMnemonic) {
+                JPopupMenu pm = getActivePopupMenu();
+                if (pm != null && pm != menuItem.getParent()) {
+                    return;
+                }
+            }
+
+            int key = menuItem.getMnemonic();
+            if(key == 0)
+                return;
+            MenuElement path[] = e.getPath();
+            if(lower((char)key) == lower(e.getKeyChar())) {
+                JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
+                MenuElement sub[] = popupMenu.getSubElements();
+                if(sub.length > 0) {
+                    MenuSelectionManager manager = e.getMenuSelectionManager();
+                    MenuElement newPath[] = new MenuElement[path.length + 2];
+                    System.arraycopy(path,0,newPath,0,path.length);
+                    newPath[path.length] = popupMenu;
+                    newPath[path.length+1] = sub[0];
+                    manager.setSelectedPath(newPath);
+                }
+                e.consume();
+            }
+        }
+
+	/**
+	 * Handles the mnemonics for the menu items. Will also handle duplicate mnemonics.
+	 * Perhaps this should be moved into BasicPopupMenuUI. See 4670831
+	 */
+	public void menuKeyPressed(MenuKeyEvent e) {
+	    if (DEBUG) {
+		System.out.println("in BasicMenuUI.menuKeyPressed for " + menuItem.getText());
+	    }
+	    // Handle the case for Escape or Enter...
+	    char keyChar = e.getKeyChar();
+	    if (!Character.isLetterOrDigit(keyChar))
+		return;
+
+	    MenuSelectionManager manager = e.getMenuSelectionManager();
+	    MenuElement path[] = e.getPath();
+	    MenuElement selectedPath[] = manager.getSelectedPath();
+	    
+	    for (int i = selectedPath.length - 1; i >=0; i--) {
+		if (selectedPath[i] == menuItem) {
+		    JPopupMenu popupMenu = ((JMenu)menuItem).getPopupMenu();
+		    MenuElement items[] = popupMenu.getSubElements();
+
+		    if (indexes == null || lastMnemonic != keyChar) {
+			matches = 0;
+			lastIndex = 0;
+			indexes = new int[items.length];
+			for (int j = 0; j < items.length; j++) {
+			    int key = ((JMenuItem)items[j]).getMnemonic();
+			    if(lower((char)key) == lower(keyChar)) {
+				indexes[matches++] = j;
+			    }
+			}
+			lastMnemonic = keyChar;
+		    }
+		    if (matches == 0) {
+			; // no op (consume)
+		    } else if (matches == 1) {
+			// Invoke the menu action
+			JMenuItem item = (JMenuItem)items[indexes[0]];
+			if (!(item instanceof JMenu)) {
+			    // Let Submenus be handled by menuKeyTyped
+			    manager.clearSelectedPath();
+			    item.doClick();
+			}
+		    } else {
+			// Select the menu item with the matching mnemonic. If
+			// the same mnemonic has been invoked then select the next
+			// menu item in the cycle.
+			if (lastIndex == matches) {
+			    // Take care of the situation in which the 
+			    // mnemonic wraps.
+			    lastIndex = 0;
+			}
+			MenuElement menuItem = items[indexes[lastIndex++]];
+
+			MenuElement newPath[] = new MenuElement[path.length+2];
+			System.arraycopy(path, 0, newPath, 0, path.length);
+			newPath[path.length] = popupMenu;
+			newPath[path.length+1] = menuItem;
+			manager.setSelectedPath(newPath);
+		    }
+		    e.consume();
+		    return;
+		}
+	    }
 	}
-	public void menuKeyPressed(MenuKeyEvent e) {}
+	    
 	public void menuKeyReleased(MenuKeyEvent e) {}
 
-	private int lower(int ascii) {
-	    if(ascii >= 'A' && ascii <= 'Z')
-		return ascii + 'a' - 'A';
-	    else
-		return ascii;
-	}
-
+        private char lower(char keyChar) {
+	    return Character.toLowerCase(keyChar);
+        }
     }
 }
 

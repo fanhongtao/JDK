@@ -1,5 +1,5 @@
 /*
- * @(#)BasicProgressBarUI.java	1.58 01/12/03
+ * @(#)BasicProgressBarUI.java	1.60 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.io.Serializable;
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.58 12/03/01
+ * @version 1.60 03/20/02
  * @author Michael C. Albers
  * @author Kathy Walrath
  */
@@ -591,10 +591,17 @@ public class BasicProgressBarUI extends ProgressBarUI {
 
 	// Deal with possible text painting
 	if (progressBar.isStringPainted()) {
-	    paintString(g2, b.left, b.top,
-			barRectWidth, barRectHeight,
-			0, b);
-	}
+            if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
+                paintString(g2, b.left, b.top,
+                            barRectWidth, barRectHeight,
+                            boxRect.x, boxRect.width, b);
+            }
+            else {
+                paintString(g2, b.left, b.top,
+                            barRectWidth, barRectHeight,
+                            boxRect.y, boxRect.height, b);
+            }
+        }
     }
 
 
@@ -681,6 +688,37 @@ public class BasicProgressBarUI extends ProgressBarUI {
     protected void paintString(Graphics g, int x, int y,
 			       int width, int height,
 			       int amountFull, Insets b) {
+	if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
+            if (BasicGraphicsUtils.isLeftToRight(progressBar)) {
+                paintString(g, x, y, width, height, x, amountFull, b);
+            }
+            else {
+                paintString(g, x, y, width, height, x + width - amountFull,
+                            amountFull, b);
+            }
+        }
+        else {
+            paintString(g, x, y, width, height, y + height - amountFull,
+                        amountFull, b);
+        }
+    }
+
+    /**
+     * Paints the progress string.
+     *
+     * @param g Graphics used for drawing.
+     * @param x x location of bounding box
+     * @param y y location of bounding box
+     * @param width width of bounding box
+     * @param height height of bounding box
+     * @param fillStart start location, in x or y depending on orientation,
+     *        of the filled portion of the progress bar.
+     * @param amountFull size of the fill region, either width or height
+     *        depending upon orientation.
+     * @param b Insets of the progress bar.
+     */
+    private void paintString(Graphics g, int x, int y, int width, int height,
+                             int fillStart, int amountFull, Insets b) {
         if (!(g instanceof Graphics2D)) {
             return;
         }
@@ -693,14 +731,10 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	Rectangle oldClip = g2.getClipBounds();
 	
 	if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
-	    g2.setColor(getSelectionForeground());
-	    g2.drawString(progressString, renderLocation.x, renderLocation.y);
 	    g2.setColor(getSelectionBackground());
-            if( BasicGraphicsUtils.isLeftToRight(progressBar) ) {
-                g2.setClip(x+amountFull, y, width-amountFull, height);
-            } else {
-                g2.setClip(x, y, width-amountFull, height);
-            }
+	    g2.drawString(progressString, renderLocation.x, renderLocation.y);
+	    g2.setColor(getSelectionForeground());
+            g2.clipRect(fillStart, y, amountFull, height);
 	    g.drawString(progressString, renderLocation.x, renderLocation.y);
 	} else { // VERTICAL
 	    g2.setColor(getSelectionBackground());
@@ -711,7 +745,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
 						  x, y, width, height);
 	    g2.drawString(progressString, renderLocation.x, renderLocation.y);
 	    g2.setColor(getSelectionForeground());
-	    g2.setClip(x, height-amountFull+b.top, width, height);
+	    g2.clipRect(x, fillStart, width, amountFull);
 	    g2.drawString(progressString, renderLocation.x, renderLocation.y);
 	}
 	g2.setClip(oldClip);
@@ -839,7 +873,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
      *
      * @param newValue the new animation index; no checking
      *                 is performed on its value
-     * @see incrementAnimationIndex
+     * @see #incrementAnimationIndex
      *
      * @since 1.4
      */
@@ -944,7 +978,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
      * where <em>X</em> is specified by the "ProgressBar.repaintInterval"
      * UI default.
      *
-     * @see setAnimationIndex
+     * @see #setAnimationIndex
      * @since 1.4
      */
     protected void incrementAnimationIndex() {

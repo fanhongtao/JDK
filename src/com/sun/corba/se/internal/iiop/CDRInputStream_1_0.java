@@ -1,5 +1,5 @@
 /*
- * @(#)CDRInputStream_1_0.java	1.77 01/12/03
+ * @(#)CDRInputStream_1_0.java	1.78 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -2323,5 +2323,10 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
 
         if (bbwi.index + needed <= bbwi.buflen)
             bbwi.index += needed;
+    }
+
+    public void resetCodeSetConverters() {
+        charConverter = null;
+        wcharConverter = null;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTreeCellEditor.java	1.25 01/12/03
+ * @(#)DefaultTreeCellEditor.java	1.26 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import java.util.Vector;
  *
  * @see javax.swing.JTree
  *
- * @version 1.25 12/03/01
+ * @version 1.26 04/09/02
  * @author Scott Violet
  */
 public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
@@ -494,7 +494,6 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
 	    (new DefaultTextField(aBorder)) {
 	    public boolean shouldSelectCell(EventObject event) {
 		boolean retValue = super.shouldSelectCell(event);
-		getComponent().requestFocus();
 		return retValue;
 	    }
 	};

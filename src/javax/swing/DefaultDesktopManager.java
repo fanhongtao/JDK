@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultDesktopManager.java	1.45 01/12/03
+ * @(#)DefaultDesktopManager.java	1.46 02/04/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,9 +22,12 @@ import java.awt.event.ComponentEvent;
   * <code>JInternalFrame</code>s that are not children of a
   * <code>JDesktop</code> will use this component
   * to handle their desktop-like actions.
+  * <p>This class provides a policy for the various JInternalFrame methods,
+  * it is not meant to be called directly rather the various JInternalFrame
+  * methods will call into the DesktopManager.</p>
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.45 12/03/01
+  * @version 1.46 04/15/02
   * @author David Kloba
   * @author Steve Wilson
   */

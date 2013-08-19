@@ -2,7 +2,7 @@
 // Written by David Megginson, sax@megginson.com
 // This class is in the Public Domain.  NO WARRANTY!
 
-// $Id: NamespaceSupport.java,v 1.1.1.1 2000/11/23 01:53:36 edwingo Exp $
+// $Id: NamespaceSupport.java,v 1.1 2001/05/20 03:12:58 curcuru Exp $
 
 package org.xml.sax.helpers;
 
@@ -60,7 +60,7 @@ import java.util.Vector;
  * @since SAX 2.0
  * @author David Megginson, 
  *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0
+ * @version 2.0r2pre
  */
 public class NamespaceSupport
 {

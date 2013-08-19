@@ -1,5 +1,5 @@
 /*
- * @(#)NetPermission.java	1.40 01/12/03
+ * @(#)NetPermission.java	1.41 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -75,7 +75,7 @@ that class really didn't come from that location.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.40 01/12/03
+ * @version 1.41 02/02/01
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -101,9 +101,7 @@ public final class NetPermission extends BasicPermission {
     /**
      * Creates a new NetPermission object with the specified name.
      * The name is the symbolic name of the NetPermission, and the
-     * actions String is currently unused and should be null. This
-     * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new Permission objects.
+     * actions String is currently unused and should be null.
      *
      * @param name the name of the NetPermission.
      * @param actions should be null.

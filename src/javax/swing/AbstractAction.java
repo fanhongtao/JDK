@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractAction.java	1.46 01/12/03
+ * @(#)AbstractAction.java	1.47 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import javax.swing.event.SwingPropertyChangeSupport;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.46 12/03/01
+ * @version 1.47 02/11/02
  * @author Georges Saab
  * @see Action
  */
@@ -136,7 +136,7 @@ public abstract class AbstractAction implements Action, Cloneable, Serializable
 	if (oldValue != newValue) {
 	    this.enabled = newValue;
 	    firePropertyChange("enabled", 
-			       new Boolean(oldValue), new Boolean(newValue));
+			       Boolean.valueOf(oldValue), Boolean.valueOf(newValue));
 	}
     }
 

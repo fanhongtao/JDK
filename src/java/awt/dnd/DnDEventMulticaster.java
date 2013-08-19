@@ -1,5 +1,5 @@
 /*
- * @(#)DnDEventMulticaster.java	1.2 01/12/03
+ * @(#)DnDEventMulticaster.java	1.3 01/12/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import java.util.EventListener;
  * thread-safe multi-cast event dispatching for the drag-and-drop events defined
  * in the java.awt.dnd package.
  *
- * @version 	1.2, 12/03/01
+ * @version 	1.3, 12/17/01
  * @since 	1.4
  * @see AWTEventMulticaster
  */
@@ -171,6 +171,22 @@ class DnDEventMulticaster extends AWTEventMulticaster
 	if (a == null)  return b;
 	if (b == null)  return a;
 	return new DnDEventMulticaster(a, b);
+    }
+
+    /**
+     * Removes a listener from this multicaster and returns the
+     * resulting multicast listener.
+     * @param oldl the listener to be removed
+     */
+    protected EventListener remove(EventListener oldl) {
+        if (oldl == a)  return b;
+        if (oldl == b)  return a;
+        EventListener a2 = removeInternal(a, oldl);
+        EventListener b2 = removeInternal(b, oldl);
+        if (a2 == a && b2 == b) {
+            return this;        // it's not here
+        }
+        return addInternal(a2, b2);
     }
 
     /** 

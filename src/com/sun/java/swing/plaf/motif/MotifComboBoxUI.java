@@ -1,5 +1,5 @@
 /*
- * @(#)MotifComboBoxUI.java	1.35 01/12/03
+ * @(#)MotifComboBoxUI.java	1.36 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.awt.event.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.35, 12/03/01
+ * @version 1.36, 01/25/02
  * @author Arnaud Weber
  */
 public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
@@ -113,7 +113,11 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         boolean hasFocus = comboBox.hasFocus();
         Rectangle r;
 
-        g.setColor(comboBox.getBackground()/*UIManager.getColor("ComboBox.control")*/);
+	if (comboBox.isEnabled()) {
+	    g.setColor(comboBox.getBackground());
+	} else {
+	    g.setColor(UIManager.getColor("ComboBox.disabledBackground"));
+	}	    
         g.fillRect(0,0,c.getWidth(),c.getHeight());
 
         if ( !comboBox.isEditable() ) {
@@ -155,14 +159,14 @@ public class MotifComboBoxUI extends BasicComboBoxUI implements Serializable {
         Dimension d;
         c = renderer.getListCellRendererComponent(listBox, comboBox.getSelectedItem(), -1, false, false);
         c.setFont(comboBox.getFont());
-        if ( comboBox.isEnabled() ) {
+	if ( comboBox.isEnabled() ) {
             c.setForeground(comboBox.getForeground());
             c.setBackground(comboBox.getBackground());
-        }
+	}
         else {
             c.setForeground(UIManager.getColor("ComboBox.disabledForeground"));
             c.setBackground(UIManager.getColor("ComboBox.disabledBackground"));
-        }
+	}
         d  = c.getPreferredSize();
         currentValuePane.paintComponent(g,c,comboBox,bounds.x,bounds.y,
                                         bounds.width,d.height);

@@ -1,5 +1,5 @@
 /*
- * @(#)JFrame.java	1.91 02/05/03
+ * @(#)JFrame.java	1.93 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -90,7 +90,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.91 05/03/02
+ * @version 1.93 04/18/02
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -278,10 +278,10 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
                  default: 
                  break;
 	      case EXIT_ON_CLOSE:
-		  // This needs to match the checkExit call in
-		  // setDefaultCloseOperation
-		 System.exit(0);
-		 break;
+                  // This needs to match the checkExit call in
+                  // setDefaultCloseOperation
+		System.exit(0);
+		break;
             }
         }
     }
@@ -328,6 +328,10 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * @see #addWindowListener
      * @see #getDefaultCloseOperation
      * @see WindowConstants
+     * @throws  SecurityException
+     *        If EXIT_ON_CLOSE has been specified and the SecurityManager will
+     *        not allow the caller to invoke <code>System.exit</code>.
+     * @see        java.lang.Runtime#exit(int)
      *
      * @beaninfo
      *   preferred: true
@@ -346,18 +350,18 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
             throw new IllegalArgumentException("defaultCloseOperation must be one of: DO_NOTHING_ON_CLOSE, HIDE_ON_CLOSE, DISPOSE_ON_CLOSE, or EXIT_ON_CLOSE");
 	}
         if (this.defaultCloseOperation != operation) {
-	    if (operation == EXIT_ON_CLOSE) {
-		SecurityManager security = System.getSecurityManager();
-		if (security != null) {
-		    security.checkExit(0);
-		}
-	    }
+            if (operation == EXIT_ON_CLOSE) {
+                SecurityManager security = System.getSecurityManager();
+                if (security != null) {
+                    security.checkExit(0);
+                }
+            }
             int oldValue = this.defaultCloseOperation;
             this.defaultCloseOperation = operation;
             firePropertyChange("defaultCloseOperation", oldValue, operation);
 	}
     }
-    
+
 
    /**
     * Returns the operation that occurs when the user
@@ -581,6 +585,11 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     /**
      * Sets the <code>contentPane</code> property. 
      * This method is called by the constructor.
+     * <p>
+     * Swing's painting architecture requires an opaque <code>JComponent</code>
+     * in the containment hiearchy. This is typically provided by the
+     * content pane. If you replace the content pane it is recommended you
+     * replace it with an opaque <code>JComponent</code>.
      *
      * @param contentPane the <code>contentPane</code> object for this frame
      *
@@ -588,6 +597,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      *            exception) if the content pane parameter is <code>null</code>
      * @see #getContentPane
      * @see RootPaneContainer#setContentPane
+     * @see JRootPane
      *
      * @beaninfo
      *     hidden: true
@@ -675,7 +685,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      *
      * @param defaultLookAndFeelDecorated A hint as to whether or not current
      *        look and feel should provide window decorations
-     * @see javax.swing.LookAndFeel.getSupportsWindowDecorations
+     * @see javax.swing.LookAndFeel#getSupportsWindowDecorations
      * @since 1.4
      */
     public static void setDefaultLookAndFeelDecorated(boolean defaultLookAndFeelDecorated) {

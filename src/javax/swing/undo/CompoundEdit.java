@@ -1,5 +1,5 @@
 /*
- * @(#)CompoundEdit.java	1.20 01/12/03
+ * @(#)CompoundEdit.java	1.22 02/04/26
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,7 +12,7 @@ import java.util.*;
  * A concrete subclass of AbstractUndoableEdit, used to assemble little
  * UndoableEdits into great big ones.
  *
- * @version 1.20 12/03/01
+ * @version 1.22 04/26/02
  * @author Ray Ryan
  */
 public class CompoundEdit extends AbstractUndoableEdit {
@@ -34,7 +34,7 @@ public class CompoundEdit extends AbstractUndoableEdit {
     }
 
     /**
-     * Sends <code>undoK/code> to all contained
+     * Sends <code>undo</code> to all contained
      * <code>UndoableEdits</code> in the reverse of
      * the order in which they were added.
      */

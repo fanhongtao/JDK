@@ -1,5 +1,5 @@
 /*
- * @(#)SpringLayout.java	1.10 01/12/03
+ * @(#)SpringLayout.java	1.12 02/01/30
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -146,7 +146,7 @@ import java.util.*;
  * @see Spring
  * @see SpringLayout.Constraints
  *
- * @version  1.10 12/03/01
+ * @version  1.12 01/30/02
  * @author 	Philip Milne
  * @author 	Joe Winchester
  * @since       1.4
@@ -154,6 +154,7 @@ import java.util.*;
 public class SpringLayout implements LayoutManager2 {
     private Map componentConstraints = new HashMap();
 
+    private Spring cyclicReference = Spring.constant(Spring.UNSET);
     private Set cyclicSprings;
     private Set acyclicSprings;
 
@@ -177,6 +178,7 @@ public class SpringLayout implements LayoutManager2 {
      * Specifies the left edge of a component's bounding rectangle.
      */
     public static final String WEST   = "West";
+
 
     private static class WidthSpring extends Spring.AbstractSpring {
         private Component c;
@@ -537,9 +539,6 @@ public class SpringLayout implements LayoutManager2 {
                return width; 
            }
            if (horizontalDerived == null) { 
-               if (x == null) {
-                   return east;
-               }
                horizontalDerived = difference(east, x); 
            } 
            return horizontalDerived; 
@@ -576,9 +575,6 @@ public class SpringLayout implements LayoutManager2 {
                return height; 
            }
            if (verticalDerived == null) { 
-               if (y == null) {
-                   return south;
-               }
                verticalDerived = difference(south, y); 
            } 
            return verticalDerived; 
@@ -597,9 +593,6 @@ public class SpringLayout implements LayoutManager2 {
                return east; 
            }
            if (horizontalDerived == null) { 
-               if (x == null) {
-                   return width;
-               }
                horizontalDerived = sum(x, width); 
            } 
            return horizontalDerived; 
@@ -618,9 +611,6 @@ public class SpringLayout implements LayoutManager2 {
                return south; 
            }
            if (verticalDerived == null) { 
-               if (y == null) {
-                   return height;
-               }
                verticalDerived = sum(y, height); 
            } 
            return verticalDerived; 
@@ -789,38 +779,8 @@ public class SpringLayout implements LayoutManager2 {
         return result;
     }
 
-    private void setValue(Spring s, int value) { 
-        if (s != null && !isCyclic(s)) {
-            s.setValue(value);
-        }
-    }
-
-    private int getMaximumValue(Spring s) {
-        if (s != null && !isCyclic(s)) {
-            return s.getValue();
-        }
-        return 0;
-    }
-
-    private int getMinimumValue(Spring s) {
-        if (s != null && !isCyclic(s)) {
-            return s.getValue();
-        }
-        return 0;
-    }
-
-    private int getPreferredValue(Spring s) {
-        if (s != null && !isCyclic(s)) {
-            return s.getValue();
-        }
-        return 0;
-    }
-
-    private int getValue(Spring s) {
-        if (s != null && !isCyclic(s)) {
-            return s.getValue();
-        }
-        return 0;
+    private Spring abandonCycles(Spring s) { 
+        return isCyclic(s) ? cyclicReference : s;
     }
 
     // LayoutManager methods.
@@ -849,15 +809,17 @@ public class SpringLayout implements LayoutManager2 {
     public Dimension minimumLayoutSize(Container parent) {
         setParent(parent);
         Constraints pc = getConstraints(parent); 
-        return addInsets(getMinimumValue(pc.getWidth()),
-                         getMinimumValue(pc.getHeight()), parent);
+        return addInsets(abandonCycles(pc.getWidth()).getMinimumValue(),
+                         abandonCycles(pc.getHeight()).getMinimumValue(),
+                         parent);
     }
 
     public Dimension preferredLayoutSize(Container parent) {
         setParent(parent);
         Constraints pc = getConstraints(parent); 
-        return addInsets(getPreferredValue(pc.getWidth()),
-                         getPreferredValue(pc.getHeight()), parent);
+        return addInsets(abandonCycles(pc.getWidth()).getPreferredValue(),
+                         abandonCycles(pc.getHeight()).getPreferredValue(),
+                         parent);
     }
 
     // LayoutManager2 methods.
@@ -865,8 +827,9 @@ public class SpringLayout implements LayoutManager2 {
     public Dimension maximumLayoutSize(Container parent) {
         setParent(parent);
         Constraints pc = getConstraints(parent); 
-        return addInsets(getMaximumValue(pc.getWidth()),
-                         getMaximumValue(pc.getHeight()), parent);
+        return addInsets(abandonCycles(pc.getWidth()).getMaximumValue(),
+                         abandonCycles(pc.getHeight()).getMaximumValue(),
+                         parent);
     }
 
     /**
@@ -958,6 +921,12 @@ public class SpringLayout implements LayoutManager2 {
     private Constraints applyDefaults(Component c, Constraints constraints) {
         if (constraints == null) {
            constraints = new Constraints();
+        }
+        if (constraints.getX() == null) {
+            constraints.setX(Spring.constant(0));
+        }
+        if (constraints.getY() == null) {
+            constraints.setY(Spring.constant(0));
         }
         if (constraints.getWidth() == null) {
             constraints.setWidth(new WidthSpring(c));
@@ -1055,20 +1024,21 @@ public class SpringLayout implements LayoutManager2 {
         }
 
         Insets insets = parent.getInsets();
-        Constraints pc = getConstraints(parent);
-        setValue(pc.getX(), 0);
-        setValue(pc.getY(), 0);
-        setValue(pc.getWidth(), parent.getWidth() - insets.left -insets.right);
-        setValue(pc.getHeight(), parent.getHeight() - insets.top -
-                 insets.bottom);
+        Constraints pc = getConstraints(parent); 
+        abandonCycles(pc.getX()).setValue(0);
+        abandonCycles(pc.getY()).setValue(0);        
+        abandonCycles(pc.getWidth()).setValue(parent.getWidth() -
+                                              insets.left - insets.right);
+        abandonCycles(pc.getHeight()).setValue(parent.getHeight() -
+                                               insets.top - insets.bottom);
         
         for (int i = 0 ; i < n ; i++) {
 	    Component c = parent.getComponent(i);
             Constraints cc = getConstraints(c); 
-            int x = getValue(cc.getX());
-            int y = getValue(cc.getY());
-            int width = getValue(cc.getWidth());
-            int height = getValue(cc.getHeight());
+            int x = abandonCycles(cc.getX()).getValue();
+            int y = abandonCycles(cc.getY()).getValue();
+            int width = abandonCycles(cc.getWidth()).getValue();
+            int height = abandonCycles(cc.getHeight()).getValue();
             c.setBounds(insets.left + x, insets.top + y, width, height);
 	}
     }

@@ -1,5 +1,5 @@
 /*
- * @(#)Long.java	1.62 01/12/03
+ * @(#)Long.java	1.64 02/03/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.62, 12/03/01
+ * @version 1.64, 03/21/02
  * @since   JDK1.0
  */
 public final class Long extends Number implements Comparable {
@@ -320,7 +320,7 @@ public final class Long extends Number implements Comparable {
             if (i < max) {
                 digit = Character.digit(s.charAt(i++),radix);
 		if (digit < 0) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		} else {
 		    result = -digit;
 		}
@@ -329,25 +329,25 @@ public final class Long extends Number implements Comparable {
 		// Accumulating negatively avoids surprises near MAX_VALUE
 		digit = Character.digit(s.charAt(i++),radix);
 		if (digit < 0) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		}
 		if (result < multmin) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		}
 		result *= radix;
 		if (result < limit + digit) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		}
 		result -= digit;
 	    }
 	} else {
-	    throw new NumberFormatException(s);
+	    throw NumberFormatException.forInputString(s);
 	}
 	if (negative) {
 	    if (i > 1) {
 		return result;
 	    } else {	/* Only got "-" */
-		throw new NumberFormatException(s);
+		throw NumberFormatException.forInputString(s);
 	    }
 	} else {
 	    return -result;
@@ -553,7 +553,7 @@ public final class Long extends Number implements Comparable {
      *		   <code>Long</code>.
      * @exception  NumberFormatException  if the <code>String</code> does not
      *               contain a parsable <code>long</code>.
-     * @see        java.lang.Long#valueOf(java.lang.String)
+     * @see        java.lang.Long#parseLong(java.lang.String, int)
      */
     public Long(String s) throws NumberFormatException {
 	this.value = parseLong(s, 10);

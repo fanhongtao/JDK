@@ -1,5 +1,5 @@
 /*
- * @(#)Hashtable.java	1.90 01/12/13
+ * @(#)Hashtable.java	1.91 02/04/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -87,7 +87,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.90, 12/13/01
+ * @version 1.91, 04/21/02
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -284,6 +284,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @param value value whose presence in this Hashtable is to be tested.
      * @return <tt>true</tt> if this map maps one or more keys to the
      *         specified value.
+     * @throws NullPointerException  if the value is <code>null</code>.
      * @see	   Map
      * @since 1.2
      */
@@ -298,6 +299,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @return  <code>true</code> if and only if the specified object 
      *          is a key in this hashtable, as determined by the 
      *          <tt>equals</tt> method; <code>false</code> otherwise.
+     * @throws  NullPointerException  if the key is <code>null</code>.
      * @see     #contains(Object)
      */
     public synchronized boolean containsKey(Object key) {
@@ -319,6 +321,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @return  the value to which the key is mapped in this hashtable;
      *          <code>null</code> if the key is not mapped to any value in
      *          this hashtable.
+     * @throws  NullPointerException  if the key is <code>null</code>.
      * @see     #put(Object, Object)
      */
     public synchronized Object get(Object key) {
@@ -421,6 +424,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @param   key   the key that needs to be removed.
      * @return  the value to which the key had been mapped in this hashtable,
      *          or <code>null</code> if the key did not have a mapping.
+     * @throws  NullPointerException  if the key is <code>null</code>.
      */
     public synchronized Object remove(Object key) {
 	Entry tab[] = table;

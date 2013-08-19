@@ -1,10 +1,10 @@
 /*
- * @(#)InterruptibleChannel.java	1.2 01/11/28
- *
- * Copyright 2001 Sun Microsystems, Inc. All Rights Reserved. 
- *  
- * This software is the proprietary information of Sun Microsystems, Inc. 
- * Use is subject to license terms. 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)InterruptibleChannel.java	1.3 02/06/11
  */
 
 package java.nio.channels;
@@ -40,7 +40,7 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.2, 01/11/28
+ * @version 1.3, 02/06/11
  * @since 1.4
  */
 

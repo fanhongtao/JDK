@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphVector.java	1.29 02/01/29
+ * @(#)GlyphVector.java	1.30 02/03/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -399,7 +399,7 @@ public abstract class GlyphVector implements Cloneable {
      * @see #FLAG_HAS_POSITION_ADJUSTMENTS
      * @see #FLAG_HAS_TRANSFORMS
      * @see #FLAG_RUN_RTL
-     * @see #FLAG_COMPLEX
+     * @see #FLAG_COMPLEX_GLYPHS
      * @see #FLAG_MASK
      * @since 1.4
      */

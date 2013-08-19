@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultListSelectionModel.java	1.65 01/12/03
+ * @(#)DefaultListSelectionModel.java	1.66 02/02/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.65 12/03/01
+ * @version 1.66 02/13/02
  * @author Philip Milne
  * @author Hans Muller
  * @see ListSelectionModel
@@ -492,8 +492,9 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 
     /**
      * Insert length indices beginning before/after index. If the value 
-     * at index is itself selected, set all of the newly inserted 
-     * items, otherwise leave them unselected. This method is typically
+     * at index is itself selected and the selection mode is not
+     * SINGLE_SELECTION, set all of the newly inserted items as selected.
+     * Otherwise leave them unselected. This method is typically
      * called to sync the selection model with a corresponding change
      * in the data model.
      */
@@ -515,7 +516,8 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 
 	/* Initialize the newly inserted indices.
 	 */
-       	boolean setInsertedValues = value.get(index); 
+       	boolean setInsertedValues = ((getSelectionMode() == SINGLE_SELECTION) ?
+                                        false : value.get(index)); 
 	for(int i = insMinIndex; i <= insMaxIndex; i++) { 
 	    setState(i, setInsertedValues); 
 	}

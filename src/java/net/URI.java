@@ -1,5 +1,5 @@
 /*
- * @(#)URI.java	1.20 01/12/03
+ * @(#)URI.java	1.25 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -432,7 +432,7 @@ import java.lang.NullPointerException;	// for javadoc
  * opening a connection to the specified resource.
  *
  *
- * @version 1.20, 01/12/03
+ * @version 1.25, 02/04/17
  * @author Mark Reinhold
  * @since 1.4
  *
@@ -1000,7 +1000,7 @@ public final class URI
      *
      * <p> This convenience method works as if invoking it were equivalent to
      * evaluating the expression <tt>{@link #resolve(java.net.URI)
-     * resolve}(new&nbsp;{@link #create(String) create}(str))</tt>. </p>
+     * resolve}(URI.{@link #create(String) create}(str))</tt>. </p>
      *
      * @param  str   The string to be parsed into a URI
      * @return The resulting URI
@@ -1739,9 +1739,9 @@ public final class URI
 	    if (t != null)
 		return s.compareTo(t);
 	    else
-		return -1;
+		return +1;
 	} else {
-	    return +1;
+	    return -1;
 	}
     }
 
@@ -1825,7 +1825,7 @@ public final class URI
 	    sb.append(quote(opaquePart, L_URIC, H_URIC));
 	} else {
 	    appendAuthority(sb, authority, userInfo, host, port);
-	    if (path != null)
+	    if (path != null) 
 		sb.append(quote(path, L_PATH, H_PATH));
 	    if (query != null) {
 		sb.append('?');
@@ -1875,9 +1875,47 @@ public final class URI
 
     private void defineString() {
 	if (string != null) return;
-	string = toString(scheme, isOpaque() ? schemeSpecificPart : null,
-			  authority, userInfo, host, port,
-			  path, query, fragment);
+
+	StringBuffer sb = new StringBuffer();
+        if (scheme != null) {
+            sb.append(scheme);
+            sb.append(':');
+        }
+	if (isOpaque()) {
+            sb.append(schemeSpecificPart);
+        } else {
+	    if (host != null) {
+                sb.append("//");
+                if (userInfo != null) {
+                    sb.append(userInfo);
+                    sb.append('@');
+                }
+                boolean needBrackets = ((host.indexOf(':') >= 0)
+                                    && !host.startsWith("[")
+                                    && !host.endsWith("]"));
+                if (needBrackets) sb.append('[');
+                sb.append(host);
+                if (needBrackets) sb.append(']');
+                if (port != -1) {
+                    sb.append(':');
+                    sb.append(port);
+                }
+            } else if (authority != null) {
+                sb.append("//");
+                sb.append(authority);
+	    }
+            if (path != null)
+                sb.append(path);
+            if (query != null) {
+                sb.append('?');
+                sb.append(query);
+            }
+        }
+	if (fragment != null) {
+            sb.append('#');
+            sb.append(fragment);
+	}
+	string = sb.toString();
     }
 
 
@@ -2277,8 +2315,8 @@ public final class URI
 	    return;
 
 	int p = segs[f];
-	while ((path[p] != ':') && (path[p] != '\0')) p++;
-	if (path[p] == '\0')
+	while ((p < path.length) && (path[p] != ':') && (path[p] != '\0')) p++;
+	if (p >= path.length || path[p] == '\0')
 	    // No colon in first segment, so no "." needed
 	    return;
 
@@ -2745,8 +2783,10 @@ public final class URI
 		return false;
 	    int i = 0;
 	    while (i < sn) {
-		if (charAt(p++) != s.charAt(i++))
+		if (charAt(p++) != s.charAt(i)) {
 		    break;
+		}
+		i++;
 	    }
 	    return (i == sn);
 	}
@@ -3245,8 +3285,13 @@ public final class URI
 	//   :: IPv4address
 	//   ::
 	//
-	// Finally, we also limit the length of an IPv6 address so that no more
-	// than sixteen bytes may be specified.
+	// Additionally we constrain the IPv6 address as follows :-
+	//
+	//  i.  IPv6 addresses without compressed zeros should contain
+	//      exactly 16 bytes.
+	//
+	//  ii. IPv6 addresses with compressed zeros should contain
+	//      less than 16 bytes.
 
 	private int ipv6byteCount = 0;
 
@@ -3255,23 +3300,31 @@ public final class URI
 	{
 	    int p = start;
 	    int q;
+	    boolean compressedZeros = false;
 
 	    q = scanHexSeq(p, n);
+
 	    if (q > p) {
 		p = q;
-		if (at(p, n, "::"))
+		if (at(p, n, "::")) {
+		    compressedZeros = true;
 		    p = scanHexPost(p + 2, n);
-		else if (at(p, n, ':')) {
-		    p = takeIPv4Address(p + 1, n, "IPv4 address");
+		} else if (at(p, n, ':')) {
+		    p = takeIPv4Address(p + 1,  n, "IPv4 address");
 		    ipv6byteCount += 4;
 		}
 	    } else if (at(p, n, "::")) {
+		compressedZeros = true;
 		p = scanHexPost(p + 2, n);
 	    }
 	    if (p < n)
 		fail("Malformed IPv6 address", start);
 	    if (ipv6byteCount > 16)
 		fail("IPv6 address too long", start);
+	    if (!compressedZeros && ipv6byteCount < 16) 
+		fail("IPv6 address too short", start);
+	    if (compressedZeros && ipv6byteCount == 16)
+		fail("Malformed IPv6 address", start);
 
 	    host = substring(start-1, p+1);
 	    return p;
@@ -3314,6 +3367,8 @@ public final class URI
 		return -1;
 	    if (at(q, n, '.'))		// Beginning of IPv4 address
 		return -1;
+	    if (q > p + 4)
+                fail("IPv6 hexadecimal digit sequence too long", p);
 	    ipv6byteCount += 2;
 	    p = q;
 	    while (p < n) {

@@ -1,5 +1,5 @@
 /*
- * @(#)Package.java	1.35 01/12/03
+ * @(#)Package.java	1.36 02/04/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -303,7 +303,7 @@ public class Package {
 
     /**
      * Return the hash code computed from the package name.
-     * @return the hode code computed from the package name.
+     * @return the hash code computed from the package name.
      */
     public int hashCode(){
     	return pkgName.hashCode();

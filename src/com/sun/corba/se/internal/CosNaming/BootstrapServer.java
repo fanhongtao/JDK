@@ -1,5 +1,5 @@
 /*
- * @(#)BootstrapServer.java	1.34 01/12/03
+ * @(#)BootstrapServer.java	1.35 02/03/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -78,6 +78,16 @@ public class BootstrapServer
     public String addService(String key, String val, boolean save) {
 	// Don't hesitate - delegate.
 	return supportedServices.put(key,val,save);
+    }
+
+    /**
+     * Accessor method to get the Initial Service based on the Key.
+     * @param key the service name.
+     *
+     * @return stringified IOR previously registered or null if none registered
+     */
+    public String getService( String key ) {
+        return supportedServices.get( key );
     }
 
     /**

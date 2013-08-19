@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTransferable.java	1.5 01/12/03
+ * @(#)BasicTransferable.java	1.7 02/04/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,9 +15,12 @@ import javax.swing.plaf.UIResource;
  * components.  
  *
  * @author  Timothy Prinzing
- * @version 1.5 12/03/01
+ * @version 1.7 04/04/02
  */
 class BasicTransferable implements Transferable, UIResource {
+    
+    protected String plainData;
+    protected String htmlData;
 
     private static DataFlavor[] htmlFlavors;
     private static DataFlavor[] stringFlavors;
@@ -42,6 +45,11 @@ class BasicTransferable implements Transferable, UIResource {
 	} catch (ClassNotFoundException cle) {
 	    System.err.println("error initializing javax.swing.plaf.basic.BasicTranserable");
 	}
+    }
+    
+    public BasicTransferable(String plainData, String htmlData) {
+	this.plainData = plainData;
+	this.htmlData = htmlData;
     }
 
 
@@ -192,14 +200,14 @@ class BasicTransferable implements Transferable, UIResource {
      * getHTMLData should be implemented to provide something reasonable.
      */
     protected boolean isHTMLSupported() {
-	return false;
+	return htmlData != null;
     }
 
     /**
      * Fetch the data in a text/html format
      */
     protected String getHTMLData() {
-	return null;
+	return htmlData;
     }
 
     // --- plain text flavors ----------------------------------------------------
@@ -225,14 +233,14 @@ class BasicTransferable implements Transferable, UIResource {
      * getPlainData should be implemented to provide something reasonable.
      */
     protected boolean isPlainSupported() {
-	return false;
+	return plainData != null;
     }
 
     /**
      * Fetch the data in a text/plain format.
      */
     protected String getPlainData() {
-	return null;
+	return plainData;
     }
 
     // --- string flavorss --------------------------------------------------------

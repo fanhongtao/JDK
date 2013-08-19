@@ -1,5 +1,5 @@
 /*
- * @(#)AlphaComposite.java	1.41 01/12/03
+ * @(#)AlphaComposite.java	1.43 02/04/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -389,6 +389,13 @@ public final class AlphaComposite implements Composite {
      * @param alpha the constant alpha to be multiplied with the alpha of
      * the source. <code>alpha</code> must be a floating point number in the
      * inclusive range [0.0,&nbsp;1.0]. 
+     * @throws IllegalArgumentException if 
+     *         <code>alpha</code> is less than 0.0 or greater than 1.0, or if
+     *         <code>rule</code> is not one of 
+     *         the following:  {@link #CLEAR}, {@link #SRC}, {@link #DST},
+     *         {@link #SRC_OVER}, {@link #DST_OVER}, {@link #SRC_IN}, 
+     *         {@link #DST_IN}, {@link #SRC_OUT}, {@link #DST_OUT},
+     *         {@link #SRC_ATOP}, {@link #DST_ATOP}, or {@link #XOR}
      */
     public static AlphaComposite getInstance(int rule, float alpha) {
 	if (alpha == 1.0f) {
@@ -413,7 +420,7 @@ public final class AlphaComposite implements Composite {
     }
 
     /**
-     * Returns the alpha value of this<code>AlphaComposite</code>.  If this
+     * Returns the alpha value of this <code>AlphaComposite</code>.  If this
      * <code>AlphaComposite</code> does not have an alpha value, 1.0 is returned.
      * @return the alpha value of this <code>AlphaComposite</code>.
      */
@@ -438,8 +445,14 @@ public final class AlphaComposite implements Composite {
     }
 
     /**
-     * Tests if the specified {@link Object} is equal to this 
-     * <code>AlphaComposite</code> object.
+     * Determines whether the specified object is equal to this 
+     * <code>AlphaComposite</code>.
+     * <p>
+     * The result is <code>true</code> if and only if
+     * the argument is not <code>null</code> and is an
+     * <code>AlphaComposite</code> object that has the same
+     * compositing rule and alpha value as this object.
+     *
      * @param obj the <code>Object</code> to test for equality
      * @return <code>true</code> if <code>obj</code> equals this
      * <code>AlphaComposite</code>; <code>false</code> otherwise.

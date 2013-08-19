@@ -1,5 +1,5 @@
 /*
- * @(#)ObjID.java	1.26 01/12/03
+ * @(#)ObjID.java	1.27 02/03/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,20 +47,20 @@ import java.util.Random;
  *
  * @author	Ann Wollrath
  * @author	Peter Jones
- * @version	1.26, 01/12/03
+ * @version	1.27, 02/03/18
  * @since	JDK1.1
  */
 public final class ObjID implements java.io.Serializable {
 
-    /** object number for well-known <code>ObjID</code> of the registry */
+    /** Object number for well-known <code>ObjID</code> of the registry. */
     public static final int REGISTRY_ID = 0;
 
-    /** object number for well-known <code>ObjID</code> of the activator */
+    /** Object number for well-known <code>ObjID</code> of the activator. */
     public static final int ACTIVATOR_ID = 1;
 
     /**
-     * object number for well-known <code>ObjID</code> of
-     * the distributed garbage collector
+     * Object number for well-known <code>ObjID</code> of
+     * the distributed garbage collector.
      */
     public static final int DGC_ID = 2;
 

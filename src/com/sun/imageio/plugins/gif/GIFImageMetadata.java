@@ -1,5 +1,5 @@
 /*
- * @(#)GIFImageMetadata.java	1.25 01/12/03
+ * @(#)GIFImageMetadata.java	1.26 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -120,7 +120,7 @@ public class GIFImageMetadata extends IIOMetadata {
         node.setAttribute("imageLeftPosition",
                           Integer.toString(imageLeftPosition));
         node.setAttribute("imageTopPosition",
-                          Integer.toString(imageLeftPosition));
+                          Integer.toString(imageTopPosition));
         node.setAttribute("imageWidth", Integer.toString(imageWidth));
         node.setAttribute("imageHeight", Integer.toString(imageHeight));
         node.setAttribute("interlaceFlag",

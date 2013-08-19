@@ -1,5 +1,5 @@
 /*
- * @(#)Robot.java	1.20 01/12/03
+ * @(#)Robot.java	1.21 02/03/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import sun.awt.SunToolkit;
  * Applications that use Robot for purposes other than self-testing should 
  * handle these error conditions gracefully.
  *
- * @version 	1.20, 12/03/01
+ * @version 	1.21, 03/15/02
  * @author 	Robi Khan
  * @since   	1.3
  */
@@ -391,7 +391,7 @@ public class Robot {
      * <code>Thread.sleep()</code> may be used instead.
      * @param	ms	time to sleep in milliseconds
      * @throws 	IllegalArgumentException if <code>ms</code> is not between 0 and 60,000 milliseconds inclusive
-     * @see     java.lang.Thread#sleep()
+     * @see     java.lang.Thread#sleep
      */
     public synchronized void delay(int ms) {
 	checkDelayArgument(ms);

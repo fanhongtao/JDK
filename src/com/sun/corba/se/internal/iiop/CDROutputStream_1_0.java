@@ -1,5 +1,5 @@
 /*
- * @(#)CDROutputStream_1_0.java	1.105 01/12/03
+ * @(#)CDROutputStream_1_0.java	1.106 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -557,7 +557,13 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
             IOR.NULL.write(parent);
             return;
         }
-		
+	
+        // IDL to Java formal 01-06-06 1.21.4.2
+        if (ref instanceof org.omg.CORBA.LocalObject)
+            throw new MARSHAL("write_Object called with LocalObject",
+                              MinorCodes.WRITE_LOCAL_OBJECT,
+                              CompletionStatus.COMPLETED_MAYBE);
+	
         ObjectImpl oi = (ObjectImpl)ref;
 	ClientSubcontract rep = null;
         try {

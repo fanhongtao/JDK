@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPermission.java	1.32 01/12/03
+ * @(#)BasicPermission.java	1.33 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -46,7 +46,7 @@ import java.io.IOException;
  * @see java.net.NetPermission
  * @see java.lang.SecurityManager
  *
- * @version 1.32 01/12/03
+ * @version 1.33 02/02/01
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -110,9 +110,7 @@ implements java.io.Serializable
     /**
      * Creates a new BasicPermission object with the specified name.
      * The name is the symbolic name of the BasicPermission, and the
-     * actions String is currently unused. This
-     * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new Permission objects.
+     * actions String is currently unused.
      *
      * @param name the name of the BasicPermission.
      * @param actions ignored.
@@ -262,7 +260,7 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.32 12/03/01
+ * @version 1.33 02/01/02
  *
  * @author Roland Schemers
  *

@@ -1,5 +1,5 @@
 /*
- * @(#)URLConnection.java	1.88 01/12/03
+ * @(#)URLConnection.java	1.89 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,16 +19,16 @@ import java.security.Permission;
 import java.security.AccessController;
 
 /**
- * The abstract class <code>URLConnection</code> is the superclass 
- * of all classes that represent a communications link between the 
- * application and a URL. Instances of this class can be used both to 
- * read from and to write to the resource referenced by the URL. In 
- * general, creating a connection to a URL is a multistep process: 
+ * The abstract class <code>URLConnection</code> is the superclass
+ * of all classes that represent a communications link between the
+ * application and a URL. Instances of this class can be used both to
+ * read from and to write to the resource referenced by the URL. In
+ * general, creating a connection to a URL is a multistep process:
  * <p>
  * <center><table border=2>
  * <tr><th><code>openConnection()</code></th>
  *     <th><code>connect()</code></th></tr>
- * <tr><td>Manipulate parameters that affect the connection to the remote 
+ * <tr><td>Manipulate parameters that affect the connection to the remote
  *         resource.</td>
  *     <td>Interact with the resource; query header fields and
  *         contents.</td></tr>
@@ -46,7 +46,7 @@ import java.security.AccessController;
  *     of the remote object can be accessed.
  * </ol>
  * <p>
- * The setup parameters are modified using the following methods: 
+ * The setup parameters are modified using the following methods:
  * <ul>
  *   <li><code>setAllowUserInteraction</code>
  *   <li><code>setDoInput</code>
@@ -60,14 +60,14 @@ import java.security.AccessController;
  *   <li><code>setRequestProperty</code>
  * </ul>
  * <p>
- * Default values for the <code>AllowUserInteraction</code> and 
- * <code>UseCaches</code> parameters can be set using the methods 
- * <code>setDefaultAllowUserInteraction</code> and 
+ * Default values for the <code>AllowUserInteraction</code> and
+ * <code>UseCaches</code> parameters can be set using the methods
+ * <code>setDefaultAllowUserInteraction</code> and
  * <code>setDefaultUseCaches</code>.
  * <p>
- * Each of the above <code>set</code> methods has a corresponding 
- * <code>get</code> method to retrieve the value of the parameter or 
- * general request property. The specific parameters and general 
+ * Each of the above <code>set</code> methods has a corresponding
+ * <code>get</code> method to retrieve the value of the parameter or
+ * general request property. The specific parameters and general
  * request properties that are applicable are protocol specific. 
  * <p>
  * The following methods are used to access the header fields and 
@@ -97,12 +97,12 @@ import java.security.AccessController;
  * <p>
  * In the common case, all of the pre-connection parameters and 
  * general request properties can be ignored: the pre-connection 
- * parameters and request properties default to sensible values. For 
- * most clients of this interface, there are only two interesting 
- * methods: <code>getInputStream</code> and <code>getContent</code>, 
+ * parameters and request properties default to sensible values. For
+ * most clients of this interface, there are only two interesting
+ * methods: <code>getInputStream</code> and <code>getContent</code>,
  * which are mirrored in the <code>URL</code> class by convenience methods.
  * <p>
- * More information on the request properties and header fields of 
+ * More information on the request properties and header fields of
  * an <code>http</code> connection can be found at:
  * <blockquote><pre>
  * <a href="http://www.ietf.org/rfc/rfc2068.txt">http://www.ietf.org/rfc/rfc2068.txt</a>
@@ -123,7 +123,7 @@ import java.security.AccessController;
  * for it.
  *
  * @author  James Gosling
- * @version 1.88, 12/03/01
+ * @version 1.89, 04/19/02
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -1224,13 +1224,14 @@ public abstract class URLConnection {
      * @see        java.io.InputStream#markSupported()
      * @see        java.net.URLConnection#getContentType()
      */
-    static public String guessContentTypeFromStream(InputStream is) throws IOException
-    {
+    static public String guessContentTypeFromStream(InputStream is)
+			throws IOException {
+
 	// If we can't read ahead safely, just give up on guessing
 	if (!is.markSupported())
 	    return null;
 
-	is.mark(10);
+	is.mark(12);
 	int c1 = is.read();
 	int c2 = is.read();
 	int c3 = is.read();
@@ -1239,72 +1240,119 @@ public abstract class URLConnection {
 	int c6 = is.read();
 	int c7 = is.read();
 	int c8 = is.read();
+	int c9 = is.read();
+	int c10 = is.read();
+	int c11 = is.read();
 	is.reset();
-	if (c1 == 0xCA && c2 == 0xFE && c3 == 0xBA && c4 == 0xBE)
+
+	if (c1 == 0xCA && c2 == 0xFE && c3 == 0xBA && c4 == 0xBE) {
 	    return "application/java-vm";
-	if (c1 == 0xAC && c2 == 0xED)
+	}
+
+	if (c1 == 0xAC && c2 == 0xED) {
 	    // next two bytes are version number, currently 0x00 0x05
 	    return "application/x-java-serialized-object";
-	if (c1 == 'G' && c2 == 'I' && c3 == 'F' && c4 == '8')
-	    return "image/gif";
-	if (c1 == '#' && c2 == 'd' && c3 == 'e' && c4 == 'f')
-	    return "image/x-bitmap";
-	if (c1 == '!' && c2 == ' ' && c3 == 'X' && c4 == 'P' && c5 == 'M' && c6 == '2')
-	    return "image/x-pixmap";
-	if (c1 == 137 && c2 == 80 && c3 == 78 && 
-		c4 == 71 && c5 == 13 && c6 == 10 &&
-		c7 == 26 && c8 == 10)
-	  return "image/png";
+	}
 
-	if (c1 == 0x2E && c2 == 0x73 && c3 == 0x6E && c4 == 0x64)
-	    return "audio/basic";  // .au format, big endian
-	if (c1 == 0x64 && c2 == 0x6E && c3 == 0x73 && c4 == 0x2E)
-	    return "audio/basic";  // .au format, little endian
 	if (c1 == '<') {
 	    if (c2 == '!'
 		|| ((c2 == 'h' && (c3 == 't' && c4 == 'm' && c5 == 'l' ||
-				   c3 == 'e' && c4 == 'a' && c5 == 'd')
-		     || c2 == 'b' && c3 == 'o' && c4 == 'd' && c5 == 'y'))
-		|| ((c2 == 'H' && (c3 == 'T' && c4 == 'M' && c5 == 'L' ||
-				   c3 == 'E' && c4 == 'A' && c5 == 'D')
-		     || c2 == 'B' && c3 == 'O' && c4 == 'D' && c5 == 'Y')))
+				   c3 == 'e' && c4 == 'a' && c5 == 'd') ||
+		(c2 == 'b' && c3 == 'o' && c4 == 'd' && c5 == 'y'))) ||
+		((c2 == 'H' && (c3 == 'T' && c4 == 'M' && c5 == 'L' ||
+				c3 == 'E' && c4 == 'A' && c5 == 'D') ||
+		(c2 == 'B' && c3 == 'O' && c4 == 'D' && c5 == 'Y')))) {
 		return "text/html";
-	    if (c2 == '?' && c3 == 'x' && c4 == 'm' && c5 == 'l' && c6 == ' ')
+	    }
+
+	    if (c2 == '?' && c3 == 'x' && c4 == 'm' && c5 == 'l' && c6 == ' ') {
 		return "application/xml";
+	    }
 	}
 
 	// big and little endian UTF-16 encodings, with byte order mark
 	if (c1 == 0xfe && c2 == 0xff) {
 	    if (c3 == 0 && c4 == '<' && c5 == 0 && c6 == '?' &&
-		c7 == 0 && c8 == 'x')
+		c7 == 0 && c8 == 'x') {
 		return "application/xml";
+	    }
 	}
 
 	if (c1 == 0xff && c2 == 0xfe) {
 	    if (c3 == '<' && c4 == 0 && c5 == '?' && c6 == 0 &&
-		c7 == 'x' && c8 == 0)
+		c7 == 'x' && c8 == 0) {
 		return "application/xml";
+	    }
 	}
 
-	if (c1 == 0xFF && c2 == 0xD8 && c3 == 0xFF && c4 == 0xE0)
-	    return "image/jpeg";
-	if (c1 == 0xFF && c2 == 0xD8 && c3 == 0xFF && c4 == 0xEE)
-	    return "image/jpg";
+	if (c1 == 'G' && c2 == 'I' && c3 == 'F' && c4 == '8') {
+	    return "image/gif";
+	}
 
-	if (c1 == 'R' && c2 == 'I' && c3 == 'F' && c4 == 'F')
-	    /* I don't know if this is official but evidence
-	     * suggests that .wav files start with "RIFF" - brown
-	     */
-	    return "audio/x-wav";  
+	if (c1 == '#' && c2 == 'd' && c3 == 'e' && c4 == 'f') {
+	    return "image/x-bitmap";
+	}
+
+	if (c1 == '!' && c2 == ' ' && c3 == 'X' && c4 == 'P' &&
+			c5 == 'M' && c6 == '2') {
+	    return "image/x-pixmap";
+	}
+
+	if (c1 == 137 && c2 == 80 && c3 == 78 &&
+		c4 == 71 && c5 == 13 && c6 == 10 &&
+		c7 == 26 && c8 == 10) {
+	    return "image/png";
+	}
+
+	if (c1 == 0xFF && c2 == 0xD8 && c3 == 0xFF) {
+	    if (c4 == 0xE0) {
+	        return "image/jpeg";
+	    }
+
+	    /**
+             * File format used by digital cameras to store images.
+             * Exif Format can be read by any application supporting
+             * JPEG. Exif Spec can be found at:
+             * http://www.pima.net/standards/it10/PIMA15740/Exif_2-1.PDF
+             */
+            if ((c4 == 0xE1) &&
+                (c7 == 'E' && c8 == 'x' && c9 == 'i' && c10 =='f' &&
+                 c11 == 0)) {
+                return "image/jpeg";
+            }
+
+	    if (c4 == 0xEE) {
+		return "image/jpg";
+	    }
+	}
+
 	if (c1 == 0xD0 && c2 == 0xCF && c3 == 0x11 && c4 == 0xE0 &&
 	    c5 == 0xA1 && c6 == 0xB1 && c7 == 0x1A && c8 == 0xE1) {
+
 	    /* Above is signature of Microsoft Structured Storage.
 	     * Below this, could have tests for various SS entities.
 	     * For now, just test for FlashPix.
 	     */
-	    if (checkfpx(is))
+	    if (checkfpx(is)) {
 		return "image/vnd.fpx";
+	    }
 	}
+
+	if (c1 == 0x2E && c2 == 0x73 && c3 == 0x6E && c4 == 0x64) {
+	    return "audio/basic";  // .au format, big endian
+	}
+
+	if (c1 == 0x64 && c2 == 0x6E && c3 == 0x73 && c4 == 0x2E) {
+	    return "audio/basic";  // .au format, little endian
+	}
+
+	if (c1 == 'R' && c2 == 'I' && c3 == 'F' && c4 == 'F') {
+	    /* I don't know if this is official but evidence
+	     * suggests that .wav files start with "RIFF" - brown
+	     */
+	    return "audio/x-wav";  
+	}
+
 	return null;
     }
 
@@ -1315,6 +1363,7 @@ public abstract class URLConnection {
      * contains Microsoft Structured Storage data.
      */
     static private boolean checkfpx(InputStream is) throws IOException {
+
         /* Test for FlashPix image data in Microsoft Structured Storage format.
          * In general, should do this with calls to an SS implementation.
          * Lacking that, need to dig via offsets to get to the FlashPix
@@ -1377,8 +1426,7 @@ public abstract class URLConnection {
 	    sectDirStart += is.read()<<8;
 	    sectDirStart += is.read()<<16;
 	    sectDirStart += is.read()<<24;
-	}
-	else {
+	} else {
 	    sectDirStart = is.read()<<24;
 	    sectDirStart += is.read()<<16;
 	    sectDirStart += is.read()<<8;

@@ -1,5 +1,5 @@
 /*
- * @(#)MetalLookAndFeel.java	1.153 01/12/03
+ * @(#)MetalLookAndFeel.java	1.158 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,10 @@ import java.awt.event.InputEvent;
 import java.net.URL;
 import java.io.Serializable;
 
+import java.security.AccessController;
+
 import sun.awt.AppContext;
+import sun.security.action.GetPropertyAction;
 
 
 /**
@@ -44,15 +47,95 @@ import sun.awt.AppContext;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version @(#)MetalLookAndFeel.java	1.153 01/12/03
+ * @version @(#)MetalLookAndFeel.java	1.158 02/04/18
  * @author Steve Wilson
  */
 public class MetalLookAndFeel extends BasicLookAndFeel
 {
-  
+
+    private static boolean METAL_LOOK_AND_FEEL_INITED = false;
+
     private static MetalTheme currentTheme;
     private static boolean isOnlyOneContext = true;
     private static AppContext cachedAppContext;
+
+    /**
+     * True if checked for windows yet.
+     */
+    private static boolean checkedWindows;
+    /**
+     * True if running on Windows.
+     */
+    private static boolean isWindows;
+
+    /**
+     * Set to true first time we've checked swing.useSystemFontSettings.
+     */
+    private static boolean checkedSystemFontSettings;
+
+    /**
+     * True indicates we should use system fonts, unless the developer has
+     * specified otherwise with Application.useSystemFontSettings.
+     */
+    private static boolean useSystemFonts;
+
+
+    /**
+     * Returns true if running on Windows.
+     */
+    static boolean isWindows() {
+        if (!checkedWindows) {
+            String osName = (String)AccessController.doPrivileged(
+                new GetPropertyAction("os.name"));
+            if (osName != null && osName.indexOf("Windows") != -1) {
+                isWindows = true;
+                String systemFonts = (String)AccessController.doPrivileged(
+                    new GetPropertyAction("swing.useSystemFontSettings"));
+                useSystemFonts = (systemFonts != null &&
+                               (Boolean.valueOf(systemFonts).booleanValue()));
+            }
+            checkedWindows = true;
+        }
+        return isWindows;
+    }
+
+    /**
+     * Returns true if system fonts should be used, this is only useful
+     * for windows.
+     */
+    static boolean useSystemFonts() {
+        if (isWindows() && useSystemFonts) {
+            if (METAL_LOOK_AND_FEEL_INITED) {
+                Object value = UIManager.get(
+                                 "Application.useSystemFontSettings");
+
+                return (value == null || Boolean.TRUE.equals(value));
+            }
+            // If an instanceof MetalLookAndFeel hasn't been inited yet, we
+            // don't want to trigger loading of a UI by asking the UIManager
+            // for a property, assume the user wants system fonts. This will
+            // be properly adjusted when install is invoked on the
+            // MetalTheme
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the high contrast theme should be used as the default
+     * theme.
+     */
+    private static boolean useHighContrastTheme() {
+        if (isWindows() && useSystemFonts()) {
+            Boolean highContrast = (Boolean)Toolkit.getDefaultToolkit().
+                                  getDesktopProperty("win.highContrast.on");
+
+            return (highContrast == null) ? false : highContrast.
+                                            booleanValue();
+        }
+        return false;
+    }
+
 
     public String getName() {
         return "Metal";
@@ -367,6 +450,19 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		"OptionPane.questionSound",
 		"OptionPane.warningSound" };
 
+        MetalTheme theme = getCurrentTheme();
+        Object menuTextValue = new FontActiveValue(theme,
+                                                   MetalTheme.MENU_TEXT_FONT);
+        Object controlTextValue = new FontActiveValue(theme,
+                               MetalTheme.CONTROL_TEXT_FONT);
+        Object userTextValue = new FontActiveValue(theme,
+                                                   MetalTheme.USER_TEXT_FONT);
+        Object windowTitleValue = new FontActiveValue(theme,
+                               MetalTheme.WINDOW_TITLE_FONT);
+        Object subTextValue = new FontActiveValue(theme,
+                                                  MetalTheme.SUB_TEXT_FONT);
+        Object systemTextValue = new FontActiveValue(theme,
+                                                 MetalTheme.SYSTEM_TEXT_FONT);
         //
         // DEFAULTS TABLE
         //
@@ -380,39 +476,22 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
             // Text (Note: many are inherited)
             "TextField.border", textFieldBorder,
-	    "TextField.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getUserTextFont"),
-	    "TextField.caretForeground", getUserTextColor(),
+	    "TextField.font", userTextValue,
 
             "PasswordField.border", textBorder,
-            "PasswordField.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getUserTextFont"),
-	    "PasswordField.caretForeground", getUserTextColor(),
+            // passwordField.font should actually map to
+            // win.ansiFixed.font.height on windows.
+            "PasswordField.font", userTextValue,
 
-            "TextArea.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getUserTextFont"),
-            "TextArea.caretForeground", getUserTextColor(),
+            // TextArea.font should actually map to win.ansiFixed.font.height
+            // on windows.
+            "TextArea.font", userTextValue,
 
-	    "TextPane.selectionBackground", table.get("textHighlight"),
-	    "TextPane.selectionForeground", table.get("textHighlightText"),
 	    "TextPane.background", table.get("window"),
-	    "TextPane.foreground", table.get("textText"),
-            "TextPane.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getUserTextFont"),
-            "TextPane.caretForeground", getUserTextColor(),
+            "TextPane.font", userTextValue,
 
-	    "EditorPane.selectionBackground", table.get("textHighlight"),
-	    "EditorPane.selectionForeground", table.get("textHighlightText"),
 	    "EditorPane.background", table.get("window"),
-	    "EditorPane.foreground", table.get("textText"),
-	    "EditorPane.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getUserTextFont"),
-	    "EditorPane.caretForeground", getUserTextColor(),
+	    "EditorPane.font", userTextValue,
 
 	    "TextField.focusInputMap", fieldInputMap,
 	    "PasswordField.focusInputMap", fieldInputMap,
@@ -422,10 +501,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
             // FormattedTextFields
             "FormattedTextField.border", textFieldBorder,
-            "FormattedTextField.font", new UIDefaults.ProxyLazyValue(
-                      "javax.swing.plaf.metal.MetalLookAndFeel",
-                      "getUserTextFont"),
-            "FormattedTextField.caretForeground", getUserTextColor(),
+            "FormattedTextField.font", userTextValue,
             "FormattedTextField.focusInputMap",
               new UIDefaults.LazyInputMap(new Object[] {
 			   "ctrl C", DefaultEditorKit.copyAction,
@@ -469,27 +545,19 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             
 
             // Buttons
-            "Button.background", getControl(),
-            "Button.foreground", getControlTextColor(),
             "Button.disabledText", getInactiveControlTextColor(),
             "Button.select", getControlShadow(),
             "Button.border", buttonBorder,
-            "Button.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "Button.font", controlTextValue,
             "Button.focus", getFocusColor(),
             "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
                           "SPACE", "pressed",
                  "released SPACE", "released"
               }),
 
-            "CheckBox.background", getControl(),
-            "CheckBox.foreground", getControlTextColor(),
             "CheckBox.disabledText", getInactiveControlTextColor(),
             "Checkbox.select", getControlShadow(),
-            "CheckBox.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "CheckBox.font", controlTextValue,
             "CheckBox.focus", getFocusColor(),
             "CheckBox.icon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getCheckBoxIcon"),
 	    "CheckBox.focusInputMap",
@@ -498,14 +566,10 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                    "released SPACE", "released"
 		 }),
 
-            "RadioButton.background", getControl(),
-            "RadioButton.foreground", getControlTextColor(),
             "RadioButton.disabledText", getInactiveControlTextColor(),
             "RadioButton.select", getControlShadow(),
             "RadioButton.icon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getRadioButtonIcon"),
-            "RadioButton.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "RadioButton.font", controlTextValue,
             "RadioButton.focus", getFocusColor(),
 	    "RadioButton.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -513,19 +577,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                  "released SPACE", "released"
 	      }),
 
-            "ToggleButton.background", getControl(),
-            "ToggleButton.foreground", getControlTextColor(),
             "ToggleButton.select", getControlShadow(),
-            "ToggleButton.text", getControl(),
             "ToggleButton.disabledText", getInactiveControlTextColor(),
-            "ToggleButton.disabledSelectedText", getControlDarkShadow(),
-            "ToggleButton.disabledBackground", getControl(),
-            "ToggleButton.disabledSelectedBackground", getControlShadow(),
             "ToggleButton.focus", getFocusColor(),
             "ToggleButton.border", toggleButtonBorder,
-            "ToggleButton.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "ToggleButton.font", controlTextValue,
 	    "ToggleButton.focusInputMap",
 	      new UIDefaults.LazyInputMap(new Object[] {
 		            "SPACE", "pressed",
@@ -559,13 +615,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
 
             // ToolTip
-            "ToolTip.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getSystemTextFont"),
+            "ToolTip.font", systemTextValue,
             "ToolTip.border", toolTipBorder,
             "ToolTip.borderInactive", toolTipBorderInactive,
-            "ToolTip.background", table.get("info"),
-            "ToolTip.foreground", table.get("infoText"),
             "ToolTip.backgroundInactive", table.get("control"),
             "ToolTip.foregroundInactive", table.get("controlDkShadow"),
             "ToolTip.hideAccelerator", Boolean.FALSE,
@@ -573,7 +625,6 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             // Slider Defaults
             "Slider.border", null,
             "Slider.foreground", getPrimaryControlShadow(),
-            "Slider.background", getControl(),
             "Slider.focus", getFocusColor(),
 	    "Slider.focusInsets", sliderFocusInsets,
             "Slider.trackWidth", new Integer( 7 ),
@@ -599,14 +650,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		 }),
 
             // Progress Bar
-	    "ProgressBar.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+	    "ProgressBar.font", controlTextValue,
             "ProgressBar.foreground", getPrimaryControlShadow(), 
-            "ProgressBar.background", getControl(),
-            "ProgressBar.foregroundHighlight", getPrimaryControlShadow(), 
-            "ProgressBar.backgroundHighlight", getControl(),
-	    "ProgressBar.selectionForeground", getControl(),
 	    "ProgressBar.selectionBackground", getPrimaryControlDarkShadow(), 
 	    "ProgressBar.border", progressBarBorder,
             "ProgressBar.cellSpacing", new Integer(0),
@@ -617,11 +662,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ComboBox.foreground", table.get("controlText"),
             "ComboBox.selectionBackground", getPrimaryControlShadow(),
             "ComboBox.selectionForeground", getControlTextColor(),
-            "ComboBox.listBackground", getControl(),
-            "ComboBox.listForeground", getControlTextColor(),
-            "ComboBox.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "ComboBox.font", controlTextValue,
 	    "ComboBox.ancestorInputMap", new UIDefaults.LazyInputMap(new Object[] {
 		     "ESCAPE", "hidePopup",
 		    "PAGE_UP", "pageUpPassThrough",
@@ -667,9 +708,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 				     "javax.swing.plaf.metal.MetalIconFactory", 
 				     "getInternalFrameAltMaximizeIcon",
 				     internalFrameIconArgs),
-            "InternalFrame.titleFont",  new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getWindowTitleFont"),
+            "InternalFrame.titleFont",  windowTitleValue,
 	    "InternalFrame.windowBindings", new Object[] {
 	      "shift ESCAPE", "showSystemMenu",
 		"ctrl SPACE", "showSystemMenu",
@@ -683,9 +722,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
             // Desktop Icon
             "DesktopIcon.border", desktopIconBorder,
-            "DesktopIcon.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "DesktopIcon.font", controlTextValue,
             "DesktopIcon.foreground", getControlTextColor(),
             "DesktopIcon.background", getControl(),
             "DesktopIcon.width", new Integer(160),
@@ -724,24 +761,17 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	      }),
 
             // Titled Border
-            "TitledBorder.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "TitledBorder.font", controlTextValue,
             "TitledBorder.titleColor", getSystemTextColor(),
             "TitledBorder.border", titledBorderBorder,
 
             // Label
-            "Label.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
-            "Label.background", table.get("control"),
+            "Label.font", controlTextValue,
             "Label.foreground", getSystemTextColor(),
             "Label.disabledForeground", getInactiveSystemTextColor(),
 
             // List
-            "List.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "List.font", controlTextValue,
             "List.focusCellHighlightBorder", focusCellHighlightBorder,
 	    "List.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
@@ -808,7 +838,6 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
 	    // ScrollPane
 	    "ScrollPane.border", scrollPaneBorder,
-	    "ScrollPane.background", table.get("control"/*"window"*/),
 	    "ScrollPane.ancestorInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
 		           "RIGHT", "unitScrollRight",
@@ -828,15 +857,10 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		 }),
 
             // Tabbed Pane
-            "TabbedPane.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getControlTextFont"),
+            "TabbedPane.font", controlTextValue,
             "TabbedPane.tabAreaBackground", getControl(),
             "TabbedPane.background", getControlShadow(),
-            "TabbedPane.foreground", getControlTextColor(),
             "TabbedPane.light", getControl(),
-            "TabbedPane.highlight", getControlHighlight(),
-            "TabbedPane.darkShadow", getControlDarkShadow(),
             "TabbedPane.focus", getPrimaryControlDarkShadow(),
             "TabbedPane.selected", getControl(),
             "TabbedPane.selectHighlight", getControlHighlight(),
@@ -864,11 +888,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		 }),
             
             // Table
-	    "Table.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getUserTextFont"),
+	    "Table.font", userTextValue,
             "Table.focusCellHighlightBorder", focusCellHighlightBorder,
-            "Table.focusCellBackground", table.get("window"),
             "Table.scrollPaneBorder", scrollPaneBorder,
       	    "Table.gridColor", getControlShadow(),  // grid line color
 	    "Table.ancestorInputMap",
@@ -920,19 +941,13 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		                   "F2", "startEditing"
 		 }),
 
-	    "TableHeader.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getUserTextFont"),
+	    "TableHeader.font", userTextValue,
 	    "TableHeader.cellBorder", new UIDefaults.ProxyLazyValue(
 					  "javax.swing.plaf.metal.MetalBorders$TableHeaderBorder"),
 
             // MenuBar
             "MenuBar.border", menuBarBorder,
-            "MenuBar.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getMenuTextFont"),
-            "MenuBar.foreground", getMenuForeground(),
-            "MenuBar.background", getMenuBackground(),
+            "MenuBar.font", menuTextValue,
 	    "MenuBar.windowBindings", new Object[] {
 		"F10", "takeFocus" },
 
@@ -943,17 +958,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 	    "Menu.menuPopupOffsetY", new Integer(0),
 	    "Menu.submenuPopupOffsetX", new Integer(-4),
 	    "Menu.submenuPopupOffsetY", new Integer(-3),
-            "Menu.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getMenuTextFont"),
-            "Menu.foreground", getMenuForeground(),
-            "Menu.background", getMenuBackground(),
+            "Menu.font", menuTextValue,
             "Menu.selectionForeground", getMenuSelectedForeground(),
             "Menu.selectionBackground", getMenuSelectedBackground(),
             "Menu.disabledForeground", getMenuDisabledForeground(),
-            "Menu.acceleratorFont", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getSubTextFont"),
+            "Menu.acceleratorFont", subTextValue,
             "Menu.acceleratorForeground", getAcceleratorForeground(),
             "Menu.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
             "Menu.checkIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemCheckIcon"),
@@ -962,17 +971,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             // Menu Item
             "MenuItem.border", menuItemBorder,
             "MenuItem.borderPainted", Boolean.TRUE,
-            "MenuItem.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getMenuTextFont"),
-            "MenuItem.foreground", getMenuForeground(),
-            "MenuItem.background", getMenuBackground(),
+            "MenuItem.font", menuTextValue,
             "MenuItem.selectionForeground", getMenuSelectedForeground(),
             "MenuItem.selectionBackground", getMenuSelectedBackground(),
             "MenuItem.disabledForeground", getMenuDisabledForeground(),
-            "MenuItem.acceleratorFont", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getSubTextFont"),
+            "MenuItem.acceleratorFont", subTextValue,
             "MenuItem.acceleratorForeground", getAcceleratorForeground(),
             "MenuItem.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
 	    "MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
@@ -990,44 +993,52 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "OptionPane.errorSound", "sounds/OptionPaneError.wav",
             "OptionPane.questionSound", "sounds/OptionPaneQuestion.wav",
 
-            // Option Pane Special Dialog Colors
-            "OptionPane.errorDialog.border.background", error1,
-            "OptionPane.errorDialog.titlePane.foreground", error0,
-            "OptionPane.errorDialog.titlePane.background", error3,
-            "OptionPane.errorDialog.titlePane.shadow", error2,
-            "OptionPane.questionDialog.border.background", question1,
-            "OptionPane.questionDialog.titlePane.foreground", question0,
-            "OptionPane.questionDialog.titlePane.background", question3,
-            "OptionPane.questionDialog.titlePane.shadow", question2,
-            "OptionPane.warningDialog.border.background", warning1,
-            "OptionPane.warningDialog.titlePane.foreground", warning0,
-            "OptionPane.warningDialog.titlePane.background", warning3,
-            "OptionPane.warningDialog.titlePane.shadow", warning2,
+            // Option Pane Special Dialog Colors, used when MetalRootPaneUI
+            // is providing window manipulation widgets.
+            "OptionPane.errorDialog.border.background",
+                        new ColorUIResource(153, 51, 51),
+            "OptionPane.errorDialog.titlePane.foreground",
+                        new ColorUIResource(51, 0, 0),
+            "OptionPane.errorDialog.titlePane.background",
+                        new ColorUIResource(255, 153, 153),
+            "OptionPane.errorDialog.titlePane.shadow",
+                        new ColorUIResource(204, 102, 102),
+            "OptionPane.questionDialog.border.background",
+                        new ColorUIResource(51, 102, 51),
+            "OptionPane.questionDialog.titlePane.foreground",
+                        new ColorUIResource(0, 51, 0),
+            "OptionPane.questionDialog.titlePane.background",
+                        new ColorUIResource(153, 204, 153),
+            "OptionPane.questionDialog.titlePane.shadow",
+                        new ColorUIResource(102, 153, 102),
+            "OptionPane.warningDialog.border.background",
+                        new ColorUIResource(153, 102, 51),
+            "OptionPane.warningDialog.titlePane.foreground",
+                        new ColorUIResource(102, 51, 0),
+            "OptionPane.warningDialog.titlePane.background",
+                        new ColorUIResource(255, 204, 153),
+            "OptionPane.warningDialog.titlePane.shadow",
+                        new ColorUIResource(204, 153, 102),
+            // OptionPane fonts are defined below
            
             // Separator
             "Separator.background", getSeparatorBackground(),
             "Separator.foreground", getSeparatorForeground(),
 
             // Popup Menu
-            "PopupMenu.background", getMenuBackground(),
             "PopupMenu.border", popupMenuBorder,          
 	         // Popup Menu Auditory Cue Mappings
             "PopupMenu.popupSound", "sounds/PopupMenuPopup.wav",
+            "PopupMenu.font", menuTextValue,
 
             // CB & RB Menu Item
             "CheckBoxMenuItem.border", menuItemBorder,
             "CheckBoxMenuItem.borderPainted", Boolean.TRUE,
-            "CheckBoxMenuItem.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getMenuTextFont"),
-            "CheckBoxMenuItem.foreground", getMenuForeground(),
-            "CheckBoxMenuItem.background", getMenuBackground(),
+            "CheckBoxMenuItem.font", menuTextValue,
             "CheckBoxMenuItem.selectionForeground", getMenuSelectedForeground(),
             "CheckBoxMenuItem.selectionBackground", getMenuSelectedBackground(),
             "CheckBoxMenuItem.disabledForeground", getMenuDisabledForeground(),
-            "CheckBoxMenuItem.acceleratorFont", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getSubTextFont"),
+            "CheckBoxMenuItem.acceleratorFont", subTextValue,
             "CheckBoxMenuItem.acceleratorForeground", getAcceleratorForeground(),
             "CheckBoxMenuItem.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
             "CheckBoxMenuItem.checkIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getCheckBoxMenuItemIcon"),
@@ -1036,17 +1047,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
             "RadioButtonMenuItem.border", menuItemBorder,
             "RadioButtonMenuItem.borderPainted", Boolean.TRUE,
-            "RadioButtonMenuItem.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getMenuTextFont"),
-            "RadioButtonMenuItem.foreground", getMenuForeground(),
-            "RadioButtonMenuItem.background", getMenuBackground(),
+            "RadioButtonMenuItem.font", menuTextValue,
             "RadioButtonMenuItem.selectionForeground", getMenuSelectedForeground(),
             "RadioButtonMenuItem.selectionBackground", getMenuSelectedBackground(),
             "RadioButtonMenuItem.disabledForeground", getMenuDisabledForeground(),
-            "RadioButtonMenuItem.acceleratorFont", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getSubTextFont"),
+            "RadioButtonMenuItem.acceleratorFont", subTextValue,
             "RadioButtonMenuItem.acceleratorForeground", getAcceleratorForeground(),
             "RadioButtonMenuItem.acceleratorSelectionForeground", getAcceleratorSelectedForeground(),
             "RadioButtonMenuItem.checkIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getRadioButtonMenuItemIcon"),
@@ -1060,6 +1065,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
                }),
+            "Spinner.font", controlTextValue,
 
 	    // SplitPane
 
@@ -1077,18 +1083,15 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 		      "HOME", "selectMin",
 		       "END", "selectMax",
 		        "F8", "startResize",
-		        "F6", "toggleFocus"
+		        "F6", "toggleFocus",
+		  "ctrl TAB", "focusOutForward",
+ 	    "ctrl shift TAB", "focusOutBackward"
 		 }),
 
             // Tree
-            "Tree.background", getWindowBackground(),
-	    "Tree.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getSystemTextFont"),
-            "Tree.textForeground", table.get("textText"),
+            // Tree.font was mapped to system font pre 1.4.1
+            "Tree.font", userTextValue,
             "Tree.textBackground", getWindowBackground(),
-            "Tree.selectionForeground", table.get("textHighlightText"),
-            "Tree.selectionBackground", table.get("textHighlight"),
             "Tree.selectionBorderColor", MetalLookAndFeel.getFocusColor(),
             "Tree.openIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getTreeFolderIcon"),
             "Tree.closedIcon", new UIDefaults.ProxyLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getTreeFolderIcon"),
@@ -1096,11 +1099,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "Tree.expandedIcon", new UIDefaults.ProxyLazyValue(
 				     "javax.swing.plaf.metal.MetalIconFactory", 
 				     "getTreeControlIcon",
-				     new Object[] {new Boolean(MetalIconFactory.DARK)}),
+				     new Object[] {Boolean.valueOf(MetalIconFactory.DARK)}),
             "Tree.collapsedIcon", new UIDefaults.ProxyLazyValue(
 				     "javax.swing.plaf.metal.MetalIconFactory", 
 				     "getTreeControlIcon",
-				     new Object[] {new Boolean( MetalIconFactory.LIGHT )}),
+				     new Object[] {Boolean.valueOf( MetalIconFactory.LIGHT )}),
 
             "Tree.line", getPrimaryControl(), // horiz lines
             "Tree.hash", getPrimaryControl(),  // legs
@@ -1164,9 +1167,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ToolBar.border", toolBarBorder,
             "ToolBar.background", getMenuBackground(),
             "ToolBar.foreground", getMenuForeground(),
-            "ToolBar.font", new UIDefaults.ProxyLazyValue(
-			  "javax.swing.plaf.metal.MetalLookAndFeel",
-			  "getMenuTextFont"),
+            "ToolBar.font", menuTextValue,
             "ToolBar.dockingBackground", getMenuBackground(),
             "ToolBar.floatingBackground", getMenuBackground(),
             "ToolBar.dockingForeground", getPrimaryControlDarkShadow(), 
@@ -1206,6 +1207,19 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         };
 
         table.putDefaults(defaults);
+
+        if (isWindows() && useSystemFonts() && theme.isSystemTheme()) {
+            Toolkit kit = Toolkit.getDefaultToolkit();
+            Object messageFont = new MetalFontDesktopProperty(
+                              "win.messagebox.font.height", kit, MetalTheme.
+                              CONTROL_TEXT_FONT);
+
+            defaults = new Object[] {
+                "OptionPane.messageFont", messageFont,
+                "OptionPane.buttonFont", messageFont,
+            };
+            table.putDefaults(defaults);
+        }
     }
 
     protected void createDefaultTheme() {
@@ -1213,9 +1227,13 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     }
 
     public UIDefaults getDefaults() {
+        // PENDING: move this to initialize when API changes are allowed
+        METAL_LOOK_AND_FEEL_INITED = true;
+
         createDefaultTheme();
         UIDefaults table = super.getDefaults();
         currentTheme.addCustomEntriesToTable(table);
+        currentTheme.install();
         return table;
     }
 
@@ -1238,13 +1256,16 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *			not directly associated with a 
      *			<code>Component</code>.
      * 
-     * @see javax.swing.LookAndFeel#providErrorFeedback
+     * @see javax.swing.LookAndFeel#provideErrorFeedback
      */
     public void provideErrorFeedback(Component component) {
 	super.provideErrorFeedback(component);
     }
 
     public static void setCurrentTheme(MetalTheme theme) {
+        // NOTE: because you need to recreate the look and feel after
+        // this step, we don't bother blowing away any potential windows
+        // values.
         if (theme == null) {
             throw new NullPointerException("Can't have null theme");
         }
@@ -1266,7 +1287,12 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                 //   a method on the UIManager, which would trigger the loading
                 //   of a potentially different LAF, we directly set the
                 //   Theme here.
-                currentTheme = new DefaultMetalTheme();
+                if (useHighContrastTheme()) {
+                    currentTheme = new MetalHighContrastTheme();
+                }
+                else {
+                    currentTheme = new DefaultMetalTheme();
+                }
                 setCurrentTheme(currentTheme);
             }
 	    cachedAppContext = context;
@@ -1274,19 +1300,6 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
 	return currentTheme;
     }
-
-    private static final ColorUIResource error0 = new ColorUIResource(51, 0, 0);
-    private static final ColorUIResource error1 = new ColorUIResource(153, 51, 51);
-    private static final ColorUIResource error2 = new ColorUIResource(204, 102, 102);
-    private static final ColorUIResource error3 = new ColorUIResource(255, 153, 153);
-    private static final ColorUIResource question0 = new ColorUIResource(0, 51, 0);
-    private static final ColorUIResource question1 = new ColorUIResource(51, 102, 51);
-    private static final ColorUIResource question2 = new ColorUIResource(102, 153, 102);
-    private static final ColorUIResource question3 = new ColorUIResource(153, 204, 153);
-    private static final ColorUIResource warning0 = new ColorUIResource(102, 51, 0);
-    private static final ColorUIResource warning1 = new ColorUIResource(153, 102, 51);
-    private static final ColorUIResource warning2 = new ColorUIResource(204, 153, 102);
-    private static final ColorUIResource warning3 = new ColorUIResource(255, 204, 153);
 
     public static FontUIResource getControlTextFont() { return getCurrentTheme().getControlTextFont();}
     public static FontUIResource getSystemTextFont() { return getCurrentTheme().getSystemTextFont();}
@@ -1363,6 +1376,45 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             } catch (IllegalAccessException iae) {
             }
             return null;
+        }
+    }
+
+
+    /**
+     * FontActiveValue redirects to the appropriate metal theme method.
+     */
+    private static class FontActiveValue implements UIDefaults.ActiveValue {
+        private int type;
+        private MetalTheme theme;
+
+        FontActiveValue(MetalTheme theme, int type) {
+            this.theme = theme;
+            this.type = type;
+        }
+
+        public Object createValue(UIDefaults table) {
+            Object value = null;
+            switch (type) {
+            case MetalTheme.CONTROL_TEXT_FONT:
+                value = theme.getControlTextFont();
+                break;
+            case MetalTheme.SYSTEM_TEXT_FONT:
+                value = theme.getSystemTextFont();
+                break;
+            case MetalTheme.USER_TEXT_FONT:
+                value = theme.getUserTextFont();
+                break;
+            case MetalTheme.MENU_TEXT_FONT:
+                value = theme.getMenuTextFont();
+                break;
+            case MetalTheme.WINDOW_TITLE_FONT:
+                value = theme.getWindowTitleFont();
+                break;
+            case MetalTheme.SUB_TEXT_FONT:
+                value = theme.getSubTextFont();
+                break;
+            }
+            return value;
         }
     }
 }

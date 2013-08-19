@@ -1,5 +1,5 @@
 /*
- * @(#)JComboBox.java	1.113 02/01/28
+ * @(#)JComboBox.java	1.114 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -55,7 +55,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.113 01/28/02
+ * @version 1.114 02/12/02
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -1437,14 +1437,11 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
             String pattern;
 
             if ( selectedItem != null ) {
-                selectedItem = selectedItem.toString();
-
                 for ( i=0,c=aModel.getSize();i<c;i++ ) {
-                    if ( selectedItem.equals(aModel.getElementAt(i).toString()) ) {
+                    if ( selectedItem == aModel.getElementAt(i) ) {
                         currentSelection  =  i;
                         break;
                     }
-
                 }
             }
 
@@ -1452,16 +1449,18 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
             aKey = pattern.charAt(0);
 
             for ( i = ++currentSelection, c = aModel.getSize() ; i < c ; i++ ) {
-		if (aModel.getElementAt(i) != null) {
-		    v = aModel.getElementAt(i).toString().toLowerCase();
+                Object elem = aModel.getElementAt(i);
+		if (elem != null && elem.toString() != null) {
+		    v = elem.toString().toLowerCase();
 		    if ( v.length() > 0 && v.charAt(0) == aKey )
 			return i;
 		}
             }
 
             for ( i = 0 ; i < currentSelection ; i ++ ) {
-		if (aModel.getElementAt(i) != null) {
-		    v = aModel.getElementAt(i).toString().toLowerCase();
+                Object elem = aModel.getElementAt(i);
+		if (elem != null && elem.toString() != null) {
+		    v = elem.toString().toLowerCase();
 		    if ( v.length() > 0 && v.charAt(0) == aKey )
 			return i;
 		}

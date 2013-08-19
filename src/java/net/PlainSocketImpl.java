@@ -1,5 +1,5 @@
 /*
- * @(#)PlainSocketImpl.java	1.56 01/12/03
+ * @(#)PlainSocketImpl.java	1.58 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,13 +14,15 @@ import java.io.InterruptedIOException;
 import java.io.FileDescriptor;
 import java.io.ByteArrayOutputStream;
 
+import sun.net.ConnectionResetException;
+
 /**
  * Default Socket Implementation. This implementation does
  * not implement any security checks.
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.56, 12/03/01
+ * @version 1.58, 04/23/02
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -43,6 +45,14 @@ class PlainSocketImpl extends SocketImpl
     /* indicates a close is pending on the file descriptor */
     private boolean closePending = false;
 
+    /* indicates connection reset state */
+    private int CONNECTION_NOT_RESET = 0;
+    private int CONNECTION_RESET_PENDING = 1;
+    private int CONNECTION_RESET = 2;
+    private int resetState;
+    private Object resetLock = new Object();
+
+ 
     /**
      * Load net library into runtime.
      */
@@ -187,7 +197,7 @@ class PlainSocketImpl extends SocketImpl
 	    if (tmp < 0)
 		throw new IllegalArgumentException("timeout < 0");
 	    timeout = tmp;
-	    break;
+	    return;
 	case IP_TOS:
 	     if (val == null || !(val instanceof Integer)) {
 		 throw new SocketException("bad argument for IP_TOS");
@@ -386,7 +396,39 @@ class PlainSocketImpl extends SocketImpl
 	if (isClosedOrPending()) {
             throw new IOException("Stream closed.");
 	}
-	return socketAvailable();
+
+	/*
+	 * If connection has been reset then return 0 to indicate
+	 * there are no buffered bytes.
+	 */
+	if (isConnectionReset()) {
+	    return 0;
+	}
+
+	/*
+	 * If no bytes available and we were previously notified
+	 * of a connection reset then we move to the reset state.
+	 *
+	 * If are notified of a connection reset then check
+	 * again if there are bytes buffered on the socket. 
+	 */
+	int n = 0;
+	try { 
+	    n = socketAvailable();
+	    if (n == 0 && isConnectionResetPending()) {
+	        setConnectionReset();
+	    }
+	} catch (ConnectionResetException exc1) {
+	    setConnectionResetPending();
+	    try {
+	        n = socketAvailable();
+		if (n == 0) {
+		    setConnectionReset();
+		}
+	    } catch (ConnectionResetException exc2) {
+	    }
+	}
+	return n;
     }
 
     /**
@@ -492,6 +534,33 @@ class PlainSocketImpl extends SocketImpl
 		}
 	    }
 	}
+    }
+
+    public boolean isConnectionReset() {
+	synchronized (resetLock) {
+	    return (resetState == CONNECTION_RESET);
+	}
+    }
+
+    public boolean isConnectionResetPending() {
+	synchronized (resetLock) {
+            return (resetState == CONNECTION_RESET_PENDING);
+        }
+    }
+
+    public void setConnectionReset() {
+	synchronized (resetLock) {
+            resetState = CONNECTION_RESET;
+        }
+    }
+
+    public void setConnectionResetPending() {
+	synchronized (resetLock) {
+            if (resetState == CONNECTION_NOT_RESET) {
+                resetState = CONNECTION_RESET_PENDING;
+            }
+        }
+
     }
 
     /*

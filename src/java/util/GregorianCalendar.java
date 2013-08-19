@@ -1,5 +1,5 @@
 /*
- * @(#)GregorianCalendar.java	1.66 01/12/03
+ * @(#)GregorianCalendar.java	1.69 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -178,7 +178,7 @@ import sun.util.calendar.ZoneInfo;
  *
  * @see          Calendar
  * @see          TimeZone
- * @version      1.66
+ * @version      1.69
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1006,7 +1006,12 @@ public class GregorianCalendar extends Calendar {
                 if (time < 0) {
 		    time += yearLength*ONE_DAY;
 		}
+		long dst = internalGet(DST_OFFSET);
                 setTimeInMillis(time + min2);
+		dst -= internalGet(DST_OFFSET);
+		if (dst != 0) {
+		    setTimeInMillis(time + dst);
+		}
                 return;
             }
 
@@ -1027,7 +1032,12 @@ public class GregorianCalendar extends Calendar {
                 if (time < 0) {
 		    time += ONE_WEEK;
 		}
+		long dst = internalGet(DST_OFFSET);
                 setTimeInMillis(time + min2);
+		dst -= internalGet(DST_OFFSET);
+		if (dst != 0) {
+		    setTimeInMillis(time + dst);
+		}
                 return;
             }
 
@@ -1052,7 +1062,12 @@ public class GregorianCalendar extends Calendar {
                 if (time < 0) {
 		    time += gap2;
 		}
+		long dst = internalGet(DST_OFFSET);
                 setTimeInMillis(time + min2);
+		dst -= internalGet(DST_OFFSET);
+		if (dst != 0) {
+		    setTimeInMillis(time + dst);
+		}
                 return;
             }
 

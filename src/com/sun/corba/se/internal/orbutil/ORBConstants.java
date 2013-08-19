@@ -1,5 +1,5 @@
 /*
- * @(#)ORBConstants.java	1.50 01/12/03
+ * @(#)ORBConstants.java	1.51 02/03/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -185,6 +185,11 @@ public interface ORBConstants {
 
     public static final int DEFAULT_ACTIVATION_PORT		= 1049 ;
 
+    // If RI is starting the NameService then they would indicate that by
+    // passing the RI flag. That would start a Persistent Port to listen to
+    // INS request.
+    public static final int RI_NAMESERVICE_PORT                 = 1050;
+
     public static final int DEFAULT_SERVER_POLLING_TIME         = 1000;
 
     public static final int DEFAULT_SERVER_STARTUP_DELAY        = 1000;
@@ -194,6 +199,10 @@ public interface ORBConstants {
     // Constants for initial references *************************************************************
 
     public static final String TRANSIENT_NAME_SERVICE_NAME = "TNameService" ;
+    public static final String PERSISTENT_NAME_SERVICE_NAME = "NameService" ;
+    // A large Number to make sure that other ServerIds doesn't collide
+    // with NameServer Persistent Server Id
+    public static final int    NAME_SERVICE_SERVER_ID       = 100000;
     public static final String ROOT_POA_NAME		= "RootPOA" ;
     public static final String POA_CURRENT_NAME		= "POACurrent" ;
     public static final String SERVER_ACTIVATOR_NAME	= "ServerActivator" ;

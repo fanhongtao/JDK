@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.197 01/12/03
+ * @(#)JTable.java	1.202 02/07/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -122,7 +122,7 @@ import java.text.DateFormat;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.197 12/03/01
+ * @version 1.202 07/15/02
  * @author Philip Milne
  */
 /* The first versions of the JTable, contained in Swing-0.1 through
@@ -472,7 +472,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      */
     public void removeNotify() {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().
-            removePropertyChangeListener("focusOwner", editorRemover);
+            removePropertyChangeListener("permanentFocusOwner", editorRemover);
+	editorRemover = null;
         unconfigureEnclosingScrollPane();
         super.removeNotify();
     }
@@ -1942,6 +1943,16 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * calculations along the other axis. When the cell is not valid
      * the <code>includeSpacing</code> parameter is ignored.
      *
+     * @param   row                   the row index where the desired cell
+     *                                is located
+     * @param   column                the column index where the desired cell
+     *                                is located in the display; this is not
+     *                                necessarily the same as the column index
+     *                                in the data model for the table; the
+     *                                {@link #convertColumnIndexToView(int)}
+     *                                method may be used to convert a data
+     *                                model column index to a display
+     *                                column index
      * @param   includeSpacing        if false, return the true cell bounds -
      *                                computed by subtracting the intercell
      *				      spacing from the height and widths of
@@ -2501,7 +2512,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             KeyboardFocusManager fm =
                 KeyboardFocusManager.getCurrentKeyboardFocusManager();
             editorRemover = new CellEditorRemover(fm);
-            fm.addPropertyChangeListener("focusOwner", editorRemover);
+            fm.addPropertyChangeListener("permanentFocusOwner", editorRemover);
         }
 
         TableCellEditor editor = getCellEditor(row, column);
@@ -3751,7 +3762,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      */
     public void removeEditor() {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().
-            removePropertyChangeListener("focusOwner", editorRemover);
+            removePropertyChangeListener("permanentFocusOwner", editorRemover);
+	editorRemover = null;
 
         TableCellEditor editor = getCellEditor();
         if(editor != null) {
@@ -3894,11 +3906,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         }
 
         public void propertyChange(PropertyChangeEvent ev) {
-            if (!isEditing()) {
+            if (!isEditing() || getClientProperty("terminateEditOnFocusLost") != Boolean.TRUE) {
                 return;
             }
 
-            Component c = focusManager.getFocusOwner();
+            Component c = focusManager.getPermanentFocusOwner();
             while (c != null) {
                 if (c == JTable.this) {
                     // focus remains inside the table
@@ -3906,7 +3918,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 } else if ((c instanceof Window) ||
                            (c instanceof Applet && c.getParent() == null)) {
                     if (c == SwingUtilities.getRoot(JTable.this)) {
-                        getCellEditor().cancelCellEditing();
+                        if (!getCellEditor().stopCellEditing()) {
+                            getCellEditor().cancelCellEditing();
+                        }
                     }
                     break;
                 }
@@ -4296,7 +4310,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          */
         public void valueChanged(ListSelectionEvent e) {
             firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY,
-                               new Boolean(false), new Boolean(true));
+                               Boolean.valueOf(false), Boolean.valueOf(true));
 
             int selectedRow = JTable.this.getSelectedRow();
             int selectedCol = JTable.this.getSelectedColumn();

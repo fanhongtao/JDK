@@ -1,5 +1,5 @@
 /*
- * @(#)FileFilter.java	1.8 01/12/03
+ * @(#)FileFilter.java	1.9 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ package java.io;
  *
  * <p> Instances of this interface may be passed to the <code>{@link
  * File#listFiles(java.io.FileFilter) listFiles(FileFilter)}</code> method
- * of the <code>{@link java.io.FileFilter}</code> class.
+ * of the <code>{@link java.io.File}</code> class.
  *
  * @since 1.2
  */

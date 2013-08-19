@@ -1,5 +1,5 @@
 /*
- * @(#)Process.java	1.18 01/12/03
+ * @(#)Process.java	1.19 02/04/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import java.io.*;
  * <p>
  * The <code>Runtime.exec</code> methods may not work well for special
  * processes on certain native platforms, such as native windowing
- * processes, daemon processes, Win16/DOS processes on Win32, or shell
+ * processes, daemon processes, Win16/DOS processes on Microsoft Windows, or shell
  * scripts. The created subprocess does not have its own terminal or
  * console. All its standard io (i.e. stdin, stdout, stderr)  operations
  * will be redirected to the parent process through three streams
@@ -42,7 +42,7 @@ import java.io.*;
  * process that owns the <code>Process</code> object.
  *
  * @author  unascribed
- * @version 1.18, 12/03/01
+ * @version 1.19, 04/04/02
  * @see     java.lang.Runtime#exec(java.lang.String)
  * @see     java.lang.Runtime#exec(java.lang.String, java.lang.String[])
  * @see     java.lang.Runtime#exec(java.lang.String[])

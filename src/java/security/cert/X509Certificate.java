@@ -1,5 +1,5 @@
 /*
- * @(#)X509Certificate.java	1.33 01/12/03
+ * @(#)X509Certificate.java	1.34 02/02/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -80,7 +80,7 @@ import sun.security.x509.X509CertImpl;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.33
+ * @version 1.34
  *
  * @see Certificate
  * @see CertificateFactory
@@ -89,6 +89,8 @@ import sun.security.x509.X509CertImpl;
 
 public abstract class X509Certificate extends Certificate
 implements X509Extension {
+
+    private transient X500Principal subjectX500Principal, issuerX500Principal;
 
     /**
      * Constructor for X.509 certificates.
@@ -207,30 +209,20 @@ implements X509Extension {
 
     /**
      * Returns the issuer (issuer distinguished name) value from the
-     * certificate as an <code>X500Principal</code>.
+     * certificate as an <code>X500Principal</code>. 
+     * <p>
+     * It is recommended that subclasses override this method to provide 
+     * an efficient implementation.
      *
      * @return an <code>X500Principal</code> representing the issuer
      *		distinguished name
      * @since 1.4
      */
     public X500Principal getIssuerX500Principal() {
-	if (getIssuerDN() == null) {
-	    throw new IllegalStateException("issuer may not be null");
+        if (issuerX500Principal == null) {
+	    issuerX500Principal = X509CertImpl.getIssuerX500Principal(this);
 	}
-
-	if (getIssuerDN().getName() == null ||
-	    getIssuerDN().getName().length() == 0) {
-	    throw new IllegalStateException("issuer may not be empty");
-	}
-
-	try {
-	    return new X500Principal(getIssuerDN().getName());
-	} catch (Exception e) {
-	    RuntimeException re = new RuntimeException
-		("unable to instantiate X500Principal");
-	    re.initCause(e);
-	    throw re;
-	}
+	return issuerX500Principal;
     }
 
     /**
@@ -256,26 +248,19 @@ implements X509Extension {
      * certificate as an <code>X500Principal</code>.  If the subject value
      * is empty, then the <code>getName()</code> method of the returned
      * <code>X500Principal</code> object returns an empty string ("").
+     * <p>
+     * It is recommended that subclasses override this method to provide
+     * an efficient implementation.
      *
      * @return an <code>X500Principal</code> representing the subject
      *		distinguished name
      * @since 1.4
      */
     public X500Principal getSubjectX500Principal() {
-	if (getSubjectDN() == null) {
-	    throw new IllegalStateException("subject may not be null");
+        if (subjectX500Principal == null) {
+	    subjectX500Principal = X509CertImpl.getSubjectX500Principal(this);
 	}
-
-	try {
-	    return (getSubjectDN().getName() == null) ?
-			new X500Principal("") :
-			new X500Principal(getSubjectDN().getName());
-	} catch (Exception e) {
-	    RuntimeException re = new RuntimeException
-		("unable to instantiate X500Principal");
-	    re.initCause(e);
-	    throw re;
-	}
+	return subjectX500Principal;
     }
 
     /**

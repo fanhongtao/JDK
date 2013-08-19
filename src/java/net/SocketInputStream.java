@@ -1,5 +1,5 @@
 /*
- * @(#)SocketInputStream.java	1.31 01/12/03
+ * @(#)SocketInputStream.java	1.32 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,12 +12,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
+import sun.net.ConnectionResetException;
+
 /**
  * This stream extends FileInputStream to implement a
  * SocketInputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.31, 12/03/01
+ * @version     1.32, 04/23/02
  * @author	Jonathan Payne
  * @author	Arthur van Hoff
  */
@@ -101,9 +103,17 @@ class SocketInputStream extends FileInputStream
     public int read(byte b[], int off, int length) throws IOException {
 	int n;
 
+	// EOF already encountered
 	if (eof) {
 	    return -1;
 	}
+
+	// connection reset
+	if (impl.isConnectionReset()) {
+	    throw new SocketException("Connection reset");
+	}
+
+	// bounds check
 	if (length <= 0 || off < 0 || off + length > b.length) {
 	    if (length == 0) {
 		return 0;
@@ -111,26 +121,54 @@ class SocketInputStream extends FileInputStream
 	    throw new ArrayIndexOutOfBoundsException();
 	}
 
+	boolean gotReset = false;
+
+	// acquire file descriptor and do the read
 	FileDescriptor fd = impl.acquireFD();
  	try {	
 	    n = socketRead0(fd, b, off, length, impl.getTimeout());
+	    if (n > 0) {
+		return n;
+	    }
+	} catch (ConnectionResetException rstExc) {
+	    gotReset = true;
 	} finally {
 	    impl.releaseFD();
 	}
 
 	/*
-	 * If eof returned check if the socket has been
-  	 * closed (fd may have been dup'ed to unblock the
-	 * read).
+	 * We receive a "connection reset" but there may be bytes still
+	 * buffered on the socket
 	 */
-	if (n <= 0) {
-	    if (impl.isClosedOrPending()) {
-		throw new SocketException("Socket closed");
+	if (gotReset) {
+	    impl.setConnectionResetPending();
+	    impl.acquireFD();
+	    try {
+	        n = socketRead0(fd, b, off, length, impl.getTimeout());
+		if (n > 0) {
+		    return n;
+		}
+	    } catch (ConnectionResetException rstExc) {
+	    } finally {
+		impl.releaseFD();
 	    }
-	    eof = true;
-	    return -1;
 	}
-	return n;
+
+	/*
+	 * If we get here we are at EOF, the socket has been closed,
+	 * or the connection has been reset.
+	 */
+        if (impl.isClosedOrPending()) {
+            throw new SocketException("Socket closed");
+        }
+	if (impl.isConnectionResetPending()) {
+	    impl.setConnectionReset();
+	} 
+	if (impl.isConnectionReset()) {
+	    throw new SocketException("Connection reset");
+	}
+	eof = true;
+	return -1;
     }
 
     /** 

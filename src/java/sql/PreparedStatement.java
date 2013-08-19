@@ -1,5 +1,5 @@
 /*
- * @(#)PreparedStatement.java	1.40 01/12/03
+ * @(#)PreparedStatement.java	1.41 02/02/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -529,7 +529,7 @@ public interface PreparedStatement extends Statement {
      * Sets the designated parameter to the given <code>java.sql.Date</code> value,
      * using the given <code>Calendar</code> object.  The driver uses
      * the <code>Calendar</code> object to construct an SQL <code>DATE</code> value,
-     * which the driver then sends to the database.  With a
+     * which the driver then sends to the database.  With 
      * a <code>Calendar</code> object, the driver can calculate the date
      * taking into account a custom timezone.  If no
      * <code>Calendar</code> object is specified, the driver uses the default
@@ -549,7 +549,7 @@ public interface PreparedStatement extends Statement {
      * Sets the designated parameter to the given <code>java.sql.Time</code> value,
      * using the given <code>Calendar</code> object.  The driver uses
      * the <code>Calendar</code> object to construct an SQL <code>TIME</code> value,
-     * which the driver then sends to the database.  With a
+     * which the driver then sends to the database.  With 
      * a <code>Calendar</code> object, the driver can calculate the time
      * taking into account a custom timezone.  If no
      * <code>Calendar</code> object is specified, the driver uses the default

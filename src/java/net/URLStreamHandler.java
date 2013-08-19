@@ -1,5 +1,5 @@
 /*
- * @(#)URLStreamHandler.java	1.55 01/12/03
+ * @(#)URLStreamHandler.java	1.58 02/03/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import sun.net.www.ParseUtil;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.55, 12/03/01
+ * @version 1.58, 03/05/02
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */
@@ -120,10 +120,13 @@ public abstract class URLStreamHandler {
 	    }
 
             host = authority = spec.substring(start, i);
+
             int ind = authority.indexOf('@');
             if (ind != -1) {
                 userInfo = authority.substring(0, ind);
                 host = authority.substring(ind+1);
+	    } else {
+		userInfo = null;
 	    }
 	    if (host != null) {
 		// If the host is surrounded by [ and ] then its an IPv6 
@@ -410,7 +413,18 @@ public abstract class URLStreamHandler {
      * @return  a string representation of the <code>URL</code> argument.
      */
     protected String toExternalForm(URL u) {
-	StringBuffer result = new StringBuffer(u.getProtocol());
+
+	// pre-compute length of StringBuffer
+	int len = u.getProtocol().length() + 1;
+	if (u.getAuthority() != null && u.getAuthority().length() > 0)
+	    len += 2 + u.getAuthority().length();
+	if (u.getFile() != null) 
+	    len += u.getFile().length();
+	if (u.getRef() != null) 
+	    len += 1 + u.getRef().length();
+
+	StringBuffer result = new StringBuffer(len);
+	result.append(u.getProtocol());
         result.append(":");
         if (u.getAuthority() != null && u.getAuthority().length() > 0) {
             result.append("//");
@@ -440,6 +454,8 @@ public abstract class URLStreamHandler {
      * @param   path      the path component of the URL. 
      * @param   query     the query part for the URL.
      * @param   ref       the reference.
+     * @exception	SecurityException	if the protocol handler of the URL is 
+     *					different from this one
      * @see     java.net.URL#set(java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)
      */
        protected void setURL(URL u, String protocol, String host, int port,
@@ -464,6 +480,8 @@ public abstract class URLStreamHandler {
      * @param   port      the port on the remote machine.
      * @param   file      the file.
      * @param   ref       the reference.
+     * @exception	SecurityException	if the protocol handler of the URL is 
+     *					different from this one
      * @deprecated Use setURL(URL, String, String, int, String, String, String,
      *             String);
      */

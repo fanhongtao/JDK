@@ -1,11 +1,10 @@
 /*
- * @(#)BigInteger.java	1.49 01/09/12
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)BigInteger.java	1.53 02/06/11
  */
 
 package java.math;
@@ -72,7 +71,7 @@ import java.io.*;
  * a null object reference for any input parameter.
  *
  * @see     BigDecimal
- * @version 1.49, 09/12/01
+ * @version 1.53, 06/11/02
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -262,8 +261,8 @@ public class BigInteger extends Number implements Comparable {
      * @param radix radix to be used in interpreting <tt>val</tt>.
      * @throws NumberFormatException <tt>val</tt> is not a valid representation
      *	       of a BigInteger in the specified radix, or <tt>radix</tt> is
-     *	       outside the range from <tt>Character.MIN_RADIX</tt> (2) to
-     *	       <tt>Character.MAX_RADIX</tt> (36), inclusive.
+     *	       outside the range from {@link Character#MIN_RADIX} to
+     *	       {@link Character#MAX_RADIX}, inclusive.
      * @see    Character#digit
      */
     public BigInteger(String val, int radix) {
@@ -484,9 +483,9 @@ public class BigInteger extends Number implements Comparable {
      * Constructs a randomly generated positive BigInteger that is probably
      * prime, with the specified bitLength.<p>
      *
-     * It is recommended that the probablePrime method be used in preference
-     * to this constructor unless there is a compelling need to specify a
-     * certainty.
+     * It is recommended that the {@link #probablePrime probablePrime}
+     * method be used in preference to this constructor unless there
+     * is a compelling need to specify a certainty.
      *
      * @param  bitLength bitLength of the returned BigInteger.
      * @param  certainty a measure of the uncertainty that the caller is
@@ -625,7 +624,7 @@ public class BigInteger extends Number implements Comparable {
      */
     boolean primeToCertainty(int certainty) {
         int rounds = 0;
-        int n = (certainty+1)/2;
+        int n = (Math.min(certainty, Integer.MAX_VALUE-1)+1)/2;
 
         // The relationship between the certainty and the number of rounds
         // we perform is given in the draft standard ANSI X9.80, "PRIME
@@ -840,10 +839,10 @@ public class BigInteger extends Number implements Comparable {
     //Static Factory Methods
 
     /**
-     * Returns a BigInteger whose value is equal to that of the specified
-     * long.  This "static factory method" is provided in preference to a
-     * (long) constructor because it allows for reuse of frequently used
-     * BigIntegers. 
+     * Returns a BigInteger whose value is equal to that of the
+     * specified <code>long</code>.  This "static factory method" is
+     * provided in preference to a (<code>long</code>) constructor
+     * because it allows for reuse of frequently used BigIntegers.
      *
      * @param  val value of the BigInteger to return.
      * @return a BigInteger with the specified value.
@@ -2371,7 +2370,9 @@ public class BigInteger extends Number implements Comparable {
 
     /**
      * Returns <tt>true</tt> if this BigInteger is probably prime,
-     * <tt>false</tt> if it's definitely composite.
+     * <tt>false</tt> if it's definitely composite.  If
+     * <tt>certainty</tt> is <tt> &lt;= 0</tt>, <tt>true</tt> is
+     * returned.
      *
      * @param  certainty a measure of the uncertainty that the caller is
      *	       willing to tolerate: if the call returns <tt>true</tt>
@@ -2382,8 +2383,7 @@ public class BigInteger extends Number implements Comparable {
      * 	       <tt>false</tt> if it's definitely composite.
      */
     public boolean isProbablePrime(int certainty) {
-	int n = (certainty+1)/2;
-	if (n <= 0)
+	if (certainty <= 0)
 	    return true;
 	BigInteger w = this.abs();
 	if (w.equals(TWO))
@@ -2521,13 +2521,15 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Returns the String representation of this BigInteger in the given radix.
-     * If the radix is outside the range from <tt>Character.MIN_RADIX</tt> (2)
-     * to <tt>Character.MAX_RADIX</tt> (36) inclusive, it will default to 10
-     * (as is the case for <tt>Integer.toString</tt>).  The digit-to-character
-     * mapping provided by <tt>Character.forDigit</tt> is used, and a minus
-     * sign is prepended if appropriate.  (This representation is compatible
-     * with the (String, int) constructor.)
+     * Returns the String representation of this BigInteger in the
+     * given radix.  If the radix is outside the range from {@link
+     * Character#MIN_RADIX} to {@link Character#MAX_RADIX} inclusive,
+     * it will default to 10 (as is the case for
+     * <tt>Integer.toString</tt>).  The digit-to-character mapping
+     * provided by <tt>Character.forDigit</tt> is used, and a minus
+     * sign is prepended if appropriate.  (This representation is
+     * compatible with the {@link #BigInteger(String, int) (String,
+     * <code>int</code>)} constructor.)
      *
      * @param  radix  radix of the String representation.
      * @return String representation of this BigInteger in the given radix.
@@ -2590,11 +2592,12 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Returns the decimal String representation of this BigInteger.  The
-     * digit-to-character mapping provided by <tt>Character.forDigit</tt> is
-     * used, and a minus sign is prepended if appropriate.  (This
-     * representation is compatible with the (String) constructor, and allows
-     * for String concatenation with Java's + operator.)
+     * Returns the decimal String representation of this BigInteger.
+     * The digit-to-character mapping provided by
+     * <tt>Character.forDigit</tt> is used, and a minus sign is
+     * prepended if appropriate.  (This representation is compatible
+     * with the {@link #BigInteger(String) (String)} constructor, and
+     * allows for String concatenation with Java's + operator.)
      *
      * @return decimal String representation of this BigInteger.
      * @see    Character#forDigit
@@ -2605,13 +2608,14 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Returns a byte array containing the two's-complement representation of
-     * this BigInteger.  The byte array will be in <i>big-endian</i>
-     * byte-order: the most significant byte is in the zeroth element.  The
-     * array will contain the minimum number of bytes required to represent
-     * this BigInteger, including at least one sign bit,  which is
-     * <tt>(ceil((this.bitLength() + 1)/8))</tt>.  (This representation is
-     * compatible with the (byte[]) constructor.) 
+     * Returns a byte array containing the two's-complement
+     * representation of this BigInteger.  The byte array will be in
+     * <i>big-endian</i> byte-order: the most significant byte is in
+     * the zeroth element.  The array will contain the minimum number
+     * of bytes required to represent this BigInteger, including at
+     * least one sign bit, which is <tt>(ceil((this.bitLength() +
+     * 1)/8))</tt>.  (This representation is compatible with the
+     * {@link #BigInteger(byte[]) (byte[])} constructor.)
      *
      * @return a byte array containing the two's-complement representation of
      *	       this BigInteger.
@@ -2635,12 +2639,19 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigInteger to an int.  This is standard <i>narrowing
-     * primitive conversion</i> as defined in <i>The Java Language
-     * Specification</i>: if this BigInteger is too big to fit in an int,
-     * only the low-order 32 bits are returned.
+     * Converts this BigInteger to an <code>int</code>.  This
+     * conversion is analogous to a <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>long</code> to
+     * <code>int</code> as defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: if this BigInteger is too big to fit in an
+     * <code>int</code>, only the low-order 32 bits are returned.
+     * Note that this conversion can lose information about the
+     * overall magnitude of the BigInteger value as well as return a
+     * result with the opposite sign.
      *
-     * @return this BigInteger converted to an int.
+     * @return this BigInteger converted to an <code>int</code>.
      */
     public int intValue() {
 	int result = 0;
@@ -2649,12 +2660,19 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigInteger to a long.  This is standard <i>narrowing
-     * primitive conversion</i> as defined in <i>The Java Language
-     * Specification</i>: if this BigInteger is too big to fit in a long,
-     * only the low-order 64 bits are returned.
+     * Converts this BigInteger to a <code>long</code>.  This
+     * conversion is analogous to a <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>long</code> to
+     * <code>int</code> as defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: if this BigInteger is too big to fit in a
+     * <code>long</code>, only the low-order 64 bits are returned.
+     * Note that this conversion can lose information about the
+     * overall magnitude of the BigInteger value as well as return a
+     * result with the opposite sign.
      *
-     * @return this BigInteger converted to a long.
+     * @return this BigInteger converted to a <code>long</code>.
      */
     public long longValue() {
 	long result = 0;
@@ -2665,13 +2683,20 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigInteger to a float.  Similar to the double-to-float
-     * <i>narrowing primitive conversion</i> defined in <i>The Java Language
-     * Specification</i>: if this BigInteger has too great a magnitude to
-     * represent as a float, it will be converted to infinity or negative
-     * infinity, as appropriate.
+     * Converts this BigInteger to a <code>float</code>.  This
+     * conversion is similar to the <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>double</code> to
+     * <code>float</code> defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: if this BigInteger has too great a magnitude
+     * to represent as a <code>float</code>, it will be converted to
+     * {@link Float#NEGATIVE_INFINITY} or {@link
+     * Float#POSITIVE_INFINITY} as appropriate.  Note that even when
+     * the return value is finite, this conversion can lose
+     * information about the precision of the BigInteger value.
      *
-     * @return this BigInteger converted to a float.
+     * @return this BigInteger converted to a <code>float</code>.
      */
     public float floatValue() {
 	// Somewhat inefficient, but guaranteed to work.
@@ -2679,13 +2704,20 @@ public class BigInteger extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigInteger to a double.  Similar to the double-to-float
-     * <i>narrowing primitive conversion</i> defined in <i>The Java Language
-     * Specification</i>: if this BigInteger has too great a magnitude to
-     * represent as a double, it will be converted to infinity or negative
-     * infinity, as appropriate.
+     * Converts this BigInteger to a <code>double</code>.  This
+     * conversion is similar to the <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>double</code> to
+     * <code>float</code> defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: if this BigInteger has too great a magnitude
+     * to represent as a <code>double</code>, it will be converted to
+     * {@link Double#NEGATIVE_INFINITY} or {@link
+     * Double#POSITIVE_INFINITY} as appropriate.  Note that even when
+     * the return value is finite, this conversion can lose
+     * information about the precision of the BigInteger value.
      *
-     * @return this BigInteger converted to a double.
+     * @return this BigInteger converted to a <code>double</code>.
      */
     public double doubleValue() {
 	// Somewhat inefficient, but guaranteed to work.

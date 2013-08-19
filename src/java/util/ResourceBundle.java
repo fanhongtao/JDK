@@ -1,5 +1,5 @@
 /*
- * @(#)ResourceBundle.java	1.64 01/12/03
+ * @(#)ResourceBundle.java	1.66 02/05/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.

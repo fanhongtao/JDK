@@ -1,5 +1,5 @@
 /*
- * @(#)JMenuItem.java	1.107 02/08/27
+ * @(#)JMenuItem.java	1.107 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -51,7 +51,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: An item which can be selected in a menu.
  *
- * @version 1.107 08/27/02
+ * @version 1.107 02/11/02
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -71,9 +71,6 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     private static final boolean TRACE =   false; // trace creates and disposes
     private static final boolean VERBOSE = false; // show reuse hits/misses
     private static final boolean DEBUG =   false;  // show bad params, misc.
-
-    /*Bug 4711693 */ 
-    private boolean isMouseDragged = false;
 
     /**
      * Creates a <code>JMenuItem</code> with no set text or icon.
@@ -473,13 +470,13 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
     public void processMenuDragMouseEvent(MenuDragMouseEvent e) {
 	switch (e.getID()) {
 	case MouseEvent.MOUSE_ENTERED:
-	    isMouseDragged = false; fireMenuDragMouseEntered(e); break;
+	    fireMenuDragMouseEntered(e); break;
 	case MouseEvent.MOUSE_EXITED:
-	    isMouseDragged = false; fireMenuDragMouseExited(e); break;
+	    fireMenuDragMouseExited(e); break;
 	case MouseEvent.MOUSE_DRAGGED:
-	    isMouseDragged = true; fireMenuDragMouseDragged(e); break;
+	    fireMenuDragMouseDragged(e); break;
 	case MouseEvent.MOUSE_RELEASED:
-	    if(isMouseDragged) fireMenuDragMouseReleased(e); break;
+	    fireMenuDragMouseReleased(e); break;
 	default: 
 	    break;
 	}
@@ -858,7 +855,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
          */
         public void stateChanged(ChangeEvent e) {
             firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY, 
-                               new Boolean(false), new Boolean(true));
+                               Boolean.valueOf(false), Boolean.valueOf(true));
             if (JMenuItem.this.getModel().isArmed()) {
 		if (!isArmed) {
 		    isArmed = true;

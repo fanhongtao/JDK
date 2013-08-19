@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.331 02/09/02
+ * @(#)Component.java	1.347 02/05/03
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -128,8 +128,13 @@ import sun.awt.im.CompositionArea;
  *         }
  *    }
  * </pre>
+ * <p>
+ * <b>Note</b>: For more information on the paint mechanisms utilitized
+ * by AWT and Swing, including information on how to write the most
+ * efficient painting code, see
+ * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
  *
- * @version 	1.331, 09/02/02
+ * @version 	1.347, 05/03/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  */
@@ -579,7 +584,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
     private java.beans.PropertyChangeSupport changeSupport;
 
     boolean isPacked = false;
-    
+
     /**
      * This object is used as a key for internal hashtables.
      */
@@ -991,30 +996,31 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * replaced by <code>setEnabled(boolean)</code>.
      */
     public void disable() {
-    	if (enabled) {
-	    synchronized (getTreeLock()) {
-		enabled = false;
-		if (isFocusOwner()) {
-		    // Don't clear the global focus owner. If transferFocus
-		    // fails, we want the focus to stay on the disabled
-		    // Component so that keyboard traversal, et. al. still
-		    // makes sense to the user.
-		    autoTransferFocus(false);
-		}
-		ComponentPeer peer = this.peer;
-		if (peer != null) {
-		    peer.disable();
-		    if (visible) {
-        		updateCursorImmediately();
-		    }    
-		}
-	    }
+        if (enabled) {
+            KeyboardFocusManager.clearMostRecentFocusOwner(this);
+            synchronized (getTreeLock()) {
+                enabled = false;
+                if (isFocusOwner()) {
+                    // Don't clear the global focus owner. If transferFocus
+                    // fails, we want the focus to stay on the disabled
+                    // Component so that keyboard traversal, et. al. still
+                    // makes sense to the user.
+                    autoTransferFocus(false);
+                }
+                ComponentPeer peer = this.peer;
+                if (peer != null) {
+                    peer.disable();
+                    if (visible) {
+                        updateCursorImmediately();
+                    }
+                }
+            }
             if (accessibleContext != null) {
                 accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY, 
+                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
                     null, AccessibleState.ENABLED);
             }
-	}
+        }
     }
 
     /**
@@ -1127,9 +1133,20 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	if (b) {
 	    show();
 	} else {
-            isPacked = false; 
-            hide();
+	    hide();
 	}
+    }
+
+    boolean containsFocus() {
+        return isFocusOwner();
+    }
+
+    void clearMostRecentFocusOwnerOnHide() {
+        KeyboardFocusManager.clearMostRecentFocusOwner(this);
+    }
+
+    void clearCurrentFocusCycleRootOnHide() {
+        /* do nothing */
     }
 
     /**
@@ -1137,24 +1154,26 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * replaced by <code>setVisible(boolean)</code>.
      */
     public void hide() {
-	if (visible) {
-	    synchronized (getTreeLock()) {
-		visible = false;
-                if (isFocusOwner()) {
+        if (visible) {
+            clearCurrentFocusCycleRootOnHide();
+            clearMostRecentFocusOwnerOnHide();
+            synchronized (getTreeLock()) {
+                visible = false;
+                if (containsFocus()) {
                     autoTransferFocus(true);
                 }
-    	    	ComponentPeer peer = this.peer;
-		if (peer != null) {
-		    peer.hide();
-		    createHierarchyEvents(HierarchyEvent.HIERARCHY_CHANGED,
-					  this, parent,
-					  HierarchyEvent.SHOWING_CHANGED,
+                ComponentPeer peer = this.peer;
+                if (peer != null) {
+                    peer.hide();
+                    createHierarchyEvents(HierarchyEvent.HIERARCHY_CHANGED,
+                                          this, parent,
+                                          HierarchyEvent.SHOWING_CHANGED,
                                           Toolkit.enabledOnToolkit(AWTEvent.HIERARCHY_EVENT_MASK));
-		    if (peer instanceof LightweightPeer) {
-			repaint();
-		    }	
-        	    updateCursorImmediately();
-		}
+                    if (peer instanceof LightweightPeer) {
+                        repaint();
+                    }
+                    updateCursorImmediately();
+                }
                 if (componentListener != null ||
                     (eventMask & AWTEvent.COMPONENT_EVENT_MASK) != 0 ||
                     Toolkit.enabledOnToolkit(AWTEvent.COMPONENT_EVENT_MASK)) {
@@ -1162,12 +1181,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
                                      ComponentEvent.COMPONENT_HIDDEN);
                     Toolkit.getEventQueue().postEvent(e);
                 }
-	    }
-    	    Container parent = this.parent;
-	    if (parent != null) {
-		parent.invalidate();
-	    }
-	}
+            }
+            Container parent = this.parent;
+            if (parent != null) {
+                parent.invalidate();
+            }
+        }
     }
 
     /**
@@ -1685,6 +1704,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
 			}
 			peer.setBounds(nativeX, nativeY, width, height);
 		    }
+                    // Check peer actualy changed coordinates
+                    resized = (oldWidth != this.width) || (oldHeight != this.height);
+                    moved = (oldX != this.x) || (oldY != this.y);
 		    if (resized) {
 			invalidate();
 		    }
@@ -2211,6 +2233,10 @@ public abstract class Component implements ImageObserver, MenuContainer,
         updateCursorImmediately();
     }
 
+    /**
+     * Updates the cursor.  May not be invoked from the native
+     * message pump.
+     */
     final void updateCursorImmediately() {
 	if (peer instanceof LightweightPeer) {
             Container nativeContainer = getNativeContainer();
@@ -2265,16 +2291,21 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * Paints this component.  
      * <p>
      * This method is called when the contents of the component should 
-     * be painted in response to the component first being shown or 
-     * damage needing repair.  The clip rectangle in the 
-     * <code>Graphics</code> parameter will be set to the area 
+     * be painted; such as when the component is first being shown or
+     * is damaged and in need of repair.  The clip rectangle in the 
+     * <code>Graphics</code> parameter is set to the area 
      * which needs to be painted.
-     * Subclasses of Component that override this method need not call 
-     * super.paint(g). 
+     * Subclasses of <code>Component</code> that override this
+     * method need not call <code>super.paint(g)</code>. 
      * <p>
-     * For performance reasons, Components with zero width or height
-     * aren't considered to need painting when they are first shown,
+     * For performance reasons, <code>Component</code>s with zero width
+     * or height aren't considered to need painting when they are first shown,
      * and also aren't considered to need repair. 
+     * <p>
+     * <b>Note</b>: For more information on the paint mechanisms utilitized
+     * by AWT and Swing, including information on how to write the most
+     * efficient painting code, see
+     * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
      * 
      * @param g the graphics context to use for painting
      * @see       #update
@@ -2286,10 +2317,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
     /**
      * Updates this component.
      * <p>
-     * The AWT calls the <code>update</code> method in response to a
-     * call to <code>repaint</code>. The appearance of the
-     * component on the screen has not changed since the last call to
-     * <code>update</code> or <code>paint</code>. You can assume that
+     * If this component is not a lightweight component, the
+     * AWT calls the <code>update</code> method in response to
+     * a call to <code>repaint</code>.  You can assume that
      * the background is not cleared.
      * <p>
      * The <code>update</code>method of <code>Component</code>
@@ -2298,12 +2328,18 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * which need to do additional work in response to a call to 
      * <code>repaint</code>.  
      * Subclasses of Component that override this method should either 
-     * call super.update(g), or call <code>paint</code> directly.  
+     * call <code>super.update(g)</code>, or call <code>paint</code> directly.  
      * <p>
      * The origin of the graphics context, its
      * (<code>0</code>,&nbsp;<code>0</code>) coordinate point, is the
      * top-left corner of this component. The clipping region of the
      * graphics context is the bounding rectangle of this component.
+     *
+     * <p>
+     * <b>Note</b>: For more information on the paint mechanisms utilitized
+     * by AWT and Swing, including information on how to write the most
+     * efficient painting code, see
+     * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
      * 
      * @param g the specified context to use for updating
      * @see       #paint
@@ -2355,8 +2391,18 @@ public abstract class Component implements ImageObserver, MenuContainer,
     /**
      * Repaints this component.
      * <p>
-     * This method causes a call to this component's <code>update</code>
-     * method as soon as possible.
+     * If this component is a lightweight component, this method
+     * causes a call to this component's <code>paint</code>
+     * method as soon as possible.  Otherwise, this method causes
+     * a call to this component's <code>update</code> method as soon
+     * as possible.
+     * <p>
+     * <b>Note</b>: For more information on the paint mechanisms utilitized
+     * by AWT and Swing, including information on how to write the most
+     * efficient painting code, see
+     * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
+
+     *
      * @see       #update(Graphics)
      * @since     JDK1.0
      */
@@ -2365,8 +2411,15 @@ public abstract class Component implements ImageObserver, MenuContainer,
     }
 
     /**
-     * Repaints the component. This will result in a
-     * call to <code>update</code> within <em>tm</em> milliseconds.
+     * Repaints the component.  If this component is a lightweight
+     * component, this results in a call to <code>paint</code>
+     * within <code>tm</code> milliseconds.
+     * <p>
+     * <b>Note</b>: For more information on the paint mechanisms utilitized
+     * by AWT and Swing, including information on how to write the most
+     * efficient painting code, see
+     * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
+     *
      * @param tm maximum time in milliseconds before update
      * @see #paint
      * @see #update(Graphics)
@@ -2379,8 +2432,16 @@ public abstract class Component implements ImageObserver, MenuContainer,
     /**
      * Repaints the specified rectangle of this component.
      * <p>
-     * This method causes a call to this component's <code>update</code>
-     * method as soon as possible.
+     * If this component is a lightweight component, this method
+     * causes a call to this component's <code>paint</code> method
+     * as soon as possible.  Otherwise, this method causes a call to
+     * this component's <code>update</code> method as soon as possible.
+     * <p>
+     * <b>Note</b>: For more information on the paint mechanisms utilitized
+     * by AWT and Swing, including information on how to write the most
+     * efficient painting code, see
+     * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
+     *
      * @param     x   the <i>x</i> coordinate
      * @param     y   the <i>y</i> coordinate
      * @param     width   the width
@@ -2396,8 +2457,16 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * Repaints the specified rectangle of this component within
      * <code>tm</code> milliseconds.
      * <p>
-     * This method causes a call to this component's
+     * If this component is a lightweight component, this method causes
+     * a call to this component's <code>paint</code> method.
+     * Otherwise, this method causes a call to this component's
      * <code>update</code> method.
+     * <p>
+     * <b>Note</b>: For more information on the paint mechanisms utilitized
+     * by AWT and Swing, including information on how to write the most
+     * efficient painting code, see
+     * <a href="http://java.sun.com/products/jfc/tsc/articles/painting/index.html">Painting in AWT and Swing</a>.
+     *
      * @param     tm   maximum time in milliseconds before update
      * @param     x    the <i>x</i> coordinate
      * @param     y    the <i>y</i> coordinate
@@ -2500,7 +2569,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * incrementally draws an image on the component as more of the bits
      * of the image are available.
      * <p>
-     * If the system property <code>awt.image.incrementalDraw</code>
+     * If the system property <code>awt.image.incrementaldraw</code>
      * is missing or has the value <code>true</code>, the image is
      * incrementally drawn. If the system property has any other value,
      * then the image is not drawn until it has been completely loaded.
@@ -2862,7 +2931,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
     
     /**
      * @return the buffer strategy used by this component
-     * @see createBufferStrategy
+     * @see Window#createBufferStrategy
+     * @see Canvas#createBufferStrategy
      * @since 1.4
      */
     BufferStrategy getBufferStrategy() {
@@ -3254,7 +3324,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
      *
      * @since 1.4
      * @see #getIgnoreRepaint
-     * @see #createBufferStrategy
+     * @see Canvas#createBufferStrategy
+     * @see Window#createBufferStrategy
      * @see java.awt.image.BufferStrategy
      * @see GraphicsDevice#setFullScreenWindow
      */
@@ -4341,7 +4412,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * no exception is thrown and no action is performed.
      *
      * @param    l   the mouse motion listener
-     * @see      java.awt.event.MouseMotionEvent
+     * @see      java.awt.event.MouseEvent
      * @see      java.awt.event.MouseMotionListener
      * @see      #removeMouseMotionListener
      * @see      #getMouseMotionListeners
@@ -4370,7 +4441,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * no exception is thrown and no action is performed.
      *
      * @param    l   the mouse motion listener
-     * @see      java.awt.event.MouseMotionEvent
+     * @see      java.awt.event.MouseEvent
      * @see      java.awt.event.MouseMotionListener
      * @see      #addMouseMotionListener
      * @see      #getMouseMotionListeners
@@ -5052,7 +5123,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * exception.
      *
      * @param       e the mouse motion event
-     * @see         java.awt.event.MouseMotionEvent
+     * @see         java.awt.event.MouseEvent
      * @see         java.awt.event.MouseMotionListener
      * @see         #addMouseMotionListener
      * @see         #enableEvents
@@ -5432,54 +5503,60 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see       #addNotify
      * @since JDK1.0
      */
-    public void removeNotify() {	    
-        synchronized (getTreeLock()) {	    	  
+    public void removeNotify() {
+        KeyboardFocusManager.clearMostRecentFocusOwner(this);
+        if (KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                getPermanentFocusOwner() == this) 
+        {
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                setGlobalPermanentFocusOwner(null);
+        }
+
+        synchronized (getTreeLock()) {
             if (isFocusOwner() && !nextFocusHelper()) {
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().
-		    clearGlobalFocusOwner();
-	    }
-	   
-            KeyboardFocusManager.removeFocusRequest(this);
-	    
-	    int npopups = (popups != null? popups.size() : 0);
-	    for (int i = 0 ; i < npopups ; i++) {
-	        PopupMenu popup = (PopupMenu)popups.elementAt(i);
-		popup.removeNotify();
-	    }
-	    // If there is any input context for this component, notify
-	    // that this component is being removed. (This has to be done
-	    // before hiding peer.)
-	    if (areInputMethodsEnabled()) {
-	        InputContext inputContext = getInputContext();
-		if (inputContext != null) {
-		    inputContext.removeNotify(this);
-		}
-	    }
-	    
-	    ComponentPeer p = peer;
-	    if (p != null) {
-	    
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                    clearGlobalFocusOwner();
+            }
+
+            int npopups = (popups != null? popups.size() : 0);
+            for (int i = 0 ; i < npopups ; i++) {
+                PopupMenu popup = (PopupMenu)popups.elementAt(i);
+                popup.removeNotify();
+            }
+            // If there is any input context for this component, notify
+            // that this component is being removed. (This has to be done
+            // before hiding peer.)
+            if (areInputMethodsEnabled()) {
+                InputContext inputContext = getInputContext();
+                if (inputContext != null) {
+                    inputContext.removeNotify(this);
+                }
+            }
+
+            ComponentPeer p = peer;
+            if (p != null) {
+
                 if (bufferStrategy instanceof FlipBufferStrategy) {
                     ((FlipBufferStrategy)bufferStrategy).destroyBuffers();
                 }
-		
-	        if (dropTarget != null) dropTarget.removeNotify(peer);
-		
-		// Hide peer first to stop system events such as cursor moves.
-		if (visible) {
-		    p.hide();
-		}
 
-		peer = null; // Stop peer updates.
-		peerFont = null;
+                if (dropTarget != null) dropTarget.removeNotify(peer);
 
-		Toolkit.getEventQueue().removeSourceEvents(this);
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().
-		    discardKeyEvents(this);
+                // Hide peer first to stop system events such as cursor moves.
+                if (visible) {
+                    p.hide();
+                }
 
-		p.dispose();		
-	    }
-    
+                peer = null; // Stop peer updates.
+                peerFont = null;
+
+                Toolkit.getEventQueue().removeSourceEvents(this, false);
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                    discardKeyEvents(this);
+
+                p.dispose();
+            }
+
             if (hierarchyListener != null ||
                 (eventMask & AWTEvent.HIERARCHY_EVENT_MASK) != 0 ||
                 Toolkit.enabledOnToolkit(AWTEvent.HIERARCHY_EVENT_MASK)) {
@@ -5568,8 +5645,11 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	isFocusTraversableOverridden = FOCUS_TRAVERSABLE_SET;
  
 	firePropertyChange("focusable", oldFocusable, focusable);
-	if (oldFocusable && !focusable && isFocusOwner()) {
-	    autoTransferFocus(true);
+	if (oldFocusable && !focusable) {
+            if (isFocusOwner()) {
+                autoTransferFocus(true);
+            }
+            KeyboardFocusManager.clearMostRecentFocusOwner(this);
 	}
     }
 
@@ -6056,7 +6136,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
 	// the following code will execute only if this Component is the focus
 	// owner
 
-	if (!(isDisplayable() && isVisible() && isEnabled())) {
+	if (!(isDisplayable() && isVisible() && isEnabled() && isFocusable())) {
 	    doAutoTransfer(clearOnFailure);
 	    return;
 	}
@@ -6205,7 +6285,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      *
      * @see       #requestFocus()
      * @see       Container#isFocusCycleRoot()
-     * @see       Container#setFocusCycleRoot()
+     * @see       Container#setFocusCycleRoot(boolean)
      * @since     1.4
      */
     public void transferFocusUpCycle() {
@@ -6380,7 +6460,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     public void list(PrintStream out, int indent) {
 	for (int i = 0 ; i < indent ; i++) {
-	    out.print("  ");
+	    out.print(" ");
 	}
 	out.println(this);
     }
@@ -6404,7 +6484,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     public void list(PrintWriter out, int indent) {
 	for (int i = 0 ; i < indent ; i++) {
-	    out.print("  ");
+	    out.print(" ");
 	}
 	out.println(this);
     }
@@ -6448,7 +6528,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      *
      * @see #removePropertyChangeListener
      * @see #getPropertyChangeListeners
-     * @see #addPropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)
+     * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
     public synchronized void addPropertyChangeListener(
                              PropertyChangeListener listener) {
@@ -6529,9 +6609,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @param propertyName one of the property names listed above
      * @param listener the PropertyChangeListener to be added
      *
-     * @see #removePropertyChangeListener(java.lang.String)
+     * @see #removePropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      * @see #getPropertyChangeListeners(java.lang.String)
-     * @see #addPropertyChangeListener(java.beans.PropertyChangeListener)
+     * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      */
     public synchronized void addPropertyChangeListener(
                              String propertyName,
@@ -6555,7 +6635,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @param propertyName a valid property name
      * @param listener the PropertyChangeListener to be removed
      *
-     * @see #addPropertyChangeListener(java.lang.String)
+     * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      * @see #getPropertyChangeListeners(java.lang.String)
      * @see #removePropertyChangeListener(java.beans.PropertyChangeListener)
      */
@@ -6576,8 +6656,8 @@ public abstract class Component implements ImageObserver, MenuContainer,
      *         the named property or an empty array if no listeners have 
      *         been added
      *
-     * @see #addPropertyChangeListener(java.lang.String)
-     * @see #removePropertyChangeListener(java.lang.String)
+     * @see #addPropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
+     * @see #removePropertyChangeListener(java.lang.String, java.beans.PropertyChangeListener)
      * @see #getPropertyChangeListeners
      * @since 1.4
      */

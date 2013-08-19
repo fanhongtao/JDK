@@ -1,5 +1,5 @@
 /*
- * @(#)MarshalInputStream.java	1.27 01/12/03
+ * @(#)MarshalInputStream.java	1.29 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -69,4 +69,16 @@ public interface MarshalInputStream {
      * to the desired value prior to calling.
      */
     public void performORBVersionSpecificInit();
+
+    /**
+     * Tells the input stream to null any code set converter
+     * references, forcing it to reacquire them if it needs
+     * converters again.  This is used when the server
+     * input stream needs to switch the connection's char code set
+     * converter to something different after reading the
+     * code set service context for the first time.  Initially,
+     * we use ISO8859-1 to read the operation name (it can't
+     * be more than ASCII).  
+     */
+    public void resetCodeSetConverters();
 }

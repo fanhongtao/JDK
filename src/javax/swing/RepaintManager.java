@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.50 02/05/16
+ * @(#)RepaintManager.java	1.51 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ import sun.security.action.GetPropertyAction;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.50 05/16/02
+ * @version 1.51 04/18/02
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -261,12 +261,12 @@ public class RepaintManager
 		return;
 	    }
 	    if ((p instanceof Window) || (p instanceof Applet)) {
-		// Iconified frames are still visible!
-		if (p instanceof Frame &&
-			(((Frame)p).getExtendedState() & Frame.ICONIFIED) ==
-				Frame.ICONIFIED) {
-			return;
-		}
+                // Iconified frames are still visible!
+                if (p instanceof Frame &&
+                        (((Frame)p).getExtendedState() & Frame.ICONIFIED) ==
+                                    Frame.ICONIFIED) {
+                    return;
+                }
 		root = p;
 		break;
 	    }
@@ -422,7 +422,6 @@ public class RepaintManager
         Component component, rootDirtyComponent,parent;
 	//Rectangle tmp;
         Rectangle cBounds;
-        boolean opaqueAncestorFound = false;
 
         // Find the highest parent which is dirty.  When we get out of this
         // rootDx and rootDy will contain the translation from the
@@ -447,9 +446,6 @@ public class RepaintManager
             return;
         } 
 
-        if(dirtyComponent.isOpaque())
-            opaqueAncestorFound = true;
-
         for(;;) {
             parent = component.getParent();
             if(parent == null) 
@@ -459,9 +455,6 @@ public class RepaintManager
                 break;
 
             component = parent;
-
-            if(((JComponent)component).isOpaque())
-                opaqueAncestorFound = true;
 
             dx += cBounds.x;
             dy += cBounds.y;

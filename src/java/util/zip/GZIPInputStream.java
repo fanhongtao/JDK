@@ -1,5 +1,5 @@
 /*
- * @(#)GZIPInputStream.java	1.23 01/12/03
+ * @(#)GZIPInputStream.java	1.24 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import java.io.EOFException;
  * the GZIP format.
  *
  * @see		InflaterInputStream
- * @version 	1.23, 12/03/01
+ * @version 	1.24, 02/06/02
  * @author 	David Connelly
  *
  */
@@ -54,6 +54,7 @@ class GZIPInputStream extends InflaterInputStream {
      */
     public GZIPInputStream(InputStream in, int size) throws IOException {
 	super(in, new Inflater(true), size);
+        usesDefaultInflater = true;
 	readHeader();
 	crc.reset();
     }
@@ -98,10 +99,11 @@ class GZIPInputStream extends InflaterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-	inf.end();
-	in.close();
-	eos = true;
-        closed = true;
+        if (!closed) {
+            super.close();	
+            eos = true;
+            closed = true;
+        }
     }
 
     /**
@@ -200,14 +202,16 @@ class GZIPInputStream extends InflaterInputStream {
 	return b;
     }
 
+
+    private byte[] tmpbuf = new byte[128];
+
     /*
      * Skips bytes of input data blocking until all bytes are skipped.
      * Does not assume that the input stream is capable of seeking.
      */
     private void skipBytes(InputStream in, int n) throws IOException {
-	byte[] buf = new byte[128];
 	while (n > 0) {
-	    int len = in.read(buf, 0, n < buf.length ? n : buf.length);
+	    int len = in.read(tmpbuf, 0, n < tmpbuf.length ? n : tmpbuf.length);
 	    if (len == -1) {
 		throw new EOFException();
 	    }

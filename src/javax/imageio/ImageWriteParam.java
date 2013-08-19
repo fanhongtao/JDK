@@ -1,5 +1,5 @@
 /*
- * @(#)ImageWriteParam.java	1.58 01/12/03
+ * @(#)ImageWriteParam.java	1.59 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1177,6 +1177,11 @@ public class ImageWriteParam extends IIOParam {
      * to perform the compression (for example, by optimizing row
      * filters and setting the ZLIB compression level when writing
      * PNG images).
+     *
+     * <p> A compression quality setting of 0.0 is most generically
+     * interpreted as "high compression is important," while a setting of
+     * 1.0 is most generically interpreted as "high image quality is
+     * important."
      *
      * <p> If there are multiple compression types but none has been
      * set, an <code>IllegalStateException</code> is thrown.

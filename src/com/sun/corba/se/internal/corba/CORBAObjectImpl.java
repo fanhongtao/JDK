@@ -1,5 +1,5 @@
 /*
- * @(#)CORBAObjectImpl.java	1.12 01/12/03
+ * @(#)CORBAObjectImpl.java	1.13 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ package com.sun.corba.se.internal.corba;
 //
 // Bare implementation of CORBA Object.
 //
-public class CORBAObjectImpl extends org.omg.CORBA.portable.ObjectImpl {
+public class CORBAObjectImpl extends org.omg.CORBA_2_3.portable.ObjectImpl {
     public String[] _ids() {
 	String[] typeids = new String[1];
 	typeids[0] = "IDL:omg.org/CORBA/Object:1.0";

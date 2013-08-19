@@ -1,5 +1,5 @@
 /*
- * @(#)BasicFileChooserUI.java	1.42 01/12/03
+ * @(#)BasicFileChooserUI.java	1.45 02/04/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -647,7 +647,8 @@ public class BasicFileChooserUI extends FileChooserUI {
 	    super("Go Home");
 	}
 	public void actionPerformed(ActionEvent e) {
-	    getFileChooser().setCurrentDirectory(null);
+	    JFileChooser fc = getFileChooser();
+	    fc.setCurrentDirectory(fc.getFileSystemView().getHomeDirectory());
 	}
     }
 
@@ -722,6 +723,8 @@ public class BasicFileChooserUI extends FileChooserUI {
 		    if (filename.endsWith("\"")) {
 			filename = filename.substring(0, filename.length()-1);
 		    }
+		    File[] children = null;
+		    int childIndex = 0;
 		    do {
 			String str;
 			int i = filename.indexOf("\" \"");
@@ -734,7 +737,18 @@ public class BasicFileChooserUI extends FileChooserUI {
 			}
 			File file = fs.createFileObject(str);
 			if (!file.isAbsolute()) {
-			    file = fs.getChild(dir, str);
+			    if (children == null) {
+				children = fs.getFiles(dir, false);
+				Arrays.sort(children);
+			    }
+			    for (int k = 0; k < children.length; k++) {
+				int l = (childIndex + k) % children.length;
+				if (children[l].getName().equals(str)) {
+				    file = children[l];
+				    childIndex = l + 1;
+				    break;
+				}
+			    }
 			}
 			fList.add(file);
 		    } while (filename.length() > 0);
@@ -1085,21 +1099,40 @@ public class BasicFileChooserUI extends FileChooserUI {
 		    }
 		}
 	    }
-	    if (values != null) {
-		return new FileTransferable(values);
-	    } else {
+	    if (values == null || values.length == 0) {
 		return null;
 	    }
+
+            StringBuffer plainBuf = new StringBuffer();
+            StringBuffer htmlBuf = new StringBuffer();
+		
+            htmlBuf.append("<html>\n<body>\n<ul>\n");
+
+            for (int i = 0; i < values.length; i++) {
+                Object obj = values[i];
+                String val = ((obj == null) ? "" : obj.toString());
+                plainBuf.append(val + "\n");
+                htmlBuf.append("  <li>" + val + "\n");
+            }
+            
+            // remove the last newline
+            plainBuf.deleteCharAt(plainBuf.length() - 1);
+            htmlBuf.append("</ul>\n</body>\n</html>");
+            
+            return new FileTransferable(plainBuf.toString(), htmlBuf.toString(), values);
 	}
 
         public int getSourceActions(JComponent c) {
 	    return COPY;
 	}
 
-	static class FileTransferable extends BasicListUI.ListTransferHandler.ListTransferable {
+	static class FileTransferable extends BasicTransferable {
+	    
+	    Object[] fileData;
 
-	    FileTransferable(Object[] selectedValues) {
-		super(selectedValues);
+	    FileTransferable(String plainData, String htmlData, Object[] fileData) {
+		super(plainData, htmlData);
+		this.fileData = fileData;
 	    }
 
 	    /** 
@@ -1117,7 +1150,6 @@ public class BasicFileChooserUI extends FileChooserUI {
             protected Object getRicherData(DataFlavor flavor) {
 		if (DataFlavor.javaFileListFlavor.equals(flavor)) {
 		    ArrayList files = new ArrayList();
-		    Object[] fileData = getSelectedValues();
 		    for (int i = 0; i < fileData.length; i++) {
 			files.add(fileData[i]);
 		    }

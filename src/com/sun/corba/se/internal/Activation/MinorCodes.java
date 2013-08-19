@@ -15,7 +15,7 @@ import com.sun.corba.se.internal.orbutil.ORBConstants;
  * The minor code numbers for POA/JavaIDLx start with 101 to distinguish
  * them from JavaIDL minor codes which start from 1. 
  * 
- * @version     1.16, 02/01/30
+ * @version     1.16, 02/08/29
  * @author      Rohit Garg
  * @since       JDK1.2
  */

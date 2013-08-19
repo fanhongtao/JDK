@@ -1,5 +1,5 @@
 /*
- * @(#)MotifLookAndFeel.java	1.153 01/12/03
+ * @(#)MotifLookAndFeel.java	1.155 02/06/03
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -44,7 +44,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.153 12/03/01
+ * @version 1.155 06/03/02
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -528,7 +528,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
               }),
 
 	    "CheckBox.textIconGap", new Integer(8),
-	    "CheckBox.margin", new InsetsUIResource(2, 2, 6, 2),
+	    "CheckBox.margin", new InsetsUIResource(4, 2, 4, 2),
             "CheckBox.icon", checkBoxIcon,
             "CheckBox.focus", table.get("activeCaptionBorder"),
 	    "CheckBox.focusInputMap",
@@ -537,7 +537,7 @@ public class MotifLookAndFeel extends BasicLookAndFeel
                    "released SPACE", "released"
 		 }),
 
-	    "RadioButton.margin", new InsetsUIResource(2, 2, 6, 2),
+	    "RadioButton.margin", new InsetsUIResource(4, 2, 4, 2),
 	    "RadioButton.textIconGap", new Integer(8),
             "RadioButton.background", table.get("control"),
             "RadioButton.foreground", table.get("controlText"),
@@ -784,8 +784,10 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		      "HOME", "selectMin",
 		       "END", "selectMax",
 		        "F8", "startResize",
-		        "F6", "toggleFocus"
-		 }),
+		        "F6", "toggleFocus",
+		  "ctrl TAB", "focusOutForward",
+ 	    "ctrl shift TAB", "focusOutBackward"
+	       }),
 
             "TabbedPane.font", dialogPlain12,
             "TabbedPane.background", table.get("control"),

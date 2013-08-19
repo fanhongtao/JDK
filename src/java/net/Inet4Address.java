@@ -1,5 +1,5 @@
 /*
- * @(#)Inet4Address.java	1.16 01/12/03
+ * @(#)Inet4Address.java	1.20 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -112,8 +112,16 @@ class Inet4Address extends InetAddress {
 	// will replace the to be serialized 'this' object
 	InetAddress inet = new InetAddress();
 	inet.hostName = this.hostName;
-	inet.family = this.family;
 	inet.address = this.address;
+
+	/**
+	 * Prior to 1.4 an InetAddress was created with a family
+  	 * based on the platform AF_INET value (usually 2).
+         * For compatibility reasons we must therefore write the
+	 * the InetAddress with this family.
+	 */
+	inet.family = 2;
+
 	return inet;
     }
 
@@ -183,7 +191,7 @@ class Inet4Address extends InetAddress {
 	// 192.168/16 prefix
 	return (((address >>> 24) & 0xFF) == 10)
 	    || ((((address >>> 24) & 0xFF) == 172) 
-		&& (((address >>> 16) & 0xFF) >= 16))
+		&& (((address >>> 16) & 0xF0) == 16))
 	    || ((((address >>> 24) & 0xFF) == 192) 
 		&& (((address >>> 16) & 0xFF) == 168));
     }
@@ -389,47 +397,4 @@ class Inet4Address extends InetAddress {
      * Perform class load-time initializations.
      */
     private static native void init();
-}
-
-/*
- * An IPv4 impl
- */
-class Inet4AddressImpl implements InetAddressImpl {
-    public native String getLocalHostName() throws UnknownHostException;
-    public native byte[][]
-        lookupAllHostAddr(String hostname) throws UnknownHostException;
-    public native String getHostByAddr(byte[] addr) throws UnknownHostException;
-
-    public synchronized InetAddress anyLocalAddress() {
-	if (anyLocalAddress == null) {
-	    anyLocalAddress = new Inet4Address(); // {0x00,0x00,0x00,0x00}
-	    anyLocalAddress.hostName = "0.0.0.0";
-	}
-	return anyLocalAddress;
-    }
-
-    public synchronized InetAddress loopbackAddress() {
-	if (loopbackAddress == null) {
-	    byte[] loopback = {0x7f,0x00,0x00,0x01};
-            loopbackAddress = new Inet4Address("localhost", loopback);
-	}
-	return loopbackAddress;
-    }
-
-    public synchronized InetAddress localHost() {
-	if (localHost == null) {
-	    /* find the local host name */
-            try {
-		String host = getLocalHostName();
-		localHost = InetAddress.getAllByName(host)[0];
-            } catch (Exception ex) { /* this shouldn't happen */
-                localHost = new Inet4Address();
-            }
-	}
-	return localHost;
-    }
-
-    private InetAddress      anyLocalAddress;
-    private InetAddress      loopbackAddress;
-    private InetAddress      localHost;
 }

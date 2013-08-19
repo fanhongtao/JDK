@@ -1,5 +1,5 @@
 /*
- * @(#)LoginContext.java	1.92 01/12/03
+ * @(#)LoginContext.java	1.93 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -120,7 +120,7 @@ import sun.security.util.ResourcesMgr;
  * do not affect the <code>LoginModule</code> state, or the
  * LoginModule-specific options.
  * 
- * @version 1.92, 12/03/01
+ * @version 1.93, 02/21/02
  * @see javax.security.auth.Subject
  * @see javax.security.auth.callback.CallbackHandler
  * @see javax.security.auth.login.Configuration
@@ -143,7 +143,7 @@ public class LoginContext {
     private Map state = new HashMap();
 
     private Configuration config;
-    private AppConfigurationEntry[] moduleStack;
+    private ModuleInfo[] moduleStack;
     private ClassLoader contextClassLoader = null;
     private static final Class[] PARAMS = { };
 
@@ -173,22 +173,33 @@ public class LoginContext {
 	}
 
 	// get the LoginModules configured for this application
-	moduleStack = config.getAppConfigurationEntry(name);
-	if (moduleStack == null) {
+	AppConfigurationEntry[] entries = config.getAppConfigurationEntry(name);
+	if (entries == null) {
 
 	    if (sm != null) {
 		sm.checkPermission(new AuthPermission
 				("createLoginContext." + OTHER));
 	    }
 
-	    moduleStack = config.getAppConfigurationEntry(OTHER);
-	    if (moduleStack == null) {
+	    entries = config.getAppConfigurationEntry(OTHER);
+	    if (entries == null) {
 		MessageFormat form = new MessageFormat(ResourcesMgr.getString
 			("No LoginModules configured for name"));
 		Object[] source = {name};
 		throw new LoginException(form.format(source));
 	    }
 	}
+	moduleStack = new ModuleInfo[entries.length];
+	for (int i = 0; i < entries.length; i++) {
+	    // clone returned array
+	    moduleStack[i] = new ModuleInfo
+				(new AppConfigurationEntry
+					(entries[i].getLoginModuleName(),
+					entries[i].getControlFlag(),
+					entries[i].getOptions()),
+				null);
+	}
+
 
 	contextClassLoader =
 		(ClassLoader)java.security.AccessController.doPrivileged
@@ -624,7 +635,7 @@ public class LoginContext {
 
 		    // instantiate the LoginModule
 		    Class c = Class.forName
-				(moduleStack[i].getLoginModuleName(),
+				(moduleStack[i].entry.getLoginModuleName(),
 				true,
 				contextClassLoader);
 
@@ -643,10 +654,10 @@ public class LoginContext {
 			    break;
 		    }
 
-		    Object[] initArgs = {	subject,
-						callbackHandler,
-						state,
-						moduleStack[i].getOptions() };
+		    Object[] initArgs = {subject,
+					callbackHandler,
+					state,
+					moduleStack[i].entry.getOptions() };
 		    // invoke the LoginModule initialize method
 		    methods[mIndex].invoke(moduleStack[i].module, initArgs);
 		}
@@ -669,7 +680,7 @@ public class LoginContext {
 		    // if SUFFICIENT, return if no prior REQUIRED errors
 		    if (!methodName.equals(ABORT_METHOD) &&
 		        !methodName.equals(LOGOUT_METHOD) &&
-			moduleStack[i].getControlFlag() ==
+			moduleStack[i].entry.getControlFlag() ==
 		    AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT &&
 			firstRequiredError == null) {
 
@@ -690,7 +701,7 @@ public class LoginContext {
 		MessageFormat form = new MessageFormat(ResourcesMgr.getString
 			("unable to instantiate LoginModule, module, because " +
 			"it does not provide a no-argument constructor"));
-		Object[] source = {moduleStack[i].getLoginModuleName()};
+		Object[] source = {moduleStack[i].entry.getLoginModuleName()};
 		throw new LoginException(form.format(source));
 	    } catch (InstantiationException ie) {
 		throw new LoginException(ResourcesMgr.getString
@@ -719,7 +730,7 @@ public class LoginContext {
 		    le = new LoginException(sw.toString());
 		}
 
-		if (moduleStack[i].getControlFlag() ==
+		if (moduleStack[i].entry.getControlFlag() ==
 		    AppConfigurationEntry.LoginModuleControlFlag.REQUISITE) {
 
 		    if (debug != null)
@@ -734,7 +745,7 @@ public class LoginContext {
 			throwException(firstRequiredError, le);
 		    }
 
-		} else if (moduleStack[i].getControlFlag() ==
+		} else if (moduleStack[i].entry.getControlFlag() ==
 		    AppConfigurationEntry.LoginModuleControlFlag.REQUIRED) {
 
 		    if (debug != null)
@@ -779,7 +790,7 @@ public class LoginContext {
      * and invoke it within a privileged block, constrained by
      * the caller's AccessControlContext.
      */
-    private class SecureCallbackHandler implements CallbackHandler {
+    private static class SecureCallbackHandler implements CallbackHandler {
 
 	private final java.security.AccessControlContext acc;
 	private final CallbackHandler ch;
@@ -809,6 +820,20 @@ public class LoginContext {
 		    throw (UnsupportedCallbackException)pae.getException();
 		}
 	    }
+	}
+    }
+
+    /**
+     * LoginModule information -
+     *		incapsulates Configuration info and actual module instances
+     */
+    private static class ModuleInfo {
+	AppConfigurationEntry entry;
+	Object module;
+
+	ModuleInfo(AppConfigurationEntry newEntry, Object newModule) {
+	    this.entry = newEntry;
+	    this.module = newModule;
 	}
     }
 }

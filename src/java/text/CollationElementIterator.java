@@ -1,5 +1,5 @@
 /*
- * @(#)CollationElementIterator.java	1.40 01/12/03
+ * @(#)CollationElementIterator.java	1.42 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -380,10 +380,9 @@ public final class CollationElementIterator
         if (text != null) {
             if (newOffset < text.getBeginIndex()
                 || newOffset >= text.getEndIndex()) {
-                    text.setIndex(newOffset);
+                    text.setIndexOnly(newOffset);
             } else {
-                text.setIndex(newOffset);
-	        char c = text.previous();
+                char c = text.setIndex(newOffset);
                 // if the desired character isn't used in a contracting character
                 // sequence, bypass all the backing-up logic-- we're sitting on
                 // the right character already
@@ -402,8 +401,11 @@ public final class CollationElementIterator
                         last = text.getIndex();
                         next();
                     }
-                    text.setIndex(last);
-		    text.previous();
+                    text.setIndexOnly(last);
+		    // we don't need this, since last is the last index 
+		    // that is the starting of the contraction which encompass
+		    // newOffset 
+		    // text.previous();
                 }
             }
         }

@@ -1,5 +1,5 @@
 /*
- * @(#)DeflaterOutputStream.java	1.30 01/12/03
+ * @(#)DeflaterOutputStream.java	1.31 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import java.io.IOException;
  * types of compression filters, such as GZIPOutputStream.
  *
  * @see		Deflater
- * @version 	1.30, 12/03/01
+ * @version 	1.31, 02/06/02
  * @author 	David Connelly
  */
 public
@@ -33,6 +33,12 @@ class DeflaterOutputStream extends FilterOutputStream {
      */
     protected byte[] buf;
    
+    /**
+     * Indicates that the stream has been closed.
+     */
+
+    private boolean closed = false;
+
     /**
      * Creates a new output stream with the specified compressor and
      * buffer size.
@@ -62,7 +68,7 @@ class DeflaterOutputStream extends FilterOutputStream {
 	this(out, def, 512);
     }
 
-    private boolean usesDefaultDeflater = false;
+    boolean usesDefaultDeflater = false;
 
     /**
      * Creates a new output stream with a defaul compressor and buffer size.
@@ -131,10 +137,13 @@ class DeflaterOutputStream extends FilterOutputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-        finish();
-        if (usesDefaultDeflater)
-            def.end();
-        out.close();
+        if (!closed) {
+            finish();
+            if (usesDefaultDeflater)
+                def.end();
+            out.close();
+            closed = true;
+        }
     }
 
     /**

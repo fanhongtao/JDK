@@ -1,5 +1,5 @@
 /*
- * @(#)JFileChooser.java	1.92 01/12/03
+ * @(#)JFileChooser.java	1.96 02/04/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,7 +61,7 @@ import java.awt.event.*;
  *   attribute: isContainer false
  * description: A component which allows for the interactive selection of a file.
  *
- * @version 1.92 12/03/01
+ * @version 1.96 04/11/02
  * @author Jeff Dinkins
  *
  */
@@ -444,7 +444,7 @@ public class JFileChooser extends JComponent implements Accessible {
 	File oldValue = selectedFile;
 	selectedFile = file;
 	if(selectedFile != null) {
-	    if (!getFileSystemView().isParent(getCurrentDirectory(), selectedFile)) {
+	    if (file.isAbsolute() && !getFileSystemView().isParent(getCurrentDirectory(), selectedFile)) {
 		setCurrentDirectory(selectedFile.getParentFile());
 	    }
 	    if (!isMultiSelectionEnabled() || selectedFiles == null || selectedFiles.length > 1) {
@@ -1118,7 +1118,7 @@ public class JFileChooser extends JComponent implements Accessible {
 
     /**
      * Returns the <code>AcceptAll</code> file filter.
-     * For example, on Win32 this would be All Files (*.*).
+     * For example, on Microsoft Windows this would be All Files (*.*).
      */
     public FileFilter getAcceptAllFileFilter() {
 	FileFilter filter = null;
@@ -1279,9 +1279,8 @@ public class JFileChooser extends JComponent implements Accessible {
 
     /**
      * Sets the file chooser to allow multiple file selections.
-     * <p>
-     * NOTE: this functionality is not yet implemented in the current L&Fs.
      *
+     * @param b true if multiple files may be selected
      * @beaninfo
      *       bound: true
      * description: Sets multiple file selection mode.

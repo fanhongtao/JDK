@@ -1,5 +1,5 @@
 /*
- * @(#)Collections.java	1.59 01/12/03
+ * @(#)Collections.java	1.63 02/05/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import java.io.Serializable;
  * already sorted may or may not throw <tt>UnsupportedOperationException</tt>.
  *
  * @author  Josh Bloch
- * @version 1.59, 12/03/01
+ * @version 1.63, 05/12/02
  * @see	    Collection
  * @see	    Set
  * @see	    List
@@ -89,8 +89,7 @@ public class Collections {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n log(n) performance, and can approach linear performance on nearly
-     * sorted lists.<p>
+     * n log(n) performance. 
      *
      * This implementation dumps the specified list into an array, sorts
      * the array, and iterates over the list resetting each element
@@ -128,8 +127,7 @@ public class Collections {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n log(n) performance, and can approach linear performance on nearly
-     * sorted lists.<p>
+     * n log(n) performance. 
      *
      * The specified list must be modifiable, but need not be resizable.
      * This implementation dumps the specified list into an array, sorts
@@ -1177,6 +1175,23 @@ public class Collections {
 	public List subList(int fromIndex, int toIndex) {
             return new UnmodifiableList(list.subList(fromIndex, toIndex));
         }
+
+        /**
+         * UnmodifiableRandomAccessList instances are serialized as
+         * UnmodifiableList instances to allow them to be deserialized
+         * in pre-1.4 JREs (which do not have UnmodifiableRandomAccessList).
+         * This method inverts the transformation.  As a beneficial
+         * side-effect, it also grafts the RandomAccess marker onto
+         * UnmodifiableList instances that were serialized in pre-1.4 JREs.
+         *
+         * Note: Unfortunately, UnmodifiableRandomAccessList instances
+         * serialized in 1.4.1 and deserialized in 1.4 will become
+         * UnmodifiableList instances, as this method was missing in 1.4.
+         */
+        private Object readResolve() {
+            return (list instanceof RandomAccess ?
+                    new UnmodifiableRandomAccessList(list) : this);
+        }
     }
 
     /**
@@ -1192,6 +1207,18 @@ public class Collections {
 	public List subList(int fromIndex, int toIndex) {
             return new UnmodifiableRandomAccessList(
                 list.subList(fromIndex, toIndex));
+        }
+
+        private static final long serialVersionUID = -2542308836966382001L;
+
+        /**
+         * Allows instances to be deserialized in pre-1.4 JREs (which do
+         * not have UnmodifiableRandomAccessList).  UnmodifiableList has
+         * a readResolve method that inverts this transformation upon
+         * deserialization.
+         */
+        private Object writeReplace() {
+            return new UnmodifiableList(list);
         }
     }
 
@@ -1789,6 +1816,23 @@ public class Collections {
                                             mutex);
             }
         }
+
+        /**
+         * SynchronizedRandomAccessList instances are serialized as
+         * SynchronizedList instances to allow them to be deserialized
+         * in pre-1.4 JREs (which do not have SynchronizedRandomAccessList).
+         * This method inverts the transformation.  As a beneficial
+         * side-effect, it also grafts the RandomAccess marker onto
+         * SynchronizedList instances that were serialized in pre-1.4 JREs.
+         *
+         * Note: Unfortunately, SynchronizedRandomAccessList instances
+         * serialized in 1.4.1 and deserialized in 1.4 will become
+         * SynchronizedList instances, as this method was missing in 1.4.
+         */
+        private Object readResolve() {
+            return (list instanceof RandomAccess ?
+                    new SynchronizedRandomAccessList(list) : this);
+        }
     }
 
     /**
@@ -1810,6 +1854,18 @@ public class Collections {
                 return new SynchronizedRandomAccessList(
                     list.subList(fromIndex, toIndex), mutex);
             }
+        }
+
+        static final long serialVersionUID = 1530674583602358482L;
+
+        /**
+         * Allows instances to be deserialized in pre-1.4 JREs (which do
+         * not have SynchronizedRandomAccessList).  SynchronizedList has
+         * a readResolve method that inverts this transformation upon
+         * deserialization.
+         */
+        private Object writeReplace() {
+            return new SynchronizedList(list);
         }
     }
 
@@ -2371,7 +2427,13 @@ public class Collections {
         public int compare(Object o1, Object o2) {
             Comparable c1 = (Comparable)o1;
             Comparable c2 = (Comparable)o2;
-            return -c1.compareTo(c2);
+
+            int cmp = c1.compareTo(c2);
+            /*
+             * We can't simply return -cmp, as -Integer.MIN_VALUE == 
+             * Integer.MIN_VALUE.
+             */
+            return -(cmp | (cmp >>> 1));
         }
     }
 

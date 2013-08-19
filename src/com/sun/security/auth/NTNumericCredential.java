@@ -1,5 +1,5 @@
 /*
- * @(#)NTNumericCredential.java	1.11 01/12/03
+ * @(#)NTNumericCredential.java	1.12 02/02/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,12 +11,12 @@ package com.sun.security.auth;
  * <p> This class abstracts an NT security token
  * and provides a mechanism to do same-process security impersonation.
  *
- * @version 1.11, 12/03/01
+ * @version 1.12, 02/19/02
  */
 
 public class NTNumericCredential {
 
-    private int impersonationToken;
+    private long impersonationToken;
     
     /**
      * Create an <code>NTNumericCredential</code> with an integer value.
@@ -26,7 +26,7 @@ public class NTNumericCredential {
      * @param token the Windows NT security token for this user. <p>
      *
      */
-    public NTNumericCredential(int token) {
+    public NTNumericCredential(long token) {
         this.impersonationToken = token;
     }
     
@@ -39,7 +39,7 @@ public class NTNumericCredential {
      * @return an integer representation of this
      *		<code>NTNumericCredential</code>.
      */
-    public int getToken() {
+    public long getToken() {
         return impersonationToken;
     }
     
@@ -55,7 +55,7 @@ public class NTNumericCredential {
 		(sun.security.util.ResourcesMgr.getString
 			("NTNumericCredential: name",
 			"sun.security.util.AuthResources"));
-	Object[] source = {Integer.toString(impersonationToken)};
+	Object[] source = {Long.toString(impersonationToken)};
 	return form.format(source);
     }
     
@@ -97,6 +97,6 @@ public class NTNumericCredential {
      * @return a hash code for this <code>NTNumericCredential</code>.
      */
     public int hashCode() {
-	return this.impersonationToken;
+	return (int)this.impersonationToken;
     }
 }

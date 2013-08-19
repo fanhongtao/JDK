@@ -1,5 +1,5 @@
 /*
- * @(#)Class.java	1.140 01/12/03
+ * @(#)Class.java	1.146 02/05/14
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import sun.misc.Unsafe;
 import sun.reflect.Reflection;
@@ -55,6 +56,15 @@ import sun.reflect.SignatureIterator;
  *         System.out.println("The class of " + obj +
  *                            " is " + obj.getClass().getName());
  *     }
+ * </pre></blockquote>
+ * 
+ * <p> It is also possible to get the <code>Class</code> object for a named
+ * type (or for void) using a class literal 
+ * (JLS Section <A HREF="http://java.sun.com/docs/books/jls/second_edition/html/expressions.doc.html#251530">15.8.2</A>). 
+ * For example:
+ *
+ * <p> <blockquote><pre>
+ *     System.out.println("The name of class Foo is: "+Foo.class.getName());
  * </pre></blockquote>
  *
  * @author  unascribed
@@ -874,6 +884,7 @@ class Class implements java.io.Serializable {
      * <code>name</code>
      * @exception NoSuchFieldException if a field with the specified name is
      *              not found.
+     * @exception NullPointerException if <code>name</code> is <code>null</code>
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Field
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -935,7 +946,8 @@ class Class implements java.io.Serializable {
      * @return the <code>Method</code> object that matches the specified
      * <code>name</code> and <code>parameterTypes</code>
      * @exception NoSuchMethodException if a matching method is not found
-     *            or if then name is "&lt;init&gt;"or "&lt;clinit&gt;".
+     *            or if the name is "&lt;init&gt;"or "&lt;clinit&gt;".
+     * @exception NullPointerException if <code>name</code> is <code>null</code>
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Method
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -1161,6 +1173,7 @@ class Class implements java.io.Serializable {
      * class
      * @exception NoSuchFieldException if a field with the specified name is
      *              not found.
+     * @exception NullPointerException if <code>name</code> is <code>null</code>
      * @exception SecurityException    if access to the information is denied.
      * @see       java.lang.reflect.Field
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -1204,6 +1217,7 @@ class Class implements java.io.Serializable {
      * @return    the <code>Method</code> object for the method of this class
      * matching the specified name and parameters
      * @exception NoSuchMethodException if a matching method is not found.
+     * @exception NullPointerException if <code>name</code> is <code>null</code>
      * @exception SecurityException     if access to the information is denied.
      * @see       java.lang.reflect.Method
      * @see       SecurityManager#checkMemberAccess(Class, int)
@@ -1636,7 +1650,7 @@ class Class implements java.io.Serializable {
 
         // No cached value available; compute value recursively.
         // Start by fetching public declared methods
-        List methods = new LinkedList();
+	HashSet methods = new LinkedHashSet();
         {
             Method[] tmp = privateGetDeclaredMethods(true);
             addAll(methods, tmp);
@@ -1739,7 +1753,7 @@ class Class implements java.io.Serializable {
                 return getReflectionFactory().copyMethod(methods[i]);
             }
         }
-        throw new NoSuchMethodException(name);
+        throw new NoSuchMethodException(getName() + "." + name + argumentTypesToString(parameterTypes));
     }
 
     private Constructor getConstructor0(Class[] parameterTypes,
@@ -1752,7 +1766,7 @@ class Class implements java.io.Serializable {
                 return getReflectionFactory().copyConstructor(constructors[i]);
             }
         }
-        throw new NoSuchMethodException();
+        throw new NoSuchMethodException(getName() + ".<init>" + argumentTypesToString(parameterTypes));
     }
 
     //
@@ -1813,6 +1827,21 @@ class Class implements java.io.Serializable {
     private native Constructor[] getDeclaredConstructors0(boolean publicOnly);
     private native Class[]       getDeclaredClasses0();
 
+    private static String        argumentTypesToString(Class[] argTypes) {
+        StringBuffer buf = new StringBuffer();
+        buf.append("(");
+        if (argTypes != null) {
+            for (int i = 0; i < argTypes.length; i++) {
+                if (i > 0) {
+                    buf.append(", ");
+                }
+		Class c = argTypes[i];
+		buf.append((c == null) ? "null" : c.getName());
+            }
+        }
+        buf.append(")");
+        return buf.toString();
+    }
 
     /** use serialVersionUID from JDK 1.1 for interoperability */
     private static final long serialVersionUID = 3206093459760846163L;

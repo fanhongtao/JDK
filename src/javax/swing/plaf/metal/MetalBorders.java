@@ -1,5 +1,5 @@
 /*
- * @(#)MetalBorders.java	1.28 01/12/03
+ * @(#)MetalBorders.java	1.29 02/02/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * Factory object that can vend Borders appropriate for the metal L & F.
  * @author Steve Wilson
- * @version 1.28 12/03/01
+ * @version 1.29 02/13/02
  */
 
 public class MetalBorders {
@@ -67,15 +67,17 @@ public class MetalBorders {
 	    ButtonModel model = button.getModel();
 
 	    if ( model.isEnabled() ) {
-	        if ( model.isPressed() && model.isArmed() ) {
-	            MetalUtils.drawPressed3DBorder( g, x, y, w, h );
-	        }
-	        else {
-	            if ((button instanceof JButton)&&((JButton)button).isDefaultButton()) {
-		      MetalUtils.drawDefaultButtonBorder( g, x, y, w, h, button.hasFocus() && false );
-		    } else {
-		        MetalUtils.drawButtonBorder( g, x, y, w, h, button.hasFocus() && false);
-		    }
+                boolean isPressed = model.isPressed() && model.isArmed();
+                boolean isDefault = (button instanceof JButton && ((JButton)button).isDefaultButton());
+
+	        if (isPressed && isDefault) {
+                    MetalUtils.drawDefaultButtonPressedBorder(g, x, y, w, h);
+                } else if (isPressed) {
+                    MetalUtils.drawPressed3DBorder( g, x, y, w, h );
+	        } else if (isDefault) {
+                    MetalUtils.drawDefaultButtonBorder( g, x, y, w, h, false);
+                } else {
+                    MetalUtils.drawButtonBorder( g, x, y, w, h, false);
 	        }
 	    } else { // disabled state
 	        MetalUtils.drawDisabledBorder( g, x, y, w-1, h-1 );

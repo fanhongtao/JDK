@@ -1,5 +1,5 @@
 /*
- * @(#)EventSetDescriptor.java	1.53 01/12/03
+ * @(#)EventSetDescriptor.java	1.54 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -66,7 +66,8 @@ public class EventSetDescriptor extends FeatureDescriptor {
 						listenerMethodName, 1);
 
 	Class[] args = listenerMethods[0].getParameterTypes();
-	if (!args[0].getName().endsWith(eventName)) {
+	// Check for EventSet compliance. Special case for vetoableChange. See 4529996
+	if (!"vetoableChange".equals(eventSetName) && !args[0].getName().endsWith(eventName)) {
 	    throw new IntrospectionException("Method \"" + listenerMethodName +
 					     "\" should have argument \"" + 
 					     eventName + "\"");

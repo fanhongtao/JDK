@@ -1,5 +1,5 @@
 /*
- * @(#)FileSystemView.java	1.34 01/12/03
+ * @(#)FileSystemView.java	1.36 02/04/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import sun.awt.shell.*;
  * Java Licensees may want to provide a different implementation of
  * FileSystemView to better handle a given operating system.
  *
- * @version 1.34 12/03/01
+ * @version 1.36 04/10/02
  * @author Jeff Dinkins
  */
 
@@ -391,13 +391,16 @@ public abstract class FileSystemView {
 
 	int nameCount = (names == null) ? 0 : names.length;
 	for (int i = 0; i < nameCount; i++) {
+	    if (Thread.currentThread().isInterrupted()) {
+		break;
+	    }
 	    f = names[i];
 	    if (!(f instanceof ShellFolder)) {
 		if (isFileSystemRoot(f)) {
 		    f = createFileSystemRoot(f);
 		}
 		try {
-		    ShellFolder.getShellFolder(f);
+		    f = ShellFolder.getShellFolder(f);
 		} catch (FileNotFoundException e) {
 		    // Not a valid file (wouldn't show in native file chooser)
 		    // Example: C:\pagefile.sys
@@ -483,7 +486,7 @@ public abstract class FileSystemView {
 
 
 
-    class FileSystemRoot extends File {
+    static class FileSystemRoot extends File {
 	public FileSystemRoot(File f) {
 	    super(f,"");
 	}

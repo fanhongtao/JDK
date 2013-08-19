@@ -1,5 +1,5 @@
 /*
- * @(#)URLEncoder.java	1.25 01/12/03
+ * @(#)URLEncoder.java	1.26 02/04/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -56,7 +56,7 @@ import sun.security.action.GetPropertyAction;
  * character @ is encoded as one byte 40 (hex).
  *
  * @author  Herb Jellinek
- * @version 1.25, 12/03/01
+ * @version 1.26, 04/15/02
  * @since   JDK1.0
  */
 public class URLEncoder {
@@ -174,6 +174,7 @@ public class URLEncoder {
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
      * @see URLDecoder#decode(java.lang.String, java.lang.String)
+     * @since 1.4
      */
     public static String encode(String s, String enc) 
 	throws UnsupportedEncodingException {

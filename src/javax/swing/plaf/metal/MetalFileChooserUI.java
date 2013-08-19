@@ -1,5 +1,5 @@
 /*
- * @(#)MetalFileChooserUI.java	1.63 02/10/07
+ * @(#)MetalFileChooserUI.java	1.65 02/07/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.63 10/07/02
+ * @version 1.65 07/10/02
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -471,7 +471,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     protected ActionMap createActionMap() {
         AbstractAction escAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-		if(editFile != null) {
+		if (editFile != null) {
 		    cancelEdit();
 		} else {
 		    getFileChooser().cancelSelection();
@@ -660,7 +660,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 			FileSystemView fsv = chooser.getFileSystemView();
 			File f2 = fsv.createFileObject(f.getParentFile(), newFileName);
 			if (!f2.exists() && MetalFileChooserUI.this.getModel().renameFile(f, f2)) {
-
 			    if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
 				if (chooser.isMultiSelectionEnabled()) {
 				    chooser.setSelectedFiles(new File[] { f2 });
@@ -755,6 +754,9 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	detailsTable.setShowGrid(false);
 	detailsTable.setSelectionModel(listSelectionModel); 
 	detailsTable.putClientProperty("JTable.autoStartsEdit", Boolean.FALSE);
+
+	Font font = detailsTable.getFont();
+	detailsTable.setRowHeight(Math.max(font.getSize(), 19)+3);
 
 	TableColumnModel columnModel = detailsTable.getColumnModel();
 	TableColumn[] columns = new TableColumn[COLUMN_COLCOUNT];
@@ -1080,19 +1082,19 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	    String newDisplayName = editCell.getText().trim();
 	    String newFileName;
 
-		if (!newDisplayName.equals(oldDisplayName)) {
-		    newFileName = newDisplayName;
-		    //Check if extension is hidden from user
-		    int i1 = oldFileName.length();
-		    int i2 = oldDisplayName.length();
-		    if (i1 > i2 && oldFileName.charAt(i2) == '.') {
-			newFileName = newDisplayName + oldFileName.substring(i2);
-		    }
+	    if (!newDisplayName.equals(oldDisplayName)) {
+		newFileName = newDisplayName;
+		//Check if extension is hidden from user
+		int i1 = oldFileName.length();
+		int i2 = oldDisplayName.length();
+		if (i1 > i2 && oldFileName.charAt(i2) == '.') {
+		    newFileName = newDisplayName + oldFileName.substring(i2);
+		}
 
-		    // rename
-		    FileSystemView fsv = chooser.getFileSystemView();
-		    File f2 = fsv.createFileObject(editFile.getParentFile(), newFileName);
-		    if (!f2.exists() && getModel().renameFile(editFile, f2)) {
+		// rename
+		FileSystemView fsv = chooser.getFileSystemView();
+		File f2 = fsv.createFileObject(editFile.getParentFile(), newFileName);
+		if (!f2.exists() && getModel().renameFile(editFile, f2)) {
 			if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
 			    if (chooser.isMultiSelectionEnabled()) {
 				chooser.setSelectedFiles(new File[] { f2 });
@@ -1105,7 +1107,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 			}
 		    } else {
 			// PENDING(jeff) - show a dialog indicating failure
-		    }
+		}
 	    }
 	}
         if (detailsTable != null && detailsTable.isEditing()) {
@@ -1288,11 +1290,9 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		|| (f.isDirectory() && fc.isDirectorySelectionEnabled()))) {
 
 	    setFileName(fileNameString(f));
-	    } else {
-	    setFileName(null);
+	    setFileSelected();
 	}
-	setFileSelected();
-	    }
+    }
     
     private void doSelectedFilesChanged(PropertyChangeEvent e) {
 	applyEdit();
@@ -1302,10 +1302,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	    && files.length > 0
 	    && (files.length > 1 || fc.isDirectorySelectionEnabled() || !files[0].isDirectory())) {
 	    setFileName(fileNameString(files));
-	} else {
-	    setFileName(null);
+	    setFileSelected();
 	}
-	setFileSelected();
     }
     
     private void doDirectoryChanged(PropertyChangeEvent e) {
@@ -1320,19 +1318,15 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	File currentDirectory = fc.getCurrentDirectory();
 	if(currentDirectory != null) {
 	    directoryComboBoxModel.addItem(currentDirectory);
-	    // Currently can not create folder in the Desktop folder on Windows
-	    // (ShellFolder limitation)
-	    getNewFolderAction().setEnabled(fsv.isFileSystem(currentDirectory)
-					    && currentDirectory.canWrite());
+	    getNewFolderAction().setEnabled(currentDirectory.canWrite());
 	    getChangeToParentDirectoryAction().setEnabled(!fsv.isRoot(currentDirectory));
 
-	    if (fc.isDirectorySelectionEnabled()
-		&& !fc.isFileSelectionEnabled()
-		&& fsv.isFileSystem(currentDirectory)) {
-
-		setFileName(currentDirectory.getPath());
-	    } else {
-		setFileName(null);
+	    if (fc.isDirectorySelectionEnabled() && !fc.isFileSelectionEnabled()) {
+		if (fsv.isFileSystem(currentDirectory)) {
+		    setFileName(currentDirectory.getPath());
+		} else {
+		    setFileName(null);
+		}
 	    }
 	}
     }

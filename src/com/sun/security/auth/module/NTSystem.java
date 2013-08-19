@@ -1,5 +1,5 @@
 /*
- * @(#)NTSystem.java	1.5 01/12/03
+ * @(#)NTSystem.java	1.6 02/02/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ public class NTSystem {
     private String userSID;
     private String groupIDs[];
     private String primaryGroupID;
-    private int impersonationToken;
+    private long impersonationToken;
     
     static boolean loadedLibrary = false;
 
@@ -123,7 +123,7 @@ public class NTSystem {
      *
      * @return an impersonation token for the current NT user.
      */
-    public int getImpersonationToken() {
+    public long getImpersonationToken() {
         return impersonationToken;
     }
     

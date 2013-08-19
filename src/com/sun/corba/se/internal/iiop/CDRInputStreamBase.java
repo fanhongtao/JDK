@@ -1,5 +1,5 @@
 /*
- * @(#)CDRInputStreamBase.java	1.12 01/12/03
+ * @(#)CDRInputStreamBase.java	1.13 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -219,4 +219,6 @@ abstract class CDRInputStreamBase extends java.io.InputStream
     abstract void alignOnBoundary(int octetBoundary);
 
     abstract void performORBVersionSpecificInit();
+
+    public abstract void resetCodeSetConverters();
 }

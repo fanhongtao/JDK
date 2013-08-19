@@ -1,5 +1,5 @@
 /*
- * @(#)Calendar.java	1.69 01/12/03
+ * @(#)Calendar.java	1.70 02/01/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -258,7 +258,7 @@ import sun.util.calendar.ZoneInfo;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.69, 12/03/01
+ * @version      1.70, 01/22/02
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1277,7 +1277,11 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     public void setFirstDayOfWeek(int value)
     {
+	if (firstDayOfWeek == value) {
+	    return;
+	}
         firstDayOfWeek = value;
+	invalidateWeekFields();
     }
 
     /**
@@ -1300,7 +1304,11 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     public void setMinimalDaysInFirstWeek(int value)
     {
+        if (minimalDaysInFirstWeek == value) {
+	    return;
+	}
         minimalDaysInFirstWeek = value;
+	invalidateWeekFields();
     }
 
     /**
@@ -1582,6 +1590,24 @@ public abstract class Calendar implements Serializable, Cloneable {
 	    }
 	}
 	nextStamp = newStamp;
+    }
+
+    /**
+     * Invalidates the WEEK_OF_MONTH and WEEK_OF_YEAR fields if they
+     * have been calculated internally.
+     */
+    private void invalidateWeekFields()
+    {
+	if (stamp[WEEK_OF_MONTH] == INTERNALLY_SET) {
+	    stamp[WEEK_OF_MONTH] = UNSET;
+	    isSet[WEEK_OF_MONTH] = false;
+	    areFieldsSet = false;
+	}
+	if (stamp[WEEK_OF_YEAR] == INTERNALLY_SET) {
+	    stamp[WEEK_OF_YEAR] = UNSET;
+	    isSet[WEEK_OF_YEAR] = false;
+	    areFieldsSet = false;
+	}
     }
 
     /**

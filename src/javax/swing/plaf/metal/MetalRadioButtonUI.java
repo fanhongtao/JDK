@@ -1,5 +1,5 @@
 /*
- * @(#)MetalRadioButtonUI.java	1.23 01/12/03
+ * @(#)MetalRadioButtonUI.java	1.24 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import javax.swing.text.View;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.23 12/03/01
+ * @version 1.24 04/02/02
  * @author Michael C. Albers (Metal modifications)
  * @author Jeff Dinkins (original BasicRadioButtonCode)
  */
@@ -105,6 +105,12 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
         Rectangle viewRect = new Rectangle(size);
         Rectangle iconRect = new Rectangle();
         Rectangle textRect = new Rectangle();
+
+        Insets i = c.getInsets();
+	viewRect.x += i.left;
+        viewRect.y += i.top;
+        viewRect.width -= (i.right + viewRect.x);
+        viewRect.height -= (i.bottom + viewRect.y);
 
         Icon altIcon = b.getIcon();
         Icon selectedIcon = null;

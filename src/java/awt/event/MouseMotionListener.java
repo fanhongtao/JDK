@@ -1,5 +1,5 @@
 /*
- * @(#)MouseMotionListener.java	1.12 01/12/03
+ * @(#)MouseMotionListener.java	1.13 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import java.util.EventListener;
  * the <code>MouseEvent</code> is passed to it.
  *
  * @author Amy Fowler
- * @version 1.12, 12/03/01
+ * @version 1.13, 04/17/02
  *
  * @see MouseMotionAdapter
  * @see MouseEvent
@@ -51,8 +51,8 @@ public interface MouseMotionListener extends EventListener {
     public void mouseDragged(MouseEvent e);
 
     /**
-     * Invoked when the mouse button has been moved on a component
-     * (with no buttons down).
+     * Invoked when the mouse cursor has been moved onto a component
+     * but no buttons have been pushed.
      */
     public void mouseMoved(MouseEvent e);
 

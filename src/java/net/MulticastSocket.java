@@ -1,5 +1,5 @@
 /*
- * @(#)MulticastSocket.java	1.63 01/12/03
+ * @(#)MulticastSocket.java	1.65 02/03/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -318,7 +318,9 @@ class MulticastSocket extends DatagramSocket {
      * 
      * @param mcastaddr is the multicast address to join
      * @param netIf specifies the local interface to receive multicast
-     *        datagram packets
+     *        datagram packets, or <i>null</i> to defer to the interface set by
+     *	     {@link MulticastSocket#setInterface(InetAddress)} or 
+     *	     {@link MulticastSocket#setNetworkInterface(NetworkInterface)}
      *
      * @exception IOException if there is an error joining
      * or when the address is not a multicast address.
@@ -362,7 +364,10 @@ class MulticastSocket extends DatagramSocket {
      * as its argument.
      * 
      * @param mcastaddr is the multicast address to leave
-     * @param netIf specifies the local interface 
+     * @param netIf specifies the local interface or <i>null</i> to defer
+     *		   to the interface set by
+     *		   {@link MulticastSocket#setInterface(InetAddress)} or 
+     *		   {@link MulticastSocket#setNetworkInterface(NetworkInterface)}
      * @exception IOException if there is an error leaving
      * or when the address is not a multicast address.
      * @exception  SecurityException  if a security manager exists and its  
@@ -503,7 +508,7 @@ class MulticastSocket extends DatagramSocket {
      * @exception SocketException if there is an error in 
      * the underlying protocol, such as a TCP error. 
      * @return the multicast <code>NetworkInterface</code> currently set
-     * @see #setNetworkInterface()
+     * @see #setNetworkInterface(NetworkInterface)
      * @since 1.4
      */
     public NetworkInterface getNetworkInterface() throws SocketException {

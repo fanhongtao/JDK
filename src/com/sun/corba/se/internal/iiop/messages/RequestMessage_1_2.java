@@ -1,5 +1,5 @@
 /*
- * @(#)RequestMessage_1_2.java	1.12 01/12/03
+ * @(#)RequestMessage_1_2.java	1.13 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -121,7 +121,8 @@ public final class RequestMessage_1_2 extends Message_1_2
         this.target = TargetAddressHelper.read(istream);
         getObjectKey(); // this does AddressingDisposition check
         this.operation = istream.read_string();
-        this.service_contexts = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream, GIOPVersion.V1_2);
+        this.service_contexts 
+            = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
 
         // CORBA formal 00-11-0 15.4.2.2 GIOP 1.2 body must be
         // aligned on an 8 octet boundary.

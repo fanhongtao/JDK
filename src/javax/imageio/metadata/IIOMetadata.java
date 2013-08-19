@@ -1,5 +1,5 @@
 /*
- * @(#)IIOMetadata.java	1.35 01/12/03
+ * @(#)IIOMetadata.java	1.36 02/04/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -714,10 +714,10 @@ public abstract class IIOMetadata {
      *
      * @exception IllegalStateException if this object is read-only.
      *
-     * @see ImageReader#getStreamMetadata
-     * @see ImageReader#getImageMetadata
-     * @see ImageWriter#getDefaultStreamMetadata
-     * @see ImageWriter#getDefaultImageMetadata
+     * @see javax.imageio.ImageReader#getStreamMetadata
+     * @see javax.imageio.ImageReader#getImageMetadata
+     * @see javax.imageio.ImageWriter#getDefaultStreamMetadata
+     * @see javax.imageio.ImageWriter#getDefaultImageMetadata
      */
     public abstract void reset();
 

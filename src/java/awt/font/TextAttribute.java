@@ -1,5 +1,5 @@
 /*
- * @(#)TextAttribute.java	1.40 01/12/03
+ * @(#)TextAttribute.java	1.41 02/03/14
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -166,7 +166,7 @@ public final class TextAttribute extends Attribute {
      * <TD VALIGN="TOP">Float</TD></TR>
      * <TR>
      * <TH VALIGN="TOP" ALIGN="RIGHT"><P ALIGN=RIGHT>Constants</TH>
-     * <TD VALIGN="TOP">WEIGHT_ULTRA_LIGHT = 0.25,<BR>
+     * <TD VALIGN="TOP">
      * WEIGHT_EXTRA_LIGHT = 0.5,<BR>
      * WEIGHT_LIGHT = 0.75,<BR>
      * WEIGHT_DEMILIGHT = 0.875,<BR>

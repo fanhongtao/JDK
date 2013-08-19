@@ -1,5 +1,5 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.37 01/12/03
+ * @(#)SubjectDomainCombiner.java	1.38 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.util.Iterator;
  * with Principals from the <code>Subject</code> associated with this
  * <code>SubjectDomainCombiner</code>.
  *
- * @version 1.37, 12/03/01 
+ * @version 1.38, 02/01/02 
  */
 public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
@@ -102,7 +102,7 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
      * for each <code>ProtectionDomain</code> in the
      * <i>currentDomains</i> array.  Each new <code>ProtectionDomain</code>
      * instance is created using the <code>CodeSource</code>,
-     * <code>Permissions</code> and <code>ClassLoader</code>
+     * <code>Permission</code>s and <code>ClassLoader</code>
      * from the corresponding <code>ProtectionDomain</code> in
      * <i>currentDomains</i>, as well as with the Principals from
      * the <code>Subject</code> associated with this

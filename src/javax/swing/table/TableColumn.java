@@ -1,5 +1,5 @@
 /*
- * @(#)TableColumn.java	1.54 01/12/03
+ * @(#)TableColumn.java	1.56 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,6 +36,14 @@ import java.beans.PropertyChangeListener;
  *  cells in this column. As the column moves around in the view this
  *  <code>modelIndex</code> does not change.
  *  <p>
+ * <b>Note:</b> Some implementations may assume that all 
+ *    <code>TableColumnModel</code>s are unique, therefore we would 
+ *    recommend that the same <code>TableColumn</code> instance
+ *    not be added more than once to a <code>TableColumnModel</code>.
+ *    To show <code>TableColumn</code>s with the same column of
+ *    data from the model, create a new instance with the same
+ *    <code>modelIndex</code>.
+ *  <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -45,7 +53,7 @@ import java.beans.PropertyChangeListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.54 12/03/01
+ * @version 1.56 04/17/02
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.table.TableColumnModel
@@ -250,7 +258,7 @@ public class TableColumn extends Object implements Serializable {
 
     private void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {
         if (oldValue != newValue) {
-            firePropertyChange(propertyName, new Boolean(oldValue), new Boolean(newValue));
+            firePropertyChange(propertyName, Boolean.valueOf(oldValue), Boolean.valueOf(newValue));
         }
     }
 

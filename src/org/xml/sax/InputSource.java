@@ -1,6 +1,6 @@
 // SAX input source.
 // No warranty; no copyright -- use this as you will.
-// $Id: InputSource.java,v 1.1.1.1 2000/11/23 01:53:36 edwingo Exp $
+// $Id: InputSource.java,v 1.1 2001/05/20 03:12:56 curcuru Exp $
 
 package org.xml.sax;
 
@@ -40,7 +40,7 @@ import java.io.InputStream;
  * @since SAX 1.0
  * @author David Megginson, 
  *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0
+ * @version 2.0r2pre
  * @see org.xml.sax.Parser#parse
  * @see org.xml.sax.EntityResolver#resolveEntity
  * @see java.io.InputStream
@@ -191,7 +191,7 @@ public class InputSource {
      *
      * <p>If the system ID is a URL, it will be fully resolved.</p>
      *
-     * @return The system identifier.
+     * @return The system identifier, or null if none was supplied.
      * @see #setSystemId
      * @see #getEncoding
      */

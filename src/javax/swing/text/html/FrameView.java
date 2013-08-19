@@ -1,5 +1,5 @@
 /*
- * @(#)FrameView.java	1.21 01/12/03
+ * @(#)FrameView.java	1.22 02/01/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * marginwidth and marginheight attributes.
  *
  * @author    Sunita Mani
- * @version   1.21, 12/03/01
+ * @version   1.22, 01/09/02
  */
 
 class FrameView extends ComponentView implements HyperlinkListener {
@@ -136,10 +136,15 @@ class FrameView extends ComponentView implements HyperlinkListener {
     private void setMargin() {
 	int margin = 0;
 	Insets in = htmlPane.getMargin();
-	Insets newInsets = new Insets(in.top, in.left, in.right, in.bottom);
+	Insets newInsets;
 	boolean modified = false;
 	AttributeSet attributes = getElement().getAttributes();
 	String marginStr = (String)attributes.getAttribute(HTML.Attribute.MARGINWIDTH);
+	if ( in != null) {
+	    newInsets = new Insets(in.top, in.left, in.right, in.bottom);
+	} else {
+	    newInsets = new Insets(0,0,0,0);
+	}
 	if (marginStr != null) {
 	    margin = Integer.parseInt(marginStr);
 	    if (margin > 0) {

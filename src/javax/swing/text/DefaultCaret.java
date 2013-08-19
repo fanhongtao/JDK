@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultCaret.java	1.116 01/12/03
+ * @(#)DefaultCaret.java	1.118 02/03/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -88,7 +88,7 @@ import java.util.EventListener;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.116 12/03/01
+ * @version 1.118 03/04/02
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -290,19 +290,15 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 	    int nclicks = e.getClickCount();
 	    if (SwingUtilities.isLeftMouseButton(e)) {
 		// mouse 1 behavior
-		if (nclicks == 1) {
-		    adjustCaretAndFocus(e);
-		} else {
-		    if(e.getClickCount() == 2) {
-			Action a = new DefaultEditorKit.SelectWordAction();
-			a.actionPerformed(new ActionEvent(getComponent(),
-							  ActionEvent.ACTION_PERFORMED, null, e.getWhen(), e.getModifiers()));
-		    } else if(e.getClickCount() == 3) {
-			Action a = new DefaultEditorKit.SelectLineAction();
-			a.actionPerformed(new ActionEvent(getComponent(),
-							  ActionEvent.ACTION_PERFORMED, null, e.getWhen(), e.getModifiers()));
-		    } 
-		}
+		if(e.getClickCount() == 2) {
+		    Action a = new DefaultEditorKit.SelectWordAction();
+		    a.actionPerformed(new ActionEvent(getComponent(),
+						      ActionEvent.ACTION_PERFORMED, null, e.getWhen(), e.getModifiers()));
+		} else if(e.getClickCount() == 3) {
+		    Action a = new DefaultEditorKit.SelectLineAction();
+		    a.actionPerformed(new ActionEvent(getComponent(),
+						      ActionEvent.ACTION_PERFORMED, null, e.getWhen(), e.getModifiers()));
+		} 
 	    } else if (SwingUtilities.isMiddleMouseButton(e)) {
 		// mouse 2 behavior
 		if (nclicks == 1) {
@@ -346,9 +342,14 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * @see MouseListener#mousePressed
      */
     public void mousePressed(MouseEvent e) {
-	if((! e.isConsumed()) && SwingUtilities.isLeftMouseButton(e)) {
-	    adjustCaretAndFocus(e);
-	}
+        if (SwingUtilities.isLeftMouseButton(e)) {
+            if (e.isConsumed()) {
+                shouldHandleRelease = true;
+            } else {
+                shouldHandleRelease = false;
+                adjustCaretAndFocus(e);
+            }
+        }
     }
 
     void adjustCaretAndFocus(MouseEvent e) {
@@ -392,6 +393,9 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * @see MouseListener#mouseReleased
      */
     public void mouseReleased(MouseEvent e) {
+        if (shouldHandleRelease && SwingUtilities.isLeftMouseButton(e)) {
+            adjustCaretAndFocus(e);
+        }
     }
 
     /**
@@ -1282,6 +1286,13 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * to a forward delete) the visual location is updated.
      */
     private boolean forceCaretPositionChange;
+    
+    /**
+     * Whether or not mouseReleased should adjust the caret and focus.
+     * This flag is set by mousePressed if it wanted to adjust the caret
+     * and focus but couldn't because of a possible DnD operation.
+     */
+    private transient boolean shouldHandleRelease;
 
     class SafeScroller implements Runnable {
 	

@@ -1,5 +1,5 @@
 /*
- * @(#)Point.java	1.34 01/12/03
+ * @(#)Point.java	1.35 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ import java.awt.geom.Point2D;
  * A point representing a location in (x, y) coordinate space, specified
  * in integer precision.
  *
- * @version 	1.34, 12/03/01
+ * @version 	1.35, 03/20/02
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -134,8 +134,8 @@ public class Point extends Point2D implements java.io.Serializable {
     }	
 
     /**
-     * Sets the location of this point to the specified float coordinates.
-     * The float values will be rounded to integer values.
+     * Sets the location of this point to the specified double coordinates.
+     * The double values will be rounded to integer values.
      * Any number smaller than <code>Integer.MIN_VALUE</code>
      * will be reset to <code>MIN_VALUE</code>, and any number
      * larger than <code>Integer.MAX_VALUE</code> will be

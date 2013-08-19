@@ -1,5 +1,5 @@
 /*
- * @(#)EncapsInputStream.java	1.9 01/12/04
+ * @(#)EncapsInputStream.java	1.10 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,6 +10,7 @@ package com.sun.corba.se.internal.corba;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.MARSHAL;
 import org.omg.CORBA.CompletionStatus;
+import com.sun.org.omg.SendingContext.CodeBase;
 import com.sun.corba.se.internal.core.*;
 import com.sun.corba.se.internal.iiop.CDRInputStream;
 import com.sun.corba.se.internal.orbutil.MinorCodes;
@@ -64,6 +65,24 @@ public class EncapsInputStream extends CDRInputStream
         performORBVersionSpecificInit();
     }
 
+    /**
+     * Full constructor with a CodeBase parameter useful for
+     * unmarshaling RMI-IIOP valuetypes (technically against the
+     * intention of an encapsulation, but necessary due to OMG
+     * issue 4795.  Used by ServiceContexts.
+     */
+    public EncapsInputStream(ORB orb, 
+                             byte[] data, 
+                             int size, 
+                             GIOPVersion version, 
+                             CodeBase codeBase) {
+        super(orb, data, size, false, version, false);
+
+        this.codeBase = codeBase;
+
+        performORBVersionSpecificInit();
+    }
+
     public CDRInputStream dup() {
         return new EncapsInputStream(this);
     }
@@ -94,4 +113,10 @@ public class EncapsInputStream extends CDRInputStream
         return CodeSetConversion.impl().getBTCConverter(OSFCodeSetRegistry.UTF_16,
                                                         false);
     }
+
+    public CodeBase getCodeBase() {
+        return codeBase;
+    }
+
+    private CodeBase codeBase;
 }

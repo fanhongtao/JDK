@@ -1,5 +1,5 @@
 /*
- * @(#)ActivationGroup.java	1.39 01/12/03
+ * @(#)ActivationGroup.java	1.41 02/04/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -76,7 +76,7 @@ import sun.security.action.GetIntegerAction;
  * manager you would like to install.
  *
  * @author 	Ann Wollrath
- * @version	1.39, 01/12/03
+ * @version	1.41, 02/04/08
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID
@@ -175,7 +175,7 @@ public abstract class ActivationGroup
     public boolean inactiveObject(ActivationID id)
 	throws ActivationException, UnknownObjectException, RemoteException 
     {
-	monitor.inactiveObject(id);
+	getMonitor().inactiveObject(id);
 	return true;
     }
 
@@ -279,78 +279,72 @@ public abstract class ActivationGroup
 					  "cannot be recreated");
 
 	try {
-	    try {
-		// load group's class
-		String groupClassName = desc.getClassName();
+	    // load group's class
+	    String groupClassName = desc.getClassName();
 
-		/*
-		 * Fix for 4252236: resolution of the default
-		 * activation group implementation name should be
-		 * delayed until now.
-		 */
-		if (groupClassName == null) {
-		    groupClassName = sun.rmi.server.ActivationGroupImpl.
-			class.getName();
-		}
+	    /*
+	     * Fix for 4252236: resolution of the default
+	     * activation group implementation name should be
+	     * delayed until now.
+	     */
+	    if (groupClassName == null) {
+		groupClassName = sun.rmi.server.ActivationGroupImpl.class.getName();
+	    }
 		
-		final String className = groupClassName;
+	    final String className = groupClassName;
 		
-		/*
-		 * Fix for 4170955: Because the default group
-		 * implementation is a sun.* class, the group class
-		 * needs to be loaded in a privileged block of code.  
-		 */
-		Class cl;
-		try {
-		    cl = (Class) java.security.AccessController.
-			doPrivileged(new PrivilegedExceptionAction() {
-			    public Object run() throws ClassNotFoundException, 
-				MalformedURLException 
+	    /*
+	     * Fix for 4170955: Because the default group
+	     * implementation is a sun.* class, the group class
+	     * needs to be loaded in a privileged block of code.  
+	     */
+	    Class cl;
+	    try {
+		cl = (Class) java.security.AccessController.
+		    doPrivileged(new PrivilegedExceptionAction() {
+			public Object run() throws ClassNotFoundException, 
+			    MalformedURLException 
 			    {
 				return RMIClassLoader.
 				    loadClass(desc.getLocation(), className);
 			    }
-			});
-		} catch (PrivilegedActionException pae) {
-		    throw new ActivationException("Could not load default group " + 
-						  "implementation class", 
-						  pae.getException());
-		}
+		    });
+	    } catch (PrivilegedActionException pae) {
+		throw new ActivationException("Could not load default group " + 
+					      "implementation class", 
+					      pae.getException());
+	    }
 		
-		// create group
-		Constructor constructor = cl.getConstructor(groupConstrParams);
-		Object[] params = new Object[] { id, desc.getData() };
+	    // create group
+	    Constructor constructor = cl.getConstructor(groupConstrParams);
+	    Object[] params = new Object[] { id, desc.getData() };
 
-		Object obj = constructor.newInstance(params);
-		if (obj instanceof ActivationGroup) {
-		    currGroup = (ActivationGroup)obj;
-		    currGroupID = id;
-		    currSystem = id.getSystem();
-		    currGroup.incarnation = incarnation;
-		    currGroup.monitor =
-			currSystem.activeGroup(id, currGroup, incarnation);
-		    canCreate = false;
-		} else {
-		    throw new ActivationException("group not correct class: " +
-						  obj.getClass().getName());
-		}
-	    } catch (java.lang.reflect.InvocationTargetException e) {
+	    Object obj = constructor.newInstance(params);
+	    if (obj instanceof ActivationGroup) {
+		ActivationGroup newGroup = (ActivationGroup) obj;
+		currSystem = id.getSystem();
+		newGroup.incarnation = incarnation;
+		newGroup.monitor =
+		    currSystem.activeGroup(id, newGroup, incarnation);
+		currGroup = newGroup;
+		currGroupID = id;
+		canCreate = false;
+	    } else {
+		throw new ActivationException("group not correct class: " +
+					      obj.getClass().getName());
+	    }
+	} catch (java.lang.reflect.InvocationTargetException e) {
 		e.getTargetException().printStackTrace();
 		throw new ActivationException("exception in group constructor",
 					      e.getTargetException());
 		
-	    } catch (ActivationException e) {
-		throw e;
-	    
-	    } catch (Exception e) {
-		throw new ActivationException("exception creating group", e);
-	    }
-
 	} catch (ActivationException e) {
-	    destroyGroup();
-	    canCreate = true;
 	    throw e;
+	    
+	} catch (Exception e) {
+	    throw new ActivationException("exception creating group", e);
 	}
+	
 	return currGroup;
     }
 
@@ -406,6 +400,7 @@ public abstract class ActivationGroup
      * (Note: The default implementation of the security manager 
      * <code>checkSetFactory</code>
      * method requires the RuntimePermission "setFactory")
+     * @see #getSystem
      * @see SecurityManager#checkSetFactory
      * @since 1.2
      */
@@ -439,6 +434,7 @@ public abstract class ActivationGroup
      * @exception ActivationException if activation system cannot be
      *  obtained or is not bound
      * (means that it is not running)
+     * @see #setSystem
      * @since 1.2
      */
     public static synchronized ActivationSystem getSystem()
@@ -477,7 +473,7 @@ public abstract class ActivationGroup
     protected void activeObject(ActivationID id, MarshalledObject mobj)
 	throws ActivationException, UnknownObjectException, RemoteException
     {
-	monitor.activeObject(id, mobj);
+	getMonitor().activeObject(id, mobj);
     }
 
     /**
@@ -495,12 +491,24 @@ public abstract class ActivationGroup
 	throws UnknownGroupException, RemoteException
     {
 	try {
-	    monitor.inactiveGroup(groupID, incarnation);
+	    getMonitor().inactiveGroup(groupID, incarnation);
 	} finally {
 	    destroyGroup();
 	}
     }
 
+    /**
+     * Returns the monitor for the activation group.
+     */
+    private ActivationMonitor getMonitor() throws RemoteException {
+	synchronized (ActivationGroup.class) {
+	    if (monitor != null) {
+		return monitor;
+	    }
+	}
+	throw new RemoteException("monitor not received");
+    }
+    
     /**
      * Destroys the current group.
      */

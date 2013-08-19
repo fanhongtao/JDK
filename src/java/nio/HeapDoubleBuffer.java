@@ -1,5 +1,5 @@
 /*
- * @(#)Heap-X-Buffer.java	1.24 01/12/03
+ * @(#)Heap-X-Buffer.java	1.26 02/05/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -82,7 +82,7 @@ class HeapDoubleBuffer
 					0,
 					this.remaining(),
 					this.remaining(),
-					this.position());
+					this.position() + offset);
     }
 
     public DoubleBuffer duplicate() {
@@ -183,6 +183,12 @@ class HeapDoubleBuffer
 	    System.arraycopy(sb.hb, sb.ix(sb.position()),
 			     hb, ix(position()), n);
 	    sb.position(sb.position() + n);
+	    position(position() + n);
+	} else if (src.isDirect()) {
+	    int n = src.remaining();
+	    if (n > remaining())
+		throw new BufferOverflowException();
+	    src.get(hb, ix(position()), n);
 	    position(position() + n);
 	} else {
 	    super.put(src);

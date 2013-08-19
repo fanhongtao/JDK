@@ -1,5 +1,5 @@
 /*
- * @(#)Connection.java	1.81 01/12/03
+ * @(#)Connection.java	1.84 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -182,7 +182,7 @@ abstract public class Connection
     abstract IOR getCodeBaseIOR();
     abstract CodeBase getCodeBase();
 
-    public CodeSetComponentInfo.CodeSetContext getCodeSetContext() {
+    public synchronized CodeSetComponentInfo.CodeSetContext getCodeSetContext() {
         // Needs to be synchronized for the following case when the client
         // doesn't send the code set context twice, and we have two threads
         // in ServerDelegate processCodeSetContext.
@@ -191,17 +191,13 @@ abstract public class Connection
         //     it calls setCodeSetContext, getting the synch lock.
         // Thread B checks to see if there is a context.  If we didn't synch,
         //     it might decide to outlaw wchar/wstring.
-        if (codeSetContext == null) {
-            synchronized(this) {
-                return codeSetContext;
-            }
-        }
-
         return codeSetContext;
     }
 
     public synchronized void setCodeSetContext(CodeSetComponentInfo.CodeSetContext csc) {
-        // Double check whether or not we need to do this
+        // Check whether or not we should set this.  Technically,
+        // someone should only send a duplicate code set service context,
+        // but this makes sure we always use the first one we got.
         if (codeSetContext == null) {
             
             if (OSFCodeSetRegistry.lookupEntry(csc.getCharCodeSet()) == null ||

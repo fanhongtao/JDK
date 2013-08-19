@@ -1,5 +1,5 @@
 /*
- * @(#)TextOutputCallback.java	1.11 01/12/03
+ * @(#)TextOutputCallback.java	1.12 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,11 +9,11 @@ package javax.security.auth.callback;
 
 /**
  * <p> Underlying security services instantiate and pass a
- * <code>TextOutputCallback</code> to the <code>invokeCallback</code>
+ * <code>TextOutputCallback</code> to the <code>handle</code>
  * method of a <code>CallbackHandler</code> to display information messages,
  * warning messages and error messages.
  *
- * @version 1.11, 12/03/01
+ * @version 1.12, 02/25/02
  * @see javax.security.auth.callback.CallbackHandler
  */
 public class TextOutputCallback implements Callback, java.io.Serializable {

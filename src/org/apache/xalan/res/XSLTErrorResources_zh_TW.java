@@ -1,5 +1,5 @@
 /*
- * @(#)XSLTErrorResources_zh_TW.java	1.8 01/12/04
+ * @(#)XSLTErrorResources_zh_TW.java	1.10 02/03/26
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -83,7 +83,7 @@ import org.apache.xalan.templates.Constants;
  * fill in the actual message string. Follow the instructions
  * below.
  */
-public class XSLTErrorResources_zh_TW extends XResourceBundleBase
+public class XSLTErrorResources_zh_TW extends XSLTErrorResources
 {
 
   /** The error suffix for construction error property keys.   */
@@ -2551,151 +2551,5 @@ public class XSLTErrorResources_zh_TW extends XResourceBundleBase
   public Object[][] getContents()
   {
     return contents;
-  }
-
-  /**
-   *   Return a named ResourceBundle for a particular locale.  This method mimics the behavior
-   *   of ResourceBundle.getBundle().
-   *  
-   *   @param className the name of the class that implements the resource bundle.
-   *   @return the ResourceBundle
-   *   @throws MissingResourceException
-   */
-  public static final XSLTErrorResources loadResourceBundle(String className)
-          throws MissingResourceException
-  {
-
-    Locale locale = Locale.getDefault();
-    String suffix = getResourceSuffix(locale);
-
-    try
-    {
-
-      // first try with the given locale
-      return (XSLTErrorResources) ResourceBundle.getBundle(className
-              + suffix, locale);
-    }
-    catch (MissingResourceException e)
-    {
-      try  // try to fall back to en_US if we can't load
-      {
-
-        // Since we can't find the localized property file,
-        // fall back to en_US.
-        return (XSLTErrorResources) ResourceBundle.getBundle(className,
-                new Locale("en", "US"));
-      }
-      catch (MissingResourceException e2)
-      {
-
-        // Now we are really in trouble.
-        // very bad, definitely very bad...not going to get very far
-        throw new MissingResourceException(
-          "\u7121\u6cd5\u8f09\u5165\u4efb\u4f55\u8cc7\u6e90\u675f\u3002", className, "");
-      }
-    }
-  }
-
-  /**
-   * Return the resource file suffic for the indicated locale
-   * For most locales, this will be based the language code.  However
-   * for Chinese, we do distinguish between Taiwan and PRC
-   *
-   * @param locale the locale
-   * @return an String suffix which canbe appended to a resource name
-   */
-  private static final String getResourceSuffix(Locale locale)
-  {
-
-    String suffix = "_" + locale.getLanguage();
-    String country = locale.getCountry();
-
-    if (country.equals("TW"))
-      suffix += "_" + country;
-
-    return suffix;
-  }
-
-  /**
-   * Get a string representation of the error code.
-   *
-   * @param errorCode Should be a valid error code less than {@link #MAX_CODE}.
-   *
-   * @return A string representation of the error code, or null if code is 
-   * greater than MAX_CODE.
-   */
-  public String getMessageKey(int errorCode)
-  {
-
-    if (errorCode > MAX_CODE)
-      return null;
-    else
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-      return ERROR_SUFFIX + df.format(errorCode);
-    }
-  }
-
-  /**
-   * Get a string representation of the warning code.
-   *
-   * @param errorCode Should be a valid warning code less than {@link #MAX_WARNING}.
-   *
-   * @return A string representation of the warning code, or null if code is 
-   * greater than MAX_WARNING.
-   */
-  public String getWarningKey(int errorCode)
-  {
-
-    if (errorCode > MAX_WARNING)
-      return null;
-    else
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-      return WARNING_SUFFIX + df.format(errorCode);
-    }
-  }
-
-  /**
-   * Get a string representation of the message code. (same as getMessageKey).
-   *
-   * @param errorCode Should be a valid error code less than {@link #MAX_CODE}.
-   *
-   * @return A string representation of the error code, or null if code is 
-   * greater than MAX_CODE.
-   */
-  public static String getMKey(int errorCode)
-  {
-    if (errorCode > MAX_CODE)
-      return null;
-    else
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-      return ERROR_SUFFIX + df.format(errorCode);
-    }
-  }
-
-  /**
-   * Get a string representation of the warning code.
-   *
-   * @param errorCode Should be a valid warning code less than {@link #MAX_WARNING}.
-   *
-   * @return A string representation of the warning code, or null if code is 
-   * greater than MAX_WARNING.
-   */
-  public static String getWKey(int errorCode)
-  {
-
-    if (errorCode > MAX_WARNING)
-      return null;
-    else
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-      return WARNING_SUFFIX + df.format(errorCode);
-    }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)Toolkit.java	1.181 01/12/03
+ * @(#)Toolkit.java	1.184 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -60,7 +60,7 @@ import sun.awt.NullComponentPeer;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.181, 12/03/01
+ * @version 	1.184, 04/02/02
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -482,7 +482,7 @@ public abstract class  Toolkit {
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true
      * @see       java.awt.GraphicsConfiguration#getBounds
-     * @see       java.awt.GraphicsEnvironment#getDisplayMode
+     * @see       java.awt.GraphicsDevice#getDisplayMode
      * @see       java.awt.GraphicsEnvironment#isHeadless
      */
     public abstract Dimension getScreenSize()
@@ -1238,13 +1238,17 @@ public abstract class  Toolkit {
      * Creates a new custom cursor object.
      * If the image to display is invalid, the cursor will be hidden (made
      * completely transparent), and the hotspot will be set to (0, 0). 
-     * @param image the image to display when the cursor is active.
-     * @param hotSpot the X and Y of the large cursor's hot spot.  The
-     * hotSpot values must be less than the Dimension returned by
-     * getBestCursorSize().
-     * @param     name a localized description of the cursor, for Java Accessibility use.
+     *
+     * <p>Note that multi-frame images are invalid and may cause this
+     * method to hang.
+     *
+     * @param image the image to display when the cursor is active
+     * @param hotSpot the X and Y of the large cursor's hot spot; the
+     *   hotSpot values must be less than the Dimension returned by
+     *   <code>getBestCursorSize</code>
+     * @param     name a localized description of the cursor, for Java Accessibility use
      * @exception IndexOutOfBoundsException if the hotSpot values are outside
-     * the bounds of the cursor.
+     *   the bounds of the cursor
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true
      * @see       java.awt.GraphicsEnvironment#isHeadless
@@ -1373,8 +1377,8 @@ public abstract class  Toolkit {
      *
      * Since the use and storage of these ids is done by the
      * implementation libraries, the implementation of these method is
-     * provided by the particular AWT implementations
-     * (i.e. "Toolkit"s/Peer), such as Motif, Win32 or Tiny. The
+     * provided by the particular AWT implementations (for example, 
+     * "Toolkit"s/Peer), such as Motif, Microsoft Windows, or Tiny. The
      * problem is that this means that the native libraries must be
      * loaded by the java.* classes, which do not necessarily know the
      * names of the libraries to load. A better way of doing this

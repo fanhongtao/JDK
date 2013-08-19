@@ -1,5 +1,5 @@
 /*
- * @(#)RandomAccessFile.java	1.67 01/12/03
+ * @(#)RandomAccessFile.java	1.68 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.67, 12/03/01
+ * @version 1.68, 02/06/02
  * @since   JDK1.0
  */
 
@@ -91,7 +91,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
     public RandomAccessFile(String name, String mode)
 	throws FileNotFoundException
     {
-        this(new File(name), mode);
+        this(name != null ? new File(name) : null, mode);
     }
 
     /**
@@ -168,7 +168,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
     public RandomAccessFile(File file, String mode)
 	throws FileNotFoundException
     {
-	String name = file.getPath();
+	String name = (file != null ? file.getPath() : null);
 	int imode = -1;
 	if (mode.equals("r"))
 	    imode = O_RDONLY;

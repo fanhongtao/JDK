@@ -1,5 +1,5 @@
 /*
- * @(#)MetalIconFactory.java	1.52 01/12/03
+ * @(#)MetalIconFactory.java	1.53 02/02/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import java.util.Vector;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.52 12/03/01
+ * @version 1.53 02/08/02
  * @author Michael C. Albers
  */
 public class MetalIconFactory implements Serializable {
@@ -1030,7 +1030,7 @@ public class MetalIconFactory implements Serializable {
 		g.setColor( MetalLookAndFeel.getControlInfo() );
 	    } else {
 	        g.setColor( MetalLookAndFeel.getControlShadow() );
-	        g.drawRect( x, y, controlSize-1, controlSize-1);
+	        g.drawRect( x, y, controlSize-2, controlSize-2);
 	    }
 	    
 	    if (model.isSelected()) {

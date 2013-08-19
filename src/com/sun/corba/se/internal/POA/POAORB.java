@@ -1,5 +1,5 @@
 /*
- * @(#)POAORB.java	1.113 01/12/03
+ * @(#)POAORB.java	1.115 02/03/28
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -178,8 +178,7 @@ public class POAORB extends com.sun.corba.se.internal.iiop.ORB
 	}
 
         // Get all properties and store them for later use.
-	if( props != null )
-	{
+	if( props != null ) {
 	    allProps = (Properties)props.clone();
 	}
 
@@ -229,11 +228,14 @@ public class POAORB extends com.sun.corba.se.internal.iiop.ORB
     protected void set_parameters(java.applet.Applet app, java.util.Properties props)
     {
 	super.set_parameters(app, props);
+	initializePOA() ;
+
+	// We will not support single address mode in Applets,
+	// since Applets cannot act as ORBD.
 
         // Get all properties and store them for use later.
-	if( props != null )
-	{
-		allProps = (Properties)props.clone();
+	if( props != null ) {
+	    allProps = (Properties)props.clone();
 	}
 
         initPostProcessing();

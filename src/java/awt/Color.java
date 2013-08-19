@@ -1,5 +1,5 @@
 /*
- * @(#)Color.java	1.70 01/12/03
+ * @(#)Color.java	1.71 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -636,7 +636,7 @@ public class Color implements Paint, java.io.Serializable {
      * <p>
      * The result is <code>true</code> if and only if the argument is not 
      * <code>null</code> and is a <code>Color</code> object that has the same 
-     * red, green, and blue values as this object. 
+     * red, green, blue, and alpha values as this object. 
      * @param       obj   the object to test for equality with this
      *				<code>Color</code>
      * @return      <code>true</code> if the objects are the same; 

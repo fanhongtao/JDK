@@ -1,5 +1,5 @@
 /*
- * @(#)XPATHErrorResources_it.java	1.6 01/12/03
+ * @(#)XPATHErrorResources_it.java	1.8 02/03/26
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -85,7 +85,7 @@ import java.text.DecimalFormat;
  * below.
 
  */
-public class XPATHErrorResources_it extends XResourceBundleBase
+public class XPATHErrorResources_it extends XPATHErrorResources
 {
 
   /** Field ERROR_SUFFIX          */
@@ -1111,165 +1111,5 @@ public class XPATHErrorResources_it extends XResourceBundleBase
   {
     return contents;
   }
-
-  /**
-   * Return a named ResourceBundle for a particular locale.  This method mimics the behavior
-   * of ResourceBundle.getBundle().
-   *
-   * @param res the name of the resource to load.
-   * @param locale the locale to prefer when searching for the bundle
-   *
-   * @param className Name of local-specific subclass.
-   * @return the ResourceBundle
-   * @throws MissingResourceException
-   */
-  public static final XPATHErrorResources loadResourceBundle(String className)
-          throws MissingResourceException
-  {
-
-    Locale locale = Locale.getDefault();
-    String suffix = getResourceSuffix(locale);
-
-    try
-    {
-
-      // first try with the given locale
-      return (XPATHErrorResources) ResourceBundle.getBundle(className
-              + suffix, locale);
-    }
-    catch (MissingResourceException e)
-    {
-      try  // try to fall back to en_US if we can't load
-      {
-
-        // Since we can't find the localized property file,
-
-        // fall back to en_US.
-        return (XPATHErrorResources) ResourceBundle.getBundle(className,
-                new Locale("en", "US"));
-      }
-      catch (MissingResourceException e2)
-      {
-
-
-        // Now we are really in trouble.
-        // very bad, definitely very bad...not going to get very far
-        throw new MissingResourceException(
-          "Impossibile caricare i bundle di risorse.", className, "");
-      }
-    }
-  }
-
-  /**
-   * Return the resource file suffic for the indicated locale
-   * For most locales, this will be based the language code.  However
-   * for Chinese, we do distinguish between Taiwan and PRC
-   *
-   * @param locale the locale
-   * @return an String suffix which canbe appended to a resource name
-   */
-  private static final String getResourceSuffix(Locale locale)
-  {
-
-
-    String suffix = "_" + locale.getLanguage();
-
-    String country = locale.getCountry();
-
-
-    if (country.equals("TW"))
-      suffix += "_" + country;
-
-
-    return suffix;
-  }
-
-  /**
-   * Get the error string associated with the error code
-   *
-   * @param errorCode Error code
-   *
-   * @return error string associated with the given error code
-   */
-  public String getMessageKey(int errorCode)
-  {
-
-    if (errorCode > MAX_CODE)
-      return null;
-    else
-
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-
-      return ERROR_SUFFIX + df.format(errorCode);
-    }
-  }
-
-  /**
-   * Get the warning string associated with the error code
-   *
-   * @param errorCode Error code
-   * 
-   * @return warning string associated with the given error code
-   */
-  public String getWarningKey(int errorCode)
-  {
-
-    if (errorCode > MAX_WARNING)
-      return null;
-    else
-
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-
-      return WARNING_SUFFIX + df.format(errorCode);
-    }
-  }
-
-  /**
-   * Get the key string for an error based on the integer representation.
-   *
-   * @param errorCode Error code
-   * 
-   * @return key string that may be used for lookup in the association table.
-   */
-  public static String getMKey(int errorCode)
-  {
-
-    if (errorCode > MAX_CODE)
-      return null;
-
-    else
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-      return ERROR_SUFFIX + df.format(errorCode);
-    }
-  }
-
-
-  /**
-   * Get the key string for an warning based on the integer representation.
-   *
-   * @param errorCode Error code
-   * 
-   * @return key string that may be used for lookup in the association table.
-   */
-  public static String getWKey(int errorCode)
-  {
-
-    if (errorCode > MAX_WARNING)
-      return null;
-    else
-
-    {
-      DecimalFormat df = new DecimalFormat("0000");
-
-      return WARNING_SUFFIX + df.format(errorCode);
-    }
-  }
-
 }
 

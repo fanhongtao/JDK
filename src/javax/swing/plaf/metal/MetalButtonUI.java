@@ -1,5 +1,5 @@
 /*
- * @(#)MetalButtonUI.java	1.26 01/12/03
+ * @(#)MetalButtonUI.java	1.28 02/04/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.26 12/03/01
+ * @version 1.28 04/05/02
  * @author Tom Santos
  */
 public class MetalButtonUI extends BasicButtonUI {
@@ -158,6 +158,12 @@ class MetalButtonListener extends BasicButtonListener
     public void focusGained(FocusEvent e) { 
         Component c = (Component)e.getSource();
 	c.repaint();
+    }
+    
+    public void focusLost(FocusEvent e) {
+        AbstractButton b = (AbstractButton)e.getSource();
+        b.getModel().setArmed(false);
+        b.repaint();
     }
 }
    

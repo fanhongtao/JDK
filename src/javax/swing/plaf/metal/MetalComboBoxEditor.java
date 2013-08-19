@@ -1,5 +1,5 @@
 /*
- * @(#)MetalComboBoxEditor.java	1.17 02/03/20
+ * @(#)MetalComboBoxEditor.java	1.18 01/12/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 03/20/02
+ * @version 1.18 12/10/01
  * @author Steve Wilson
  */
 public class MetalComboBoxEditor extends BasicComboBoxEditor {
@@ -35,22 +35,21 @@ public class MetalComboBoxEditor extends BasicComboBoxEditor {
     public MetalComboBoxEditor() {
         super();
         //editor.removeFocusListener(this);
-  //Added as a fix to Bug #4530952
-
         editor = new JTextField("",9) {
-                 public void setText(String s) {
-                     if (getText().equals(s)) {
-                         return;
-                     }
-                     super.setText(s);
-                 }
-             };
+                // workaround for 4530952
+                public void setText(String s) {
+                    if (getText().equals(s)) {
+                        return;
+                    }
+                    super.setText(s);
+                }
+            };
 
         editor.setBorder( new EditorBorder() );
         //editor.addFocusListener(this);
     }
 
-    protected static Insets editorBorderInsets = new Insets( 2, 2, 2, 0 );
+    protected static Insets editorBorderInsets = new Insets( 4, 2, 4, 0 );
 
     class EditorBorder extends AbstractBorder {
         public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {

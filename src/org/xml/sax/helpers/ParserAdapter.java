@@ -2,12 +2,13 @@
 // Written by David Megginson, sax@megginson.com
 // NO WARRANTY!  This class is in the public domain.
 
-// $Id: ParserAdapter.java,v 1.1.1.1 2000/11/23 01:53:36 edwingo Exp $
+// $Id: ParserAdapter.java,v 1.1 2001/05/20 03:12:58 curcuru Exp $
 
 package org.xml.sax.helpers;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Vector;
 
 import org.xml.sax.Parser;	// deprecated
 import org.xml.sax.InputSource;
@@ -47,7 +48,7 @@ import org.xml.sax.SAXNotSupportedException;
  * @since SAX 2.0
  * @author David Megginson, 
  *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0
+ * @version 2.0r2pre
  * @see org.xml.sax.helpers.XMLReaderAdapter
  * @see org.xml.sax.XMLReader
  * @see org.xml.sax.Parser
@@ -499,6 +500,12 @@ public class ParserAdapter implements XMLReader, DocumentHandler
     public void startElement (String qName, AttributeList qAtts)
 	throws SAXException
     {
+				// These are exceptions from the
+				// first pass; they should be
+				// ignored if there's a second pass,
+				// but reported otherwise.
+	Vector exceptions = null;
+
 				// If we're not doing Namespace
 				// processing, dispatch this quickly.
 	if (!namespaces) {
@@ -551,9 +558,16 @@ public class ParserAdapter implements XMLReader, DocumentHandler
 
 				// This isn't a declaration.
 	    } else {
-		String attName[] = processName(attQName, true);
-		atts.addAttribute(attName[0], attName[1], attName[2],
-				  type, value);
+		try {
+		    String attName[] = processName(attQName, true, true);
+		    atts.addAttribute(attName[0], attName[1], attName[2],
+				      type, value);
+		} catch (SAXException e) {
+		    if (exceptions == null)
+			exceptions = new Vector();
+		    exceptions.add(e);
+		    atts.addAttribute("", attQName, attQName, type, value);
+		}
 	    }
 	}
 	
@@ -567,16 +581,19 @@ public class ParserAdapter implements XMLReader, DocumentHandler
 	    for (int i = 0; i < length; i++) {
 		String attQName = atts.getQName(i);
 		if (!attQName.startsWith("xmlns")) {
-		    String attName[] = processName(attQName, true);
+		    String attName[] = processName(attQName, true, false);
 		    atts.setURI(i, attName[0]);
 		    atts.setLocalName(i, attName[1]);
 		}
 	    }
+	} else if (exceptions != null && errorHandler != null) {
+	    for (int i = 0; i < exceptions.size(); i++)
+		errorHandler.error((SAXParseException)(exceptions.get(i)));
 	}
 
 				// OK, finally report the event.
 	if (contentHandler != null) {
-	    String name[] = processName(qName, false);
+	    String name[] = processName(qName, false, false);
 	    contentHandler.startElement(name[0], name[1], name[2], atts);
 	}
     }
@@ -603,7 +620,7 @@ public class ParserAdapter implements XMLReader, DocumentHandler
 	}
 
 				// Split the name.
-	String names[] = processName(qName, false);
+	String names[] = processName(qName, false, false);
 	if (contentHandler != null) {
 	    contentHandler.endElement(names[0], names[1], names[2]);
 	    Enumeration prefixes = nsSupport.getDeclaredPrefixes();
@@ -712,7 +729,8 @@ public class ParserAdapter implements XMLReader, DocumentHandler
      * @exception org.xml.sax.SAXException The client may throw
      *            an exception if there is an error callback.
      */
-    private String [] processName (String qName, boolean isAttribute)
+    private String [] processName (String qName, boolean isAttribute,
+				   boolean useException)
 	throws SAXException
     {
 	String parts[] = nsSupport.processName(qName, nameParts,
@@ -720,6 +738,8 @@ public class ParserAdapter implements XMLReader, DocumentHandler
 	if (parts == null) {
 	    parts = new String[3];
 	    parts[2] = qName.intern();
+	    if (useException)
+		throw makeException("Undeclared prefix: " + qName);
 	    reportError("Undeclared prefix: " + qName);
 	}
 	return parts;
@@ -736,17 +756,24 @@ public class ParserAdapter implements XMLReader, DocumentHandler
     void reportError (String message)
 	throws SAXException
     {
-	if (errorHandler == null) {
-	    return;
-	}
+	if (errorHandler != null)
+	    errorHandler.error(makeException(message));
+    }
 
+    
+    /**
+     * Construct an exception for the current context.
+     *
+     * @param message The error message.
+     */
+    private SAXParseException makeException (String message)
+    {
 	SAXParseException e;
 	if (locator != null) {
-	    e = new SAXParseException(message, locator);
+	    return new SAXParseException(message, locator);
 	} else {
-	    e = new SAXParseException(message, null, null, -1, -1);
+	    return new SAXParseException(message, null, null, -1, -1);
 	}
-	errorHandler.error(e);
     }
 
 

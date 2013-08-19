@@ -1,5 +1,5 @@
 /*
- * @(#)RMISocketFactory.java	1.18 02/05/29
+ * @(#)RMISocketFactory.java	1.19 02/05/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.net.*;
  * communication, then HTTP to a cgi-bin script on the server is used
  * to POST the RMI call.<p>
  *
- * @version 1.18, 05/29/02
+ * @version 1.19, 05/07/02
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1
@@ -83,6 +83,7 @@ public abstract class RMISocketFactory
      * @exception IOException if the RMI socket factory is already set
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkSetFactory</code> method doesn't allow the operation.
+     * @see #getSocketFactory
      * @see java.lang.SecurityManager#checkSetFactory()
      * @since JDK1.1
      */
@@ -133,7 +134,17 @@ public abstract class RMISocketFactory
      * socket creation fails.  By default, if no failure handler is installed
      * and server socket creation fails, the RMI runtime does attempt to
      * recreate the server socket.
+     *
+     * <p>If there is a security manager, this method first calls
+     * the security manager's <code>checkSetFactory</code> method 
+     * to ensure the operation is allowed. 
+     * This could result in a <code>SecurityException</code>.
+     *
      * @param fh the failure handler
+     * @throws	SecurityException  if a security manager exists and its  
+     *		<code>checkSetFactory</code> method doesn't allow the
+     *		operation.
+     * @see #getFailureHandler
      * @see java.rmi.server.RMIFailureHandler#failure(Exception)
      * @since JDK1.1
      */

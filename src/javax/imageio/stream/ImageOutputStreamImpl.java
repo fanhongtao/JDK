@@ -1,5 +1,5 @@
 /*
- * @(#)ImageOutputStreamImpl.java	1.21 01/12/03
+ * @(#)ImageOutputStreamImpl.java	1.22 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -378,36 +378,37 @@ public abstract class ImageOutputStreamImpl
 
         // Prologue: deal with pre-existing bits
 
-        // Bug 4499158 - if we're at the beginning of the stream, there
-        // can't be any pre-existing bits
-        long streamPos = getStreamPosition();
-        if (streamPos > 0) {
-            if (bitOffset != 0) {
-                int offset = bitOffset;  // read() will reset bitOffset
-                int partialByte = read();
-                seek(streamPos - 1);
-                
-                if (numBits + offset < 8) {
-                    // Notch out the partial byte and drop in the new bits
-                    int shift = 8 - (offset+numBits);
-                    int mask = -1 >>> (32 - numBits);
-                    partialByte &= ~(mask << shift);  // Clear out old bits
-                    partialByte |= ((bits & mask) << shift); // Or in new ones
-                    write(partialByte);
-                    seek(getStreamPosition() - 1);
-                    bitOffset = offset + numBits;
-                    numBits = 0;  // Signal that we are done
-                } else {
-                    // Fill out the partial byte and reduce numBits
-                    int num = 8 - offset;
-                    int mask = -1 >>> (32 - num);
-                    partialByte &= ~mask;  // Clear out bits
-                    partialByte |= ((bits >> (numBits - num)) & mask);
-                    // Note that bitOffset is already 0, so there is no risk
-                    // of this advancing to the next byte
-                    write(partialByte);
-                    numBits -= num;
-                }
+        // Bug 4499158, 4507868 - if we're at the beginning of the stream
+        // and the bit offset is 0, there can't be any pre-existing bits
+        if ((getStreamPosition() > 0) || (bitOffset > 0)) {
+            int offset = bitOffset;  // read() will reset bitOffset
+            int partialByte = read();
+            if (partialByte != -1) {
+                seek(getStreamPosition() - 1);
+            } else {
+                partialByte = 0;
+            }
+            
+            if (numBits + offset < 8) {
+                // Notch out the partial byte and drop in the new bits
+                int shift = 8 - (offset+numBits);
+                int mask = -1 >>> (32 - numBits);
+                partialByte &= ~(mask << shift);  // Clear out old bits
+                partialByte |= ((bits & mask) << shift); // Or in new ones
+                write(partialByte);
+                seek(getStreamPosition() - 1);
+                bitOffset = offset + numBits;
+                numBits = 0;  // Signal that we are done
+            } else {
+                // Fill out the partial byte and reduce numBits
+                int num = 8 - offset;
+                int mask = -1 >>> (32 - num);
+                partialByte &= ~mask;  // Clear out bits
+                partialByte |= ((bits >> (numBits - num)) & mask);
+                // Note that bitOffset is already 0, so there is no risk
+                // of this advancing to the next byte
+                write(partialByte);
+                numBits -= num;
             }
         }
 

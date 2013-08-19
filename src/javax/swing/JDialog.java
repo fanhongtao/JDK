@@ -1,5 +1,5 @@
 /*
- * @(#)JDialog.java	1.66 01/12/03
+ * @(#)JDialog.java	1.68 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -76,7 +76,7 @@ import java.applet.Applet;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window for creating dialog boxes.
  *
- * @version 1.66 12/03/01
+ * @version 1.68 03/20/02
  * @author David Kloba
  * @author James Gosling
  * @author Scott Violet
@@ -660,6 +660,12 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
    /**
      * Sets the <code>contentPane</code> property. 
      * This method is called by the constructor.
+     * <p>
+     * Swing's painting architecture requires an opaque <code>JComponent</code>
+     * in the containment hiearchy. This is typically provided by the
+     * content pane. If you replace the content pane it is recommended you
+     * replace it with an opaque <code>JComponent</code>.
+     * @see JRootPane
      *
      * @param contentPane the <code>contentPane</code> object for this dialog
      *
@@ -757,7 +763,7 @@ public class JDialog extends Dialog implements WindowConstants, Accessible, Root
      *
      * @param defaultLookAndFeelDecorated A hint as to whether or not current
      *        look and feel should provide window decorations
-     * @see javax.swing.LookAndFeel.getSupportsWindowDecorations
+     * @see javax.swing.LookAndFeel#getSupportsWindowDecorations
      * @since 1.4
      */
     public static void setDefaultLookAndFeelDecorated(boolean defaultLookAndFeelDecorated) {

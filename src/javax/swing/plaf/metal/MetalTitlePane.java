@@ -1,5 +1,5 @@
 /*
- * @(#)MetalTitlePane.java	1.10 01/12/03
+ * @(#)MetalTitlePane.java	1.11 02/02/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import java.util.Locale;
  * decoration style, and that if the style changes, a new one will
  * be created.
  *
- * @version 1.10 12/03/01
+ * @version 1.11 02/04/02
  * @author Terry Kellerman
  * @since 1.4
  */
@@ -348,9 +348,8 @@ class MetalTitlePane extends JComponent {
      */
     private void iconify() {
         Frame frame = getFrame();
-
         if (frame != null) {
-            frame.setExtendedState(frame.getExtendedState() | Frame.ICONIFIED);
+            frame.setExtendedState(state | Frame.ICONIFIED);
         }
     }
 
@@ -360,7 +359,7 @@ class MetalTitlePane extends JComponent {
     private void maximize() {
         Frame frame = getFrame();
         if (frame != null) {
-            frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+            frame.setExtendedState(state | Frame.MAXIMIZED_BOTH);
         }
     }
 
@@ -374,7 +373,7 @@ class MetalTitlePane extends JComponent {
             return;
         }
 
-        if ((frame.getExtendedState() & Frame.ICONIFIED) == Frame.ICONIFIED) {
+        if ((state & Frame.ICONIFIED) != 0) {
             frame.setExtendedState(state & ~Frame.ICONIFIED);
         } else {
             frame.setExtendedState(state & ~Frame.MAXIMIZED_BOTH);
@@ -422,7 +421,8 @@ class MetalTitlePane extends JComponent {
             mi.setMnemonic(mnemonic);
         }
 
-        if (Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
+        if (Toolkit.getDefaultToolkit().isFrameStateSupported(
+                Frame.MAXIMIZED_BOTH)) {
             mi = menu.add(maximizeAction);
             mnemonic =
                 MetalUtils.getInt("MetalTitlePane.maximizeMnemonic", -1);
@@ -531,23 +531,19 @@ class MetalTitlePane extends JComponent {
             if (frame != null) {
                 JRootPane rootPane = getRootPane();
 
-                if ((state & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH &&
-                              (rootPane.getBorder() == null ||
-                              (rootPane.getBorder() instanceof UIResource)) &&
-                              frame.isShowing()) {
+                if (((state & Frame.MAXIMIZED_BOTH) != 0) &&
+                        (rootPane.getBorder() == null ||
+                        (rootPane.getBorder() instanceof UIResource)) &&
+                            frame.isShowing()) {
                     rootPane.setBorder(null);
                 }
-                else if ((state & Frame.MAXIMIZED_BOTH) !=
-                        Frame.MAXIMIZED_BOTH) {
+                else if ((state & Frame.MAXIMIZED_BOTH) == 0) {
                     // This is a croak, if state becomes bound, this can
                     // be nuked.
                     rootPaneUI.installBorder(rootPane);
                 }
                 if (frame.isResizable()) {
-                    if ((state & Frame.MAXIMIZED_VERT) ==
-                                Frame.MAXIMIZED_VERT ||
-                            (state & Frame.MAXIMIZED_HORIZ) ==
-                                Frame.MAXIMIZED_HORIZ) {
+                    if ((state & Frame.MAXIMIZED_BOTH) != 0) {
                         updateToggleButton(restoreAction, minimizeIcon);
                         maximizeAction.setEnabled(false);
                         restoreAction.setEnabled(true);

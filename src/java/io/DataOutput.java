@@ -1,5 +1,5 @@
 /*
- * @(#)DataOutput.java	1.16 01/12/03
+ * @(#)DataOutput.java	1.17 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ package java.io;
  * an <code>IOException</code> is thrown.
  *
  * @author  Frank Yellin
- * @version 1.16, 12/03/01
+ * @version 1.17, 02/06/02
  * @see     java.io.DataInput
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
@@ -315,7 +315,7 @@ interface DataOutput {
      * the total number of bytes needed to represent
      * all the characters of <code>s</code> is
      * calculated. If this number is larger than
-     * <code>65535</code>, then a <code>UTFDataFormatError</code>
+     * <code>65535</code>, then a <code>UTFDataFormatException</code>
      * is thrown. Otherwise, this length is written
      * to the output stream in exactly the manner
      * of the <code>writeShort</code> method;

@@ -1,5 +1,5 @@
 /*
- * @(#)RTFReader.java	1.18 01/12/03
+ * @(#)RTFReader.java	1.19 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1001,9 +1001,9 @@ class StylesheetDestination
 	    if (next != null)
 		realizedStyle.addAttribute(Constants.StyleNext, next);
 	    realizedStyle.addAttribute(Constants.StyleAdditive,
-				       new Boolean(additive));
+				       Boolean.valueOf(additive));
 	    realizedStyle.addAttribute(Constants.StyleHidden,
-				       new Boolean(hidden));
+				       Boolean.valueOf(hidden));
 
 	    return realizedStyle;
 	}

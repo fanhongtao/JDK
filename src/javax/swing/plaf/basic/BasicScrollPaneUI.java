@@ -1,5 +1,5 @@
 /*
- * @(#)BasicScrollPaneUI.java	1.63 01/12/03
+ * @(#)BasicScrollPaneUI.java	1.65 02/03/14
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import java.awt.Toolkit;
 /**
  * A default L&F implementation of ScrollPaneUI.
  *
- * @version 1.63 12/03/01
+ * @version 1.65 03/14/02
  * @author Hans Muller
  */
 public class BasicScrollPaneUI
@@ -300,6 +300,7 @@ public class BasicScrollPaneUI
 	JScrollBar hsb = scrollpane.getHorizontalScrollBar();
 	JViewport rowHead = scrollpane.getRowHeader();
 	JViewport colHead = scrollpane.getColumnHeader();
+	boolean ltr = scrollpane.getComponentOrientation().isLeftToRight();
 
 	if (viewport != null) {
 	    Dimension extentSize = viewport.getExtentSize();
@@ -318,7 +319,7 @@ public class BasicScrollPaneUI
 		int max = viewSize.width;
 		int value;
 
-		if (scrollpane.getComponentOrientation().isLeftToRight()) {
+		if (ltr) {
 		    value = Math.max(0, Math.min(viewPosition.x, max - extent));
 		} else {
 		    int currentValue = hsb.getValue();
@@ -366,7 +367,7 @@ public class BasicScrollPaneUI
 
 	    if (colHead != null) {
 		Point p = colHead.getViewPosition();
-		if (scrollpane.getComponentOrientation().isLeftToRight()) {
+		if (ltr) {
 		    p.x = viewport.getViewPosition().x;
 		} else {
 		    p.x = Math.max(0, viewport.getViewPosition().x);
@@ -543,9 +544,11 @@ public class BasicScrollPaneUI
      * MouseWheelHandler is an inner class which implements the 
      * MouseWheelListener interface.  MouseWheelHandler responds to 
      * MouseWheelEvents by scrolling the JScrollPane appropriately.
-     * If isWheelScrollEnabled() is false, no scrolling occurs.
+     * If the scroll pane's
+     * <code>isWheelScrollingEnabled</code>
+     * method returns false, no scrolling occurs.
      * 
-     * @see #isWheelScrollingEnabled
+     * @see javax.swing.JScrollPane#isWheelScrollingEnabled
      * @see #createMouseWheelListener
      * @see java.awt.event.MouseWheelListener
      * @see java.awt.event.MouseWheelEvent

@@ -1,5 +1,5 @@
 /*
- * @(#)MetalRootPaneUI.java	1.14 01/12/03
+ * @(#)MetalRootPaneUI.java	1.16 02/02/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import java.io.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.14 12/03/01
+ * @version 1.16 02/04/02
  * @author Terry Kellerman
  * @since 1.4
  */
@@ -274,8 +274,16 @@ public class MetalRootPaneUI extends BasicRootPaneUI
         uninstallWindowListeners(root);
         setTitlePane(root, null);
         uninstallLayout(root);
-        root.repaint();
-        root.revalidate();
+	// We have to revalidate/repaint root if the style is JRootPane.NONE
+	// only. When we needs to call revalidate/repaint with other styles
+	// the installClientDecorations is always called after this method
+	// imediatly and it will cause the revalidate/repaint at the proper
+	// time.
+        int style = root.getWindowDecorationStyle();
+        if (style == JRootPane.NONE) {
+	    root.repaint();
+	    root.revalidate();
+	}
         // Reset the cursor, as we may have changed it to a resize cursor
         if (window != null) {
             window.setCursor(Cursor.getPredefinedCursor
@@ -330,8 +338,6 @@ public class MetalRootPaneUI extends BasicRootPaneUI
             titlePane.setVisible(true);
         }
         this.titlePane = titlePane;
-        root.validate();
-        root.repaint();
     }
 
     /**
@@ -691,6 +697,9 @@ public class MetalRootPaneUI extends BasicRootPaneUI
             }
             Point dragWindowOffset = ev.getPoint();
             Window w = (Window)ev.getSource();
+            if (w != null) {
+                w.toFront();
+            }
             Point convertedDragWindowOffset = SwingUtilities.convertPoint(
                            w, dragWindowOffset, getTitlePane());
 
@@ -707,40 +716,20 @@ public class MetalRootPaneUI extends BasicRootPaneUI
 
             if (getTitlePane() != null &&
                         getTitlePane().contains(convertedDragWindowOffset)) {
-                if (ev.getClickCount() == 2) {
-                    if (f != null && f.isResizable()) {
-                        if ((frameState & Frame.MAXIMIZED_HORIZ) ==
-                                Frame.MAXIMIZED_HORIZ ||
-                                (frameState & Frame.MAXIMIZED_VERT) ==
-                                Frame.MAXIMIZED_VERT) {
-                            f.setExtendedState(frameState &
-                                    ~Frame.MAXIMIZED_BOTH);
-                        }
-                        else {
-                            f.setExtendedState(frameState |
-                                    Frame.MAXIMIZED_BOTH);
-                        }
-                        return;
-                    }
-                }
-                if (((f != null && ((frameState & Frame.MAXIMIZED_HORIZ) !=
-                        Frame.MAXIMIZED_HORIZ &&
-                        (frameState & Frame.MAXIMIZED_VERT) !=
-                        Frame.MAXIMIZED_VERT)) || (d != null)) &&
-                    dragWindowOffset.y >= BORDER_DRAG_THICKNESS &&
-                    dragWindowOffset.x >= BORDER_DRAG_THICKNESS &&
-                    dragWindowOffset.x < w.getWidth() - BORDER_DRAG_THICKNESS){
+                if ((f != null && ((frameState & Frame.MAXIMIZED_BOTH) == 0)
+                        || (d != null))
+                        && dragWindowOffset.y >= BORDER_DRAG_THICKNESS
+                        && dragWindowOffset.x >= BORDER_DRAG_THICKNESS
+                        && dragWindowOffset.x < w.getWidth()
+                            - BORDER_DRAG_THICKNESS) {
                     isMovingWindow = true;
                     dragOffsetX = dragWindowOffset.x;
                     dragOffsetY = dragWindowOffset.y;
                 }
             }
-            else if ((f != null && f.isResizable() &&
-                    ((frameState & Frame.MAXIMIZED_HORIZ) !=
-                    Frame.MAXIMIZED_HORIZ &&
-                    (frameState & Frame.MAXIMIZED_VERT) !=
-                    Frame.MAXIMIZED_VERT)) || (d != null &&
-                    d.isResizable())) {
+            else if (f != null && f.isResizable()
+                    && ((frameState & Frame.MAXIMIZED_BOTH) == 0)
+                    || (d != null && d.isResizable())) {
                 dragOffsetX = dragWindowOffset.x;
                 dragOffsetY = dragWindowOffset.y;
                 dragWidth = w.getWidth();
@@ -783,11 +772,8 @@ public class MetalRootPaneUI extends BasicRootPaneUI
             int cursor = getCursor(calculateCorner(w, ev.getX(), ev.getY()));
 
             if (cursor != 0 && ((f != null && (f.isResizable() &&
-                    (f.getExtendedState() & Frame.MAXIMIZED_VERT) !=
-                    Frame.MAXIMIZED_VERT &&
-                    (f.getExtendedState() & Frame.MAXIMIZED_HORIZ) !=
-                    Frame.MAXIMIZED_HORIZ)) ||
-                    (d != null && d.isResizable()))) {
+                    (f.getExtendedState() & Frame.MAXIMIZED_BOTH) == 0))
+                    || (d != null && d.isResizable()))) {
                 w.setCursor(Cursor.getPredefinedCursor(cursor));
             }
             else {
@@ -901,6 +887,34 @@ public class MetalRootPaneUI extends BasicRootPaneUI
         }
 
         public void mouseClicked(MouseEvent ev) {
+            Window w = (Window)ev.getSource();
+            Frame f = null;
+
+            if (w instanceof Frame) {
+                f = (Frame)w;
+            } else {
+                return;
+            }
+
+            Point convertedPoint = SwingUtilities.convertPoint(
+                           w, ev.getPoint(), getTitlePane());
+
+            int state = f.getExtendedState();
+            if (getTitlePane() != null &&
+                    getTitlePane().contains(convertedPoint)) {
+                if ((ev.getClickCount() % 2) == 0 &&
+                        ((ev.getModifiers() & InputEvent.BUTTON1_MASK) != 0)) {
+                    if (f.isResizable()) {
+                        if ((state & Frame.MAXIMIZED_BOTH) != 0) {
+                            f.setExtendedState(state & ~Frame.MAXIMIZED_BOTH);
+                        }
+                        else {
+                            f.setExtendedState(state | Frame.MAXIMIZED_BOTH);
+                        }
+                        return;
+                    }
+                }
+            }
         }
 
         /**

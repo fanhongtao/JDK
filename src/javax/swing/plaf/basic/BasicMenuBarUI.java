@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuBarUI.java	1.76 01/12/03
+ * @(#)BasicMenuBarUI.java	1.77 02/04/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,6 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.FlowLayout;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -30,7 +29,7 @@ import javax.swing.plaf.*;
  * A default L&F implementation of MenuBarUI.  This implementation
  * is a "combined" view/controller.
  *
- * @version 1.76 12/03/01
+ * @version 1.77 04/15/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -57,11 +56,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
     protected void installDefaults() {
 	if (menuBar.getLayout() == null ||
 	    menuBar.getLayout() instanceof UIResource) {
-            if( BasicGraphicsUtils.isLeftToRight(menuBar) ) {
-                menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.X_AXIS));
-            } else {
-                menuBar.setLayout(new RightToLeftMenuLayout());
-            }
+            menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.LINE_AXIS));
         }
 	menuBar.setOpaque(true);
 	LookAndFeel.installBorder(menuBar,"MenuBar.border");
@@ -199,11 +194,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
             if( name.equals("componentOrientation")
                 && (menuBar.getLayout() instanceof UIResource) )
             {
-                if( BasicGraphicsUtils.isLeftToRight(menuBar) ) {
-                    menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.X_AXIS));
-                } else {
-                    menuBar.setLayout(new RightToLeftMenuLayout());
-                }
+                menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.LINE_AXIS));
             }
         }
     }
@@ -252,14 +243,6 @@ public class BasicMenuBarUI extends MenuBarUI  {
 		    defaultManager.setSelectedPath(me);
 	    }
 	}
-    }
-
-    private static class RightToLeftMenuLayout
-        extends FlowLayout implements UIResource
-    {
-        private RightToLeftMenuLayout() {
-            super(3/*FlowLayout.LEADING*/,0,0);
-        }
     }
 }
 

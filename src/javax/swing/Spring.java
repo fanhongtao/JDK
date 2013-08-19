@@ -1,5 +1,5 @@
 /*
- * @(#)Spring.java	1.4 02/01/10
+ * @(#)Spring.java	1.5 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -91,7 +91,7 @@ import java.util.*;
  * @see SpringLayout
  * @see SpringLayout.Constraints
  *
- * @version 1.4 01/10/02
+ * @version 1.5 02/12/02
  * @author 	Philip Milne
  * @since       1.4
  */
@@ -253,6 +253,8 @@ public abstract class Spring {
         }
 
         public void setValue(int size) {
+            // No need to check for UNSET as
+            // Integer.MIN_VALUE == -Integer.MIN_VALUE.
             s.setValue(-size);
         }
 
@@ -282,11 +284,15 @@ public abstract class Spring {
         }
 
         public void setValue(int size) {
-            super.setValue(size);
             if (size == UNSET) {
-                s1.setValue(UNSET);
-                s2.setValue(UNSET);
+                if (this.size != UNSET) {
+                    super.setValue(size);
+                    s1.setValue(UNSET);
+                    s2.setValue(UNSET);
+                    return;
+                }
             }
+            super.setValue(size);
         }
 
         protected abstract int op(int x, int y);

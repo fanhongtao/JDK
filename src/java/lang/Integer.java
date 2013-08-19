@@ -1,5 +1,5 @@
 /*
- * @(#)Integer.java	1.73 01/12/03
+ * @(#)Integer.java	1.74 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.73, 12/03/01
+ * @version 1.74, 02/06/02
  * @since   JDK1.0
  */
 public final class Integer extends Number implements Comparable {
@@ -423,7 +423,7 @@ public final class Integer extends Number implements Comparable {
 	    if (i < max) {
 		digit = Character.digit(s.charAt(i++),radix);
 		if (digit < 0) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		} else {
 		    result = -digit;
 		}
@@ -432,25 +432,25 @@ public final class Integer extends Number implements Comparable {
 		// Accumulating negatively avoids surprises near MAX_VALUE
 		digit = Character.digit(s.charAt(i++),radix);
 		if (digit < 0) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		}
 		if (result < multmin) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		}
 		result *= radix;
 		if (result < limit + digit) {
-		    throw new NumberFormatException(s);
+		    throw NumberFormatException.forInputString(s);
 		}
 		result -= digit;
 	    }
 	} else {
-	    throw new NumberFormatException(s);
+	    throw NumberFormatException.forInputString(s);
 	}
 	if (negative) {
 	    if (i > 1) {
 		return result;
 	    } else {	/* Only got "-" */
-		throw new NumberFormatException(s);
+		throw NumberFormatException.forInputString(s);
 	    }
 	} else {
 	    return -result;

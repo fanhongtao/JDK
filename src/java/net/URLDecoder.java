@@ -1,5 +1,5 @@
 /*
- * @(#)URLDecoder.java	1.20 01/12/03
+ * @(#)URLDecoder.java	1.21 02/04/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -54,7 +54,7 @@ import java.io.*;
  *
  * @author  Mark Chamness
  * @author  Michael McCloskey
- * @version 1.20, 12/03/01
+ * @version 1.21, 04/15/02
  * @since   1.2
  */
 
@@ -108,6 +108,7 @@ public class URLDecoder {
      * @exception  UnsupportedEncodingException
      *             If the named encoding is not supported
      * @see URLEncoder#encode(java.lang.String, java.lang.String)
+     * @since 1.4
      */
     public static String decode(String s, String enc) 
 	throws UnsupportedEncodingException{

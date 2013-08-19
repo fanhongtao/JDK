@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGDecodeParam.java	1.5 01/12/03
+ * @(#)JPEGDecodeParam.java	1.6 02/03/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -355,7 +355,7 @@ public interface JPEGDecodeParam extends Cloneable {
 	 * APP0 marker. It isn't used by the JPEG code.  If the APP0
 	 * marker wasn't present then you can not rely on this value.
 	 * @return The horizontal pixel density, in units described by
-	 * @see JPEGDecodeParam.getDensityUnit.
+	 * @see #getDensityUnit()
 	 */
 	public int getXDensity();
 	/** 
@@ -363,7 +363,7 @@ public interface JPEGDecodeParam extends Cloneable {
 	 * APP0 marker. It isn't used by the JPEG code. If the APP0 marker
 	 * wasn't present then you can not rely on this value.
 	 * @return The verticle pixel density, in units described by
-	 * @see JPEGDecodeParam.getDensityUnit.
+	 * @see #getDensityUnit()
 	 */
 	public int getYDensity();
 

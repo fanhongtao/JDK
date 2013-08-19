@@ -1,5 +1,5 @@
 /*
- * @(#)PrinterJob.java	1.31 01/12/03
+ * @(#)PrinterJob.java	1.32 02/03/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -83,7 +83,7 @@ public abstract class PrinterJob {
 
    
     /**
-     * A convenience method which locates fatories for stream print
+     * A convenience method which locates factories for stream print
      * services which can image 2D graphics.
      * Sample usage :
      * <pre>

@@ -1,5 +1,5 @@
 /*
- * @(#)Double.java	1.79 01/12/03
+ * @(#)Double.java	1.80 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.79, 12/03/01
+ * @version 1.80, 04/09/02
  * @since JDK1.0
  */
 public final class Double extends Number implements Comparable {
@@ -48,15 +48,16 @@ public final class Double extends Number implements Comparable {
 
     /**
      * A constant holding the largest positive finite value of type
-     * <code>double</code>.  It is equal to the value returned by:
+     * <code>double</code>, (2-2<sup>-52</sup>)&middot;2<sup>1023</sup>.
+     * It is equal to the value returned by:
      * <code>Double.longBitsToDouble(0x7fefffffffffffffL)</code>.
      */
     public static final double MAX_VALUE = 1.7976931348623157e+308;
 
     /**
      * A constant holding the smallest positive nonzero value of type
-     * <code>double</code>. It is equal to the value returned by
-     * <code>Double.longBitsToDouble(0x1L)</code>.
+     * <code>double</code>, 2<sup>-1074</sup>. It is equal to the
+     * value returned by <code>Double.longBitsToDouble(0x1L)</code>.
      */
     public static final double MIN_VALUE = 4.9e-324;
 
@@ -534,6 +535,26 @@ public final class Double extends Number implements Comparable {
      * </pre></blockquote>
      * Then the floating-point result equals the value of the mathematical 
      * expression <i>s</i>&middot;<i>m</i>&middot;2<sup><i>e</i>-1075</sup>.
+     *<p>
+     * Note that this method may not be able to return a
+     * <code>double</code> NaN with exactly same bit pattern as the
+     * <code>long</code> argument.  IEEE 754 distinguishes between two
+     * kinds of NaNs, quiet NaNs and <i>signaling NaNs</i>.  The
+     * differences between the two kinds of NaN are generally not
+     * visible in Java.  Arithmetic operations on signaling NaNs turn
+     * them into quiet NaNs with a different, but often similar, bit
+     * pattern.  However, on some processors merely copying a
+     * signaling NaN also performs that conversion.  In particular,
+     * copying a signaling NaN to return it to the calling method
+     * may perform this conversion.  So <code>longBitsToDouble</code>
+     * may not be able to return a <code>double</code> with a
+     * signaling NaN bit pattern.  Consequently, for some
+     * <code>long</code> values,
+     * <code>doubleToRawLongBits(longBitsToDouble(start))</code> may
+     * <i>not</i> equal <code>start</code>.  Moreover, which
+     * particular bit patterns represent signaling NaNs is platform
+     * dependent; although all NaN bit patterns, quiet or signaling,
+     * must be in the NaN range identified above.
      *
      * @param   bits   any <code>long</code> integer.
      * @return  the <code>double</code> floating-point value with the same

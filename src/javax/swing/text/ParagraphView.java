@@ -1,5 +1,5 @@
 /*
- * @(#)ParagraphView.java	1.83 02/05/14
+ * @(#)ParagraphView.java	1.86 02/02/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import javax.swing.SizeRequirements;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.83 05/14/02
+ * @version 1.86 02/13/02
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {
@@ -79,7 +79,7 @@ public class ParagraphView extends FlowView implements TabExpander {
     /**
      * Sets the line spacing.
      *
-     * @param ls the value is a factor of the line height
+     * @param ls the value is a factor of the line hight
      */
     protected void setLineSpacing(float ls) {
 	lineSpacing = ls;
@@ -102,8 +102,8 @@ public class ParagraphView extends FlowView implements TabExpander {
 	if (attr != null) {
 	    setParagraphInsets(attr);
 	    setJustification(StyleConstants.getAlignment(attr));
-            setLineSpacing(StyleConstants.getLineSpacing(attr));
-            setFirstLineIndent(StyleConstants.getFirstLineIndent(attr));
+	    setLineSpacing(StyleConstants.getLineSpacing(attr));
+	    setFirstLineIndent(StyleConstants.getFirstLineIndent(attr));
 	}
     }
 
@@ -360,7 +360,7 @@ public class ParagraphView extends FlowView implements TabExpander {
      * @return the new <code>View</code>
      */
     protected View createRow() {
-        return new Row(getElement());
+	return new Row(getElement());
     }
 	
     // --- TabExpander methods ------------------------------------------
@@ -672,7 +672,7 @@ public class ParagraphView extends FlowView implements TabExpander {
     private int justification;
     private float lineSpacing;
     /** Indentation for the first line, from the left inset. */
-    protected int firstLineIndent;
+    protected int firstLineIndent = 0;
 
     /**
      * Used by the TabExpander functionality to determine
@@ -851,12 +851,28 @@ public class ParagraphView extends FlowView implements TabExpander {
 	    }
 	    return -1;
 	}
-        protected short getBottomInset() {
-            return (short)(super.getBottomInset() +
-                           ((minorRequest != null) ? minorRequest.preferred : 0) *
-                           lineSpacing);
-        }
+
+	/**
+	 * Gets the left inset.
+	 *
+	 * @return the inset
+	 */
+	protected short getLeftInset() {
+	    View parentView;
+	    int adjustment = 0;
+	    if ((parentView = getParent()) != null) { //use firstLineIdent for the first row
+		if (this == parentView.getView(0)) {
+		    adjustment = firstLineIndent;
+		}
+	    }
+	    return (short)(super.getLeftInset() + adjustment);
+	}
+	
+	protected short getBottomInset() {
+	    return (short)(super.getBottomInset() + 
+			   ((minorRequest != null) ? minorRequest.preferred : 0) * 
+			   lineSpacing);
+	}
     }
 
 }
-

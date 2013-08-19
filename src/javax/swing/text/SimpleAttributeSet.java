@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleAttributeSet.java	1.37 01/12/03
+ * @(#)SimpleAttributeSet.java	1.38 02/02/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.37 12/03/01
+ * @version 1.38 02/07/02
  * @author Tim Prinzing
  */
 public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cloneable
@@ -365,6 +365,9 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
 	    }
 	    return ((obj instanceof AttributeSet) &&
 		    (((AttributeSet)obj).getAttributeCount() == 0));
+	}
+	public int hashCode() {
+	    return 0;
 	}
     };
 

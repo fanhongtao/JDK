@@ -1,5 +1,5 @@
 /*
- * @(#)ReplyMessage_1_1.java	1.15 01/12/03
+ * @(#)ReplyMessage_1_1.java	1.16 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -109,7 +109,8 @@ public final class ReplyMessage_1_1 extends Message_1_1
 
     public void read(org.omg.CORBA.portable.InputStream istream) {
         super.read(istream);
-        this.service_contexts = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream, GIOPVersion.V1_1);
+        this.service_contexts 
+            = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
         this.request_id = istream.read_ulong();
         this.reply_status = istream.read_long();
         isValidReplyStatus(this.reply_status); // raises exception on error

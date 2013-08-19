@@ -1,5 +1,5 @@
 /*
- * @(#)BasicOptionPaneUI.java	1.53 01/12/03
+ * @(#)BasicOptionPaneUI.java	1.54 01/12/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -51,7 +51,7 @@ import java.security.AccessController;
  * The <code>Container</code>, message, icon, and buttons are all
  * determined from abstract methods.
  * 
- * @version 1.53 12/03/01
+ * @version 1.54 12/07/01
  * @author James Gosling
  * @author Scott Violet
  * @author Amy Fowler
@@ -383,7 +383,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
 	} else if (msg instanceof Icon) {
 	    JLabel label = new JLabel( (Icon)msg, SwingConstants.CENTER );
-	    label.setForeground(UIManager.getColor("OptionPane.messageForeground"));
+            configureMessageLabel(label);
 	    addMessageComponents(container, cons, label, maxll, true);
 
 	} else {
@@ -430,7 +430,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    } else {
 	        JLabel label;
 		label = new JLabel( s, JLabel.LEADING );
-		label.setForeground(UIManager.getColor("OptionPane.messageForeground"));
+                configureMessageLabel(label);
 		addMessageComponents(container, cons, label, maxll, true);
 	    }
 	}
@@ -590,7 +590,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    }
 	}
 	JLabel label = new JLabel(d, JLabel.LEFT);
-	label.setForeground(UIManager.getColor("OptionPane.messageForeground"));
+        configureMessageLabel(label);
 	c.add(label);
     }
 
@@ -654,6 +654,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 			aButton = new JButton(button.toString());
 
 		    aButton.setMultiClickThreshhold(UIManager.getInt("OptionPane.buttonClickThreshhold"));
+                    configureButton(aButton);
 
 		    container.add(aButton);
 
@@ -1183,6 +1184,30 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 		lf.playSound(audioAction);
 	    }
 	}
+    }
+
+    /**
+     * Configures any necessary colors/fonts for the specified label
+     * used representing the message.
+     */
+    private void configureMessageLabel(JLabel label) {
+        label.setForeground(UIManager.getColor(
+                            "OptionPane.messageForeground"));
+        Font messageFont = UIManager.getFont("OptionPane.messageFont");
+        if (messageFont != null) {
+            label.setFont(messageFont);
+        }
+    }
+
+    /**
+     * Configures any necessary colors/fonts for the specified button
+     * used representing the button portion of the optionpane.
+     */
+    private void configureButton(JButton button) {
+        Font buttonFont = UIManager.getFont("OptionPane.buttonFont");
+        if (buttonFont != null) {
+            button.setFont(buttonFont);
+        }
     }
 
     /**

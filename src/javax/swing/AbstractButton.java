@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractButton.java	1.153 01/12/03
+ * @(#)AbstractButton.java	1.156 02/04/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,7 +42,7 @@ import java.util.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.153 12/03/01 
+ * @version 1.156 04/05/02 
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -1352,13 +1352,10 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * If the character defined by the mnemonic is found within
      * the button's label string, the first occurrence of it
      * will be underlined to indicate the mnemonic to the user.  
-     * If the corresponding character is not contained within the 
-     * button's label, then it will be displayed near the label in 
-     * a look and feel dependent manner (commonly to the right, 
-     * surrounded by parenthesis).
      *
      * @param mnemonic the key code which represents the mnemonic
      * @see     java.awt.event.KeyEvent
+     * @see     #setDisplayedMnemonicIndex
      *
      * @beaninfo
      *        bound: true
@@ -1931,21 +1928,6 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         
         // Set the UI
         updateUI();
-        
-        // Listen for Focus events
-        addFocusListener(
-            new FocusListener() {
-            public void focusGained(FocusEvent event) {
-            }
-            public void focusLost(FocusEvent event) {
-		model.setArmed(false);
-                // repaint focus is lost
-                if(isFocusPainted()) {
-                    repaint();
-                }
-            }
-        }
-        );
 
         setAlignmentX(LEFT_ALIGNMENT);
         setAlignmentY(CENTER_ALIGNMENT);
@@ -1969,16 +1951,30 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      */
     public boolean imageUpdate(Image img, int infoflags,
 			       int x, int y, int w, int h) {
-        // For disabledSelectedIcon and disabledIcon we don't use the getter
-        // as it will trigger creation of the Icon if it is null.
-	if (!SwingUtilities.doesIconReferenceImage(getIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(getPressedIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(disabledIcon, img) &&
-	    !SwingUtilities.doesIconReferenceImage(getSelectedIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(disabledSelectedIcon,img) &&
-	    !SwingUtilities.doesIconReferenceImage(getRolloverIcon(), img) &&
-	    !SwingUtilities.doesIconReferenceImage(getRolloverSelectedIcon(),
-						   img)) {
+        Icon iconDisplayed = getIcon();
+        if (iconDisplayed == null) {
+            return false;
+        }
+
+        if (!model.isEnabled()) {
+            if (model.isSelected()) {
+                iconDisplayed = getDisabledSelectedIcon();
+            } else {
+                iconDisplayed = getDisabledIcon();
+            }
+        } else if (model.isPressed() && model.isArmed()) {
+            iconDisplayed = getPressedIcon();
+        } else if (isRolloverEnabled() && model.isRollover()) {
+            if (model.isSelected()) {
+                iconDisplayed = getRolloverSelectedIcon();
+            } else {
+                iconDisplayed = getRolloverIcon();
+            }
+        } else if (model.isSelected()) {
+            iconDisplayed = getSelectedIcon();
+        }
+
+ 	if (!SwingUtilities.doesIconReferenceImage(iconDisplayed, img)) {
 	    // We don't know about this image, disable the notification so
 	    // we don't keep repainting.
 	    return false;

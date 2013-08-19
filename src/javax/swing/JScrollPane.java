@@ -1,5 +1,5 @@
 /*
- * @(#)JScrollPane.java	1.86 01/12/03
+ * @(#)JScrollPane.java	1.87 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1403,7 +1403,7 @@ public class JScrollPane extends JComponent implements ScrollPaneConstants, Acce
         public void stateChanged(ChangeEvent e) {
             AccessibleContext ac = ((Accessible)JScrollPane.this).getAccessibleContext();
             if (ac != null) {
-                ac.firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY, new Boolean(false), new Boolean(true));
+                ac.firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY, Boolean.valueOf(false), Boolean.valueOf(true));
             }
         }
     }

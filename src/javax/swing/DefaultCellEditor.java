@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultCellEditor.java	1.46 01/12/03
+ * @(#)DefaultCellEditor.java	1.47 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.46 12/03/01
+ * @version 1.47 02/11/02
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -99,7 +99,7 @@ public class DefaultCellEditor extends AbstractCellEditor
             }
 
 	    public Object getCellEditorValue() {
-		return new Boolean(checkBox.isSelected());
+		return Boolean.valueOf(checkBox.isSelected());
 	    }
         };
 	checkBox.addActionListener(delegate);

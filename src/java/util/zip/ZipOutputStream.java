@@ -1,5 +1,5 @@
 /*
- * @(#)ZipOutputStream.java	1.24 01/12/03
+ * @(#)ZipOutputStream.java	1.25 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import java.util.Enumeration;
  * entries.
  *
  * @author	David Connelly
- * @version	1.24, 12/03/01
+ * @version	1.25, 02/06/02
  */
 public
 class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
@@ -59,6 +59,7 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
      */
     public ZipOutputStream(OutputStream out) {
 	super(out, new Deflater(Deflater.DEFAULT_COMPRESSION, true));
+        usesDefaultDeflater = true;
     }
 
     /**
@@ -307,8 +308,10 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-        super.close();
-        closed = true;
+        if (!closed) {
+            super.close();
+            closed = true;
+        }
     }
 
     /*

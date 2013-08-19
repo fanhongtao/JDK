@@ -1,5 +1,5 @@
 /*
- * @(#)DataFlavor.java	1.67 01/12/03
+ * @(#)DataFlavor.java	1.69 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import sun.awt.datatransfer.DataTransferer;
  * instantiated.
  * </p>
  *
- * @version     1.67, 12/03/01
+ * @version     1.69, 04/02/02
  * @author      Blake Sullivan
  * @author      Laurence P. G. Cable
  * @author      Jeff Dunn
@@ -446,8 +446,8 @@ public class DataFlavor implements Externalizable, Cloneable {
      *     mimeType            = "text/plain;
      *                            charset=&lt;platform default Unicode encoding&gt;"
      * </pre>
-     * The Win32 Sun implementations use the encoding <code>utf-16le</code>.
-     * The Solaris and Linux Sun implementations use the encoding
+     * Sun's implementation for Microsoft Windows use the encoding <code>utf-16le</code>.
+     * Sun's implementation for Solaris and Linux use the encoding
      * <code>iso-10646-ucs-2</code>.
      *
      * @return a <code>DataFlavor</code> representing plain text
@@ -1281,19 +1281,6 @@ public class DataFlavor implements Externalizable, Cloneable {
     protected String normalizeMimeType(String mimeType) {
         return mimeType;        
     }
-
-    //DEBUG void debugTestMimeEquals(DataFlavor that) {
-    //DEBUG     String areThey = "?????";
-    //DEBUG     if ((this.mimeType != null) && (that.mimeType != null)) {
-    //DEBUG         if (this.mimeType.equals(that.mimeType)) {
-    //DEBUG             areThey = " TRUE";
-    //DEBUG         } else {
-    //DEBUG             areThey = "FALSE";
-    //DEBUG         }
-    //DEBUG     }
-    //DEBUG     System.out.println(areThey + ": " + this.mimeType);
-    //DEBUG     System.out.println("     "+ ": " + that.mimeType);
-    //DEBUG }
 
     /*
      * fields

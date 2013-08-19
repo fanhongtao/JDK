@@ -1,5 +1,5 @@
 /*
- * @(#)PasswordCallback.java	1.14 01/12/03
+ * @(#)PasswordCallback.java	1.15 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,10 +9,10 @@ package javax.security.auth.callback;
 
 /**
  * <p> Underlying security services instantiate and pass a
- * <code>PasswordCallback</code> to the <code>invokeCallback</code>
+ * <code>PasswordCallback</code> to the <code>handle</code>
  * method of a <code>CallbackHandler</code> to retrieve password information.
  *
- * @version 1.14, 12/03/01
+ * @version 1.15, 02/25/02
  * @see javax.security.auth.callback.CallbackHandler
  */
 public class PasswordCallback implements Callback, java.io.Serializable {

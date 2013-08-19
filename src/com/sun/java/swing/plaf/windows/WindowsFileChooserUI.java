@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.68 02/08/29
+ * @(#)WindowsFileChooserUI.java	1.73 02/07/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -29,7 +29,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.68 08/29/02
+ * @version 1.73 07/10/02
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -246,15 +246,15 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	JButton b;
 
 	if (OS_LEVEL == WIN_98) {
-	    // Home Button
+	    // Desktop Button
 	    File homeDir = fsv.getHomeDirectory();
 	    String toolTipText = homeFolderToolTipText;
 	    if (fsv.isRoot(homeDir)) {
 		toolTipText = getFileView(fc).getName(homeDir); // Probably "Desktop".
 	    }
-	    b = new JButton(homeFolderIcon);
+	    b = new JButton(getFileView(fc).getIcon(homeDir));
 	    b.setToolTipText(toolTipText);
-	    b.getAccessibleContext().setAccessibleName(homeFolderAccessibleName);
+	    b.getAccessibleContext().setAccessibleName(toolTipText);
 	    b.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	    b.setAlignmentY(JComponent.CENTER_ALIGNMENT);
 	    b.setMargin(shrinkwrap);
@@ -383,13 +383,14 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	// labels
 	JPanel labelPanel = new JPanel();
 	labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.PAGE_AXIS));
+        labelPanel.add(Box.createRigidArea(vstrut4));
 
      	JLabel fnl = new JLabel(fileNameLabelText);
      	fnl.setDisplayedMnemonic(fileNameLabelMnemonic);
 	fnl.setAlignmentY(0);
 	labelPanel.add(fnl);
 
-	labelPanel.add(Box.createRigidArea(vstrut8));
+	labelPanel.add(Box.createRigidArea(new Dimension(1,12)));
 
      	JLabel ftl = new JLabel(filesOfTypeLabelText);
      	ftl.setDisplayedMnemonic(filesOfTypeLabelMnemonic);
@@ -400,6 +401,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	// file entry and filters
 	JPanel fileAndFilterPanel = new JPanel();
+        fileAndFilterPanel.add(Box.createRigidArea(vstrut8));
 	fileAndFilterPanel.setLayout(new BoxLayout(fileAndFilterPanel, BoxLayout.Y_AXIS));
 
 
@@ -427,7 +429,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	}
 
 	fileAndFilterPanel.add(filenameTextField);
-	fileAndFilterPanel.add(Box.createRigidArea(vstrut6));
+	fileAndFilterPanel.add(Box.createRigidArea(vstrut8));
 
 	filterComboBoxModel = createFilterComboBoxModel();
 	fc.addPropertyChangeListener(filterComboBoxModel);
@@ -536,7 +538,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     protected ActionMap createActionMap() {
         AbstractAction escAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-		if(editFile != null) {
+		if (editFile != null) {
     		   cancelEdit();
 		} else {
                    getFileChooser().cancelSelection();
@@ -923,6 +925,9 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	detailsTable.setSelectionModel(listSelectionModel); 
 	detailsTable.putClientProperty("JTable.autoStartsEdit", Boolean.FALSE);
 
+	Font font = detailsTable.getFont();
+	detailsTable.setRowHeight(Math.max(font.getSize(), 19)+3);
+
 	TableColumnModel columnModel = detailsTable.getColumnModel();
 	TableColumn[] columns = new TableColumn[COLUMN_COLCOUNT];
 
@@ -1266,37 +1271,37 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     private void applyEdit() {
 	if (editFile != null && editFile.exists()) {
-		JFileChooser chooser = getFileChooser();
-		String oldDisplayName = chooser.getName(editFile);
-       		String oldFileName = editFile.getName();
-		String newDisplayName = editCell.getText().trim();
-		String newFileName;
+	    JFileChooser chooser = getFileChooser();
+	    String oldDisplayName = chooser.getName(editFile);
+	    String oldFileName = editFile.getName();
+	    String newDisplayName = editCell.getText().trim();
+	    String newFileName;
 
-		if (!newDisplayName.equals(oldDisplayName)) {
-		    newFileName = newDisplayName;
-		    //Check if extension is hidden from user
-		    int i1 = oldFileName.length();
-		    int i2 = oldDisplayName.length();
-		    if (i1 > i2 && oldFileName.charAt(i2) == '.') {
-			newFileName = newDisplayName + oldFileName.substring(i2);
-		    }
+	    if (!newDisplayName.equals(oldDisplayName)) {
+		newFileName = newDisplayName;
+		//Check if extension is hidden from user
+		int i1 = oldFileName.length();
+		int i2 = oldDisplayName.length();
+		if (i1 > i2 && oldFileName.charAt(i2) == '.') {
+		    newFileName = newDisplayName + oldFileName.substring(i2);
+		}
 
-		    // rename
-		    FileSystemView fsv = chooser.getFileSystemView();
-		    File f2 = fsv.createFileObject(editFile.getParentFile(), newFileName);
-		    if (!f2.exists() && getModel().renameFile(editFile, f2)) {
-			if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
-			    if (chooser.isMultiSelectionEnabled()) {
-				chooser.setSelectedFiles(new File[] { f2 });
-			    } else {
-				chooser.setSelectedFile(f2);
-			    }
+		// rename
+		FileSystemView fsv = chooser.getFileSystemView();
+		File f2 = fsv.createFileObject(editFile.getParentFile(), newFileName);
+		if (!f2.exists() && getModel().renameFile(editFile, f2)) {
+		    if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
+			if (chooser.isMultiSelectionEnabled()) {
+			    chooser.setSelectedFiles(new File[] { f2 });
 			} else {
-			    //Could be because of delay in updating Desktop folder
-			    //chooser.setSelectedFile(null);
+			    chooser.setSelectedFile(f2);
 			}
 		    } else {
-			// PENDING(jeff) - show a dialog indicating failure
+			//Could be because of delay in updating Desktop folder
+			//chooser.setSelectedFile(null);
+		    }
+		} else {
+		    // PENDING(jeff) - show a dialog indicating failure
 		}
 	    }
 	} 
@@ -1485,10 +1490,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 		|| (f.isDirectory() && fc.isDirectorySelectionEnabled()))) {
 
 	    setFileName(fileNameString(f));
-	} else {
-	    setFileName(null);
+	    setFileSelected();
 	}
-	setFileSelected();
     }
     
     private void doSelectedFilesChanged(PropertyChangeEvent e) {
@@ -1499,10 +1502,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    && files.length > 0
 	    && (files.length > 1 || fc.isDirectorySelectionEnabled() || !files[0].isDirectory())) {
 	    setFileName(fileNameString(files));
-	} else {
-	    setFileName(null);
+	    setFileSelected();
 	}
-	setFileSelected();
     }
     
     private void doDirectoryChanged(PropertyChangeEvent e) {
@@ -1520,10 +1521,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	}
 	if(currentDirectory != null) {
 	    directoryComboBoxModel.addItem(currentDirectory);
-	    // Currently can not create folder in the Desktop folder on Windows
-	    // (ShellFolder limitation)
-	    getNewFolderAction().setEnabled(fsv.isFileSystem(currentDirectory)
-					    && currentDirectory.canWrite());
+	    getNewFolderAction().setEnabled(currentDirectory.canWrite());
 	    getChangeToParentDirectoryAction().setEnabled(!fsv.isRoot(currentDirectory));
 
 	    if (fc.isDirectorySelectionEnabled() && !fc.isFileSelectionEnabled()) {

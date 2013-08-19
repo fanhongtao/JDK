@@ -1,5 +1,5 @@
 /*
- * @(#)JProgressBar.java	1.89 01/12/03
+ * @(#)JProgressBar.java	1.90 02/03/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -94,7 +94,7 @@ import javax.swing.plaf.ProgressBarUI;
  *      attribute: isContainer false
  *    description: A component that displays an integer value.
  *
- * @version 1.89 12/03/01
+ * @version 1.90 03/12/02
  * @author Michael C. Albers
  * @author Kathy Walrath
  */
@@ -842,8 +842,6 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
      * Sets the <code>indeterminate</code> property of the progress bar,
      * which determines whether the progress bar is in determinate
      * or indeterminate mode.
-     * By default, the progress bar is determinate 
-     * and this method returns <code>false</code>.
      * An indeterminate progress bar continuously displays animation
      * indicating that an operation of unknown length is occurring.
      * By default, this property is <code>false</code>.

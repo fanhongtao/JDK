@@ -1,5 +1,5 @@
 /*
- * @(#)Frame.java	1.131 01/12/03
+ * @(#)Frame.java	1.134 02/04/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -98,7 +98,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.131, 12/03/01
+ * @version 	1.134, 04/11/02
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -517,7 +517,7 @@ public class Frame extends Window implements MenuContainer {
      * for this frame.
      * @return    the icon image for this frame, or <code>null</code> 
      *                    if this frame doesn't have an icon image.
-     * @see       #setIconImage(Icon)
+     * @see       #setIconImage(Image)
      */
     public Image getIconImage() {
 	return icon;
@@ -734,14 +734,14 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Set maximized bounds for this frame.
+     * Sets the maximized bounds for this frame.
      * <p>
-     * When a frame is maximized system supplies some default bounds
-     * for the maximized state.  Using this method some or all of
-     * those system supplied values may be overriden.
+     * When a frame is in maximized state the system supplies some
+     * defaults bounds.  This method allows some or all of those
+     * system supplied values to be overridden.
      * <p>
      * If <code>bounds</code> is <code>null</code>, accept bounds
-     * supplied by the system.  If it's not <code>null</code> you can
+     * supplied by the system.  If non-<code>null</code> you can
      * override some of the system supplied values while accepting
      * others by setting those fields you want to accept from system
      * to <code>Integer.MAX_VALUE</code>.
@@ -749,7 +749,8 @@ public class Frame extends Window implements MenuContainer {
      * On some systems only the size portion of the bounds is taken
      * into account.
      * 
-     * @param bounds  bounds for the maximized state.
+     * @param bounds  bounds for the maximized state
+     * @see getMaximizedBounds
      * @since 1.4
      */
     public synchronized void setMaximizedBounds(Rectangle bounds) {
@@ -762,10 +763,10 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * Gets maximized bounds for this frame.
+     * Some fields may contain <code>Integer.MAX_VALUE</code> to indicate
+     * that system supplied values for this field must be used.
      *
-     * @return	maximized bounds for this frame.  May be <code>null</code>.
-     *          Some fields may be <code>Integer.MAX_VALUE</code> to indicate
-     *          that system supplied values for this field must be used.
+     * @return	maximized bounds for this frame;  may be <code>null</code>
      * @see     #setMaximizedBounds(Rectangle)
      * @since   1.4
      */
@@ -784,6 +785,7 @@ public class Frame extends Window implements MenuContainer {
      *         is displayable.
      * @see    #isUndecorated
      * @see    Component#isDisplayable	 
+     * @see    javax.swing.JFrame#setDefaultLookAndFeelDecorated(boolean)
      * @since 1.4
      */
     public void setUndecorated(boolean undecorated) {

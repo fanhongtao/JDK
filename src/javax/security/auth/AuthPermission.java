@@ -1,5 +1,5 @@
 /*
- * @(#)AuthPermission.java	1.46 01/12/03
+ * @(#)AuthPermission.java	1.47 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -101,7 +101,7 @@ package javax.security.auth;
  *				Subject-based access control policy.
  * </pre>
  *
- * @version 1.46, 12/03/01
+ * @version 1.47, 02/01/02
  */
 public final class AuthPermission extends
 java.security.BasicPermission {
@@ -124,9 +124,7 @@ java.security.BasicPermission {
     /**
      * Creates a new AuthPermission object with the specified name.
      * The name is the symbolic name of the AuthPermission, and the
-     * actions String is currently unused and should be null.  This
-     * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new Permission objects.
+     * actions String is currently unused and should be null.
      *
      * <p>
      *

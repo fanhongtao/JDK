@@ -1,5 +1,5 @@
 /*
- * @(#)GraphicsConfiguration.java	1.32 01/12/03
+ * @(#)GraphicsConfiguration.java	1.34 02/04/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,8 +20,8 @@ import java.awt.image.VolatileImage;
  * capabilities.  The corresponding native structure will vary from platform
  * to platform.  For example, on X11 windowing systems,
  * each visual is a different <code>GraphicsConfiguration</code>.  
- * On win32, <code>GraphicsConfiguration</code>s represent PixelFormats 
- * available in the current resolution and color depth.
+ * On Microsoft Windows, <code>GraphicsConfiguration</code>s represent 
+ * PixelFormats available in the current resolution and color depth.
  * <p>
  * In a virtual device multi-screen environment in which the desktop
  * area could span multiple physical screen devices, the bounds of the 
@@ -31,40 +31,45 @@ import java.awt.image.VolatileImage;
  * the desired <code>GraphicsConfiguration</code> and offset the location
  * with the coordinates of the <code>GraphicsConfiguration</code>,
  * as the following code sample illustrates:
+ * </p>
+ *
  * <pre>
- *      Frame f = new Frame(GraphicsConfiguration gc);
+ *      Frame f = new Frame(gc);  // where gc is a GraphicsConfiguration
  *      Rectangle bounds = gc.getBounds();
- *      f.setLocation(10 + bounds.x, 10 + bounds.y);
- * </pre>
+ *      f.setLocation(10 + bounds.x, 10 + bounds.y); </pre>
+ *
+ * <p>
  * To determine if your environment is a virtual device
  * environment, call <code>getBounds</code> on all of the 
  * <code>GraphicsConfiguration</code> objects in your system.  If 
- * any of the origins of the returned bounds are not (0,&nbsp;0),
+ * any of the origins of the returned bounds is not (0,&nbsp;0),
  * your environment is a virtual device environment.
+ *
  * <p>
  * You can also use <code>getBounds</code> to determine the bounds
- * of the virtual device.  Call <code>getBounds</code> on all
+ * of the virtual device.  To do this, first call <code>getBounds</code> on all
  * of the <code>GraphicsConfiguration</code> objects in your
- * system.  Then, calculate the union of all of the bounds returned
+ * system.  Then calculate the union of all of the bounds returned
  * from the calls to <code>getBounds</code>.  The union is the
  * bounds of the virtual device.  The following code sample
  * calculates the bounds of the virtual device.
+ *
  * <pre>
- *	Rectangle virtualBounds = new Rectangle();
+ *      Rectangle virtualBounds = new Rectangle();
  *      GraphicsEnvironment ge = GraphicsEnvironment.
- *		getLocalGraphicsEnvironment();
- *	GraphicsDevice[] gs =
- *		ge.getScreenDevices();
- *	for (int j = 0; j < gs.length; j++) { 
- *	   GraphicsDevice gd = gs[j];
- *	   GraphicsConfiguration[] gc =
- *	      gd.getConfigurations();
- *	   for (int i=0; i < gc.length; i++) {
- *	      virtualBounds =
- *		virtualBounds.union(gc[i].getBounds());
- *	   }
- *      }
- * </pre>                   
+ *              getLocalGraphicsEnvironment();
+ *      GraphicsDevice[] gs =
+ *              ge.getScreenDevices();
+ *      for (int j = 0; j < gs.length; j++) { 
+ *          GraphicsDevice gd = gs[j];
+ *          GraphicsConfiguration[] gc =
+ *              gd.getConfigurations();
+ *          for (int i=0; i < gc.length; i++) {
+ *              virtualBounds =
+ *                  virtualBounds.union(gc[i].getBounds());
+ *          }
+ *      } </pre>                   
+ *
  * @see Window
  * @see Frame
  * @see GraphicsEnvironment
@@ -77,7 +82,7 @@ import java.awt.image.VolatileImage;
  * capabilities and checking if the GraphicsConfiguration
  * implements the interface for that capability.
  *
- * @version 1.32, 12/03/01
+ * @version 1.34, 04/27/02
  */
 
 

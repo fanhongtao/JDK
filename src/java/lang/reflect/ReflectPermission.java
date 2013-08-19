@@ -1,5 +1,5 @@
 /*
- * @(#)ReflectPermission.java	1.15 01/12/03
+ * @(#)ReflectPermission.java	1.16 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,9 +62,7 @@ class ReflectPermission extends java.security.BasicPermission {
 
     /**
      * Constructs a ReflectPermission with the specified name and actions.
-     * The actions should be null; they are ignored. This
-     * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new Permission objects.
+     * The actions should be null; they are ignored.
      *
      * @param name the name of the ReflectPermission
      * @param actions should be null.

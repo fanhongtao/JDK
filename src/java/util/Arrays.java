@@ -1,5 +1,5 @@
 /*
- * @(#)Arrays.java	1.44 01/12/03
+ * @(#)Arrays.java	1.45 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ package java.util;
  * a mergesort, but it does have to be <i>stable</i>.)
  *
  * @author  Josh Bloch
- * @version 1.44, 12/03/01
+ * @version 1.45, 02/12/02
  * @see     Comparable
  * @see     Comparator
  * @since   1.2
@@ -1061,8 +1061,7 @@ public class Arrays {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n*log(n) performance, and can approach linear performance on nearly
-     * sorted lists.
+     * n*log(n) performance.
      * 
      * @param a the array to be sorted.
      * @throws  ClassCastException if the array contains elements that are not
@@ -1092,8 +1091,7 @@ public class Arrays {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n*log(n) performance, and can approach linear performance on nearly
-     * sorted lists.
+     * n*log(n) performance.
      * 
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be
@@ -1169,8 +1167,7 @@ public class Arrays {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n*log(n) performance, and can approach linear performance on nearly
-     * sorted lists.
+     * n*log(n) performance. 
      *
      * @param a the array to be sorted.
      * @param c the comparator to determine the order of the array.  A
@@ -1204,8 +1201,7 @@ public class Arrays {
      * The sorting algorithm is a modified mergesort (in which the merge is
      * omitted if the highest element in the low sublist is less than the
      * lowest element in the high sublist).  This algorithm offers guaranteed
-     * n*log(n) performance, and can approach linear performance on nearly
-     * sorted lists.
+     * n*log(n) performance. 
      *
      * @param a the array to be sorted.
      * @param fromIndex the index of the first element (inclusive) to be

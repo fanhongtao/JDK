@@ -1,5 +1,5 @@
 /*
- * @(#)EventQueue.java	1.82 01/12/03
+ * @(#)EventQueue.java	1.84 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,11 +8,14 @@
 package java.awt;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.InputMethodEvent;
 import java.awt.event.InvocationEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.PaintEvent;
+import java.awt.event.WindowEvent;
 import java.awt.ActiveEvent;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.LightweightPeer;
@@ -64,7 +67,7 @@ import sun.awt.AWTAutoShutdown;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.82, 12/03/01
+ * @version 	1.84, 04/17/02
  * @since 	1.1
  */
 public class EventQueue {
@@ -158,6 +161,7 @@ public class EventQueue {
      *
      * @param theEvent an instance of <code>java.awt.AWTEvent</code>,
      *		or a subclass of it
+     * @throws NullPointerException if <code>theEvent</code> is <code>null</code>
      */
     public void postEvent(AWTEvent theEvent) {
         SunToolkit.flushPendingEvents();
@@ -433,6 +437,7 @@ public class EventQueue {
      * <p> </p>
      * @param theEvent an instance of <code>java.awt.AWTEvent</code>,
      * 		or a subclass of it
+     * @throws NullPointerException if <code>event</code> is <code>null</code>
      */
     protected void dispatchEvent(AWTEvent event) {
         Object src = event.getSource();
@@ -518,6 +523,7 @@ public class EventQueue {
      * @param newEventQueue an <code>EventQueue</code>
      *		(or subclass thereof) instance to be use
      * @see      java.awt.EventQueue#pop
+     * @throws NullPointerException if <code>newEventQueue</code> is <code>null</code>
      */
     public synchronized void push(EventQueue newEventQueue) {
 	if (debug) {
@@ -676,36 +682,49 @@ public class EventQueue {
 
     /*
      * Removes any pending events for the specified source object.
+     * If removeAllEvents parameter is <code>true</code> then all 
+     * events for the specified source object are removed, if it 
+     * is <code>false</code> then <code>SequencedEvent</code>, <code>SentEvent</code>,
+     * <code>FocusEvent</code>, <code>WindowEvent</code> and <code>KeyEvent</code>
+     * are kept in the queue, but all other events are removed.
+     *
      * This method is normally called by the source's 
      * <code>removeNotify</code> method.
      */
-    final void removeSourceEvents(Object source) {
+    final void removeSourceEvents(Object source, boolean removeAllEvents) {
         SunToolkit.flushPendingEvents();
         synchronized (this) {
-	    for (int i = 0; i < NUM_PRIORITIES; i++) {
-	        EventQueueItem entry = queues[i].head;
-		EventQueueItem prev = null;
-		while (entry != null) {
-		    if (entry.event.getSource() == source) {
-			if (entry.event instanceof SequencedEvent) {
-			    ((SequencedEvent)entry.event).dispose();
-			}
+            for (int i = 0; i < NUM_PRIORITIES; i++) {
+                EventQueueItem entry = queues[i].head;
+                EventQueueItem prev = null;
+                while (entry != null) {
+                    if ((entry.event.getSource() == source) 
+                        && (removeAllEvents 
+                            || ! (entry.event instanceof SequencedEvent 
+                                  || entry.event instanceof SentEvent
+                                  || entry.event instanceof FocusEvent
+                                  || entry.event instanceof WindowEvent
+                                  || entry.event instanceof KeyEvent)))
+                    {
+                        if (entry.event instanceof SequencedEvent) {
+                            ((SequencedEvent)entry.event).dispose();
+                        }
                         if (entry.event instanceof SentEvent) {
                             ((SentEvent)entry.event).dispose();
                         }
-		        if (prev == null) {
-			    queues[i].head = entry.next;
-			} else {
-			    prev.next = entry.next;
-			}
-		    } else {
-		        prev = entry;
-		    }
-		    entry = entry.next;
-		}
-		queues[i].tail = prev;
-	    }
-	}
+                        if (prev == null) {
+                            queues[i].head = entry.next;
+                        } else {
+                            prev.next = entry.next;
+                        }
+                    } else {
+                        prev = entry;
+                    }
+                    entry = entry.next;
+                }
+                queues[i].tail = prev;
+            }
+        }
     }
 
     static void setCurrentEventAndMostRecentTime(AWTEvent e) {

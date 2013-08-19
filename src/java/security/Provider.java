@@ -1,5 +1,5 @@
 /*
- * @(#)Provider.java	1.50 01/12/03
+ * @(#)Provider.java	1.52 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.util.*;
  * <li>Key generation, conversion, and management facilities (such as for
  * algorithm-specific keys).
  *
- * </ul>
+ *</ul>
  *
  * <p>Each provider has a name and a version number, and is configured
  * in each runtime it is installed in.
@@ -36,10 +36,14 @@ import java.util.*;
  * service in Java that uses a pluggable architecture with a choice
  * of implementations that fit underneath. 
  *
- * @version 1.50, 12/03/01
+ * @version 1.52, 04/23/02
  * @author Benjamin Renaud
  */
 public abstract class Provider extends Properties {
+
+    private static final sun.security.util.Debug debug =
+        sun.security.util.Debug.getInstance
+        ("jca", "Provider");
 
     /**
      * The provider name.
@@ -122,7 +126,7 @@ public abstract class Provider extends Properties {
     }
 
     /*
-     * Instantiates a provider forom its fully-qualified class name.
+     * Instantiates a provider from its fully-qualified class name.
      *
      * <p>The assumption is made that providers configured in the
      * security properties file will always be supplied as part
@@ -148,12 +152,20 @@ public abstract class Provider extends Properties {
 	    }
 	    Object obj = provClass.newInstance();
 	    if (obj instanceof Provider) {
+		if (debug != null) {
+                    debug.println("Loaded provider " + name);
+                }
 		return (Provider)obj;
 	    } else {
-		debug(name + " not a provider");
+		if (debug != null) {
+		    debug.println(name + " is not a provider");
+		}
 	    }
 	} catch (Exception e) {
-	    debug("error loading provider " + name, e);
+	    if (debug != null) {
+	        debug.println("Error loading provider " + name);
+		e.printStackTrace();
+	    }
 	}
 	return null;
     }
@@ -197,6 +209,9 @@ public abstract class Provider extends Properties {
      */
     public synchronized void clear() {
 	check("clearProviderProperties."+name);
+	if (debug != null) {
+	    debug.println("Remove " + name + " provider properties");
+	}
 	super.clear();
     }
 
@@ -209,8 +224,13 @@ public abstract class Provider extends Properties {
      * @see java.util.Properties#load
      */
     public synchronized void load(InputStream inStream) throws IOException {
-	check("loadProviderProperties."+name);
-	super.load(inStream);
+	check("putProviderProperty."+name);
+        if (debug != null) {
+            debug.println("Load " + name + " provider properties");
+        }
+	Properties tempProperties = new Properties();
+	tempProperties.load(inStream);
+	putAllInternal(tempProperties);
     }
 
     /**
@@ -221,8 +241,24 @@ public abstract class Provider extends Properties {
      * @since 1.2
      */
     public synchronized void putAll(Map t) {
-	check("putAllProviderProperties."+name);
-	super.putAll(t);
+	check("putProviderProperty."+name);
+        if (debug != null) {
+            debug.println("Put all " + name + " provider properties");
+        }
+	putAllInternal(t);
+    }
+    
+    /**
+     * Copies all of the mappings from the specified Map to this provider.
+     * Internal method to be called AFTER the security check has been
+     * performed.
+     */
+    private void putAllInternal(Map t) {
+	Iterator i = t.entrySet().iterator();
+	while (i.hasNext()) {
+	    Map.Entry e = (Map.Entry) i.next();
+	    super.put(e.getKey(), e.getValue());
+	}
     }
 
     /**
@@ -301,6 +337,10 @@ public abstract class Provider extends Properties {
      */
     public synchronized Object put(Object key, Object value) {
 	check("putProviderProperty."+name);
+        if (debug != null) {
+            debug.println("Set " + name + " provider property [" + 
+			  key + "/" + value +"]");
+        }
 	return super.put(key, value);
     }
 
@@ -332,6 +372,9 @@ public abstract class Provider extends Properties {
      */
     public synchronized Object remove(Object key) {
 	check("removeProviderProperty."+name);
+        if (debug != null) {
+            debug.println("Remove " + name + " provider property " + key);
+        }
 	return super.remove(key);
     }
 
@@ -340,14 +383,6 @@ public abstract class Provider extends Properties {
         if (security != null) {
             security.checkSecurityAccess(directive);
         }
-    }
-
-    private static void debug(String msg) {
-	Security.debug(msg);
-    }
-
-    private static void debug(String msg, Throwable t) {
-	Security.debug(msg, t);
     }
 
     // Declare serialVersionUID to be compatible with JDK1.1

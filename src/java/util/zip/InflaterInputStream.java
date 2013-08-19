@@ -1,5 +1,5 @@
 /*
- * @(#)InflaterInputStream.java	1.30 01/12/03
+ * @(#)InflaterInputStream.java	1.31 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.30, 12/03/01
+ * @version 	1.31, 02/06/02
  * @author 	David Connelly
  */
 public
@@ -81,7 +81,7 @@ class InflaterInputStream extends FilterInputStream {
 	this(in, inf, 512);
     }
 
-    private boolean usesDefaultInflater = false;
+    boolean usesDefaultInflater = false;
 
     /**
      * Creates a new input stream with a default decompressor and buffer size.
@@ -92,6 +92,8 @@ class InflaterInputStream extends FilterInputStream {
         usesDefaultInflater = true;
     }
 
+    private byte[] singleByteBuf = new byte[1];
+
     /**
      * Reads a byte of uncompressed data. This method will block until
      * enough input is available for decompression.
@@ -100,8 +102,7 @@ class InflaterInputStream extends FilterInputStream {
      */
     public int read() throws IOException {
 	ensureOpen();
-        byte[] b = new byte[1];
-	return read(b, 0, 1) == -1 ? -1 : b[0] & 0xff;
+	return read(singleByteBuf, 0, 1) == -1 ? -1 : singleByteBuf[0] & 0xff;
     }
 
     /**
@@ -159,6 +160,8 @@ class InflaterInputStream extends FilterInputStream {
         }
     }
 
+    private byte[] b = new byte[512];
+
     /**
      * Skips specified number of bytes of uncompressed data.
      * @param n the number of bytes to skip
@@ -173,7 +176,6 @@ class InflaterInputStream extends FilterInputStream {
 	ensureOpen();
 	int max = (int)Math.min(n, Integer.MAX_VALUE);
 	int total = 0;
-	byte[] b = new byte[512];
 	while (total < max) {
 	    int len = max - total;
 	    if (len > b.length) {
@@ -194,10 +196,12 @@ class InflaterInputStream extends FilterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-        if (usesDefaultInflater)
-            inf.end();
-	in.close();
-        closed = true;
+        if (!closed) {
+            if (usesDefaultInflater)
+                inf.end();
+	    in.close();
+            closed = true;
+        }
     }
 
     /**

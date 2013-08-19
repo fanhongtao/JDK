@@ -1,5 +1,5 @@
 /*
- * @(#)FileSystemPreferences.java	1.12 02/06/24
+ * @(#)FileSystemPreferences.java	1.13 02/05/28
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import java.security.PrivilegedActionException;
  * (The file lock is obtained only for sync(), flush() and removeNode().)
  *
  * @author  Josh Bloch
- * @version 1.12, 06/24/02
+ * @version 1.13, 05/28/02
  * @see     Preferences
  * @since   1.4
  */
@@ -35,7 +35,14 @@ class FileSystemPreferences extends AbstractPreferences {
      * Sync interval in seconds.
      */
     private static final int SYNC_INTERVAL = Math.max(1,
-    Integer.parseInt(System.getProperty("java.util.prefs.syncInterval", "30")));
+        Integer.parseInt((String) 
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    return System.getProperty("java.util.prefs.syncInterval",
+                                              "30");
+                }
+        })));
+
 
     /** 
      * Logger for error messages. Backing store exception are logged at
@@ -46,7 +53,7 @@ class FileSystemPreferences extends AbstractPreferences {
     /**
      * Directory for system preferences.
      */
-    private static  File systemRootDir;
+    private static File systemRootDir;
     
     static {
         // Temp fix until installation script issues get  resolved
@@ -68,12 +75,12 @@ class FileSystemPreferences extends AbstractPreferences {
             // Attempt to create root dir if it does not yet exist.
                 if (!systemRootDir.exists()) {
                     if (systemRootDir.mkdirs()) {
-			try {
-			    chmod(systemRootDir.getCanonicalPath(),
-				  USER_RWX_ALL_RX);
-			} catch (IOException e) {
-			}
-                        logger.info("Recreated system preferences directory" 
+                        try {
+                            chmod(systemRootDir.getCanonicalPath(),
+                                                          USER_RWX_ALL_RX);
+                        } catch (IOException e) {
+                        }
+                        logger.info("Created system preferences directory" 
                         + " in " + systemRootDir.getPath());
                     } else {
                         // Couldnt create systemRootDir
@@ -81,28 +88,27 @@ class FileSystemPreferences extends AbstractPreferences {
                         systemRootDir = 
                                       new File(System.getProperty("java.home"), 
                                                                 ".systemPrefs");
-			if (systemRootDir.exists())
-			    return null;
-			if (systemRootDir.mkdirs()) {
-			    logger.info("Created system preferences directory" +
-					" in java.home.");
-			    try {
-				chmod(systemRootDir.getCanonicalPath(), 
-				      USER_RWX_ALL_RX);
-			    } catch (IOException e) {
-			    }
-			}
-			else
-			    logger.warning("Could not create system preferences"
-					   + " directory. System preferences are unusable."); 
-			
+                        if (systemRootDir.exists())
+                            return null;
+                        if (systemRootDir.mkdirs()) {
+                            logger.info("Created system preferences directory" +
+                                        " in java.home.");
+                            try {
+                                chmod(systemRootDir.getCanonicalPath(), 
+                                                              USER_RWX_ALL_RX);
+                            } catch (IOException e) {
+                            }
+                        }
+                        else
+                            logger.warning("Could not create system preferences"
+                            + " directory. System preferences are unusable."); 
                     }
                 }
                 return null;
             }
         });
     }
-    
+        
     /*
      * Flag, indicating whether systemRoot  directory is writable
      */
@@ -130,17 +136,17 @@ class FileSystemPreferences extends AbstractPreferences {
                       System.getProperty("user.home")), ".java/.userPrefs");
                 // Attempt to create root dir if it does not yet exist.        
                 if (!userRootDir.exists()) {
-		    if (userRootDir.mkdirs()) {
-			try {
-			    chmod(userRootDir.getCanonicalPath(), USER_RWX);
-			} catch (IOException e) {
-			}
-			logger.info("Created user preferences directory.");
-		    }
-		    else
-			logger.warning("Could not create user preferences " +
-				       "directory. User preferences are unusable.");
-		}
+                    if (userRootDir.mkdirs()) {
+                        try {
+                            chmod(userRootDir.getCanonicalPath(), USER_RWX);
+                        } catch (IOException e) {
+                        }
+                        logger.info("Created user preferences directory.");
+                    }
+                    else
+                        logger.warning("Could not create user preferences " +
+                        "directory. User preferences are unusable.");
+                }
                 return null;
             }
         });
@@ -174,17 +180,31 @@ class FileSystemPreferences extends AbstractPreferences {
     private static final int USER_READ_WRITE = 0600;
     
     private static final int USER_RW_ALL_READ = 0644;
-  
-    private static final int USER_RWX_ALL_RX = 0755;
     
+
+    private static final int USER_RWX_ALL_RX = 0755;
+
     private static final int USER_RWX = 0700;
- 
+
+    /**
+      * User name.
+      */
+    
+    private static final String USER_NAME = 
+        (String) AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                  return System.getProperty("user.name");
+              }
+        });
+
+
     /**
      * The lock file for the user tree.
      */
-    static File userLockFile = new File
-                        (userRootDir,".user.lock." + System.getProperty("user.name"));
-    
+    static File userLockFile = new File (userRootDir,".user.lock." + USER_NAME); 
+
+
+ 
     /**
      * The lock file for the system tree.
      */
@@ -195,7 +215,7 @@ class FileSystemPreferences extends AbstractPreferences {
      * Zero, if unlocked. 
      */
 
-     private static int userRootLockHandle = 0;
+    private static int userRootLockHandle = 0;
 
     /** 
      * Unix lock handle for systemRoot.
@@ -234,7 +254,7 @@ class FileSystemPreferences extends AbstractPreferences {
      * File, which keeps track of global modifications of userRoot.
      */
     private static final File userRootModFile = 
-        new File (userRootDir,".userRootModFile." + System.getProperty("user.name"));
+        new File (userRootDir,".userRootModFile." + USER_NAME);
     
     /** 
      * Flag, which indicated whether userRoot was modified by another VM
@@ -295,7 +315,7 @@ class FileSystemPreferences extends AbstractPreferences {
                     // create if does not exist.
                     systemRootModFile.createNewFile();
                     int result = chmod(systemRootModFile.getCanonicalPath(), 
-                                                               USER_RW_ALL_READ);
+                                                          USER_RW_ALL_READ);
                     if (result !=0) 
                         logger.warning("Chmod failed on " + 
                                systemRootModFile.getCanonicalPath() +
@@ -431,10 +451,15 @@ class FileSystemPreferences extends AbstractPreferences {
         }, SYNC_INTERVAL*1000, SYNC_INTERVAL*1000);
 
         // Add shutdown hook to flush cached prefs on normal termination
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                syncTimer.cancel();
-                syncWorld();
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    public void run() {
+                        syncTimer.cancel();
+                        syncWorld();
+                    }
+                });
+                return null;
             }
         });
     }
@@ -636,7 +661,7 @@ class FileSystemPreferences extends AbstractPreferences {
 
     public void removeNode() throws BackingStoreException {
         synchronized (isUserNode()? userLockFile: systemLockFile) {
-	    // to remove a node we need an exclusive lock
+            // to remove a node we need an exclusive lock
             if (!lockFile(false))
                 throw(new BackingStoreException("Couldn't get file lock."));
            try {
@@ -683,19 +708,19 @@ class FileSystemPreferences extends AbstractPreferences {
     }
     
     public synchronized void sync() throws BackingStoreException {
-	boolean userNode = isUserNode();
-	boolean shared;
-	
-	if (userNode) {
-	    shared = false; /* use exclusive lock for user prefs */
-	} else {
-	    /* if can write to system root, use exclusive lock.
-	       otherwise use shared lock. */
-	    shared = !isSystemRootWritable;
-	}
-             
+        boolean userNode = isUserNode();
+        boolean shared;
+
+        if (userNode) {
+            shared = false; /* use exclusive lock for user prefs */
+        } else {
+            /* if can write to system root, use exclusive lock.
+               otherwise use shared lock. */
+            shared = !isSystemRootWritable;
+        }
+            
         synchronized (isUserNode()? userLockFile:systemLockFile) {
-	   if (!lockFile(shared))
+           if (!lockFile(shared))
                throw(new BackingStoreException("Couldn't get file lock."));
            final Long newModTime = 
                 (Long) AccessController.doPrivileged( new PrivilegedAction() {
@@ -864,14 +889,14 @@ class FileSystemPreferences extends AbstractPreferences {
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             try {
                   int perm = (usernode? USER_READ_WRITE: USER_RW_ALL_READ);
-		  result = lockFile0(lockFile.getCanonicalPath(), perm, shared);
+                  result = lockFile0(lockFile.getCanonicalPath(), perm, shared);
                   
                   errorCode = result[ERROR_CODE];
                   if (result[LOCK_HANDLE] != 0) {
                      if (usernode) {
                          userRootLockHandle = result[LOCK_HANDLE];
                      } else {
-                     systemRootLockHandle = result[LOCK_HANDLE];
+                         systemRootLockHandle = result[LOCK_HANDLE];
                      } 
                      return true;
                   }   
@@ -912,7 +937,7 @@ class FileSystemPreferences extends AbstractPreferences {
      * @return Returns a lock handle, used to unlock the file.
      */
     private static native int[] 
-	    lockFile0(String fileName, int permission, boolean shared);
+            lockFile0(String fileName, int permission, boolean shared);
 
     /**
      * Unlocks file previously locked by lockFile0().
@@ -943,9 +968,9 @@ class FileSystemPreferences extends AbstractPreferences {
      */
     private void unlockFile() {
         int result;
-	boolean usernode = isUserNode();
-        File lockFile = ( usernode ? userLockFile : systemLockFile);
-	int lockHandle = ( usernode ? userRootLockHandle:systemRootLockHandle);
+        boolean usernode = isUserNode();
+        File lockFile = (usernode ? userLockFile : systemLockFile);
+        int lockHandle = ( usernode ? userRootLockHandle:systemRootLockHandle);
         if (lockHandle == 0) {
             logger.warning("Unlock: zero lockHandle for " + 
                            (usernode ? "user":"system") + " preferences.)"); 

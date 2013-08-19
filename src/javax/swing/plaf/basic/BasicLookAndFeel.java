@@ -1,5 +1,5 @@
 /*
- * @(#)BasicLookAndFeel.java	1.203 01/12/03
+ * @(#)BasicLookAndFeel.java	1.206 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,9 @@ import java.awt.Color;
 import java.awt.SystemColor;
 import java.awt.event.*;
 import java.awt.Insets;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.FocusTraversalPolicy;
 import java.net.URL;
 import java.io.*;
 import java.awt.Dimension;
@@ -34,6 +37,7 @@ import javax.swing.JTextField;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.FocusManager;
 import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.SwingUtilities;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.JTextComponent;
@@ -54,7 +58,7 @@ import javax.swing.text.DefaultEditorKit;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.203 12/03/01
+ * @version 1.206 04/09/02
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -469,20 +473,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
         Object editorMargin = new InsetsUIResource(3,3,3,3);
 
-
-	JTextComponent.KeyBinding[] fieldBindings = makeKeyBindings( new Object[]{
-	    "ENTER", JTextField.notifyAction
-	});
-
-	JTextComponent.KeyBinding[] multilineBindings = makeKeyBindings( new Object[]{
-		  "UP", DefaultEditorKit.upAction,
-		"DOWN", DefaultEditorKit.downAction,
-	     "PAGE_UP", DefaultEditorKit.pageUpAction,
-	   "PAGE_DOWN", DefaultEditorKit.pageDownAction,
-	       "ENTER", DefaultEditorKit.insertBreakAction,
-		 "TAB", DefaultEditorKit.insertTabAction
-        });
-
 	Object caretBlinkRate = fiveHundred;
 	Integer four = new Integer(4);
 
@@ -867,6 +857,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Menu.submenuPopupOffsetX", new Integer(0),
 	    "Menu.submenuPopupOffsetY", new Integer(0),
  	    "Menu.shortcutKeys", new int[] {KeyEvent.ALT_MASK},
+            "Menu.crossMenuMnemonic", Boolean.TRUE,
 
 	    // PopupMenu
 	    "PopupMenu.font", dialogPlain12,
@@ -898,6 +889,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    },
 
 	    // *** OptionPane
+            // You can additionaly define OptionPane.messageFont which will
+            // dictate the fonts used for the message, and
+            // OptionPane.buttonFont, which defines the font for the buttons.
 	    "OptionPane.font", dialogPlain12,
 	    "OptionPane.background", table.get("control"),
 	    "OptionPane.foreground", table.get("controlText"),
@@ -1077,7 +1071,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 		      "HOME", "selectMin",
 		       "END", "selectMax",
 		        "F8", "startResize",
-		        "F6", "toggleFocus"
+		        "F6", "toggleFocus",
+		  "ctrl TAB", "focusOutForward",
+ 	    "ctrl shift TAB", "focusOutBackward"
 		 }),
 
 	    // *** TabbedPane
@@ -1216,7 +1212,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "TextField.caretBlinkRate", caretBlinkRate,
 	    "TextField.border", textFieldBorder,
             "TextField.margin", zeroInsets,
-	    "TextField.keyBindings", fieldBindings,
 
 	    "FormattedTextField.font", sansSerifPlain12,
 	    "FormattedTextField.background", table.get("window"),
@@ -1281,7 +1276,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "PasswordField.caretBlinkRate", caretBlinkRate,
 	    "PasswordField.border", textFieldBorder,
             "PasswordField.margin", zeroInsets,
-	    "PasswordField.keyBindings", fieldBindings,
 
 	    "TextArea.font", monospacedPlain12,
 	    "TextArea.background", table.get("window"),
@@ -1293,7 +1287,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "TextArea.caretBlinkRate", caretBlinkRate,
 	    "TextArea.border", marginBorder,
             "TextArea.margin", zeroInsets,
-	    "TextArea.keyBindings", multilineBindings,
 
 	    "TextPane.font", serifPlain12,
 	    "TextPane.background", white,
@@ -1305,7 +1298,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "TextPane.inactiveForeground", table.get("textInactiveText"),
 	    "TextPane.border", marginBorder,
             "TextPane.margin", editorMargin,
-	    "TextPane.keyBindings", multilineBindings,
 
 	    "EditorPane.font", serifPlain12,
 	    "EditorPane.background", white,
@@ -1317,7 +1309,6 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "EditorPane.inactiveForeground", table.get("textInactiveText"),
 	    "EditorPane.border", marginBorder,
             "EditorPane.margin", editorMargin,
-	    "EditorPane.keyBindings", multilineBindings,
 
 	    // *** TitledBorder
             "TitledBorder.font", dialogPlain12,
@@ -1727,4 +1718,31 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	}
     }
 
+    // At this point we need this method here. But we assume that there
+    // will be a common method for this purpose in the future releases.
+    static void compositeRequestFocus(Component component) {
+ 	if (component instanceof Container) {
+ 	    Container container = (Container)component;
+ 	    if (container.isFocusCycleRoot()) {
+ 		FocusTraversalPolicy policy = container.getFocusTraversalPolicy();
+ 		Component comp = policy.getDefaultComponent(container);
+ 		if (comp!=null) {
+ 		    comp.requestFocus();
+ 		    return;
+ 		}
+ 	    }
+ 	    Container rootAncestor = container.getFocusCycleRootAncestor();
+ 	    if (rootAncestor!=null) {
+ 		FocusTraversalPolicy policy = rootAncestor.getFocusTraversalPolicy();
+ 		Component comp = policy.getComponentAfter(rootAncestor, container);
+ 		
+ 		if (comp!=null && SwingUtilities.isDescendingFrom(comp, container)) {
+ 		    comp.requestFocus();
+ 		    return;
+ 		}
+ 	    }
+ 	}
+ 	component.requestFocus();
+    }
+    
 }

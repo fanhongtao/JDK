@@ -1,5 +1,5 @@
 /*
- * @(#)BasicGraphicsUtils.java	1.57 01/12/03
+ * @(#)BasicGraphicsUtils.java	1.58 02/02/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -107,49 +107,50 @@ public class BasicGraphicsUtils
     {
         Color oldColor = g.getColor();  // Make no net change to g
         g.translate(x, y);
-
-        if (isPressed) {
+        
+        if (isPressed && isDefault) {
+            g.setColor(darkShadow);
+            g.drawRect(0, 0, w - 1, h - 1);
+            g.setColor(shadow);
+            g.drawRect(1, 1, w - 3, h - 3);
+        } else if (isPressed) {
             drawLoweredBezel(g, x, y, w, h,
                              shadow, darkShadow, highlight, lightHighlight);
-        }
-        else {
-            if (isDefault) {
-                g.setColor(darkShadow);       
-                g.drawRect(0, 0, w-1, h-1);
+        } else if (isDefault) {
+            g.setColor(darkShadow);       
+            g.drawRect(0, 0, w-1, h-1);
 
-                g.setColor(lightHighlight);   
-                g.drawLine(1, 1, 1, h-3);
-                g.drawLine(2, 1, w-3, 1);
+            g.setColor(lightHighlight);   
+            g.drawLine(1, 1, 1, h-3);
+            g.drawLine(2, 1, w-3, 1);
 
-                g.setColor(highlight);
-                g.drawLine(2, 2, 2, h-4);
-                g.drawLine(3, 2, w-4, 2);
+            g.setColor(highlight);
+            g.drawLine(2, 2, 2, h-4);
+            g.drawLine(3, 2, w-4, 2);
 
-                g.setColor(shadow);
-                g.drawLine(2, h-3, w-3, h-3);
-                g.drawLine(w-3, 2, w-3, h-4);
+            g.setColor(shadow);
+            g.drawLine(2, h-3, w-3, h-3);
+            g.drawLine(w-3, 2, w-3, h-4);
 
-                g.setColor(darkShadow);        
-                g.drawLine(1, h-2, w-2, h-2);
-                g.drawLine(w-2, h-2, w-2, 1);
-            }
-            else {
-                g.setColor(lightHighlight);    
-                g.drawLine(0, 0, 0, h-1);
-                g.drawLine(1, 0, w-2, 0);
+            g.setColor(darkShadow);        
+            g.drawLine(1, h-2, w-2, h-2);
+            g.drawLine(w-2, h-2, w-2, 1);
+        } else {
+            g.setColor(lightHighlight);    
+            g.drawLine(0, 0, 0, h-1);
+            g.drawLine(1, 0, w-2, 0);
 
-                g.setColor(highlight);
-                g.drawLine(1, 1, 1, h-3);
-                g.drawLine(2, 1, w-3, 1);
+            g.setColor(highlight);
+            g.drawLine(1, 1, 1, h-3);
+            g.drawLine(2, 1, w-3, 1);
 
-                g.setColor(shadow);
-                g.drawLine(1, h-2, w-2, h-2);
-                g.drawLine(w-2, 1, w-2, h-3);
+            g.setColor(shadow);
+            g.drawLine(1, h-2, w-2, h-2);
+            g.drawLine(w-2, 1, w-2, h-3);
 
-                g.setColor(darkShadow);         
-                g.drawLine(0, h-1, w-1, h-1);
-                g.drawLine(w-1, h-1, w-1, 0);
-            }
+            g.setColor(darkShadow);         
+            g.drawLine(0, h-1, w-1, h-1);
+            g.drawLine(w-1, h-1, w-1, 0);
         }
 	g.translate(-x, -y);
 	g.setColor(oldColor);

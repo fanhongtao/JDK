@@ -1,5 +1,5 @@
 /*
- * @(#)MenuComponent.java	1.65 01/12/03
+ * @(#)MenuComponent.java	1.67 02/03/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import javax.accessibility.*;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.65, 12/03/01
+ * @version 	1.67, 03/21/02
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
@@ -240,7 +240,7 @@ public abstract class MenuComponent implements java.io.Serializable {
         synchronized (getTreeLock()) {
 	    MenuComponentPeer p = (MenuComponentPeer)this.peer;
 	    if (p != null) {
-	        Toolkit.getEventQueue().removeSourceEvents(this);
+	        Toolkit.getEventQueue().removeSourceEvents(this, true);
 		this.peer = null;
 		p.dispose();
 	    }
@@ -398,7 +398,7 @@ public abstract class MenuComponent implements java.io.Serializable {
     }
 
     /**
-     * Inner class of <code>MenuComponent</coce> used to provide
+     * Inner class of <code>MenuComponent</code> used to provide
      * default support for accessibility.  This class is not meant
      * to be used directly by application developers, but is instead
      * meant only to be subclassed by menu component developers.

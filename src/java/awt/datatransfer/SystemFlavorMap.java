@@ -1,5 +1,5 @@
 /*
- * @(#)SystemFlavorMap.java	1.27 01/12/03
+ * @(#)SystemFlavorMap.java	1.28 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ import sun.awt.datatransfer.DataTransferer;
  * <code>AWT.DnD.flavorMapFileURL</code>. See <code>flavormap.properties</code>
  * for details.
  *
- * @version 1.27, 12/03/01
+ * @version 1.28, 02/22/02
  * @since 1.2
  */
 public final class SystemFlavorMap implements FlavorMap, FlavorTable {
@@ -85,20 +85,9 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
     };
 
     /**
-     * A <code>DataFlavor</code> representing plain text with platform default
-     * encoding, where:
-     * <pre>
-     *     representationClass = InputStream
-     *     mimeType            = "text/plain; charset=<platform default>"
-     * </pre>
+     * A String representing text/plain MIME type.
      */
-    private static DataFlavor TEXT_PLAIN_DATAFLAVOR;
-    static {
-        try {
-            TEXT_PLAIN_DATAFLAVOR = new DataFlavor("text/plain");
-        } catch (ClassNotFoundException cannotHappen) {
-        }
-    }
+    private static final String TEXT_PLAIN_BASE_TYPE = "text/plain";
 
     /**
      * This constant is passed to flavorToNativeLookup() to indicate that a
@@ -109,12 +98,14 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
     private static final boolean SYNTHESIZE_IF_NOT_FOUND = true;
 
     /**
-     * Maps native Strings to Lists of DataFlavors.
+     * Maps native Strings to Lists of DataFlavors (or base type Strings for
+     * text DataFlavors).
      */
     private Map nativeToFlavor = new HashMap();
 
     /**
-     * Maps DataFlavors to Lists of native Strings.
+     * Maps DataFlavors (or base type Strings for text DataFlavors) to Lists of
+     * native Strings.
      */
     private Map flavorToNative = new HashMap();
 
@@ -377,8 +368,15 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                         }
                     }
 
-                    store(key, flavor, nativeToFlavor);
-                    store(flavor, key, flavorToNative);
+                    // For text/* flavors, store mappings in separate maps to
+                    // enable dynamic mapping generation at a run-time.
+                    if ("text".equals(flavor.getPrimaryType())) {
+                        store(value, key, flavorToNative);
+                        store(key, value, nativeToFlavor);
+                    } else {
+                        store(flavor, key, flavorToNative);
+                        store(key, flavor, nativeToFlavor);
+                    }
                 }
             }
         }
@@ -576,7 +574,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @since 1.4
      */
     public synchronized List getNativesForFlavor(DataFlavor flav) {
-        List retval;
+        List retval = null;
 
         // Check cache, even for null flav
         SoftReference ref = (SoftReference)getNativesForFlavorCache.get(flav);
@@ -597,64 +595,75 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
             retval = flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);
         } else if (DataTransferer.isFlavorCharsetTextType(flav)) {
 
-            // Save off a reference to the original DataFlavor, as it can be
-            // used to synthesize the encoded native.
-            final DataFlavor originalFlavor = flav;
-
-            // For text/* flavors, remove class and charset parameters
+            // For text/* flavors, flavor-to-native mappings specified in 
+            // flavormap.properties are stored per flavor's base type.
             if ("text".equals(flav.getPrimaryType())) {
-                try {
-                    flav = new DataFlavor(flav.mimeType.getBaseType());
-                } catch (ClassNotFoundException cannotHappen) {
+                retval = (List)flavorToNative.get(flav.mimeType.getBaseType());
+                if (retval != null) {
+                    // To prevent the List stored in the map from modification.
+                    retval = new ArrayList(retval);
                 }
             }
-
-            // Prefer natives explicitly listed for flav's MIME type
-            retval = flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);
-
-            ArrayList arrayList = (retval instanceof ArrayList) ?
-                (ArrayList)retval : new ArrayList(retval); 
 
             // Also include text/plain natives, but don't duplicate Strings
-            Set dups = new HashSet(arrayList);
-            List textPlainList = flavorToNativeLookup(TEXT_PLAIN_DATAFLAVOR,
-                                                      !SYNTHESIZE_IF_NOT_FOUND);
-            arrayList.ensureCapacity(arrayList.size() + textPlainList.size());
+            List textPlainList = (List)flavorToNative.get(TEXT_PLAIN_BASE_TYPE);
 
-            for (Iterator iter = textPlainList.iterator(); iter.hasNext(); ) {
-                Object nat = iter.next();
-
-                // No need to add 'nat' to 'dups' because none of the
-                // Strings in textPlainList should repeat.
-                if (!dups.contains(nat)) {
-                    arrayList.add(nat);
+            if (textPlainList != null && !textPlainList.isEmpty()) {
+                // To prevent the List stored in the map from modification.
+                // This also guarantees that removeAll() is supported.
+                textPlainList = new ArrayList(textPlainList);
+                if (retval != null && !retval.isEmpty()) {
+                    // Use HashSet to get constant-time performance for search.
+                    textPlainList.removeAll(new HashSet(retval));
+                    retval.addAll(textPlainList);
+                } else {
+                    retval = textPlainList;
                 }
             }
 
-            arrayList.trimToSize();
+            if (retval == null || retval.isEmpty()) {
+                retval = flavorToNativeLookup(flav, SYNTHESIZE_IF_NOT_FOUND);
+            } else {
+                // In this branch it is guaranteed that natives explicitly
+                // listed for flav's MIME type were added with
+                // addUnencodedNativeForFlavor(), so they have lower priority.
+                List explicitList = 
+                    flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);  
 
-            retval = arrayList;
-
-            if (retval.isEmpty()) {
-                retval = flavorToNativeLookup(originalFlavor,
-                                              SYNTHESIZE_IF_NOT_FOUND); 
+                // flavorToNativeLookup() never returns null.
+                // It can return an empty List, however.
+                if (!explicitList.isEmpty()) {
+                    // To prevent the List stored in the map from modification.
+                    // This also guarantees that removeAll() is supported.
+                    explicitList = new ArrayList(explicitList);
+                    // Use HashSet to get constant-time performance for search.
+                    explicitList.removeAll(new HashSet(retval));
+                    retval.addAll(explicitList);
+                }
             }
         } else if (DataTransferer.isFlavorNoncharsetTextType(flav)) {
-            // Save off a reference to the original DataFlavor, as it can be
-            // used to synthesize the encoded native.
-            final DataFlavor originalFlavor = flav;
+            retval = (List)flavorToNative.get(flav.mimeType.getBaseType());
 
-            // Remove class parameter
-            try {
-                flav = new DataFlavor(flav.mimeType.getBaseType());
-            } catch (ClassNotFoundException cannotHappen) {
-            }
+            if (retval == null || retval.isEmpty()) {
+                retval = flavorToNativeLookup(flav, SYNTHESIZE_IF_NOT_FOUND);
+            } else {
+                // In this branch it is guaranteed that natives explicitly
+                // listed for flav's MIME type were added with
+                // addUnencodedNativeForFlavor(), so they have lower priority.
+                List explicitList = 
+                    flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);
 
-            retval = flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);
-
-            if (retval.isEmpty()) {
-                retval = flavorToNativeLookup(originalFlavor,
-                                              SYNTHESIZE_IF_NOT_FOUND);
+                // flavorToNativeLookup() never returns null.
+                // It can return an empty List, however.
+                if (!explicitList.isEmpty()) {
+                    // To prevent the List stored in the map from modification.
+                    // This also guarantees that add/removeAll() are supported.
+                    retval = new ArrayList(retval);
+                    explicitList = new ArrayList(explicitList);
+                    // Use HashSet to get constant-time performance for search.
+                    explicitList.removeAll(new HashSet(retval));
+                    retval.addAll(explicitList);
+                }
             }
         } else {
             retval = flavorToNativeLookup(flav, SYNTHESIZE_IF_NOT_FOUND);
@@ -730,13 +739,27 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
 
             HashSet dups = new HashSet(flavors.size());
 
-            for (Iterator flavors_iter = flavors.iterator();
-                 flavors_iter.hasNext(); )
+            List flavorsAndbaseTypes = nativeToFlavorLookup(nat);
+
+            for (Iterator flavorsAndbaseTypes_iter =
+                     flavorsAndbaseTypes.iterator(); 
+                 flavorsAndbaseTypes_iter.hasNext(); )
             {
-                DataFlavor flavor = (DataFlavor)flavors_iter.next();
-                if ("text".equals(flavor.getPrimaryType())) {
-                    if (DataTransferer.doesSubtypeSupportCharset(flavor)) {
-                        if ("plain".equals(flavor.getSubType()) &&
+                Object value = flavorsAndbaseTypes_iter.next();
+                if (value instanceof String) {
+                    String baseType = (String)value;
+                    String subType = null;
+                    try {
+                        MimeType mimeType = new MimeType(baseType);
+                        subType = mimeType.getSubType();
+                    } catch (MimeTypeParseException mtpe) {
+                        // Cannot happen, since we checked all mappings
+                        // on load from flavormap.properties.
+                        assert(false);
+                    }
+                    if (DataTransferer.doesSubtypeSupportCharset(subType, 
+                                                                 null)) {
+                        if (TEXT_PLAIN_BASE_TYPE.equals(baseType) &&
                             dups.add(DataFlavor.stringFlavor))
                         {
                             retval.add(DataFlavor.stringFlavor);
@@ -746,8 +769,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                             DataFlavor toAdd = null;
                             try {
                                 toAdd = new DataFlavor
-                                    (flavor.mimeType.getBaseType() +
-                                     ";charset=Unicode;class=" +
+                                    (baseType + ";charset=Unicode;class=" +
                                      UNICODE_TEXT_CLASSES[i]);
                             } catch (ClassNotFoundException cannotHappen) {
                             }
@@ -768,8 +790,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                                 DataFlavor toAdd = null;
                                 try {
                                     toAdd = new DataFlavor
-                                        (flavor.mimeType.getBaseType() +
-                                         ";charset=" + charset +
+                                        (baseType + ";charset=" + charset +
                                          ";class=" + ENCODED_TEXT_CLASSES[i]);
                                 } catch (ClassNotFoundException cannotHappen) {
                                 }
@@ -789,7 +810,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                             }
                         }
 
-                        if ("plain".equals(flavor.getSubType()) &&
+                        if (TEXT_PLAIN_BASE_TYPE.equals(baseType) &&
                             dups.add(DataFlavor.plainTextFlavor))
                         {
                             retval.add(DataFlavor.plainTextFlavor);
@@ -801,8 +822,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                         for (int i = 0; i < ENCODED_TEXT_CLASSES.length; i++) {
                             DataFlavor toAdd = null;
                             try {
-                                toAdd = new DataFlavor
-                                    (flavor.mimeType.getBaseType() +
+                                toAdd = new DataFlavor(baseType +
                                      ";class=" + ENCODED_TEXT_CLASSES[i]);
                             } catch (ClassNotFoundException cannotHappen) {
                             }
@@ -813,6 +833,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                         }
                     }
                 } else {
+                    DataFlavor flavor = (DataFlavor)value;
                     if (dups.add(flavor)) {
                         retval.add(flavor);
                     }
@@ -988,6 +1009,9 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
             addUnencodedNativeForFlavor(flav, natives[i]);
         }
         disabledMappingGenerationKeys.add(flav);
+        // Clear the cache to handle the case of empty natives.
+        getNativesForFlavorCache.remove(flav);
+        getNativesForFlavorCache.remove(null);
     }
 
     /**
@@ -1064,6 +1088,9 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
             addFlavorForUnencodedNative(nat, flavors[i]);
         }
         disabledMappingGenerationKeys.add(nat);
+        // Clear the cache to handle the case of empty flavors.
+        getFlavorsForNativeCache.remove(nat);
+        getFlavorsForNativeCache.remove(null);
     }
 
     /**

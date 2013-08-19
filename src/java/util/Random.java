@@ -1,5 +1,5 @@
 /*
- * @(#)Random.java	1.37 02/03/06
+ * @(#)Random.java	1.38 02/03/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,7 +33,7 @@ import sun.misc.AtomicLong;
  * class <code>Math</code> simpler to use.
  *
  * @author  Frank Yellin
- * @version 1.37, 03/06/02
+ * @version 1.38, 03/04/02
  * @see     java.lang.Math#random()
  * @since   JDK1.0
  */
@@ -500,5 +500,5 @@ class Random implements java.io.Serializable {
         s.writeFields();
 
     }
- 
+
 }     

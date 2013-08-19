@@ -1,5 +1,5 @@
 /*
- * @(#)DataInputStream.java	1.56 01/12/03
+ * @(#)DataInputStream.java	1.59 02/03/26
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,18 +53,18 @@ package java.io;
  * </ul>
  *
  * @author  Arthur van Hoff
- * @version 1.56, 12/03/01
+ * @version 1.59, 03/26/02
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
 public
 class DataInputStream extends FilterInputStream implements DataInput {
+
     /**
-     * Creates a <code>FilterInputStream</code>
-     * and saves its  argument, the input stream
-     * <code>in</code>, for later use. An internal
+     * Creates a DataInputStream that uses the specified
+     * underlying InputStream.
      *
-     * @param  in   the input stream.
+     * @param  in   the specified input stream
      */
     public DataInputStream(InputStream in) {
 	super(in);
@@ -544,6 +544,7 @@ loop:	while (true) {
      * @exception  EOFException  if this input stream reaches the end before
      *               reading all the bytes.
      * @exception  IOException   if an I/O error occurs.
+     * @exception  UTFDataFormatException if the bytes do not represent a valid UTF-8 encoding of a string.
      * @see        java.io.DataInputStream#readUTF(java.io.DataInput)
      */
     public final String readUTF() throws IOException {

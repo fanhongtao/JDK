@@ -1,5 +1,5 @@
 /*
- * @(#)X509CRL.java	1.22 01/12/03
+ * @(#)X509CRL.java	1.23 02/02/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,8 @@ import javax.security.auth.x500.X500Principal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Set;
+
+import sun.security.x509.X509CRLImpl;
 
 /**
  * <p>
@@ -82,7 +84,7 @@ import java.util.Set;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.22
+ * @version 1.23
  *
  * @see CRL
  * @see CertificateFactory
@@ -90,6 +92,8 @@ import java.util.Set;
  */
 
 public abstract class X509CRL extends CRL implements X509Extension {
+
+    private transient X500Principal issuerPrincipal;
 
     /**
      * Constructor for X.509 CRLs.
@@ -250,24 +254,19 @@ public abstract class X509CRL extends CRL implements X509Extension {
     /**
      * Returns the issuer (issuer distinguished name) value from the
      * CRL as an <code>X500Principal</code>.
+     * <p>
+     * It is recommended that subclasses override this method to provide 
+     * an efficient implementation.
      *
      * @return an <code>X500Principal</code> representing the issuer
      *		distinguished name
      * @since 1.4
      */
     public X500Principal getIssuerX500Principal() {
-	if (getIssuerDN() == null) {
-	    throw new IllegalStateException("issuer may not be null");
+	if (issuerPrincipal == null) {
+	    issuerPrincipal = X509CRLImpl.getIssuerX500Principal(this);
 	}
-
-	try {
-	    return new X500Principal(getIssuerDN().getName());
-	} catch (Exception e) {
-	    RuntimeException re = new RuntimeException
-		("unable to instantiate X500Principal");
-	    re.initCause(e);
-	    throw re;
-	}
+	return issuerPrincipal;
     }
 
     /**

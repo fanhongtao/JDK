@@ -1,5 +1,5 @@
 /*
- * @(#)NativeLibLoader.java	1.6 01/12/03
+ * @(#)NativeLibLoader.java	1.7 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,8 +22,8 @@ class NativeLibLoader {
      *
      * Since the use and storage of these ids is done by the
      * implementation libraries, the implementation of these method is
-     * provided by the particular AWT implementations
-     * (i.e. "Toolkit"s/Peer), such as Motif, Win32 or Tiny. The
+     * provided by the particular AWT implementations (for example,
+     *  "Toolkit"s/Peer), such as Motif, Microsoft Windows, or Tiny. The
      * problem is that this means that the native libraries must be
      * loaded by the java.* classes, which do not necessarily know the
      * names of the libraries to load. A better way of doing this

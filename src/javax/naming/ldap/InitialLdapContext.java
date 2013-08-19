@@ -1,5 +1,5 @@
 /*
- * @(#)InitialLdapContext.java	1.7 01/12/03
+ * @(#)InitialLdapContext.java	1.8 02/03/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,7 +61,7 @@ import java.util.Hashtable;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.7 01/12/03
+  * @version 1.8 02/03/08
   *
   * @see LdapContext
   * @see javax.naming.InitialContext
@@ -126,6 +126,9 @@ public class InitialLdapContext extends InitialDirContext implements LdapContext
 	    System.arraycopy(connCtls, 0, copy, 0, connCtls.length);
 	    env.put(BIND_CONTROLS_PROPERTY, copy);
 	}
+	// set version to LDAPv3
+	env.put("java.naming.ldap.version", "3");
+
 	// Initialize with updated environment
 	init(env);
     }

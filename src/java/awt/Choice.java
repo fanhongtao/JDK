@@ -1,5 +1,5 @@
 /*
- * @(#)Choice.java	1.78 01/12/03
+ * @(#)Choice.java	1.79 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,7 +47,7 @@ import javax.accessibility.*;
  * attributes as font size and length of items contained within 
  * the <code>Choice</code>.
  * <p>
- * @version	1.78 12/03/01
+ * @version	1.79 03/20/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -67,7 +67,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     Vector pItems;
 
     /**
-     * The index of the current choice for this <code>Choice</code>.
+     * The index of the current choice for this <code>Choice</code>
+     * or -1 if nothing is selected.
      * @serial
      * @see getSelectedItem
      * @see select()
@@ -393,6 +394,10 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 
     /**
      * Returns the index of the currently selected item.
+     * If nothing is selected, returns -1.
+     *
+     * @return the index of the currently selected item, or -1 if nothing
+     *  is currently selected
      * @see #getSelectedItem
      */
     public int getSelectedIndex() {
@@ -649,7 +654,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * no attempt is made to serialize them.
      *
      * @param s the <code>ObjectOutputStream</code> to write
-     * @serialData <code>null terminated sequence of 0 
+     * @serialData <code>null</code> terminated sequence of 0 
      *   or more pairs; the pair consists of a <code>String</code> 
      *   and an <code>Object</code>; the <code>String</code> indicates
      *   the type of object and is one of the following:

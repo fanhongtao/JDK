@@ -1,5 +1,5 @@
 /*
- * @(#)java.c	1.91 01/12/03
+ * @(#)java.c	1.98 02/05/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,6 +62,7 @@ static jobjectArray NewPlatformStringArray(JNIEnv *env, char **strv, int strc);
 static jstring NewPlatformString(JNIEnv *env, char *s);
 static jclass LoadClass(JNIEnv *env, char *name);
 static jstring GetMainClassName(JNIEnv *env, char *jarname);
+static void SetJavaCommandLineProp(char* classname, char* jarfile, int argc, char** argv);
 
 #ifdef JAVA_ARGS
 static void TranslateDashJArgs(int *pargc, char ***pargv);
@@ -168,9 +169,16 @@ main(int argc, char ** argv)
 #endif
 
     ifn.CreateJavaVM = 0; ifn.GetDefaultJavaVMInitArgs = 0;
+    if (debug)
+	start = CounterGet();
     if (!LoadJavaVM(jvmpath, &ifn)) {
         status = 1;
 	return 6;
+    }
+    if (debug) {
+	end   = CounterGet();
+	printf("%ld micro seconds to LoadJavaVM\n",
+	       (long)(jint)Counter2Micros(end-start));
     }
     
 #ifdef JAVA_ARGS  /* javac, jar and friends. */
@@ -215,6 +223,9 @@ main(int argc, char ** argv)
     if (jarfile != 0) {
 	SetClassPath(jarfile);
     }
+
+    /* set the -Dsun.java.command pseudo property */
+    SetJavaCommandLineProp(classname, jarfile, argc, argv);
 
     /* Initialize the virtual machine */
 
@@ -680,6 +691,7 @@ SetLibraryPath(char **original_argv, char *execname,
 #ifndef WIN32
     char *arch = (char *)GetArch(); /* like sparc or sparcv9 */
     char *oldpath = getenv("LD_LIBRARY_PATH");
+    char *debugprog;
 
     /*
      * We need to set LD_LIBRARY_PATH as follows:
@@ -726,10 +738,28 @@ SetLibraryPath(char **original_argv, char *execname,
 
     /* Unix systems document that they look at LD_LIBRARY_PATH 
      * only once at startup, so we have to re-exec the current executable 
-     * to get the changed environment variable to have an effect. */
-    execv(execname, original_argv);
-    perror("execv()");
-    exit(1);
+     * to get the changed environment variable to have an effect. 
+     *
+     * If the DEBUGPROG env variable is set, exec the debugger 
+     */
+
+    if ( (debugprog = getenv("DEBUGPROG")) != NULL ) {
+	char **new_argv;
+    
+        new_argv = (char **)malloc(3 * sizeof(char *));
+	
+	new_argv[0] = debugprog;
+	new_argv[1] = execname;
+	new_argv[2] = NULL;
+        execv(debugprog, new_argv);
+        perror("execv()");
+        exit(1);
+    }
+    else {
+        execv(execname, original_argv);
+        perror("execv()");
+        exit(1);
+    }
 #endif
 }
 
@@ -966,7 +996,7 @@ InitEncodingFlag(JNIEnv *env)
 static jstring
 NewPlatformString(JNIEnv *env, char *s)
 {    
-    int len = strlen(s);
+    int len = (int)strlen(s);
     jclass cls;
     jmethodID mid;
     jbyteArray ary;
@@ -1178,9 +1208,9 @@ AddApplicationOptions()
 
     /* How big is the application's classpath? */
     size = 40;                                 /* 40: "-Djava.class.path=" */
-    strlenHome = strlen(home);
+    strlenHome = (int)strlen(home);
     for (i = 0; i < NUM_APP_CLASSPATH; i++) {
-	size += strlenHome + strlen(app_classpath[i]) + 1; /* 1: separator */
+	size += strlenHome + (int)strlen(app_classpath[i]) + 1; /* 1: separator */
     }
     appcp = (char *)MemAlloc(size + 1);
     strcpy(appcp, "-Djava.class.path=");
@@ -1194,6 +1224,67 @@ AddApplicationOptions()
     return JNI_TRUE;
 }
 #endif
+
+/*
+ * inject the -Dsun.java.command pseudo property into the args structure
+ * this pseudo property is used in the HotSpot VM to expose the
+ * Java class name and arguments to the main method to the VM. The
+ * HotSpot VM uses this pseudo property to store the Java class name
+ * (or jar file name) and the arguments to the class's main method
+ * to the instrumentation memory region. The sun.java.command pseudo
+ * property is not exported by HotSpot to the Java layer.
+ */
+void
+SetJavaCommandLineProp(char *classname, char *jarfile,
+		       int argc, char **argv)
+{
+
+    int i = 0;
+    size_t len = 0;
+    char* javaCommand = NULL;
+    char* dashDstr = "-Dsun.java.command=";
+
+    if (classname == NULL && jarfile == NULL) {
+        /* unexpected, one of these should be set. just return without
+         * setting the property
+         */
+        return;
+    }
+
+    /* if the class name is not set, then use the jarfile name */
+    if (classname == NULL) {
+        classname = jarfile;
+    }
+
+    /* determine the amount of memory to allocate assuming
+     * the individual components will be space separated
+     */
+    len = strlen(classname);
+    for (i = 0; i < argc; i++) {
+        len += strlen(argv[i]) + 1;
+    }
+
+    /* allocate the memory */
+    javaCommand = (char*) MemAlloc(len + strlen(dashDstr) + 1);
+
+    /* build the -D string */
+    *javaCommand = '\0';
+    strcat(javaCommand, dashDstr);
+    strcat(javaCommand, classname);
+
+    for (i = 0; i < argc; i++) {
+        /* the components of the string are space separated. In
+         * the case of embeded white space, the relationship of
+         * the white space separated components to their true
+         * positional arguments will be ambiguous. This issue may
+         * be addressed in a future release.
+         */
+        strcat(javaCommand, " ");
+        strcat(javaCommand, argv[i]);
+    }
+
+    AddOption(javaCommand, NULL);
+}
 
 /*
  * Prints the version information from the java.version and other properties.
@@ -1282,7 +1373,7 @@ PrintXUsage(void)
 {
     char path[MAXPATHLEN];
     char buf[128];
-    int n;
+    size_t n;
     FILE *fp;
 
     GetXUsagePath(path, sizeof(path));
@@ -1378,7 +1469,7 @@ ReadKnownVMs(const char *jrepath)
                     vmType = VM_ERROR;
                 } else {
                     fprintf(stderr, "Warning: unknown VM type %s on line %d of `%s'\n",
-                            vmType, lineno, jvmCfgName);
+                            vmType, lineno, &jvmCfgName[0]);
                     vmType = VM_KNOWN;
                 }
             }
@@ -1401,7 +1492,7 @@ ReadKnownVMs(const char *jrepath)
     if (debug) {
         end   = CounterGet();
         printf("%ld micro seconds to parse jvm.cfg\n",
-               (jint)Counter2Micros(end-start));
+               (long)(jint)Counter2Micros(end-start));
     }
     
     return cnt;

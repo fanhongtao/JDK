@@ -1,5 +1,5 @@
 /*
- * @(#)Short.java	1.31 01/12/03
+ * @(#)Short.java	1.32 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ package java.lang;
  * constants and methods useful when dealing with a <code>short</code>.
  *
  * @author  Nakul Saraiya
- * @version 1.31, 12/03/01
+ * @version 1.32, 02/06/02
  * @see     java.lang.Number
  * @since   JDK1.1
  */
@@ -119,7 +119,8 @@ public final class Short extends Number implements Comparable {
 	throws NumberFormatException {
 	int i = Integer.parseInt(s, radix);
 	if (i < MIN_VALUE || i > MAX_VALUE)
-	    throw new NumberFormatException();
+	    throw new NumberFormatException(
+                "Value out of range. Value:\"" + s + "\" Radix:" + radix);
 	return (short)i;
     }
 

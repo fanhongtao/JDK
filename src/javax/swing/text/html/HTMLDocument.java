@@ -1,5 +1,5 @@
 /*
- * @(#)HTMLDocument.java	1.147 01/12/03
+ * @(#)HTMLDocument.java	1.148 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -67,7 +67,7 @@ import javax.swing.undo.*;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.147 12/03/01
+ * @version 1.148 04/09/02
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**
@@ -1335,10 +1335,10 @@ public class HTMLDocument extends DefaultStyledDocument {
     private boolean preservesUnknownTags = true;
 
     /*
-     * Used to store a button group for radio buttons in
+     * Used to store button groups for radio buttons in
      * a form.
      */
-    private ButtonGroup radioButtonGroup;
+    private HashMap radioButtonGroupsMap;
 
     /**
      * Document property for the number of tokens to buffer 
@@ -2295,18 +2295,20 @@ public class HTMLDocument extends DefaultStyledDocument {
         private class FormTagAction extends BlockAction {
             public void start(HTML.Tag t, MutableAttributeSet attr) {
                 super.start(t, attr);
-                // initialize a ButtonGroup when
+                // initialize a ButtonGroupsMap when
                 // FORM tag is encountered.  This will
                 // be used for any radio buttons that
                 // might be defined in the FORM.
-                radioButtonGroup = new ButtonGroup();
+		// for new group new ButtonGroup will be created (fix for 4529702)
+		// group name is a key in radioButtonGroupsMap
+		radioButtonGroupsMap = new HashMap();
             }
 
 	    public void end(HTML.Tag t) {
                 super.end(t);
                 // reset the button group to null since
                 // the form has ended.
-                radioButtonGroup = null;
+                radioButtonGroupsMap = null;
             }
         }
 
@@ -2947,6 +2949,12 @@ public class HTMLDocument extends DefaultStyledDocument {
 			   type.equals("radio")) {
 		    JToggleButton.ToggleButtonModel model = new JToggleButton.ToggleButtonModel();
 		    if (type.equals("radio")) {
+			String name = (String) attr.getAttribute(HTML.Attribute.NAME);
+			ButtonGroup radioButtonGroup = (ButtonGroup)radioButtonGroupsMap.get(name);
+			if (radioButtonGroup == null) {
+			    radioButtonGroup = new ButtonGroup();
+			    radioButtonGroupsMap.put(name,radioButtonGroup);
+			}
 			model.setGroup(radioButtonGroup);
 		    }
 		    attr.addAttribute(StyleConstants.ModelAttribute, model);

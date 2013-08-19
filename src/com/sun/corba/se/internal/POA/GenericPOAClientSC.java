@@ -1,5 +1,5 @@
 /*
- * @(#)GenericPOAClientSC.java	1.69 01/12/03
+ * @(#)GenericPOAClientSC.java	1.70 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -410,7 +410,17 @@ public class GenericPOAClientSC extends ClientDelegate implements ClientSC
                                            String operation,
                                            Class expectedType) 
     {
-	return serversc.preinvoke(ior, operation, expectedType);
+        ServantObject servantObject = serversc.preinvoke(ior,
+            operation, expectedType); 
+        // This is to make sure that local invocation does not result
+        // in an infinite loop, in case servant_preinvoke cannot find
+        // the servant Object.
+        // To understand how this works, see the comments in 
+        // ClientDelegate.servant_preinvoke
+        if( servantObject == null ) {
+            isNextIsLocalValid.set( Boolean.FALSE );
+        }
+	return servantObject;
     }
 
     public void servant_postinvoke(org.omg.CORBA.Object self,

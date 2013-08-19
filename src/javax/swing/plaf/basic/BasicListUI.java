@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.87 01/12/03
+ * @(#)BasicListUI.java	1.91 02/02/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.beans.PropertyChangeEvent;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.87 12/03/01
+ * @version 1.91 02/15/02
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -1775,7 +1775,7 @@ public class BasicListUI extends ListUI
 	    JList src = (JList)e.getSource();
 	    ListModel model = src.getModel();
 
-            if (model.getSize() == 0) {
+            if (model.getSize() == 0 || e.isAltDown() || e.isControlDown() || e.isMetaDown()) {
                 // Nothing to select
                 return;
             }
@@ -2129,15 +2129,19 @@ public class BasicListUI extends ListUI
 	    // ListSelectionModel lsm = list.getSelectionModel();
 	    // int anchor = lsm.getAnchorSelectionIndex();
 	    // int lead = lsm.getLeadSelectionIndex();
-            ListSelectionModel lsm = list.getSelectionModel();
-            if (lsm.getSelectionMode() == ListSelectionModel.SINGLE_SELECTION){
-                if (list.getMinSelectionIndex() == -1 &&
-                         list.getModel().getSize() > 0) {
-                    list.setSelectionInterval(0, 0);
+            int size = list.getModel().getSize();
+            if (size > 0) {
+                ListSelectionModel lsm = list.getSelectionModel();
+                if (lsm.getSelectionMode() == ListSelectionModel.
+                                             SINGLE_SELECTION){
+                    if (list.getMinSelectionIndex() == -1) {
+                        list.setSelectionInterval(0, 0);
+                    }
                 }
-            }
-            else {
-                list.setSelectionInterval(0, list.getModel().getSize() - 1);
+                else {
+                    list.setSelectionInterval(0, size - 1);
+                    list.ensureIndexIsVisible(list.getLeadSelectionIndex());
+                }
             }
 	    // lsm.setAnchorSelectionIndex(anchor);
 	    // lsm.setLeadSelectionIndex(lead);
@@ -2232,9 +2236,9 @@ public class BasicListUI extends ListUI
 	 */
         protected void updateInsertionLocation(JComponent comp, Point p) {
 	    JList list = (JList) comp;
-            int row = convertYToRow(p.y); 
-            if (row != -1) {
-		list.setSelectionInterval(row, row);
+            int index = convertLocationToModel(p.x, p.y);
+            if (index != -1) {
+		list.setSelectionInterval(index, index);
 	    }
 	}
 
@@ -2258,66 +2262,35 @@ public class BasicListUI extends ListUI
 	    if (c instanceof JList) {
 		JList list = (JList) c;
 		Object[] values = list.getSelectedValues();
-		return new ListTransferable(values);
+
+                if (values == null || values.length == 0) {
+                    return null;
+                }
+		
+                StringBuffer plainBuf = new StringBuffer();
+                StringBuffer htmlBuf = new StringBuffer();
+		
+                htmlBuf.append("<html>\n<body>\n<ul>\n");
+
+                for (int i = 0; i < values.length; i++) {
+                    Object obj = values[i];
+                    String val = ((obj == null) ? "" : obj.toString());
+                    plainBuf.append(val + "\n");
+                    htmlBuf.append("  <li>" + val + "\n");
+                }
+                
+                // remove the last newline
+                plainBuf.deleteCharAt(plainBuf.length() - 1);
+                htmlBuf.append("</ul>\n</body>\n</html>");
+                
+                return new BasicTransferable(plainBuf.toString(), htmlBuf.toString());
 	    }
+
 	    return null;
 	}
 
         public int getSourceActions(JComponent c) {
 	    return COPY;
-	}
-
-	static class ListTransferable extends BasicTransferable {
-
-	    ListTransferable(Object[] selectedValues) {
-		this.selectedValues = selectedValues;
-	    }
-
-            protected Object[] getSelectedValues() {
-		return selectedValues;
-	    }
-
-	    // --- HTML ---------------------------------------------------------
-
-	    /**
-	     * Should the HTML flavors be offered?  If so, the method
-	     * getHTMLData should be implemented to provide something reasonable.
-	     */
-            protected boolean isHTMLSupported() {
-		return true;
-	    }
-
-	    /**
-	     * Fetch the data in a text/html format
-	     */
-            protected String getHTMLData() {
-		StringBuffer buf = new StringBuffer();
-		buf.append("<html><ol>");
-		for (int i = 0; i < selectedValues.length; i++) {
-		    buf.append("\n<li>" + selectedValues[i]);
-		}
-		buf.append("\n</ol></html>");
-		return buf.toString();
-	    }
-
-	    // --- Plain ----------------------------------------------------------
-
-	    /**
-	     * Should the plain text flavors be offered?  If so, the method
-	     * getPlainData should be implemented to provide something reasonable.
-	     */
-            protected boolean isPlainSupported() {
-		return (selectedValues.length == 1);
-	    }
-
-	    /**
-	     * Fetch the data in a text/plain format.
-	     */
-            protected String getPlainData() {
-		return selectedValues[0].toString();
-	    }
-
-	    private Object[] selectedValues;
 	}
 
     }

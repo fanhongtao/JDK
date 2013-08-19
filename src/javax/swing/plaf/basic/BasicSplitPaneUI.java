@@ -1,5 +1,5 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.68 01/12/03
+ * @(#)BasicSplitPaneUI.java	1.72 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import javax.swing.plaf.UIResource;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.68 12/03/01
+ * @version 1.72 04/09/02
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -78,6 +78,19 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Instance of the FocusListener for this JSplitPane.
      */
     protected FocusListener focusListener;
+
+
+    /**
+     * Keys to use for forward focus traversal when the JComponent is
+     * managing focus.
+     */
+    private static Set managingFocusForwardTraversalKeys;
+
+    /**
+     * Keys to use for backward focus traversal when the JComponent is
+     * managing focus.
+     */
+    private static Set managingFocusBackwardTraversalKeys;
 
 
     /**
@@ -300,6 +313,23 @@ public class BasicSplitPaneUI extends SplitPaneUI
         } else {
             setNonContinuousLayoutDivider(nonContinuousLayoutDivider, true);
         }
+
+	// focus forward traversal key
+	if (managingFocusForwardTraversalKeys==null) {
+	    managingFocusForwardTraversalKeys = new TreeSet();
+	    managingFocusForwardTraversalKeys.add(
+		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0));
+	}
+	splitPane.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+					managingFocusForwardTraversalKeys);
+	// focus backward traversal key
+	if (managingFocusBackwardTraversalKeys==null) {
+	    managingFocusBackwardTraversalKeys = new TreeSet();
+	    managingFocusBackwardTraversalKeys.add(
+		KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK));
+	}
+	splitPane.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+					managingFocusBackwardTraversalKeys);
     }
 
 
@@ -361,6 +391,8 @@ public class BasicSplitPaneUI extends SplitPaneUI
 	map.put("selectMax", new KeyboardEndAction());
 	map.put("startResize", new KeyboardResizeToggleAction());
 	map.put("toggleFocus", new ToggleSideFocusAction());
+	map.put("focusOutForward", new MoveFocusOutAction(1));
+	map.put("focusOutBackward", new MoveFocusOutAction(-1));
 	return map;
     }
 
@@ -404,6 +436,11 @@ public class BasicSplitPaneUI extends SplitPaneUI
         nonContinuousLayoutDivider = null;
 
         setNonContinuousLayoutDivider(null);
+
+	// sets the focus forward and backward traversal keys to null
+	// to restore the defaults
+	splitPane.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
+	splitPane.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
     }
 
 
@@ -819,8 +856,6 @@ public class BasicSplitPaneUI extends SplitPaneUI
         public void actionPerformed(ActionEvent ev) {
             if (!dividerKeyboardResize) {
                 splitPane.requestFocus();
-                dividerKeyboardResize = true;
-                splitPane.repaint();
             }
         }
     }
@@ -832,8 +867,12 @@ public class BasicSplitPaneUI extends SplitPaneUI
 	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
             if (!ui.dividerKeyboardResize) {
                 splitPane.requestFocus();
-                ui.dividerKeyboardResize = true;
-                splitPane.repaint();
+	    } else {
+		JSplitPane parentSplitPane =
+		    (JSplitPane)SwingUtilities.getAncestorOfClass(JSplitPane.class, splitPane);
+		if (parentSplitPane!=null) {
+		    parentSplitPane.requestFocus();
+		}
             }
         }
     }
@@ -847,44 +886,103 @@ public class BasicSplitPaneUI extends SplitPaneUI
     static class ToggleSideFocusAction extends AbstractAction {
 	public void actionPerformed(ActionEvent ae) {
 	    JSplitPane splitPane = (JSplitPane)ae.getSource();
-	    // Determine which side currently has focus. If there is only
-	    // one component, don't change the focus.
-	    Component        left = splitPane.getLeftComponent();
-	    Component        right = splitPane.getRightComponent();
-	    Component        focus = SwingUtilities.findFocusOwner(left);
-	    Component        focusOn;
+	    Component left = splitPane.getLeftComponent();
+	    Component right = splitPane.getRightComponent();
 
-	    if (focus == null) {
-		focusOn = SwingUtilities.findFocusOwner(right);
-		if (focusOn != null) {
-		    if (left != null) {
-			focusOn = left;
-		    }
-		    else {
-			focusOn = null;
-		    }
-		}
-		else if (left != null) {
-		    focusOn = left;
-		}
-		else if (right != null) {
-		    focusOn = right;
-		}
-	    }
-	    else if (right != null) {
-		focusOn = right;
-	    }
-	    else {
-		focusOn = left;
-	    }
+	    KeyboardFocusManager manager =
+		KeyboardFocusManager.getCurrentKeyboardFocusManager();
+	    Component focus = manager.getFocusOwner();
+	    Component focusOn = getNextSide(splitPane, focus);
 	    if (focusOn != null) {
-		// Found the component to request focus on.
-                focusOn.requestFocus();
+		// don't change the focus if the new focused component belongs
+		// to the same splitpane and the same side
+		if ( focus!=null &&
+		     ( (SwingUtilities.isDescendingFrom(focus, left) &&
+			SwingUtilities.isDescendingFrom(focusOn, left)) ||
+		       (SwingUtilities.isDescendingFrom(focus, right) &&
+			SwingUtilities.isDescendingFrom(focusOn, right)) ) ) {
+		    return;
+		}
+ 		BasicLookAndFeel.compositeRequestFocus(focusOn);
 	    }
+	}
+
+	private Component getNextSide(JSplitPane splitPane, Component focus) {
+	    Component left = splitPane.getLeftComponent();
+	    Component right = splitPane.getRightComponent();
+	    Component next = null;
+	    if (focus!=null && SwingUtilities.isDescendingFrom(focus, left) &&
+		right!=null) {
+		next = getFirstAvailableComponent(right);
+		if (next != null) {
+		    return next;
+		}
+	    }
+	    JSplitPane parentSplitPane = (JSplitPane)SwingUtilities.getAncestorOfClass(JSplitPane.class, splitPane);
+	    if (parentSplitPane!=null) {
+		// focus next side of the parent split pane
+		next = getNextSide(parentSplitPane, focus);
+	    } else {
+		next = getFirstAvailableComponent(left);
+		if (next == null) {
+		    next = getFirstAvailableComponent(right);
+		}
+	    }
+	    return next;
+	}
+
+	private Component getFirstAvailableComponent(Component c) {
+	    if (c!=null && c instanceof JSplitPane) {
+		JSplitPane sp = (JSplitPane)c;
+		Component left = getFirstAvailableComponent(sp.getLeftComponent());
+		if (left != null) {
+		    c = left;
+		} else {
+		    c = getFirstAvailableComponent(sp.getRightComponent());
+		}
+	    }
+	    return c;
 	}
     }
 
+    /**
+     * Action that will move focus out of the splitpane to the next
+     * component (if present) if direction > 0 or to the previous
+     * component (if present) if direction < 0
+     */
+    static class MoveFocusOutAction extends AbstractAction {
 
+	private int direction;
+
+	public MoveFocusOutAction(int newDirection) {
+	    direction = newDirection;
+	}
+
+	public void actionPerformed(ActionEvent ae) {
+	    JSplitPane splitPane = (JSplitPane)ae.getSource();
+	    Container rootAncestor = splitPane.getFocusCycleRootAncestor();
+	    FocusTraversalPolicy policy = rootAncestor.getFocusTraversalPolicy();
+	    Component focusOn = (direction > 0) ?
+		policy.getComponentAfter(rootAncestor, splitPane) :
+		policy.getComponentBefore(rootAncestor, splitPane);
+	    HashSet focusFrom = new HashSet();
+	    if (splitPane.isAncestorOf(focusOn)) {
+		do {
+		    focusFrom.add(focusOn);
+		    rootAncestor = focusOn.getFocusCycleRootAncestor();
+		    policy = rootAncestor.getFocusTraversalPolicy();
+		    focusOn = (direction > 0) ?
+			policy.getComponentAfter(rootAncestor, focusOn) :
+			policy.getComponentBefore(rootAncestor, focusOn);
+		} while (splitPane.isAncestorOf(focusOn) &&
+			 !focusFrom.contains(focusOn));
+	    }
+	    if ( focusOn!=null && !splitPane.isAncestorOf(focusOn) ) {
+		focusOn.requestFocus();
+	    }
+	}
+    }
+    
     /**
      * Returns the divider between the top Components.
      */
@@ -1119,6 +1217,10 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Messaged to paint the look and feel.
      */
     public void paint(Graphics g, JComponent jc) {
+	if (!painted && splitPane.getDividerLocation()<0) {
+	    ignoreDividerLocationChange = true;
+	    splitPane.setDividerLocation(getDividerLocation(splitPane));
+	}
 	painted = true;
     }
 
@@ -1852,7 +1954,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		sizes[2] = 0;
 	    }
 	    else {
-		sizes[2] = getSizeForPrimaryAxis(splitPane.getPreferredSize());
+		sizes[2] = getSizeForPrimaryAxis(components[2].getPreferredSize());
 	    }
         }
 
@@ -1924,7 +2026,8 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		    retValue[counter] = -1;
 		}
 	    }
-	    retValue[2] = (components[2] != null) ? sizes[2] : -1;
+	    retValue[2] = (components[2] != null) ?
+ 		getMinimumSizeOfComponent(components[2]) : -1;
 	    return retValue;
 	}
 

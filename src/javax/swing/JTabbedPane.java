@@ -1,5 +1,5 @@
 /*
- * @(#)JTabbedPane.java	1.124 01/12/03
+ * @(#)JTabbedPane.java	1.127 02/07/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -58,7 +58,7 @@ import java.io.IOException;
  *    description: A component which provides a tab folder metaphor for 
  *                 displaying one component from a set of components.
  *
- * @version 1.124 12/03/01
+ * @version 1.127 07/22/02
  * @author Dave Moore
  * @author Philip Milne
  * @author Amy Fowler
@@ -75,11 +75,10 @@ public class JTabbedPane extends JComponent
     public static final int WRAP_TAB_LAYOUT = 0;
 
    /**
-    * The tab layout policy for providing a scrollable region of tabs
-    * when all the tabs will not fit within a single run.  A pair of
-    * scroll buttons are provided for the user to control the scrolling.
-    * The placement of the scroll buttons is determined by the look and
-    * feel.
+    * Tab layout policy for providing a subset of available tabs when all
+    * the tabs will not fit within a single run.  If all the tabs do
+    * not fit within a single run the look and feel will provide a way
+    * to navigate to hidden tabs.
     */
     public static final int SCROLL_TAB_LAYOUT = 1;
 
@@ -121,8 +120,7 @@ public class JTabbedPane extends JComponent
 
     /**
      * Creates an empty <code>TabbedPane</code> with a default
-     * tab placement of <code>JTabbedPane.TOP</code> and default
-     * tab layout policy of <code>JTabbedPane.WRAP_TAB_LAYOUT</code>.
+     * tab placement of <code>JTabbedPane.TOP</code>.
      * @see #addTab
      */
     public JTabbedPane() {
@@ -132,8 +130,7 @@ public class JTabbedPane extends JComponent
     /**
      * Creates an empty <code>TabbedPane</code> with the specified tab placement
      * of either: <code>JTabbedPane.TOP</code>, <code>JTabbedPane.BOTTOM</code>,
-     * <code>JTabbedPane.LEFT</code>, or <code>JTabbedPane.RIGHT</code>, and a
-     * default tab layout policy of <code>JTabbedPane.WRAP_TAB_LAYOUT</code>.
+     * <code>JTabbedPane.LEFT</code>, or <code>JTabbedPane.RIGHT</code>.
      *
      * @param tabPlacement the placement for the tabs relative to the content
      * @see #addTab
@@ -395,7 +392,11 @@ public class JTabbedPane extends JComponent
      * <li><code>JTabbedPane.SCROLL_TAB_LAYOUT</code>
      * </ul>
      * 
-     * The default value, if not set, is <code>JTabbedPane.WRAP_TAB_LAYOUT</code>.
+     * The default value, if not set by the UI, is <code>JTabbedPane.WRAP_TAB_LAYOUT</code>.
+     * <p>
+     * Some look and feels might only support a subset of the possible
+     * layout policies, in which case the value of this property may be
+     * ignored.
      *
      * @param layoutPolicy the policy used to layout the tabs
      * @exception IllegalArgumentException if layoutPolicy value isn't one
@@ -790,6 +791,16 @@ public class JTabbedPane extends JComponent
                     AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY, 
                     component, null);
         }
+
+        pages.removeElementAt(index);
+
+        // NOTE 4/15/2002 (joutwate):
+        // This fix is implemented using client properties since there is
+        // currently no IndexPropertyChangeEvent.  Once
+        // IndexPropertyChangeEvents have been added this code should be
+        // modified to use it.
+        putClientProperty("__index_to_remove__", new Integer(index));
+
         // We can't assume the tab indices correspond to the 
         // container's children array indices, so make sure we
         // remove the correct child!
@@ -797,14 +808,13 @@ public class JTabbedPane extends JComponent
 	    Component components[] = getComponents();
 	    for (int i = components.length; --i >= 0; ) {
 		if (components[i] == component) {
-    	    	    super.remove(i);
+                    super.remove(i);
                     component.setVisible(true);
                     break;
 		}
 	    }
         }
 
-        pages.removeElementAt(index);
         revalidate();
         repaint();
     }

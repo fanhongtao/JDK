@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.119 01/12/03
+ * @(#)BasicTabbedPaneUI.java	1.123 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1221,8 +1221,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
 	    // view position
 	    Point vpp = tabScroller.viewport.getLocation();
 	    Point viewp = tabScroller.viewport.getViewPosition();
-	    dest.x = rects[tabIndex].x-vpp.x-viewp.x;
-	    dest.y = rects[tabIndex].y-vpp.y-viewp.y;
+	    dest.x = rects[tabIndex].x + vpp.x - viewp.x;
+	    dest.y = rects[tabIndex].y + vpp.y - viewp.y;
 
 	} else { // WRAP_TAB_LAYOUT
 	    dest.x = rects[tabIndex].x;
@@ -1313,13 +1313,11 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     }
 
     protected void setVisibleComponent(Component component) {
-        if (visibleComponent == component) {
-            return;
-        }
-        if (visibleComponent != null && visibleComponent.getParent() == tabPane) {
+        if (visibleComponent != null && visibleComponent != component &&
+                visibleComponent.getParent() == tabPane) {
             visibleComponent.setVisible(false);
         }
-        if (component != null) {
+        if (component != null && !component.isVisible()) {
             component.setVisible(true);
         }
         visibleComponent = component;
@@ -1518,6 +1516,12 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         int tabPlacement = tabPane.getTabPlacement();
         int current = tabPane.getSelectedIndex();
         int tabCount = tabPane.getTabCount();
+
+        // If we have no tabs then don't navigate.
+        if (tabCount <= 0) {
+            return;
+        }
+
         int offset;
         switch(tabPlacement) {
 	  case NEXT:
@@ -2102,14 +2106,13 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                 // programs are now depending on this, we're making it work.
                 //
                 if (selectedComponent != null) {
-                    if (selectedComponent != visibleComponent) {
-                        if (visibleComponent != null) {
-                            if (SwingUtilities.findFocusOwner(visibleComponent) != null) {
-                               shouldChangeFocus = true;
-                            }
-                        }                   
-                        setVisibleComponent(selectedComponent);
-                    } 
+                    if (selectedComponent != visibleComponent &&
+                            visibleComponent != null) {
+                        if (SwingUtilities.findFocusOwner(visibleComponent) != null) {
+                           shouldChangeFocus = true;
+                        }
+                    }                   
+                    setVisibleComponent(selectedComponent);
                 }
 
                 Rectangle bounds = tabPane.getBounds();
@@ -2513,14 +2516,13 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                 // programs are now depending on this, we're making it work.
                 //
                 if (selectedComponent != null) {
-                    if (selectedComponent != visibleComponent) {
-                        if (visibleComponent != null) {
-                            if (SwingUtilities.findFocusOwner(visibleComponent) != null) {
-                               shouldChangeFocus = true;
-                            }
+                    if (selectedComponent != visibleComponent &&
+                            visibleComponent != null) {
+                        if (SwingUtilities.findFocusOwner(visibleComponent) != null) {
+                            shouldChangeFocus = true;
                         }                   
-                        setVisibleComponent(selectedComponent);
                     } 
+                    setVisibleComponent(selectedComponent);
                 }
 		int tx, ty, tw, th; // tab area bounds
                 int cx, cy, cw, ch; // content area bounds
@@ -3018,6 +3020,13 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             JTabbedPane tabPane = (JTabbedPane)e.getSource();
             tabPane.revalidate();
             tabPane.repaint();
+
+            if (tabPane.getTabLayoutPolicy() == JTabbedPane.SCROLL_TAB_LAYOUT) {
+                int index = tabPane.getSelectedIndex();
+                if (index < rects.length && index != -1) {
+                    tabScroller.tabPanel.scrollRectToVisible(rects[index]);
+                }
+            }
         }
     }
 
@@ -3036,7 +3045,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
                 if (tabIndex == tabPane.getSelectedIndex()) {
                     if (tabPane.isRequestFocusEnabled()) {
                         tabPane.requestFocus();
-                        tabPane.repaint(rects[tabIndex]);
+                        tabPane.repaint(getTabBounds(tabPane, tabIndex));
                     }
                 } else {
                     tabPane.setSelectedIndex(tabIndex);
@@ -3053,20 +3062,20 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     public class FocusHandler extends FocusAdapter {
         public void focusGained(FocusEvent e) { 
            JTabbedPane tabPane = (JTabbedPane)e.getSource();
-           // To get around bug in JDK1.1.5 where FocusEvents are
-           // not properly posted asynchronously to the queue
            int tabCount = tabPane.getTabCount();
-           if (tabCount > 0 && tabCount == rects.length) {
-               tabPane.repaint(rects[tabPane.getSelectedIndex()]);
+           int selectedIndex = tabPane.getSelectedIndex();
+           if (selectedIndex != -1 && tabCount > 0
+                   && tabCount == rects.length) {
+               tabPane.repaint(getTabBounds(tabPane, selectedIndex));
            }
         }            
         public void focusLost(FocusEvent e) {
            JTabbedPane tabPane = (JTabbedPane)e.getSource();
-           // To get around bug in JDK1.1.5 where FocusEvents are
-           // not properly posted asynchronously to the queue
            int tabCount = tabPane.getTabCount();
-           if (tabCount > 0 && tabCount == rects.length) {
-               tabPane.repaint(rects[tabPane.getSelectedIndex()]);
+           int selectedIndex = tabPane.getSelectedIndex();
+           if (selectedIndex != -1 && tabCount > 0
+                   && tabCount == rects.length) {
+               tabPane.repaint(getTabBounds(tabPane, selectedIndex));
            }
         }
     }
@@ -3130,11 +3139,21 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
 	    if (child instanceof UIResource) {
 		return;
 	    }
-	    int index = tp.indexOfComponent(child);
-	    if (htmlViews != null && htmlViews.size()>=index) {
-		htmlViews.removeElementAt(index);
-	    }	    
-	}
+
+            // NOTE 4/15/2002 (joutwate):
+            // This fix is implemented using client properties since there is
+            // currently no IndexPropertyChangeEvent.  Once
+            // IndexPropertyChangeEvents have been added this code should be
+            // modified to use it.
+            Integer indexObj =
+                (Integer)tp.getClientProperty("__index_to_remove__");
+            if (indexObj != null) {
+                int index = indexObj.intValue();
+                if (htmlViews != null && htmlViews.size()>=index) {
+                    htmlViews.removeElementAt(index);
+                }	    
+            }
+        }
     }
     
     private Vector createHTMLVector() {

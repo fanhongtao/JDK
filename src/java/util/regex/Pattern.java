@@ -1,5 +1,5 @@
 /*
- * @(#)Pattern.java	1.77 01/12/03
+ * @(#)Pattern.java	1.87 02/07/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -211,7 +211,7 @@ import java.util.HashMap;
  *     <td><i>X</i>, one or more times</td></tr>
  * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>}</tt></td>
  *     <td><i>X</i>, exactly <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>(</tt><i>n</i><tt>,}</tt></td>
+ * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,}</tt></td>
  *     <td><i>X</i>, at least <i>n</i> times</td></tr>
  * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}</tt></td>
  *     <td><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
@@ -227,7 +227,7 @@ import java.util.HashMap;
  *     <td><i>X</i>, one or more times</td></tr>
  * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>}?</tt></td>
  *     <td><i>X</i>, exactly <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>(</tt><i>n</i><tt>,}?</tt></td>
+ * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,}?</tt></td>
  *     <td><i>X</i>, at least <i>n</i> times</td></tr>
  * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}?</tt></td>
  *     <td><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
@@ -243,7 +243,7 @@ import java.util.HashMap;
  *     <td><i>X</i>, one or more times</td></tr>
  * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>}+</tt></td>
  *     <td><i>X</i>, exactly <i>n</i> times</td></tr>
- * <tr><td valign="top"><i>X</i><tt>(</tt><i>n</i><tt>,}+</tt></td>
+ * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,}+</tt></td>
  *     <td><i>X</i>, at least <i>n</i> times</td></tr>
  * <tr><td valign="top"><i>X</i><tt>{</tt><i>n</i><tt>,</tt><i>m</i><tt>}+</tt></td>
  *     <td><i>X</i>, at least <i>n</i> but not more than <i>m</i> times</td></tr>
@@ -334,6 +334,44 @@ import java.util.HashMap;
  * <tt>(hello)</tt> the string literal <tt>"&#92;&#92;(hello&#92;&#92;)"</tt>
  * must be used.
  *
+ * <a name="cc">
+ * <h4> Character Classes </h4>
+ *
+ *    <p> Character classes may appear within other character classes, and
+ *    may be composed by the union operator (implicit) and the intersection
+ *    operator (<tt>&amp;&amp;</tt>).
+ *    The union operator denotes a class that contains every character that is
+ *    in at least one of its operand classes.  The intersection operator
+ *    denotes a class that contains every character that is in both of its
+ *    operand classes.
+ *
+ *    <p> The precedence of character-class operators is as follows, from
+ *    highest to lowest:
+ *
+ *    <blockquote><table border="0" cellpadding="1" cellspacing="0">
+ *      <tr><td>1&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *	  <td>Literal escape&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ *	  <td><tt>\x</tt></td></tr>
+ *     <tr><td>2</td>
+ *	  <td>Grouping</td>
+ *	  <td><tt>[...]</tt></td></tr>
+ *     <tr><td>3</td>
+ *	  <td>Range</td>
+ *	  <td><tt>a-z</tt></td></tr>
+ *      <tr><td>4</td>
+ *	  <td>Union</td>
+ *	  <td><tt>[a-e][i-u]<tt></td></tr>
+ *      <tr><td>5</td>
+ *	  <td>Intersection</td>
+ *	  <td><tt>[a-z&&[aeiou]]</tt></td></tr>
+ *    </table></blockquote>
+ *
+ *    <p> Note that a different set of metacharacters are in effect inside
+ *    a character class than outside a character class. For instance, the
+ *    regular expression <tt>.</tt> loses its special meaning inside a
+ *    character class, while the expression <tt>-</tt> becomes a range
+ *    forming metacharacter.
+ *
  * <a name="lt">
  * <h4> Line terminators </h4>
  *
@@ -363,6 +401,13 @@ import java.util.HashMap;
  * <p> The regular expression <tt>.</tt> matches any character except a line
  * terminator unless the {@link #DOTALL} flag is specified.
  *
+ * <p> By default, the regular expressions <tt>^</tt> and <tt>$</tt> ignore
+ * line terminators and only match at the beginning and the end, respectively,
+ * of the entire input sequence. If {@link #MULTILINE} mode is activated then
+ * these expressions match just after or just before, respectively, a line
+ * terminator or the end of the input sequence with the exception that
+ * the expression <tt>^</tt> never matches at the end of input, even if the
+ * last character is a newline.
  *
  * <a name="cg">
  * <h4> Groups and capturing </h4>
@@ -421,7 +466,7 @@ import java.util.HashMap;
  * <a name="ubc"> <p>Unicode blocks and categories are written with the
  * <tt>\p</tt> and <tt>\P</tt> constructs as in
  * Perl. <tt>\p{</tt><i>prop</i><tt>}</tt> matches if the input has the
- * property <i>prop</i>, while \P{{</tt><i>prop</i><tt>}</tt> does not match if
+ * property <i>prop</i>, while \P{</tt><i>prop</i><tt>}</tt> does not match if
  * the input has that property.  Blocks are specified with the prefix
  * <tt>In</tt>, as in <tt>InMongolian</tt>.  Categories may be specified with
  * the optional prefix <tt>Is</tt>: Both <tt>\p{L}</tt> and <tt>\p{IsL}</tt>
@@ -469,36 +514,8 @@ import java.util.HashMap;
  *    and do not back off, even when doing so would allow the overall match to
  *    succeed.  </p></li>
  *
- *    <li><p> Character-class union and intersection.  Character classes may
- *    appear within other character classes, and may be composed by the union
- *    operator (implicit) and the intersection operator (<tt>&amp;&amp;</tt>).
- *    The union operator denotes a class that contains every character that is
- *    in at least one of its operand classes.  The intersection operator
- *    denotes a class that contains every character that is in both of its
- *    operand classes.
- *
- *    <p> The precedence of character-class operators is as follows, from
- *    highest to lowest:
- *
- *    <blockquote><table border="0" cellpadding="1" cellspacing="0">
- *      <tr><td>1&nbsp;&nbsp;&nbsp;&nbsp;</td>
- *	  <td>Literal escape&nbsp;&nbsp;&nbsp;&nbsp;</td>
- *	  <td><tt>\x</tt></td></tr>
- *     <tr><td>2</td>
- *	  <td>Grouping</td>
- *	  <td><tt>[...]</tt></td></tr>
- *     <tr><td>3</td>
- *	  <td>Range</td>
- *	  <td><tt>a-z</tt></td></tr>
- *      <tr><td>4</td>
- *	  <td>Union</td>
- *	  <td><tt>[a-e][i-u]<tt></td></tr>
- *      <tr><td>5</td>
- *	  <td>Intersection</td>
- *	  <td><tt>[a-z&&[aeiou]]</tt></td></tr>
- *    </table></blockquote>
- *
- *  </p></li>
+ *    <li><p> Character-class union and intersection as described
+ *    <a href="#cc">above</a>.</p></li>
  *
  * </ul>
  *
@@ -552,7 +569,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.77, 01/12/03
+ * @version 	1.87, 02/07/10
  * @since       1.4
  * @spec	JSR-51
  */
@@ -920,7 +937,7 @@ public final class Pattern
                 matchList.add(match);
                 index = m.end();
             } else if (matchList.size() == limit - 1) { // last one
-                String match = input.subSequence(index, 
+                String match = input.subSequence(index,
                                                  input.length()).toString();
                 matchList.add(match);
                 index = m.end();
@@ -933,11 +950,11 @@ public final class Pattern
 
         // Add remaining segment
         if (!matchLimited || matchList.size() < limit)
-            matchList.add(input.subSequence(index, input.length()));
+            matchList.add(input.subSequence(index, input.length()).toString());
 
         // Construct result
         int resultSize = matchList.size();
-        if (limit==0)
+        if (limit == 0)
             while (resultSize > 0 && matchList.get(resultSize-1).equals(""))
                 resultSize--;
         String[] result = new String[resultSize];
@@ -1016,7 +1033,7 @@ public final class Pattern
             matchRoot = lastAccept;
         }
     }
- 
+
     /**
      * The pattern is converted to normalizedD form and then a pure group
      * is constructed to match canonical equivalences of the characters.
@@ -1030,8 +1047,8 @@ public final class Pattern
         patternLength = normalizedPattern.length();
 
         // Modify pattern to match canonical equivalences
-        StringBuffer newPattern = new StringBuffer();
-        for(int i=0; i<normalizedPattern.length(); i++) {
+        StringBuffer newPattern = new StringBuffer(patternLength);
+        for(int i=0; i<patternLength; i++) {
             char c = normalizedPattern.charAt(i);
             StringBuffer sequenceBuffer;
             if ((Character.getType(c) == Character.NON_SPACING_MARK)
@@ -1041,7 +1058,7 @@ public final class Pattern
                 sequenceBuffer.append(c);
                 while(Character.getType(c) == Character.NON_SPACING_MARK) {
                     i++;
-                    if (i >= normalizedPattern.length())
+                    if (i >= patternLength)
                         break;
                     c = normalizedPattern.charAt(i);
                     sequenceBuffer.append(c);
@@ -1049,7 +1066,7 @@ public final class Pattern
                 String ea = produceEquivalentAlternation(
                                                sequenceBuffer.toString());
                 newPattern.setLength(newPattern.length()-1);
-                newPattern.append("(?:" + ea + ")");
+                newPattern.append("(?:").append(ea).append(")");
             } else if (c == '[' && lastChar != '\\') {
                 i = normalizeCharClass(newPattern, i);
             } else {
@@ -1558,7 +1575,10 @@ loop:   for(int x=0; x<input.length(); x++) {
                 break;
             case '$':
                 next();
-                node = new Dollar(has(MULTILINE));
+                if (has(UNIX_LINES))
+                    node = new UnixDollar(has(MULTILINE));
+                else
+                    node = new Dollar(has(MULTILINE));
                 break;
             case '.':
                 next();
@@ -1653,7 +1673,7 @@ loop:   for(int x=0; x<input.length(); x++) {
                                 oneLetter = false;
                             return family(comp, oneLetter);
                         }
-                    }   
+                    }
                     break;
                 }
                 unread();
@@ -1671,7 +1691,7 @@ loop:   for(int x=0; x<input.length(); x++) {
                 cursor = prev;
                 break;
             case 0:
-                if (cursor >= patternLength) {                  
+                if (cursor >= patternLength) {
                     break;
                 }
                 // Fall through
@@ -1841,7 +1861,12 @@ loop:   for(int x=0; x<input.length(); x++) {
                 break;
             case 'Z':
                 if (inclass) break;
-                if (create) root = new Dollar(false);
+                if (create) {
+                    if (has(UNIX_LINES))
+                        root = new UnixDollar(false);
+                    else
+                        root = new Dollar(false);
+                }
                 return -1;
             case 'a':
                 return '\007';
@@ -1903,7 +1928,7 @@ loop:   for(int x=0; x<input.length(); x++) {
 
     /**
      * Parse a character class, and return the node that matches it.
-     * 
+     *
      * Consumes a ] on the way out if consume is true. Usually consume
      * is true except for the case of [abc&&def] where def is a separate
      * right hand node with "understood" brackets.
@@ -2057,8 +2082,6 @@ loop:   for(int x=0; x<input.length(); x++) {
         switch (ch) {
         case '\\':
             return escape(true, false);
-        case '{':
-            return -1;
         default:
             next();
             return ch;
@@ -2752,6 +2775,9 @@ loop:   for(int x=0; x<input.length(); x++) {
                     return false;
                 }
             }
+            // Perl does not match ^ at end of input even after newline
+            if (i == matcher.to)
+                return false;
             return next.match(matcher, i, seq);
         }
     }
@@ -2762,17 +2788,24 @@ loop:   for(int x=0; x<input.length(); x++) {
      */
     static final class LastMatch extends Node {
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (i != matcher.first) {
+            if (i != matcher.oldLast)
                 return false;
-            }
             return next.match(matcher, i, seq);
         }
     }
 
     /**
      * Node to anchor at the end of a line or the end of input based on the
-     * multiline mode. Note that $ is supposed to match at the end of input
-     * or at the last newline before the end when not in multiline mode.
+     * multiline mode.
+     *
+     * When not in multiline mode, the $ can only match at the very end
+     * of the input, unless the input ends in a line terminator in which
+     * it matches right before the last line terminator.
+     *
+     * Note that \r\n is considered an atomic line terminator.
+     * 
+     * Like ^ the $ operator matches at a position, it does not match the
+     * line terminators themselves.
      */
     static final class Dollar extends Node {
         boolean multiline;
@@ -2780,27 +2813,101 @@ loop:   for(int x=0; x<input.length(); x++) {
             multiline = mul;
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
+            if (multiline) {
+                // Matches before any line terminator; also matches at the
+                // end of input unless preceded by a line terminator
+                if (i < matcher.to - 2) {
+                    char ch = seq.charAt(i);
+                    if (ch == '\n' || ch == '\u0085' || (ch|1) == '\u2029' ||
+                    ch == '\r') {
+                        // No match between \r\n
+                        if (i > 0 && ch == '\n' && seq.charAt(i-1) == '\r')
+                            return false;
+                    } else { // No line terminator, no match
+                        return false;
+                    }
+                } else {
+                    return endMatch(matcher, i, seq);
+                }
+            } else {
+                // Matches at end only unless there's a line terminator
+                // there in which case it matches right before the terminator
+                if (i < matcher.to - 2)
+                    return false;
+                return endMatch(matcher, i, seq);
+            }
+           return next.match(matcher, i, seq);
+        }
+        // Matches at end unless there's a line terminator there in which
+        // case it matches right before the terminator
+        boolean endMatch(Matcher matcher, int i, CharSequence seq) {
+            if (i == matcher.to && i > 0) {
+                char ch = seq.charAt(i-1);
+                if (ch == '\n' || ch == '\u0085' || (ch|1) == '\u2029' ||
+                    ch == '\r') {
+                    return false;
+                }
+            }
+            if (i == matcher.to - 1) {
+                char ch = seq.charAt(i);
+                if ((ch != '\n') && (ch != '\u0085') &&
+                    ((ch|1) != '\u2029') && (ch != '\r'))
+                    return false;
+                if (i > 0) {
+                    ch = seq.charAt(i - 1);
+                    if (ch == '\r')
+                        return false;
+                }
+            }
+            if (i == matcher.to - 2) {
+                char ch = seq.charAt(i);
+                if (ch != '\r')
+                    return false;
+                ch = seq.charAt(i + 1);
+                if (ch != '\n')
+                    return false;
+            }
+          return next.match(matcher, i, seq);
+        }
+        boolean study(TreeInfo info) {
+            next.study(info);
+            info.maxLength += 2;
+            return info.deterministic;
+        }
+    }
+
+    /**
+     * Node to anchor at the end of a line or the end of input based on the
+     * multiline mode when in unix lines mode.
+     */
+    static final class UnixDollar extends Node {
+        boolean multiline;
+        UnixDollar(boolean mul) {
+            multiline = mul;
+        }
+        boolean match(Matcher matcher, int i, CharSequence seq) {
             if (i < matcher.to) {
                 char ch = seq.charAt(i);
-                if (ch == '\n' || (ch|1) == '\u2029') {
-                    i++;
-                } else if (ch == '\r') {
-                    i++;
-                    if (i < matcher.to && seq.charAt(i) == '\n') {
-                        i++;
-                    }
+                if (ch == '\n') {
+                    // If not multiline, then only possible to
+                    // match at very end or one before end
+                    if (multiline == false && i != matcher.to - 1)
+                        return false;
                 } else {
                     return false;
                 }
-                if (multiline == false && i != matcher.to) {
+            }
+            // Matches at end UNLESS preceded by line terminator
+            if (i == matcher.to && i > 0) {
+                char ch = seq.charAt(i-1);
+                if (ch == '\n')
                     return false;
-                }
             }
             return next.match(matcher, i, seq);
         }
         boolean study(TreeInfo info) {
             next.study(info);
-            info.maxLength += 2;
+            info.maxLength += 1;
             return info.deterministic;
         }
     }

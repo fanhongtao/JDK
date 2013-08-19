@@ -1,5 +1,5 @@
 /*
- * @(#)ReplyMessage_1_2.java	1.17 01/12/03
+ * @(#)ReplyMessage_1_2.java	1.18 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -114,7 +114,8 @@ public final class ReplyMessage_1_2 extends Message_1_2
         this.request_id = istream.read_ulong();
         this.reply_status = istream.read_long();
         isValidReplyStatus(this.reply_status); // raises exception on error
-        this.service_contexts = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream, GIOPVersion.V1_2);
+        this.service_contexts 
+            = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
 
         // CORBA formal 00-11-0 15.4.2.2 GIOP 1.2 body must be
         // aligned on an 8 octet boundary.

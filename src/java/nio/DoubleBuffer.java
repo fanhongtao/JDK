@@ -1,5 +1,5 @@
 /*
- * @(#)X-Buffer.java	1.43 01/12/03
+ * @(#)X-Buffer.java	1.44 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -230,7 +230,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.43, 01/12/03
+ * @version 1.44, 02/02/06
  * @since 1.4
  */
 
@@ -939,7 +939,7 @@ public abstract class DoubleBuffer
      * to index one, and so forth until the double at index
      * <tt>limit()</tt>&nbsp;-&nbsp;1 is copied to index
      * <i>n</i>&nbsp;=&nbsp;<tt>limit()</tt>&nbsp;-&nbsp;<tt>1</tt>&nbsp;-&nbsp;<i>p</i>.
-     * The buffer's position is then set to <i>n</i> and its limit is set to
+     * The buffer's position is then set to <i>n+1</i> and its limit is set to
      * its capacity.  The mark, if defined, is discarded.
      *
      * <p> The buffer's position is set to the number of doubles copied,

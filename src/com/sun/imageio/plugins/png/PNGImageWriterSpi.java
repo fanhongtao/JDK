@@ -1,5 +1,5 @@
 /*
- * @(#)PNGImageWriterSpi.java	1.19 01/12/03
+ * @(#)PNGImageWriterSpi.java	1.20 02/02/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,12 +62,12 @@ public class PNGImageWriterSpi extends ImageWriterSpi {
         SampleModel sampleModel = type.getSampleModel();
         ColorModel colorModel = type.getColorModel();
 
-        // Ensure all channels have the same bit depth
+        // Find the maximum bit depth across all channels
         int[] sampleSize = sampleModel.getSampleSize(); 
         int bitDepth = sampleSize[0];
         for (int i = 1; i < sampleSize.length; i++) {
-            if (sampleSize[i] != bitDepth) {
-                return false;
+            if (sampleSize[i] > bitDepth) {
+                bitDepth = sampleSize[i];
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)ConfirmationCallback.java	1.12 01/12/03
+ * @(#)ConfirmationCallback.java	1.13 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,11 +9,11 @@ package javax.security.auth.callback;
 
 /**
  * <p> Underlying security services instantiate and pass a
- * <code>ConfirmationCallback</code> to the <code>invokeCallback</code>
+ * <code>ConfirmationCallback</code> to the <code>handle</code>
  * method of a <code>CallbackHandler</code> to ask for YES/NO,
  * OK/CANCEL, YES/NO/CANCEL or other similar confirmations.
  *
- * @version 1.12, 12/03/01
+ * @version 1.13, 02/25/02
  * @see javax.security.auth.callback.CallbackHandler
  */
 public class ConfirmationCallback implements Callback, java.io.Serializable {

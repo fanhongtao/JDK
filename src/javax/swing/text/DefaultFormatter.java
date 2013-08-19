@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultFormatter.java	1.6 01/12/03
+ * @(#)DefaultFormatter.java	1.7 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,9 +34,9 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @see javax.swing.JFormattedTextField.AbstractTextFormatter
+ * @see javax.swing.JFormattedTextField.AbstractFormatter
  *
- * @version 1.6 12/03/01
+ * @version 1.7 03/20/02
  * @since 1.4
  */
 public class DefaultFormatter extends JFormattedTextField.AbstractFormatter

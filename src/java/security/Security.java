@@ -1,5 +1,5 @@
 /*
- * @(#)Security.java	1.114 01/12/20
+ * @(#)Security.java	1.117 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import sun.security.util.PropertyExpander;
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.114, 12/20/01
+ * @version 1.117, 04/19/02
  */
 
 public final class Security {
@@ -296,6 +296,13 @@ public final class Security {
      * This is used by getEngineClassName(String algName, String engineType).
      */
     private static synchronized void loadOneMoreProvider() {
+	// suspend provider reloading inside this method
+	boolean restore = false;
+	if (reloadProviders) {
+	    restore = true;
+	    reloadProviders = false;
+	}
+	try {
 	sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
 	/* 
 	 * Even if the launcher l is null, we still want to
@@ -367,6 +374,12 @@ public final class Security {
 		    // providers out of the priority order.
 		    resetProviderIndex = true;
 		}
+	    }
+	}
+	} finally {
+	    // resume provider reloading if necessary
+	    if (restore) {
+	        reloadProviders = true;
 	    }
 	}
     }
@@ -880,7 +893,7 @@ public final class Security {
     * @throws InvalidParameterException
     *         if the filter is not in the required format
     *
-    * @ see #getProviders(java.util.Map)
+    * @see #getProviders(java.util.Map)
     */
     public static Provider[] getProviders(String filter) {
 	String key = null;
@@ -946,14 +959,14 @@ public final class Security {
      * @throws InvalidParameterException
      *         if the filter is not in the required format
      *
-     * @ see #getProviders(java.lang.String)
+     * @see #getProviders(java.lang.String)
      */
     public static Provider[] getProviders(Map filter) {
 	// Get all installed providers first.
 	// Then only return those providers who satisfy the selection criteria.
 	Provider[] allProviders = Security.getProviders();
 	Set keySet = filter.keySet();
-	HashSet candidates = new HashSet(5);
+	LinkedHashSet candidates = new LinkedHashSet(5);
 
 	// Returns all installed providers
 	// if the selection criteria is null.
@@ -969,7 +982,7 @@ public final class Security {
 	    String key = (String)ite.next();
 	    String value = (String)filter.get(key);
 	    
-	    HashSet newCandidates = getAllQualifyingCandidates(key, value, 
+	    LinkedHashSet newCandidates = getAllQualifyingCandidates(key, value, 
 							       allProviders);
 	    if (firstSearch) {
 		candidates = newCandidates;
@@ -1336,7 +1349,7 @@ public final class Security {
     * Returns all providers who satisfy the specified
     * criterion.
     */
-    private static HashSet getAllQualifyingCandidates(String filterKey,
+    private static LinkedHashSet getAllQualifyingCandidates(String filterKey,
 						 String filterValue,
 						 Provider[] allProviders) {
 	String[] filterComponents = getFilterComponents(filterKey,
@@ -1351,11 +1364,11 @@ public final class Security {
 
 	// Check whether we can find anything in the cache
 	String cacheKey = serviceName + '.' + algName;
-	HashSet candidates = (HashSet)searchResultsCache.get(cacheKey);
+	LinkedHashSet candidates = (LinkedHashSet)searchResultsCache.get(cacheKey);
 
 	// If there is no entry for the cacheKey in the cache,
 	// let's build an entry for it first.
-	HashSet forCache = getProvidersNotUsingCache(serviceName,
+	LinkedHashSet forCache = getProvidersNotUsingCache(serviceName,
 						     algName,
 						     null,
 						     null,
@@ -1375,11 +1388,11 @@ public final class Security {
 	}
     }
 	
-    private static HashSet getProvidersNotUsingCache(String serviceName,
+    private static LinkedHashSet getProvidersNotUsingCache(String serviceName,
 						     String algName,
 						     String attrName,
 						     String filterValue,
-						     HashSet candidates,
+						     LinkedHashSet candidates,
 						     Provider[] allProviders) {
 	if ((attrName != null) && (candidates != null) &&
 	    (!candidates.isEmpty())) {
@@ -1395,7 +1408,7 @@ public final class Security {
 
 	if ((candidates == null) || (candidates.isEmpty())) {
 	    if (candidates == null)
-		candidates = new HashSet(5);
+		candidates = new LinkedHashSet(5);
 	    for (int i = 0; i < allProviders.length; i++) {
 		if (isCriterionSatisfied(allProviders[i], serviceName, 
 					 algName,

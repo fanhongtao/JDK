@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsInternalFrameTitlePane.java	1.6 01/12/03
+ * @(#)WindowsInternalFrameTitlePane.java	1.7 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -85,7 +85,7 @@ public class WindowsInternalFrameTitlePane extends BasicInternalFrameTitlePane {
 
     protected void paintTitleBackground(Graphics g) {
         Boolean gradientsOn = (Boolean)LookAndFeel.getDesktopPropertyValue(
-            "win.frame.captionGradientsOn", new Boolean(false));
+            "win.frame.captionGradientsOn", Boolean.valueOf(false));
         if (gradientsOn.booleanValue() && g instanceof Graphics2D) {
             Graphics2D g2 = (Graphics2D)g;
             Paint savePaint = g2.getPaint();

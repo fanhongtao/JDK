@@ -1,5 +1,5 @@
 /*
- * @(#)MarshalledObject.java	1.30 01/12/03
+ * @(#)MarshalledObject.java	1.31 02/02/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.rmi.server.MarshalOutputStream;
  * <p><code>MarshalledObject</code> facilitates passing objects in RMI calls
  * that are not automatically deserialized immediately by the remote peer.
  *
- * @version 1.30, 12/03/01
+ * @version 1.31, 02/20/02
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2
@@ -216,8 +216,7 @@ public final class MarshalledObject implements Serializable {
 	 * location annotations (if any) will be written to
 	 * <code>locOut</code>.
 	 */
-	public MarshalledObjectOutputStream(OutputStream objOut,
-					    OutputStream locOut)
+	MarshalledObjectOutputStream(OutputStream objOut, OutputStream locOut)
 	    throws IOException
 	{
 	    super(objOut);
@@ -230,7 +229,7 @@ public final class MarshalledObject implements Serializable {
 	 * Returns <code>true</code> if any non-<code>null</code> location
 	 * annotations have been written to this stream.
 	 */
-	public boolean hadAnnotations() {
+	boolean hadAnnotations() {
 	    return hadAnnotations;
 	}
 

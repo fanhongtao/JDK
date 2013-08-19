@@ -1,5 +1,5 @@
 /*
- * @(#)BeanContextChildSupport.java	1.11 01/12/03
+ * @(#)BeanContextChildSupport.java	1.12 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,12 +31,12 @@ import java.io.Serializable;
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.11, 12/03/01
+ * @version	1.12, 02/22/02
  * @since	1.2
  * 
- * @seealso	java.beans.beancontext.BeanContext
- * @seealso	java.beans.beancontext.BeanContextServices
- * @seealso	java.beans.beancontext.BeanContextChild
+ * @see	java.beans.beancontext.BeanContext
+ * @see	java.beans.beancontext.BeanContextServices
+ * @see	java.beans.beancontext.BeanContextChild
  */
 
 public class BeanContextChildSupport implements BeanContextChild, BeanContextServicesListener, Serializable {

@@ -1,5 +1,5 @@
 /*
- * @(#)URL.java	1.116 01/12/03
+ * @(#)URL.java	1.117 02/02/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,8 +21,8 @@ import java.util.StringTokenizer;
  * such as a query to a database or to a search engine. More
  * information on the types of URLs and their formats can be found at:
  * <blockquote>
- *     <a href="http://archive.ncsa.uiuc.edu:80/SDG/Software/Mosaic/Demo/url-primer.html">
- *    <i>http://archive.ncsa.uiuc.edu:80/SDG/Software/Mosaic/Demo/url-primer.html</i></a>
+ *     <a href="http://archive.ncsa.uiuc.edu/SDG/Software/Mosaic/Demo/url-primer.html">
+ *    <i>http://archive.ncsa.uiuc.edu/SDG/Software/Mosaic/Demo/url-primer.html</i></a>
  * </blockquote>
  * <p>
  * In general, a URL can be broken into several parts. The previous
@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
  * <code>http</code> (HyperText Transfer Protocol) and that the
  * information resides on a host machine named
  * <code>www.ncsa.uiuc.edu</code>. The information on that host
- * machine is named <code>/demoweb/url-primer.html</code>. The exact
+ * machine is named <code>/SDG/Software/Mosaic/Demo/url-primer.html</code>. The exact
  * meaning of this name on the host machine is both protocol
  * dependent and host dependent. The information normally resides in
  * a file, but it could be generated on the fly. This component of
@@ -87,7 +87,7 @@ import java.util.StringTokenizer;
  * specified. The optional fragment is not inherited.
  *
  * @author  James Gosling
- * @version 1.116, 12/03/01
+ * @version 1.117, 02/07/02
  * @since JDK1.0 
  */
 public final class URL implements java.io.Serializable {
@@ -800,6 +800,11 @@ public final class URL implements java.io.Serializable {
 
     /**
      * Gets the file name of this <code>URL</code>.
+     * The returned file portion will be
+     * the same as <CODE>getPath()</CODE>, plus the concatenation of
+     * the value of <CODE>getQuery()</CODE>, if any. If there is 
+     * no query portion, this method and <CODE>getPath()</CODE> will
+     * return identical results.
      *
      * @return  the file name of this <code>URL</code>,
      * or an empty string if one does not exist

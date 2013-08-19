@@ -1,5 +1,5 @@
 /*
- * @(#)JPopupMenu.java	1.169 01/12/05
+ * @(#)JPopupMenu.java	1.176 02/05/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -55,7 +55,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.169 12/05/01
+ * @version 1.176 05/07/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -75,12 +75,12 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         new StringBuffer("JPopupMenu.defaultLWPopupEnabledKey");
 
     /** Bug#4425878-Property javax.swing.adjustPopupLocationToFit introduced */
-    static boolean popupPostionFixEnabled = false;
+    static boolean popupPostionFixDisabled = false;
 
     static {
-        popupPostionFixEnabled = java.security.AccessController.doPrivileged(
+        popupPostionFixDisabled = java.security.AccessController.doPrivileged(
                 new sun.security.action.GetPropertyAction(
-                "javax.swing.adjustPopupLocationToFit","")).equals("true");
+                "javax.swing.adjustPopupLocationToFit","")).equals("false");
 
     }
 
@@ -124,7 +124,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      */
     public static void setDefaultLightWeightPopupEnabled(boolean aFlag) {
         SwingUtilities.appContextPut(defaultLWPopupEnabledKey, 
-                                     new Boolean(aFlag));
+                                     Boolean.valueOf(aFlag));
     }
 
     /** 
@@ -299,37 +299,80 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         return mi;
     }
     
-     // Fix for Bug#4425878
-    boolean  adjustPopuLocationToFitScreen(Point p) {
+    /**
+     * Returns an point which has been adjusted to take into account of the 
+     * desktop bounds, taskbar and multi-monitor configuration.
+     * <p>
+     * This adustment may be cancelled by invoking the application with
+     * -Djavax.swing.adjustPopupLocationToFit=false
+     */
+    Point adjustPopupLocationToFitScreen(int xposition, int yposition) {
+	Point p = new Point(xposition, yposition);
 
-        if(popupPostionFixEnabled == false)
-            return false;
+        if(popupPostionFixDisabled == true || GraphicsEnvironment.isHeadless())
+            return p;
 
-        int scrWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
-        int scrHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Rectangle screenBounds;
+        Insets screenInsets;
+        GraphicsConfiguration gc = null;
+        // Try to find GraphicsConfiguration, that includes mouse
+        // pointer position
+        GraphicsEnvironment ge =
+            GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gd = ge.getScreenDevices();
+        for(int i = 0; i < gd.length; i++) {
+            if(gd[i].getType() == GraphicsDevice.TYPE_RASTER_SCREEN) {
+                GraphicsConfiguration dgc =
+                    gd[i].getDefaultConfiguration();
+                if(dgc.getBounds().contains(p)) {
+                    gc = dgc;
+                    break;
+                }
+            }
+        }
 
-        int oldX = p.x;
-        int oldY = p.y;
+        // If not found and we have invoker, ask invoker about his gc
+        if(gc == null && getInvoker() != null) {
+            gc = getInvoker().getGraphicsConfiguration();
+        }
+
+        if(gc != null) {
+            // If we have GraphicsConfiguration use it to get
+            // screen bounds and insets
+            screenInsets = toolkit.getScreenInsets(gc);
+            screenBounds = gc.getBounds();
+        } else {
+            // If we don't have GraphicsConfiguration use primary screen
+            // and empty insets
+            screenInsets = new Insets(0, 0, 0, 0);
+            screenBounds = new Rectangle(toolkit.getScreenSize());
+        }
+
+        int scrWidth = screenBounds.width -
+                    Math.abs(screenInsets.left+screenInsets.right);
+        int scrHeight = screenBounds.height -
+                    Math.abs(screenInsets.top+screenInsets.bottom);
+
         Dimension size;
 
         size = JPopupMenu.this.getPreferredSize();
 
-        if( (p.x + size.width) > scrWidth )
-             p.x = scrWidth - size.width;
+        if( (p.x + size.width) > screenBounds.x + scrWidth )
+             p.x = screenBounds.x + scrWidth - size.width;
 
-        if( (p.y + size.height) > scrHeight)
-             p.y = scrHeight - size.height;
+        if( (p.y + size.height) > screenBounds.y + scrHeight)
+             p.y = screenBounds.y + scrHeight - size.height;
 
         /* Change is made to the desired (X,Y) values, when the
            PopupMenu is too tall OR too wide for the screen
         */
-        if( p.x < 0 )
-            p.x = 0 ;  //oldX;
-        if( p.y < 0 )
-            p.y = 0; //oldY;
+        if( p.x < screenBounds.x )
+            p.x = screenBounds.x ;
+        if( p.y < screenBounds.y )
+            p.y = screenBounds.y;
 
-        return true;
-
+        return p;
     }
 
 
@@ -443,7 +486,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * description: Determines whether lightweight popups are used when possible
      *      expert: true
      *
-     * @see isLightWeightPopupEnabled
+     * @see #isLightWeightPopupEnabled
      */
     public void setLightWeightPopupEnabled(boolean aFlag) {
         // NOTE: this use to set the flag on a shared JPopupMenu, which meant
@@ -655,6 +698,8 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             if (pref == null || pref.width != getWidth() ||
                                 pref.height != getHeight()) {
                 popup = getPopup();
+            } else {
+                validate();
             }
         }
     }
@@ -746,13 +791,10 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             popupFactory.setPopupType(PopupFactory.MEDIUM_WEIGHT_POPUP);
         }
 
-        // added new
-        Point p = new Point(desiredLocationX,desiredLocationY);
-        if( adjustPopuLocationToFitScreen(p) == true )
-        {
-             this.desiredLocationX = p.x;
-             this.desiredLocationY = p.y;
-        }
+        // adjust the location of the popup
+        Point p = adjustPopupLocationToFitScreen(desiredLocationX,desiredLocationY);
+	desiredLocationX = p.x;
+	desiredLocationY = p.y;
 
         Popup newPopup = getUI().getPopup(this, desiredLocationX,
                                           desiredLocationY);
@@ -1140,11 +1182,6 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             values.addElement("popup");
             values.addElement(popup);
         }
-        // Save the frame, if its Serializable.
-        if(frame != null && frame instanceof Serializable) {
-            values.addElement("frame");
-            values.addElement(frame);
-        }
         s.writeObject(values);
 
         if (getUIClassID().equals(uiClassID)) {
@@ -1173,11 +1210,6 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         if(indexCounter < maxCounter && values.elementAt(indexCounter).
            equals("popup")) {
             popup = (Popup)values.elementAt(++indexCounter);
-            indexCounter++;
-        }
-        if(indexCounter < maxCounter && values.elementAt(indexCounter).
-           equals("frame")) {
-            frame = (Frame)values.elementAt(++indexCounter);
             indexCounter++;
         }
     }

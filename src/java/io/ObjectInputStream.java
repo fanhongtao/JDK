@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectInputStream.java	1.136 01/12/03
+ * @(#)ObjectInputStream.java	1.142 02/07/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,14 +62,14 @@ import sun.misc.SoftCache;
  * ObjectOutputStream:
  * <br>
  * <pre>
- *	FileInputStream istream = new FileInputStream("t.tmp");
- *	ObjectInputStream p = new ObjectInputStream(istream);
+ *	FileInputStream fis = new FileInputStream("t.tmp");
+ *	ObjectInputStream ois = new ObjectInputStream(fis);
  *
- *	int i = p.readInt();
- *	String today = (String)p.readObject();
- *	Date date = (Date)p.readObject();
+ *	int i = ois.readInt();
+ *	String today = (String) ois.readObject();
+ *	Date date = (Date) ois.readObject();
  *
- *	istream.close();
+ *	ois.close();
  * </pre>
  *
  * <p>Classes control how they are serialized by implementing either the
@@ -156,7 +156,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.136, 01/12/03
+ * @version 1.142, 02/07/19
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -183,6 +183,7 @@ public class ObjectInputStream
 	primClasses.put("long", long.class);
 	primClasses.put("float", float.class);
 	primClasses.put("double", double.class);
+	primClasses.put("void", void.class);
     }
 
     /** cache of subclass security audit results */
@@ -238,6 +239,7 @@ public class ObjectInputStream
      * @throws	IOException if an I/O error occurs while reading stream header
      * @throws	SecurityException if untrusted subclass illegally overrides
      * 		security-sensitive methods
+     * @throws	NullPointerException if <code>in</code> is <code>null</code>
      * @see	ObjectInputStream#ObjectInputStream()
      * @see	ObjectInputStream#readFields()
      * @see	ObjectOutputStream#ObjectOutputStream(OutputStream)
@@ -457,6 +459,10 @@ public class ObjectInputStream
 	     */
 	    defaultDataEnd = true;
 	}
+	ClassNotFoundException ex = handles.lookupException(passHandle);
+	if (ex != null) {
+	    throw ex;
+	}
     }
     
     /**
@@ -526,22 +532,23 @@ public class ObjectInputStream
      * description.  Subclasses may implement this method to allow classes to
      * be fetched from an alternate source. 
      *
-     * <p>The corresponding method in ObjectOutputStream is annotateClass.
-     * This method will be invoked only once for each unique class in the
-     * stream.  This method can be implemented by subclasses to use an
-     * alternate loading mechanism but must return a Class object.  Once
-     * returned, the serialVersionUID of the class is compared to the
-     * serialVersionUID of the serialized class.  If there is a mismatch, the
-     * deserialization fails and an exception is raised.
+     * <p>The corresponding method in <code>ObjectOutputStream</code> is
+     * <code>annotateClass</code>.  This method will be invoked only once for
+     * each unique class in the stream.  This method can be implemented by
+     * subclasses to use an alternate loading mechanism but must return a
+     * <code>Class</code> object.  Once returned, the serialVersionUID of the
+     * class is compared to the serialVersionUID of the serialized class.  If
+     * there is a mismatch, the deserialization fails and an exception is
+     * raised.
      *
      * <p>By default the class name is resolved relative to the class that
-     * called readObject.
+     * called <code>readObject</code>.
      *
-     * @param	desc an instance of class ObjectStreamClass
-     * @return	a Class object corresponding to <code>v</code>
-     * @throws	IOException Any of the usual Input/Output exceptions.
-     * @throws	ClassNotFoundException If class of a serialized object cannot
-     * 		be found.
+     * @param	desc an instance of class <code>ObjectStreamClass</code>
+     * @return	a <code>Class</code> object corresponding to <code>desc</code>
+     * @throws	IOException any of the usual input/output exceptions
+     * @throws	ClassNotFoundException if class of a serialized object cannot
+     * 		be found
      */
     protected Class resolveClass(ObjectStreamClass desc)
 	throws IOException, ClassNotFoundException
@@ -585,16 +592,17 @@ public class ObjectInputStream
      * <pre>
      *     Class.forName(i, false, loader)
      * </pre>
-     * where <code>loader</code> is that of the first non-null class loader up
-     * the execution stack, or <code>null</code> if no non-null class loaders
-     * are on the stack (the same class loader choice used by the
-     * <code>resolveClass</code> method).  Unless any of the resolved
-     * interfaces are non-public, this same value of <code>loader</code> is
-     * also the class loader passed to <code>Proxy.getProxyClass</code>; if
-     * non-public interfaces are present, their class loader is passed instead
-     * (if more than one non-public interface class loader is encountered, an
-     * <code>IllegalAccessError</code> is thrown).  If
-     * <code>Proxy.getProxyClass</code> throws an
+     * where <code>loader</code> is that of the first non-<code>null</code>
+     * class loader up the execution stack, or <code>null</code> if no
+     * non-<code>null</code> class loaders are on the stack (the same class
+     * loader choice used by the <code>resolveClass</code> method).  Unless any
+     * of the resolved interfaces are non-public, this same value of
+     * <code>loader</code> is also the class loader passed to
+     * <code>Proxy.getProxyClass</code>; if non-public interfaces are present,
+     * their class loader is passed instead (if more than one non-public
+     * interface class loader is encountered, an
+     * <code>IllegalAccessError</code> is thrown).  
+     * If <code>Proxy.getProxyClass</code> throws an
      * <code>IllegalArgumentException</code>, <code>resolveProxyClass</code>
      * will throw a <code>ClassNotFoundException</code> containing the
      * <code>IllegalArgumentException</code>.
@@ -984,6 +992,8 @@ public class ObjectInputStream
      * @return	the String.
      * @throws	IOException if there are I/O errors while reading from the
      * 		underlying <code>InputStream</code>
+     * @throws	UTFDataFormatException if read bytes do not represent a valid
+     * 		UTF-8 encoding of a string
      */
     public String readUTF() throws IOException {
 	return bin.readUTF();
@@ -1707,10 +1717,10 @@ public class ObjectInputStream
     }
     
     /**
-     * Reads (or attempts to skip, if obj is null) instance data for each
-     * serializable class of object in stream, from superclass to subclass.
-     * Expects that passHandle is set to obj's handle before this method is
-     * called.
+     * Reads (or attempts to skip, if obj is null or is tagged with a
+     * ClassNotFoundException) instance data for each serializable class of
+     * object in stream, from superclass to subclass.  Expects that passHandle
+     * is set to obj's handle before this method is called.
      */
     private void readSerialData(Object obj, ObjectStreamClass desc)
 	throws IOException
@@ -1720,7 +1730,10 @@ public class ObjectInputStream
 	    ObjectStreamClass slotDesc = slots[i].desc;
 	    
 	    if (slots[i].hasData) {
-		if ((obj != null) && slotDesc.hasReadObjectMethod()) {
+		if (obj != null && 
+		    slotDesc.hasReadObjectMethod() &&
+		    handles.lookupException(passHandle) == null) 
+		{
 		    Object oldObj = curObj;
 		    ObjectStreamClass oldDesc = curDesc;
 		    GetFieldImpl oldGet = curGet;
@@ -1761,7 +1774,9 @@ public class ObjectInputStream
 		    bin.setBlockDataMode(false);
 		}
 	    } else {
-		if (obj != null && slotDesc.hasReadObjectNoDataMethod())
+		if (obj != null && 
+		    slotDesc.hasReadObjectNoDataMethod() &&
+		    handles.lookupException(passHandle) == null)
 		{
 		    slotDesc.invokeReadObjectNoData(obj);
 		}
@@ -2214,7 +2229,7 @@ public class ObjectInputStream
 	private int unread = 0;
 
 	/** buffer for constructing deserialized strings */
-	private final StringBuffer sbuf = new StringBuffer();
+	private StringBuffer sbuf;
 
 	/** underlying stream (wrapped in peekable filter stream) */
 	private final PeekInputStream in;
@@ -2865,7 +2880,7 @@ public class ObjectInputStream
 	 * utflen bytes.
 	 */
 	private String readUTFBody(long utflen) throws IOException {
-	    sbuf.setLength(0);
+	    sbuf = new StringBuffer();
 	    if (!blkmode) {
 		end = pos = 0;
 	    }
@@ -2890,7 +2905,9 @@ public class ObjectInputStream
 		}
 	    }
 
-	    return sbuf.toString();
+	    String s = sbuf.toString();
+	    sbuf = null;
+	    return s;
 	}
 
 	/**

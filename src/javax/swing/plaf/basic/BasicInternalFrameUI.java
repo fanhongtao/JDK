@@ -1,5 +1,5 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.97 01/12/03
+ * @(#)BasicInternalFrameUI.java	1.101 02/06/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.io.Serializable;
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.97 12/03/01
+ * @version 1.101 06/05/02
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -1218,20 +1218,14 @@ public class BasicInternalFrameUI extends InternalFrameUI
     }
 
 
-    protected class GlassPaneDispatcher implements MouseInputListener
-    {
+    private static boolean isDragging = false;
+    protected class GlassPaneDispatcher implements MouseInputListener {
+        private Component mouseEventTarget = null;
+        private Component dragSource = null;
+
       /**
        * When inactive, mouse events are forwarded as appropriate either to 
        * the UI to activate the frame or to the underlying child component.
-       *
-       * In keeping with the MDI messaging model (which JInternalFrame
-       * emulates), only the mousePressed event is forwarded to the UI
-       * to activate the frame.  The mouseEntered, mouseMoved, and 
-       * MouseExited events are forwarded to the underlying child
-       * component, using methods derived from those in Container.
-       * The other mouse events are purposely ignored, since they have
-       * no meaning to either the frame or its children when the frame
-       * is inactive.
        */
       public void mousePressed(MouseEvent e) {
 	// what is going on here is the GlassPane is up on the inactive
@@ -1241,16 +1235,16 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	if (borderListener != null){
 	  borderListener.mousePressed(e);
 	} 
-	// fix for 4152560
        	forwardMouseEvent(e);
       }
-      /** 
-     * Forward the mouseEntered event to the underlying child container.
-     * @see #mousePressed
-     */
-      public void mouseEntered(MouseEvent e) {
-        forwardMouseEvent(e);
-      }
+
+        /** 
+         * Forward the mouseEntered event to the underlying child container.
+         * @see #mousePressed
+         */
+        public void mouseEntered(MouseEvent e) {
+            forwardMouseEvent(e);
+        }
       /** 
      * Forward the mouseMoved event to the underlying child container.
      * @see #mousePressed
@@ -1275,9 +1269,10 @@ public class BasicInternalFrameUI extends InternalFrameUI
      * Forward the mouseReleased event to the underlying child container.
      * @see #mousePressed
      */
-      public void mouseReleased(MouseEvent e) {
-	forwardMouseEvent(e);
-      }
+        public void mouseReleased(MouseEvent e) {
+            forwardMouseEvent(e);
+        }
+
       /** 
      * Forward the mouseDragged event to the underlying child container.
      * @see #mousePressed
@@ -1286,27 +1281,69 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	forwardMouseEvent(e);
       }
 
-      /* 
-     * Forward a mouse event to the current mouse target, setting it
-     * if necessary.
-     */
-      private void forwardMouseEvent(MouseEvent e) {
-        Component target = findComponentAt(frame.getRootPane().getLayeredPane(), 
-                                           e.getX(), e.getY());
-        /* Fix for Bug ID 4383421.  The setMouseTarget only gets called  when
-         * the target is changed which happens on the MOUSE_ENTERED or
-         * MOUSE_EXITED event.  We do not want to retarget these events since
-         * we will synthesize them in the setMouseTarget method.
+        /**
+         * Forward a mouse event to the current mouse target, setting it
+         * if necessary.
          */
-        if (target != mouseEventTarget) {
-	  setMouseTarget(target, e);
-        }
-        else {
-           retargetMouseEvent(e.getID(), e);
-        }
-      }
+        private void forwardMouseEvent(MouseEvent e) {
+            // We only want to do this for the selected internal frame.
+            Component target =
+                findComponentAt(frame.getRootPane().getLayeredPane(), 
+                    e.getX(), e.getY());
 
-      private Component mouseEventTarget = null;
+            int id = e.getID();
+            switch(id) {
+                case MouseEvent.MOUSE_ENTERED:
+                    if (isDragging && !frame.isSelected()) {
+                        return;
+                    }
+                    if (target != mouseEventTarget) {
+                        mouseEventTarget = target;
+                    }
+                    retargetMouseEvent(id, e, mouseEventTarget);
+                    break;
+                case MouseEvent.MOUSE_PRESSED:
+                    if (target != mouseEventTarget) {
+                        mouseEventTarget = target;
+                    }
+                    retargetMouseEvent(id, e, mouseEventTarget);
+                    // Set the drag source in case we start dragging.
+                    dragSource = target;
+                    break;
+                case MouseEvent.MOUSE_EXITED:
+                    if (isDragging && !frame.isSelected()) {
+                        return;
+                    }
+                    retargetMouseEvent(id, e, mouseEventTarget);
+                    break;
+                case MouseEvent.MOUSE_CLICKED:
+                    retargetMouseEvent(id, e, mouseEventTarget);
+                    break;
+                case MouseEvent.MOUSE_MOVED:
+                    if (target != mouseEventTarget) {
+                        retargetMouseEvent(MouseEvent.MOUSE_EXITED, e,
+                                mouseEventTarget);
+                        mouseEventTarget = target;
+                        retargetMouseEvent(MouseEvent.MOUSE_ENTERED, e,
+                                mouseEventTarget);
+                    }
+                    retargetMouseEvent(id, e, mouseEventTarget);
+                    break;
+                case MouseEvent.MOUSE_DRAGGED:
+                    if (!isDragging) {
+                        isDragging = true;
+                    }
+                    retargetMouseEvent(id, e, dragSource);
+                    break;
+                case MouseEvent.MOUSE_RELEASED:
+                    if (isDragging) {
+                        retargetMouseEvent(id, e, dragSource);
+                        isDragging = false;
+                    } else {
+                        retargetMouseEvent(id, e, mouseEventTarget);
+                    }
+            }
+        }
 
     /*
      * Find the lightweight child component which corresponds to the
@@ -1344,41 +1381,31 @@ public class BasicInternalFrameUI extends InternalFrameUI
         return c;
       }
 
-      /*
-     * Set the child component to which events are forwarded, and
-     * synthesize the appropriate mouseEntered and mouseExited events.
-     */
-      private void setMouseTarget(Component target, MouseEvent e) {
-        if (mouseEventTarget != null) {
-	  retargetMouseEvent(MouseEvent.MOUSE_EXITED, e);
-        }
-        mouseEventTarget = target;
-        if (mouseEventTarget != null) {
-	  retargetMouseEvent(MouseEvent.MOUSE_ENTERED, e);
-        }
-      }
+        /* 
+         * Dispatch an event clone, retargeted for the specified target.
+         */
+        private void retargetMouseEvent(int id, MouseEvent e,
+                Component target) {
+            if (target == null) {
+                return;
+            }
+            // fix for bug #4202966 -- hania
+            // When retargetting a mouse event, we need to translate
+            // the event's coordinates relative to the target.
 
-      /* 
-     * Dispatch an event clone, retargeted for the current mouse target.
-     */
-      void retargetMouseEvent(int id, MouseEvent e) {
-        // fix for bug #4202966 -- hania
-        // When retargetting a mouse event, we need to translate
-        // the event's coordinates relative to the target.
-        Point p = SwingUtilities.convertPoint(frame.getLayeredPane(),
-                                              e.getX(), e.getY(),
-                                              mouseEventTarget);
-        MouseEvent retargeted = new MouseEvent(mouseEventTarget, 
-                                               id, 
-                                               e.getWhen(), 
-                                               e.getModifiers(),
-                                               p.x, 
-                                               p.y, 
-                                               e.getClickCount(), 
-                                               e.isPopupTrigger());
-        mouseEventTarget.dispatchEvent(retargeted);
-      }
-
+            Point p = SwingUtilities.convertPoint(frame.getLayeredPane(),
+                                                e.getX(), e.getY(),
+                                                target);
+            MouseEvent retargeted = new MouseEvent(target, 
+                id,
+                e.getWhen(),
+                e.getModifiers() | e.getModifiersEx(),
+                p.x,
+                p.y,
+                e.getClickCount(),
+                e.isPopupTrigger());
+            target.dispatchEvent(retargeted);
+        }
     }
 
     protected MouseInputListener createGlassPaneDispatcher(){
@@ -1420,4 +1447,3 @@ public class BasicInternalFrameUI extends InternalFrameUI
     }
     
 }   /// End BasicInternalFrameUI Class
-

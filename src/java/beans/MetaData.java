@@ -1,5 +1,5 @@
 /*
- * @(#)MetaData.java	1.28 01/12/03
+ * @(#)MetaData.java	1.30 02/04/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 
 import java.util.Vector;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Enumeration;
 
 /*
@@ -22,7 +23,7 @@ import java.util.Enumeration;
  *
  * @see java.beans.Intropector
  *
- * @version 1.28 12/03/01
+ * @version 1.30 04/22/02
  * @author Philip Milne
  * @author Steve Langley
  */
@@ -197,6 +198,21 @@ ignore any delegates attached to interfaces and force all persistence
 delegates to be registered with concrete classes.
 */
 
+// Collection
+class java_util_Collection_PersistenceDelegate extends DefaultPersistenceDelegate {
+    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+	java.util.Collection oldO = (java.util.Collection)oldInstance;
+	java.util.Collection newO = (java.util.Collection)newInstance;
+
+        if (newO.size() != 0) {
+            invokeStatement(oldInstance, "clear", new Object[]{}, out);
+        }
+        for (Iterator i = oldO.iterator(); i.hasNext();) {
+            invokeStatement(oldInstance, "add", new Object[]{i.next()}, out);
+        }
+    }
+}
+
 // List
 class java_util_List_PersistenceDelegate extends DefaultPersistenceDelegate {
     protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
@@ -205,8 +221,8 @@ class java_util_List_PersistenceDelegate extends DefaultPersistenceDelegate {
         int oldSize = oldO.size();
         int newSize = (newO == null) ? 0 : newO.size();
         if (oldSize < newSize) {
-            invokeStatement(oldInstance, "setSize", new Object[]{new Integer(oldSize)}, out);
-            newSize = oldSize;
+            invokeStatement(oldInstance, "clear", new Object[]{}, out);
+            newSize = 0;
         }
         for (int i = 0; i < newSize; i++) {
             Object index = new Integer(i);
@@ -230,6 +246,7 @@ class java_util_List_PersistenceDelegate extends DefaultPersistenceDelegate {
         }
     }
 }
+
 
 // Map
 class java_util_Map_PersistenceDelegate extends DefaultPersistenceDelegate {
@@ -272,9 +289,14 @@ class java_util_Map_PersistenceDelegate extends DefaultPersistenceDelegate {
     }
 }
 
+class java_util_AbstractCollection_PersistenceDelegate extends java_util_Collection_PersistenceDelegate {}
 class java_util_AbstractList_PersistenceDelegate extends java_util_List_PersistenceDelegate {}
 class java_util_AbstractMap_PersistenceDelegate extends java_util_Map_PersistenceDelegate {}
 class java_util_Hashtable_PersistenceDelegate extends java_util_Map_PersistenceDelegate {}
+
+
+// Beans
+class java_beans_beancontext_BeanContextSupport_PersistenceDelegate extends java_util_Collection_PersistenceDelegate {}
 
 // AWT
 
@@ -315,7 +337,7 @@ class java_awt_MenuShortcut_PersistenceDelegate extends PersistenceDelegate {
     protected Expression instantiate(Object oldInstance, Encoder out) { 
         java.awt.MenuShortcut m = (java.awt.MenuShortcut)oldInstance; 
         return new Expression(oldInstance, m.getClass(), "new", 
-                   new Object[]{new Integer(m.getKey()), new Boolean(m.usesShiftModifier())});
+                   new Object[]{new Integer(m.getKey()), Boolean.valueOf(m.usesShiftModifier())});
     }
 }
 
@@ -494,7 +516,7 @@ class javax_swing_JFrame_PersistenceDelegate extends DefaultPersistenceDelegate 
             // false means: don't execute this statement at write time.
             boolean executeStatements = out.executeStatements;
             out.executeStatements = false;
-            invokeStatement(oldInstance, "setVisible", new Object[]{new Boolean(oldV)}, out);
+            invokeStatement(oldInstance, "setVisible", new Object[]{Boolean.valueOf(oldV)}, out);
             out.executeStatements = executeStatements;
         }
     }
@@ -686,7 +708,13 @@ class MetaData {
         modification. For now, put the property in the constructor.
         */
         registerConstructor("javax.swing.JSplitPane", new String[]{"orientation"});
+        // Try to synthesize the ImageIcon from its description.
         registerConstructor("javax.swing.ImageIcon", new String[]{"description"});
+        // JButton's "label" and "actionCommand" properties are related,
+        // use the label as a constructor argument to ensure that it is set first.
+        // This remove the benign, but unnecessary, manipulation of actionCommand
+        // property in the common case.
+        registerConstructor("javax.swing.JButton", new String[]{"label"});
 
         // borders
 

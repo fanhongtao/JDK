@@ -1,5 +1,5 @@
 /*
- * @(#)GenericPOAServerSC.java	1.78 01/12/03
+ * @(#)GenericPOAServerSC.java	1.79 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -170,19 +170,19 @@ public class GenericPOAServerSC extends ServerDelegate
 		poaimpl.getServant(objectId, cookieHolder, operation, req);
 
 	    if (servant == null) {
-		boolean raiseObjectNotExist = true;
+		boolean raiseObjectAdapterException = true;
 		if (SpecialMethod.isSpecialMethod(operation)) {
 		    SpecialMethod specialMethod = 
 			SpecialMethod.getSpecialMethod(operation);
 		    if (specialMethod instanceof NonExistent ||
 			specialMethod instanceof NotExistent)
 			{
-			    raiseObjectNotExist = false;
+			    raiseObjectAdapterException = false;
 			}
 		}
-		if (raiseObjectNotExist) {
-		    throw new OBJECT_NOT_EXIST(MinorCodes.NULL_SERVANT,
-					       CompletionStatus.COMPLETED_NO);
+		if (raiseObjectAdapterException) {
+		    throw new OBJ_ADAPTER(MinorCodes.NULL_SERVANT,
+					  CompletionStatus.COMPLETED_NO);
 		}
 	    }
 

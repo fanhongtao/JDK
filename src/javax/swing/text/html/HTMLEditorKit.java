@@ -1,5 +1,5 @@
 /*
- * @(#)HTMLEditorKit.java	1.115 01/12/03
+ * @(#)HTMLEditorKit.java	1.117 02/06/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,6 +19,7 @@ import javax.swing.event.*;
 import javax.swing.plaf.TextUI;
 import java.util.*;
 import javax.accessibility.*;
+import java.lang.ref.*;
 
 /**
  * The Swing JEditorPane text component supports different kinds
@@ -139,7 +140,7 @@ import javax.accessibility.*;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.115 12/03/01
+ * @version 1.117 06/25/02
  */
 public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 
@@ -1059,16 +1060,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 			   (kind == HTML.Tag.OL)) {
 		    return new ListView(elem);
 		} else if (kind == HTML.Tag.BODY) {
-		    // reimplement major axis requirements to indicate that the
-		    // block is flexible for the body element... so that it can
-		    // be stretched to fill the background properly.
-		    return new BlockView(elem, View.Y_AXIS) {
-                        protected SizeRequirements calculateMajorAxisRequirements(int axis, SizeRequirements r) {
-                            r = super.calculateMajorAxisRequirements(axis, r);
-			    r.maximum = Integer.MAX_VALUE;
-			    return r;
-			}
-		    };
+		    return new BodyBlockView(elem);
 		} else if (kind == HTML.Tag.HTML) {
 		    return new BlockView(elem, View.Y_AXIS);
 		} else if ((kind == HTML.Tag.LI) || 
@@ -1173,8 +1165,142 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	    return new LabelView(elem);
 	}
 
-    }
+	private static class BodyBlockView extends BlockView implements ComponentListener {
+	    public BodyBlockView(Element elem) {
+		super(elem,View.Y_AXIS);
+	    }
+	    // reimplement major axis requirements to indicate that the
+	    // block is flexible for the body element... so that it can
+	    // be stretched to fill the background properly.
+	    protected SizeRequirements calculateMajorAxisRequirements(int axis, SizeRequirements r) {
+		r = super.calculateMajorAxisRequirements(axis, r);
+		r.maximum = Integer.MAX_VALUE;
+		return r;
+	    }
+	    protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
+		//idk
+		//Thread.currentThread().dumpStack();
+		//idk
+		Container container = getContainer();
+		Container parentContainer;
+		if (container != null
+		    && (container instanceof javax.swing.JEditorPane) 
+		    && (parentContainer = container.getParent()) != null
+		    && (parentContainer instanceof javax.swing.JViewport)) {
+		    JViewport viewPort = (JViewport)parentContainer;
+		    Object cachedObject;
+		    if (cachedViewPort != null) {
+			if ((cachedObject = cachedViewPort.get()) != null) {
+			    if (cachedObject != viewPort) { 
+				((JComponent)cachedObject).removeComponentListener(this);
+			    }
+			} else {
+			    cachedViewPort = null;
+			}
+		    }
+		    if (cachedViewPort == null) {
+			viewPort.addComponentListener(this);
+			cachedViewPort = new WeakReference(viewPort);
+		    }
+		    int n = getViewCount();
+		    componentVisibleWidth = viewPort.getExtentSize().width;
+		    Insets insets = container.getInsets();
+		    viewVisibleWidth = componentVisibleWidth - insets.left - getLeftInset(); 
+		    //try to use viewVisibleWidth if it is smaller than targetSpan
+		    targetSpan = Math.min(targetSpan, viewVisibleWidth);
+                    Object key = (axis == X_AXIS) ? CSS.Attribute.WIDTH : CSS.Attribute.HEIGHT;
 
+		    for (int i = 0; i < n; i++) {
+			View v = getView(i);
+			int min = (int) v.getMinimumSpan(axis);
+			int max = (int) v.getMaximumSpan(axis);
+                       
+                        // check for percentage span
+                        AttributeSet a = v.getAttributes();
+                        CSS.LengthValue lv = (CSS.LengthValue) a.getAttribute(key);
+                        if ((lv != null) && lv.isPercentage()) {
+                            // bound the span to the percentage specified
+                            min = Math.max((int) lv.getValue(targetSpan),min);
+                            max = min;
+                        }
+
+			if (max < targetSpan) {
+			    // can't make the child this wide, align it
+			    float align = v.getAlignment(axis);
+			    offsets[i] = (int) ((targetSpan - max) * align);
+			    spans[i] = max;
+			} else {
+			    // make it the target width, or as small as it can get.
+			    offsets[i] = 0;
+			    spans[i] = Math.max(min, targetSpan);
+			}
+		    }
+		} else {
+		    if (cachedViewPort != null) {
+			Object cachedObject;
+			if ((cachedObject = cachedViewPort.get()) != null) {
+			    ((JComponent)cachedObject).removeComponentListener(this);
+			}
+			cachedViewPort = null;
+		    }
+		    super.layoutMinorAxis(targetSpan,axis,offsets,spans);
+		}
+	    }
+
+	    public void setParent(View parent) {
+		//if parent == null unregister component listener
+		if (parent == null) {
+		    if (cachedViewPort != null) {
+			Object cachedObject;
+			if ((cachedObject = cachedViewPort.get()) != null) {
+			    ((JComponent)cachedObject).removeComponentListener(this);
+			}
+			cachedViewPort = null;
+		    }
+		}
+		super.setParent(parent);
+	    }
+
+	    public void componentResized(ComponentEvent e) {
+		if ( !(e.getSource() instanceof JViewport) ) {
+		    return;
+		}
+		JViewport viewPort = (JViewport)e.getSource();
+		if (componentVisibleWidth != viewPort.getExtentSize().width) {
+		    Document doc = getDocument();
+		    if (doc instanceof AbstractDocument) {
+			AbstractDocument document = (AbstractDocument)getDocument();
+			document.readLock();
+			try {
+			    layoutChanged(X_AXIS);
+			    preferenceChanged(null, true, true);
+			} finally {
+			    document.readUnlock();
+			}
+			
+		    }
+		}
+	    }
+	    public void componentHidden(ComponentEvent e) {
+	    }
+	    public void componentMoved(ComponentEvent e) {
+	    }
+	    public void componentShown(ComponentEvent e) {
+	    }
+	    /*
+             * we keep weak reference to viewPort if and only if BodyBoxView is listening for ComponentEvents
+	     * only in that case cachedViewPort is not equal to null.
+	     * we need to keep this reference in order to remove BodyBoxView from viewPort listeners.
+	     * 
+	     */
+	    private Reference cachedViewPort = null; 
+	    private boolean isListening = false;
+	    private int viewVisibleWidth = Integer.MAX_VALUE;
+	    private int componentVisibleWidth = Integer.MAX_VALUE;
+	}
+	
+    }
+    
     // --- Action implementations ------------------------------
 
 /** The bold action identifier

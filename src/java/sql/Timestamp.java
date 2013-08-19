@@ -1,5 +1,5 @@
 /*
- * @(#)Timestamp.java	1.44 01/12/03
+ * @(#)Timestamp.java	1.50 02/05/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -218,7 +218,23 @@ public class Timestamp extends java.util.Date {
 
     /**
      * Formats a timestamp in JDBC timestamp escape format.
+     *         <code>yyyy-mm-dd hh:mm:ss.fffffffff</code>,
+     * where <code>ffffffffff</code> indicates nanoseconds.
+     * <P>
+     * NOTE: To specify a timestamp for the class 
+     * <code>java.text.SimpleDateFormat</code>, use "yyyy.MM.dd" rather than
+     * "yyyy-mm-dd". In the context of <code>java.text.SimpleDateFormat</code>,
+     * "mm" indicates minutes rather than the month. Note that 
+     * <code>java.text.SimpleDateFormat</code> does not allow for the
+     * nanoseconds component of a <code>Timestamp</code> object.
+     * For Example:
+     * <PRE>
      *
+     * Format Pattern				Result
+     * --------------				------
+     * "yyyy.MM.dd G 'at' hh:mm:ss z"	-->	2002.07.10 AD at 15:08:56 PDT
+     *
+     * </PRE>
      * @return a <code>String</code> object in
      *           <code>yyyy-mm-dd hh:mm:ss.fffffffff</code> format
      * @overrides <code>toString</code> in class <code>java.util.Date</code>
@@ -435,13 +451,16 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Compares two Timestamps for ordering.
+     * Compares this <code>Timestamp</code> object to the given 
+	 * <code>Timestamp</code> object.
      *
-     * @param   ts   the <code>Timestamp</code> to be compared.
-     * @return  the value <code>0</code> if the argument Timestamp is equal to
-     *          this Timestamp; a value less than <code>0</code> if this 
-     *          Timestamp is before the Date argument; and a value greater than
-     *      <code>0</code> if this Timestamp is after the Timestamp argument.
+     * @param   ts   the <code>Timestamp</code> object to be compared to
+	 *                this <code>Timestamp</code> object
+     * @return  the value <code>0</code> if the two <code>Timestamp</code>
+	 *          objects are equal; a value less than <code>0</code> if this 
+     *          <code>Timestamp</code> object is before the given argument;
+	 *          and a value greater than <code>0</code> if this 
+	 *          <code>Timestamp</code> object is after the given argument.
      * @since   1.2
      */
     public int compareTo(Timestamp ts) {
@@ -458,21 +477,23 @@ public class Timestamp extends java.util.Date {
     }
 
     /**
-     * Compares this Timestamp to another Object. If the Object is 
-     * a Date, this function behaves like compareTo(Timestamp). 
-     * Otherwise, it throws aClassCastException (as Timestamps are 
-     * comparable only to other Timestamps)
+     * Compares this <code>Timestamp</code> object to the given 
+	 * <code>Object</code>, which must be a <code>Timestamp</code>
+	 * object. If the argument is not a <code>Timestamp</code> object,
+     * this method throws a <code>ClassCastException</code> object.
+	 * (<code>Timestamp</code> objects are 
+     * comparable only to other <code>Timestamp</code> objects.)
      *
-     * @param o the <code>object</code> to be compared
-     *
-     * @return the value <code>0</code> if the argument is a Timestamp 
-     * equal to this Timestamp; a value less than <code>0</code> if the 
-     * argument is a Timestamp after this Timestamp; and a value 
-     * greater than <code>0</code> if the argument is a Timestamp 
-     * before this Timestamp.
+     * @param o the <code>Object</code> to be compared, which must be a
+	 *        <code>Timestamp</code> object
+     * @return  the value <code>0</code> if this <code>Timestamp</code> object
+	 *          and the given object are equal; a value less than <code>0</code> 
+	 *          if this  <code>Timestamp</code> object is before the given argument;
+	 *          and a value greater than <code>0</code> if this 
+	 *          <code>Timestamp</code> object is after the given argument.
      *
      * @exception ClassCastException if the argument is not a
-     *        <code>Timestamp</code>.
+     *        <code>Timestamp</code> object
      */
     public int compareTo(Object o) {
         return compareTo((Timestamp)o);

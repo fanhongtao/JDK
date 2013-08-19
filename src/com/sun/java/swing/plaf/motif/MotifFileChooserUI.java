@@ -1,5 +1,5 @@
 /*
- * @(#)MotifFileChooserUI.java	1.32 01/12/03
+ * @(#)MotifFileChooserUI.java	1.35 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.32 12/03/01
+ * @version 1.35 04/23/02
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {

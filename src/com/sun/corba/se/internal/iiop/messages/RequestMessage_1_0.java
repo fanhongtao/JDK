@@ -1,5 +1,5 @@
 /*
- * @(#)RequestMessage_1_0.java	1.9 01/12/03
+ * @(#)RequestMessage_1_0.java	1.10 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -93,7 +93,8 @@ public final class RequestMessage_1_0 extends Message_1_0
 
     public void read(org.omg.CORBA.portable.InputStream istream) {
         super.read(istream);
-        this.service_contexts = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream, GIOPVersion.V1_0);
+        this.service_contexts 
+            = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
         this.request_id = istream.read_ulong();
         this.response_expected = istream.read_boolean();
         int _len0 = istream.read_long();

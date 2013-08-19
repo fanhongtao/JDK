@@ -1,10 +1,10 @@
 /*
- * @(#)WStringValueHelper.java	1.12 01/12/03
+ * @(#)WStringValueHelper.java	1.13 02/04/03
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-/* @(#)WStringValueHelper.java	1.12 01/12/03 */
+/* @(#)WStringValueHelper.java	1.13 02/04/03 */
 
 /**
 * The Helper for <tt>WStringValue</tt>.  For more information on 
@@ -76,7 +76,7 @@ public class WStringValueHelper implements org.omg.CORBA.portable.BoxedValueHelp
 					return org.omg.CORBA.ORB.init().create_recursive_tc ( _id );
 				    }
 				__active = true;
-				__typeCode = org.omg.CORBA.ORB.init ().create_string_tc (0);
+				__typeCode = org.omg.CORBA.ORB.init ().create_wstring_tc (0);
 				__typeCode = org.omg.CORBA.ORB.init ().create_value_box_tc (_id, "WStringValue", __typeCode);
 				__active = false;
 			    }

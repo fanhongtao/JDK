@@ -1,34 +1,85 @@
 /*
- * @(#)JumpingBox.java	1.10 01/12/03
- *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ * -Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ * 
+ * -Redistribution in binary form must reproduct the above copyright
+ *  notice, this list of conditions and the following disclaimer in
+ *  the documentation and/or other materials provided with the distribution.
+ * 
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ * 
+ * This software is provided "AS IS," without a warranty of any kind. ALL
+ * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
+ * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
+ * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
+ * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
+ * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * 
+ * You acknowledge that Software is not designed, licensed or intended for
+ * use in the design, construction, operation or maintenance of any nuclear
+ * facility.
+ */
+
+/*
+ * @(#)JumpingBox.java	1.12 02/06/13
  */
 
 import java.awt.event.*;
-import java.awt.Graphics;
+import java.awt.*;
 
 public class JumpingBox extends java.applet.Applet 
-    implements MouseListener, MouseMotionListener {
+    implements MouseListener, MouseMotionListener, ComponentListener {
 
     private int mx, my;
+    private Dimension size;
     private int onaroll;
 
     public void init() {
         onaroll = 0;
         setSize(500, 500);
+        size = getSize();
         addMouseListener(this);
         addMouseMotionListener(this);
+        addComponentListener(this);
     }
 
-    public void paint(Graphics g) {
-        g.drawRect(0, 0, getSize().width - 1, getSize().height - 1);
+    public void update(Graphics g) {
+        Dimension newSize = getSize();
+        if (size.equals(newSize)) {
+            // Erase old box
+            g.setColor(getBackground());
+            g.drawRect(mx, my, (size.width / 10) - 1, 
+                       (size.height / 10) - 1);
+        } else {
+            size = newSize;
+            g.clearRect(0, 0, size.width, size.height);
+        }
+        // Calculate new position
         mx = (int) (Math.random() * 1000) % 
-            (getSize().width - (getSize().width / 10));
+            (size.width - (size.width / 10));
         my = (int) (Math.random() * 1000) % 
-            (getSize().height - (getSize().height / 10));
-        g.drawRect(mx, my, (getSize().width / 10) - 1, 
-                   (getSize().height / 10) - 1);
+            (size.height - (size.height / 10));
+        paint(g);
+    }
+  
+    public void paint(Graphics g) {
+        g.setColor(Color.black);
+        g.drawRect(0, 0, size.width - 1, size.height - 1);
+        g.drawRect(mx, my, (size.width / 10) - 1, 
+                   (size.height / 10) - 1);
     }
 
     /*
@@ -101,6 +152,18 @@ public class JumpingBox extends java.applet.Applet
 
     public void mouseClicked(MouseEvent e) {}
 
+    public void componentHidden(ComponentEvent e) {}
+ 
+    public void componentMoved(ComponentEvent e) {}
+ 
+    public void componentResized(ComponentEvent e) {
+        repaint();
+    }
+ 
+    public void componentShown(ComponentEvent e) {
+        repaint();
+    }
+  
     public void destroy() {
         removeMouseListener(this);
         removeMouseMotionListener(this);

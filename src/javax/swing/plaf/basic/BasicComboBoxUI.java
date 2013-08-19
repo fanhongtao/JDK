@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxUI.java	1.149 01/12/03
+ * @(#)BasicComboBoxUI.java	1.151 02/04/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import sun.awt.AppContext;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.149 12/03/01
+ * @version 1.151 04/05/02
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -95,7 +95,10 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * @see #createPropertyChangeListener
      */
     protected PropertyChangeListener propertyChangeListener;
-    FocusListener editorFocusListener;
+
+    private FocusListener editorFocusListener;
+    private ActionListener editorActionListener;
+
     /**
      * This protected field is implementation specific. Do not access directly
      * or override. Override the listener construction method instead.
@@ -187,26 +190,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
         comboBox.setRequestFocusEnabled( true );
 
 	installKeyboardActions();
-	
-	/* 4353597: XXX - remove this hack but keep it here for some more testing. This block
-	 * should be removed before FCS.
-        // An invokeLater() was used here because updateComponentTree() resets
-        // our sub-components after this method is completed.  By delaying, we
-        // can set what we need after updateComponentTree() has set all of the
-        // values to defaults.
-        Runnable initializer = new Runnable() {
-            public void run(){
-                // This test for comboBox being null is required because it's possible for the UI
-                // to become uninstalled before this block of code is executed.
-                if ( comboBox != null ) {
-                    if ( editor != null ) {
-                        editor.setFont( comboBox.getFont() );
-                    }
-                    installKeyboardActions();
-                }
-            }
-        };
-        SwingUtilities.invokeLater( initializer ); */
     }
 
     public void uninstallUI( JComponent c ) {
@@ -232,7 +215,8 @@ public class BasicComboBoxUI extends ComboBoxUI {
         focusListener = null;
         listDataListener = null;
         propertyChangeListener = null;
-        editorFocusListener = null;
+	editorActionListener = null;
+	editorFocusListener = null;
         popup = null;
         listBox = null;
         comboBox = null;
@@ -534,7 +518,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * Instantiate it only within subclasses of 
      * <code>BasicComboBoxUI</code>.
      *
-     * @see createListDataListener
+     * @see #createListDataListener
      */
     public class ListDataHandler implements ListDataListener {
         public void contentsChanged( ListDataEvent e ) {
@@ -572,7 +556,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * Instantiate it only within subclasses of 
      * <code>BasicComboBoxUI</code>.
      *
-     * @see createItemListener
+     * @see #createItemListener
      */
     public class ItemHandler implements ItemListener {
 	// This class used to implement behavior which is now redundant.
@@ -591,7 +575,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * Instantiate it only within subclasses of 
      * <code>BasicComboBoxUI</code>.
      * 
-     * @see createPropertyChangeListener
+     * @see #createPropertyChangeListener
      */
     public class PropertyChangeHandler implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent e) {
@@ -789,7 +773,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * do not call or override. To implement a specific editor create a
      * custom <code>ComboBoxEditor</code>
      *
-     * @see createEditor
+     * @see #createEditor
      * @see javax.swing.JComboBox#setEditor
      * @see javax.swing.ComboBoxEditor
      */
@@ -806,7 +790,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * This public method is implementation specific and should be private.
      * do not call or override. 
      *
-     * @see addEditor
+     * @see #addEditor
      */
     public void removeEditor() {
         if ( editor != null ) {
@@ -820,7 +804,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * This protected method is implementation specific and should be private.
      * do not call or override.
      * 
-     * @see addEditor
+     * @see #addEditor
      */
     protected void configureEditor() {
         // Should be in the same state as the combobox
@@ -840,9 +824,14 @@ public class BasicComboBoxUI extends ComboBoxUI {
         }
 
         if (editorFocusListener == null)  {
-            editorFocusListener = new EditorFocusListener(comboBox);
-            editor.addFocusListener( editorFocusListener );
+            editorFocusListener = new EditorFocusListener();
         }
+	editor.addFocusListener( editorFocusListener );
+
+	if (editorActionListener == null) {
+	    editorActionListener = new EditorActionListener();
+	}
+	comboBox.getEditor().addActionListener(editorActionListener);
 
         comboBox.configureEditor(comboBox.getEditor(),comboBox.getSelectedItem());
     }
@@ -851,7 +840,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * This protected method is implementation specific and should be private.
      * Do not call or override.
      * 
-     * @see addEditor
+     * @see #addEditor
      */
     protected void unconfigureEditor() {
         if (focusListener != null) {
@@ -860,15 +849,18 @@ public class BasicComboBoxUI extends ComboBoxUI {
 
         if ( editorFocusListener != null )  {
             editor.removeFocusListener( editorFocusListener );
-            editorFocusListener = null;
         }
+
+	if ( editorActionListener != null) {
+	    comboBox.getEditor().removeActionListener(editorActionListener);
+	}
     }
 
     /**
      * This public method is implementation specific and should be private. Do
      * not call or override.
      *
-     * @see createArrowButton
+     * @see #createArrowButton
      */
     public void configureArrowButton() {
         if ( arrowButton != null ) {
@@ -884,7 +876,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * This public method is implementation specific and should be private. Do
      * not call or override.
      *
-     * @see createArrowButton
+     * @see #createArrowButton
      */
     public void unconfigureArrowButton() {
         if ( arrowButton != null ) {
@@ -1225,7 +1217,7 @@ public class BasicComboBoxUI extends ComboBoxUI {
      * the current renderer and font.
      *
      * @return the size of an empty display area
-     * @see getDisplaySize
+     * @see #getDisplaySize
      */
     protected Dimension getDefaultSize() {
 	// Calculates the height and width using the default text renderer
@@ -1541,11 +1533,6 @@ public class BasicComboBoxUI extends ComboBoxUI {
 
 
     class EditorFocusListener extends FocusAdapter {
-	private JComboBox comboBox;
-
-	public EditorFocusListener(JComboBox combo) {
-	    this.comboBox = combo;
-	}
 
 	/**
 	 * This will make the comboBox fire an ActionEvent if the editor
@@ -1564,5 +1551,31 @@ public class BasicComboBoxUI extends ComboBoxUI {
                                      EventQueue.getMostRecentEventTime(), 0));
             }
         }
+    }
+
+    class EditorActionListener implements ActionListener {
+
+	// Fix for 4515752: Forward the Enter pressed on the
+	// editable combo box to the default button if the item has
+	// not changed.
+
+	// Note: This could depend on event ordering. The first ActionEvent
+	// from the editor may be handled by the JComboBox in which case, the
+	// enterPressed action will always be invoked.
+	public void actionPerformed(ActionEvent evt) {
+	    Object item = comboBox.getEditor().getItem();
+
+	    if (item != null && item.equals(comboBox.getSelectedItem())) {
+		ActionMap am = comboBox.getActionMap();
+		if (am != null) {
+		    Action action = am.get("enterPressed");
+		    if (action != null) {
+			action.actionPerformed(new ActionEvent(comboBox, evt.getID(), 
+							       evt.getActionCommand(),
+							       evt.getModifiers()));
+		    }
+		}
+	    }
+	}
     }
 }

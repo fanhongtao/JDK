@@ -1,5 +1,5 @@
 /*
- * @(#)Charset-X-Coder.java	1.35 01/12/03
+ * @(#)Charset-X-Coder.java	1.36 02/04/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -105,7 +105,7 @@ import java.nio.charset.CoderMalfunctionError;			// javadoc
  * threads.  </p>
  *
  *
- * @version 1.35, 01/12/03
+ * @version 1.36, 02/04/10
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4
@@ -558,7 +558,7 @@ public abstract class CharsetDecoder {
 	    else if (cr.isUnmappable())
 		action = unmappableCharacterAction;
 	    else
-		throw new Error();	
+		assert false : cr.toString();
 
 	    if (action == CodingErrorAction.REPORT)
 		return cr;
@@ -576,7 +576,7 @@ public abstract class CharsetDecoder {
 		continue;
 	    }
 
-	    throw new Error();		
+	    assert false;
 	}
 
     }
@@ -804,7 +804,7 @@ public abstract class CharsetDecoder {
      *
      * @return  <tt>true</tt> if, and only if, this decoder has detected a
      *          specific charset
-     * 
+     *
      * @throws  UnsupportedOperationException
      *          If this decoder does not implement an auto-detecting charset
      */

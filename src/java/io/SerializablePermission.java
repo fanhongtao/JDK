@@ -1,5 +1,5 @@
 /*
- * @(#)SerializablePermission.java	1.14 01/12/03
+ * @(#)SerializablePermission.java	1.15 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.14, 12/03/01
+ * @version 1.15, 02/01/02
  *
  * @author Joe Fialli
  * @since 1.2
@@ -96,9 +96,7 @@ public final class SerializablePermission extends BasicPermission {
     /**
      * Creates a new SerializablePermission object with the specified name.
      * The name is the symbolic name of the SerializablePermission, and the
-     * actions String is currently unused and should be null.  This
-     * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new Permission objects.
+     * actions String is currently unused and should be null.
      *
      * @param name the name of the SerializablePermission.
      * @param actions currently unused and must be set to null

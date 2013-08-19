@@ -1,5 +1,5 @@
 /*
- * @(#)BasicButtonListener.java	1.55 01/12/03
+ * @(#)BasicButtonListener.java	1.58 02/04/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 /**
  * Button Listener
  *
- * @version 1.55 12/03/01
+ * @version 1.58 04/05/02
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -169,12 +169,9 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
         if (b instanceof JButton && ((JButton)b).isDefaultCapable()) {
             JRootPane root = b.getRootPane();
             if (root != null) {
-		JButton defaultButton = root.getDefaultButton();
-		if (defaultButton != null) {
-		    root.putClientProperty("temporaryDefaultButton", b);
-                    root.setDefaultButton((JButton)b);
-		    root.putClientProperty("temporaryDefaultButton", null);
-		}
+                root.putClientProperty("temporaryDefaultButton", b);
+                root.setDefaultButton((JButton)b);
+                root.putClientProperty("temporaryDefaultButton", null);
             }
         }
 	b.repaint();
@@ -183,27 +180,16 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     public void focusLost(FocusEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
 
-       /********REMIND(aim): maybe we don't need oppositeComponent...
-        getOppositeComponent() is currently unimplemented...
-
-	Component newFocusOwner = e.getOppositeComponent();
-        if (newFocusOwner != null && !(newFocusOwner instanceof JButton)) {
-            JRootPane root = b.getRootPane();
-            if (root != null) {
-		JButton initialDefault = (JButton)root.getClientProperty("initialDefaultButton");
-		if (initialDefault != null) {
-		    root.setDefaultButton(initialDefault);
-		}
-	    }
-	}
-	*********/
 	JRootPane root = b.getRootPane();
 	if (root != null) {
 	   JButton initialDefault = (JButton)root.getClientProperty("initialDefaultButton");
-	   if (initialDefault != null && b != initialDefault) {
+	   if (b != initialDefault) {
 	       root.setDefaultButton(initialDefault);
 	   }
 	}
+
+        b.getModel().setArmed(false);
+
 	b.repaint();
     }
 
@@ -248,15 +234,17 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     };
     
     public void mouseReleased(MouseEvent e) {
-	// Support for multiClickThreshhold
-        if (shouldDiscardRelease) {
-	    shouldDiscardRelease = false;
-	    return;
-	}
-	AbstractButton b = (AbstractButton) e.getSource();
-	ButtonModel model = b.getModel();
-	model.setPressed(false);
-	model.setArmed(false);
+	if (SwingUtilities.isLeftMouseButton(e)) {
+	    // Support for multiClickThreshhold
+            if (shouldDiscardRelease) {
+	        shouldDiscardRelease = false;
+	        return;
+	    }
+	    AbstractButton b = (AbstractButton) e.getSource();
+	    ButtonModel model = b.getModel();
+	    model.setPressed(false);
+	    model.setArmed(false);
+        }
     };
  
     public void mouseEntered(MouseEvent e) {

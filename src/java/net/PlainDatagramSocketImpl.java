@@ -1,5 +1,5 @@
 /*
- * @(#)PlainDatagramSocketImpl.java	1.35 01/12/03
+ * @(#)PlainDatagramSocketImpl.java	1.36 02/02/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -215,7 +215,7 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
 	     if (tmp < 0)
 		 throw new IllegalArgumentException("timeout < 0");
 	     timeout = tmp;
-	     break;
+	     return;
 	 case IP_TOS:
 	     if (o == null || !(o instanceof Integer)) {
 		 throw new SocketException("bad argument for IP_TOS");

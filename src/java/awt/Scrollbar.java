@@ -1,5 +1,5 @@
 /*
- * @(#)Scrollbar.java	1.93 01/12/03
+ * @(#)Scrollbar.java	1.94 02/03/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -132,7 +132,7 @@ import javax.accessibility.*;
  * </ul>
  * <p>
  *
- * @version 	1.93, 12/03/01
+ * @version 	1.94, 03/11/02
  * @author 	Sami Shaio
  * @see         java.awt.event.AdjustmentEvent
  * @see         java.awt.event.AdjustmentListener
@@ -516,8 +516,11 @@ public class Scrollbar extends Component implements Adjustable, Accessible {
      * and synchronously sets the minimum, maximum, visible amount,
      * and value properties of a scroll bar, so that they are
      * mutually consistent.
-     * @param       newMinimum   the new minimum value
-     *                     for this scroll bar
+     * <p>Note that setting the minimum value to <code>Integer.MIN_VALUE</code>
+     * will result in the new minimum value to be set to 
+     * <code>Integer.MIN_VALUE - 1</code>.
+     *
+     * @param       newMinimum   the new minimum value for this scroll bar
      * @see         java.awt.Scrollbar#setValues
      * @see         java.awt.Scrollbar#setMaximum
      * @since       JDK1.1

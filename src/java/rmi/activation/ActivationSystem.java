@@ -1,5 +1,5 @@
 /*
- * @(#)ActivationSystem.java	1.14 01/12/03
+ * @(#)ActivationSystem.java	1.15 02/03/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.rmi.activation.UnknownObjectException;
  * and inactive groups.
  *
  * @author 	Ann Wollrath
- * @version	1.14, 12/03/01
+ * @version	1.15, 03/18/02
  * @see		Activator
  * @see		ActivationMonitor
  * @since	1.2
@@ -149,6 +149,7 @@ public interface ActivationSystem extends Remote {
      * to update log)
      * @exception RemoteException if remote call fails
      * @return the previous value of the activation descriptor
+     * @see #getActivationDesc
      * @since 1.2
      */
     public ActivationDesc setActivationDesc(ActivationID id,
@@ -169,6 +170,7 @@ public interface ActivationSystem extends Remote {
      * to update log)
      * @exception RemoteException if remote call fails
      * @return the previous value of the activation group descriptor
+     * @see #getActivationGroupDesc
      * @since 1.2
      */
     public ActivationGroupDesc setActivationGroupDesc(ActivationGroupID id,
@@ -184,6 +186,7 @@ public interface ActivationSystem extends Remote {
      * @exception ActivationException for general failure
      * @exception RemoteException if remote call fails
      * @return the activation descriptor
+     * @see #setActivationDesc
      * @since 1.2
      */
     public ActivationDesc getActivationDesc(ActivationID id)
@@ -198,6 +201,7 @@ public interface ActivationSystem extends Remote {
      * @exception ActivationException for general failure
      * @exception RemoteException if remote call fails
      * @return the activation group descriptor
+     * @see #setActivationGroupDesc
      * @since 1.2
      */
     public ActivationGroupDesc getActivationGroupDesc(ActivationGroupID id)

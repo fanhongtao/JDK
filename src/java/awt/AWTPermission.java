@@ -1,5 +1,5 @@
 /*
- * @(#)AWTPermission.java	1.21 01/12/03
+ * @(#)AWTPermission.java	1.22 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -108,7 +108,7 @@ import java.security.BasicPermission;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 	1.21, 12/03/01
+ * @version 	1.22, 02/01/02
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -136,9 +136,7 @@ public final class AWTPermission extends BasicPermission {
     /**
      * Creates a new <code>AWTPermission</code> object with the specified name.
      * The name is the symbolic name of the <code>AWTPermission</code>, and the
-     * actions string is currently unused and should be <code>null</code>. This
-     * constructor exists for use by the <code>Policy</code> object
-     * to instantiate new permission objects.
+     * actions string is currently unused and should be <code>null</code>.
      *
      * @param name the name of the <code>AWTPermission</code>
      * @param actions should be <code>null</code>

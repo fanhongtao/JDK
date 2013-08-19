@@ -2,7 +2,7 @@
 // Written by David Megginson, sax@megginson.com
 // NO WARRANTY!  This class is in the Public Domain.
 
-// $Id: XMLReader.java,v 1.1.1.1 2000/11/23 01:53:36 edwingo Exp $
+// $Id: XMLReader.java,v 1.1 2001/05/20 03:12:56 curcuru Exp $
 
 package org.xml.sax;
 
@@ -51,7 +51,7 @@ import java.io.IOException;
  * @since SAX 2.0
  * @author David Megginson, 
  *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0
+ * @version 2.0r2pre
  * @see org.xml.sax.XMLFilter
  * @see org.xml.sax.helpers.ParserAdapter
  * @see org.xml.sax.helpers.XMLReaderAdapter 

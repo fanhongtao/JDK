@@ -1,5 +1,5 @@
 /*
- * @(#)DatagramSocket.java	1.84 01/12/03
+ * @(#)DatagramSocket.java	1.87 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import java.security.AccessController;
  * UDP port 8888.
  *
  * @author  Pavani Diwanji
- * @version 1.84, 12/03/01
+ * @version 1.87, 04/09/02
  * @see     java.net.DatagramPacket
  * @see     java.nio.channels.DatagramChannel
  * @since JDK1.0
@@ -54,6 +54,8 @@ class DatagramSocket {
     private boolean created = false;
     private boolean bound = false;
     private boolean closed = false;
+    private Object closeLock = new Object();
+
     /*
      * The implementation of this DatagramSocket.
      */
@@ -464,7 +466,6 @@ class DatagramSocket {
      *	       socket, or <code>null</code> if it is not connected yet.
      * @see #getInetAddress()
      * @see #getPort()
-     * @see #connect(SocketAddress, int)
      * @see #connect(SocketAddress)
      * @since 1.4
      */
@@ -914,7 +915,11 @@ class DatagramSocket {
     public synchronized void setReuseAddress(boolean on) throws SocketException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
-        getImpl().setOption(SocketOptions.SO_REUSEADDR, new Boolean(on));
+	// Integer instead of Boolean for compatibility with older DatagramSocketImpl
+        if (oldImpl)
+	    getImpl().setOption(SocketOptions.SO_REUSEADDR, new Integer(on?-1:0));
+	else
+	    getImpl().setOption(SocketOptions.SO_REUSEADDR, new Boolean(on));
     }
 
     /**
@@ -1041,10 +1046,12 @@ class DatagramSocket {
      * @spec JSR-51
      */
     public void close() {
-	if (isClosed())
-	    return;
-	impl.close();
-	closed = true;
+	synchronized(closeLock) {
+	    if (isClosed())
+		return;
+	    impl.close();
+	    closed = true;
+	}
     }
  
     /**
@@ -1054,7 +1061,9 @@ class DatagramSocket {
      * @since 1.4
      */
     public boolean isClosed() {
-	return closed;
+	synchronized(closeLock) {
+	    return closed;
+	}
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)RemoteObject.java	1.25 01/12/03
+ * @(#)RemoteObject.java	1.27 02/03/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,12 +20,12 @@ import java.rmi.NoSuchObjectException;
  * @author	Ann Wollrath
  * @author	Laird Dornin
  * @author	Peter Jones
- * @version	1.25, 01/12/03
+ * @version	1.27, 02/03/18
  * @since	JDK1.1
  */
 public abstract class RemoteObject implements Remote, java.io.Serializable {
 
-    /** the object's remote reference */
+    /** The object's remote reference. */
     transient protected RemoteRef ref;
     
     /** indicate compatibility with JDK 1.1.x version of class */
@@ -49,6 +49,16 @@ public abstract class RemoteObject implements Remote, java.io.Serializable {
 
     /**
      * Returns the remote reference for the remote object.
+     *
+     * <p>Note: The object returned from this method may be an instance of
+     * an implementation-specific class.  The <code>RemoteObject</code>
+     * class ensures serialization portability of its instances' remote
+     * references through the behavior of its custom
+     * <code>writeObject</code> and <code>readObject</code> methods.  An
+     * instance of <code>RemoteRef</code> should not be serialized outside
+     * of its <code>RemoteObject</code> wrapper instance or the result may
+     * be unportable.
+     *
      * @return remote reference for the remote object
      * @since 1.2
      */

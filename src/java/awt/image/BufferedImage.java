@@ -1,5 +1,5 @@
 /*
- * @(#)BufferedImage.java	1.85 01/12/03
+ * @(#)BufferedImage.java	1.87 02/04/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -97,7 +97,7 @@ public class BufferedImage extends java.awt.Image
      * Represents an image with 8-bit RGB color components, corresponding 
      * to a Windows- or Solaris- style BGR color model, with the colors
      * Blue, Green, and Red packed into integer pixels.  There is no alpha.
-     * The image has a {@link ComponentColorModel}.
+     * The image has a {@link DirectColorModel}.
      */
     public static final int TYPE_INT_BGR = 4;
 
@@ -925,7 +925,7 @@ public class BufferedImage extends java.awt.Image
     
     /**
      * Returns the width of the <code>BufferedImage</code>.
-     * @return the width of this <code>BufferedImage</code>.
+     * @return the width of this <code>BufferedImage</code>
      */
     public int getWidth() {
         return raster.getWidth();
@@ -933,37 +933,25 @@ public class BufferedImage extends java.awt.Image
 
     /**
      * Returns the height of the <code>BufferedImage</code>.
-     * @return the height of this <code>BufferedImage</code>.
+     * @return the height of this <code>BufferedImage</code>
      */
     public int getHeight() {
         return raster.getHeight();
     }
 
     /**
-     * Returns the actual width of the image.  If the width is not known
-     * yet then the {@link ImageObserver} is notified later and 
-     * <code>-1</code> is returned.
-     * @param observer the <code>ImageObserver</code> that receives
-     *          information about the image
-     * @return the width of the image or <code>-1</code> if the width
-     *          is not yet known. 
-     * @see java.awt.Image#getHeight(ImageObserver)
-     * @see ImageObserver
+     * Returns the width of the <code>BufferedImage</code>.  
+     * @param observer ignored
+     * @return the width of this <code>BufferedImage</code> 
      */
     public int getWidth(ImageObserver observer) {
         return raster.getWidth();
     }
 
     /**
-     * Returns the actual height of the image.  If the height is not known
-     * yet then the <code>ImageObserver</code> is notified later and
-     * <code>-1</code> is returned.
-     * @param observer the <code>ImageObserver</code> that receives
-     *          information about the image
-     * @return the height of the image or <code>-1</code> if the height
-     *          is not yet known. 
-     * @see java.awt.Image#getWidth(ImageObserver)
-     * @see ImageObserver
+     * Returns the height of the <code>BufferedImage</code>.  
+     * @param observer ignored
+     * @return the height of this <code>BufferedImage</code> 
      */
     public int getHeight(ImageObserver observer) {
         return raster.getHeight();

@@ -1,5 +1,5 @@
 /*
- * @(#)Properties.java	1.68 01/12/03
+ * @(#)Properties.java	1.69 02/03/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,7 +47,7 @@ import java.util.Hashtable;
  * other character encodings.
  * 
  * @see <a href="../../../tooldocs/solaris/native2ascii.html">native2ascii tool for Solaris</a>
- * @see <a href="../../../tooldocs/win32/native2ascii.html">native2ascii tool for Windows</a>
+ * @see <a href="../../../tooldocs/windows/native2ascii.html">native2ascii tool for Windows</a>
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey

@@ -1,5 +1,5 @@
 /*
- * @(#)IIOPInputStream.java	1.58 01/12/03
+ * @(#)IIOPInputStream.java	1.59 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -168,7 +168,7 @@ public class IIOPInputStream extends CDRInputStream
 			  CompletionStatus.COMPLETED_MAYBE);
     }
 
-    final CodeBase getCodeBase() {
+    public CodeBase getCodeBase() {
         if (conn == null)
             return null;
         else

@@ -1,5 +1,5 @@
 /*
- * @(#)Stub.java	1.28 02/07/31
+ * @(#)Stub.java	1.28 02/08/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ import java.util.Properties;
 public abstract class Stub extends ObjectImpl
     implements java.io.Serializable {
 
-     private static final long serialVersionUID = 	1087775603798577179L;
+    private static final long serialVersionUID = 1087775603798577179L;
 
     // This can only be set at object construction time (no sync necessary).
     private transient StubDelegate stubDelegate = null;
@@ -52,6 +52,7 @@ public abstract class Stub extends ObjectImpl
 	    stubDelegateClass = stubDelegateInstance.getClass();
 	
     }
+
 
     /**
      * Returns a hash code value for the object which is the same for all stubs

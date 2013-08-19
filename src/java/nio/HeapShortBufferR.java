@@ -1,5 +1,5 @@
 /*
- * @(#)Heap-X-Buffer.java	1.24 01/12/03
+ * @(#)Heap-X-Buffer.java	1.26 02/05/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -82,7 +82,7 @@ class HeapShortBufferR
 					0,
 					this.remaining(),
 					this.remaining(),
-					this.position());
+					this.position() + offset);
     }
 
     public ShortBuffer duplicate() {
@@ -172,6 +172,12 @@ class HeapShortBufferR
     }
 
     public ShortBuffer put(ShortBuffer src) {
+
+
+
+
+
+
 
 
 

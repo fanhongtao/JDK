@@ -1,5 +1,5 @@
 /*
- * @(#)TreeModel.java	1.19 01/12/03
+ * @(#)TreeModel.java	1.20 02/02/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,8 +15,22 @@ import javax.swing.event.*;
  * see <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>
  * in <em>The Java Tutorial.</em>
+ * <p>
+ * <code>JTree</code> and its related classes make extensive use of
+ * <code>TreePath</code>s for indentifying nodes in the <code>TreeModel</code>.
+ * If a <code>TreeModel</code> returns the same object, as compared by
+ * <code>equals</code>, at two different indices under the same parent
+ * than the resulting <code>TreePath</code> objects will be considered equal
+ * as well. Some implementations may assume that if two
+ * <code>TreePath</code>s are equal, they identify the same node. If this
+ * condition is not met, painting problems and other oddities may result.
+ * In other words, if <code>getChild</code> for a given parent returns
+ * the same Object (as determined by <code>equals</code>) problems may
+ * result, and it is recommended you avoid doing this.
  * 
- * @version 1.19 12/03/01
+ * @see TreePath
+ * 
+ * @version 1.20 02/15/02
  * @author Rob Davis
  * @author Ray Ryan
  */

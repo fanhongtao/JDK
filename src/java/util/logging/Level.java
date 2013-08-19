@@ -1,5 +1,5 @@
 /*
- * @(#)Level.java	1.9 01/12/03
+ * @(#)Level.java	1.10 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import java.util.ResourceBundle;
  * they maintain the Object uniqueness property across serialization
  * by defining a suitable readResolve method.
  *
- * @version 1.9, 12/03/01
+ * @version 1.10, 02/25/02
  * @since 1.4
  */
 
@@ -62,6 +62,7 @@ public class Level implements java.io.Serializable {
 
     /**
      * OFF is a special level that can be used to turn off logging.
+     * This level is initialized to <CODE>Integer.MAX_VALUE</CODE>.
      */
     public static final Level OFF = new Level("OFF",Integer.MAX_VALUE, defaultBundle);
 
@@ -72,6 +73,7 @@ public class Level implements java.io.Serializable {
      * of considerable importance and which will prevent normal
      * program execution.   They should be reasonably intelligible
      * to end users and to system administrators.
+     * This level is initialized to <CODE>1000</CODE>.
      */
     public static final Level SEVERE = new Level("SEVERE",1000, defaultBundle);
 
@@ -81,6 +83,7 @@ public class Level implements java.io.Serializable {
      * In general WARNING messages should describe events that will
      * be of interest to end users or system managers, or which
      * indicate potential problems.
+     * This level is initialized to <CODE>900</CODE>.
      */
     public static final Level WARNING = new Level("WARNING", 900, defaultBundle);
 
@@ -91,6 +94,7 @@ public class Level implements java.io.Serializable {
      * or its equivalent.  So the INFO level should only be 
      * used for reasonably significant messages that will
      * make sense to end users and system admins.
+     * This level is initialized to <CODE>800</CODE>.
      */
     public static final Level INFO = new Level("INFO", 800, defaultBundle);
 
@@ -102,6 +106,7 @@ public class Level implements java.io.Serializable {
      * that may be associated with particular configurations.
      * For example, CONFIG message might include the CPU type,
      * the graphics depth, the GUI look-and-feel, etc.
+     * This level is initialized to <CODE>700</CODE>. 
      */
     public static final Level CONFIG = new Level("CONFIG", 700, defaultBundle);
 
@@ -122,6 +127,7 @@ public class Level implements java.io.Serializable {
      * FINE messages might include things like minor (recoverable)
      * failures.  Issues indicating potential performance problems
      * are also worth logging as FINE.
+     * This level is initialized to <CODE>500</CODE>.
      */
     public static final Level FINE = new Level("FINE", 500, defaultBundle);
 
@@ -129,16 +135,19 @@ public class Level implements java.io.Serializable {
      * FINER indicates a fairly detailed tracing message.
      * By default logging calls for entering, returning, or throwing
      * an exception are traced at this level.
+     * This level is initialized to <CODE>400</CODE>.
      */
     public static final Level FINER = new Level("FINER", 400, defaultBundle);
 
     /**
-     * FINEST indicates a highly detailed tracing message
+     * FINEST indicates a highly detailed tracing message.
+     * This level is initialized to <CODE>300</CODE>. 
      */
     public static final Level FINEST = new Level("FINEST", 300, defaultBundle);
 
     /**
      * ALL indicates that all messages should be logged.
+     * This level is initialized to <CODE>Integer.MIN_VALUE</CODE>.
      */
     public static final Level ALL = new Level("ALL", Integer.MIN_VALUE, defaultBundle);
 

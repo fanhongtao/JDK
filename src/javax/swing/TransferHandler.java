@@ -1,5 +1,5 @@
 /*
- * @(#)TransferHandler.java	1.23 02/08/06
+ * @(#)TransferHandler.java	1.22 01/12/03
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import javax.swing.event.*;
  * 
  *
  * @author  Timothy Prinzing
- * @version 1.23 08/06/02
+ * @version 1.22 12/03/01
  */
 public class TransferHandler implements Serializable {
 
@@ -70,12 +70,6 @@ public class TransferHandler implements Serializable {
      */
     public static final int COPY_OR_MOVE = DnDConstants.ACTION_COPY_OR_MOVE;
 
-    /**
-     * An <code>int</code> representing a &quot;link&quot; transfer action.
-     * This value is used to specify that data should be linked in a drag 
-     * and drop operation
-     */
-    private static final int LINK = DnDConstants.ACTION_LINK;
 
     /**
      * Returns an <code>Action</code> that behaves like a 'cut' operation.
@@ -620,7 +614,7 @@ public class TransferHandler implements Serializable {
         private boolean canImport;
         
         private boolean actionSupported(int action) {
-            return (action & (COPY_OR_MOVE | LINK)) != NONE;
+            return (action & COPY_OR_MOVE) != NONE;
         }
 
 	// --- DropTargetListener methods -----------------------------------

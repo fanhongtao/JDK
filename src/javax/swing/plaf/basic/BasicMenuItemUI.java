@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuItemUI.java	1.116 02/08/27
+ * @(#)BasicMenuItemUI.java	1.116 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import javax.swing.text.View;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.116 08/27/02
+ * @version 1.116 04/18/02
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -152,16 +152,19 @@ public class BasicMenuItemUI extends MenuItemUI
     }
 
     protected void installListeners() {
-        mouseInputListener = createMouseInputListener(menuItem);
-        menuDragMouseListener = createMenuDragMouseListener(menuItem);
-        menuKeyListener = createMenuKeyListener(menuItem);
-        propertyChangeListener = createPropertyChangeListener(menuItem);
-
-        menuItem.addMouseListener(mouseInputListener);
-        menuItem.addMouseMotionListener(mouseInputListener);
-        menuItem.addMenuDragMouseListener(menuDragMouseListener);
-        menuItem.addMenuKeyListener(menuKeyListener);
-	menuItem.addPropertyChangeListener(propertyChangeListener);
+	if ((mouseInputListener = createMouseInputListener(menuItem)) != null) {
+	    menuItem.addMouseListener(mouseInputListener);
+	    menuItem.addMouseMotionListener(mouseInputListener);
+	}
+        if ((menuDragMouseListener = createMenuDragMouseListener(menuItem)) != null) {
+	    menuItem.addMenuDragMouseListener(menuDragMouseListener);
+	}
+	if ((menuKeyListener = createMenuKeyListener(menuItem)) != null) {
+	    menuItem.addMenuKeyListener(menuKeyListener);
+	}
+	if ((propertyChangeListener = createPropertyChangeListener(menuItem)) != null) {
+	    menuItem.addPropertyChangeListener(propertyChangeListener);
+	}
     }
 
     protected void installKeyboardActions() {
@@ -211,11 +214,19 @@ public class BasicMenuItemUI extends MenuItemUI
     }
 
     protected void uninstallListeners() {
-        menuItem.removeMouseListener(mouseInputListener);
-        menuItem.removeMouseMotionListener(mouseInputListener);
-        menuItem.removeMenuDragMouseListener(menuDragMouseListener);
-        menuItem.removeMenuKeyListener(menuKeyListener);
-        menuItem.removePropertyChangeListener(propertyChangeListener);
+	if (mouseInputListener != null) {
+	    menuItem.removeMouseListener(mouseInputListener);
+	    menuItem.removeMouseMotionListener(mouseInputListener);
+	}
+	if (menuDragMouseListener != null) {
+	    menuItem.removeMenuDragMouseListener(menuDragMouseListener);
+	}
+	if (menuKeyListener != null) {
+	    menuItem.removeMenuKeyListener(menuKeyListener);
+	}
+	if (propertyChangeListener != null) {
+	    menuItem.removePropertyChangeListener(propertyChangeListener);
+	}
 
         mouseInputListener = null;
         menuDragMouseListener = null;
@@ -241,7 +252,7 @@ public class BasicMenuItemUI extends MenuItemUI
     }
 
     protected MenuKeyListener createMenuKeyListener(JComponent c) {
-        return new MenuKeyHandler();
+	return new MenuKeyHandler();
     }
 
     private PropertyChangeListener createPropertyChangeListener(JComponent c) {
@@ -975,11 +986,7 @@ public class BasicMenuItemUI extends MenuItemUI
 
 
     private class MenuDragMouseHandler implements MenuDragMouseListener {
-        public void menuDragMouseEntered(MenuDragMouseEvent e) {
-            MenuSelectionManager manager = e.getMenuSelectionManager();
-            MenuElement path[] = e.getPath();
-            manager.setSelectedPath(path);
-        }
+        public void menuDragMouseEntered(MenuDragMouseEvent e) {}
         public void menuDragMouseDragged(MenuDragMouseEvent e) {
             MenuSelectionManager manager = e.getMenuSelectionManager();
             MenuElement path[] = e.getPath();
@@ -1000,14 +1007,24 @@ public class BasicMenuItemUI extends MenuItemUI
     }
 
     private class MenuKeyHandler implements MenuKeyListener {
+	
+	/**
+	 * Handles the mnemonic key typed in the MenuItem if this menuItem is in
+	 * a standalone popup menu. This invocation normally 
+	 * handled in BasicMenuUI.MenuKeyHandler.menuKeyPressed. Ideally, the 
+	 * MenuKeyHandlers for both BasicMenuItemUI and BasicMenuUI can be consolidated
+	 * into BasicPopupMenuUI but that would require an semantic change. This
+	 * would result in a performance win since we can shortcut a lot of the needless
+	 * processing from MenuSelectionManager.processKeyEvent(). See 4670831.
+	 */
         public void menuKeyTyped(MenuKeyEvent e) {
 	    if (DEBUG) {
 		System.out.println("in BasicMenuItemUI.menuKeyTyped for " + menuItem.getText());
 	    }
             int key = menuItem.getMnemonic();
-            if(key == 0)
+            if(key == 0 || e.getPath().length != 2) // Hack! Only proceed if in a JPopupMenu
                 return;
-            if(lower(key) == lower((int)(e.getKeyChar()))) {
+            if(lower((char)key) == lower(e.getKeyChar())) {
                 MenuSelectionManager manager = 
                     e.getMenuSelectionManager();
 		doClick(manager);
@@ -1021,13 +1038,9 @@ public class BasicMenuItemUI extends MenuItemUI
 	}
         public void menuKeyReleased(MenuKeyEvent e) {}
 
-        private int lower(int ascii) {
-            if(ascii >= 'A' && ascii <= 'Z')
-                return ascii + 'a' - 'A';
-            else
-                return ascii;
+        private char lower(char keyChar) {
+	    return Character.toLowerCase(keyChar);
         }
-
     }
 
     private class PropertyChangeHandler implements PropertyChangeListener {

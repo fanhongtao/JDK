@@ -1,6 +1,6 @@
 // SAX locator interface for document events.
 // No warranty; no copyright -- use this as you will.
-// $Id: Locator.java,v 1.2 2001/07/18 01:44:33 edwingo Exp $
+// $Id: Locator.java,v 1.1 2001/05/20 03:12:56 curcuru Exp $
 
 package org.xml.sax;
 
@@ -37,7 +37,7 @@ package org.xml.sax;
  * @since SAX 1.0
  * @author David Megginson, 
  *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0
+ * @version 2.0r2pre
  * @see org.xml.sax.ContentHandler#setDocumentLocator 
  */
 public interface Locator {
@@ -107,6 +107,10 @@ public interface Locator {
      * <p>The return value is an approximation of the column number
      * in the document entity or external parsed entity where the
      * markup triggering the event appears.</p>
+     *
+     * <p>If possible, the SAX driver should provide the line position 
+     * of the first character after the text associated with the document 
+     * event.</p>
      *
      * <p>If possible, the SAX driver should provide the line position 
      * of the first character after the text associated with the document 

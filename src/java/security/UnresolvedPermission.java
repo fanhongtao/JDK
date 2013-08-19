@@ -1,5 +1,5 @@
 /*
- * @(#)UnresolvedPermission.java	1.21 01/12/03
+ * @(#)UnresolvedPermission.java	1.22 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -58,7 +58,7 @@ import java.security.cert.*;
  * @see java.security.PermissionCollection
  * @see java.security.Policy
  *
- * @version 1.21 01/12/03
+ * @version 1.22 02/02/01
  *
  * @author Roland Schemers
  */
@@ -289,18 +289,43 @@ implements java.io.Serializable
 	    return false;
 	UnresolvedPermission that = (UnresolvedPermission) obj;
 
-	if (!(this.type.equals(that.type) &&
-	    this.name.equals(that.name) &&
-	    this.actions.equals(that.actions)))
+	// check type
+	if (!this.type.equals(that.type)) {
 	    return false;
+	}
 
-	if (this.certs.length != that.certs.length)
+	// check name
+	if (this.name == null) {
+	    if (that.name != null) {
+		return false;
+	    }
+	} else if (!this.name.equals(that.name)) {
 	    return false;
+	}
+
+	// check actions
+	if (this.actions == null) {
+	    if (that.actions != null) {
+		return false;
+	    }
+	} else {
+	    if (!this.actions.equals(that.actions)) {
+		return false;
+	    }
+	}
+
+	// check certs
+	if ((this.certs == null && that.certs != null) ||
+	    (this.certs != null && that.certs == null) ||
+	    (this.certs != null && that.certs != null &&
+		this.certs.length != that.certs.length)) {
+	    return false;
+	}
 	    
 	int i,j;
 	boolean match;
 
-	for (i = 0; i < this.certs.length; i++) {
+	for (i = 0; this.certs != null && i < this.certs.length; i++) {
 	    match = false;
 	    for (j = 0; j < that.certs.length; j++) {
 		if (this.certs[i].equals(that.certs[j])) {
@@ -311,7 +336,7 @@ implements java.io.Serializable
 	    if (!match) return false;
 	}
 
-	for (i = 0; i < that.certs.length; i++) {
+	for (i = 0; that.certs != null && i < that.certs.length; i++) {
 	    match = false;
 	    for (j = 0; j < this.certs.length; j++) {
 		if (that.certs[i].equals(this.certs[j])) {

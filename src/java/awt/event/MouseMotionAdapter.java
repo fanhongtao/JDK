@@ -1,5 +1,5 @@
 /*
- * @(#)MouseMotionAdapter.java	1.12 01/12/03
+ * @(#)MouseMotionAdapter.java	1.13 02/03/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@ package java.awt.event;
  * (Many such events will be generated in a normal program.
  * To track clicks and other mouse events, use the MouseAdapter.)
  * <P>
- * Extend this class to create a <code>MouseMotionEvent</code> listener 
+ * Extend this class to create a <code>MouseEvent</code> listener 
  * and override the methods for the events of interest. (If you implement the 
  * <code>MouseMotionListener</code> interface, you have to define all of
  * the methods in it. This abstract class defines null methods for them
@@ -28,7 +28,7 @@ package java.awt.event;
  * listener object is invoked and the <code>MouseEvent</code> is passed to it.
  *
  * @author Amy Fowler
- * @version 1.12 12/03/01
+ * @version 1.13 03/12/02
  *
  * @see MouseEvent
  * @see MouseMotionListener

@@ -1,5 +1,5 @@
 /*
- * @(#)CodeSetComponentInfo.java	1.27 01/12/03
+ * @(#)CodeSetComponentInfo.java	1.28 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,8 @@
 package com.sun.corba.se.internal.core;
 
 import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import org.omg.CORBA.INITIALIZE;
 import org.omg.CORBA.CompletionStatus;
 
@@ -66,8 +67,10 @@ public final class CodeSetComponentInfo {
             if (conversionCodeSets == null)
                 sbuf.append("null");
             else {
-                for (int i = 0; i < conversionCodeSets.length; i++)
+                for (int i = 0; i < conversionCodeSets.length; i++) {
                     sbuf.append(Integer.toHexString(conversionCodeSets[i]));
+                    sbuf.append(' ');
+                }
             }
 
             return sbuf.toString();
@@ -212,51 +215,58 @@ public final class CodeSetComponentInfo {
      * exception is thrown if any of the numbers are not known by our
      * registry.  Used by corba.ORB init.
      *
-     * The numbers can either be decimal or hex.  For hex, 0x must be
-     * placed before the hex string.
+     * The numbers can either be decimal or hex.
      */
     public static CodeSetComponent createFromString(String str) {
         if (str == null || str.length() == 0)
             throw new INITIALIZE("Empty or null code set String");
 
-        StringTokenizer stok = new StringTokenizer(str, ",", false);
-        Vector conversionSets = new Vector(8);
+        StringTokenizer stok = new StringTokenizer(str, ", ", false);
         int nativeSet = 0;
         int conversionInts[] = null;
 
         try {
-            String strNum = (String)stok.nextElement();
 
-            // Interpret as hex if it starts with 0x, else decimal
-            if (strNum.startsWith("0x") || strNum.startsWith("0X"))
-                nativeSet = Integer.parseInt(strNum.substring(2), 16);
-            else
-                nativeSet = Integer.parseInt(strNum);
+            // The first value is the native code set
+            nativeSet = Integer.decode(stok.nextToken()).intValue();
 
             if (OSFCodeSetRegistry.lookupEntry(nativeSet) == null)
                 throw new INITIALIZE("Unknown native code set: " + nativeSet);
 
-            while (stok.hasMoreElements()) {
-                conversionSets.add(Integer.valueOf((String)stok.nextElement()));
-            }
+            List conversionList = new ArrayList(10);
 
-            conversionInts = new int[conversionSets.size()];
-            for (int i = 0; i < conversionSets.size(); i++) {
-                conversionInts[i] = ((Integer)conversionSets.elementAt(i)).intValue();
+            // Now process the other values as part of the
+            // conversion code set list.
+            while (stok.hasMoreTokens()) {
+                
+                // decode allows us to specify hex, decimal, etc
+                Integer value = Integer.decode(stok.nextToken());
 
-                if (OSFCodeSetRegistry.lookupEntry(conversionInts[i]) == null)
+                if (OSFCodeSetRegistry.lookupEntry(value.intValue()) == null)
                     throw new INITIALIZE("Unknown conversion code set: "
-                                         + conversionInts[i]);
+                                         + value);
+
+                conversionList.add(value);
             }
+
+            conversionInts = new int[conversionList.size()];
+
+            for (int i = 0; i < conversionInts.length; i++)
+                conversionInts[i] = ((Integer)conversionList.get(i)).intValue();
 
         } catch (NumberFormatException nfe) {
             throw new INITIALIZE("Invalid code set number: " + nfe.getMessage());
         }
 
+        // If the entire input string was empty or some other
+        // error came up, throw an exception
         if (nativeSet == 0)
-            throw new INITIALIZE("Invalid code set String " + str
-                                 + ": Requires at least a native code set");
+            throw new INITIALIZE("Invalid code set String \"" 
+                                 + str
+                                 + "\": Requires at least a native code set");
 
+        // Otherwise return the CodeSetComponent representing
+        // the given values
         return new CodeSetComponent(nativeSet, conversionInts);
     }
 

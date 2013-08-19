@@ -1,5 +1,5 @@
 /*
- * @(#)String.java	1.150 01/12/03
+ * @(#)String.java	1.154 02/04/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,7 +53,7 @@ import java.util.regex.PatternSyntaxException;
  * used extensively to provide case mapping.
  * <p>
  * The Java language provides special support for the string
- * concatentation operator (&nbsp;+&nbsp;), and for conversion of
+ * concatenation operator (&nbsp;+&nbsp;), and for conversion of
  * other objects to strings. String concatenation is implemented
  * through the <code>StringBuffer</code> class and its
  * <code>append</code> method.
@@ -65,7 +65,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.150, 01/12/03
+ * @version 1.152, 02/01/03
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuffer#append(boolean)
@@ -117,7 +117,8 @@ public final class String
 
     /**
      * Initializes a newly created <code>String</code> object so that it
-     * represents an empty character sequence.
+     * represents an empty character sequence.  Note that use of this 
+     * constructor is unnecessary since Strings are immutable. 
      */
     public String() {
         value = new char[0];
@@ -126,9 +127,13 @@ public final class String
     /**
      * Initializes a newly created <code>String</code> object so that it
      * represents the same sequence of characters as the argument; in other
-     * words, the newly created string is a copy of the argument string.
+     * words, the newly created string is a copy of the argument string. Unless 
+     * an explicit copy of <code>original</code> is needed, use of this 
+     * constructor is unnecessary since Strings are immutable. 
      *
      * @param   original   a <code>String</code>.
+     * @throws NullPointerException
+     *         if <code>original</code> is <code>null</code>
      */
     public String(String original) {
  	this.count = original.count;
@@ -228,16 +233,7 @@ public final class String
      * @see        java.lang.String#String(byte[])
      */
     public String(byte ascii[], int hibyte, int offset, int count) {
-        if (offset < 0) {
-            throw new StringIndexOutOfBoundsException(offset);
-        }
-        if (count < 0) {
-            throw new StringIndexOutOfBoundsException(count);
-        }
-        // Note: offset or count might be near -1>>>1.
-        if (offset > ascii.length - count) {
-            throw new StringIndexOutOfBoundsException(offset + count);
-        }
+	checkBounds(ascii, offset, count);
 
         char value[] = new char[count];
         this.count = count;
@@ -316,7 +312,7 @@ public final class String
      *          if the named charset is not supported
      * @throws  IndexOutOfBoundsException
      *          if the <tt>offset</tt> and <tt>length</tt> arguments
-     *          index characters outside the bounds of the <tt>value</tt>
+     *          index characters outside the bounds of the <tt>bytes</tt>
      *          array
      * @throws  NullPointerException
      *          if <tt>charsetName</tt> is <tt>null</tt>
@@ -350,7 +346,8 @@ public final class String
      * @exception  UnsupportedEncodingException
      *             If the named charset is not supported
      * @exception  NullPointerException
-     *             If <tt>charsetName</tt> is <tt>null</tt>
+     *             If <code>charsetName</code> or the <code>bytes</code> array
+     *             is <code>null</code>
      * @since      JDK1.1
      */
     public String(byte bytes[], String charsetName)
@@ -373,6 +370,12 @@ public final class String
      * @param  bytes   the bytes to be decoded into characters
      * @param  offset  the index of the first byte to decode
      * @param  length  the number of bytes to decode
+     * @throws IndexOutOfBoundsException
+     *         if the <code>offset</code> and the <code>length</code>
+     *         arguments index characters outside the bounds of the
+     *         <code>bytes</code> array
+     * @throws NullPointerException
+     *         if <code>bytes</code> array is <code>null</code>
      * @since  JDK1.1
      */
     public String(byte bytes[], int offset, int length) {
@@ -393,6 +396,8 @@ public final class String
      * over the decoding process is required.
      *
      * @param  bytes   the bytes to be decoded into characters
+     * @throws NullPointerException
+     *         if <code>bytes</code> is <code>null</code>
      * @since  JDK1.1
      */
     public String(byte bytes[]) {
@@ -835,10 +840,12 @@ public final class String
     }
 
     /**
-     * Compares two strings lexicographically, ignoring case considerations.
-     * This method returns an integer whose sign is that of
-     * <code>this.toUpperCase().toLowerCase().compareTo(
-     * str.toUpperCase().toLowerCase())</code>.
+     * Compares two strings lexicographically, ignoring case
+     * differences. This method returns an integer whose sign is that of
+     * calling <code>compareTo</code> with normalized versions of the strings
+     * where case differences have been eliminated by calling
+     * <code>Character.toLowerCase(Character.toUpperCase(character))</code> on
+     * each character.
      * <p>
      * Note that this method does <em>not</em> take locale into account,
      * and will result in an unsatisfactory ordering for certain locales.
@@ -893,7 +900,6 @@ public final class String
 				 int len) {
 	char ta[] = value;
 	int to = offset + toffset;
-	int tlim = offset + count;
 	char pa[] = other.value;
 	int po = other.offset + ooffset;
 	// Note: toffset, ooffset, or len might be near -1>>>1.
@@ -963,7 +969,6 @@ public final class String
                            String other, int ooffset, int len) {
         char ta[] = value;
         int to = offset + toffset;
-        int tlim = offset + count;
         char pa[] = other.value;
         int po = other.offset + ooffset;
         // Note: toffset, ooffset, or len might be near -1>>>1.
@@ -1022,7 +1027,6 @@ public final class String
     public boolean startsWith(String prefix, int toffset) {
 	char ta[] = value;
 	int to = offset + toffset;
-	int tlim = offset + count;
 	char pa[] = prefix.value;
 	int po = prefix.offset;
 	int pc = prefix.count;
@@ -1926,7 +1930,7 @@ public final class String
                 result[i] = Character.toLowerCase(val[off+i]);
             }
         }
-        return new String(result);
+        return new String(0, result.length, result);
     }
 
     /**
@@ -2076,7 +2080,7 @@ public final class String
                 }
             }
         }
-        return new String(result);
+        return new String(0, result.length, result);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)ServiceContext.java	1.26 02/07/30
+ * @(#)ServiceContext.java	1.27 02/05/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,28 +62,7 @@ public abstract class ServiceContext {
 	com.sun.corba.se.internal.corba.ORB orb
             = (com.sun.corba.se.internal.corba.ORB)(((com.sun.corba.se.internal.iiop.CDRInputStream)s).orb()) ;
 
-	if (orb.serviceContextDebugFlag)
-	    dprint( "Reading service context from stream" ) ;
-
-	// Read the encapsulated service context from the input stream
-	int len = s.read_long();
-
-	if (orb.serviceContextDebugFlag)
-	    dprint( "Service context length = " + len ) ;
-
-	byte[] data = new byte[len];
-	s.read_octet_array(data,0,len);
-
-	// Prepare for subclass to unmarshal value from the encapsulation
-        //
-        // Note:  As of Jan 2001, no standard OMG or Sun service contexts
-        // ship wchar data or are defined as using anything but GIOP 1.0 CDR.
-        // However, our current implementation will use the GIOP 1.2 CDR wchar
-        // with UTF-16BE/LE when forced.  See CORBA formal 99-10-07 15.3.1.6.
-    	EncapsInputStream cis = new EncapsInputStream(s.orb(), data, data.length);
-
-	cis.consumeEndian() ;
-	in = (InputStream)cis ;
+        in = s;
     }
 
     /** Returns Service context id.  Must be overloaded in subclass.

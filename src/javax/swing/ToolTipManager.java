@@ -1,5 +1,5 @@
 /*
- * @(#)ToolTipManager.java	1.59 01/12/03
+ * @(#)ToolTipManager.java	1.63 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import java.io.Serializable;
  * tooltip will be shown again after <code>initialDelay</code> milliseconds.
  *
  * @see JComponent#createToolTip
- * @version 1.44 06/01/99
+ * @version 1.63 04/23/02
  * @author Dave Moore
  * @author Rich Schiavi
  */
@@ -294,21 +294,22 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 		    // adjust
 		    location.x -= x;
 		}
-	    }
+	    }		
 
 	    // Fit as much of the tooltip on screen as possible
-	    if (location.x < sBounds.x) {
-		location.x = sBounds.x;
-	    }
-	    else if (location.x - sBounds.x + size.width > sBounds.width) {
-		location.x = sBounds.x + Math.max(0, sBounds.width - size.width);
-	    }
-	    if (location.y < sBounds.y) {
-		location.y = sBounds.y;
-	    }
-	    else if (location.y - sBounds.y + size.height > sBounds.height) {
-		location.y = sBounds.y + Math.max(0, sBounds.height - size.height);
-	    }
+            if (location.x < sBounds.x) {
+                location.x = sBounds.x;
+            }
+            else if (location.x - sBounds.x + size.width > sBounds.width) {
+                location.x = sBounds.x + Math.max(0, sBounds.width - size.width)
+;
+            }
+            if (location.y < sBounds.y) {
+                location.y = sBounds.y;
+            }
+            else if (location.y - sBounds.y + size.height > sBounds.height) {
+                location.y = sBounds.y + Math.max(0, sBounds.height - size.height);
+            }
 
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
 
@@ -535,26 +536,29 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 	        shouldHide = true;
 	    }
         } else if(event.getSource() == insideComponent && tipWindow != null) {
-            Point location = SwingUtilities.convertPoint(insideComponent,
-                                                         event.getPoint(),
-                                                         null);
-            Rectangle bounds = insideComponent.getTopLevelAncestor().getBounds();
-            location.x += bounds.x;
-            location.y += bounds.y;
-
-            Point loc = new Point(0, 0);
-            SwingUtilities.convertPointToScreen(loc, tip);
-            bounds.x = loc.x;
-            bounds.y = loc.y;
-            bounds.width = tip.getWidth();
-            bounds.height = tip.getHeight();
-
-            if (location.x >= bounds.x && location.x < (bounds.x + bounds.width) &&
-               location.y >= bounds.y && location.y < (bounds.y + bounds.height)) {
-                shouldHide = false;
-            } else {
-                shouldHide = true;
-            }
+	    Window win = SwingUtilities.getWindowAncestor(insideComponent);
+	    if (win != null) {	// insideComponent may have been hidden (e.g. in a menu)
+		Point location = SwingUtilities.convertPoint(insideComponent,
+							     event.getPoint(),
+							     win);
+		Rectangle bounds = insideComponent.getTopLevelAncestor().getBounds();
+		location.x += bounds.x;
+		location.y += bounds.y;
+		
+		Point loc = new Point(0, 0);
+		SwingUtilities.convertPointToScreen(loc, tip);
+		bounds.x = loc.x;
+		bounds.y = loc.y;
+		bounds.width = tip.getWidth();
+		bounds.height = tip.getHeight();
+		
+		if (location.x >= bounds.x && location.x < (bounds.x + bounds.width) &&
+		    location.y >= bounds.y && location.y < (bounds.y + bounds.height)) {
+		    shouldHide = false;
+		} else {
+		    shouldHide = true;
+		}
+	    }
         } 
         
         if (shouldHide) {        

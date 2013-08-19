@@ -1,5 +1,5 @@
 /*
- * @(#)FlowLayout.java	1.43 01/12/03
+ * @(#)FlowLayout.java	1.44 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -44,7 +44,7 @@ import java.io.IOException;
  * <p>
  * A flow layout lets each component assume its natural (preferred) size.
  *
- * @version 	1.43, 12/03/01
+ * @version 	1.44, 04/17/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @since       JDK1.0
@@ -415,7 +415,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     /**
      * Lays out the container. This method lets each component take
      * its preferred size by reshaping the components in the
-     * target container in order to satisfy the constraints of
+     * target container in order to satisfy the alignment of
      * this <code>FlowLayout</code> object.
      * @param target the specified component being laid out
      * @see Container

@@ -1,5 +1,5 @@
 /*
- * @(#)GridBagLayout.java	1.45 01/12/03
+ * @(#)GridBagLayout.java	1.46 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -291,7 +291,7 @@ public class GridBagLayout implements LayoutManager2,
     /**
      * This hashtable maintains the association between
      * a component and its gridbag constraints.
-     * The Keys in comptable are the components and the
+     * The Keys in <code>comptable</code> are the components and the
      * values are the instances of <code>GridBagConstraints</code>.
      *
      * @serial
@@ -425,7 +425,7 @@ public class GridBagLayout implements LayoutManager2,
    * The return value is not a copy, but is the actual
    * <code>GridBagConstraints</code> object used by the layout mechanism.
    * @param       comp the component to be queried
-   * @return      the contraints for the specified componen.
+   * @return      the contraints for the specified component
    */
   protected GridBagConstraints lookupConstraints(Component comp) {
     GridBagConstraints constraints = (GridBagConstraints)comptable.get(comp);
@@ -616,26 +616,30 @@ public class GridBagLayout implements LayoutManager2,
   }
 
   /**
-     * Determines the preferred size of the <code>target</code>
-     * container using this grid bag layout.
-     * <p>
-     * Most applications do not call this method directly.
-     * @param     target   the container in which to do the layout.
-     * @see       java.awt.Container#getPreferredSize
-   */
+    * Determines the preferred size of the <code>parent</code>
+    * container using this grid bag layout.
+    * <p>
+    * Most applications do not call this method directly.
+    *
+    * @param     parent   the container in which to do the layout
+    * @see       java.awt.Container#getPreferredSize
+    * @return the preferred size of the <code>parent</code>
+    *  container
+    */
   public Dimension preferredLayoutSize(Container parent) {
     GridBagLayoutInfo info = getLayoutInfo(parent, PREFERREDSIZE);
     return getMinSize(parent, info);
   }
 
   /**
-     * Determines the minimum size of the <code>target</code> container
-     * using this grid bag layout.
-     * <p>
-     * Most applications do not call this method directly.
-     * @param     target   the container in which to do the layout.
-     * @see       java.awt.Container#doLayout
-   */
+    * Determines the minimum size of the <code>parent</code> container
+    * using this grid bag layout.
+    * <p>
+    * Most applications do not call this method directly.
+    * @param     parent   the container in which to do the layout
+    * @see       java.awt.Container#doLayout
+    * @return the minimum size of the <code>parent</code> container
+    */
   public Dimension minimumLayoutSize(Container parent) {
     GridBagLayoutInfo info = getLayoutInfo(parent, MINSIZE);
     return getMinSize(parent, info);
@@ -644,10 +648,11 @@ public class GridBagLayout implements LayoutManager2,
     /**
      * Returns the maximum dimensions for this layout given the components
      * in the specified target container.
-     * @param target the component which needs to be laid out
+     * @param target the container which needs to be laid out
      * @see Container
      * @see #minimumLayoutSize(Container)
      * @see #preferredLayoutSize(Container)
+     * @return the maximum dimensions for this layout
      */
     public Dimension maximumLayoutSize(Container target) {
 	return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
@@ -659,6 +664,8 @@ public class GridBagLayout implements LayoutManager2,
      * components.  The value should be a number between 0 and 1
      * where 0 represents alignment along the origin, 1 is aligned
      * the furthest away from the origin, 0.5 is centered, etc.
+     * <p>
+     * @return the value <code>0.5f</code> to indicate centered
      */
     public float getLayoutAlignmentX(Container parent) {
 	return 0.5f;
@@ -670,6 +677,8 @@ public class GridBagLayout implements LayoutManager2,
      * components.  The value should be a number between 0 and 1
      * where 0 represents alignment along the origin, 1 is aligned
      * the furthest away from the origin, 0.5 is centered, etc.
+     * <p>
+     * @return the value <code>0.5f</code> to indicate centered
      */
     public float getLayoutAlignmentY(Container parent) {
 	return 0.5f;
@@ -689,7 +698,7 @@ public class GridBagLayout implements LayoutManager2,
    * object.
    * <p>
    * Most applications do not call this method directly.
-   * @param parent the container in which to do the layout.
+   * @param parent the container in which to do the layout
    * @see java.awt.Container
    * @see java.awt.Container#doLayout
    */
@@ -775,16 +784,22 @@ public class GridBagLayout implements LayoutManager2,
    */
 
     /**
-     * Fill in an instance of the above structure for the current set
-     * of managed children.  This requires three passes through the
+     * Fills in an instance of <code>GridBagLayoutInfo</code> for the
+     * current set of managed children. This requires three passes through the
      * set of children:
      *
-     * 1) Figure out the dimensions of the layout grid
-     * 2) Determine which cells the components occupy
-     * 3) Distribute the weights and min sizes amoung the rows/columns.
+     * <ol>
+     * <li>Figure out the dimensions of the layout grid.
+     * <li>Determine which cells the components occupy.
+     * <li>Distribute the weights and min sizes amoung the rows/columns.
+     * </ol>
      *
      * This also caches the minsizes for all the children when they are
      * first encountered (so subsequent loops don't need to ask again).
+     * @param parent  the layout container 
+     * @param sizeflag either <code>PREFERREDSIZE</code> or
+     *   <code>MINSIZE</code>
+     * @return the <code>GridBagLayoutInfo</code> for the set of children
      * @since 1.4
      */
     protected GridBagLayoutInfo getLayoutInfo(Container parent, int sizeflag) {
@@ -792,7 +807,7 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is supplied for backwards compatability only;
+     * This method is obsolete and supplied for backwards compatability only;
      * new code should call getLayoutInfo() instead.
      * @see getLayoutInfo
      */
@@ -1094,7 +1109,7 @@ public class GridBagLayout implements LayoutManager2,
 	  py = constraints.tempY + constraints.tempHeight; /* bottom row */
 
 	  /*
-	   * Figure out if we should use this slave\'s weight.  If the weight
+	   * Figure out if we should use this slave's weight.  If the weight
 	   * is less than the total weight spanned by the height of the cell,
 	   * then discard the weight.  Otherwise split it the difference
 	   * according to the existing weights.
@@ -1159,6 +1174,8 @@ public class GridBagLayout implements LayoutManager2,
     /**
      * Adjusts the x, y, width, and height fields to the correct
      * values depending on the constraint geometry and pads.
+     * @param constraints the constraints to be applied
+     * @param r the <code>Rectangle</code> to be adjusted
      * @since 1.4
      */
     protected void adjustForGravity(GridBagConstraints constraints,
@@ -1167,8 +1184,8 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is supplied for backwards compatability only;
-     * new code should call adjustForGravity() instead.
+     * This method is obsolete and supplied for backwards compatability only;
+     * new code should call <code>adjustForGravity</code> instead.
      * @see adjustForGravity
      */
   protected void AdjustForGravity(GridBagConstraints constraints,
@@ -1273,8 +1290,12 @@ public class GridBagLayout implements LayoutManager2,
   }
 
     /**
-     * Figure out the minimum size of the
-     * master based on the information from getLayoutInfo()
+     * Figures out the minimum size of the
+     * master based on the information from getLayoutInfo().
+     * @param parent the layout container 
+     * @param info the layout info for this parent
+     * @return a <code>Dimension</code> object containing the
+     *   minimum size
      * @since 1.4
      */
     protected Dimension getMinSize(Container parent, GridBagLayoutInfo info) {
@@ -1282,8 +1303,8 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is supplied for backwards compatability only;
-     * new code should call getMinSize() instead.
+     * This method is obsolete and supplied for backwards compatability only;
+     * new code should call <code>getMinSize</code> instead.
      * @see getMinSize
      */
   protected Dimension GetMinSize(Container parent, GridBagLayoutInfo info) {
@@ -1307,7 +1328,8 @@ public class GridBagLayout implements LayoutManager2,
     transient boolean rightToLeft = false;
 
     /**
-     * Lay out the grid
+     * Lays out the grid.
+     * @param parent the layout container
      * @since 1.4
      */
     protected void arrangeGrid(Container parent) {
@@ -1315,8 +1337,8 @@ public class GridBagLayout implements LayoutManager2,
     }
 
     /**
-     * This method is supplied for backwards compatability only;
-     * new code should call arrangeGrid() instead.
+     * This method is obsolete and supplied for backwards compatability only;
+     * new code should call <code>arrangeGrid</code> instead.
      * @see arrangeGrid
      */
   protected void ArrangeGrid(Container parent) {

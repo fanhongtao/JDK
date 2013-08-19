@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTextUI.java	1.75 01/12/12
+ * @(#)BasicTextUI.java	1.81 02/04/24
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -84,7 +84,7 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.75 12/12/01
+ * @version 1.81 04/24/02
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -412,6 +412,57 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	}
     }
 
+
+    /**
+     * Invoked when editable property is changed.
+     *
+     * removing 'TAB' and 'SHIFT-TAB' from traversalKeysSet in case 
+     * editor is editable
+     * adding 'TAB' and 'SHIFT-TAB' to traversalKeysSet in case 
+     * editor is non editable
+     */ 
+
+    void updateFocusTraversalKeys() {
+	/*
+	 * Fix for 4514331 Non-editable JTextArea and similar 
+	 * should allow Tab to keyboard - accessibility 
+	 */
+	EditorKit editorKit = getEditorKit(editor);
+	if ( editorKit != null
+	     && editorKit instanceof DefaultEditorKit) {
+	    Set storedForwardTraversalKeys = editor.
+		getFocusTraversalKeys(KeyboardFocusManager.
+				      FORWARD_TRAVERSAL_KEYS);
+	    Set storedBackwardTraversalKeys = editor.
+		getFocusTraversalKeys(KeyboardFocusManager.
+				      BACKWARD_TRAVERSAL_KEYS);
+	    Set forwardTraversalKeys = 
+		new HashSet(storedForwardTraversalKeys);
+	    Set backwardTraversalKeys = 
+		new HashSet(storedBackwardTraversalKeys);
+	    if (editor.isEditable()) {
+		forwardTraversalKeys.
+		    remove(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0));
+		backwardTraversalKeys.
+		    remove(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 
+						  InputEvent.SHIFT_MASK));
+	    } else {
+		forwardTraversalKeys.add(KeyStroke.
+					 getKeyStroke(KeyEvent.VK_TAB, 0));
+		backwardTraversalKeys.
+		    add(KeyStroke.
+			getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK));
+	    }
+	    editor.setFocusTraversalKeys(KeyboardFocusManager.
+					 FORWARD_TRAVERSAL_KEYS, 
+					 forwardTraversalKeys);
+	    editor.setFocusTraversalKeys(KeyboardFocusManager.
+					 BACKWARD_TRAVERSAL_KEYS, 
+					 backwardTraversalKeys);
+	}
+
+    }
+
     /**
      * Returns the <code>TransferHandler</code> that will be installed if
      * their isn't one installed on the <code>JTextComponent</code>.
@@ -435,6 +486,25 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	}
         ActionMap componentMap = new ActionMapUIResource();
         componentMap.put("requestFocus", new FocusAction());
+	/* 
+	 * fix for bug 4515750 
+	 * JTextField & non-editable JTextArea bind return key - default btn not accessible
+	 *
+	 * Wrap the return action so that it is only enabled when the
+	 * component is editable. This allows the default button to be
+	 * processed when the text component has focus and isn't editable.
+	 * 
+	 */
+	if (getEditorKit(editor) instanceof DefaultEditorKit) {
+	    if (map != null) {
+		Object obj = map.get(DefaultEditorKit.insertBreakAction);
+		if (obj != null  
+		    && obj instanceof DefaultEditorKit.InsertBreakAction) {
+		    Action action =  new TextActionWrapper((TextAction)obj);
+		    componentMap.put(action.getValue(Action.NAME),action);
+		}
+	    }
+	}
         if (map != null) {
             componentMap.setParent(map);
         }
@@ -1616,7 +1686,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 			// should not happen... swing drop target is multicast
 		    }
 		}
-	    }
+	    } 
             BasicTextUI.this.propertyChange(evt);
         }
 
@@ -1850,6 +1920,28 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	private boolean i18nView = false;
     }
 
+    /**
+     * Wrapper for text actions to return isEnabled false in case editor is non editable
+     */
+    class TextActionWrapper extends TextAction {
+	public TextActionWrapper(TextAction action) {
+	    super((String)action.getValue(Action.NAME));
+	    this.action = action;
+	}
+	/**
+         * The operation to perform when this action is triggered.
+         *
+         * @param e the action event
+         */
+        public void actionPerformed(ActionEvent e) {
+	    action.actionPerformed(e);
+	}
+	public boolean isEnabled() { 
+ 	    return (editor == null || editor.isEditable()) ? action.isEnabled() : false;
+ 	}
+	TextAction action = null;
+    }
+
 
     /**
      * Registered in the ActionMap.
@@ -1961,7 +2053,12 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     }
 
     static class TextTransferHandler extends TransferHandler implements UIResource {
-
+        
+        private JTextComponent exportComp;
+        private boolean shouldRemove;
+        private int p0;
+        private int p1;
+        
         /**
          * Try to find a flavor that can be used to import a Transferable.  
          * The set of usable flavors are tried in the following order:
@@ -2141,10 +2238,11 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	 *  
 	 */
         protected Transferable createTransferable(JComponent comp) {
-            JTextComponent c = (JTextComponent)comp;
-            int p0 = c.getSelectionStart();
-            int p1 = c.getSelectionEnd();
-            return (p0 != p1) ? (new TextTransferable(c, p0, p1)) : null;
+            exportComp = (JTextComponent)comp;
+            shouldRemove = true;
+            p0 = exportComp.getSelectionStart();
+            p1 = exportComp.getSelectionEnd();
+            return (p0 != p1) ? (new TextTransferable(exportComp, p0, p1)) : null;
 	}
 
 	/**
@@ -2157,10 +2255,14 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	 * @param action The actual action that was performed.  
 	 */
         protected void exportDone(JComponent source, Transferable data, int action) {
-	    if (action == MOVE) {
+            // only remove the text if shouldRemove has not been set to
+            // false by importData and only if the action is a move
+            if (shouldRemove && action == MOVE) {
 		TextTransferable t = (TextTransferable)data;
 		t.removeText();
 	    }
+            
+            exportComp = null;
 	}
 
 	/**
@@ -2176,13 +2278,25 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	 */
         public boolean importData(JComponent comp, Transferable t) {
             JTextComponent c = (JTextComponent)comp;
+
+            // if we are importing to the same component that we exported from
+            // then don't actually do anything if the drop location is inside
+            // the drag location and set shouldRemove to false so that exportDone
+            // knows not to remove any data
+            if (c == exportComp && c.getCaretPosition() >= p0 && c.getCaretPosition() <= p1) {
+                shouldRemove = false;
+                return true;
+            }
+
 	    boolean imported = false;
 	    DataFlavor importFlavor = getImportFlavor(t.getTransferDataFlavors(), c);
 	    if (importFlavor != null) {
 		try {
                     boolean useRead = false;
                     if (comp instanceof JEditorPane) {
-                        if (importFlavor.getMimeType().startsWith(((JEditorPane)comp).getContentType())) {
+                        JEditorPane ep = (JEditorPane)comp;
+                        if (!ep.getContentType().startsWith("text/plain") &&
+                                importFlavor.getMimeType().startsWith(ep.getContentType())) {
                             useRead = true;
                         }
                     }
@@ -2227,33 +2341,38 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	static class TextTransferable extends BasicTransferable {
 
 	    TextTransferable(JTextComponent c, int start, int end) {
-		this.c = c;
+		super(null, null);
+                
+                this.c = c;
+                
 		Document doc = c.getDocument();
+
 		try {
 		    p0 = doc.createPosition(start);
 		    p1 = doc.createPosition(end);
+
+                    plainData = c.getSelectedText();
+
                     if (c instanceof JEditorPane) {
+                        JEditorPane ep = (JEditorPane)c;
+                        
+                        mimeType = ep.getContentType();
+
+                        if (mimeType.startsWith("text/plain")) {
+                            return;
+                        }
+
                         StringWriter sw = new StringWriter(p1.getOffset() - p0.getOffset());
-                        ((JEditorPane)c).getEditorKit().write(sw, doc, p0.getOffset(), p1.getOffset() - p0.getOffset());
-                        if (getMimeType().startsWith("text/plain")) {
-                            text = sw.toString();
+                        ep.getEditorKit().write(sw, doc, p0.getOffset(), p1.getOffset() - p0.getOffset());
+                        
+                        if (mimeType.startsWith("text/html")) {
+                            htmlData = sw.toString();
                         } else {
                             richText = sw.toString();
-                            text = c.getSelectedText();
                         }
-                    } else {
-                        text = c.getSelectedText();
                     }
 		} catch (BadLocationException ble) {
-		    p0 = null;
-		    p1 = null;
-		    text = null;
-                    richText = null;
 		} catch (IOException ioe) {
-                    p0 = null;
-                    p1 = null;
-                    text = null;
-                    richText = null;
                 }
 	    }
 
@@ -2267,17 +2386,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 		}
 	    }
 
-	    /**
-	     * Get the MIME type of the text component.
-	     */
-	    String getMimeType() {
-		if (c instanceof JEditorPane) {
-		    EditorKit kit = ((JEditorPane)c).getEditorKit();
-		    return kit.getContentType();
-		}
-		return "text/plain";
-	    }
-
 	    // ---- EditorKit other than plain or HTML text -----------------------
 
 	    /** 
@@ -2285,18 +2393,20 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	     * is supported through the "richer flavors" part of BasicTransferable.
 	     */
             protected DataFlavor[] getRicherFlavors() {
-                String bestType = getMimeType();
-                if (!(bestType.startsWith("text/plain") || bestType.startsWith("text/html")))  {
-		    try {
-			DataFlavor[] flavors = new DataFlavor[3];
-			flavors[0] = new DataFlavor(bestType + ";class=java.lang.String");
-			flavors[1] = new DataFlavor(bestType + ";class=java.io.Reader");
-			flavors[2] = new DataFlavor(bestType + ";class=java.io.InputStream;charset=unicode");
-			return flavors;
-		    } catch (ClassNotFoundException cle) {
-			// fall through to unsupported (should not happen)
-		    }
+		if (richText == null) {
+		    return null;
 		}
+
+		try {
+		    DataFlavor[] flavors = new DataFlavor[3];
+                    flavors[0] = new DataFlavor(mimeType + ";class=java.lang.String");
+                    flavors[1] = new DataFlavor(mimeType + ";class=java.io.Reader");
+                    flavors[2] = new DataFlavor(mimeType + ";class=java.io.InputStream;charset=unicode");
+		    return flavors;
+		} catch (ClassNotFoundException cle) {
+		    // fall through to unsupported (should not happen)
+		}
+
 		return null;
 	    }
 
@@ -2304,58 +2414,25 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	     * The only richer format supported is the file list flavor
 	     */
             protected Object getRicherData(DataFlavor flavor) throws UnsupportedFlavorException {
-                String data = (richText != null) ? richText : "";
+		if (richText == null) {
+		    return null;
+		}
+
 		if (String.class.equals(flavor.getRepresentationClass())) {
-		    return data;
+		    return richText;
 		} else if (Reader.class.equals(flavor.getRepresentationClass())) {
-		    return new StringReader(data);
+		    return new StringReader(richText);
 		} else if (InputStream.class.equals(flavor.getRepresentationClass())) {
-		    return new StringBufferInputStream(data);
+		    return new StringBufferInputStream(richText);
 		}
                 throw new UnsupportedFlavorException(flavor);
 	    }
 
-	    // --- HTML ---------------------------------------------------------
-
-	    /**
-	     * Should the HTML flavors be offered?  If so, the method
-	     * getHTMLData should be implemented to provide something reasonable.
-	     */
-            protected boolean isHTMLSupported() {
-		return getMimeType().startsWith("text/html");
-	    }
-
-	    /**
-	     * Fetch the data in a text/html format
-	     */
-            protected String getHTMLData() {
-                return richText;
-	    }
-
-	    // --- Plain ----------------------------------------------------------
-
-	    /**
-	     * Should the plain text flavors be offered?  If so, the method
-	     * getPlainData should be implemented to provide something reasonable.
-	     */
-            protected boolean isPlainSupported() {
-                return true;
-	    }
-
-	    /**
-	     * Fetch the data in a text/plain format.
-	     */
-            protected String getPlainData() {
-		return text;
-	    }
-
-	    // --- fields -----------------------------------------------
-
-	    JTextComponent c;
 	    Position p0;
 	    Position p1;
-	    String text;
+            String mimeType;
             String richText;
+            JTextComponent c;
 	}
 
     }

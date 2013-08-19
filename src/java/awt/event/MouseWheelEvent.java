@@ -1,5 +1,5 @@
 /*
- * @(#)MouseWheelEvent.java	1.5 01/12/03
+ * @(#)MouseWheelEvent.java	1.6 02/03/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -59,12 +59,12 @@ import sun.awt.DebugHelper;
  * reflect the most recent settings.
  *
  * @author Brent Christian
- * @version 1.5 12/03/01
+ * @version 1.6 03/15/02
  * @see MouseWheelListener
  * @see java.awt.ScrollPane
- * @see java.awt.ScrollPane#enableWheelScrolling
+ * @see java.awt.ScrollPane#setWheelScrollingEnabled(boolean)
  * @see javax.swing.JScrollPane
- * @see javax.swing.JScrollPane#enableWheelScrolling
+ * @see javax.swing.JScrollPane#setWheelScrollingEnabled(boolean)
  * @since 1.4
  */
 

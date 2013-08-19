@@ -1,5 +1,5 @@
 /*
- * @(#)BeanContextSupport.java	1.42 01/12/03
+ * @(#)BeanContextSupport.java	1.45 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -52,7 +52,7 @@ import java.util.Map;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.42, 12/03/01
+ * @version 1.45, 02/25/02
  * @since 1.2
  */
 public class      BeanContextSupport extends BeanContextChildSupport
@@ -642,13 +642,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
 	if (name == null) throw new NullPointerException("name");
 	if (bcc  == null) throw new NullPointerException("bcc");
 
-	boolean isChild;
-
-	synchronized(children) {
-	    isChild = children.containsValue(bcc);
-	}
-
-	if (isChild) {
+	if (containsKey(bcc)) {
 	    ClassLoader cl = bcc.getClass().getClassLoader();
 
 	    return cl != null ? cl.getResourceAsStream(name)
@@ -667,13 +661,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
 	if (name == null) throw new NullPointerException("name");
 	if (bcc  == null) throw new NullPointerException("bcc");
 
-	boolean isChild;
-
-	synchronized(children) {
-	    isChild = children.containsValue(bcc);
-	}
-
-	if (isChild) {
+	if (containsKey(bcc)) {
 	    ClassLoader cl = bcc.getClass().getClassLoader();
 
 	    return cl != null ? cl.getResource(name)
@@ -689,7 +677,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
 	if (designTime != dTime) {
 	    designTime = dTime;
 
-	    firePropertyChange("designMode", new Boolean(!dTime), new Boolean(dTime));
+	    firePropertyChange("designMode", Boolean.valueOf(!dTime), Boolean.valueOf(dTime));
 	}
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)IIOMetadataNode.java	1.35 01/12/03
+ * @(#)IIOMetadataNode.java	1.36 02/03/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -161,7 +161,7 @@ class IIOAttr extends IIOMetadataNode implements Attr {
 /**
  * A class representing a node in a meta-data tree, which implements
  * the <a
- * href="http://java.sun.com/xml/docs/api/org/w3c/dom/Element.html">
+ * href="../../../../api/org/w3c/dom/Element.html">
  * <code>org.w3c.dom.Element</code></a> interface and additionally allows
  * for the storage of non-textual objects via the
  * <code>getUserObject</code> and <code>setUserObject</code> methods.

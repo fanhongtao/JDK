@@ -1,5 +1,5 @@
 /*
- * @(#)ImageIO.java	1.79 01/12/03
+ * @(#)ImageIO.java	1.82 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.security.AccessController;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import javax.imageio.spi.ServiceRegistry;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import sun.awt.AppContext;
+import sun.security.action.GetPropertyAction;
 
 /**
  * A class containing static convenience methods for locating
@@ -99,6 +101,7 @@ public final class ImageIO {
     static class CacheInfo {
         boolean useCache = true;
         File cacheDirectory = null;
+        Boolean hasPermission = null;
 
         public CacheInfo() {}
 
@@ -117,6 +120,14 @@ public final class ImageIO {
         public void setCacheDirectory(File cacheDirectory) {
             this.cacheDirectory = cacheDirectory;
         }
+
+        public Boolean getHasPermission() {
+            return hasPermission;
+        }
+
+        public void setHasPermission(Boolean hasPermission) {
+            this.hasPermission = hasPermission;
+        }
     }
 
     /**
@@ -131,6 +142,57 @@ public final class ImageIO {
             context.put(CacheInfo.class, info);
         }
         return info;
+    }
+
+    /**
+     * Returns the default temporary (cache) directory as defined by the
+     * java.io.tmpdir system property.
+     */
+    private static String getTempDir() {
+        GetPropertyAction a = new GetPropertyAction("java.io.tmpdir");
+        return (String)AccessController.doPrivileged(a);
+    }
+
+    /**
+     * Determines whether the caller has write access to the cache
+     * directory, stores the result in the <code>CacheInfo</code> object,
+     * and returns the decision.  This method helps to prevent mysterious
+     * SecurityExceptions to be thrown when this convenience class is used
+     * in an applet, for example.
+     */
+    private static boolean hasCachePermission() {
+        Boolean hasPermission = getCacheInfo().getHasPermission();
+
+        if (hasPermission != null) {
+            return hasPermission.booleanValue();
+        } else {
+            try {
+                SecurityManager security = System.getSecurityManager();
+                if (security != null) {
+                    File cachedir = getCacheDirectory();
+                    String cachepath;
+
+                    if (cachedir != null) {
+                        cachepath = cachedir.getPath();
+                    } else {
+                        cachepath = getTempDir();
+
+                        if (cachepath == null) {
+                            getCacheInfo().setHasPermission(Boolean.FALSE);
+                            return false;
+                        }
+                    }
+
+                    security.checkWrite(cachepath);
+                }
+            } catch (SecurityException e) {
+                getCacheInfo().setHasPermission(Boolean.FALSE);
+                return false;
+            }
+
+            getCacheInfo().setHasPermission(Boolean.TRUE);
+            return true;
+        }
     }
 
     /**
@@ -199,6 +261,7 @@ public final class ImageIO {
             throw new IllegalArgumentException("Not a directory!");
         }
         getCacheInfo().setCacheDirectory(cacheDirectory);
+        getCacheInfo().setHasPermission(null);
     }
 
     /**
@@ -257,12 +320,14 @@ public final class ImageIO {
             return null;
         }
 
+        boolean usecache = getUseCache() && hasCachePermission();
+
         while (iter.hasNext()) {
             ImageInputStreamSpi spi = (ImageInputStreamSpi)iter.next();
             if (spi.getInputClass().isInstance(input)) {
                 try {
                     return spi.createInputStreamInstance(input,
-                                                         getUseCache(),
+                                                         usecache,
                                                          getCacheDirectory());
                 } catch (IOException e) {
                     throw new IIOException("Can't create cache file!", e);
@@ -317,12 +382,14 @@ public final class ImageIO {
             return null;
         }
 
+        boolean usecache = getUseCache() && hasCachePermission();
+
         while (iter.hasNext()) {
             ImageOutputStreamSpi spi = (ImageOutputStreamSpi)iter.next();
             if (spi.getOutputClass().isInstance(output)) {
                 try {
                     return spi.createOutputStreamInstance(output,
-                                                          getUseCache(),
+                                                          usecache,
                                                           getCacheDirectory());
                 } catch (IOException e) {
                     throw new IIOException("Can't create cache file!", e);
@@ -482,8 +549,8 @@ public final class ImageIO {
 
         public boolean filter(Object elt) {
             ImageWriterSpi spi = (ImageWriterSpi)elt;
-            return spi.canEncodeImage(type) &&
-                Arrays.asList(spi.getFormatNames()).contains(formatName);
+            return Arrays.asList(spi.getFormatNames()).contains(formatName) &&
+                spi.canEncodeImage(type);
         }
     }
 
@@ -1278,7 +1345,9 @@ public final class ImageIO {
             throw new IIOException("Can't get input stream from URL!", e);
         }
         ImageInputStream stream = createImageInputStream(istream);
-        return read(stream);
+        BufferedImage bi = read(stream);
+        istream.close();
+        return bi;
     }
 
     /**

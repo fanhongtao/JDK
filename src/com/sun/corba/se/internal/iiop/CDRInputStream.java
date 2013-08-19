@@ -1,5 +1,5 @@
 /*
- * @(#)CDRInputStream.java	1.27 01/12/03
+ * @(#)CDRInputStream.java	1.29 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -472,7 +472,7 @@ public abstract class CDRInputStream
     // This should be overridden by any stream (ex: IIOPInputStream)
     // which wants to read values.  Thus, TypeCodeInputStream doesn't
     // have to do this.
-    CodeBase getCodeBase() {
+    public CodeBase getCodeBase() {
         return null;
     }
 
@@ -516,5 +516,15 @@ public abstract class CDRInputStream
         // with its default constructor (and thus no impl is set).
         if (impl != null)
             impl.performORBVersionSpecificInit();
+    }
+
+    /**
+     * Resets any internal references to code set converters.
+     * This is useful for forcing the CDR stream to reacquire
+     * converters (probably from its subclasses) when state
+     * has changed.
+     */
+    public void resetCodeSetConverters() {
+        impl.resetCodeSetConverters();
     }
 }

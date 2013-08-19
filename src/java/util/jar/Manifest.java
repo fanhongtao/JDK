@@ -1,5 +1,5 @@
 /*
- * @(#)Manifest.java	1.38 01/12/03
+ * @(#)Manifest.java	1.39 02/03/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,11 +21,11 @@ import java.util.Iterator;
  * associated Attributes. There are main Manifest Attributes as well as
  * per-entry Attributes. For information on the Manifest format, please
  * see the 
- * <a href="http://java.sun.com/products/jdk/1.2/docs/guide/jar/manifest.html">
+ * <a href="../../../../guide/jar/jar.html">
  * Manifest format specification</a>.
  *
  * @author  David Connelly
- * @version 1.38, 12/03/01
+ * @version 1.39, 03/21/02
  * @see	    Attributes
  * @since   1.2
  */

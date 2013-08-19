@@ -1,5 +1,5 @@
 /*
- * @(#)SocketOptions.java	1.28 01/12/03
+ * @(#)SocketOptions.java	1.29 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ package java.net;
  * type-safe methods to get/set each of these options in Socket, ServerSocket,
  * DatagramSocket and MulticastSocket.
  * <P>
- * @version 1.28, 12/03/01
+ * @version 1.29, 02/22/02
  * @author David Brown
  */
 
@@ -168,8 +168,8 @@ public interface SocketOptions {
      * <P>
      * Valid for Multicast: DatagramSocketImpl
      * <P>
-     * @see MulticastSocket#setInterface
-     * @see MulitcastSocket#getInterface
+     * @see MulticastSocket#setInterface(InetAddress)
+     * @see MulitcastSocket#getInterface()
      */
 
     public final static int IP_MULTICAST_IF = 0x10;
@@ -180,8 +180,8 @@ public interface SocketOptions {
      *  IPv4 and IPv6 addresses.
      *
      *  NOTE: make sure there is no conflict with this
-     * @see MulticastSocket#setNetworkInterface
-     * @see MulticastSocket#getNetworkInterface
+     * @see MulticastSocket#setNetworkInterface(NetworkInterface)
+     * @see MulticastSocket#getNetworkInterface()
      * @since 1.4
      */
     public final static int IP_MULTICAST_IF2 = 0x1f;

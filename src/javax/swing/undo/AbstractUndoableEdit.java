@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractUndoableEdit.java	1.26 01/12/03
+ * @(#)AbstractUndoableEdit.java	1.27 02/01/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,7 +15,7 @@ import javax.swing.UIManager;
  * implementing simple responses to all boolean methods in
  * that interface. 
  *
- * @version 1.26 12/03/01
+ * @version 1.27 01/22/02
  * @author Ray Ryan
  */
 public class AbstractUndoableEdit implements UndoableEdit, Serializable {
@@ -209,7 +209,7 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
      */
     public String getUndoPresentationName() {
 	String name = getPresentationName();
-	if (name != "") {
+	if (!"".equals(name)) {
 	    name = UIManager.getString("AbstractUndoableEdit.undoText") +
                 " " + name;
 	} else {
@@ -236,7 +236,7 @@ public class AbstractUndoableEdit implements UndoableEdit, Serializable {
      */
     public String getRedoPresentationName() {
 	String name = getPresentationName();
-	if (name != "") {
+	if (!"".equals(name)) {
 	    name = UIManager.getString("AbstractUndoableEdit.redoText") +
                 " " + name;
 	} else {

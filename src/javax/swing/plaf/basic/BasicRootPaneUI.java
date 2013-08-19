@@ -1,5 +1,5 @@
 /*
- * @(#)BasicRootPaneUI.java	1.6 01/12/03
+ * @(#)BasicRootPaneUI.java	1.8 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import javax.swing.plaf.*;
  * Basic implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.6 12/03/01
+ * @version 1.8 04/18/02
  * @author Scott Violet
  */
 public class BasicRootPaneUI extends RootPaneUI implements
@@ -90,7 +90,7 @@ public class BasicRootPaneUI extends RootPaneUI implements
     }
 
     ComponentInputMap createInputMap(int condition, JComponent c) {
-	return new ComponentInputMapUIResource(c);
+	return new RootPaneInputMap(c);
     }
 
     ActionMap createActionMap(JComponent c) {
@@ -109,6 +109,9 @@ public class BasicRootPaneUI extends RootPaneUI implements
     void updateDefaultButtonBindings(JRootPane root) {
 	InputMap km = SwingUtilities.getUIInputMap(root, JComponent.
 					       WHEN_IN_FOCUSED_WINDOW);
+	while (km != null && !(km instanceof RootPaneInputMap)) {
+	    km = km.getParent();
+	}
 	if (km != null) {
 	    km.clear();
 	    if (root.getDefaultButton() != null) {
@@ -148,11 +151,8 @@ public class BasicRootPaneUI extends RootPaneUI implements
         public void actionPerformed(ActionEvent e) {
 	    JButton owner = root.getDefaultButton();
             if (owner != null && SwingUtilities.getRootPane(owner) == root) {
-                ButtonModel model = owner.getModel();
                 if (press) {
-                    model.setArmed(true);
-                    model.setPressed(true);
-                    model.setPressed(false);
+                    owner.doClick(20);
                 }
             }
         }
@@ -160,5 +160,11 @@ public class BasicRootPaneUI extends RootPaneUI implements
 	    JButton owner = root.getDefaultButton();
             return (owner != null && owner.getModel().isEnabled());
         }
+    }
+
+    private static class RootPaneInputMap extends ComponentInputMapUIResource {
+	public RootPaneInputMap(JComponent c) {
+	    super(c);
+	}
     }
 }

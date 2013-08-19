@@ -1,5 +1,5 @@
 /*
- * @(#)Runtime.java	1.62 01/12/03
+ * @(#)Runtime.java	1.65 02/04/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.62, 12/03/01
+ * @version 1.65, 04/04/02
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -48,7 +48,7 @@ public class Runtime {
      * serves as a status code; by convention, a nonzero status code indicates
      * abnormal termination.
      *
-     * <p> The virtual machine's shutdown sequence constists of two phases.  In
+     * <p> The virtual machine's shutdown sequence consists of two phases.  In
      * the first phase all registered {@link #addShutdownHook shutdown hooks},
      * if any, are started in some unspecified order and allowed to run
      * concurrently until they finish.  In the second phase all uninvoked
@@ -155,7 +155,7 @@ public class Runtime {
      * stop running without shutting down cleanly.  This occurs when the
      * virtual machine is terminated externally, for example with the
      * <tt>SIGKILL</tt> signal on Unix or the <tt>TerminateProcess</tt> call on
-     * Win32.  The virtual machine may also abort if a native method goes awry
+     * Microsoft Windows.  The virtual machine may also abort if a native method goes awry
      * by, for example, corrupting internal data structures or attempting to
      * access nonexistent memory.  If the virtual machine aborts then no
      * guarantee can be made about whether or not any shutdown hooks will be
@@ -315,6 +315,10 @@ public class Runtime {
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkExec</code> method doesn't allow creation of a subprocess.
      * @exception  IOException if an I/O error occurs
+     * @exception  NullPointerException if <code>command</code> is 
+     *             <code>null</code>
+     * @exception  IllegalArgumentException if <code>command</code> is empty 
+     *             
      * @see        java.lang.Runtime#exec(java.lang.String, java.lang.String[])
      * @see     java.lang.SecurityManager#checkExec(java.lang.String)
      */
@@ -350,6 +354,8 @@ public class Runtime {
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkExec</code> method doesn't allow creation of a subprocess.
      * @exception  IOException if an I/O error occurs
+     * @exception  NullPointerException if <code>cmd</code> is null
+     * @exception  IllegalArgumentException if <code>cmd</code> is empty
      * @see        java.lang.Runtime#exec(java.lang.String[])
      * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[])
      * @see        java.lang.SecurityManager#checkExec(java.lang.String)
@@ -394,6 +400,9 @@ public class Runtime {
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkExec</code> method doesn't allow creation of a subprocess.
      * @exception  IOException if an I/O error occurs
+     * @exception  NullPointerException if <code>command</code> is 
+     *             <code>null</code>
+     * @exception  IllegalArgumentException if <code>command</code> is empty
      * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[], File)
      * @see        java.lang.SecurityManager#checkExec(java.lang.String)
      * @since 1.3
@@ -403,6 +412,9 @@ public class Runtime {
 	int count = 0;
 	String cmdarray[];
  	StringTokenizer st;
+
+        if (command == "")
+            throw new IllegalArgumentException("Empty command"); 
 
 	st = new StringTokenizer(command);
  	count = st.countTokens();
@@ -434,6 +446,10 @@ public class Runtime {
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkExec</code> method doesn't allow creation of a subprocess.
      * @exception  IOException if an I/O error occurs
+     * @exception  NullPointerException if <code>cmdarray</code> is 
+     *             <code>null</code>
+     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an
+     *             empty array (has length <code>0</code>).
      * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[])
      * @see        java.lang.SecurityManager#checkExec(java.lang.String)
      */
@@ -462,11 +478,11 @@ public class Runtime {
      * @return     a <code>Process</code> object for managing the subprocess.
      * @exception  SecurityException  if a security manager exists and its  
      *             <code>checkExec</code> method doesn't allow creation of a subprocess.
-     * @exception  NullPointerException if <code>cmdarray</code> is 
-     *             <code>null</code>.
-     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an 
-     *             empty array (has length <code>0</code>).
      * @exception  IOException if an I/O error occurs
+     * @exception  NullPointerException if <code>cmdarray</code> is 
+     *             <code>null</code>
+     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an
+     *             empty array (has length <code>0</code>).
      * @see     java.lang.Process
      * @see     java.lang.SecurityException
      * @see     java.lang.SecurityManager#checkExec(java.lang.String)
@@ -513,8 +529,8 @@ public class Runtime {
      *             <code>checkExec</code> method doesn't allow creation of a 
      *             subprocess.
      * @exception  NullPointerException if <code>cmdarray</code> is 
-     *             <code>null</code>.
-     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an 
+     *             <code>null</code>
+     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an
      *             empty array (has length <code>0</code>).
      * @exception  IOException if an I/O error occurs.
      * @see     java.lang.Process

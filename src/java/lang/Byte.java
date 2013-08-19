@@ -1,5 +1,5 @@
 /*
- * @(#)Byte.java	1.28 01/12/03
+ * @(#)Byte.java	1.29 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ package java.lang;
  * useful when dealing with a <code>byte</code>.
  *
  * @author  Nakul Saraiya
- * @version 1.28, 12/03/01
+ * @version 1.29, 02/06/02
  * @see     java.lang.Number
  * @since   JDK1.1
  */
@@ -121,7 +121,8 @@ public final class Byte extends Number implements Comparable {
 	throws NumberFormatException {
 	int i = Integer.parseInt(s, radix);
 	if (i < MIN_VALUE || i > MAX_VALUE)
-	    throw new NumberFormatException();
+	    throw new NumberFormatException(
+                "Value out of range. Value:\"" + s + "\" Radix:" + radix);
 	return (byte)i;
     }
 

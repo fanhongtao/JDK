@@ -1,5 +1,5 @@
 /*
- * @(#)JRootPane.java	1.77 01/12/03
+ * @(#)JRootPane.java	1.80 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,8 +34,8 @@ import javax.swing.border.*;
  * <code>JWindow</code>, and <code>JApplet</code>) are 
  * shown in relation to the AWT classes they extend.
  * These four components are the
- * only heavyweight containers in the Swing library. The lightweight container, 
- * <code>JRootPane</code>, is also shown.
+ * only heavyweight containers in the Swing library. The lightweight container 
+ * <code>JInternalPane</code> is also shown.
  * All five of these JFC/Swing containers implement the
  * <code>RootPaneContainer</code> interface,
  * and they all delegate their operations to a 
@@ -134,6 +134,16 @@ import javax.swing.border.*;
  * change the layout manager for the <code>contentPane</code> rather than 
  * for the <code>JRootPane</code> itself!
  * <p>
+ * The painting architecture of Swing requires an opaque
+ * <code>JComponent</code>
+ * to exist in the containment hieararchy above all other components. This is
+ * typically provided by way of the content pane. If you replace the content
+ * pane, it is recommended that you make the content pane opaque
+ * by way of <code>setOpaque(true)</code>. Additionally, if the content pane
+ * overrides <code>paintComponent</code>, it
+ * will need to completely fill in the background in an opaque color in 
+ * <code>paintComponent</code>.
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -156,7 +166,7 @@ import javax.swing.border.*;
  * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.77 12/03/01
+ * @version 1.80 03/20/02
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -525,6 +535,11 @@ public class JRootPane extends JComponent implements Accessible {
     /** 
      * Sets the content pane -- the container that holds the components
      * parented by the root pane.
+     * <p>
+     * Swing's painting architecture requires an opaque <code>JComponent</code>
+     * in the containment hiearchy. This is typically provided by the
+     * content pane. If you replace the content pane it is recommended you
+     * replace it with an opaque <code>JComponent</code>.
      *  
      * @param content the <code>Container</code> to use for component-contents
      * @exception java.awt.IllegalComponentStateException (a runtime

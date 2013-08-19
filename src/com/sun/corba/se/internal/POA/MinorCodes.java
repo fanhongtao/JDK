@@ -1,5 +1,5 @@
 /*
- * @(#)MinorCodes.java	1.29 01/12/03
+ * @(#)MinorCodes.java	1.30 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,6 +19,7 @@ import org.omg.CORBA.OMGVMCID ;
 public final class MinorCodes {
     // BAD_CONTEXT exception minor codes
     // BAD_INV_ORDER exception minor codes
+    public static final int SERVANT_MANAGER_ALREADY_SET = ORBConstants.POA_BASE + 1;
     // BAD_OPERATION exception minor codes
     public static final int SERVANT_ORB = ORBConstants.POA_BASE + 1;
     public static final int BAD_SERVANT = ORBConstants.POA_BASE + 2;
@@ -95,4 +96,5 @@ public final class MinorCodes {
     public static final int ADAPTER_ACTIVATOR_FAILED = ORBConstants.POA_BASE + 2;
     public static final int BAD_SKELETON = ORBConstants.POA_BASE + 3;
     public static final int NULL_SERVANT = ORBConstants.POA_BASE + 4;
+    public static final int ADAPTER_DESTROYED = ORBConstants.POA_BASE + 5;
 } ;

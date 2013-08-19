@@ -1,5 +1,5 @@
 /*
- * @(#)Matcher.java	1.39 01/12/03
+ * @(#)Matcher.java	1.43 02/05/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -70,7 +70,7 @@ package java.util.regex;
  * @author      Mike McCloskey
  * @author	Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.39, 01/12/03
+ * @version 	1.43, 02/05/10
  * @since	1.4
  * @spec        JSR-51
  */
@@ -111,6 +111,11 @@ public final class Matcher {
      * The range of string that last matched the pattern.
      */
     int first = -1, last = -1;
+
+    /**
+     * The end index of what matched in the last match operation.
+     */
+    int oldLast = -1;
 
     /**
      * The index of the last position appended in a substitution.
@@ -166,6 +171,7 @@ public final class Matcher {
     public Matcher reset() {
         first = -1;
         last = -1;
+        oldLast = -1;
         for(int i=0; i<groups.length; i++)
             groups[i] = -1;
         for(int i=0; i<locals.length; i++)
@@ -355,8 +361,12 @@ public final class Matcher {
     /**
      * Returns the number of capturing groups in this matcher's pattern.
      *
-     * <p> Any non-negative integer smaller than the value returned by this
-     * method is guaranteed to be a valid group index for this matcher.  </p>
+     * <p> Group zero denotes the entire pattern by convention. It is not
+     * included in this count.
+     *
+     * <p> Any non-negative integer smaller than or equal to the value
+     * returned by this method is guaranteed to be a valid group index for
+     * this matcher.  </p>
      *
      * @return The number of capturing groups in this matcher's pattern
      */
@@ -474,11 +484,15 @@ public final class Matcher {
      * <p> The replacement string may contain references to subsequences
      * captured during the previous match: Each occurrence of
      * <tt>$</tt><i>g</i><tt></tt> will be replaced by the result of
-     * evaluating {@link #group(int) group}<tt>(</tt><i>g</i><tt>)</tt>.  If
-     * the second group matched the string <tt>"foo"</tt>, for example, then
-     * passing the replacement string <tt>"$2bar"</tt> would cause
-     * <tt>"foobar"</tt> to be appended to the string buffer. A dollar sign
-     * (<tt>$</tt>) may be included as a literal in the replacement
+     * evaluating {@link #group(int) group}<tt>(</tt><i>g</i><tt>)</tt>. 
+     * The first number after the <tt>$</tt> is always treated as part of
+     * the group reference. Subsequent numbers are incorporated into g if
+     * they would form a legal group reference. Only the numerals '0'
+     * through '9' are considered as potential components of the group
+     * reference. If the second group matched the string <tt>"foo"</tt>, for
+     * example, then passing the replacement string <tt>"$2bar"</tt> would
+     * cause <tt>"foobar"</tt> to be appended to the string buffer. A dollar
+     * sign (<tt>$</tt>) may be included as a literal in the replacement
      * string by preceding it with a backslash (<tt>\$</tt>).
      *
      * <p> This method is intended to be used in a loop together with the
@@ -490,9 +504,8 @@ public final class Matcher {
      * Pattern p = Pattern.compile("cat");
      * Matcher m = p.matcher("one cat two cats in the yard");
      * StringBuffer sb = new StringBuffer();
-     * boolean result = m.find();
-     * while (m.appendReplacement(sb, "dog")) {
-     *     result = m.find();
+     * while (m.find()) {
+     *     m.appendReplacement(sb, "dog");
      * }
      * m.appendTail(sb);
      * System.out.println(sb.toString());</pre></blockquote>
@@ -514,8 +527,6 @@ public final class Matcher {
      *          that does not exist in the pattern
      */
     public Matcher appendReplacement(StringBuffer sb, String replacement) {
-        String s = replacement;
-        StringBuffer result = null;
 
         // If no match, return error
         if (first < 0)
@@ -523,7 +534,8 @@ public final class Matcher {
 
         // Process substitution string to replace group references with groups
         int cursor = 0;
-        result = new StringBuffer();
+        String s = replacement;
+        StringBuffer result = new StringBuffer();
 
         while (cursor < replacement.length()) {
             char nextChar = replacement.charAt(cursor);
@@ -544,7 +556,6 @@ public final class Matcher {
                 cursor++;
 
                 // Capture the largest legal group string
-                String groupString = null;
                 boolean done = false;
                 while (!done) {
                     if (cursor >= replacement.length()) {
@@ -596,8 +607,7 @@ public final class Matcher {
      * @return  The target string buffer
      */
     public StringBuffer appendTail(StringBuffer sb) {
-        String tail = getSubSequence(lastAppendPosition, getTextLength()).toString();
-        sb.append(tail);
+        sb.append(getSubSequence(lastAppendPosition, getTextLength()).toString());
 	return sb;
     }
 
@@ -687,6 +697,7 @@ public final class Matcher {
         this.to     = to;
         this.first  = from;
         this.last   = -1;
+        this.oldLast = oldLast < 0 ? from : oldLast;
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         acceptMode = NOANCHOR;
@@ -694,6 +705,7 @@ public final class Matcher {
         boolean result = parentPattern.root.match(this, from, text);
         if (!result)
             this.first = -1;
+        this.oldLast = this.last;
         return result;
     }
 
@@ -708,6 +720,7 @@ public final class Matcher {
         this.to     = to;
         this.first  = from;
         this.last   = -1;
+        this.oldLast = oldLast < 0 ? from : oldLast;
         for (int i = 0; i < groups.length; i++)
             groups[i] = -1;
         acceptMode = anchor;
@@ -715,6 +728,7 @@ public final class Matcher {
         boolean result = parentPattern.matchRoot.match(this, from, text);
         if (!result)
             this.first = -1;
+        this.oldLast = this.last;
         return result;
     }
 

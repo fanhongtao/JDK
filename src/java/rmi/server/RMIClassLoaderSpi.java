@@ -1,5 +1,5 @@
 /*
- * @(#)RMIClassLoaderSpi.java	1.9 01/12/03
+ * @(#)RMIClassLoaderSpi.java	1.10 02/03/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import java.net.URL;
  * See the documentation for {@link RMIClassLoader} for a description
  * of how a provider instance is chosen.
  *
- * @version	1.9, 01/12/03
+ * @version	1.10, 02/03/06
  * @author	Peter Jones
  * @author	Laird Dornin
  * @see		RMIClassLoader
@@ -170,6 +170,8 @@ public abstract class RMIClassLoaderSpi {
      *
      * @return	a string to be used to annotate the given class when
      * it gets marshalled, or <code>null</code>
+     *
+     * @throws	NullPointerException if <code>cl</code> is <code>null</code>
      */
     public abstract String getClassAnnotation(Class cl);
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectOutputStream.java	1.130 01/12/03
+ * @(#)ObjectOutputStream.java	1.132 02/04/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,15 +47,14 @@ import sun.misc.SoftCache;
  * ObjectInputStream:
  * <br>
  * <pre>
- *	FileOutputStream ostream = new FileOutputStream("t.tmp");
- *	ObjectOutputStream p = new ObjectOutputStream(ostream);
+ *	FileOutputStream fos = new FileOutputStream("t.tmp");
+ *	ObjectOutputStream oos = new ObjectOutputStream(fos);
  *
- *	p.writeInt(12345);
- *	p.writeObject("Today");
- *	p.writeObject(new Date());
+ *	oos.writeInt(12345);
+ *	oos.writeObject("Today");
+ *	oos.writeObject(new Date());
  *
- *	p.flush();
- *	ostream.close();
+ *	oos.close();
  * </pre>
  *
  * <p>Classes that require special handling during the serialization and
@@ -112,7 +111,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version     1.130, 01/12/03
+ * @version     1.132, 02/04/12
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -170,6 +169,7 @@ public class ObjectOutputStream
      * @throws	IOException if an I/O error occurs while writing stream header
      * @throws	SecurityException if untrusted subclass illegally overrides
      * 		security-sensitive methods
+     * @throws	NullPointerException if <code>out</code> is <code>null</code>
      * @see	ObjectOutputStream#ObjectOutputStream()
      * @see	ObjectOutputStream#putFields()
      * @see	ObjectInputStream#ObjectInputStream(InputStream)

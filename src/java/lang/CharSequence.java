@@ -1,5 +1,5 @@
 /*
- * @(#)CharSequence.java	1.4 01/12/03
+ * @(#)CharSequence.java	1.5 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,13 +18,13 @@ package java.lang;
  * java.lang.Object#hashCode() hashCode} methods.  The result of comparing two
  * objects that implement <tt>CharSequence</tt> is therefore, in general,
  * undefined.  Each object may be implemented by a different class, and there
- * is no guarantee that each class will be be capable of testing its instances
+ * is no guarantee that each class will be capable of testing its instances
  * for equality with those of the other.  It is therefore inappropriate to use
  * arbitrary <tt>CharSequence</tt> instances as elements in a set or as keys in
  * a map. </p>
  *
  * @author Mike McCloskey
- * @version 1.4 01/12/03
+ * @version 1.5 02/04/23
  * @since 1.4
  * @spec JSR-51
  */

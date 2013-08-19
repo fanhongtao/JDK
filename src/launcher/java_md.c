@@ -1,5 +1,5 @@
 /*
- * @(#)java_md.c	1.25 01/12/03
+ * @(#)java_md.c	1.28 02/05/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,15 @@
 #endif
 
 #ifdef _LP64
+#ifdef ia64
+#define ARCH "ia64"
+#else
 #define ARCH "sparcv9"
+#endif
+#endif
+
+#ifdef i586
+#define ARCH "i386"
 #endif
 
 #ifndef ARCH

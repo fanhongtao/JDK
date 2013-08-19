@@ -1,5 +1,5 @@
 /*
- * @(#)RuleBasedCollator.java	1.33 01/12/03
+ * @(#)RuleBasedCollator.java	1.34 02/03/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ import sun.text.NormalizerUtilities;
  * <ol>
  * <li>If a special collation rule controlled by a &lt;modifier&gt; is
       specified it applies to the whole collator object.
- * <li>All non-mentioned Unicode characters are at the end of the
+ * <li>All non-mentioned characters are at the end of the
  *     collation order.
  * </ol>
  *
@@ -145,8 +145,6 @@ import sun.text.NormalizerUtilities;
  * compatibility decompositions (such as full-width and half-width forms),
  * you must use FULL_DECOMPOSITION, since the rule tables only include
  * canonical mappings.
- * For more information, see
- * <A HREF="http://www.aw.com/devpress">The Unicode Standard, Version 2.0</A>.)
  *
  * <p><strong>Errors</strong>
  * <p>

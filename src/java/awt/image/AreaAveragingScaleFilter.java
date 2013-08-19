@@ -1,5 +1,5 @@
 /*
- * @(#)AreaAveragingScaleFilter.java	1.11 01/12/03
+ * @(#)AreaAveragingScaleFilter.java	1.13 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@ import java.awt.Rectangle;
  * An ImageFilter class for scaling images using a simple area averaging
  * algorithm that produces smoother results than the nearest neighbor
  * algorithm.
- * This class extends the basic ImageFilter Class to scale an existing
+ * <p>This class extends the basic ImageFilter Class to scale an existing
  * image and provide a source for a new image containing the resampled
  * image.  The pixels in the source image are blended to produce pixels
  * for an image of the specified size.  The blending process is analogous
@@ -28,14 +28,16 @@ import java.awt.Rectangle;
  * will back off to a simple pixel replication behavior and utilize the
  * requestTopDownLeftRightResend() method to refilter the pixels in a
  * better way at the end.
- * It is meant to be used in conjunction with a FilteredImageSource
- * object to produce scaled versions of existing images.
+ * <p>It is meant to be used in conjunction with a FilteredImageSource
+ * object to produce scaled versions of existing images.  Due to
+ * implementation dependencies, there may be differences in pixel values 
+ * of an image filtered on different platforms.
  *
  * @see FilteredImageSource
  * @see ReplicateScaleFilter
  * @see ImageFilter
  *
- * @version	1.11 12/03/01
+ * @version	1.13 04/19/02
  * @author 	Jim Graham
  */
 public class AreaAveragingScaleFilter extends ReplicateScaleFilter {
@@ -83,17 +85,27 @@ public class AreaAveragingScaleFilter extends ReplicateScaleFilter {
     }
 
     private int[] calcRow() {
-	float mult = ((float) srcWidth) * srcHeight;
+	float origmult = ((float) srcWidth) * srcHeight;
 	if (outpixbuf == null || !(outpixbuf instanceof int[])) {
 	    outpixbuf = new int[destWidth];
 	}
 	int[] outpix = (int[]) outpixbuf;
 	for (int x = 0; x < destWidth; x++) {
+            float mult = origmult;
 	    int a = Math.round(alphas[x] / mult);
+            if (a <= 0) {
+                a = 0;
+            } else if (a >= 255) {
+                a = 255;
+            } else {
+                // un-premultiply the components (by modifying mult here, we
+                // are effectively doing the divide by mult and divide by
+                // alpha in the same step)
+                mult = alphas[x] / 255;
+            }
 	    int r = Math.round(reds[x] / mult);
 	    int g = Math.round(greens[x] / mult);
 	    int b = Math.round(blues[x] / mult);
-	    if (a < 0) {a = 0;} else if (a > 255) {a = 255;}
 	    if (r < 0) {r = 0;} else if (r > 255) {r = 255;}
 	    if (g < 0) {g = 0;} else if (g > 255) {g = 255;}
 	    if (b < 0) {b = 0;} else if (b > 255) {b = 255;}
@@ -145,11 +157,19 @@ public class AreaAveragingScaleFilter extends ReplicateScaleFilter {
 		    } else {
 			rgb = ((int[]) pixels)[off + sx];
 		    }
+                    // getRGB() always returns non-premultiplied components
 		    rgb = model.getRGB(rgb);
 		    a = rgb >>> 24;
 		    r = (rgb >> 16) & 0xff;
 		    g = (rgb >>  8) & 0xff;
-		    b = rgb & 0xff;
+                    b = rgb & 0xff;
+                    // premultiply the components if necessary
+                    if (a != 255.0f) {
+                        float ascale = a / 255.0f;
+                        r *= ascale;
+                        g *= ascale;
+                        b *= ascale;
+                    }
 		}
 		int amtx;
 		if (sxrem < dxrem) {

@@ -1,5 +1,5 @@
 /*
- * @(#)TransientNameService.java	1.43 01/12/03
+ * @(#)TransientNameService.java	1.44 02/03/05
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,13 +26,6 @@ import org.omg.CosNaming.NamingContext;
 
 // Import transient naming context
 import com.sun.corba.se.internal.CosNaming.TransientNamingContext;
-import com.sun.corba.se.internal.core.IOR;
-import com.sun.corba.se.internal.core.ClientSubcontract;
-import com.sun.corba.se.internal.core.ServerSubcontract;
-import com.sun.corba.se.internal.core.SubcontractRegistry;
-import com.sun.corba.se.internal.core.INSObjectKeyMap;
-import com.sun.corba.se.internal.core.INSObjectKeyEntry;
-import com.sun.corba.se.internal.ior.ObjectKeyTemplate;
 import com.sun.corba.se.internal.orbutil.ORBConstants;
 import com.sun.corba.se.internal.POA.*;
 
@@ -90,7 +83,8 @@ public class TransientNameService
      * context with POA and registering the root context with INS Object Keymap.
      */ 
     private void initialize( com.sun.corba.se.internal.POA.POAORB orb,
-        String nameServiceName )  throws org.omg.CORBA.INITIALIZE
+        String nameServiceName )
+        throws org.omg.CORBA.INITIALIZE
     {
         try {
             POA rootPOA = (POA) orb.resolve_initial_references( "RootPOA" );
@@ -115,20 +109,8 @@ public class TransientNameService
             initialContext.localRoot =
                 nsPOA.id_to_reference( rootContextId );
             theInitialNamingContext = initialContext.localRoot;
-            SubcontractRegistry scr =
-            ((com.sun.corba.se.internal.iiop.ORB)orb).getSubcontractRegistry();
-            if( scr == null ) {
-                throw new INTERNAL( "ORB SubcontractRegistry is Null " );
-            }
-            ObjectImpl oi = (ObjectImpl)theInitialNamingContext;
-            ClientSubcontract rep = (ClientSubcontract)oi._get_delegate();
-            IOR ior = rep.marshal();
-            ObjectKeyTemplate temp =
-                ior.getProfile().getTemplate().getObjectKeyTemplate();
-            int scid = temp.getSubcontractId() ;
-            ServerSubcontract sc = scr.getServerSubcontract(scid);
-            INSObjectKeyEntry entry = new INSObjectKeyEntry( ior, sc );
-            INSObjectKeyMap.getInstance().setEntry( nameServiceName, entry );
+            orb.register_initial_reference( nameServiceName, 
+                theInitialNamingContext );
         } catch (org.omg.CORBA.SystemException e) {
             NamingUtils.printException(e);
             throw new org.omg.CORBA.INITIALIZE(
@@ -152,6 +134,7 @@ public class TransientNameService
     {
 	return theInitialNamingContext;
     }
+
 
     // The initial naming context for this name service
     private org.omg.CORBA.Object theInitialNamingContext;

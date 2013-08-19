@@ -1,5 +1,5 @@
 /*
- * @(#)SpinnerModel.java	1.3 01/12/03
+ * @(#)SpinnerModel.java	1.4 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,11 +41,11 @@ import javax.swing.event.*;
  * 
  * @see JSpinner
  * @see AbstractSpinnerModel
- * @see SpinnerListodel
+ * @see SpinnerListModel
  * @see SpinnerNumberModel
  * @see SpinnerDateModel
  * 
- * @version 1.3 12/03/01
+ * @version 1.4 03/20/02
  * @author Hans Muller
  * @since 1.4
  */

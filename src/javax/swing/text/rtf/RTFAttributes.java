@@ -1,5 +1,5 @@
 /*
- * @(#)RTFAttributes.java	1.10 01/12/03
+ * @(#)RTFAttributes.java	1.11 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,8 +24,8 @@ class RTFAttributes
 	int SEC = RTFAttribute.D_SECTION;
 	int DOC = RTFAttribute.D_DOCUMENT;
 	int PST = RTFAttribute.D_META;
-	Boolean True = new Boolean(true);
-	Boolean False = new Boolean(false);
+	Boolean True = Boolean.valueOf(true);
+	Boolean False = Boolean.valueOf(false);
 
 	a.addElement(new BooleanAttribute(CHR, StyleConstants.Italic, "i"));
 	a.addElement(new BooleanAttribute(CHR, StyleConstants.Bold, "b"));
@@ -172,8 +172,8 @@ class RTFAttributes
         boolean rtfDefault;
 	boolean swingDefault;
 
-	protected static final Boolean True = new Boolean(true);
-	protected static final Boolean False = new Boolean(false);
+	protected static final Boolean True = Boolean.valueOf(true);
+	protected static final Boolean False = Boolean.valueOf(false);
 	
 	public BooleanAttribute(int d, Object s,
 				String r, boolean ds, boolean dr)
@@ -214,7 +214,7 @@ class RTFAttributes
 	{
 	    if (swingDefault != rtfDefault ||
 		( target.getAttribute(swingName) != null ) )
-	      target.addAttribute(swingName, new Boolean(rtfDefault));
+	      target.addAttribute(swingName, Boolean.valueOf(rtfDefault));
 	    return true;
 	}
 
@@ -226,7 +226,7 @@ class RTFAttributes
 	    Boolean val;
 
 	    if (o_value == null)
-	      val = new Boolean(swingDefault);
+	      val = Boolean.valueOf(swingDefault);
 	    else
 	      val = (Boolean)o_value;
 	    
@@ -251,7 +251,7 @@ class RTFAttributes
 	public AssertiveAttribute(int d, Object s, String r)
 	{
 	    super(d, s, r);
-	    swingValue = new Boolean(true);
+	    swingValue = Boolean.valueOf(true);
 	}
 
 	public AssertiveAttribute(int d, Object s, String r, Object v)

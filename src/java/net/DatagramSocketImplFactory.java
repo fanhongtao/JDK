@@ -1,5 +1,5 @@
 /*
- * @(#)DatagramSocketImplFactory.java	1.6 01/12/03
+ * @(#)DatagramSocketImplFactory.java	1.7 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ interface DatagramSocketImplFactory {
      * Creates a new <code>DatagramSocketImpl</code> instance.
      *
      * @return  a new instance of <code>DatagramSocketImpl</code>.
-     * @see     java.io.DatagramSocketImpl
+     * @see     java.net.DatagramSocketImpl
      */
     DatagramSocketImpl createDatagramSocketImpl();
 }

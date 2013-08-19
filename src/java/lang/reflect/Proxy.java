@@ -1,5 +1,5 @@
 /*
- * @(#)Proxy.java	1.9 01/12/03
+ * @(#)Proxy.java	1.10 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -74,7 +74,7 @@ import sun.misc.ProxyGenerator;
  * package of a proxy class is also unspecified.  Note that package
  * sealing will not prevent a proxy class from being successfully defined
  * in a particular package at runtime, and neither will classes already
- * defined in the same class loader and the same package with particular
+ * defined by the same class loader and the same package with particular
  * signers.
  *
  * <li>Since a proxy class implements all of the interfaces specified at
@@ -191,7 +191,7 @@ import sun.misc.ProxyGenerator;
  * successfully by the <code>invoke</code> method.
  *
  * @author	Peter Jones
- * @version	1.9, 01/12/03
+ * @version	1.10, 02/02/06
  * @see		InvocationHandler
  * @since	JDK1.3
  */
@@ -244,12 +244,12 @@ public class Proxy implements java.io.Serializable {
     /**
      * Returns the <code>java.lang.Class</code> object for a proxy class
      * given a class loader and an array of interfaces.  The proxy class
-     * will be defined in the specified class loader and will implement
+     * will be defined by the specified class loader and will implement
      * all of the supplied interfaces.  If a proxy class for the same
-     * permutation of interfaces has already been defined in the class
+     * permutation of interfaces has already been defined by the class
      * loader, then the existing proxy class will be returned; otherwise,
      * a proxy class for those interfaces will be generated dynamically
-     * and defined in the class loader.
+     * and defined by the class loader.
      *
      * <p>There are several restrictions on the parameters that may be
      * passed to <code>Proxy.getProxyClass</code>:
@@ -296,7 +296,7 @@ public class Proxy implements java.io.Serializable {
      * of interfaces but in a different order will result in two distinct
      * proxy classes.
      *
-     * @param	loader the class loader to define the proxy class in
+     * @param	loader the class loader to define the proxy class
      * @param	interfaces the list of interfaces for the proxy class
      *		to implement
      * @return	a proxy class that is defined in the specified class loader
@@ -522,12 +522,12 @@ public class Proxy implements java.io.Serializable {
      * <code>IllegalArgumentException</code> for the same reasons that
      * <code>Proxy.getProxyClass</code> does.
      *
-     * @param	loader the class loader to define the proxy class in
+     * @param	loader the class loader to define the proxy class
      * @param	interfaces the list of interfaces for the proxy class
      *		to implement
      * @param   h the invocation handler to dispatch method invocations to
      * @return	a proxy instance with the specified invocation handler of a
-     *		proxy class that is defined in the specified class loader
+     *		proxy class that is defined by the specified class loader
      *		and that implements the specified interfaces
      * @throws	IllegalArgumentException if any of the restrictions on the
      *		parameters that may be passed to <code>getProxyClass</code>

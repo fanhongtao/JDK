@@ -1,5 +1,5 @@
 /*
- * @(#)JDKClassLoader.java	1.18 01/12/03
+ * @(#)JDKClassLoader.java	1.19 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,56 +30,64 @@ class JDKClassLoader {
 
     private static final JDKClassLoaderCache classCache
         = new JDKClassLoaderCache();
+
+    private static final Class[] NO_ARGS = new Class[] {};
+
     // latestUserDefinedLoader() is a private static method
     // in java.io.ObjectInputStream in JDK 1.3 and 1.4.
     // We use reflection in a doPrivileged block to get a
-    // Method reference.
+    // Method reference and make it accessible.
     //
     // We should be very careful about what happens when this
     // method no longer exists!  Right now, Errors will be
     // thrown.
-    private static Method latestUserDefinedLoaderMethod = null;
+    private static final Method latestUserDefinedLoaderMethod
+        = JDKClassLoader.getLatestUserDefinedLoaderMethod();
 
-    private static final Class[] NO_ARGS = new Class[] {};
+    private static Method getLatestUserDefinedLoaderMethod() {
+        return (Method) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
 
-    // Uses reflection on java.io.ObjectInputStream to call
-    // its latestUserDefinedLoader native code.
-    //
-    // The reflection is only performed once -- we store a
-    // Method reference
+                Method result = null;
+
+                try {
+                    // Try to dig up the method we want
+                    Class io = java.io.ObjectInputStream.class;
+                    result
+                        = io.getDeclaredMethod("latestUserDefinedLoader", 
+                                               NO_ARGS);
+
+                    result.setAccessible(true);
+
+                } catch (NoSuchMethodException nsme) {
+                    // Throw Errors right now.  This is a serious problem
+                    throw new Error("java.io.ObjectInputStream"
+                                    + " latestUserDefinedLoader "
+                                    + nsme);
+                }
+
+                return result;
+            }
+        });
+    }
+
+    // Uses reflection and the final static Method (obtained
+    // by reflection at class load time) to call the
+    // latestUserDefinedLoader native code.
     private static ClassLoader getLatestUserDefinedLoader()
     {
-        if (latestUserDefinedLoaderMethod == null) {
-            AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
-                    try {
-                        // Try to dig up the method we want
-                        Class io = java.io.ObjectInputStream.class;
-                        latestUserDefinedLoaderMethod
-                            = io.getDeclaredMethod("latestUserDefinedLoader", NO_ARGS);
-                        latestUserDefinedLoaderMethod.setAccessible(true);
-                    } catch (NoSuchMethodException nsme) {
-                        // Throw Errors right now.  This is a serious problem
-                        throw new Error("java.io.ObjectInputStream"
-                                        + " latestUserDefinedLoader "
-                                        + nsme.getMessage());
-                    }
-                    return null;
-                }
-            });
-        }
-
         try {
             // Invoke the ObjectInputStream.latestUserDefinedLoader method
-            return (ClassLoader)latestUserDefinedLoaderMethod.invoke(null, NO_ARGS);
+            return (ClassLoader)latestUserDefinedLoaderMethod.invoke(null, 
+                                                                     NO_ARGS);
         } catch (InvocationTargetException ite) {
             throw new Error("java.io.ObjectInputStream"
                             + " latestUserDefinedLoader "
-                            + ite.getMessage());
+                            + ite);
         } catch (IllegalAccessException iae) {
             throw new Error("java.io.ObjectInputStream"
                             + " latestUserDefinedLoader "
-                            + iae.getMessage());
+                            + iae);
         }
     }
 

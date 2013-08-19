@@ -1,5 +1,5 @@
 /*
- * @(#)POAImpl.java	1.83 01/12/03
+ * @(#)POAImpl.java	1.87 02/04/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -52,8 +52,8 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
     private Servant defaultServant;
     
     private Policies policies;
-    private ActiveObjectMap activeObjectMap;
-    private Hashtable children;
+    protected ActiveObjectMap activeObjectMap;
+    protected Map children;
 
     protected int scid ;
 
@@ -136,7 +136,7 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
 
 	if (policies.retainServants())
 	    activeObjectMap = new ActiveObjectMap(policies.isMultipleIds());
-	children = new Hashtable();
+	children = new HashMap();
 	manager.addPOA(this);
 
 	if (policies.isSingleThreaded())
@@ -400,31 +400,32 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
                             ServantActivator activator =
                                 (ServantActivator) servantManager;
                             servant = activator.incarnate(id, this);
-                        }
-		    }
 
-                    if (servant == null) {
-			if (! isSpecial) {
-			    objectNotExist(MinorCodes.NULL_SERVANT,
-					   CompletionStatus.COMPLETED_NO);
-			} else {
-			    return null;
+			    if (servant == null) {
+				if (! isSpecial) {
+				    throw new OBJ_ADAPTER(MinorCodes.NULL_SERVANT,
+						   CompletionStatus.COMPLETED_NO);
+				} else {
+				    return null;
+				}
+			    }
+
+			    // here check for unique_id policy, and if the servant
+			    // is already registered, for a different ID, then throw
+			    // OBJ_ADAPTER exception, else activate it. Section 11.3.5.1
+			    // 99-10-07.pdf
+			    if (policies.isUniqueIds()) {
+				// check if the servant already is associated with some	
+				// id
+				if (activeObjectMap.contains(servant)) {
+				    objAdapter(MinorCodes.POA_SERVANT_NOT_UNIQUE,
+					       CompletionStatus.COMPLETED_NO);
+				}
+			    }
+
+			    activate(id, servant);
 			}
-                    }
-
-		    // here check for unique_id policy, and if the servant
-		    // is already registered, for a different ID, then throw
-		    // OBJ_ADAPTER exception, else activate it. Section 11.3.5.1
-		    // 99-10-07.pdf
-	            if (policies.isUniqueIds()) {
-		        // check if the servant already is associated with some	
-		        // id
-			if (activeObjectMap.contains(servant)) {
-		            objAdapter(MinorCodes.POA_SERVANT_NOT_UNIQUE,
-                                       CompletionStatus.COMPLETED_NO);
-	                }
 		    }
-		    activate(id, servant);
 		}
 		return servant;
 	    }
@@ -616,31 +617,48 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
         // Converted from anonymous class to local class
         // so that we can call performDestroy() directly.
         class DestroyThread extends Thread {
+	    private POAImpl poa ;
+
+	    public DestroyThread( POAImpl poa )
+	    {
+		this.poa = poa ;
+	    }
+
             public void run() {
                 performDestroy();
             }
 
             public void performDestroy() {
-                isDestroying.set(Boolean.TRUE);
+                poa.isDestroying.set(Boolean.TRUE);
 
-                Iterator childPoas = children.entrySet().iterator();
-                while (childPoas.hasNext()) {
+		// Make sure that we have a copy of the children, notoy
+		// an Iterator, otherwise ConcurrentModificationException can
+		// occur.
+		java.lang.Object[] childPoas = null ;
+		synchronized (poa) {
+		    childPoas = poa.children.values().toArray() ;
+		}
+		for (int ctr=0; ctr<childPoas.length; ctr++) {
+		    POAImpl cpoa = (POAImpl)(childPoas[ctr]) ;
+
                     // use wait_for_completion == true on the recursive destroy call so that
                     // only a single DestroyThread is actually started.
-                    ((POAImpl)((Map.Entry)childPoas.next()).getValue()).destroyInternal(etherealizeValue, true);
-                }
+		    cpoa.destroyInternal( etherealizeValue, true ) ;
+		}
+
                 if (etherealizeValue)
-                    etherealizeAll();
+                    poa.etherealizeAll();
+
                 // this check is required, because activeObjectMap would
                 // be null for nonRetain  Policy
                 if (activeObjectMap != null) {
-                    activeObjectMap.clear();
-                    activeObjectMap = null;
+                    poa.activeObjectMap.clear();
+                    poa.activeObjectMap = null;
                 }
             }
         };
 
-        DestroyThread destroyer = new DestroyThread();
+        DestroyThread destroyer = new DestroyThread( this );
         if (wait_for_completion) {
             // No need to start a new thread if we wait anyway.
             // In this case the current thread does the work.
@@ -788,8 +806,18 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
     /**
      * <code>the_children</code>
      */
-    public org.omg.PortableServer.POA[] the_children() {
-        return (POA []) children.values().toArray();
+    synchronized public org.omg.PortableServer.POA[] the_children() {
+	Collection coll = children.values() ;
+	int size = coll.size() ;
+	POA[] result = new POA[ size ] ;
+	int index = 0 ;
+	Iterator iter = coll.iterator() ;
+	while (iter.hasNext()) {
+	    POA poa = (POA)(iter.next()) ;
+	    result[ index++ ] = poa ;
+	}
+
+	return result ;
     }
 
     /**
@@ -836,11 +864,15 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
      * <code>set_servant_manager</code>
      * <b>Section 3.3.8.10</b>
      */
-    public void
-	set_servant_manager(ServantManager servantManager)
+    public synchronized void set_servant_manager(ServantManager servantManager)
 	throws WrongPolicy {
-	if (!policies.useServantManager())
+        if ( this.servantManager != null ) {
+            throw new BAD_INV_ORDER( MinorCodes.SERVANT_MANAGER_ALREADY_SET,
+                                     CompletionStatus.COMPLETED_NO );
+        }
+	if (!policies.useServantManager()) {
 	    wrongPolicy();
+        }
 	this.servantManager = servantManager;
     }
 	
@@ -1103,10 +1135,14 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
      * <code>reference_to_servant</code>
      * <b>3.3.8.21</b>
      */
-    public Servant
+    public synchronized Servant
 	reference_to_servant(org.omg.CORBA.Object reference)
 	throws ObjectNotActive, WrongPolicy, WrongAdapter 
     {
+        if( destroyed ) {
+            objectNotExist(MinorCodes.ADAPTER_DESTROYED,
+                CompletionStatus.COMPLETED_NO);
+        }
 	    
 	if (!policies.retainServants() &&
 	    !policies.useDefaultServant())
@@ -1133,9 +1169,13 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
      * <code>reference_to_id</code>
      * <b>3.3.8.22</b>
      */
-    public byte[] reference_to_id(org.omg.CORBA.Object
+    public synchronized byte[] reference_to_id(org.omg.CORBA.Object
 				  reference)
 	throws WrongAdapter, WrongPolicy {
+        if( destroyed ) {
+            objectNotExist(MinorCodes.ADAPTER_DESTROYED,
+                CompletionStatus.COMPLETED_NO);
+        }
 
 	// According to 99-10-07.pdf (11.3.8.23), WrongPolicy is for future
 	// extensions
@@ -1158,8 +1198,12 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
      * <code>id_to_servant</code>
      * <b>3.3.8.23</b>
      */
-    public Servant id_to_servant(byte[] id)
+    public synchronized Servant id_to_servant(byte[] id)
 	throws ObjectNotActive, WrongPolicy {
+        if( destroyed ) {
+            objectNotExist(MinorCodes.ADAPTER_DESTROYED,
+                CompletionStatus.COMPLETED_NO);
+        }
 	if (!policies.retainServants())
 	    wrongPolicy();
 	Servant s = activeObjectMap.get(id);
@@ -1172,8 +1216,12 @@ public class POAImpl extends org.omg.CORBA.LocalObject implements POA, POAView {
      * <code>id_to_reference</code>
      * <b>3.3.8.24</b>
      */
-    public org.omg.CORBA.Object id_to_reference(byte[] id)
+    public synchronized org.omg.CORBA.Object id_to_reference(byte[] id)
 	throws ObjectNotActive, WrongPolicy {
+        if( destroyed ) {
+            objectNotExist(MinorCodes.ADAPTER_DESTROYED,
+                CompletionStatus.COMPLETED_NO);
+        }
 	if (!policies.retainServants())
 	    wrongPolicy();
 	Servant s = activeObjectMap.get(id);

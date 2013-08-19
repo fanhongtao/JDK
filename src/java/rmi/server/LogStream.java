@@ -1,5 +1,5 @@
 /*
- * @(#)LogStream.java	1.16 01/12/03
+ * @(#)LogStream.java	1.17 02/03/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ import java.util.*;
  * <code>LogStream</code> provides a mechanism for logging errors that are
  * of possible interest to those monitoring a system.  
  *
- * @version 1.16, 12/03/01
+ * @version 1.17, 03/18/02
  * @author  Ann Wollrath (lots of code stolen from Ken Arnold)
  * @since   JDK1.1
  * @deprecated no replacement
@@ -82,6 +82,7 @@ public class LogStream extends PrintStream {
     /**
      * Return the current default stream for new logs.
      * @return default log stream
+     * @see #setDefaultStream
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -92,6 +93,7 @@ public class LogStream extends PrintStream {
     /**
      * Set the default stream for new logs.
      * @param newDefault new default log stream
+     * @see #getDefaultStream
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -102,6 +104,7 @@ public class LogStream extends PrintStream {
     /**
      * Return the current stream to which output from this log is sent.
      * @return output stream for this log
+     * @see #setOutputStream
      * @since JDK1.1
      * @deprecated no replacement
      */
@@ -113,6 +116,7 @@ public class LogStream extends PrintStream {
     /**
      * Set the stream to which output from this log is sent.
      * @param out new output stream for this log
+     * @see #getOutputStream
      * @since JDK1.1
      * @deprecated no replacement
      */

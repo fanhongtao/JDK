@@ -1,5 +1,5 @@
 /*
- * @(#)FloatingDecimal.java	1.23 01/12/03
+ * @(#)FloatingDecimal.java	1.24 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1210,7 +1210,7 @@ class FloatingDecimal{
 
 	    return new FloatingDecimal( isNegative, decExp, digits, nDigits,  false );
 	} catch ( StringIndexOutOfBoundsException e ){ }
-	throw new NumberFormatException( in );
+	throw NumberFormatException.forInputString(in);
     }
 
     /*

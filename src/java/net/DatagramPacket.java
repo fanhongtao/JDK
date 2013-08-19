@@ -1,5 +1,5 @@
 /*
- * @(#)DatagramPacket.java	1.40 01/12/03
+ * @(#)DatagramPacket.java	1.41 02/04/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ package java.net;
  *
  * @author  Pavani Diwanji
  * @author  Benjamin Renaud
- * @version 1.40, 12/03/01
+ * @version 1.41, 04/08/02
  * @since   JDK1.0
  */
 public final 
@@ -112,7 +112,7 @@ class DatagramPacket {
      * @param   offset   the packet data offset.
      * @param   length   the packet data length.
      * @param   address  the destination socket address.
-     * @throws  SocketException if address type is not supported
+     * @throws  IllegalArgumentException if address type is not supported
      * @see java.net.InetAddress
      *
      * @since 1.4
@@ -149,7 +149,7 @@ class DatagramPacket {
      * @param   buf      the packet data.
      * @param   length   the packet length.
      * @param   address  the destination address.
-     * @throws  SocketException if address type is not supported
+     * @throws  IllegalArgumentException if address type is not supported
      * @since 1.4
      * @see     java.net.InetAddress
      */

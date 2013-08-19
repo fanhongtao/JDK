@@ -1,5 +1,5 @@
 /*
- * @(#)ServiceContexts.java	1.15 01/12/03
+ * @(#)ServiceContexts.java	1.19 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,13 +7,14 @@
 
 package com.sun.corba.se.internal.core;
 
-import java.util.Enumeration ;
-import java.util.NoSuchElementException ;
-import java.util.Vector ;
+import java.util.*;
+import org.omg.CORBA.OctetSeqHelper;
 import org.omg.CORBA.SystemException;
 import org.omg.CORBA.INTERNAL;
+import org.omg.CORBA.CompletionStatus;
 import org.omg.CORBA_2_3.portable.OutputStream ;
 import org.omg.CORBA_2_3.portable.InputStream ;
+import com.sun.org.omg.SendingContext.CodeBase;
 import com.sun.corba.se.internal.corba.ORB ;
 import com.sun.corba.se.internal.util.Utility ;
 import com.sun.corba.se.internal.orbutil.ORBUtility ;
@@ -23,8 +24,11 @@ import com.sun.corba.se.internal.core.ServiceContextData ;
 import com.sun.corba.se.internal.core.UnknownServiceContext ;
 import com.sun.corba.se.internal.core.NoSuchServiceContext ;
 import com.sun.corba.se.internal.core.DuplicateServiceContext ;
+import com.sun.corba.se.internal.corba.EncapsInputStream ;
 import com.sun.corba.se.internal.iiop.CDRInputStream ;
 import com.sun.corba.se.internal.iiop.CDROutputStream ;
+import com.sun.corba.se.internal.orbutil.MinorCodes ;
+import com.sun.corba.se.internal.corba.EncapsInputStream ;
 import java.lang.reflect.InvocationTargetException ;
 import java.lang.reflect.Modifier ;
 import java.lang.reflect.Field ;
@@ -61,65 +65,139 @@ public class ServiceContexts {
 	os.write_long( 0 ) ;
     }
 
-    /** Read the Service contexts from the input stream.
-     * Constructs each element according to its type, as indicated
-     * by the ServiceContextId value in the stream.
+    /**
+     * Given the input stream, this fills our service
+     * context map.  See the definition of scMap for
+     * details.  Creates a HashMap.
+     *
+     * Note that we don't actually unmarshal the
+     * bytes of the service contexts here.  That is
+     * done when they are actually requested via
+     * get(int).
      */
-    public ServiceContexts(InputStream s, GIOPVersion gv)
+    private void createMapFromInputStream(InputStream is)
     {
-        CDRInputStream cis = (CDRInputStream)s ;
-        orb = (com.sun.corba.se.internal.corba.ORB)(cis.orb()) ;
         if (orb.serviceContextDebugFlag)
             dprint( "Constructing ServiceContexts from input stream" ) ;
 
-        ServiceContextRegistry scr = orb.getServiceContextRegistry() ;
-
-        numValid = s.read_long() ;
+        int numValid = is.read_long() ;
 
         if (orb.serviceContextDebugFlag)
-            dprint( "Number of service contexts = " + numValid ) ;
+            dprint("Number of service contexts = " + numValid);
 
-        scList = new Vector( numValid ) ;
+        scMap = new HashMap(numValid);
+
+        for (int ctr = 0; ctr < numValid; ctr++) {
+            int scId = is.read_long();
+
+            if (orb.serviceContextDebugFlag)
+                dprint("Reading service context id " + scId);
+
+            byte[] data = OctetSeqHelper.read(is);
+
+            if (orb.serviceContextDebugFlag)
+                dprint("Service context" + scId + " length: " + data.length);
+
+            scMap.put(new Integer(scId), data);
+        }
+    }
+
+    /** 
+     * Read the Service contexts from the input stream.
+     */
+    public ServiceContexts(InputStream s)
+    {
         addAlignmentOnWrite = false ;
 
-        for (int ctr=0; ctr<numValid; ctr++ ) {
-            int scId = s.read_long() ;
+        orb = (com.sun.corba.se.internal.corba.ORB)(s.orb());
+
+        // We need to store this so that we can have access
+        // to the CodeBase for unmarshaling possible
+        // RMI-IIOP valuetype data within an encapsulation.
+        // (Known case: UnknownExceptionInfo)
+        codeBase = ((CDRInputStream)s).getCodeBase();
+
+        // See REVISIT below concerning giopVersion.
+        giopVersion = ((CDRInputStream)s).getGIOPVersion();
+
+        createMapFromInputStream(s);
+    }
+
+    /**
+     * Find the ServiceContextData for a given scId and unmarshal
+     * the bytes.
+     */
+    private ServiceContext unmarshal(Integer scId, byte[] data) {
+
+        ServiceContextRegistry scr = orb.getServiceContextRegistry();
+
+        ServiceContextData scd = scr.findServiceContextData(scId.intValue());
+        ServiceContext sc = null;
+
+        if (scd == null) {
+            if (orb.serviceContextDebugFlag) {
+                dprint("Could not find ServiceContextData for "
+                       + scId
+                       + " using UnknownServiceContext");
+            }
+
+            sc = new UnknownServiceContext(scId.intValue(), data);
+
+        } else {
 
             if (orb.serviceContextDebugFlag) {
-                dprint( "Read service context id " + scId );
+                dprint("Found " + scd);
             }
 
-            ServiceContextData scd = scr.findServiceContextData(scId);
-            ServiceContext sc = null ;
+            // REVISIT.  GIOP version should be specified as
+            // part of a service context's definition, so should
+            // be accessible from ServiceContextData via
+            // its ServiceContext implementation class.
+            //
+            // Since we don't have that, yet, I'm using the GIOP
+            // version of the input stream, presuming that someone
+            // can't send a service context of a later GIOP
+            // version than its stream version.
+            //
+            // Note:  As of Jan 2001, no standard OMG or Sun service contexts
+            // ship wchar data or are defined as using anything but GIOP 1.0 CDR.
+            EncapsInputStream eis 
+                = new EncapsInputStream(orb,
+                                        data,
+                                        data.length,
+                                        giopVersion,
+                                        codeBase);
+            eis.consumeEndian();
 
-            if (scd == null) {
-                if (orb.serviceContextDebugFlag) {
-                    dprint("Could not find ServiceContextData: using UnknownServiceContext");
-                }
+            try {
 
-                sc = new UnknownServiceContext(scId, s) ;
-            } else {
-                if (orb.serviceContextDebugFlag) {
-                    dprint("Found " + scd);
-                }
+                // Now the input stream passed to a ServiceContext
+                // constructor is already the encapsulation input
+                // stream with the endianness read off, so the
+                // service context should just unmarshal its own
+                // data.
+                sc = scd.makeServiceContext(eis, 
+                                            giopVersion);
 
-                try {
-                    sc = scd.makeServiceContext(s, gv) ;
-                } catch (NoSuchServiceContext nssc) {
-                    throw new INTERNAL() ;
-                }
+            } catch (NoSuchServiceContext nssc) {
+                throw new INTERNAL(nssc.toString(),
+                                   MinorCodes.SVCCTX_UNMARSHAL_ERROR,
+                                   CompletionStatus.COMPLETED_MAYBE);
             }
-
-            scList.addElement( sc ) ;
         }
+
+        return sc;
     }
 
     public ServiceContexts( ORB orb )
     {
 	this.orb = orb ;
-	numValid = 0 ;
-	scList = new Vector() ;
+        scMap = new HashMap();
 	addAlignmentOnWrite = false ;
+
+        // Use the GIOP version of the ORB.  Should
+        // be specified in ServiceContext.  See REVISIT.
+        giopVersion = orb.getGIOPVersion();
     }
 
     public void addAlignmentPadding() 
@@ -132,12 +210,17 @@ public class ServiceContexts {
 	addAlignmentOnWrite = true ;
     }
 
-    /** Hopefully unused scid:  This should be changed to a proper
-     * VMCID aligned value.
+    /** 
+     * Hopefully unused scid:  This should be changed to a proper
+     * VMCID aligned value.  REVISIT!
      */
     private static final int JAVAIDL_ALIGN_SERVICE_ID = 0xbe1345cd ;
 
-    /** Write the service contexts to the output stream.
+    /** 
+     * Write the service contexts to the output stream.
+     *
+     * If they haven't been unmarshaled, we don't have to
+     * unmarshal them.
      */
     public void write(OutputStream os, GIOPVersion gv)
     {
@@ -146,7 +229,8 @@ public class ServiceContexts {
 	    Utility.printStackTrace() ;
   	}
 
-	int numsc = numValid ;
+	int numsc = scMap.size();
+
 	if (addAlignmentOnWrite) {
 	    if (isDebugging(os))
 		dprint( "Adding alignment padding" ) ;
@@ -158,15 +242,8 @@ public class ServiceContexts {
 	    dprint( "Service context has " + numsc + " components"  ) ;
 
 	os.write_long( numsc ) ;
-	Enumeration enum = scList.elements() ;
-	while (enum.hasMoreElements()) {
-	    ServiceContext sc = (ServiceContext)(enum.nextElement()) ;
 
-	    if (isDebugging(os))
-		dprint( "Writing service context " + sc ) ;
-
-	    sc.write(os, gv) ;
-	}
+        writeServiceContextsInOrder(os, gv);
 
 	if (addAlignmentOnWrite) {
 	    if (isDebugging(os))
@@ -184,6 +261,67 @@ public class ServiceContexts {
 	    dprint( "Service context writing complete" ) ;
     }
 
+    /**
+     * Write the service contexts in scMap in a desired order.
+     * Right now, the only special case we have is UnknownExceptionInfo,
+     * so I'm merely writing it last if present.
+     */
+    private void writeServiceContextsInOrder(OutputStream os, GIOPVersion gv) {
+
+        // Temporarily remove this rather than check it per iteration
+        Integer ueInfoId
+            = new Integer(UEInfoServiceContext.SERVICE_CONTEXT_ID);
+
+        Object unknownExceptionInfo = scMap.remove(ueInfoId);
+
+	Iterator iter = scMap.keySet().iterator();
+
+	while (iter.hasNext()) {
+            Integer id = (Integer)iter.next();
+
+            writeMapEntry(os, id, scMap.get(id), gv);
+        }
+
+        // Write the UnknownExceptionInfo service context last
+        // (so it will be after the CodeBase) and restore it in
+        // the map.
+        if (unknownExceptionInfo != null) {
+            writeMapEntry(os, ueInfoId, unknownExceptionInfo, gv);
+
+            scMap.put(ueInfoId, unknownExceptionInfo);
+        }
+    }
+
+    /**
+     * Write the given entry from the scMap to the OutputStream.
+     * See note on giopVersion.  The service context should
+     * know the GIOP version it is meant for.
+     */
+    private void writeMapEntry(OutputStream os, Integer id, Object scObj, GIOPVersion gv) {
+
+        // If it's still in byte[] form, we don't need to
+        // unmarshal it here, just copy the bytes into
+        // the new stream.
+
+        if (Byte.TYPE.equals(scObj.getClass().getComponentType())) {
+            if (isDebugging(os))
+                dprint( "Writing service context bytes for id " + id);
+
+            OctetSeqHelper.write(os, (byte[])scObj);
+
+        } else {
+
+            // We actually unmarshaled it into a ServiceContext
+            // at some point.
+            ServiceContext sc = (ServiceContext)scObj;
+
+            if (isDebugging(os))
+                dprint( "Writing service context " + sc ) ;
+
+            sc.write(os, gv);
+        }
+    }
+
     /** Add a service context to the stream, if there is not already
      * a service context in this object with the same id as sc.
      * If there is already such a service context, throw the 
@@ -191,120 +329,76 @@ public class ServiceContexts {
      */
     public void put( ServiceContext sc ) throws DuplicateServiceContext
     {
-	int index = findServiceContextIndex( sc.getId() ) ;
+        Integer id = new Integer(sc.getId());
 
-	if (index >= 0)
-	    throw new DuplicateServiceContext() ;
-	else {
-	    index = findFirstNullIndex() ;
+        Object result = scMap.get(id);
 
-	    if (index < 0)
-		scList.addElement( sc ) ;
-	    else
-		scList.setElementAt( sc, index ) ;
+        if (result != null)
+            throw new DuplicateServiceContext(id.toString());
 
-	    numValid++ ;
-	}
+        scMap.put(id, sc);
     }
 
-    public void delete( int scId ) throws NoSuchServiceContext
-    {
-	int index = findServiceContextIndex( scId ) ;
-
-	if (index < 0)
-	    throw new NoSuchServiceContext() ;
-	else {
-	    scList.setElementAt( null, index ) ;
-	    numValid-- ;
-	}
+    public void delete( int scId ) throws NoSuchServiceContext {
+        this.delete(new Integer(scId));
     }
 
-    public ServiceContext get( int scId ) throws NoSuchServiceContext
+    public void delete(Integer id) throws NoSuchServiceContext 
     {
-	int index = findServiceContextIndex( scId ) ;
-	
-	if (index < 0)
-	    throw new NoSuchServiceContext() ;
-	else
-	    return (ServiceContext)(scList.elementAt(index)) ;
+        if (scMap.remove(id) == null)
+            throw new NoSuchServiceContext(id.toString());
     }
 
-    /** Return an enumeration of all of the service contexts in this
-     * object.
-     */
-    public Enumeration list() 
-    {
-	return new ServiceContextEnumeration( scList ) ;
+    public ServiceContext get(int scId) throws NoSuchServiceContext {
+        return this.get(new Integer(scId));
     }
 
-    private int findFirstNullIndex()
+    public ServiceContext get(Integer id) throws NoSuchServiceContext
     {
-	for ( int ctr=0; ctr<scList.size(); ctr++ ) 
-	    if (scList.elementAt( ctr ) == null)
-		return ctr ;
+        Object result = scMap.get(id);
 
-	return -1 ;
-    }
+        // REVISIT.  We should probably just return null here.
+        if (result == null)
+            throw new NoSuchServiceContext();
 
-    private int findServiceContextIndex( int scId ) 
-    {
-	for ( int ctr=0; ctr<scList.size(); ctr++ ) {
-	    Object obj = scList.elementAt(ctr) ;
-	    if (obj != null) {
-		ServiceContext sc = (ServiceContext)obj ;
-		if (sc.getId() == scId)
-		    return ctr ;
-	    }
-	}
+        // Lazy unmarshaling on first use.
+        if (Byte.TYPE.equals(result.getClass().getComponentType())) {
 
-	return -1 ;
+            ServiceContext sc = unmarshal(id, (byte[])result);
+
+            scMap.put(id, sc);
+
+            return sc;
+        } else {
+            return (ServiceContext)result;
+        }
     }
 
     private ORB orb ;
 
-    /** List of all ServiceContext objects in this container.
-     * Unused slots freed by deletion are null.
+    /** 
+     * Map of all ServiceContext objects in this container.
+     *
+     * Keys are java.lang.Integers for service context IDs.
+     * Values are either instances of ServiceContext or the
+     * unmarshaled byte arrays (unmarshaled on first use).
+     *
+     * This provides a mild optimization if we don't happen to
+     * use a given service context, but it's main advantage is
+     * that it allows us to change the order in which we
+     * unmarshal them.  We need to do the UnknownExceptionInfo service 
+     * context after the SendingContextRunTime service context so that we can
+     * get the CodeBase if necessary.
      */
-    private Vector scList ;
+    private Map scMap;
 
-    /** Number of non-null slots in scList.
-     */
-    private int numValid ;
-
-    /** If true, write out a special alignment service context to force the
+    /** 
+     * If true, write out a special alignment service context to force the
      * correct alignment on re-marshalling.
      */
     private boolean addAlignmentOnWrite ;
-}
-	
-class ServiceContextEnumeration implements Enumeration {
-    private int current ;
-    private Vector scList ;
 
-    ServiceContextEnumeration( Vector scList ) 
-    { 
-	current = -1 ;
-	this.scList = scList ;
-	advance() ; 
-    }
+    private CodeBase codeBase;
+    private GIOPVersion giopVersion;
 
-    private void advance() 
-    {
-	current++ ;
-	while ((current < scList.size()) &&
-	       (scList.elementAt( current ) == null))
-	    current++ ;
-}
-
-    public boolean hasMoreElements() { return current < scList.size() ; }
-
-public Object nextElement() throws NoSuchElementException 
-{
-    if (hasMoreElements()) {
-	Object result = scList.elementAt( current ) ;
-	advance() ;
-	return result ;
-    } else
-	throw new NoSuchElementException() ;
-}
 }

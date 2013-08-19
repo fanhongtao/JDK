@@ -1,5 +1,5 @@
 /*
- * @(#)AffineTransformOp.java	1.58 01/12/03
+ * @(#)AffineTransformOp.java	1.59 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -11,6 +11,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.AlphaComposite;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -269,6 +270,7 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
         else if (origDst != dst) {
             java.awt.Graphics2D g = origDst.createGraphics();
 	    try {
+                g.setComposite(AlphaComposite.Src);
 	        g.drawImage(dst, 0, 0, null);
 	    } finally {
 	        g.dispose();

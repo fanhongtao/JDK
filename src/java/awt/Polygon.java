@@ -1,5 +1,5 @@
 /*
- * @(#)Polygon.java	1.45 01/12/03
+ * @(#)Polygon.java	1.46 02/03/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -514,7 +514,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @return <code>true</code> if this <code>Polygon</code> entirely
      * 			contains the specified <code>Rectangle2D</code>;
      *			<code>false</code> otherwise.
-     * @see contains(double, double, double, double)
+     * @see #contains(double, double, double, double)
      */
     public boolean contains(Rectangle2D r) {
 	return contains(r.getX(), r.getY(), r.getWidth(), r.getHeight());

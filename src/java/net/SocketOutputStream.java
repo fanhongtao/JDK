@@ -1,5 +1,5 @@
 /*
- * @(#)SocketOutputStream.java	1.25 01/12/03
+ * @(#)SocketOutputStream.java	1.27 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import java.nio.channels.FileChannel;
  * SocketOutputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.25, 12/03/01
+ * @version     1.27, 04/23/02
  * @author 	Jonathan Payne
  * @author	Arthur van Hoff
  */
@@ -90,6 +90,16 @@ class SocketOutputStream extends FileOutputStream
 	FileDescriptor fd = impl.acquireFD();
 	try {
 	    socketWrite0(fd, b, off, len);
+	} catch (SocketException se) {
+	    if (se instanceof sun.net.ConnectionResetException) {
+		impl.setConnectionResetPending();
+		se = new SocketException("Connection reset");
+	    }
+	    if (impl.isClosedOrPending()) {
+                throw new SocketException("Socket closed");
+            } else {
+		throw se;
+	    }
 	} finally {
 	    impl.releaseFD();
 	}

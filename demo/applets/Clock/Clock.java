@@ -1,8 +1,40 @@
 /*
- * @(#)Clock.java	1.9 01/12/03
- *
- * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002 Sun Microsystems, Inc. All  Rights Reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ * -Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ * 
+ * -Redistribution in binary form must reproduct the above copyright
+ *  notice, this list of conditions and the following disclaimer in
+ *  the documentation and/or other materials provided with the distribution.
+ * 
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ * 
+ * This software is provided "AS IS," without a warranty of any kind. ALL
+ * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
+ * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
+ * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
+ * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
+ * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * 
+ * You acknowledge that Software is not designed, licensed or intended for
+ * use in the design, construction, operation or maintenance of any nuclear
+ * facility.
+ */
+
+/*
+ * @(#)Clock.java	1.11 02/06/13
  */
 
 import java.util.*;
@@ -26,6 +58,7 @@ public class Clock extends Applet implements Runnable {
     private Date currentDate;            // Used to get date to display
     private Color handColor;             // Color of main hands and dial
     private Color numberColor;           // Color of second hand and numbers
+    private int xcenter = 80, ycenter = 55; // Center position
 
     public void init() {
         int x,y;
@@ -60,10 +93,9 @@ public class Clock extends Applet implements Runnable {
     }
 
     // Paint is the main part of the program
-    public void paint(Graphics g) {
+    public void update(Graphics g) {
         int xh, yh, xm, ym, xs, ys;
         int s = 0, m = 10, h = 10;
-        int xcenter = 80, ycenter = 55;
         String today;
 
         currentDate = new Date();
@@ -97,21 +129,11 @@ public class Clock extends Applet implements Runnable {
         yh = (int) (Math.sin((h*30 + m / 2) * Math.PI / 180 - Math.PI / 2) * 30
                    + ycenter);
     
-        // Draw the circle and numbers
-        g.setFont(clockFaceFont);
-        g.setColor(handColor);
-        g.drawArc(xcenter-50, ycenter-50, 100, 100, 0, 360);
-        g.setColor(numberColor);
-        g.drawString("9", xcenter-45, ycenter+3); 
-        g.drawString("3", xcenter+40, ycenter+3);
-        g.drawString("12", xcenter-5, ycenter-37);
-        g.drawString("6", xcenter-3, ycenter+45);
-
-
         // Get the date to print at the bottom
         formatter.applyPattern("EEE MMM dd HH:mm:ss yyyy");
         today = formatter.format(currentDate);
 
+        g.setFont(clockFaceFont);
         // Erase if necessary
         g.setColor(getBackground());
         if (xs != lastxs || ys != lastys) {
@@ -143,6 +165,28 @@ public class Clock extends Applet implements Runnable {
         currentDate = null;
     }
 
+    public void paint(Graphics g) {
+        g.setFont(clockFaceFont);
+        // Draw the circle and numbers
+        g.setColor(handColor);
+        g.drawArc(xcenter-50, ycenter-50, 100, 100, 0, 360);
+        g.setColor(numberColor);
+        g.drawString("9", xcenter-45, ycenter+3); 
+        g.drawString("3", xcenter+40, ycenter+3);
+        g.drawString("12", xcenter-5, ycenter-37);
+        g.drawString("6", xcenter-3, ycenter+45);
+
+        // Draw date and hands
+        g.setColor(numberColor);
+        g.drawString(lastdate, 5, 125);    
+        g.drawLine(xcenter, ycenter, lastxs, lastys);
+        g.setColor(handColor);
+        g.drawLine(xcenter, ycenter-1, lastxm, lastym);
+        g.drawLine(xcenter-1, ycenter, lastxm, lastym);
+        g.drawLine(xcenter, ycenter-1, lastxh, lastyh);
+        g.drawLine(xcenter-1, ycenter, lastxh, lastyh); 
+    }
+
     public void start() {
         timer = new Thread(this);
         timer.start();
@@ -161,10 +205,6 @@ public class Clock extends Applet implements Runnable {
             }
             repaint();
         }
-    }
-
-    public void update(Graphics g) {
-        paint(g);
     }
 
     public String getAppletInfo() {

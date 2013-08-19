@@ -1,5 +1,5 @@
 /*
- * @(#)MemoryCacheImageOutputStream.java	1.14 01/12/03
+ * @(#)MemoryCacheImageOutputStream.java	1.15 02/04/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -47,10 +47,11 @@ public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
     public int read() throws IOException {
         checkClosed();
 
+        bitOffset = 0;
+
         int val = cache.read(streamPos);
         if (val != -1) {
             ++streamPos;
-            bitOffset = 0;
         }
         return val;
     }
@@ -66,6 +67,8 @@ public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
             throw new IndexOutOfBoundsException
                 ("off < 0 || len < 0 || off + len > b.length!");
         }
+
+        bitOffset = 0;
 
         if (len == 0) {
             return 0;
@@ -83,7 +86,6 @@ public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
         // NOTE that alot of error checking is duplicated
         len = (int)Math.min(bytesLeftInCache, (long)len);
         cache.read(b, off, len, streamPos);
-        bitOffset = 0;
         streamPos += len;
         return len;
     }

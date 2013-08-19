@@ -1,5 +1,5 @@
 /*
- * @(#)XMLEncoder.java	1.18 01/12/03
+ * @(#)XMLEncoder.java	1.20 02/05/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -175,7 +175,7 @@ import java.lang.reflect.*;
  *
  * @since 1.4
  *
- * @version 1.18 12/03/01
+ * @version 1.20 05/01/02
  * @author Philip Milne
  */
 public class XMLEncoder extends Encoder {
@@ -305,12 +305,18 @@ public class XMLEncoder extends Encoder {
         }
     }
 
+
     /**
-     * This method calls the superclass's implementation and
-     * records <code>oldStm</code> so that it can produce the
-     * actual output when the stream is flushed.
+     * Records the Statement so that the Encoder will
+     * produce the actual output when the stream is flushed.
+     * <P>
+     * This method should only be called within the context of
+     * initializing a persistence delegate or setting up an encoder to
+     * read from a resource bundle.
      *
-     * @param oldStm The statement to be written to the stream.
+     * @param oldExp The statement that will be written
+     *               to the stream.
+     * @see java.beans.PersistenceDelegate#initialize
      */
     public void writeStatement(Statement oldStm) {
     	// System.out.println("XMLEncoder::writeStatement: " + oldStm);
@@ -335,12 +341,18 @@ public class XMLEncoder extends Encoder {
         this.internal = internal;
     }
 
+
     /**
-     * This method calls the superclass's implementation and
-     * records <code>oldExp</code> so that it can produce the
-     * actual output when the stream is flushed.
+     * Records the Expression so that the Encoder will
+     * produce the actual output when the stream is flushed.
+     * <P>
+     * This method should only be called within the context of
+     * initializing a persistence delegate or setting up an encoder to
+     * read from a resource bundle.
      *
-     * @param oldExp The expression to be written to the stream.
+     * @param oldExp The expression that will be written
+     *               to the stream.
+     * @see java.beans.PersistenceDelegate#initialize
      */
     public void writeExpression(Expression oldExp) {
         boolean internal = this.internal;
@@ -437,7 +449,9 @@ public class XMLEncoder extends Encoder {
         x = NameGenerator.replace(x, '&', "&amp;");
         x = NameGenerator.replace(x, '<', "&lt;");
         x = NameGenerator.replace(x, '\r', "&#13;");
-        // x = NameGenerator.replace(x, '>', "&gt;");
+	x = NameGenerator.replace(x, '>', "&gt;");
+	x = NameGenerator.replace(x, '"', "&quot;");
+	x = NameGenerator.replace(x, '\'', "&apos;");
         return x;
     }
 
@@ -476,6 +490,10 @@ public class XMLEncoder extends Encoder {
         Class primitiveType = Statement.primitiveTypeFor(value.getClass());
         if (primitiveType != null && d.exp.getTarget() == value.getClass() && d.exp.getMethodName() == "new") {
             String primitiveTypeName = primitiveType.getName();
+	    // Make sure that character types are quoted correctly.
+	    if (primitiveType == Character.TYPE) {
+		value = quoteCharacters(((Character)value).toString());
+	    }
             writeln("<" + primitiveTypeName + ">" + value + "</" + primitiveTypeName + ">");
             return;
         }

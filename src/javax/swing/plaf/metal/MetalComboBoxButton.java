@@ -1,5 +1,5 @@
 /*
- * @(#)MetalComboBoxButton.java	1.33 01/12/03
+ * @(#)MetalComboBoxButton.java	1.34 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see MetalComboBoxButton
- * @version 1.33 12/03/01
+ * @version 1.34 01/25/02
  * @author Tom Santos
  */
 public class MetalComboBoxButton extends JButton {
@@ -54,12 +54,7 @@ public class MetalComboBoxButton extends JButton {
                 super.setArmed( isPressed() ? true : armed );
             }
         };
-
         setModel( model );
-        
-        // Set the background and foreground to the combobox colors.
-        setBackground(UIManager.getColor("ComboBox.background"));
-        setForeground(UIManager.getColor("ComboBox.foreground"));
     }
 
     public MetalComboBoxButton( JComboBox cb, Icon i, 
@@ -82,8 +77,20 @@ public class MetalComboBoxButton extends JButton {
 	return false;
     }
 
-    public void paintComponent( Graphics g ) {
+    public void setEnabled(boolean enabled) {
+	super.setEnabled(enabled);
 
+	// Set the background and foreground to the combobox colors.
+	if (enabled) {
+	    setBackground(comboBox.getBackground());
+	    setForeground(comboBox.getForeground());
+	} else {
+	    setBackground(UIManager.getColor("ComboBox.disabledBackground"));
+	    setForeground(UIManager.getColor("ComboBox.disabledForeground"));
+	}	    
+    }
+
+    public void paintComponent( Graphics g ) {
         boolean leftToRight = MetalUtils.isLeftToRight(comboBox);
 
         // Paint the button as usual

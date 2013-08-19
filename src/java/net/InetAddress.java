@@ -1,5 +1,5 @@
 /*
- * @(#)InetAddress.java	1.91 01/12/03
+ * @(#)InetAddress.java	1.95 02/03/14
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -148,7 +148,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.91, 12/03/01
+ * @version 1.95, 03/14/02
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -569,7 +569,8 @@ class InetAddress implements java.io.Serializable {
     /*
      * Cached addresses - our own litle nis, not!
      */
-    private static LinkedHashMap	    addressCache = null;
+    private static LinkedHashMap	    addressCache = new LinkedHashMap();
+    private static boolean		    addressCacheInit = false;
     static InetAddress[]    unknown_array; // put THIS in cache
 
     static InetAddressImpl  impl;
@@ -593,20 +594,23 @@ class InetAddress implements java.io.Serializable {
      * Initialize cache and insert anyLocalAddress into the
      * unknown array with no expiry.
      */
-    private synchronized static void cacheInitIfNeeded() {
-	if (addressCache != null) {
-	    return;
+    private static void cacheInitIfNeeded() {
+	synchronized (addressCache) {
+	    if (addressCacheInit) {
+	        return;
+	    }
+	    unknown_array = new InetAddress[1];
+	    unknown_array[0] = impl.anyLocalAddress();
+
+	    String hostname = impl.anyLocalAddress().getHostName();
+
+	    CacheEntry entry = new CacheEntry(hostname,
+					      unknown_array, 
+					      InetAddressCachePolicy.FOREVER);
+	    addressCache.put(hostname, entry);
+
+	    addressCacheInit = true;
 	}
-	addressCache = new LinkedHashMap();
-	unknown_array = new InetAddress[1];
-	unknown_array[0] = impl.anyLocalAddress();
-
-	String hostname = impl.anyLocalAddress().getHostName();
-
-	CacheEntry entry = new CacheEntry(hostname,
-					  unknown_array, 
-					  InetAddressCachePolicy.FOREVER);
-	addressCache.put(hostname, entry);
     }
 
     private static void cacheAddress(String hostname, Object address,
@@ -720,24 +724,38 @@ class InetAddress implements java.io.Serializable {
 		    };
 		    break;
 		}
-		Iterator itr
-		    = Service.providers(NameServiceDescriptor.class);
-		while (itr.hasNext()) {
-		    NameServiceDescriptor nsd 
-			= (NameServiceDescriptor)itr.next();
-		    if (provider.
-			equalsIgnoreCase(nsd.getType()+","
-			       +nsd.getProviderName())) {
-			try {
-			    nameService = nsd.createNameService();
-			    break;
-			} catch (Exception e) {
-			    e.printStackTrace();
-			    System.err.println("Cannot create name service:"
-					       +provider);
+
+		final String providerName = provider;
+
+		try {
+		    java.security.AccessController.doPrivileged(
+			new java.security.PrivilegedExceptionAction() {
+			    public Object run() {
+				Iterator itr
+		    		    = Service.providers(NameServiceDescriptor.class);
+				while (itr.hasNext()) {
+		    		    NameServiceDescriptor nsd 
+					= (NameServiceDescriptor)itr.next();
+		    		    if (providerName.
+				        equalsIgnoreCase(nsd.getType()+","
+			       		    +nsd.getProviderName())) {
+					try {
+			    	    	    nameService = nsd.createNameService();
+			    	    	    break;
+					} catch (Exception e) {
+					    e.printStackTrace();
+			    	    	    System.err.println(
+						"Cannot create name service:"
+					         +providerName+": " + e);
+					}
+		    		    }
+				} /* while */
+			        return null;
 			}
-		    }
+		    });
+		} catch (java.security.PrivilegedActionException e) {
 		}
+
 	    }
     }
     
@@ -853,10 +871,14 @@ class InetAddress implements java.io.Serializable {
 	    return ret;
 	}
 	
+	boolean ipv6Expected = false;
 	if (host.charAt(0) == '[') {
-	    if (host.charAt(host.length()-1) == ']') {
+	    // This is supposed to be an IPv6 litteral
+	    if (host.length() > 2 && host.charAt(host.length()-1) == ']') {
 		host = host.substring(1, host.length() -1);
+		ipv6Expected = true;
 	    } else {
+		// This was supposed to be a IPv6 address, but it's not!
 		throw new UnknownHostException(host);
 	    }
 	}
@@ -870,6 +892,9 @@ class InetAddress implements java.io.Serializable {
 	    if (addr == null) {
 		// see if it is IPv6 address
 		addr = Inet6Address.textToNumericFormat(host);
+	    } else if (ipv6Expected) {
+		// Means an IPv4 litteral between brackets!
+		throw new UnknownHostException("["+host+"]");
 	    }
 	    InetAddress[] ret = new InetAddress[1];
 	    if(addr != null) {
@@ -880,7 +905,10 @@ class InetAddress implements java.io.Serializable {
 		}
 		return ret;
 	    }
-	}
+	    } else if (ipv6Expected) {
+		// We were expecting an IPv6 Litteral, but got something else
+		throw new UnknownHostException("["+host+"]");
+	    }
 	return getAllByName0(host);
     }
 
@@ -914,10 +942,15 @@ class InetAddress implements java.io.Serializable {
 
 	/* If no entry in cache, then do the host lookup */
 	if (obj == null) {
-	    obj = getAddressFromNameService(host);
+	    try {
+	        obj = getAddressFromNameService(host);
+	    } catch (UnknownHostException uhe) {
+		throw new UnknownHostException(host + ": " + uhe.getMessage());
+	    }
 	}
-        if (obj == unknown_array)
-            throw new UnknownHostException(host);
+
+	if (obj == unknown_array) 
+	    throw new UnknownHostException(host);
 
 	/* Make a copy of the InetAddress array */
 	objcopy = ((InetAddress [])obj).clone();
@@ -925,7 +958,9 @@ class InetAddress implements java.io.Serializable {
 	return (InetAddress [])objcopy;
     }
 
-    private static Object getAddressFromNameService(String host) {
+    private static Object getAddressFromNameService(String host) 
+	throws UnknownHostException 
+    {
 	Object obj = null;
 	boolean success = false;
 
@@ -972,9 +1007,10 @@ class InetAddress implements java.io.Serializable {
 		}
 		obj = addr_array;
 		success = true;
-	    } catch (UnknownHostException e) {
-		obj  = unknown_array;
+	    } catch (UnknownHostException uhe) {
+		obj  = unknown_array; 
 		success = false;
+		throw uhe;
 	    } finally {
 		// Cache the address.
 		cacheAddress(host, obj, success);
@@ -1072,15 +1108,26 @@ class InetAddress implements java.io.Serializable {
      * 
      * @see SecurityManager#checkConnect
      */
-    public synchronized static InetAddress getLocalHost() throws UnknownHostException {
+    public static InetAddress getLocalHost() throws UnknownHostException {
+
 	SecurityManager security = System.getSecurityManager();
 	try {
-	    InetAddress local = impl.localHost();
+	    String local = impl.getLocalHostName();
 
 	    if (security != null) {
-		security.checkConnect(local.getHostName(), -1);
+		security.checkConnect(local, -1);
 	    }
-	    return local;
+	    // we are calling getAddressFromNameService directly
+	    // to avoid getting localHost from cache 
+
+	    InetAddress[] localAddrs;
+	    try {
+		localAddrs =
+		    (InetAddress[]) InetAddress.getAddressFromNameService(local);
+	    } catch (UnknownHostException uhe) {
+		throw new UnknownHostException(local + ": " + uhe.getMessage());
+	    }
+	    return localAddrs[0];
 	} catch (java.lang.SecurityException e) {
 	    return impl.loopbackAddress();
 	}
@@ -1163,17 +1210,3 @@ class InetAddressImplFactory {
     private static native boolean isIPv6Supported();
 }
 
-/*
- * The interface to the impl
- */
-interface InetAddressImpl {
-
-    String getLocalHostName() throws UnknownHostException;
-    byte[][]
-        lookupAllHostAddr(String hostname) throws UnknownHostException;
-    String getHostByAddr(byte[] addr) throws UnknownHostException;
-
-    InetAddress localHost();
-    InetAddress anyLocalAddress();
-    InetAddress loopbackAddress();
-}

@@ -1,5 +1,5 @@
 /*
- * @(#)SizeRequirements.java	1.29 01/12/03
+ * @(#)SizeRequirements.java	1.30 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -73,7 +73,7 @@ import java.io.Serializable;
  * @see Component#getAlignmentX
  * @see Component#getAlignmentY
  *
- * @version 1.29 12/03/01
+ * @version 1.30 04/17/02
  * @author Timothy Prinzing
  */
 public class SizeRequirements implements Serializable {
@@ -319,8 +319,8 @@ public class SizeRequirements implements Serializable {
             for (int i = 0; i < spans.length; i++) {
                 offsets[i] = totalOffset;
                 SizeRequirements req = request[i];
-                int play = (int)(factor * (req.preferred - req.minimum));
-                spans[i] = req.preferred - play;
+                float play = factor * (req.preferred - req.minimum);
+                spans[i] = (int)(req.preferred - play);
                 totalOffset = (int) Math.min((long) totalOffset + (long) spans[i], Integer.MAX_VALUE);
             }
 	} else {
@@ -328,8 +328,8 @@ public class SizeRequirements implements Serializable {
             totalOffset = allocated;
             for (int i = 0; i < spans.length; i++) {
                 SizeRequirements req = request[i];
-                int play = (int)(factor * (req.preferred - req.minimum));
-                spans[i] = req.preferred - play;
+                float play = factor * (req.preferred - req.minimum);
+                spans[i] = (int)(req.preferred - play);
                 offsets[i] = totalOffset - spans[i];
                 totalOffset = (int) Math.max((long) totalOffset - (long) spans[i], 0);
             }

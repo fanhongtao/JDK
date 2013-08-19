@@ -1,5 +1,5 @@
 /*
- * @(#)RTFGenerator.java	1.10 01/12/03
+ * @(#)RTFGenerator.java	1.11 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -82,7 +82,7 @@ class RTFGenerator extends Object
     static {
 	One = new Integer(1);
 	Zero = new Integer(0);
-	False = new Boolean(false);
+	False = Boolean.valueOf(false);
 	MagicToken = new Object();
 	ZeroPointZero = new Float(0);
 

@@ -1,5 +1,5 @@
 /*
- * @(#)KeyFactory.java	1.26 01/12/03
+ * @(#)KeyFactory.java	1.28 02/05/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -44,7 +44,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.26, 12/03/01
+ * @version 1.28, 05/07/02
  *
  * @see Key
  * @see PublicKey
@@ -83,9 +83,9 @@ public class KeyFactory {
     }
 
     /**
-     * Generates a KeyFactory object that implements the specified digest
+     * Generates a KeyFactory object that implements the specified 
      * algorithm. If the default provider package
-     * provides an implementation of the requested digest algorithm,
+     * provides an implementation of the requested algorithm,
      * an instance of KeyFactory containing that implementation is returned.
      * If the algorithm is not available in the default 
      * package, other packages are searched.

@@ -2,7 +2,7 @@
 // Written by David Megginson, sax@megginson.com
 // NO WARRANTY!  This class is in the public domain.
 
-// $Id: AttributesImpl.java,v 1.2 2001/03/13 00:22:30 edwingo Exp $
+// $Id: AttributesImpl.java,v 1.2 2001/05/31 18:08:19 garyp Exp $
 
 
 package org.xml.sax.helpers;
@@ -41,7 +41,7 @@ import org.xml.sax.Attributes;
  * @since SAX 2.0
  * @author David Megginson, 
  *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0
+ * @version 2.0r2pre
  */
 public class AttributesImpl implements Attributes
 {
@@ -340,15 +340,17 @@ public class AttributesImpl implements Attributes
      */
     public void setAttributes (Attributes atts)
     {
-	clear();
-	length = atts.getLength();
-	data = new String[length*5]; 
-	for (int i = 0; i < length; i++) {
-	    data[i*5] = atts.getURI(i);
-	    data[i*5+1] = atts.getLocalName(i);
-	    data[i*5+2] = atts.getQName(i);
-	    data[i*5+3] = atts.getType(i);
-	    data[i*5+4] = atts.getValue(i);
+        clear();
+        length = atts.getLength();
+        if (length > 0) {
+            data = new String[length*5];
+            for (int i = 0; i < length; i++) {
+                data[i*5] = atts.getURI(i);
+                data[i*5+1] = atts.getLocalName(i);
+                data[i*5+2] = atts.getQName(i);
+                data[i*5+3] = atts.getType(i);
+                data[i*5+4] = atts.getValue(i);
+            }
 	}
     }
 
@@ -437,7 +439,7 @@ public class AttributesImpl implements Attributes
 	    data[index*5+4] = null;
 	    if (index < length - 1) {
 		System.arraycopy(data, (index+1)*5, data, index*5,
-				 (length-index)*5);
+				 (length-index-1)*5);
 	    }
 	    length--;
 	} else {
@@ -556,24 +558,29 @@ public class AttributesImpl implements Attributes
      * @param n The minimum number of attributes that the array must
      *        be able to hold.
      */
-    private void ensureCapacity (int n)
-    {
-	if (n > 0 && data == null) {
-	    data = new String[25];
-	}
+    private void ensureCapacity (int n)    {
+        if (n <= 0) {
+            return;
+        }
+        int max;
+        if (data == null || data.length == 0) {
+            max = 25;
+        }
+        else if (data.length >= n * 5) {
+            return;
+        }
+        else {
+            max = data.length;
+        }
+        while (max < n * 5) {
+            max *= 2;
+        }
 
-	int max = data.length;
-	if (max >= n * 5) {
-	    return;
-	}
-
-
-	while (max < n * 5) {
-	    max *= 2;
-	}
-	String newData[] = new String[max];
-	System.arraycopy(data, 0, newData, 0, length*5);
-	data = newData;
+        String newData[] = new String[max];
+        if (length > 0) {
+            System.arraycopy(data, 0, newData, 0, length*5);
+        }
+        data = newData;
     }
 
 

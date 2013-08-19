@@ -1,5 +1,5 @@
 /*
- * @(#)BeanContextChild.java	1.17 01/12/03
+ * @(#)BeanContextChild.java	1.18 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,15 +38,15 @@ import java.beans.beancontext.BeanContext;
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.17, 12/03/01
+ * @version	1.18, 02/22/02
  * @since	1.2
  * 
- * @seealso	java.beans.beancontext.BeanContext
- * @seealso	java.beans.PropertyChangeEvent
- * @seealso	java.beans.PropertyChangeListener
- * @seealso	java.beans.PropertyVetoEvent
- * @seealso	java.beans.PropertyVetoListener
- * @seealso	java.beans.PropertyVetoException
+ * @see	java.beans.beancontext.BeanContext
+ * @see	java.beans.PropertyChangeEvent
+ * @see	java.beans.PropertyChangeListener
+ * @see	java.beans.PropertyVetoEvent
+ * @see	java.beans.PropertyVetoListener
+ * @see	java.beans.PropertyVetoException
  */
 
 public interface BeanContextChild {

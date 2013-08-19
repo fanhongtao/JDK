@@ -1,5 +1,5 @@
 /*
- * @(#)List.java	1.36 01/12/03
+ * @(#)List.java	1.37 02/04/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,7 +68,7 @@ package java.util;
  * interface. 
  *
  * @author  Josh Bloch
- * @version 1.36, 12/03/01
+ * @version 1.37, 04/11/02
  * @see Collection
  * @see Set
  * @see ArrayList
@@ -219,7 +219,7 @@ public interface List extends Collection {
      *         elements (optional).
      * @throws NullPointerException if the specified collection is
      *         <tt>null</tt>.
-     * @see #  contains(Object)
+     * @see #contains(Object)
      */
     boolean containsAll(Collection c);
 

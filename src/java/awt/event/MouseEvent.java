@@ -1,5 +1,5 @@
 /*
- * @(#)MouseEvent.java	1.41 01/12/03
+ * @(#)MouseEvent.java	1.42 02/03/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -127,7 +127,7 @@ import java.io.ObjectInputStream;
  * </ul>
  *
  * @author Carl Quinn
- * 1.41, 12/03/01
+ * 1.42, 03/12/02
  *   
  * @see MouseAdapter
  * @see MouseListener
@@ -171,7 +171,7 @@ public class MouseEvent extends InputEvent {
     public static final int MOUSE_RELEASED = 2 + MOUSE_FIRST; //Event.MOUSE_UP
 
     /**
-     * The "mouse moved" event. This <code>MouseMotionEvent</code>
+     * The "mouse moved" event. This <code>MouseEvent</code>
      * occurs when the mouse position changes.
      */
     public static final int MOUSE_MOVED = 3 + MOUSE_FIRST; //Event.MOUSE_MOVE
@@ -215,7 +215,7 @@ public class MouseEvent extends InputEvent {
     public static final int BUTTON3 = 3;
 
     /**
-     * The "mouse dragged" event. This <code>MouseMotionEvent</code>
+     * The "mouse dragged" event. This <code>MouseEvent</code>
      * occurs when the mouse position changes while a mouse button is pressed.
      */
     public static final int MOUSE_DRAGGED = 6 + MOUSE_FIRST; //Event.MOUSE_DRAG

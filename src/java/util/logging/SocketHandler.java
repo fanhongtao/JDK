@@ -1,5 +1,5 @@
 /*
- * @(#)SocketHandler.java	1.11 01/12/03
+ * @(#)SocketHandler.java	1.12 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,9 +41,9 @@ import java.net.*;
  * </ul>
  * <p>
  * The output IO stream is buffered, but is flushed after each
- * <tt>LogRecord<tt> is written.
+ * <tt>LogRecord</tt> is written.
  *
- * @version 1.11, 12/03/01
+ * @version 1.12, 02/21/02
  * @since 1.4
  */
 

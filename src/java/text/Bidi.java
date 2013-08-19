@@ -1,5 +1,5 @@
 /*
- * @(#)Bidi.java	1.9 01/12/03
+ * @(#)Bidi.java	1.10 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -117,9 +117,9 @@ public final class Bidi {
      *
      * @param paragraph a paragraph of text with optional character and paragraph attribute information
      *
-     * @see TextAttribute.BIDI_EMBEDDING
-     * @see TextAttribute.NUMERIC_SHAPING
-     * @see TextAttribute.RUN_DIRECTION
+     * @see TextAttribute#BIDI_EMBEDDING
+     * @see TextAttribute#NUMERIC_SHAPING
+     * @see TextAttribute#RUN_DIRECTION
      */
     public Bidi(AttributedCharacterIterator paragraph) {
         if (paragraph == null) {

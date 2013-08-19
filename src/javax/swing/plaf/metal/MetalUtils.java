@@ -1,5 +1,5 @@
 /*
- * @(#)MetalUtils.java	1.26 01/12/03
+ * @(#)MetalUtils.java	1.27 02/02/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,7 +14,7 @@ import java.awt.*;
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.26 12/03/01
+ * @version 1.27 02/13/02
  * @author Steve Wilson
  */
 
@@ -51,6 +51,7 @@ class MetalUtils {
         g.translate( x, y);
         g.setColor( MetalLookAndFeel.getControlShadow() );
 	g.drawRect( 0, 0, w-1, h-1 );
+        g.translate(-x, -y);
     }
 
     /**
@@ -116,10 +117,25 @@ class MetalUtils {
 
     static void drawDefaultButtonBorder(Graphics g, int x, int y, int w, int h, boolean active) {
         drawButtonBorder(g, x+1, y+1, w-1, h-1, active);	    
+        g.translate(x, y);
         g.setColor( MetalLookAndFeel.getControlDarkShadow() );
-	g.drawRect( x, y, w-3, h-3 );
+	g.drawRect( 0, 0, w-3, h-3 );
 	g.drawLine( w-2, 0, w-2, 0);
 	g.drawLine( 0, h-2, 0, h-2);
+        g.translate(-x, -y);
+    }
+    
+    static void drawDefaultButtonPressedBorder(Graphics g, int x, int y, int w, int h) {
+        drawPressed3DBorder(g, x + 1, y + 1, w - 1, h - 1);
+        g.translate(x, y);
+        g.setColor(MetalLookAndFeel.getControlDarkShadow());
+        g.drawRect(0, 0, w - 3, h - 3);
+        g.drawLine(w - 2, 0, w - 2, 0);
+        g.drawLine(0, h - 2, 0, h - 2);
+        g.setColor(MetalLookAndFeel.getControl());
+        g.drawLine(w - 1, 0, w - 1, 0);
+        g.drawLine(0, h - 1, 0, h - 1);
+        g.translate(-x, -y);
     }
 
     /*

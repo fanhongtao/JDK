@@ -1,5 +1,5 @@
 /*
- * @(#)BoxView.java	1.56 01/12/03
+ * @(#)BoxView.java	1.57 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.56 12/03/01
+ * @version 1.57 04/18/02
  */
 public class BoxView extends CompositeView {
 
@@ -931,41 +931,45 @@ public class BoxView extends CompositeView {
      *		values specifying the extent of each child view
      */
     protected void baselineLayout(int targetSpan, int axis, int[] offsets, int[] spans) {
-	int totalBelow = (int) (targetSpan * getAlignment(axis));
-	int totalAbove = targetSpan - totalBelow;
-	int n = getViewCount();
-	for (int i = 0; i < n; i++) {
-	    View v = getView(i);
-	    float align = v.getAlignment(axis);
-	    int span = (int) v.getPreferredSpan(axis);
-	    int below = (int) (span * align);
-	    int above = span - below;
-	    if (span > targetSpan) {
-		// check compress
-		if ((int) v.getMinimumSpan(axis) < span) {
-		    below = totalBelow;
-		    above = totalAbove;
-		} else {
-		    if ((v.getResizeWeight(axis) > 0) && (v.getMaximumSpan(axis) != span)) {
-			throw new Error("should not happen: " + v.getClass());
-		    }
-		}
-	    } else if (span < targetSpan) { 
-		// check expand
-		if ((int) v.getMaximumSpan(axis) > span) {
-		    below = totalBelow;
-		    above = totalAbove;
-		}
-	    }
-/*
-	    if (v.getResizeWeight(axis) > 0) {
-		below = totalBelow;
-		above = totalAbove;
-	    }
-	    */
-	    offsets[i] = totalBelow - below;
-	    spans[i] = below + above;
-	}
+        int totalAscent = (int)(targetSpan * getAlignment(axis));
+        int totalDescent = targetSpan - totalAscent;
+
+        int n = getViewCount();
+
+        for (int i = 0; i < n; i++) {
+            View v = getView(i);
+            float align = v.getAlignment(axis);
+            int viewSpan;
+
+            if (v.getResizeWeight(axis) > 0) {
+                // if resizable then resize to the best fit
+
+                // the smallest span possible
+                int minSpan = (int)v.getMinimumSpan(axis);
+                // the largest span possible
+                int maxSpan = (int)v.getMaximumSpan(axis);
+
+                if (align == 0.0f) {
+                    // if the alignment is 0 then we need to fit into the descent
+                    viewSpan = Math.max(Math.min(maxSpan, totalDescent), minSpan);
+                } else if (align == 1.0f) {
+                    // if the alignment is 1 then we need to fit into the ascent
+                    viewSpan = Math.max(Math.min(maxSpan, totalAscent), minSpan);
+                } else {
+                    // figure out the span that we must fit into
+                    int fitSpan = (int)Math.min(totalAscent / align,
+                                                totalDescent / (1.0f - align));
+                    // fit into the calculated span
+                    viewSpan = Math.max(Math.min(maxSpan, fitSpan), minSpan);
+                }
+            } else {
+                // otherwise use the preferred spans
+                viewSpan = (int)v.getPreferredSpan(axis);
+            }
+
+            offsets[i] = totalAscent - (int)(viewSpan * align);
+            spans[i] = viewSpan;
+        }     
     }
 
     /**
@@ -978,37 +982,90 @@ public class BoxView extends CompositeView {
      * @return the newly initialized <code>SizeRequirements</code> object
      */
     protected SizeRequirements baselineRequirements(int axis, SizeRequirements r) {
-	int totalAbove = 0;
-	int totalBelow = 0;
-	int resizeWeight = 0;
-	int n = getViewCount();
-	for (int i = 0; i < n; i++) {
-	    View v = getView(i);
-	    int span = (int) v.getPreferredSpan(axis);
-	    int below = (int) (v.getAlignment(axis) * span);
-	    int above = span - below;
-	    totalAbove = Math.max(above, totalAbove);
-	    totalBelow = Math.max(below, totalBelow);
-	    resizeWeight += v.getResizeWeight(axis);
-	}
+        SizeRequirements totalAscent = new SizeRequirements();
+        SizeRequirements totalDescent = new SizeRequirements();
+        
+        if (r == null) {
+            r = new SizeRequirements();
+        }
+        
+        r.alignment = 0.5f;
 
-	if (r == null) {
-	    r = new SizeRequirements();
-	}
-	r.preferred = totalAbove + totalBelow;
-	if (resizeWeight != 0) {
-	    r.maximum = Integer.MAX_VALUE;
-	    r.minimum = 0;
-	} else {
-	    r.maximum = r.preferred;
-	    r.minimum = r.preferred;
-	}
-	if (r.preferred > 0) {
-	    r.alignment = (float) totalBelow / r.preferred;
-	} else {
-	    r.alignment = 0.5f;
-	}
-	return r;
+        int n = getViewCount();
+
+        // loop through all children calculating the max of all their ascents and
+        // descents at minimum, preferred, and maximum sizes
+        for (int i = 0; i < n; i++) {
+            View v = getView(i);
+            float align = v.getAlignment(axis);
+            int span;
+            int ascent;
+            int descent;
+
+            // find the maximum of the preferred ascents and descents
+            span = (int)v.getPreferredSpan(axis);
+            ascent = (int)(align * span);
+            descent = span - ascent;
+            totalAscent.preferred = Math.max(ascent, totalAscent.preferred);
+            totalDescent.preferred = Math.max(descent, totalDescent.preferred);
+            
+            if (v.getResizeWeight(axis) > 0) {
+                // if the view is resizable then do the same for the minimum and
+                // maximum ascents and descents
+                span = (int)v.getMinimumSpan(axis);
+                ascent = (int)(align * span);
+                descent = span - ascent;
+                totalAscent.minimum = Math.max(ascent, totalAscent.minimum);
+                totalDescent.minimum = Math.max(descent, totalDescent.minimum);
+
+                span = (int)v.getMaximumSpan(axis);
+                ascent = (int)(align * span);
+                descent = span - ascent;
+                totalAscent.maximum = Math.max(ascent, totalAscent.maximum);
+                totalDescent.maximum = Math.max(descent, totalDescent.maximum);
+            } else {
+                // otherwise use the preferred
+                totalAscent.minimum = Math.max(ascent, totalAscent.minimum);
+                totalDescent.minimum = Math.max(descent, totalDescent.minimum);
+                totalAscent.maximum = Math.max(ascent, totalAscent.maximum);
+                totalDescent.maximum = Math.max(descent, totalDescent.maximum);
+            }
+        }
+        
+        // we now have an overall preferred, minimum, and maximum ascent and descent
+
+        // calculate the preferred span as the sum of the preferred ascent and preferred descent
+        r.preferred = (int)Math.min((long)totalAscent.preferred + (long)totalDescent.preferred,
+                                    Integer.MAX_VALUE);
+
+        // calculate the preferred alignment as the preferred ascent divided by the preferred span
+        if (r.preferred > 0) {
+            r.alignment = (float)totalAscent.preferred / r.preferred;
+        }
+        
+
+        if (r.alignment == 0.0f) {
+            // if the preferred alignment is 0 then the minimum and maximum spans are simply
+            // the minimum and maximum descents since there's nothing above the baseline
+            r.minimum = totalDescent.minimum;
+            r.maximum = totalDescent.maximum;
+        } else if (r.alignment == 1.0f) {
+            // if the preferred alignment is 1 then the minimum and maximum spans are simply
+            // the minimum and maximum ascents since there's nothing below the baseline
+            r.minimum = totalAscent.minimum;
+            r.maximum = totalAscent.maximum;
+        } else {
+            // we want to honor the preferred alignment so we calculate two possible minimum
+            // span values using 1) the minimum ascent and the alignment, and 2) the minimum
+            // descent and the alignment. We'll choose the larger of these two numbers.
+            r.minimum = Math.max((int)(totalAscent.minimum / r.alignment),
+                                 (int)(totalDescent.minimum / (1.0f - r.alignment)));
+            // a similar calculation is made for the maximum but we choose the smaller number.
+            r.maximum = Math.min((int)(totalAscent.maximum / r.alignment),
+                                 (int)(totalDescent.maximum / (1.0f - r.alignment)));
+        }
+
+        return r;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)AffineTransform.java	1.65 01/12/03
+ * @(#)AffineTransform.java	1.69 02/07/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,10 +28,16 @@ import java.awt.Shape;
  *	[ 1 ]   [   0    0    1   ] [ 1 ]   [         1         ]
  * </pre>
  *
- * @version 1.65, 12/03/01
+ * @version 1.69, 07/11/02
  * @author Jim Graham
  */
 public class AffineTransform implements Cloneable, java.io.Serializable {
+    /*
+     * This constant is only useful for the cached type field.
+     * It indicates that the type has been decached and must be recalculated.
+     */
+    private static final int TYPE_UNKNOWN = -1;
+
     /**
      * This constant indicates that the transform defined by this object
      * is an identity transform.
@@ -340,6 +346,21 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      */
     transient int state;
 
+    /**
+     * This field caches the current transformation type of the matrix.
+     * @see #TYPE_IDENTITY
+     * @see #TYPE_TRANSLATION
+     * @see #TYPE_UNIFORM_SCALE
+     * @see #TYPE_GENERAL_SCALE
+     * @see #TYPE_FLIP
+     * @see #TYPE_QUADRANT_ROTATION
+     * @see #TYPE_GENERAL_ROTATION
+     * @see #TYPE_GENERAL_TRANSFORM
+     * @see #TYPE_UNKNOWN
+     * @see #getType
+     */
+    private transient int type;
+
     private AffineTransform(double m00, double m10,
 			    double m01, double m11,
 			    double m02, double m12,
@@ -351,6 +372,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	this.m02 = m02;
 	this.m12 = m12;
 	this.state = state;
+	this.type = TYPE_UNKNOWN;
     }
 
     /**
@@ -361,6 +383,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	m00 = m11 = 1.0;
 	// m01 = m10 = m02 = m12 = 0.0;		/* Not needed. */
 	// state = APPLY_IDENTITY;		/* Not needed. */
+	// type = TYPE_IDENTITY;		/* Not needed. */
     }
 
     /**
@@ -376,6 +399,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	this.m02 = Tx.m02;
 	this.m12 = Tx.m12;
 	this.state = Tx.state;
+	this.type = Tx.type;
     }
 
     /**
@@ -608,9 +632,22 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * @see #TYPE_GENERAL_TRANSFORM
      */
     public int getType() {
+	if (type == TYPE_UNKNOWN) {
+	    calculateType();
+	}
+	return type;
+    }
+
+    /**
+     * This is the utility function to calculate the flag bits when
+     * they have not been cached.
+     * @see #getType
+     */
+    private void calculateType() {
 	int ret = TYPE_IDENTITY;
 	boolean sgn0, sgn1;
 	double M0, M1, M2, M3;
+	updateState();
 	switch (state) {
 	default:
 	    stateError();
@@ -621,7 +658,8 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	case (APPLY_SHEAR | APPLY_SCALE):
 	    if ((M0 = m00) * (M2 = m01) + (M3 = m10) * (M1 = m11) != 0) {
 		// Transformed unit vectors are not perpendicular...
-		return TYPE_GENERAL_TRANSFORM;
+		this.type = TYPE_GENERAL_TRANSFORM;
+		return;
 	    }
 	    sgn0 = (M0 >= 0.0);
 	    sgn1 = (M1 >= 0.0);
@@ -659,10 +697,12 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    sgn1 = ((M1 = m10) >= 0.0);
 	    if (sgn0 != sgn1) {
 		// Different signs - simple 90 degree rotation
-		if (M0 == -M1) {
+		if (M0 != -M1) {
+		    ret |= (TYPE_QUADRANT_ROTATION | TYPE_GENERAL_SCALE);
+		} else if (M0 != 1.0 && M0 != -1.0) {
 		    ret |= (TYPE_QUADRANT_ROTATION | TYPE_UNIFORM_SCALE);
 		} else {
-		    ret |= (TYPE_QUADRANT_ROTATION | TYPE_GENERAL_SCALE);
+		    ret |= TYPE_QUADRANT_ROTATION;
 		}
 	    } else {
 		// Same signs - 90 degree rotation plus an axis flip too
@@ -686,6 +726,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    if (sgn0 == sgn1) {
 		if (sgn0) {
 		    // Both scaling factors non-negative - simple scale
+		    // Note: APPLY_SCALE implies M0, M1 are not both 1
 		    if (M0 == M1) {
 			ret |= TYPE_UNIFORM_SCALE;
 		    } else {
@@ -693,10 +734,12 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 		    }
 		} else {
 		    // Both scaling factors negative - 180 degree rotation
-		    if (M0 == M1) {
+		    if (M0 != M1) {
+			ret |= (TYPE_QUADRANT_ROTATION | TYPE_GENERAL_SCALE);
+		    } else if (M0 != -1.0) {
 			ret |= (TYPE_QUADRANT_ROTATION | TYPE_UNIFORM_SCALE);
 		    } else {
-			ret |= (TYPE_QUADRANT_ROTATION | TYPE_GENERAL_SCALE);
+			ret |= TYPE_QUADRANT_ROTATION;
 		    }
 		}
 	    } else {
@@ -718,7 +761,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	case (APPLY_IDENTITY):
 	    break;
 	}
-	return ret;
+	this.type = ret;
     }
 
     /**
@@ -784,34 +827,60 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
     /**
      * Manually recalculates the state of the transform when the matrix
      * changes too much to predict the effects on the state.
+     * The following table specifies what the various settings of the
+     * state field say about the values of the corresponding matrix
+     * element fields.
+     * Note that the rules governing the SCALE fields are slightly
+     * different depending on whether the SHEAR flag is also set.
+     * <pre>
+     *                     SCALE            SHEAR          TRANSLATE
+     *                    m00/m11          m01/m10          m02/m12
+     *
+     * IDENTITY             1.0              0.0              0.0
+     * TRANSLATE (TR)       1.0              0.0          not both 0.0
+     * SCALE (SC)       not both 1.0         0.0              0.0
+     * TR | SC          not both 1.0         0.0          not both 0.0
+     * SHEAR (SH)           0.0          not both 0.0         0.0
+     * TR | SH              0.0          not both 0.0     not both 0.0
+     * SC | SH          not both 0.0     not both 0.0         0.0
+     * TR | SC | SH     not both 0.0     not both 0.0     not both 0.0
+     * </pre>
      */
     void updateState() {
 	if (m01 == 0.0 && m10 == 0.0) {
 	    if (m00 == 1.0 && m11 == 1.0) {
 		if (m02 == 0.0 && m12 == 0.0) {
 		    state = APPLY_IDENTITY;
+		    type = TYPE_IDENTITY;
 		} else {
 		    state = APPLY_TRANSLATE;
+		    type = TYPE_TRANSLATION;
 		}
 	    } else {
 		if (m02 == 0.0 && m12 == 0.0) {
 		    state = APPLY_SCALE;
+		    type = TYPE_UNKNOWN;
 		} else {
 		    state = (APPLY_SCALE | APPLY_TRANSLATE);
+		    type = TYPE_UNKNOWN;
 		}
 	    }
 	} else {
 	    if (m00 == 0.0 && m11 == 0.0) {
 		if (m02 == 0.0 && m12 == 0.0) {
 		    state = APPLY_SHEAR;
+		    type = TYPE_UNKNOWN;
 		} else {
 		    state = (APPLY_SHEAR | APPLY_TRANSLATE);
+		    type = TYPE_UNKNOWN;
 		}
 	    } else {
 		if (m02 == 0.0 && m12 == 0.0) {
 		    state = (APPLY_SHEAR | APPLY_SCALE);
+		    type = TYPE_UNKNOWN;
 		} else {
 		    state = (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE);
+		    type = TYPE_UNKNOWN;
 		}
 	    }
 	}
@@ -942,38 +1011,72 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
 	    m02 = tx * m00 + ty * m01 + m02;
 	    m12 = tx * m10 + ty * m11 + m12;
+	    if (m02 == 0.0 && m12 == 0.0) {
+		state = APPLY_SHEAR | APPLY_SCALE;
+		if (type != TYPE_UNKNOWN) {
+		    type -= TYPE_TRANSLATION;
+		}
+	    }
 	    return;
 	case (APPLY_SHEAR | APPLY_SCALE):
 	    m02 = tx * m00 + ty * m01;
 	    m12 = tx * m10 + ty * m11;
-	    state = APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE;
+	    if (m02 != 0.0 || m12 != 0.0) {
+		state = APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE;
+		type |= TYPE_TRANSLATION;
+	    }
 	    return;
 	case (APPLY_SHEAR | APPLY_TRANSLATE):
 	    m02 = ty * m01 + m02;
 	    m12 = tx * m10 + m12;
+	    if (m02 == 0.0 && m12 == 0.0) {
+		state = APPLY_SHEAR;
+		if (type != TYPE_UNKNOWN) {
+		    type -= TYPE_TRANSLATION;
+		}
+	    }
 	    return;
 	case (APPLY_SHEAR):
 	    m02 = ty * m01;
 	    m12 = tx * m10;
-	    state = APPLY_SHEAR | APPLY_TRANSLATE;
+	    if (m02 != 0.0 || m12 != 0.0) {
+		state = APPLY_SHEAR | APPLY_TRANSLATE;
+		type |= TYPE_TRANSLATION;
+	    }
 	    return;
 	case (APPLY_SCALE | APPLY_TRANSLATE):
 	    m02 = tx * m00 + m02;
 	    m12 = ty * m11 + m12;
+	    if (m02 == 0.0 && m12 == 0.0) {
+		state = APPLY_SCALE;
+		if (type != TYPE_UNKNOWN) {
+		    type -= TYPE_TRANSLATION;
+		}
+	    }
 	    return;
 	case (APPLY_SCALE):
 	    m02 = tx * m00;
 	    m12 = ty * m11;
-	    state = APPLY_SCALE | APPLY_TRANSLATE;
+	    if (m02 != 0.0 || m12 != 0.0) {
+		state = APPLY_SCALE | APPLY_TRANSLATE;
+		type |= TYPE_TRANSLATION;
+	    }
 	    return;
 	case (APPLY_TRANSLATE):
 	    m02 = tx + m02;
 	    m12 = ty + m12;
+	    if (m02 == 0.0 && m12 == 0.0) {
+		state = APPLY_IDENTITY;
+		type = TYPE_IDENTITY;
+	    }
 	    return;
 	case (APPLY_IDENTITY):
 	    m02 = tx;
 	    m12 = ty;
-	    state = APPLY_TRANSLATE;
+	    if (tx != 0.0 || ty != 0.0) {
+		state = APPLY_TRANSLATE;
+		type = TYPE_TRANSLATION;
+	    }
 	    return;
 	}
     }
@@ -1013,6 +1116,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 			this.state = state | APPLY_SCALE;
 		    }
 		}
+		type = TYPE_UNKNOWN;
 	    }
 	    return;
 	}
@@ -1032,7 +1136,14 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 		m10 = m11;
 		m11 = -M0;
 	    }
-	    state = rot90conversion[state];
+	    int state = rot90conversion[this.state];
+	    if ((state & (APPLY_SHEAR | APPLY_SCALE)) == APPLY_SCALE &&
+		m00 == 1.0 && m11 == 1.0)
+	    {
+		state -= APPLY_SCALE;
+	    }
+	    this.state = state;
+	    type = TYPE_UNKNOWN;
 	    return;
 	}
 	double M0, M1;
@@ -1111,17 +1222,33 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	case (APPLY_SHEAR):
 	    m01 *= sy;
 	    m10 *= sx;
+	    if (m01 == 0 && m10 == 0) {
+		this.state = state - APPLY_SHEAR;
+		// REMIND: Is it possible for m00 and m11 to be both 1.0?
+	    }
+	    this.type = TYPE_UNKNOWN;
 	    return;
 	case (APPLY_SCALE | APPLY_TRANSLATE):
 	case (APPLY_SCALE):
 	    m00 *= sx;
 	    m11 *= sy;
+	    if (m00 == 1.0 && m11 == 1.0) {
+		this.state = (state &= APPLY_TRANSLATE);
+		this.type = (state == APPLY_IDENTITY
+			     ? TYPE_IDENTITY
+			     : TYPE_TRANSLATION);
+	    } else {
+		this.type = TYPE_UNKNOWN;
+	    }
 	    return;
 	case (APPLY_TRANSLATE):
 	case (APPLY_IDENTITY):
 	    m00 = sx;
 	    m11 = sy;
-	    this.state = state | APPLY_SCALE;
+	    if (sx != 1.0 || sy != 1.0) {
+		this.state = state | APPLY_SCALE;
+		this.type = TYPE_UNKNOWN;
+	    }
 	    return;
 	}
     }
@@ -1158,24 +1285,34 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    M1 = m11;
 	    m10 = M0 + M1 * shy;
 	    m11 = M0 * shx + M1;
+	    updateState();
 	    return;
 	case (APPLY_SHEAR | APPLY_TRANSLATE):
 	case (APPLY_SHEAR):
 	    m00 = m01 * shy;
 	    m11 = m10 * shx;
-	    this.state = state | APPLY_SCALE;
+	    if (m00 != 0.0 || m11 != 0.0) {
+		this.state = state | APPLY_SCALE;
+	    }
+	    this.type = TYPE_UNKNOWN;
 	    return;
 	case (APPLY_SCALE | APPLY_TRANSLATE):
 	case (APPLY_SCALE):
 	    m01 = m00 * shx;
 	    m10 = m11 * shy;
-	    this.state = state | APPLY_SHEAR;
+	    if (m01 != 0.0 || m10 != 0.0) {
+		this.state = state | APPLY_SHEAR;
+	    }
+	    this.type = TYPE_UNKNOWN;
 	    return;
 	case (APPLY_TRANSLATE):
 	case (APPLY_IDENTITY):
 	    m01 = shx;
 	    m10 = shy;
-	    this.state = state | APPLY_SCALE | APPLY_SHEAR;
+	    if (m01 != 0.0 || m10 != 0.0) {
+		this.state = state | APPLY_SCALE | APPLY_SHEAR;
+		this.type = TYPE_UNKNOWN;
+	    }
 	    return;
 	}
     }
@@ -1187,6 +1324,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	m00 = m11 = 1.0;
 	m10 = m01 = m02 = m12 = 0.0;
 	state = APPLY_IDENTITY;
+	type = TYPE_IDENTITY;
     }
 
     /**
@@ -1209,7 +1347,13 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	m11 = 1.0;
 	m02 = tx;
 	m12 = ty;
-	state = APPLY_TRANSLATE;
+	if (tx != 0.0 || ty != 0.0) {
+	    state = APPLY_TRANSLATE;
+	    type = TYPE_TRANSLATION;
+	} else {
+	    state = APPLY_IDENTITY;
+	    type = TYPE_IDENTITY;
+	}
     }
 
     /**
@@ -1234,9 +1378,11 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    if (cos < 0) {
 		m00 = m11 = -1.0;
 		state = APPLY_SCALE;
+		type = TYPE_QUADRANT_ROTATION;
 	    } else {
 		m00 = m11 = 1.0;
 		state = APPLY_IDENTITY;
+		type = TYPE_IDENTITY;
 	    }
 	    return;
 	}
@@ -1250,6 +1396,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 		m10 = 1.0;
 	    }
 	    state = APPLY_SHEAR;
+	    type = TYPE_QUADRANT_ROTATION;
 	    return;
 	}
 	m00 = cos;
@@ -1257,6 +1404,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	m10 = sin;
 	m11 = cos;
 	state = APPLY_SHEAR | APPLY_SCALE;
+	type = TYPE_GENERAL_ROTATION;
 	return;
     }
 
@@ -1292,7 +1440,10 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	double oneMinusCos = 1.0 - m00;
 	m02 = x * oneMinusCos + y * sin;
 	m12 = y * oneMinusCos - x * sin;
-	state |= APPLY_TRANSLATE;
+	if (m02 != 0.0 || m12 != 0.0) {
+	    state |= APPLY_TRANSLATE;
+	    type |= TYPE_TRANSLATION;
+	}
 	return;
     }
 
@@ -1316,7 +1467,13 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	m11 = sy;
 	m02 = 0.0;
 	m12 = 0.0;
-	state = APPLY_SCALE;
+	if (sx != 1.0 || sy != 1.0) {
+	    state = APPLY_SCALE;
+	    type = TYPE_UNKNOWN;
+	} else {
+	    state = APPLY_IDENTITY;
+	    type = TYPE_IDENTITY;
+	}
     }
 
     /**
@@ -1339,7 +1496,13 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	m11 = 1.0;
 	m02 = 0.0;
 	m12 = 0.0;
-	state = APPLY_SHEAR | APPLY_SCALE;
+	if (shx != 0.0 || shy != 0.0) {
+	    state = (APPLY_SHEAR | APPLY_SCALE);
+	    type = TYPE_UNKNOWN;
+	} else {
+	    state = APPLY_IDENTITY;
+	    type = TYPE_IDENTITY;
+	}
     }
 
     /**
@@ -1356,6 +1519,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	this.m02 = Tx.m02;
 	this.m12 = Tx.m12;
 	this.state = Tx.state;
+	this.type = Tx.type;
     }
 
     /**
@@ -1428,6 +1592,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m02 = Tx.m02;
 	    m12 = Tx.m12;
 	    state = txstate;
+	    type = Tx.type;
 	    return;
 	case (HI_SHEAR | HI_SCALE | APPLY_IDENTITY):
 	    m01 = Tx.m01;
@@ -1437,6 +1602,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m00 = Tx.m00;
 	    m11 = Tx.m11;
 	    state = txstate;
+	    type = Tx.type;
 	    return;
 	case (HI_SHEAR | HI_TRANSLATE | APPLY_IDENTITY):
 	    m02 = Tx.m02;
@@ -1445,70 +1611,31 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	case (HI_SHEAR | APPLY_IDENTITY):
 	    m01 = Tx.m01;
 	    m10 = Tx.m10;
-	    m00 = m11 = 0.0;
+            m00 = m11 = 0.0;
 	    state = txstate;
+	    type = Tx.type;
 	    return;
 
 	    /* ---------- Tx == TRANSLATE cases ---------- */
 	case (HI_TRANSLATE | APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
-	    T02 = Tx.m02;
-	    T12 = Tx.m12;
-	    m02 = T02 * m00 + T12 * m01 + m02;
-	    m12 = T02 * m10 + T12 * m11 + m12;
-	    return;
 	case (HI_TRANSLATE | APPLY_SHEAR | APPLY_SCALE):
-	    T02 = Tx.m02;
-	    T12 = Tx.m12;
-	    m02 = T02 * m00 + T12 * m01;
-	    m12 = T02 * m10 + T12 * m11;
-	    state = APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE;
-	    return;
 	case (HI_TRANSLATE | APPLY_SHEAR | APPLY_TRANSLATE):
-	    m02 = Tx.m12 * m01 + m02;
-	    m12 = Tx.m02 * m10 + m12;
-	    return;
 	case (HI_TRANSLATE | APPLY_SHEAR):
-	    m02 = Tx.m12 * m01;
-	    m12 = Tx.m02 * m10;
-	    state = APPLY_SHEAR | APPLY_TRANSLATE;
-	    return;
 	case (HI_TRANSLATE | APPLY_SCALE | APPLY_TRANSLATE):
-	    m02 = Tx.m02 * m00 + m02;
-	    m12 = Tx.m12 * m11 + m12;
-	    return;
 	case (HI_TRANSLATE | APPLY_SCALE):
-	    m02 = Tx.m02 * m00;
-	    m12 = Tx.m12 * m11;
-	    state = APPLY_SCALE | APPLY_TRANSLATE;
-	    return;
 	case (HI_TRANSLATE | APPLY_TRANSLATE):
-	    m02 = Tx.m02 + m02;
-	    m12 = Tx.m12 + m12;
+	    translate(Tx.m02, Tx.m12);
 	    return;
 
 	    /* ---------- Tx == SCALE cases ---------- */
 	case (HI_SCALE | APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
 	case (HI_SCALE | APPLY_SHEAR | APPLY_SCALE):
-	    T00 = Tx.m00; T11 = Tx.m11;
-	    m00 *= T00;
-	    m11 *= T11;
-	    m01 *= T11;
-	    m10 *= T00;
-	    return;
 	case (HI_SCALE | APPLY_SHEAR | APPLY_TRANSLATE):
 	case (HI_SCALE | APPLY_SHEAR):
-	    m01 *= Tx.m11;
-	    m10 *= Tx.m00;
-	    return;
 	case (HI_SCALE | APPLY_SCALE | APPLY_TRANSLATE):
 	case (HI_SCALE | APPLY_SCALE):
-	    m00 *= Tx.m00;
-	    m11 *= Tx.m11;
-	    return;
 	case (HI_SCALE | APPLY_TRANSLATE):
-	    m00 = Tx.m00;
-	    m11 = Tx.m11;
-	    state = APPLY_SCALE | APPLY_TRANSLATE;
+	    scale(Tx.m00, Tx.m11);
 	    return;
 
 	    /* ---------- Tx == SHEAR cases ---------- */
@@ -1521,6 +1648,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    M0 = m10;
 	    m10 = m11 * T10;
 	    m11 = M0 * T01;
+	    type = TYPE_UNKNOWN;
 	    return;
 	case (HI_SHEAR | APPLY_SHEAR | APPLY_TRANSLATE):
 	case (HI_SHEAR | APPLY_SHEAR):
@@ -1529,6 +1657,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m11 = m10 * Tx.m01;
 	    m10 = 0.0;
 	    state = mystate ^ (APPLY_SHEAR | APPLY_SCALE);
+	    type = TYPE_UNKNOWN;
 	    return;
 	case (HI_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
 	case (HI_SHEAR | APPLY_SCALE):
@@ -1537,6 +1666,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m10 = m11 * Tx.m10;
 	    m11 = 0.0;
 	    state = mystate ^ (APPLY_SHEAR | APPLY_SCALE);
+	    type = TYPE_UNKNOWN;
 	    return;
 	case (HI_SHEAR | APPLY_TRANSLATE):
 	    m00 = 0.0;
@@ -1544,6 +1674,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m10 = Tx.m10;
 	    m11 = 0.0;
 	    state = APPLY_TRANSLATE | APPLY_SHEAR;
+	    type = TYPE_UNKNOWN;
 	    return;
 	}
 	// If Tx has more than one attribute, it is not worth optimizing
@@ -1556,6 +1687,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    /* NOTREACHED */
 	case (APPLY_SHEAR | APPLY_SCALE):
 	    state = mystate | txstate;
+	    /* NOBREAK */
 	case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
 	    M0 = m00;
 	    M1 = m01;
@@ -1568,6 +1700,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m10  = T00 * M0 + T10 * M1;
 	    m11  = T01 * M0 + T11 * M1;
 	    m12 += T02 * M0 + T12 * M1;
+	    type = TYPE_UNKNOWN;
 	    return;
 
 	case (APPLY_SHEAR | APPLY_TRANSLATE):
@@ -1605,6 +1738,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m11  = T11;
 	    m12 += T12;
 	    state = txstate | APPLY_TRANSLATE;
+	    type = TYPE_UNKNOWN;
 	    return;
 	}
 	updateState();
@@ -1659,6 +1793,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m02 = Tx.m02;
 	    m12 = Tx.m12;
 	    state = mystate | APPLY_TRANSLATE;
+	    type |= TYPE_TRANSLATION;
 	    return;
 
 	case (HI_TRANSLATE | APPLY_TRANSLATE):
@@ -1699,6 +1834,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 		m02 = m02 * T00;
 		m12 = m12 * T11;
 	    }
+	    type = TYPE_UNKNOWN;
 	    return;
 	case (HI_SHEAR | APPLY_SHEAR | APPLY_TRANSLATE):
 	case (HI_SHEAR | APPLY_SHEAR):
@@ -1727,6 +1863,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    M0 = m02;
 	    m02 = m12 * T01;
 	    m12 = M0 * T10;
+	    type = TYPE_UNKNOWN;
 	    return;
 	}
 	// If Tx has more than one attribute, it is not worth optimizing
@@ -1817,6 +1954,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
 	    m11 = T11;
 
 	    state = mystate | txstate;
+	    type = TYPE_UNKNOWN;
 	    return;
 	}
 	updateState();
@@ -2905,7 +3043,7 @@ public class AffineTransform implements Cloneable, java.io.Serializable {
      * an identity transform; <code>false</code> otherwise.
      */
     public boolean isIdentity() {
-        return (state == APPLY_IDENTITY);
+        return (state == APPLY_IDENTITY || (getType() == TYPE_IDENTITY));
     }
 
     /**

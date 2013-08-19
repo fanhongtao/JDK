@@ -1,5 +1,5 @@
 /*
- * @(#)FlowView.java	1.28 01/12/12
+ * @(#)FlowView.java	1.29 02/01/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import javax.swing.SizeRequirements;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.28 12/12/01
+ * @version 1.29 01/07/02
  * @see     View
  */
 public abstract class FlowView extends BoxView {
@@ -186,6 +186,7 @@ public abstract class FlowView extends BoxView {
 		if (p != null) {
 		    p.preferenceChanged(this, (heightAxis == X_AXIS), (heightAxis == Y_AXIS));
 		}
+
                 // PENDING(shannonh)
                 // Temporary fix for 4250847
                 // Can be removed when TraversalContext is added
@@ -383,7 +384,7 @@ public abstract class FlowView extends BoxView {
 	    // removed
 	    View lv = getLogicalView(fv);
 	    int n = lv.getViewCount();
-	    for( int i=0; i<n; i++ ) {
+	    for( int i = 0; i < n; i++ ) {
 		View v = lv.getView(i);
 		v.setParent(lv);
 	    }

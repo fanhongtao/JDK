@@ -1,5 +1,5 @@
 /*
- * @(#)ReplicateScaleFilter.java	1.14 01/12/03
+ * @(#)ReplicateScaleFilter.java	1.15 02/03/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,13 +20,15 @@ import java.awt.Rectangle;
  * for an image of the specified size by replicating rows and columns of
  * pixels to scale up or omitting rows and columns of pixels to scale
  * down.
- * It is meant to be used in conjunction with a FilteredImageSource
- * object to produce scaled versions of existing images.
+ * <p>It is meant to be used in conjunction with a FilteredImageSource
+ * object to produce scaled versions of existing images.  Due to
+ * implementation dependencies, there may be differences in pixel values 
+ * of an image filtered on different platforms.
  *
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.14 12/03/01
+ * @version	1.15 03/01/02
  * @author 	Jim Graham
  */
 public class ReplicateScaleFilter extends ImageFilter {

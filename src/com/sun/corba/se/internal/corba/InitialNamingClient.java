@@ -1,5 +1,5 @@
 /*
- * @(#)InitialNamingClient.java	1.48 01/12/03
+ * @(#)InitialNamingClient.java	1.49 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -200,7 +200,8 @@ public class InitialNamingClient
 
      /** Check whether the given 'corbaloc' is valid according to INS
       *  specification.
-      *  return true if it is and false otherwise
+      *  returns CorbaLoc object which contains endpointinfo and objectKey.
+      *  _REVISIT_ : Cleanup for Tiger
       */
      public CorbaLoc checkcorbalocGrammer( String value )
 		throws org.omg.CORBA.BAD_PARAM
@@ -267,28 +268,51 @@ public class InitialNamingClient
 				if( ( host == null )
 			  	  ||( host.length() == 0 ) )
 				{
+                                    // _REVISIT_ Add a new method to throw 
+                                    // BAD_PARAM exception and then invoke 
+                                    // that method to throw BAD_PARAM exception
+
 				    // hostName is null which means the address
 				    // portion of the url is incorrect
 				    throw new org.omg.CORBA.BAD_PARAM(
 					MinorCodes.INS_BAD_ADDRESS,
                                        	CompletionStatus.COMPLETED_NO);
 				} else {
-				    // If there is a colon, Make sure what
-				    // follows after colon is indeed a Integer
-				    // If it is not then we have an invalid
-                                    // port number
-				    int colon = host.indexOf( ':' );
-				    if( colon != -1 ) {
-					port = Integer.parseInt(
-					        host.substring( colon+1) );
-					host = host.substring( 0, colon );
+                                    // A Hack to differentiate IPV6 address
+                                    // from IPV4 address, Current Resolution
+                                    // is to use [ ] to differentiate ipv6 host
+                                    int squareBracketBeginIndex = 
+                                        host.indexOf ( '[' );
+                                    if( squareBracketBeginIndex != -1 ) {
+                                        // ipv6Host should be enclosed in
+                                        // [ ], if not it will result in a
+                                        // BAD_PARAM exception
+                                        String ipv6Port = getIPV6Port( host );
+                                        if( ipv6Port != null ) {
+                                            port = Integer.parseInt( ipv6Port );
+                                        }
+                                        host = getIPV6Host( host );
+                                    } else { 
+				        // If there is a colon, Make sure what
+				        // follows after colon is indeed a 
+                                        // Integer If it is not then we have an
+                                        // invalid port number
+				        int colon = host.indexOf( ':' );
+				        if( colon != -1 ) {
+				 	    port = Integer.parseInt(
+					            host.substring( colon+1) );
+					    host = host.substring( 0, colon );
+                                       }
 				    }
 				}
 			    } catch( Exception e ) {
 				// Any kind of Exception is bad here.
-				throw new org.omg.CORBA.BAD_PARAM(
-				    MinorCodes.INS_BAD_ADDRESS,
-                                    CompletionStatus.COMPLETED_NO);
+                                org.omg.CORBA.BAD_PARAM exception = 
+				    new org.omg.CORBA.BAD_PARAM(
+				        MinorCodes.INS_BAD_ADDRESS,
+                                        CompletionStatus.COMPLETED_NO);
+                                exception.initCause(e);
+                                throw exception;
 			    }
 			} else {
 			    try {
@@ -306,21 +330,44 @@ public class InitialNamingClient
                     		    minor = Integer.parseInt(
                                             version.substring(dot+1));
                                     validateGIOPVersion(major, minor);
-				    host  = hostName.substring( at+1 );
-				    int colon = host.indexOf( ':' );
-				    if( colon != -1 ) {
-				        port = Integer.parseInt(
-	                                       host.substring( colon+1) );
-				        host = host.substring( 0, colon );
-				    }
+                                    // A Hack to differentiate IPV6 address
+                                    // from IPV4 address, Current Resolution
+                                    // is to use [ ] to differentiate ipv6 host
+                                    int squareBracketBeginIndex = 
+                                        hostName.indexOf ( '[' );
+                                    if( squareBracketBeginIndex != -1 ) {
+                                        // hostName info conatins iiop version,
+                                        // get the hostinfo using the '[' token
+                                        host = hostName.substring( 
+                                            squareBracketBeginIndex );
+                                        // ipv6Host should be enclosed in
+                                        // [ ], if not it will result in a
+                                        // BAD_PARAM exception
+                                        String ipv6Port = getIPV6Port( host );
+                                        if( ipv6Port != null ) {
+                                            port = Integer.parseInt( ipv6Port );
+                                        }
+                                        host = getIPV6Host( host );
+                                    } else {
+				        host  = hostName.substring( at+1 );
+				        int colon = host.indexOf( ':' );
+				        if( colon != -1 ) {
+				            port = Integer.parseInt(
+	                                           host.substring( colon+1) );
+				            host = host.substring( 0, colon );
+				        }
+                                    }
 				}
 			    }
 			    // Any kind of exception is bad here, It could be
                             // number format exception or Null String exception
 			    catch( Exception e ) {
-				throw new org.omg.CORBA.BAD_PARAM(
-			  	    MinorCodes.INS_BAD_ADDRESS,
-                                    CompletionStatus.COMPLETED_NO);
+                                org.omg.CORBA.BAD_PARAM exception = 
+				    new org.omg.CORBA.BAD_PARAM(
+				        MinorCodes.INS_BAD_ADDRESS,
+                                        CompletionStatus.COMPLETED_NO);
+                                exception.initCause(e);
+                                throw exception;
 			    }
 			}
 		    }
@@ -340,9 +387,12 @@ public class InitialNamingClient
 			    }
 			} catch( Exception e ) {
 			    // Any exception is bad here
-			    throw new org.omg.CORBA.BAD_PARAM(
+                            org.omg.CORBA.BAD_PARAM exception = 
+			        new org.omg.CORBA.BAD_PARAM(
 				MinorCodes.INS_BAD_SCHEME_SPECIFIC_PART,
-                               	CompletionStatus.COMPLETED_NO);
+                                CompletionStatus.COMPLETED_NO);
+                            exception.initCause(e);
+                            throw exception;
 			}
 		    } else if( hostName.startsWith( ":" ) ) {
 			// Check the default iiop syntax
@@ -376,9 +426,12 @@ public class InitialNamingClient
                                 catch( Exception e ) {
                                     // Any Exception is bad here, Possible cause
                                     // could be a malformed GIOP Version. 
-                                    throw new org.omg.CORBA.BAD_PARAM(
-                                    MinorCodes.INS_BAD_SCHEME_SPECIFIC_PART,
-                                    CompletionStatus.COMPLETED_NO);
+                                    org.omg.CORBA.BAD_PARAM exception = 
+			                new org.omg.CORBA.BAD_PARAM(
+				        MinorCodes.INS_BAD_SCHEME_SPECIFIC_PART,
+                                        CompletionStatus.COMPLETED_NO);
+                                    exception.initCause(e);
+                                    throw exception;
                                }
                             }
 			    // If there is a colon, Make sure to check
@@ -391,9 +444,12 @@ public class InitialNamingClient
 				host = host.substring( 0, colon );
 			    }
 		        } catch( Exception e ) {
-			    throw new org.omg.CORBA.BAD_PARAM(
-				MinorCodes.INS_BAD_SCHEME_SPECIFIC_PART,
-                               	CompletionStatus.COMPLETED_NO);
+                            org.omg.CORBA.BAD_PARAM exception = 
+			        new org.omg.CORBA.BAD_PARAM(
+			        MinorCodes.INS_BAD_SCHEME_SPECIFIC_PART,
+                                CompletionStatus.COMPLETED_NO);
+                            exception.initCause(e);
+                            throw exception;
 			}
 		    } else {
 		        // Right now we are not allowing any other protocol
@@ -431,9 +487,12 @@ public class InitialNamingClient
                         }
 			theCorbaLocObject.setKeyString( keyString );
 		     } catch( Exception e ) {
-			throw new org.omg.CORBA.BAD_PARAM(
-					MinorCodes.INS_BAD_SCHEME_SPECIFIC_PART,
-                              		CompletionStatus.COMPLETED_NO);
+                        org.omg.CORBA.BAD_PARAM exception = 
+			    new org.omg.CORBA.BAD_PARAM(
+			    MinorCodes.INS_BAD_SCHEME_SPECIFIC_PART,
+                            CompletionStatus.COMPLETED_NO);
+                        exception.initCause(e);
+                        throw exception;
 		     }
 		 } else {
 		     // The URL doesn't have a Slash after corbaloc or has a
@@ -446,6 +505,48 @@ public class InitialNamingClient
          }
          return theCorbaLocObject;
      }
+
+
+     /** 
+      * Returns an IPV6 Host that is inside [ ] tokens. There is no validation
+      * done here, if it is an incorrect IPV6 address then the request through
+      * this URL results in a COMM_FAILURE, otherwise malformed list will 
+      * result in BAD_PARAM exception thrown in checkcorbalocGrammer.
+      */
+     private String getIPV6Host( String endpointInfo ) {
+          // ipv6Host should be enclosed in
+          // [ ], if not it will result in a
+          // BAD_PARAM exception
+          int squareBracketEndIndex = endpointInfo.indexOf ( ']' );
+          // get the host between [ ]
+          String ipv6Host = endpointInfo.substring( 1, squareBracketEndIndex  );
+          return ipv6Host;
+     }
+
+     /** 
+      * Returns an IPV6 Port that is after [<ipv6>]:. There is no validation
+      * done here, if it is an incorrect port then the request through
+      * this URL results in a COMM_FAILURE, otherwise malformed list will 
+      * result in BAD_PARAM exception thrown in checkcorbalocGrammer.
+      */
+     private String getIPV6Port( String endpointInfo ) 
+     {
+         int squareBracketEndIndex = endpointInfo.indexOf ( ']' );
+         // If there is port information, then it has to be after ] bracket
+         // indexOf returns the count from the index of zero as the base, so
+         // equality check requires squareBracketEndIndex + 1. 
+         if( (squareBracketEndIndex + 1) != (endpointInfo.length( )) ) { 
+             if( endpointInfo.charAt( squareBracketEndIndex + 1 ) != ':' ) {
+                  throw new RuntimeException( 
+                      "Host and Port is not separated by ':'" );
+             }
+             // PortInformation  should be after ']:' delimiter
+             // If there is an exception then it will be caught in 
+             // checkcorbaGrammer method and rethrown as BAD_PARAM
+             return endpointInfo.substring( squareBracketEndIndex + 2 );
+         } 
+         return null;
+     } 
 
      /** Quickly check whether the given corbaname is valid
       *  return true if it is and false otherwise

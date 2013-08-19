@@ -5,7 +5,7 @@
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
- * @(#)BadServerIdHandler.java 1.9 02/01/30
+ * @(#)BadServerIdHandler.java 1.9 02/08/29
  *
  * Copyright 1993-1997 Sun Microsystems, Inc. 901 San Antonio Road,
  * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.

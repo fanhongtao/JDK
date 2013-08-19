@@ -1,7 +1,7 @@
 /*
- * @(#)KeyboardFocusManager.java	1.28 03/02/14
+ * @(#)KeyboardFocusManager.java	1.29 02/03/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -52,7 +52,7 @@ import sun.awt.SunToolkit;
  * ClassLoader.
  *
  * @author David Mendenhall
- * @version 1.28, 02/14/03 
+ * @version 1.29, 03/21/02 
  *
  * @see Window
  * @see Frame
@@ -302,23 +302,6 @@ public abstract class KeyboardFocusManager
      */
     private static AWTPermission replaceKeyboardFocusManagerPermission;
 
-    /*
-     * SequencedEvent which is currently dispatched in AppContext.
-     */
-    transient SequencedEvent currentSequencedEvent = null;
-
-    final void setCurrentSequencedEvent(SequencedEvent current) {
-        synchronized (SequencedEvent.class) {
-            currentSequencedEvent = current;
-        }
-    }
-
-    final SequencedEvent getCurrentSequencedEvent() {
-        synchronized (SequencedEvent.class) {
-            return currentSequencedEvent;
-        }
-    }
-
     static Set loadFocusTraversalKeys(String propName, String defaultValue,
 				      Set targetSet) {
 	String keys = Toolkit.getProperty(propName, defaultValue);
@@ -439,8 +422,9 @@ public abstract class KeyboardFocusManager
 
 		KeyboardFocusManager.focusOwner = focusOwner;
 
-		if (focusOwner != null &&
-		    !focusOwner.isFocusCycleRoot(getCurrentFocusCycleRoot()))
+		if (focusOwner != null && 
+                    (getCurrentFocusCycleRoot() == null ||
+		     !focusOwner.isFocusCycleRoot(getCurrentFocusCycleRoot())))
 		{
 		    Container rootAncestor =
 		        focusOwner.getFocusCycleRootAncestor();
@@ -448,10 +432,10 @@ public abstract class KeyboardFocusManager
 		    {
 		        rootAncestor = (Container)focusOwner;
 		    }
-		    if (rootAncestor != null) {
+                    if (rootAncestor != null) {
 		        setGlobalCurrentFocusCycleRoot(rootAncestor);
 		    }
-		}
+                }
 
 		shouldFire = true;
 	    }
@@ -461,39 +445,6 @@ public abstract class KeyboardFocusManager
 	    firePropertyChange("focusOwner", oldFocusOwner, focusOwner);
 	}
     }
-
-    /**
-     * Fix for 4495338.
-     * KFM's static references (notably focusedWindow and activeWindow) can
-     * keep Windows from being garbage collected if no other Window becomes
-     * focused/active after a Window is dispose()d.
-     * 
-     * Called from Window.dispose() to clear any static references to the
-     * Window.
-     */
-    static void clearStaticWindowRefs(Window ref) {
-	    synchronized (KeyboardFocusManager.class) {
-            if (focusOwner == ref) {
-                focusOwner = null;
-            }
-            if (permanentFocusOwner == ref) {
-                permanentFocusOwner = null;
-            }
-            if (focusedWindow == ref) {
-                focusedWindow = null;
-            }
-            if (activeWindow == ref) {
-                activeWindow = null;
-            }
-            if (currentFocusCycleRoot == ref) {
-                currentFocusCycleRoot = null;
-            }
-            if (newFocusOwner == ref) {
-                newFocusOwner = null;
-            }
-        }
-    }
-
 
     /**
      * Clears the global focus owner at both the Java and native levels. If
@@ -1241,7 +1192,7 @@ public abstract class KeyboardFocusManager
      * @param propertyName one of the property names listed above
      * @param listener the PropertyChangeListener to be added
      * @see #addPropertyChangeListener(java.beans.PropertyChangeListener)
-     * @see #removePropertyChangeListener(java.lang.String)
+     * @see #removePropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)
      * @see #getPropertyChangeListeners(java.lang.String)
      */
     public void addPropertyChangeListener(String propertyName,
@@ -1266,7 +1217,7 @@ public abstract class KeyboardFocusManager
      *
      * @param propertyName a valid property name
      * @param listener the PropertyChangeListener to be removed
-     * @see #addPropertyChangeListener(java.lang.String)
+     * @see #addPropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)
      * @see #getPropertyChangeListeners(java.lang.String)
      * @see #removePropertyChangeListener(java.beans.PropertyChangeListener)
      */
@@ -1290,8 +1241,8 @@ public abstract class KeyboardFocusManager
      *         the named property or an empty array if no such listeners have
      *         been added.
      *         
-     * @see #addPropertyChangeListener(java.lang.String)
-     * @see #removePropertyChangeListener(java.lang.String)
+     * @see #addPropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)
+     * @see #removePropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)
      * @since 1.4
      */
     public synchronized PropertyChangeListener[] getPropertyChangeListeners(String propertyName) {
@@ -1455,8 +1406,8 @@ public abstract class KeyboardFocusManager
      *         the named property or an empty array if no such listeners have
      *         been added.
      *
-     * @see #addVetoableChangeListener(java.lang.String)
-     * @see #removeVetoableChangeListener(java.lang.String)
+     * @see #addVetoableChangeListener(java.lang.String,java.beans.VetoableChangeListener)
+     * @see #removeVetoableChangeListener(java.lang.String,java.beans.VetoableChangeListener)
      * @see #getVetoableChangeListeners
      * @since 1.4
      */
@@ -1668,6 +1619,26 @@ public abstract class KeyboardFocusManager
 	    weakValue = new WeakReference(component);
 	}
         mostRecentFocusOwners.put(window, weakValue);
+    }
+    static void clearMostRecentFocusOwner(Component comp) {
+        Container window;
+
+        if (comp == null) {
+            return;
+        }
+
+        synchronized (comp.getTreeLock()) {
+            window = comp.getParent();
+            while (window != null && !(window instanceof Window)) {
+                window = window.getParent();
+            }
+        }
+
+        if ((window != null) 
+            && (getMostRecentFocusOwner((Window)window) == comp)) 
+        {
+            setMostRecentFocusOwner((Window)window, null);
+        }
     }
     static synchronized Component getMostRecentFocusOwner(Window window) {
 	WeakReference weakValue =
@@ -2446,12 +2417,16 @@ public abstract class KeyboardFocusManager
 
                 // Otherwise, fall through to failure case below
 
-            } else if (id == FocusEvent.FOCUS_LOST && opposite == null &&
-                       currentFocusOwner != null)
+            } else if (id == FocusEvent.FOCUS_LOST && opposite == null)
             {
                 // Focus leaving application
-                return new FocusEvent(currentFocusOwner, FocusEvent.FOCUS_LOST,
-                                      true, null);
+                if (currentFocusOwner != null) {
+                    return new FocusEvent(currentFocusOwner, 
+                                          FocusEvent.FOCUS_LOST,
+                                          true, null);
+                } else {
+                    return fe;
+                }
             } else if (id == FocusEvent.FOCUS_LOST && hwFocusRequest != null &&
                        nativeOpposite == hwFocusRequest.heavyweight)
             {

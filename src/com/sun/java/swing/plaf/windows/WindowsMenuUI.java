@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsMenuUI.java	1.17 01/12/03
+ * @(#)WindowsMenuUI.java	1.18 02/02/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,8 +39,11 @@ public class WindowsMenuUI extends BasicMenuUI {
      * @since 1.4
      */
     protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
-	// For the old Windows LAF, use the superclass method.
-	if (WindowsLookAndFeel.isClassicWindows()) {
+	// Use superclass method for the old Windows LAF,
+        // and for submenus
+	if (WindowsLookAndFeel.isClassicWindows() ||
+            ! ((JMenu)menuItem).isTopLevelMenu()) {
+
 	    super.paintBackground(g, menuItem, bgColor);
 	    return;
 	}
@@ -113,9 +116,13 @@ public class WindowsMenuUI extends BasicMenuUI {
 	    Color oldColor = g.getColor();
 
 	    // For Win95, the selected text color is the selection forground color
-	    if (WindowsLookAndFeel.isClassicWindows() && model.isSelected()) {
-		g.setColor(selectionForeground); // Uses protected field.
-	    }
+	    if (model.isSelected()) {
+                if (WindowsLookAndFeel.isClassicWindows() ||
+                    ! ((JMenu)menuItem).isTopLevelMenu()) {
+
+                    g.setColor(selectionForeground); // Uses protected field.
+                }
+            }
  	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
                                           mnemonicIndex, 
 					  textRect.x,

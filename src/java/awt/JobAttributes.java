@@ -1,5 +1,5 @@
 /*
- * @(#)JobAttributes.java	1.6 01/12/03
+ * @(#)JobAttributes.java	1.7 02/03/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ package java.awt;
  * has a corresponding <code>set<i>attributeName</i>ToDefault</code> method.
  * Default value fields are not provided.
  *
- * @version	1.6, 12/03/01
+ * @version	1.7, 03/19/02
  * @author	David Mendenhall
  */
 public final class JobAttributes implements Cloneable {
@@ -139,8 +139,9 @@ public final class JobAttributes implements Cloneable {
     }
 
     /**
-     * A type-safe enumeration of possible multiple document handling states.
-     * These states are in partial compliance with IPP 1.1.
+     * A type-safe enumeration of possible multiple copy handling states.
+     * It is used to control how the sheets of multiple copies of a single
+     * document are collated.
      */
     public static final class MultipleDocumentHandlingType extends
                                                                AttributeValue {
@@ -154,7 +155,7 @@ public final class JobAttributes implements Cloneable {
 
         /**
 	 * The <code>MultipleDocumentHandlingType</code> instance to use for specifying
-	 * that the job should be divided into separate, collated documents.
+	 * that the job should be divided into separate, collated copies.
 	 */
         public static final MultipleDocumentHandlingType
             SEPARATE_DOCUMENTS_COLLATED_COPIES =
@@ -162,7 +163,7 @@ public final class JobAttributes implements Cloneable {
                     I_SEPARATE_DOCUMENTS_COLLATED_COPIES);
         /**
 	 * The <code>MultipleDocumentHandlingType</code> instance to use for specifying
-	 * that the job should be divided into separate, uncollated documents.
+	 * that the job should be divided into separate, uncollated copies.
 	 */
         public static final MultipleDocumentHandlingType
             SEPARATE_DOCUMENTS_UNCOLLATED_COPIES =
@@ -635,7 +636,7 @@ public final class JobAttributes implements Cloneable {
     }
 
     /**
-     * Specifies the handling of multiple documents, including collation, for
+     * Specifies the handling of multiple copies, including collation, for
      * jobs using these attributes. This attribute is updated to the value
      * chosen by the user.
      *
@@ -648,7 +649,7 @@ public final class JobAttributes implements Cloneable {
     }
 
     /**
-     * Specifies the handling of multiple documents, including collation, for
+     * Specifies the handling of multiple copies, including collation, for
      * jobs using these attributes. Not specifying this attribute is equivalent
      * to specifying
      * MultipleDocumentHandlingType.SEPARATE_DOCUMENTS_UNCOLLATED_COPIES.
@@ -668,7 +669,7 @@ public final class JobAttributes implements Cloneable {
     }
 
     /**
-     * Sets the handling of multiple documents, including collation, for jobs
+     * Sets the handling of multiple copies, including collation, for jobs
      * using these attributes to the default. The default handling is
      * MultipleDocumentHandlingType.SEPARATE_DOCUMENTS_UNCOLLATED_COPIES.
      */

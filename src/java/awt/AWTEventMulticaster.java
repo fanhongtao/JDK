@@ -1,5 +1,5 @@
 /*
- * @(#)AWTEventMulticaster.java	1.31 01/12/03
+ * @(#)AWTEventMulticaster.java	1.32 02/01/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -46,7 +46,7 @@ import java.util.EventListener;
  *
  * @author      John Rose
  * @author 	Amy Fowler
- * @version 	1.31, 12/03/01
+ * @version 	1.32, 01/17/02
  * @since 	1.1
  */
 
@@ -871,28 +871,42 @@ public class AWTEventMulticaster implements
       }
     }
     
-    private static int getListenerCount(EventListener l) { 
-        if (l instanceof AWTEventMulticaster) { 
+    /*
+     * Recursive method which returns a count of the number of listeners in
+     * EventListener, handling the (common) case of l actually being an
+     * AWTEventMulticaster.  Additionally, only listeners of type listenerType
+     * are counted.  Method modified to fix bug 4513402.  -bchristi
+     */
+    private static int getListenerCount(EventListener l, Class listenerType) { 
+        if (l instanceof AWTEventMulticaster) {
             AWTEventMulticaster mc = (AWTEventMulticaster)l; 
-            return getListenerCount(mc.a) + getListenerCount(mc.b); 
+            return getListenerCount(mc.a, listenerType) +
+             getListenerCount(mc.b, listenerType); 
         }
-        // Delete nulls. 
-        else { 
-            return (l == null) ? 0 : 1; 
+        else {
+            // Only count listeners of correct type
+            return listenerType.isInstance(l) ? 1 : 0;
         } 
     }
     
+    /*
+     * Recusive method which populates EventListener array a with EventListeners
+     * from l.  l is usually an AWTEventMulticaster.  Bug 4513402 revealed that
+     * if l differed in type from the element type of a, an ArrayStoreException
+     * would occur.  Now l is only inserted into a if it's of the appropriate
+     * type.  -bchristi
+     */
     private static int populateListenerArray(EventListener[] a, EventListener l, int index) { 
         if (l instanceof AWTEventMulticaster) { 
             AWTEventMulticaster mc = (AWTEventMulticaster)l; 
             int lhs = populateListenerArray(a, mc.a, index); 
             return populateListenerArray(a, mc.b, lhs); 
         }
-        else if (l != null) { 
+        else if (a.getClass().getComponentType().isInstance(l)) { 
             a[index] = l; 
             return index + 1; 
         } 
-        // Delete nulls. 
+        // Skip nulls, instances of wrong class
         else { 
             return index; 
         }
@@ -927,7 +941,7 @@ public class AWTEventMulticaster implements
      */
     public static EventListener[] getListeners(EventListener l, 
                                                Class listenerType) {  
-        int n = getListenerCount(l); 
+        int n = getListenerCount(l, listenerType); 
         EventListener[] result = (EventListener[])Array.newInstance(listenerType, n); 
         populateListenerArray(result, l, 0); 
         return result; 

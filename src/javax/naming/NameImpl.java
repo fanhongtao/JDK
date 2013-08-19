@@ -1,5 +1,5 @@
 /*
- * @(#)NameImpl.java	1.6 01/12/03
+ * @(#)NameImpl.java	1.7 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,35 +19,38 @@ import java.util.NoSuchElementException;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Aravindan Ranganathan
-  * @version 1.6 01/12/03
+  * @version 1.7 02/04/02
   * @since 1.3
   */
 
-class NameImpl implements java.io.Serializable {
+class NameImpl {
+    private static final byte LEFT_TO_RIGHT = 1;
+    private static final byte RIGHT_TO_LEFT = 2;
+    private static final byte FLAT = 0;
 
     private Vector components;
 
-    private String syntaxDirection;
-    private String syntaxSeparator;
-    private String syntaxSeparator2;
-    private boolean syntaxCaseInsensitive;
-    private boolean syntaxTrimBlanks;
-    private String syntaxEscape;
-    private String syntaxBeginQuote1;
-    private String syntaxEndQuote1;
-    private String syntaxBeginQuote2;
-    private String syntaxEndQuote2;
-    private String syntaxAvaSeparator;
-    private String syntaxTypevalSeparator;
+    private byte syntaxDirection = LEFT_TO_RIGHT;
+    private String syntaxSeparator = "/";
+    private String syntaxSeparator2 = null;
+    private boolean syntaxCaseInsensitive = false;
+    private boolean syntaxTrimBlanks = false;
+    private String syntaxEscape = "\\";
+    private String syntaxBeginQuote1 = "\"";
+    private String syntaxEndQuote1 = "\"";
+    private String syntaxBeginQuote2 = "'";
+    private String syntaxEndQuote2 = "'";
+    private String syntaxAvaSeparator = null;
+    private String syntaxTypevalSeparator = null;
 
     // escapingStyle gives the method used at creation time for
     // quoting or escaping characters in the name.  It is set to the
     // first style of quote or escape encountered if and when the name
     // is parsed.
-    private final int STYLE_NONE = 0;
-    private final int STYLE_QUOTE1 = 1;
-    private final int STYLE_QUOTE2 = 2;
-    private final int STYLE_ESCAPE = 3;
+    private static final int STYLE_NONE = 0;
+    private static final int STYLE_QUOTE1 = 1;
+    private static final int STYLE_QUOTE2 = 2;
+    private static final int STYLE_ESCAPE = 3;
     private int escapingStyle = STYLE_NONE;
 
     // Returns true if "match" is not null, and n contains "match" at
@@ -184,7 +187,7 @@ class NameImpl implements java.io.Serializable {
 	    start = false;
 	}
 
-	if (syntaxDirection.equals("right_to_left"))
+	if (syntaxDirection == RIGHT_TO_LEFT)
 	    comps.insertElementAt(answer.toString(), 0);
 	else
 	    comps.addElement(answer.toString());
@@ -200,21 +203,28 @@ class NameImpl implements java.io.Serializable {
     }
 
     private final void recordNamingConvention(Properties p) {
-	syntaxDirection = p.getProperty("jndi.syntax.direction", "flat");
-	if (!syntaxDirection.equals("left_to_right") &&
-	    !syntaxDirection.equals("right_to_left") &&
-	    !syntaxDirection.equals("flat")) {
-	    throw new IllegalArgumentException(syntaxDirection +
+	String syntaxDirectionStr = 
+	    p.getProperty("jndi.syntax.direction", "flat");
+	if (syntaxDirectionStr.equals("left_to_right")) {
+	    syntaxDirection = LEFT_TO_RIGHT;
+	} else if (syntaxDirectionStr.equals("right_to_left")) {
+	    syntaxDirection = RIGHT_TO_LEFT;
+	} else if (syntaxDirectionStr.equals("flat")) {
+	    syntaxDirection = FLAT;
+	} else {
+	    throw new IllegalArgumentException(syntaxDirectionStr +
 		"is not a valid value for the jndi.syntax.direction property");
 	}	
 
-	if (!syntaxDirection.equals("flat")) {
+	if (syntaxDirection != FLAT) {
 	    syntaxSeparator = p.getProperty("jndi.syntax.separator");
 	    syntaxSeparator2 = p.getProperty("jndi.syntax.separator2");
 	    if (syntaxSeparator == null) {
 		throw new IllegalArgumentException(
 		    "jndi.syntax.separator property required for non-flat syntax");
 	    }
+	} else {
+	    syntaxSeparator = null;
 	}
 	syntaxEscape = p.getProperty("jndi.syntax.escape");
 
@@ -240,14 +250,16 @@ class NameImpl implements java.io.Serializable {
     }
 
     NameImpl(Properties syntax) {
-	recordNamingConvention(syntax);
+	if (syntax != null) {
+	    recordNamingConvention(syntax);
+	}
 	components = new Vector();
     }
 
     NameImpl(Properties syntax, String n) throws InvalidNameException {
 	this(syntax);
 
-	boolean rToL = syntaxDirection.equals("right_to_left");
+	boolean rToL = (syntaxDirection == RIGHT_TO_LEFT);
 	boolean compsAllEmpty = true;
 	int len = n.length();
 
@@ -424,7 +436,7 @@ class NameImpl implements java.io.Serializable {
 	int size = components.size();
 
 	for (int i = 0; i < size; i++) {
-	    if (syntaxDirection.equals("right_to_left")) {
+	    if (syntaxDirection == RIGHT_TO_LEFT) {
 		comp =
 		    stringifyComp((String) components.elementAt(size - 1 - i));
 	    } else {
@@ -605,7 +617,7 @@ class NameImpl implements java.io.Serializable {
 	while (comps.hasMoreElements()) {
 	    try {
 		Object comp = comps.nextElement();
-		if (size() > 0 && syntaxDirection.equals("flat")) {
+		if (size() > 0 && syntaxDirection == FLAT) {
 		    throw new InvalidNameException(
 			"A flat name can only have a single component");
 		}
@@ -624,7 +636,7 @@ class NameImpl implements java.io.Serializable {
 	for (int i = posn; comps.hasMoreElements(); i++) {
 	    try {
 		Object comp = comps.nextElement();
-		if (size() > 0 && syntaxDirection.equals("flat")) {
+		if (size() > 0 && syntaxDirection == FLAT) {
 		    throw new InvalidNameException(
 			"A flat name can only have a single component");
 		}
@@ -638,7 +650,7 @@ class NameImpl implements java.io.Serializable {
     }
 
     public void add(String comp) throws InvalidNameException {
-	if (size() > 0 && syntaxDirection.equals("flat")) {
+	if (size() > 0 && syntaxDirection == FLAT) {
 	    throw new InvalidNameException(
 		"A flat name can only have a single component");
 	}
@@ -646,7 +658,7 @@ class NameImpl implements java.io.Serializable {
     }
 
     public void add(int posn, String comp) throws InvalidNameException {
-	if (size() > 0 && syntaxDirection.equals("flat")) {
+	if (size() > 0 && syntaxDirection == FLAT) {
 	    throw new InvalidNameException(
 		"A flat name can only zero or one component");
 	}

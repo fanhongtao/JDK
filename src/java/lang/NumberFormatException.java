@@ -1,5 +1,5 @@
 /*
- * @(#)NumberFormatException.java	1.17 01/12/03
+ * @(#)NumberFormatException.java	1.18 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,12 +13,14 @@ package java.lang;
  * have the appropriate format. 
  *
  * @author  unascribed
- * @version 1.17, 12/03/01
+ * @version 1.18, 02/06/02
  * @see     java.lang.Integer#toString()
  * @since   JDK1.0
  */
 public
 class NumberFormatException extends IllegalArgumentException {
+    static final long serialVersionUID = -2848938806368998894L;
+
     /**
      * Constructs a <code>NumberFormatException</code> with no detail message.
      */
@@ -34,5 +36,15 @@ class NumberFormatException extends IllegalArgumentException {
      */
     public NumberFormatException (String s) {
 	super (s);
+    }
+
+    /**
+     * Factory method for making a <code>NumberFormatException</code>
+     * given the specified input which caused the error.
+     *
+     * @param   s   the input causing the error
+     */
+    static NumberFormatException forInputString(String s) {
+        return new NumberFormatException("For input string: \"" + s + "\"");
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicRadioButtonUI.java	1.64 01/12/03
+ * @(#)BasicRadioButtonUI.java	1.65 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import javax.swing.text.View;
 /**
  * RadioButtonUI implementation for BasicRadioButtonUI
  *
- * @version 1.64 12/03/01
+ * @version 1.65 04/02/02
  * @author Jeff Dinkins
  */
 public class BasicRadioButtonUI extends BasicToggleButtonUI 
@@ -89,10 +89,12 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
         g.setFont(f);
         FontMetrics fm = g.getFontMetrics();
 
+        Insets i = c.getInsets();
         size = b.getSize(size);
-        viewRect.x = viewRect.y = 0;
-        viewRect.width = size.width;
-        viewRect.height = size.height;
+        viewRect.x = i.left;
+	viewRect.y = i.top;
+        viewRect.width = size.width - (i.right + viewRect.x);
+        viewRect.height = size.height - (i.bottom + viewRect.y);
         iconRect.x = iconRect.y = iconRect.width = iconRect.height = 0;
         textRect.x = textRect.y = textRect.width = textRect.height = 0;
 

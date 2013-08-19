@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectStreamClass.java	1.123 01/12/03
+ * @(#)ObjectStreamClass.java	1.126 02/04/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -330,7 +330,12 @@ public class ObjectStreamClass implements Serializable {
 		public Object run() {
 		    suid = getDeclaredSUID(cl);
 		    fields = getSerialFields(cl);
-		    computeFieldOffsets();
+		    try {
+			computeFieldOffsets();
+		    } catch (InvalidClassException e) {
+			// should not occur, since fields are already sorted
+			throw new InternalError();
+		    }
 		    
 		    if (externalizable) {
 			cons = getExternalizableConstructor(cl);
@@ -508,24 +513,34 @@ public class ObjectStreamClass implements Serializable {
 	isProxy = false;
 
 	byte flags = in.readByte();
-	externalizable = 
-	    ((flags & ObjectStreamConstants.SC_EXTERNALIZABLE) != 0);
-	serializable = (externalizable ||
-	    ((flags & ObjectStreamConstants.SC_SERIALIZABLE) != 0));
 	hasWriteObjectData = 
 	    ((flags & ObjectStreamConstants.SC_WRITE_METHOD) != 0);
 	hasBlockExternalData = 
 	    ((flags & ObjectStreamConstants.SC_BLOCK_DATA) != 0);
+	externalizable = 
+	    ((flags & ObjectStreamConstants.SC_EXTERNALIZABLE) != 0);
+	boolean sflag = 
+	    ((flags & ObjectStreamConstants.SC_SERIALIZABLE) != 0);
+	if (externalizable && sflag) {
+	    throw new InvalidClassException(
+		name, "serializable and externalizable flags conflict");
+	}
+	serializable = externalizable || sflag;
 	
 	int numFields = in.readShort();
 	fields = (numFields > 0) ? 
 	    new ObjectStreamField[numFields] : NO_FIELDS;
 	for (int i = 0; i < numFields; i++) {
 	    char tcode = (char) in.readByte();
-	    String name = in.readUTF();
+	    String fname = in.readUTF();
 	    String signature = ((tcode == 'L') || (tcode == '[')) ?
 		in.readTypeString() : new String(new char[] { tcode });
-	    fields[i] = new ObjectStreamField(name, signature, false);
+	    try {
+		fields[i] = new ObjectStreamField(fname, signature, false);
+	    } catch (RuntimeException e) {
+		throw (IOException) new InvalidClassException(name, 
+		    "invalid descriptor for field " + fname).initCause(e);
+	    }
 	}
 	computeFieldOffsets();
     }
@@ -913,7 +928,7 @@ public class ObjectStreamClass implements Serializable {
 
     /**
      * Class representing the portion of an object's serialized form allotted
-     * to data described by a given class descriptor.  If "hasDesc" is false,
+     * to data described by a given class descriptor.  If "hasData" is false,
      * the object's serialized form does not contain data associated with the
      * class descriptor.
      */
@@ -1049,11 +1064,14 @@ public class ObjectStreamClass implements Serializable {
     
     /**
      * Calculates and sets serializable field offsets, as well as primitive
-     * data size and object field count totals.
+     * data size and object field count totals.  Throws InvalidClassException
+     * if fields are illegally ordered.
      */
-    private void computeFieldOffsets() {
+    private void computeFieldOffsets() throws InvalidClassException {
 	primDataSize = 0;
 	numObjFields = 0;
+	int firstObjIndex = -1;
+
 	for (int i = 0; i < fields.length; i++) {
 	    ObjectStreamField f = fields[i];
 	    switch (f.getTypeCode()) {
@@ -1083,11 +1101,19 @@ public class ObjectStreamClass implements Serializable {
 		case '[':
 		case 'L':
 		    f.setOffset(numObjFields++);
+		    if (firstObjIndex == -1) {
+			firstObjIndex = i;
+		    }
 		    break;
 
 		default:
 		    throw new InternalError();
 	    }
+	}
+	if (firstObjIndex != -1 && 
+	    firstObjIndex + numObjFields != fields.length)
+	{
+	    throw new InvalidClassException(name, "illegal field order");
 	}
     }
     
@@ -1810,7 +1836,14 @@ public class ObjectStreamClass implements Serializable {
 			if (val != null && 
 			    !types[i - numPrimFields].isInstance(val))
 			{
-			    throw new ClassCastException();
+			    Field f = fields[i].getField();
+			    throw new ClassCastException(
+				"cannot assign instance of " + 
+				val.getClass().getName() + " to field " +
+				f.getDeclaringClass().getName() + "." +
+				f.getName() + " of type " +
+				f.getType().getName() + " in instance of " +
+				obj.getClass().getName());
 			}
 			unsafe.putObject(obj, key, val);
 			break;

@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.172 02/09/02
+ * @(#)Window.java	1.175 02/03/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -81,7 +81,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.172, 09/02/02
+ * @version 	1.175, 03/25/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -106,8 +106,7 @@ public class Window extends Container implements Accessible {
 
     static boolean systemSyncLWRequests = false;
     boolean     syncLWRequests = false;
-    boolean isFirstPack = true;
-    
+
     static final int OPENED = 0x01;
 
     /**
@@ -429,11 +428,7 @@ public class Window extends Container implements Accessible {
 	    addNotify();
 	}
 	setSize(getPreferredSize());
-        
-        if(isFirstPack == true) {
-	    isPacked = true;
-            isFirstPack = false;
-        }
+	isPacked = true;
 
 	validate();
     }
@@ -507,6 +502,9 @@ public class Window extends Container implements Accessible {
 	super.hide();
     }
 
+    final void clearMostRecentFocusOwnerOnHide() {
+        /* do nothing */
+    }
     /**
      * Releases all of the native screen resources used by this Window, 
      * its subcomponents, and all of its owned children. That is, the 
@@ -545,7 +543,7 @@ public class Window extends Container implements Accessible {
                     inputContext = null;
                 }
             }
-            KeyboardFocusManager.clearStaticWindowRefs(Window.this);
+            clearCurrentFocusCycleRootOnHide();
         }
     }
 
@@ -762,6 +760,7 @@ public class Window extends Container implements Accessible {
 
     /**
      * Returns the owner of this window.
+     * @since 1.2
      */
     public Window getOwner() {
         return (Window)parent;
@@ -1292,7 +1291,7 @@ public class Window extends Container implements Accessible {
   
     /**
      * Gets a focus traversal key for this Window. (See <code>
-     * setFocusTraversalKey</code> for a full description of each key.)
+     * setFocusTraversalKeys</code> for a full description of each key.)
      * <p>
      * If the traversal key has not been explicitly set for this Window,
      * then this Window's parent's traversal key is returned. If the
@@ -1300,21 +1299,21 @@ public class Window extends Container implements Accessible {
      * ancestors, then the current KeyboardFocusManager's default traversal key
      * is returned.
      *
-     * @param id one of KeyboardFocusManager.FORWARD_TRAVERSAL_KEY,
-     *         KeyboardFocusManager.BACKWARD_TRAVERSAL_KEY,
-     *         KeyboardFocusManager.UP_CYCLE_TRAVERSAL_KEY, or
-     *         KeyboardFocusManager.DOWN_CYCLE_TRAVERSAL_KEY
+     * @param id one of KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+     *         KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+     *         KeyboardFocusManager.UP_CYCLE_TRAVERSAL_KEYS, or
+     *         KeyboardFocusManager.DOWN_CYCLE_TRAVERSAL_KEYS
      * @return the AWTKeyStroke for the specified key
-     * @see #setFocusTraversalKey
-     * @see KeyboardFocusManager#FORWARD_TRAVERSAL_KEY
-     * @see KeyboardFocusManager#BACKWARD_TRAVERSAL_KEY
-     * @see KeyboardFocusManager#UP_CYCLE_TRAVERSAL_KEY
-     * @see KeyboardFocusManager#DOWN_CYCLE_TRAVERSAL_KEY
+     * @see Container#setFocusTraversalKeys
+     * @see KeyboardFocusManager#FORWARD_TRAVERSAL_KEYS
+     * @see KeyboardFocusManager#BACKWARD_TRAVERSAL_KEYS
+     * @see KeyboardFocusManager#UP_CYCLE_TRAVERSAL_KEYS
+     * @see KeyboardFocusManager#DOWN_CYCLE_TRAVERSAL_KEYS
      * @throws IllegalArgumentException if id is not one of
-     *         KeyboardFocusManager.FORWARD_TRAVERSAL_KEY,
-     *         KeyboardFocusManager.BACKWARD_TRAVERSAL_KEY,
-     *         KeyboardFocusManager.UP_CYCLE_TRAVERSAL_KEY, or
-     *         KeyboardFocusManager.DOWN_CYCLE_TRAVERSAL_KEY
+     *         KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+     *         KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+     *         KeyboardFocusManager.UP_CYCLE_TRAVERSAL_KEYS, or
+     *         KeyboardFocusManager.DOWN_CYCLE_TRAVERSAL_KEYS
      * @since 1.4
      */
     public Set getFocusTraversalKeys(int id) {

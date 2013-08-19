@@ -1,5 +1,5 @@
 /*
- * @(#)FileOutputStream.java	1.53 01/12/03
+ * @(#)FileOutputStream.java	1.54 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileWriter</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.53, 12/03/01
+ * @version 1.54, 02/06/02
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see     java.io.FileInputStream
@@ -67,7 +67,7 @@ class FileOutputStream extends OutputStream
      * @see        java.lang.SecurityManager#checkWrite(java.lang.String)
      */
     public FileOutputStream(String name) throws FileNotFoundException {
-	this(new File(name), false);
+	this(name != null ? new File(name) : null, false);
     }
 
     /**
@@ -99,7 +99,7 @@ class FileOutputStream extends OutputStream
     public FileOutputStream(String name, boolean append)
         throws FileNotFoundException
     {
-        this(new File(name), append);
+        this(name != null ? new File(name) : null, append);
     }
 
     /**
@@ -163,7 +163,7 @@ class FileOutputStream extends OutputStream
     public FileOutputStream(File file, boolean append)
         throws FileNotFoundException
     {
-        String name = file.getPath();
+        String name = (file != null ? file.getPath() : null);
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
 	    security.checkWrite(name);

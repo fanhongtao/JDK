@@ -1,5 +1,5 @@
 /*
- * @(#)RMIClassLoader.java	1.34 01/12/03
+ * @(#)RMIClassLoader.java	1.35 02/03/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -83,7 +83,7 @@ import sun.misc.Service;
  *
  * </ul>
  *
- * @version	1.34, 01/12/03
+ * @version	1.35, 02/03/06
  * @author	Ann Wollrath
  * @author	Peter Jones
  * @author	Laird Dornin
@@ -367,6 +367,8 @@ public class RMIClassLoader {
      *
      * @return	a string to be used to annotate the given class when
      * it gets marshalled, or <code>null</code>
+     *
+     * @throws	NullPointerException if <code>cl</code> is <code>null</code>
      *
      * @since	1.2
      */

@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultHSBChooserPanel.java	1.19 01/12/03
+ * @(#)DefaultHSBChooserPanel.java	1.20 02/04/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,30 +14,23 @@ import javax.swing.event.*;
 import javax.swing.border.*;
 import java.awt.image.*;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-
 /**
  * Implements the default HSB Color chooser
  *
- *  @version 1.19 12/03/01
+ *  @version 1.20 04/16/02
  *  @author Tom Santos
  *  @author Steve Wilson
  *  @author Mark Davidson
+ *  @author Shannon Hickey
  */
-class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements ChangeListener {
+class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements ChangeListener, HierarchyListener {
 
-    private AbstractHSBImage palette;
-    private AbstractHSBImage sliderPalette;
-
-    // Cached instances of the various palette and slider images.
-    private AbstractHSBImage satbrightImage;
-    private AbstractHSBImage hueImage;
-    private AbstractHSBImage huebrightImage;
-    private AbstractHSBImage satImage;
-    private AbstractHSBImage huesatImage;
-    private AbstractHSBImage brightImage;
-
+    private HSBImage palette;
+    private HSBImage sliderPalette;
+    
+    private Image paletteImage;
+    private Image sliderPaletteImage;
+    
     private JSlider slider;
     private JSpinner hField; 
     private JSpinner sField;
@@ -56,22 +49,18 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
     private JRadioButton sRadio;
     private JRadioButton bRadio;
 
-    private Image paletteImage;
-    private Image sliderImage;
-
     private static final int PALETTE_DIMENSION = 200;
     private static final int MAX_HUE_VALUE = 359;
     private static final int MAX_SATURATION_VALUE = 100;
     private static final int MAX_BRIGHTNESS_VALUE = 100;
 
-    private int sliderType = HUE_SLIDER;
+    private int currentMode = HUE_MODE;
 
-    private static final int HUE_SLIDER = 0;
-    private static final int SATURATION_SLIDER = 1;
-    private static final int BRIGHTNESS_SLIDER = 2;
+    private static final int HUE_MODE = 0;
+    private static final int SATURATION_MODE = 1;
+    private static final int BRIGHTNESS_MODE = 2;
 
     public DefaultHSBChooserPanel() {
-        super();
     }
 
     private void addPaletteListeners() {
@@ -118,56 +107,56 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         int x = 0;
         int y = 0;
 
-        switch ( sliderType ) {
-        case HUE_SLIDER:
+        switch ( currentMode ) {
+        case HUE_MODE:
             if ( h != palette.getHue() ) {
                 palette.setHue( h );
-                palette.nextFrame( 0 );
+                palette.nextFrame();
             }
             x = PALETTE_DIMENSION - (int)(s * PALETTE_DIMENSION);
             y = PALETTE_DIMENSION - (int)(b * PALETTE_DIMENSION);
             break;
-        case SATURATION_SLIDER:
+        case SATURATION_MODE:
             if ( s != palette.getSaturation() ) {
                 palette.setSaturation( s );
-                palette.nextFrame( 0 );
+                palette.nextFrame();
             }
             x = (int)(h * PALETTE_DIMENSION);
             y = PALETTE_DIMENSION - (int)(b * PALETTE_DIMENSION);
             break;
-        case BRIGHTNESS_SLIDER:
+        case BRIGHTNESS_MODE:
             if ( b != palette.getBrightness() ) {
                 palette.setBrightness( b );
-                palette.nextFrame( 0 );
+                palette.nextFrame();
             }
             x = (int)(h * PALETTE_DIMENSION);
             y = PALETTE_DIMENSION - (int)(s * PALETTE_DIMENSION);
             break;
         }
-
+        
         paletteSelection.setLocation( x, y );
-        paletteLabel.repaint(); 
+        paletteLabel.repaint();
     }
 
     private void updateSlider( float h, float s, float b ) {
         // Update the slider palette if necessary.
         // When the slider is the hue slider or the hue hasn't changed,
         // the hue of the palette will not need to be updated.
-        if (sliderType != HUE_SLIDER && h != sliderPalette.getHue() ) {
+        if (currentMode != HUE_MODE && h != sliderPalette.getHue() ) {
             sliderPalette.setHue( h );
-            sliderPalette.nextFrame( 0 );
+            sliderPalette.nextFrame();
         }
         
         float value = 0f;
 
-        switch ( sliderType ) {
-        case HUE_SLIDER:
+        switch ( currentMode ) {
+        case HUE_MODE:
             value = h;
             break;
-        case SATURATION_SLIDER:
+        case SATURATION_MODE:
             value = s;
             break;
-        case BRIGHTNESS_SLIDER:
+        case BRIGHTNESS_MODE:
             value = b;
             break;
         }
@@ -233,11 +222,19 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         }
     }
     
+    public void installChooserPanel(JColorChooser enclosingChooser) {
+	super.installChooserPanel(enclosingChooser);
+	addHierarchyListener(this);
+    }
+    
     /**
      * Invoked when the panel is removed from the chooser.
      */
     public void uninstallChooserPanel(JColorChooser enclosingChooser) {
     	super.uninstallChooserPanel(enclosingChooser);
+    	cleanupPalettesIfNecessary();
+    	removeAll();
+    	removeHierarchyListener(this);
     }
     
     /** 
@@ -363,103 +360,61 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         
             if (obj instanceof JRadioButton)  {
                 JRadioButton button = (JRadioButton)obj;
-                if (button == hRadio)
-                    setHueMode();
-            
-                if (button == sRadio)
-                    setSaturationMode();
-
-                if (button == bRadio)
-                    setBrightnessMode();
-                
-                updateChooser();
-                repaint();
+                if (button == hRadio) {
+                    setMode(HUE_MODE);
+                } else if (button == sRadio) {
+                    setMode(SATURATION_MODE);
+                } else if (button == bRadio) {
+                    setMode(BRIGHTNESS_MODE);
+                }
             }
         }
     }
-
-
-    // Callback methods for radio button selection.
     
-    private void setHueMode() {
+    private void setMode(int mode) {
+        if (currentMode == mode) {
+            return;
+        }
+        
+        isAdjusting = true;  // Ensure no events propagate from changing slider value.
+        currentMode = mode;
         
         float[] hsb = getHSBColorFromModel();
-
-        if (satbrightImage == null && hueImage == null)  {
-            satbrightImage = new SaturationBrightnessImage(PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0]);
-            hueImage = new HueImage( 16, PALETTE_DIMENSION);
-        } else {
-            satbrightImage.setHue(hsb[0]);
-        }
         
-        setMode(HUE_SLIDER, MAX_HUE_VALUE, true, satbrightImage, hueImage);
-    }
-
-    private void setSaturationMode() {
-        float[] hsb = getHSBColorFromModel();
-        
-        if (huebrightImage == null && satImage == null)  {
-            huebrightImage = new HueBrightnessImage( PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[1]);
-            satImage = new SaturationImage(16, PALETTE_DIMENSION, hsb[0]);
-        } else {
-        	huebrightImage.setHue(hsb[0]);
-        	huebrightImage.setBrightness(hsb[1]);
-            satImage.setHue(hsb[0]);
+        switch (currentMode) {
+            case HUE_MODE:
+                slider.setInverted(true);
+                slider.setMaximum(MAX_HUE_VALUE);
+                palette.setValues(HSBImage.HSQUARE, hsb[0], 1.0f, 1.0f);
+                sliderPalette.setValues(HSBImage.HSLIDER, 0f, 1.0f, 1.0f);
+                break;
+            case SATURATION_MODE:
+                slider.setInverted(false);
+                slider.setMaximum(MAX_SATURATION_VALUE);
+                palette.setValues(HSBImage.SSQUARE, hsb[0], hsb[1], 1.0f);
+                sliderPalette.setValues(HSBImage.SSLIDER, hsb[0], 1.0f, 1.0f);
+                break;
+            case BRIGHTNESS_MODE:
+                slider.setInverted(false);
+                slider.setMaximum(MAX_BRIGHTNESS_VALUE);
+                palette.setValues(HSBImage.BSQUARE, hsb[0], 1.0f, hsb[2]);
+                sliderPalette.setValues(HSBImage.BSLIDER, hsb[0], 1.0f, 1.0f);
+                break;
         }
-
-        setMode(SATURATION_SLIDER, MAX_SATURATION_VALUE, false, huebrightImage, satImage);
-    }
-    
-    private void setBrightnessMode() {
-        float[] hsb = getHSBColorFromModel();
-        
-        if (huesatImage == null && brightImage == null)  {
-        	huesatImage = new HueSaturationImage(PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], hsb[2]);
-            brightImage = new BrightnessImage( 16, PALETTE_DIMENSION, hsb[0]);
-        } else {
-        	huesatImage.setHue(hsb[0]);
-            huesatImage.setBrightness(hsb[2]);
-            brightImage.setHue(hsb[0]);
-        }
-        
-        setMode(BRIGHTNESS_SLIDER, MAX_BRIGHTNESS_VALUE, false, huesatImage, brightImage);
-    }
-    
-    /** 
-     * Reconfigures the palette and slider to reflect the current mode.
-     */
-    private void setMode(int type, int maximum, boolean inverted, 
-                            AbstractHSBImage pImage, AbstractHSBImage sImage)  {
-        isAdjusting = true; // Ensure no events propagate from changing slider value.
-
-        sliderType = type;
-        slider.setInverted(inverted);
-        slider.setMaximum(maximum);
-         
-        // Set the palette square.
-        palette = pImage;
-        if (paletteImage != null)  {
-            paletteImage.flush();
-        }
-        paletteImage = Toolkit.getDefaultToolkit().createImage( palette );
-        paletteLabel.setIcon( new ImageIcon( paletteImage ) );
-            
-        // Set the slider image.
-        sliderPalette = sImage;
-        if (sliderImage != null)  {
-            sliderImage.flush();
-        }
-        sliderImage = Toolkit.getDefaultToolkit().createImage( sliderPalette );
-        sliderPaletteLabel.setIcon( new ImageIcon( sliderImage ) );
 
         isAdjusting = false;
         
+        palette.nextFrame();
+        sliderPalette.nextFrame();
+
+        updateChooser();
     }
-    
+
     protected JComponent buildSliderPalettePanel() {
 
         // This slider has to have a minimum of 0.  A lot of math in this file is simplified due to this. 
         slider = new JSlider(JSlider.VERTICAL, 0, MAX_HUE_VALUE, 0);
+        slider.setInverted(true);
         slider.setPaintTrack(false);
         slider.setPreferredSize(new Dimension(slider.getPreferredSize().width, PALETTE_DIMENSION + 15));
         slider.addChangeListener(this);
@@ -472,10 +427,48 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         panel.add( paletteLabel );
         panel.add( slider );
         panel.add( sliderPaletteLabel );
-
-        setHueMode();
-
+        
+        initializePalettesIfNecessary();
+        
         return panel;
+    }
+    
+    private void initializePalettesIfNecessary() {
+        if (palette != null) {
+            return;
+        }
+        
+        float[] hsb = getHSBColorFromModel();
+        
+        palette = new HSBImage(HSBImage.HSQUARE, PALETTE_DIMENSION, PALETTE_DIMENSION, hsb[0], 1.0f, 1.0f);
+        sliderPalette = new HSBImage(HSBImage.HSLIDER, 16, PALETTE_DIMENSION, 0f, 1.0f, 1.0f);
+        
+        paletteImage = Toolkit.getDefaultToolkit().createImage(palette);
+        sliderPaletteImage = Toolkit.getDefaultToolkit().createImage(sliderPalette);
+        
+        paletteLabel.setIcon(new ImageIcon(paletteImage));
+        sliderPaletteLabel.setIcon(new ImageIcon(sliderPaletteImage));
+    }
+    
+    private void cleanupPalettesIfNecessary() {
+        if (palette == null) {
+            return;
+        }
+        
+        palette.aborted = true;
+        sliderPalette.aborted = true;
+
+        palette.nextFrame();
+        sliderPalette.nextFrame();
+
+        palette = null;
+        sliderPalette = null;
+        
+        paletteImage = null;
+        sliderPaletteImage = null;
+        
+        paletteLabel.setIcon(null);
+        sliderPaletteLabel.setIcon(null);
     }
 
     protected JLabel createPaletteLabel() {
@@ -552,23 +545,35 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
     }
     
     /** 
-     * Base class for the slider and palette images.
+     * Class for the slider and palette images.
      */
-    abstract class AbstractHSBImage extends SyntheticImage {
+    class HSBImage extends SyntheticImage {
         protected float h = .0f;
         protected float s = .0f;
         protected float b = .0f;
         protected float[] hsb = new float[3];
-        protected boolean isDirty = true;
 
-        protected AbstractHSBImage( int width, int height, float h, float s, float b ) {
-            super( width, height );
-            setHSB( h, s, b );
-	    DefaultHSBChooserPanel.this.
-		addHierarchyListener(new ThreadStopper());
+        protected boolean isDirty = true;
+        protected int cachedY;
+        protected int cachedColor;
+        protected int type;
+
+        private static final int HSQUARE = 0;
+        private static final int SSQUARE = 1;
+        private static final int BSQUARE = 2;
+        private static final int HSLIDER = 3;
+        private static final int SSLIDER = 4;
+        private static final int BSLIDER = 5;
+
+        protected HSBImage(int type, int width, int height, float h, float s, float b) {
+            super(width, height);
+            setValues(type, h, s, b);
         }
 
-        public void setHSB( float h, float s, float b ) {
+        public void setValues(int type, float h, float s, float b) {
+            this.type = type;
+            cachedY = -1;
+            cachedColor = 0;
             setHue( h );
             setSaturation( s );
             setBrightness( b );
@@ -602,35 +607,76 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
             return false;
         }
 
-        public synchronized void nextFrame( int param ) {
+        public synchronized void nextFrame() {
             isDirty = true;
             notifyAll();
-        }
-
-	/** 
-	 * This method is where the performance bottle neck exists. Perhaps as
-         * an optimization, getRGBForLocation can be overridden for all
-         * the subclasses. 
-	 */
-        public int getRGBForLocation( int x, int y ) {
-            getHSBForLocation( x, y, hsb );
-            return Color.HSBtoRGB( hsb[0], hsb[1], hsb[2] );
-        }
-
-        public abstract void getHSBForLocation( int x, int y, float[] hsbArray ); 
-
-        public synchronized void addConsumer(ImageConsumer ic){
-            isDirty = true;
-            super.addConsumer( ic );
         }
         
-        /** 
-         * Overriden to unblock the thread.
-         */
-        public synchronized void removeConsumer(ImageConsumer ic)  {
-	    super.removeConsumer(ic);
+        public synchronized void addConsumer(ImageConsumer ic) {
             isDirty = true;
-            notifyAll();
+            super.addConsumer(ic);
+        }
+
+        private int getRGBForLocation( int x, int y ) {
+            if (type >= HSLIDER && y == cachedY) {
+                return cachedColor;
+            }
+
+            getHSBForLocation( x, y, hsb );
+            cachedY = y;
+            cachedColor = Color.HSBtoRGB( hsb[0], hsb[1], hsb[2] );
+
+            return cachedColor;
+        }
+
+        public void getHSBForLocation( int x, int y, float[] hsbArray ) {
+            switch (type) {
+                case HSQUARE: {
+                    float saturationStep = ((float)x) / width;
+                    float brightnessStep = ((float)y) / height;
+                    hsbArray[0] = h;
+                    hsbArray[1] = s - saturationStep; 
+                    hsbArray[2] = b - brightnessStep;
+                    break;
+                }
+                case SSQUARE: {
+                    float brightnessStep = ((float)y) / height;
+                    float step = 1.0f / ((float)width);
+                    hsbArray[0] = x * step;
+                    hsbArray[1] = s;
+                    hsbArray[2] = 1.0f - brightnessStep;
+                    break;
+                }
+                case BSQUARE: {
+                    float saturationStep = ((float)y) / height;
+                    float step = 1.0f / ((float)width);
+                    hsbArray[0] = x * step;
+                    hsbArray[1] = 1.0f - saturationStep;
+                    hsbArray[2] = b;
+                    break;
+                }
+                case HSLIDER: {
+                    float step = 1.0f / ((float)height);
+                    hsbArray[0] = y * step;
+                    hsbArray[1] = s;
+                    hsbArray[2] = b;
+                    break;
+                }
+                case SSLIDER: {
+                    float saturationStep = ((float)y) / height;
+                    hsbArray[0] = h;
+                    hsbArray[1] = s - saturationStep;
+                    hsbArray[2] = b;
+                    break;
+                }
+                case BSLIDER: {
+                    float brightnessStep = ((float)y) / height;
+                    hsbArray[0] = h;
+                    hsbArray[1] = s;
+                    hsbArray[2] = b - brightnessStep;
+                    break;
+                }
+            }
         }
         
         /** 
@@ -643,150 +689,19 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
                         while ( !isDirty ) {
                             wait();
                         }
-                    } catch ( Exception e ) {
-                    	System.out.println( e );
+                    } catch (InterruptedException ie) {
                     }
                     isDirty = false;
                 }
             }
+
+            if (aborted) {
+                return;
+            }
+
             for ( int i = 0; i < row.length; ++i ) {
                 row[i] = getRGBForLocation( i, y );
             }  
-        }
-
-	class ThreadStopper implements HierarchyListener { 
-	    public void hierarchyChanged(HierarchyEvent ev) {
-		if ((ev.getChangeFlags() | HierarchyEvent.SHOWING_CHANGED) != 0){
-		    if (DefaultHSBChooserPanel.this.isShowing()) {
-			setIsUseful(true);
-			isDirty = true;
-			restartProduction();
-		    } else {
-			setIsUseful(false);
-			isDirty = true;
-			synchronized (AbstractHSBImage.this) {
-			    AbstractHSBImage.this.notifyAll();
-			}
-		    }
-		}
-	    }
-	}
-    }
-    
-
-    // Square for H
-    class SaturationBrightnessImage extends AbstractHSBImage {
-        public SaturationBrightnessImage( int width, int height, float hue ) {
-            super( width, height, hue, 1.0f, 1.0f );
-        }
-
-        public void getHSBForLocation( int x, int y, float[] hsbArray ) {
-            float saturationStep = ((float)x) / width;
-            float brightnessStep = ((float)y) / height;
-            hsbArray[0] = h;
-            hsbArray[1] = s - saturationStep; 
-            hsbArray[2] = b - brightnessStep;
-        }
-    }
-
-    // Square for S
-    class HueBrightnessImage extends AbstractHSBImage {
-        public HueBrightnessImage( int width, int height, float h, float s ) {
-            super( width, height, h, s, 1.0f );
-        }
-
-        public void getHSBForLocation( int x, int y, float[] hsbArray ) {
-            float brightnessStep = ((float)y) / height;
-            float step = 1.0f / ((float)width);
-            hsbArray[0] = x * step;
-            hsbArray[1] = s;
-            hsbArray[2] = 1.0f - brightnessStep;
-        }
-    }
-
-    // Square for B
-    class HueSaturationImage extends AbstractHSBImage {
-        public HueSaturationImage( int width, int height, float h, float b ) {
-            super( width, height, h, 1.0f, b );
-        }
-
-        public void getHSBForLocation( int x, int y, float[] hsbArray ) {
-            float saturationStep = ((float)y) / height;
-            float step = 1.0f / ((float)width);
-            hsbArray[0] = x * step;
-            hsbArray[1] = 1.0f - saturationStep;
-            hsbArray[2] = b;
-        }
-    }
-
-    // Slider for B
-    class BrightnessImage extends AbstractHSBImage {
-        protected int cachedY = -1;
-        protected int cachedColor = 0;
-
-        public BrightnessImage( int width, int height, float hue ) {
-            super( width, height, hue, 1.0f, 1.0f );
-        }
-
-        public int getRGBForLocation( int x, int y ) {
-            if ( y == cachedY ) {
-            } else {
-                cachedY = y;
-                cachedColor = super.getRGBForLocation( x, y );
-            }
-            return cachedColor;
-        }
-
-        public void getHSBForLocation( int x, int y, float[] hsbArray ) {
-            float brightnessStep = ((float)y) / height;
-            hsbArray[0] = h;
-            hsbArray[1] = s;
-            hsbArray[2] = b - brightnessStep;
-        }
-    }
-
-    // Slider for S
-    class SaturationImage extends AbstractHSBImage {
-        protected int cachedY = -1;
-        protected int cachedColor = 0;
-
-        public SaturationImage( int width, int height, float hue ) {
-            super( width, height, hue, 1.0f, 1.0f );
-        }
-
-        public int getRGBForLocation( int x, int y ) {
-            if ( y == cachedY ) {
-            } else {
-                cachedY = y;
-                cachedColor = super.getRGBForLocation( x, y );
-            }
-
-            return cachedColor;
-        }
-
-        public void getHSBForLocation( int x, int y, float[] hsbArray ) {
-            float saturationStep = ((float)y) / height;
-            hsbArray[0] = h;
-            hsbArray[1] = s - saturationStep;
-            hsbArray[2] = b;
-        }
-    }
-
-    // Slider for H
-    class HueImage extends AbstractHSBImage {
-        public HueImage( int width, int height ) {
-            super( width, height, 0f, 1.0f, 1.0f );
-        }
-
-        protected boolean isStatic() {
-            return true;
-        }
-
-        public void getHSBForLocation( int x, int y, float[] hsbArray ) {
-            float step = 1.0f / ((float)height);
-            hsbArray[0] = y * step;
-            hsbArray[1] = s;
-            hsbArray[2] = b;
         }
     }
     
@@ -801,14 +716,14 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
 
                 float[] hsb = getHSBColorFromModel();
 
-                switch ( sliderType ){
-                    case HUE_SLIDER:
+                switch ( currentMode ){
+                    case HUE_MODE:
                         updateHSB(value, hsb[1], hsb[2]);
                         break;
-                    case SATURATION_SLIDER:
+                    case SATURATION_MODE:
                         updateHSB(hsb[0], value, hsb[2]);
                         break;
-                    case BRIGHTNESS_SLIDER:
+                    case BRIGHTNESS_MODE:
                         updateHSB(hsb[0], hsb[1], value);
                         break;
                 }
@@ -819,6 +734,16 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
             float brightness = ((Integer)bField.getValue()).floatValue() / 100f;
 
             updateHSB(hue, saturation, brightness);
+        }
+    }
+    
+    public void hierarchyChanged(HierarchyEvent he) {
+        if ((he.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0) {
+            if (isDisplayable()) {
+                initializePalettesIfNecessary();
+            } else {
+                cleanupPalettesIfNecessary();
+            }
         }
     }
 

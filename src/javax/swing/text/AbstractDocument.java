@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractDocument.java	1.130 01/12/03
+ * @(#)AbstractDocument.java	1.132 02/04/17
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -77,7 +77,7 @@ import sun.awt.font.BidiUtils;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.130 12/03/01
+ * @version 1.132 04/17/02
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -328,7 +328,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 
     /**
      * Sets the asynchronous loading priority. 
-     * @param p the new aynchronous loading priority; a value
+     * @param p the new asynchronous loading priority; a value
      *   less than zero indicates that the document should be
      *   loaded asynchronously
      */
@@ -639,11 +639,12 @@ public abstract class AbstractDocument implements Document, Serializable {
      * followed by an insert, others may treat the replace as one atomic  
      * operation.
      * 
-     * @param offset Location in Document
-     * @param length Length of text to delete, may be 0 indicating don't
+     * @param offset index of child element
+     * @param length length of text to delete, may be 0 indicating don't
      *               delete anything
-     * @param text Text to insert, null indicates no text to insert
-     * @param attrs AttributeSet indicating attributes of inserted text, null
+     * @param text text to insert, <code>null</code> indicates no text to insert
+     * @param attrs AttributeSet indicating attributes of inserted text,
+     *              <code>null</code>
      *              is legal, and typically treated as an empty attributeset,
      *              but exact interpretation is left to the subclass
      * @exception BadLocationException the given position is not a valid 

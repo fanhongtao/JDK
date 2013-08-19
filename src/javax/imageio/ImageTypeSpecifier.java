@@ -1,5 +1,5 @@
 /*
- * @(#)ImageTypeSpecifier.java	1.30 01/12/03
+ * @(#)ImageTypeSpecifier.java	1.31 02/02/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -342,17 +342,8 @@ public class ImageTypeSpecifier {
             hasAlpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE;
         
         int[] numBits = new int[numBands];
-        int bits;
-        if (dataType == DataBuffer.TYPE_BYTE) {
-            bits = 8;
-        } else if (dataType == DataBuffer.TYPE_SHORT ||
-                   dataType == DataBuffer.TYPE_USHORT) {
-            bits = 16;
-        } else if (dataType == DataBuffer.TYPE_INT) {
-            bits = 32;
-        } else {
-            throw new IllegalArgumentException("dataType = " + dataType);
-        }
+        int bits = DataBuffer.getDataTypeSize(dataType);
+
         for (int i = 0; i < numBands; i++) {
             numBits[i] = bits;
         }

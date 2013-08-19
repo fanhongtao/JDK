@@ -1,5 +1,5 @@
 /*
- * @(#)JInternalFrame.java	1.135 01/12/03
+ * @(#)JInternalFrame.java	1.137 01/12/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -80,7 +80,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see JRootPane
  *
- * @version 1.135 12/03/01
+ * @version 1.137 12/10/01
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo
@@ -1647,11 +1647,23 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * Causes subcomponents of this <code>JInternalFrame</code>
-     * to be laid out at their preferred size.
+     * to be laid out at their preferred size.  Internal frames that are
+     * iconized or maximized are first restored and then packed.  If the
+     * internal frame is unable to be restored its state is not changed
+     * and will not be packed.
      *
      * @see       java.awt.Window#pack
      */
     public void pack() {
+        try {
+            if (isIcon()) {
+                setIcon(false);
+            } else if (isMaximum()) {
+                setMaximum(false);
+            }
+        } catch(PropertyVetoException e) {
+            return;
+        }
         setSize(getPreferredSize());
         validate();
     }
@@ -1702,6 +1714,13 @@ public class JInternalFrame extends JComponent implements
                 setSelected(true);
             } catch (PropertyVetoException pve) {}
         }
+    }
+
+    public void hide() {
+        if (isIcon()) {
+            getDesktopIcon().setVisible(false);
+        }
+        super.hide();
     }
 
     /**

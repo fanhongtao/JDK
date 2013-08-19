@@ -1,5 +1,5 @@
 /*
- * @(#)DatabaseMetaData.java	1.48 01/12/03
+ * @(#)DatabaseMetaData.java	1.50 02/04/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1283,7 +1283,7 @@ public interface DatabaseMetaData {
      *      <LI> procedureColumnReturn - procedure return value
      *      <LI> procedureColumnResult - result column in <code>ResultSet</code>
      *      </UL>
-     *  <LI><B>DATA_TYPE</B> short => SQL type from java.sql.Types
+     *  <LI><B>DATA_TYPE</B> int => SQL type from java.sql.Types
      *	<LI><B>TYPE_NAME</B> String => SQL type name, for a UDT type the
      *  type name is fully qualified
      *	<LI><B>PRECISION</B> int => precision
@@ -1525,7 +1525,7 @@ public interface DatabaseMetaData {
      *	<LI><B>TABLE_SCHEM</B> String => table schema (may be <code>null</code>)
      *	<LI><B>TABLE_NAME</B> String => table name
      *	<LI><B>COLUMN_NAME</B> String => column name
-     *	<LI><B>DATA_TYPE</B> short => SQL type from java.sql.Types
+     *	<LI><B>DATA_TYPE</B> int => SQL type from java.sql.Types
      *	<LI><B>TYPE_NAME</B> String => Data source dependent type name,
      *  for a UDT the type name is fully qualified
      *	<LI><B>COLUMN_SIZE</B> int => column size.  For char or date
@@ -1705,7 +1705,7 @@ public interface DatabaseMetaData {
      *      <LI> bestRowSession - valid for remainder of current session
      *      </UL>
      *	<LI><B>COLUMN_NAME</B> String => column name
-     *	<LI><B>DATA_TYPE</B> short => SQL data type from java.sql.Types
+     *	<LI><B>DATA_TYPE</B> int => SQL data type from java.sql.Types
      *	<LI><B>TYPE_NAME</B> String => Data source dependent type name,
      *  for a UDT the type name is fully qualified
      *	<LI><B>COLUMN_SIZE</B> int => precision
@@ -1811,7 +1811,7 @@ public interface DatabaseMetaData {
      *  <OL>
      *	<LI><B>SCOPE</B> short => is not used
      *	<LI><B>COLUMN_NAME</B> String => column name
-     *	<LI><B>DATA_TYPE</B> short => SQL data type from <code>java.sql.Types</code>
+     *	<LI><B>DATA_TYPE</B> int => SQL data type from <code>java.sql.Types</code>
      *	<LI><B>TYPE_NAME</B> String => Data source-dependent type name
      *	<LI><B>COLUMN_SIZE</B> int => precision
      *	<LI><B>BUFFER_LENGTH</B> int => length of column value in bytes
@@ -2255,7 +2255,7 @@ public interface DatabaseMetaData {
      * <P>Each type description has the following columns:
      *  <OL>
      *	<LI><B>TYPE_NAME</B> String => Type name
-     *	<LI><B>DATA_TYPE</B> short => SQL data type from java.sql.Types
+     *	<LI><B>DATA_TYPE</B> int => SQL data type from java.sql.Types
      *	<LI><B>PRECISION</B> int => maximum precision
      *	<LI><B>LITERAL_PREFIX</B> String => prefix used to quote a literal 
      *      (may be <code>null</code>)
@@ -2658,7 +2658,7 @@ public interface DatabaseMetaData {
      *	<LI><B>TYPE_SCHEM</B> String => type's schema (may be <code>null</code>)
      *	<LI><B>TYPE_NAME</B> String => type name
      *  <LI><B>CLASS_NAME</B> String => Java class name
-     *	<LI><B>DATA_TYPE</B> String => type value defined in java.sql.Types.  
+     *	<LI><B>DATA_TYPE</B> int => type value defined in java.sql.Types.  
      *     One of JAVA_OBJECT, STRUCT, or DISTINCT
      *	<LI><B>REMARKS</B> String => explanatory comment on the type
      *  <LI><B>BASE_TYPE</B> short => type code of the source type of a 
@@ -2871,7 +2871,7 @@ public interface DatabaseMetaData {
      *	<LI><B>TYPE_SCHEM</B> String => type schema (may be <code>null</code>)
      *	<LI><B>TYPE_NAME</B> String => type name
      *	<LI><B>ATTR_NAME</B> String => attribute name
-     *	<LI><B>DATA_TYPE</B> short => attribute type SQL type from java.sql.Types
+     *	<LI><B>DATA_TYPE</B> int => attribute type SQL type from java.sql.Types
      *	<LI><B>ATTR_TYPE_NAME</B> String => Data source dependent type name.
      *  For a UDT, the type name is fully qualified. For a REF, the type name is 
      *  fully qualified and represents the target type of the reference type.
@@ -3011,12 +3011,12 @@ public interface DatabaseMetaData {
     int sqlStateSQL99 = 2;
 
     /**
-     * Indicates whether the SQLSTATEs returned by <code>SQLException.getSQLState</code>
+     * Indicates whether the SQLSTATE returned by <code>SQLException.getSQLState</code>
      * is X/Open (now known as Open Group) SQL CLI or SQL99.
-     * @return the type of SQLSTATEs, one of:
+     * @return the type of SQLSTATE; one of:
      *        sqlStateXOpen or
      *        sqlStateSQL99
-     * @throws SQLException if a database access error occurs
+     * @throws SQLException if a database access error occurs 
      * @since 1.4
      */
     int getSQLStateType() throws SQLException;
@@ -3032,10 +3032,9 @@ public interface DatabaseMetaData {
     boolean locatorsUpdateCopy() throws SQLException;
 
     /**
-     * Retrieves weather this database supports statement pooling.
+     * Retrieves whether this database supports statement pooling.
      *
-     * @return <code>true</code> is so;
-	       <code>false</code> otherwise
+     * @return <code>true</code> if so; <code>false</code> otherwise
      * @throws SQLExcpetion if a database access error occurs
      * @since 1.4
      */

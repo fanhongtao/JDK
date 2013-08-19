@@ -1,5 +1,5 @@
 /*
- * @(#)Container.java	1.223 02/03/02
+ * @(#)Container.java	1.229 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -51,7 +51,7 @@ import sun.awt.dnd.SunDropTargetEvent;
  * within the container.  If no index is specified when adding a
  * component to a container, it will be added to the end of the list
  * (and hence to the bottom of the stacking order).
- * @version 	1.223, 03/02/02
+ * @version 	1.229, 04/02/02
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -289,9 +289,18 @@ public class Container extends Component {
     /** 
      * Appends the specified component to the end of this container. 
      * This is a convenience method for {@link #addImpl}.
+     * <p>
+     * Note: If a component has been added to a container that
+     * has been displayed, <code>validate</code> must be
+     * called on that container to display the new component.
+     * If multiple components are being added, you can improve
+     * efficiency by calling <code>validate</code> only once,
+     * after all the components have been added.
      *
      * @param     comp   the component to be added
      * @see #addImpl
+     * @see #validate
+     * @see #revalidate
      * @return    the component argument
      */
     public Component add(Component comp) {
@@ -305,6 +314,7 @@ public class Container extends Component {
      * <p>
      * This method is obsolete as of 1.1.  Please use the
      * method <code>add(Component, Object)</code> instead.
+     * @see add(Component, Object)
      */
     public Component add(String name, Component comp) {
 	addImpl(comp, name, -1);
@@ -315,13 +325,22 @@ public class Container extends Component {
      * Adds the specified component to this container at the given 
      * position. 
      * This is a convenience method for {@link #addImpl}.
+     * <p>
+     * Note: If a component has been added to a container that
+     * has been displayed, <code>validate</code> must be
+     * called on that container to display the new component.
+     * If multiple components are being added, you can improve
+     * efficiency by calling <code>validate</code> only once,
+     * after all the components have been added.
      *
      * @param     comp   the component to be added
      * @param     index    the position at which to insert the component, 
      *                   or <code>-1</code> to append the component to the end
      * @return    the component <code>comp</code>
      * @see #addImpl
-     * @see	  #remove
+     * @see #remove
+     * @see #validate
+     * @see #revalidate
      */
     public Component add(Component comp, int index) {
 	addImpl(comp, null, index);
@@ -478,11 +497,20 @@ public class Container extends Component {
      * Also notifies the layout manager to add the component to 
      * this container's layout using the specified constraints object.
      * This is a convenience method for {@link #addImpl}.
+     * <p>
+     * Note: If a component has been added to a container that
+     * has been displayed, <code>validate</code> must be
+     * called on that container to display the new component.
+     * If multiple components are being added, you can improve
+     * efficiency by calling <code>validate</code> only once,
+     * after all the components have been added.
      *
      * @param     comp the component to be added
      * @param     constraints an object expressing 
      *                  layout contraints for this component
      * @see #addImpl
+     * @see #validate
+     * @see #revalidate
      * @see       LayoutManager
      * @since     JDK1.1
      */
@@ -496,13 +524,22 @@ public class Container extends Component {
      * manager to add the component to the this container's layout using 
      * the specified constraints object.
      * This is a convenience method for {@link #addImpl}.
+     * <p>
+     * Note: If a component has been added to a container that
+     * has been displayed, <code>validate</code> must be
+     * called on that container to display the new component.
+     * If multiple components are being added, you can improve
+     * efficiency by calling <code>validate</code> only once,
+     * after all the components have been added.
      *
      * @param comp the component to be added
      * @param constraints an object expressing layout contraints for this
      * @param index the position in the container's list at which to insert
-     * the component. -1 means insert at the end.
+     * the component; <code>-1</code> means insert at the end
      * component
      * @see #addImpl
+     * @see #validate
+     * @see #revalidate
      * @see #remove
      * @see LayoutManager
      */
@@ -1001,11 +1038,15 @@ public class Container extends Component {
     /** 
      * Validates this container and all of its subcomponents.
      * <p>
-     * AWT uses <code>validate</code> to cause a container to lay out   
-     * its subcomponents again after the components it contains
-     * have been added to or modified.
-     * @see #validate
+     * The <code>validate</code> method is used to cause a container
+     * to lay out its subcomponents again. It should be invoked when
+     * this container's subcomponents are modified (added to or
+     * removed from the container, or layout-related information
+     * changed) after the container has been displayed.
+     *
+     * @see #add(java.awt.Component)
      * @see Component#invalidate
+     * @see #revalidate
      */
     public void validate() {
         /* Avoid grabbing lock unless really necessary. */
@@ -1982,7 +2023,7 @@ public class Container extends Component {
     /** 
      * Makes this Container displayable by connecting it to
      * a native screen resource.  Making a container displayable will
-     * cause any of its children to be made displayable.
+     * cause all of its children to be made displayable.
      * This method is called internally by the toolkit and should
      * not be called directly by programs.
      * @see Component#isDisplayable
@@ -2008,8 +2049,8 @@ public class Container extends Component {
 
     /** 
      * Makes this Container undisplayable by removing its connection
-     * to its native screen resource.  Make a container undisplayable
-     * will cause any of its children to be made undisplayable. 
+     * to its native screen resource.  Making a container undisplayable
+     * will cause all of its children to be made undisplayable. 
      * This method is called by the toolkit internally and should
      * not be called directly by programs.
      * @see Component#isDisplayable
@@ -2189,7 +2230,7 @@ public class Container extends Component {
         }
           
         // Don't call super.setFocusTraversalKey. The Component parameter check
-	// does not allow DOWN_CYCLE_TRAVERSAL_KEY, but we do.
+	// does not allow DOWN_CYCLE_TRAVERSAL_KEYS, but we do.
         setFocusTraversalKeys_NoIDCheck(id, keystrokes);
     }
 
@@ -2310,6 +2351,56 @@ public class Container extends Component {
 		setGlobalCurrentFocusCycleRoot(root);
 	}
 	return root;
+    }
+
+    final boolean containsFocus() {
+        synchronized (getTreeLock()) {
+            Component comp = KeyboardFocusManager.
+                getCurrentKeyboardFocusManager().getFocusOwner();
+            while (comp != null && !(comp instanceof Window) && comp != this) 
+            {
+                comp = (Component) comp.getParent();
+            }
+            return (comp == this);
+        }
+    }
+
+    void clearMostRecentFocusOwnerOnHide() {
+        Component comp = null;
+        Container window = this;
+
+        synchronized (getTreeLock()) {
+            while (window != null && !(window instanceof Window)) {
+                window = window.getParent();
+            }
+            if (window != null) {
+                comp = KeyboardFocusManager.
+                    getMostRecentFocusOwner((Window)window);
+                while ((comp != null) && (comp != this) && !(comp instanceof Window)) {
+                    comp = comp.getParent();
+                }
+            }
+        }
+
+        if (comp == this) {
+            KeyboardFocusManager.setMostRecentFocusOwner((Window)window, null);
+        }
+    }
+
+    void clearCurrentFocusCycleRootOnHide() {
+        KeyboardFocusManager kfm = 
+            KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        Container cont = kfm.getCurrentFocusCycleRoot();
+
+        synchronized (getTreeLock()) {
+            while (this != cont && !(cont instanceof Window) && (cont != null)) {
+                cont = cont.getParent();
+            }
+        }
+
+        if (cont == this) {
+            kfm.setGlobalCurrentFocusCycleRoot(null);
+        }
     }
 
     boolean nextFocusHelper() {

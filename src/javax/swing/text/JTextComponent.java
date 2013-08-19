@@ -1,5 +1,5 @@
 /*
- * @(#)JTextComponent.java	1.192 01/12/03
+ * @(#)JTextComponent.java	1.196 02/05/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -218,7 +218,7 @@ import javax.accessibility.*;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.192 12/03/01
+ * @version 1.196 05/15/02
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -1463,7 +1463,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    } else {
 		setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	    }
-	    firePropertyChange("editable", new Boolean(oldVal), new Boolean(editable));
+	    firePropertyChange("editable", Boolean.valueOf(oldVal), Boolean.valueOf(editable));
 	    repaint();
 	}
     }
@@ -1793,6 +1793,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
                AccessibleAction, AccessibleEditableText {
 
         int caretPos;
+        Point oldLocationOnScreen;
 
         /**
          * Constructs an AccessibleJTextComponent.  Adds a listener to track
@@ -1805,6 +1806,30 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
             }
             JTextComponent.this.addCaretListener(this);
             caretPos = getCaretPosition();
+
+            try {
+	        oldLocationOnScreen = getLocationOnScreen();
+            } catch (IllegalComponentStateException iae) {
+            }
+
+	    // Fire a ACCESSIBLE_VISIBLE_DATA_PROPERTY PropertyChangeEvent
+	    // when the text component moves (e.g., when scrolling).
+	    // Using an anonymous class since making AccessibleJTextComponent
+	    // implement ComponentListener would be an API change.
+	    JTextComponent.this.addComponentListener(new ComponentAdapter() {
+
+	        public void componentMoved(ComponentEvent e) {
+                    try {
+		        Point newLocationOnScreen = getLocationOnScreen();
+		        firePropertyChange(ACCESSIBLE_VISIBLE_DATA_PROPERTY,
+				           oldLocationOnScreen, 
+				           newLocationOnScreen);
+		    
+		        oldLocationOnScreen = newLocationOnScreen;
+                    } catch (IllegalComponentStateException iae) {
+                    }
+		}
+	    });
         }
 
         /**
@@ -1824,6 +1849,11 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
                 firePropertyChange(ACCESSIBLE_CARET_PROPERTY,
                     new Integer(caretPos), new Integer(dot));
                 caretPos = dot;
+
+                try {
+                    oldLocationOnScreen = getLocationOnScreen();
+                } catch (IllegalComponentStateException iae) {
+                }
             }
             if (mark != dot) {
                 // there is a selection
@@ -2461,7 +2491,15 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
          */
         public void setAttributes(int startIndex, int endIndex, 
             AttributeSet as) {
-            // XXX tbd
+
+            // Fixes bug 4487492
+            Document doc = JTextComponent.this.getDocument();
+            if (doc != null && doc instanceof StyledDocument) {
+                StyledDocument sDoc = (StyledDocument)doc;
+                int offset = startIndex;
+                int length = endIndex - startIndex;
+                sDoc.setCharacterAttributes(offset, length, as, true);
+            }
         }
 	
 	// ----- end AccessibleEditableText methods

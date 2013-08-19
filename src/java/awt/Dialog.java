@@ -1,7 +1,7 @@
 /*
- * @(#)Dialog.java	1.85 03/02/14
+ * @(#)Dialog.java	1.84 02/05/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -12,6 +12,9 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import javax.accessibility.*;
+import sun.awt.AppContext;
+import sun.awt.SunToolkit;
+import sun.awt.PeerEvent;
 
 /**
  * A Dialog is a top-level window with a title and a border
@@ -62,7 +65,7 @@ import javax.accessibility.*;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.85, 02/14/03
+ * @version 	1.84, 05/29/02
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -478,6 +481,12 @@ public class Dialog extends Window {
 
         return retval;
     }
+    
+    /**
+    * Stores the app context on which event dispatch thread the dialog
+    * is being shown. Initialized in show(), used in hideAndDisposeHandler()
+    */
+    private AppContext showAppContext;
 
    /**
      * Makes the Dialog visible. If the dialog and/or its owner
@@ -506,6 +515,11 @@ public class Dialog extends Window {
             // won't mistakenly block this thread.
             keepBlocking = true;
 
+            // Store the app context on which this dialog is being shown.
+            // Event dispatch thread of this app context will be sleeping until
+            // we wake it by any event from hideAndDisposeHandler().
+            showAppContext = AppContext.getAppContext();
+
             if (conditionalShow()) {
                 // We have two mechanisms for blocking: 1. If we're on the
                 // EventDispatchThread, start a new event pump. 2. If we're
@@ -519,18 +533,6 @@ public class Dialog extends Window {
                      enqueueKeyEvents(time, predictedFocusOwner); 
 
                 if (Toolkit.getEventQueue().isDispatchThread()) {
-                    /*
-                     * dispose SequencedEvent we are dispatching on current
-                     * AppContext, to prevent us from hang.
-                     *
-                     * BugId 4531693 (son@sparc.spb.su)
-                     */
-                    SequencedEvent currentSequencedEvent = KeyboardFocusManager.
-                        getCurrentKeyboardFocusManager().getCurrentSequencedEvent();
-                    if (currentSequencedEvent != null) {
-                        currentSequencedEvent.dispose();
-                    }
-
                     EventDispatchThread dispatchThread =
                         (EventDispatchThread)Thread.currentThread();
                     dispatchThread.pumpEventsForHierarchy(new Conditional() {
@@ -568,12 +570,24 @@ public class Dialog extends Window {
             windowClosingException = null;
         }
     }
-
+    final static class WakingRunnable implements Runnable {
+        public void run() {
+        }
+    }
     private void hideAndDisposeHandler() {
         if (keepBlocking) {
             synchronized (getTreeLock()) {
                 keepBlocking = false;
-                EventQueue.invokeLater(new Runnable(){ public void run() {} });
+
+                if (showAppContext != null) {
+                        // Wake up event dispatch thread on which the dialog was 
+                        // initially shown
+                        SunToolkit.postEvent(showAppContext, 
+                                             new PeerEvent(this, 
+                                                           new WakingRunnable(), 
+                                                           PeerEvent.PRIORITY_EVENT));
+                }
+                EventQueue.invokeLater(new WakingRunnable());
                 getTreeLock().notifyAll();
             }
         }

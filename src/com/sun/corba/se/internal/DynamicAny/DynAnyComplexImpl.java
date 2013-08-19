@@ -1,5 +1,5 @@
 /*
- * @(#)DynAnyComplexImpl.java	1.6 01/12/03
+ * @(#)DynAnyComplexImpl.java	1.7 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -103,7 +103,7 @@ abstract class DynAnyComplexImpl extends DynAnyConstructedImpl
         if (status == STATUS_DESTROYED) {
             throw new OBJECT_NOT_EXIST();
         }
-        if( ! checkInitComponents()) {
+        if( ! checkInitComponents() || index < 0 || index >= components.length) {
             throw new InvalidValue();
         }
         return components[index].type().kind();

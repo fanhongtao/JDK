@@ -1,5 +1,5 @@
 /*
- * @(#)KeyEvent.java	1.58 01/12/03
+ * @(#)KeyEvent.java	1.60 02/04/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -93,7 +93,7 @@ import java.io.ObjectInputStream;
  * @author Carl Quinn
  * @author Amy Fowler
  * @author Norbert Lindenberg
- * @version 1.58 12/03/01
+ * @version 1.60 04/25/02
  *
  * @see KeyAdapter
  * @see KeyListener
@@ -163,26 +163,31 @@ public class KeyEvent extends InputEvent {
     public static final int VK_PAGE_DOWN      = 0x22;
     public static final int VK_END            = 0x23;
     public static final int VK_HOME           = 0x24;
+
     /**
      * Constant for the non-numpad <b>left</b> arrow key.
      * @see #VK_KP_LEFT
      */
     public static final int VK_LEFT           = 0x25;
+
     /**
      * Constant for the non-numpad <b>up</b> arrow key.
      * @see #VK_KP_UP
      */
     public static final int VK_UP             = 0x26;
+
     /**
      * Constant for the non-numpad <b>right</b> arrow key.
      * @see #VK_KP_RIGHT
      */
     public static final int VK_RIGHT          = 0x27;
+
     /**
      * Constant for the non-numpad <b>down</b> arrow key.
      * @see #VK_KP_DOWN
      */
     public static final int VK_DOWN           = 0x28;
+
     public static final int VK_COMMA          = 0x2C;
 
     /**
@@ -542,7 +547,7 @@ public class KeyEvent extends InputEvent {
  
     /* for input method support on Asian Keyboards */
 
-    /* not clear what this means - listed in Win32 API */
+    /* not clear what this means - listed in Microsoft Windows API */
     public static final int VK_FINAL                    = 0x0018;
     
     /** Constant for the Convert function key. */
@@ -557,13 +562,15 @@ public class KeyEvent extends InputEvent {
     /* Japanese Solaris keyboard: kakutei */
     public static final int VK_ACCEPT                   = 0x001E;
 
-    /* not clear what this means - listed in Win32 API */
+    /* not clear what this means - listed in Microsoft Windows API */
     public static final int VK_MODECHANGE               = 0x001F;
 
-    /* replaced by VK_KANA_LOCK for Win32 and Solaris; might still be used on other platforms */
+    /* replaced by VK_KANA_LOCK for Microsoft Windows and Solaris; 
+       might still be used on other platforms */
     public static final int VK_KANA                     = 0x0015;
 
-    /* replaced by VK_INPUT_METHOD_ON_OFF for Win32 and Solaris; might still be used for other platforms */
+    /* replaced by VK_INPUT_METHOD_ON_OFF for Microsoft Windows and Solaris; 
+       might still be used for other platforms */
     public static final int VK_KANJI                    = 0x0019;
 
     /**
@@ -797,7 +804,7 @@ public class KeyEvent extends InputEvent {
     /*
      * JDK 1.1 serialVersionUID 
      */
-     private static final long serialVersionUID = -2352130953028126954L;
+    private static final long serialVersionUID = -2352130953028126954L;
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -916,7 +923,7 @@ public class KeyEvent extends InputEvent {
     }
 
     /**
-     * @deprecated, as of JDK1.1 
+     * @deprecated as of JDK1.1 
      */
     public KeyEvent(Component source, int id, long when, int modifiers,
                     int keyCode) {
@@ -977,7 +984,7 @@ public class KeyEvent extends InputEvent {
      *
      * @param modifiers an integer combination of the modifier constants.
      * @see InputEvent
-     * @deprecated, as of JDK1.1.4
+     * @deprecated as of JDK1.1.4
      */
     public void setModifiers(int modifiers) {
         this.modifiers = modifiers;
@@ -1003,8 +1010,6 @@ public class KeyEvent extends InputEvent {
     public int getKeyLocation() {
         return keyLocation;
     }
-
-
 
     /**
      * Returns a String describing the keyCode, such as "HOME", "F1" or "A".
@@ -1445,3 +1450,4 @@ public class KeyEvent extends InputEvent {
 	}
     }
 }
+

@@ -1,5 +1,5 @@
 /*
- * @(#)ColorModel.java	1.76 01/12/03
+ * @(#)ColorModel.java	1.78 02/04/02
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -170,8 +170,8 @@ public abstract class ColorModel implements Transparency{
      *
      * Since the use and storage of these ids is done by the
      * implementation libraries, the implementation of these method is
-     * provided by the particular AWT implementations
-     * (for example, "Toolkit"s/Peer), such as Motif, Win32 or Tiny. The
+     * provided by the particular AWT implementations (for example, 
+     * "Toolkit"s/Peer), such as Motif, Microsoft Windows, or Tiny. The
      * problem is that this means that the native libraries must be
      * loaded by the java.* classes, which do not necessarily know the
      * names of the libraries to load. A better way of doing this
@@ -1442,12 +1442,17 @@ public abstract class ColorModel implements Transparency{
         {
             return false;
         }
-        int i;
+
         int[] nb = cm.getComponentSize();
-        for (i=0; i < numComponents; i++) {
-            if (nBits[i] != nb[i]) {
-                return false;
+
+        if ((nBits != null) && (nb != null)) {
+            for (int i = 0; i < numComponents; i++) {
+                if (nBits[i] != nb[i]) {
+                    return false;
+                }
             }
+        } else {
+            return ((nBits == null) && (nb == null));
         }
 
         return true;
@@ -1468,9 +1473,10 @@ public abstract class ColorModel implements Transparency{
                  transparency * 7 +
                  numComponents * 8;
 
-	int i;
-        for (i=0; i < numComponents; i++) {
-            result = result + nBits[i] * (i + 9);
+        if (nBits != null) {
+            for (int i = 0; i < numComponents; i++) {
+                result = result + nBits[i] * (i + 9);
+            }
         }
 
         return result;

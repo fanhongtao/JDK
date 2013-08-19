@@ -1,5 +1,5 @@
 /*
- * @(#)Introspector.java	1.122 01/12/03
+ * @(#)Introspector.java	1.124 02/04/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,8 +8,6 @@
 package java.beans;
 
 import java.lang.reflect.*;
-
-import java.lang.ref.SoftReference;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -58,6 +56,19 @@ import java.util.WeakHashMap;
  * patterns to identify property accessors, event sources, or public
  * methods.  We then proceed to analyze the class's superclass and add
  * in the information from it (and possibly on up the superclass chain).
+ *
+ * <p>
+ * Because the Introspector caches BeanInfo classes for better performance, 
+ * take care if you use it in an application that uses
+ * multiple class loaders.
+ * In general, when you destroy a <code>ClassLoader</code>
+ * that has been used to introspect classes,
+ * you should use the
+ * {@link #flushCaches <code>Introspector.flushCaches</code>} 
+ * or 
+ * {@link #flushFromCaches <code>Introspector.flushFromCaches</code>} method
+ * to flush all of the introspected classes out of the cache.
+ *
  * <P>
  * For more information about introspection and design patterns, please 
  * consult the 
@@ -98,7 +109,9 @@ public class Introspector {
     // events maps from String names to EventSetDescriptors
     private Map events = new TreeMap();
 
-    private static String[] searchPath = { "sun.beans.infos" };
+    private final static String DEFAULT_INFO_PATH = "sun.beans.infos";
+
+    private static String[] searchPath = { DEFAULT_INFO_PATH };
 
     private static final String ADD_PREFIX = "add";
     private static final String REMOVE_PREFIX = "remove";
@@ -126,11 +139,10 @@ public class Introspector {
      * @see #flushFromCaches
      */
     public static BeanInfo getBeanInfo(Class beanClass) throws IntrospectionException {	
-	GenericBeanInfo bi = null;
-	SoftReference ref = (SoftReference)beanInfoCache.get(beanClass);
-	if (ref == null || (bi = (GenericBeanInfo)ref.get()) == null) {
+	GenericBeanInfo bi = (GenericBeanInfo)beanInfoCache.get(beanClass);
+	if (bi == null) {
 	    bi = (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
-	    beanInfoCache.put(beanClass, new SoftReference(bi));
+	    beanInfoCache.put(beanClass, bi);
 	}
 	return bi;
     }
@@ -233,7 +245,6 @@ public class Introspector {
      *
      * @return  The array of package names that will be searched in
      *		order to find BeanInfo classes.
-     * <p>     This is initially set to {"sun.beans.infos"}.
      */
 
     public static synchronized String[] getBeanInfoSearchPath() {
@@ -396,11 +407,16 @@ public class Introspector {
  	name = name.substring(name.lastIndexOf('.')+1);
 
 	for (int i = 0; i < searchPath.length; i++) {
-	    try {
-		String fullName = searchPath[i] + "." + name;
-	        return (java.beans.BeanInfo)instantiate(beanClass, fullName);
-	    } catch (Exception ex) {
-	       // Silently ignore any errors.
+	    // This optimization will only use the BeanInfo search path if is has changed
+	    // from the original or trying to get the ComponentBeanInfo. 
+	    if (!DEFAULT_INFO_PATH.equals(searchPath[i]) || 
+		DEFAULT_INFO_PATH.equals(searchPath[i]) && "ComponentBeanInfo".equals(name)) {
+		try {
+		    String fullName = searchPath[i] + "." + name;
+		    return (java.beans.BeanInfo)instantiate(beanClass, fullName);
+		} catch (Exception ex) {
+		    // Silently ignore any errors.
+		}
 	    }
 	}
 	return null;
@@ -1076,9 +1092,8 @@ public class Introspector {
 	// so we cache the results.
 	
 	final Class fclz = clz;
-	SoftReference ref = (SoftReference)declaredMethodCache.get(fclz);
-	Method[] result = null;
-	if (ref != null && (result = (Method[])ref.get()) != null) {
+	Method[] result = (Method[])declaredMethodCache.get(fclz);
+	if (result != null) {
 	    return result;
 	}
 
@@ -1099,7 +1114,7 @@ public class Introspector {
 	    }
         }    
 	// Add it to the cache.
-	declaredMethodCache.put(fclz, new SoftReference(result));
+	declaredMethodCache.put(fclz, result);
 	return result;
     }
 
@@ -1250,7 +1265,7 @@ public class Introspector {
     /**
      * Try to create an instance of a named class.
      * First try the classloader of "sibling", then try the system
-     * classloader, bootstrap classloader or the class loader of the current Thread.
+     * classloader then the class loader of the current Thread.
      */
     static Object instantiate(Class sibling, String className)
 		 throws InstantiationException, IllegalAccessException,
@@ -1265,6 +1280,7 @@ public class Introspector {
 	        // Just drop through and try the system classloader.
 	    }
         }
+
 	// Now try the system classloader.
 	try {
 	    cl = ClassLoader.getSystemClassLoader();
@@ -1273,16 +1289,6 @@ public class Introspector {
 		return cls.newInstance();
 	    }
         } catch (Exception ex) {
-	    // We're not allowed to access the system class loader or
-	    // the class creation failed.
-	    // Drop through.
-	}
-
-	// Now try the bootstrap classloader.
-	try {
-	    Class cls = Class.forName(className);
-	    return cls.newInstance();
-	} catch (Exception ex) {
 	    // We're not allowed to access the system class loader or
 	    // the class creation failed.
 	    // Drop through.

@@ -1,5 +1,5 @@
 /*
- * @(#)RemoteServer.java	1.28 01/12/03
+ * @(#)RemoteServer.java	1.30 02/03/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import sun.rmi.runtime.Log;
  * available) are provided abstractly by <code>RemoteServer</code> and
  * concretely by its subclass(es).
  *
- * @version 1.28, 12/03/01
+ * @version 1.30, 03/21/02
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
@@ -61,9 +61,19 @@ public abstract class RemoteServer extends RemoteObject
     }
 
     /**
-     * Log RMI calls to the output stream <I>out</I>. If <I>out</I> is
-     * null, call logging is turned off.
-     * @param out the output stream to which RMI calls should be logged
+     * Log RMI calls to the output stream <code>out</code>. If
+     * <code>out</code> is <code>null</code>, call logging is turned off.
+     *
+     * <p>If there is a security manager, its
+     * <code>checkPermission</code> method will be invoked with a
+     * <code>java.util.logging.LoggingPermission("control")</code>
+     * permission; this could result in a <code>SecurityException</code>.
+     *
+     * @param	out the output stream to which RMI calls should be logged
+     * @throws	SecurityException  if there is a security manager and
+     * 		the invocation of its <code>checkPermission</code> method
+     *		fails
+     * @see #getLog
      * @since JDK1.1
      */
     public static void setLog(java.io.OutputStream out) 
@@ -75,6 +85,7 @@ public abstract class RemoteServer extends RemoteObject
     /**
      * Returns stream for the RMI call log.
      * @return the call log
+     * @see #setLog
      * @since JDK1.1
      */
     public static java.io.PrintStream getLog() 

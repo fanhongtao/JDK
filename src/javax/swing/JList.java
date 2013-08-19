@@ -1,5 +1,5 @@
 /*
- * @(#)JList.java	1.101 01/12/03
+ * @(#)JList.java	1.103 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -222,7 +222,7 @@ import java.io.Serializable;
  *   attribute: isContainer false
  * description: A component which allows for the selection of one or more objects from a list.
  *
- * @version 1.101 12/03/01
+ * @version 1.103 02/11/02
  * @author Hans Muller
  */
 public class JList extends JComponent implements Scrollable, Accessible
@@ -1346,6 +1346,7 @@ public class JList extends JComponent implements Scrollable, Accessible
      *
      * @param listener the <code>ListSelectionListener</code> to add
      * @see #getSelectionModel
+     * @see #getListSelectionListeners
      */
     public void addListSelectionListener(ListSelectionListener listener) 
     {
@@ -1377,6 +1378,7 @@ public class JList extends JComponent implements Scrollable, Accessible
      *
      * @return all of the <code>ListSelectionListener</code>s added or an empty
      *         array if no listeners have been added
+     * @see #addListSelectionListener
      * @since 1.4
      */
     public ListSelectionListener[] getListSelectionListeners() {
@@ -2299,7 +2301,7 @@ public class JList extends JComponent implements Scrollable, Accessible
 
 		firePropertyChange(
 		    AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY,
-		    new Boolean(false), new Boolean(true));
+		    Boolean.valueOf(false), Boolean.valueOf(true));
 	    }
 	}
 
@@ -2326,9 +2328,9 @@ public class JList extends JComponent implements Scrollable, Accessible
 	    }
 
             firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
-                               new Boolean(false), new Boolean(true));
+                               Boolean.valueOf(false), Boolean.valueOf(true));
             firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY,
-                               new Boolean(false), new Boolean(true));
+                               Boolean.valueOf(false), Boolean.valueOf(true));
 
             // Process the State changes for Multiselectable
             AccessibleStateSet s = getAccessibleStateSet();
@@ -2356,7 +2358,7 @@ public class JList extends JComponent implements Scrollable, Accessible
          */
         public void intervalAdded(ListDataEvent e) {
             firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
-                               new Boolean(false), new Boolean(true));
+                               Boolean.valueOf(false), Boolean.valueOf(true));
         }
 
         /**
@@ -2367,7 +2369,7 @@ public class JList extends JComponent implements Scrollable, Accessible
          */
         public void intervalRemoved(ListDataEvent e) {
             firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
-                               new Boolean(false), new Boolean(true));
+                               Boolean.valueOf(false), Boolean.valueOf(true));
         }
 
         /**
@@ -2378,7 +2380,7 @@ public class JList extends JComponent implements Scrollable, Accessible
          */
          public void contentsChanged(ListDataEvent e) {
              firePropertyChange(AccessibleContext.ACCESSIBLE_VISIBLE_DATA_PROPERTY,
-                                new Boolean(false), new Boolean(true));
+                                Boolean.valueOf(false), Boolean.valueOf(true));
          }
 
     // AccessibleContext methods

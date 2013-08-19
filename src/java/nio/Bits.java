@@ -1,5 +1,5 @@
 /*
- * @(#)Bits.java	1.7 02/03/08
+ * @(#)Bits.java	1.7 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -604,6 +604,7 @@ class Bits {				// package-private
 	return unaligned;
     }
 
+
     // -- Bulk get/put acceleration --
 
     // These numbers represent the point at which we have empirically
@@ -617,44 +618,44 @@ class Bits {				// package-private
     // All positions and lengths are specified in bytes.
 
     static native void copyFromByteArray(Object src, long srcPos, long dstAddr,
-                                         long length);
+					 long length);
     static native void copyToByteArray(long srcAddr, Object dst, long dstPos,
-                                       long length);
+				       long length);
 
     static void copyFromCharArray(Object src, long srcPos, long dstAddr,
-                                  long length)
+				  long length)
     {
-        copyFromShortArray(src, srcPos, dstAddr, length);
+	copyFromShortArray(src, srcPos, dstAddr, length);
     }
 
     static void copyToCharArray(long srcAddr, Object dst, long dstPos,
-                                long length)
+				long length)
     {
-        copyToShortArray(srcAddr, dst, dstPos, length);
+ 	copyToShortArray(srcAddr, dst, dstPos, length);
     }
 
     static native void copyFromShortArray(Object src, long srcPos, long dstAddr,
-                                          long length);
+					  long length);
     static native void copyToShortArray(long srcAddr, Object dst, long dstPos,
-                                        long length);
+					long length);
 
     static native void copyFromIntArray(Object src, long srcPos, long dstAddr,
-                                        long length);
+					long length);
     static native void copyToIntArray(long srcAddr, Object dst, long dstPos,
-                                        long length);
+					long length);
 
     static native void copyFromLongArray(Object src, long srcPos, long dstAddr,
-                                         long length);
+					 long length);
     static native void copyToLongArray(long srcAddr, Object dst, long dstPos,
-                                       long length);
+				       long length);
 
     static native void copyFromFloatArray(Object src, long srcPos, long dstAddr,
-                                          long length);
+					  long length);
     static native void copyToFloatArray(long srcAddr, Object dst, long dstPos,
-                                        long length);
+					long length);
 
     static native void copyFromDoubleArray(Object src, long srcPos,
-                                         long dstAddr, long length);
+					 long dstAddr, long length);
     static native void copyToDoubleArray(long srcAddr, Object dst, long dstPos,
-                                         long length);
+					 long length);
 }

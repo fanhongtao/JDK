@@ -1,7 +1,7 @@
 /*
- * @(#)Utility.java	1.34 03/02/14
+ * @(#)Utility.java	1.33 02/02/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -781,6 +781,10 @@ public final class Utility {
                         _this_object( );
                     ((ObjectImpl)stub)._set_delegate( 
                             ((ObjectImpl)ref)._get_delegate() );
+                } catch( org.omg.CORBA.BAD_INV_ORDER bad) {
+                    synchronized (stubToTieCache) {
+                        stubToTieCache.put(stub,tie);
+                    }
                 } catch( Exception e ) {
                     // Exception is caught because of any of the 
                     // following reasons
@@ -863,9 +867,9 @@ public final class Utility {
     /*
      * Load an RMI-IIOP Stub.
      */
-    public static Stub loadStub (ObjectImpl narrowFrom,
+    public static Remote loadStub (ObjectImpl narrowFrom,
                                    Class narrowTo) {
-        Stub result = null;
+        Remote result = null;
             
 	try {
             
@@ -903,7 +907,7 @@ public final class Utility {
                                                 narrowTo.getClassLoader());
 	    }
     	    // Create a stub instance and set the delegate...
-    	    result = (Stub) resultClass.newInstance();
+    	    result = (Remote) resultClass.newInstance();
             ((ObjectImpl)result)._set_delegate(narrowFrom._get_delegate());
     	    
         } catch (Exception err) {

@@ -1,5 +1,5 @@
 /*
- * @(#)ClassLoader.java	1.160 01/12/03
+ * @(#)ClassLoader.java	1.162 02/03/19
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -127,7 +127,7 @@ import sun.security.action.GetPropertyAction;
  *     }
  * </pre></blockquote><hr>
  *
- * @version 1.160, 12/03/01
+ * @version 1.162, 03/19/02
  * @see     java.lang.Class
  * @see     java.lang.Class#newInstance()
  * @see     java.lang.ClassLoader#defineClass(byte[], int, int)
@@ -219,13 +219,6 @@ public abstract class ClassLoader {
      * Creates a new class loader using the <code>ClassLoader</code>
      * returned by the method <code>getSystemClassLoader()</code> as the
      * parent class loader.
-     * <p>
-     * This constructor is invoked for every newly created class loader. 
-     * Because the class <code>ClassLoader</code> is abstract, it is not 
-     * possible to create a new instance of the class <code>ClassLoader</code> 
-     * itself; however, every constructor for a subclass of 
-     * <code>ClassLoader</code> necessarily invokes this constructor, 
-     * explicitly or implicitly, directly or indirectly. 
      * <p>
      * If there is a security manager, its <code>checkCreateClassLoader</code>
      * method is called. This may result in a security exception. 
@@ -1243,7 +1236,7 @@ public abstract class ClassLoader {
      * by the VM when it loads the library, and used by the VM to pass
      * the correct version of JNI to the native methods.
      *
-     * @version 1.160, 12/03/01
+     * @version 1.162, 03/19/02
      * @see     java.lang.ClassLoader
      * @since   1.2
      */ 
@@ -1383,7 +1376,7 @@ public abstract class ClassLoader {
 	        File libfile = new File(libfilename);
 	        if (!libfile.isAbsolute()) {
 		    throw new UnsatisfiedLinkError(
-    "ClassLoader.findClass failed to return an absolute path: " + libfilename);
+    "ClassLoader.findLibrary failed to return an absolute path: " + libfilename);
 		}
 		if (loadLibrary0(fromClass, libfile)) {
 		    return;

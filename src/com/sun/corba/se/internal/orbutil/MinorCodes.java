@@ -1,5 +1,5 @@
 /*
- * @(#)MinorCodes.java	1.40 01/12/03
+ * @(#)MinorCodes.java	1.43 02/02/21
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -299,10 +299,24 @@ public final class MinorCodes {
      * but it had a value less than the JDK 1.3.1_01 value of 1.
      */
     public static final int INVALID_JDK1_3_1_PATCH_LEVEL = ORBConstants.GENERAL_BASE + 33;
-                
+
+    /**
+     * Error unmarshaling the data portion of a service context. 
+     * Most likely due to the ServiceContextData class not being
+     * able to initialize the proper ServiceContext.
+     */
+    public static final int SVCCTX_UNMARSHAL_ERROR = ORBConstants.GENERAL_BASE + 34;
+
 /////////////////////////////////////////////////////////////////
 // MARSHAL exception minor codes (also see util/MinorCodes)
 /////////////////////////////////////////////////////////////////
+
+    /**
+     * When a non objectimpl given to object_to_string
+     * formal/01-09-34 p 3-22.
+     */
+    public static final int NOT_AN_OBJECT_IMPL = OMGVMCID.value + 2;
+
     /**
      * The chunk ended but data was read past it without closing
      */
@@ -458,6 +472,19 @@ public final class MinorCodes {
      * from the table, but it was null.
      */
     public static final int NULL_OUT_CALL = ORBConstants.GENERAL_BASE + 24;
+
+    /**
+     * write_Object called with a org.omg.CORBA.LocalObject.
+     * IDL to Java formal 01-06-06 1.21.4.2.  No standard minor code
+     * given.
+     */
+    public static final int WRITE_LOCAL_OBJECT = ORBConstants.GENERAL_BASE + 25;
+
+    /**
+     * Attempted to insert something besides an ObjectImpl
+     * into an Any via insert_Object.
+     */
+    public static final int BAD_INSERTOBJ_PARAM = ORBConstants.GENERAL_BASE + 26;
 
 /////////////////////////////////////////////////////////////////
 // NO_IMPLEMENT minor cores

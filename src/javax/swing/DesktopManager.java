@@ -1,5 +1,5 @@
 /*
- * @(#)DesktopManager.java	1.12 01/12/03
+ * @(#)DesktopManager.java	1.13 02/04/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,12 +16,15 @@ package javax.swing;
   * </PRE>
   * This delegation allows each L&F to provide custom behaviors for desktop-specific
   * actions. (For example, how and where the internal frame's icon would appear.)
+  * <p>This class provides a policy for the various JInternalFrame methods, it is not
+  * meant to be called directly rather the various JInternalFrame methods will call 
+  * into the DesktopManager.</p>
   * 
   * @see JDesktopPane
   * @see JInternalFrame
   * @see JInternalFrame.JDesktopIcon
   *
-  * @version 1.12 12/03/01
+  * @version 1.13 04/15/02
   * @author David Kloba
   */
 public interface DesktopManager

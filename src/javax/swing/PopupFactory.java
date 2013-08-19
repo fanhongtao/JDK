@@ -1,5 +1,5 @@
 /*
- * @(#)PopupFactory.java	1.14 01/12/03
+ * @(#)PopupFactory.java	1.15 02/04/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @see Popup
  *
- * @version 1.14 12/03/01
+ * @version 1.15 04/11/02
  * @since 1.4
  */
 public class PopupFactory {
@@ -484,7 +484,11 @@ public class PopupFactory {
                         r.y = p.y;
                         return SwingUtilities.isRectangleContainingRectangle(
                             r, new Rectangle(x, y, width, height));
-                    }
+                    } else if (parent instanceof Window || 
+			       parent instanceof Applet) {
+			// No suitable swing component found
+			break;
+		    }
                 }
             }
             return false;

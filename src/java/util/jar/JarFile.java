@@ -1,5 +1,5 @@
 /*
- * @(#)JarFile.java	1.44 01/12/03
+ * @(#)JarFile.java	1.45 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import sun.security.util.ManifestEntryVerifier;
  * JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.44, 12/03/01
+ * @version 1.45, 02/06/02
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -133,7 +133,8 @@ class JarFile extends ZipFile {
 		String[] names = getMetaInfEntryNames();
 		if (names != null) {
 		    for (int i = 0; i < names.length; i++) {
-			if (MANIFEST_NAME.equals(names[i].toUpperCase())) {
+			if (MANIFEST_NAME.equals(
+                            names[i].toUpperCase(Locale.ENGLISH))) {
 			    manEntry = getJarEntry(names[i]);
 			    break;
 			}

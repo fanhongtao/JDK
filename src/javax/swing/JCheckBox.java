@@ -1,5 +1,5 @@
 /*
- * @(#)JCheckBox.java	1.68 01/12/03
+ * @(#)JCheckBox.java	1.69 02/03/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.io.IOException;
  * An implementation of a check box -- an item that can be selected or
  * deselected, and which displays its state to the user. 
  * By convention, any number of check boxes in a group can be selected.
- * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttonc, Check Boxes, and Radio Buttons</a>
+ * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttons, Check Boxes, and Radio Buttons</a>
  * in <em>The Java Tutorial</em>
  * for examples and information on using check boxes.
  * <p>
@@ -45,7 +45,7 @@ import java.io.IOException;
  *   attribute: isContainer false
  * description: A component which can be selected or deselected.
  *
- * @version 1.68 12/03/01
+ * @version 1.69 03/12/02
  * @author Jeff Dinkins
  */
 public class JCheckBox extends JToggleButton implements Accessible {

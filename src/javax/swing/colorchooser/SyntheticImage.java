@@ -1,5 +1,5 @@
 /*
- * @(#)SyntheticImage.java	1.19 01/12/03
+ * @(#)SyntheticImage.java	1.21 02/04/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import java.awt.image.*;
  *  frame has started.  It is acceptable (expected?) for computeRow(0,r)
  *  to pause until the appropriate time to start the next frame.
  *
- *  @version 1.19 12/03/01
+ *  @version 1.21 04/16/02
  *  @author James Gosling
  */
 abstract class SyntheticImage implements ImageProducer {
@@ -80,28 +80,7 @@ abstract class SyntheticImage implements ImageProducer {
     public void nextFrame(int param) {}//Override if !isStatic
     public void requestTopDownLeftRightResend(ImageConsumer ic){}
     
-    protected synchronized void setIsUseful(boolean useful)  {
-        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next) {
-            ics.useful = useful;
-        }
-    }
-
-
-    public synchronized void restartProduction() {
-        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next) {
-            if (ics.useful && !ics.isAlive()) {
-                new Thread(ics).start();
-            }
-        }
-    }
-
-    protected boolean isUseful()  {
-        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next) {
-            if (ics.useful)
-                return true;
-        }
-        return false;
-    }
+    protected volatile boolean aborted = false;
 }
 
 class SyntheticImageGenerator extends Thread {
@@ -111,13 +90,12 @@ class SyntheticImageGenerator extends Thread {
     SyntheticImage parent;
     SyntheticImageGenerator(ImageConsumer ic, SyntheticImageGenerator next,
         SyntheticImage parent) {
+        super("SyntheticImageGenerator");
         this.ic = ic;
         this.next = next;
         this.parent = parent;
         useful = true;
         setDaemon(true);
-        // XXX
-//		System.out.println ("SyntheticImage: " + Thread.currentThread() + " is making a generator");
     }
     public void run() {
         ImageConsumer ic = this.ic;
@@ -140,10 +118,14 @@ class SyntheticImageGenerator extends Thread {
 	    });
 
             do {
-                //XXX
-  //	            System.out.println("SyntheticImage: doing image");
                 for (int y = 0; y<h && useful; y++) {
                     parent.computeRow(y,row);
+
+                    if (parent.aborted) {
+                        ic.imageComplete(ic.IMAGEABORTED);
+                        return;
+                    }
+
                     ic.setPixels(0, y, w, 1, parent.cm, row, 0, w);
                 }
                 ic.imageComplete(parent.isStatic() ? ic.STATICIMAGEDONE

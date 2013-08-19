@@ -1,5 +1,5 @@
 /*
- * @(#)JSpinner.java	1.22 01/12/03
+ * @(#)JSpinner.java	1.26 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,7 +68,7 @@ import java.util.HashMap;
  * @see SpinnerDateModel
  * @see JFormattedTextField
  * 
- * @version 1.22 12/03/01
+ * @version 1.26 04/18/02
  * @author Hans Muller
  * @since 1.4
  */
@@ -79,6 +79,8 @@ public class JSpinner extends JComponent
      * @see #readObject
      */
     private static final String uiClassID = "SpinnerUI";
+
+    private static final Action DISABLED_ACTION = new DisabledAction();
 
     private transient SpinnerModel model;
     private JComponent editor;
@@ -167,10 +169,10 @@ public class JSpinner extends JComponent
      * replace the editor created here with the <code>setEditor</code>
      * method.  The default mapping from model type to editor is:
      * <ul>
-     * <li> <code>SpinnerNumberModel =&lt; JSpinner.NumberEditor
-     * <li> <code>SpinnerDateModel =&lt; JSpinner.DateEditor
-     * <li> <code>SpinnerListModel =&lt; JSpinner.ListEditor
-     * <li> <i>all others</i> =&lt; JSpinner.DefaultEditor
+     * <li> <code>SpinnerNumberModel =&gt; JSpinner.NumberEditor</code>
+     * <li> <code>SpinnerDateModel =&gt; JSpinner.DateEditor</code>
+     * <li> <code>SpinnerListModel =&gt; JSpinner.ListEditor</code>
+     * <li> <i>all others</i> =&gt; <code>JSpinner.DefaultEditor</code>
      * </ul>
      * 
      * @return a component that displays the current value of the sequence
@@ -374,7 +376,7 @@ public class JSpinner extends JComponent
 
     /**
      * Sends a <code>ChangeEvent</code>, whose source is this 
-     * <code>JSpinner<code>, to each <code>ChangeListener</code>.  
+     * <code>JSpinner</code>, to each <code>ChangeListener</code>.  
      * When a <code>ChangeListener</code> has been added 
      * to the spinner, this method method is called each time 
      * a <code>ChangeEvent</code> is received from the model.
@@ -504,9 +506,13 @@ public class JSpinner extends JComponent
         }
         s.writeObject(additionalValues);
 
-	if ((ui != null) && (getUIClassID().equals(uiClassID))) {
-	    ui.installUI(this);
-	}
+        if (getUIClassID().equals(uiClassID)) {
+            byte count = JComponent.getWriteObjCounter(this);
+            JComponent.setWriteObjCounter(this, --count);
+            if (count == 0 && ui != null) {
+                ui.installUI(this);
+            }
+        }
     }
 
 
@@ -552,19 +558,6 @@ public class JSpinner extends JComponent
     public static class DefaultEditor extends JPanel 
 	implements ChangeListener, PropertyChangeListener, LayoutManager 
     {
-        /**
-         * Action used to increment the current value.
-         */
-        private static final Action SharedIncrementAction =
-                                          new IncrementAction("increment", true);
-
-        /**
-         * Action used to decrement the current value.
-         */
-        private static final Action SharedDecrementAction =
-                                          new IncrementAction("decrement", false);
-
-
 	/**
 	 * Constructs an editor component for the specified <code>JSpinner</code>.
 	 * This <code>DefaultEditor</code> is it's own layout manager and 
@@ -590,17 +583,17 @@ public class JSpinner extends JComponent
 	    setLayout(this);
 	    spinner.addChangeListener(this);
 
-            // Install actions to increment/decrement the value when
-            // the editor has focus.
-            ActionMap map = SwingUtilities.getUIActionMap(spinner);
+            // We want the spinner's increment/decrement actions to be
+            // active vs those of the JFormattedTextField. As such we
+            // put disabled actions in the JFormattedTextField's actionmap.
+            // A binding to a disabled action is treated as a nonexistant
+            // binding.
+            ActionMap ftfMap = ftf.getActionMap();
 
-            if (map == null) {
-                map = new javax.swing.plaf.ActionMapUIResource();
-                SwingUtilities.replaceUIActionMap(spinner, map);
+            if (ftfMap != null) {
+                ftfMap.put("increment", DISABLED_ACTION);
+                ftfMap.put("decrement", DISABLED_ACTION);
             }
-            map.clear();
-            map.put("increment", SharedIncrementAction);
-            map.put("decrement", SharedDecrementAction);
 	}
 
 
@@ -813,51 +806,6 @@ public class JSpinner extends JComponent
 
             ftf.commitEdit();
         }
-
-
-        /**
-         * IncrementAction sets the value in the
-         * <code>JFormattedTextField</code> onto the model, and then sets
-         * the value of the SpinnerModel to the value of 
-         * <code>getNextValue</code> or <code>getPreviousValue</code>,
-         * depending on whether the action was constructed with
-         * the second parameter true or false, from the
-         * <code>SpinnerModel</code>. In other words, this increments
-         * or decrements the current value.
-         */
-        private static class IncrementAction extends AbstractAction {
-            private boolean isNext;
-            
-            IncrementAction(String name, boolean isNext) {
-                super(name);
-                this.isNext = isNext;
-            }
-            public void actionPerformed(ActionEvent ae) {
-                Object source = ae.getSource();
-
-                if (source instanceof JSpinner) {
-                    JSpinner spinner = (JSpinner)source;
-
-                    if (spinner.getEditor() instanceof DefaultEditor) {
-                        try {
-                            spinner.commitEdit();
-                            Object value = isNext ? spinner.getNextValue() :
-                                                    spinner.getPreviousValue();
-                            if (value != null) {
-                                spinner.setValue(value);
-                            }
-                        } catch (ParseException pe) {
-                            UIManager.getLookAndFeel().
-                                      provideErrorFeedback(spinner);
-                        } catch (IllegalArgumentException iae) {
-                            UIManager.getLookAndFeel().
-                                      provideErrorFeedback(spinner);
-                        }
-                    }
-                }
-            }
-        }
-
     }
 
 
@@ -1297,6 +1245,29 @@ public class JSpinner extends JComponent
                     replace(fb, offset, 0, string, attr);
                 }
             }
+        }
+    }
+
+
+    /**
+     * An Action implementation that is always disabled.
+     */
+    private static class DisabledAction implements Action {
+        public Object getValue(String key) {
+            return null;
+        }
+        public void putValue(String key, Object value) {
+        }
+        public void setEnabled(boolean b) {
+        }
+        public boolean isEnabled() {
+            return false;
+        }
+        public void addPropertyChangeListener(PropertyChangeListener l) {
+        }
+        public void removePropertyChangeListener(PropertyChangeListener l) {
+        }
+        public void actionPerformed(ActionEvent ae) {
         }
     }
 }

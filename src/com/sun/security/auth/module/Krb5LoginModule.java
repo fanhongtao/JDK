@@ -1,5 +1,5 @@
 /*
- * @(#)Krb5LoginModule.java	1.17 01/12/03
+ * @(#)Krb5LoginModule.java	1.18 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -315,7 +315,7 @@ public class Krb5LoginModule implements LoginModule {
     private KerberosTicket kerbTicket = null;
     private KerberosKey kerbKey = null;
     private StringBuffer krb5PrincName = null;
-    private char[] password;
+    private char[] password = null;
 
     private static final String NAME = "javax.security.auth.login.name";
     private static final String PWD = "javax.security.auth.login.password";
@@ -550,8 +550,8 @@ public class Krb5LoginModule implements LoginModule {
 		// We can't get the key from the keytab so prompt    
 		if (encKey == null ) {	
 		    promptForPass(getPasswdFromSharedState);
-		    encKey = new EncryptionKey
-			(new String(password),principal.getSalt());
+		    encKey = new EncryptionKey(new StringBuffer().append(password),
+				principal.getSalt());
 		}
 		// Get the TGT using AS Exchange
 		if (debug)

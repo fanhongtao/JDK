@@ -1,5 +1,5 @@
 /*
- * @(#)Date.java	1.71 01/12/03
+ * @(#)Date.java	1.72 02/02/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -76,7 +76,7 @@ import java.lang.ref.SoftReference;
  * <ul>
  * <li>A year <i>y</i> is represented by the integer 
  *     <i>y</i>&nbsp;<code>-&nbsp;1900</code>. 
- * <li>A month is represented by an integer form 0 to 11; 0 is January, 
+ * <li>A month is represented by an integer from 0 to 11; 0 is January, 
  *     1 is February, and so forth; thus 11 is December. 
  * <li>A date (day of month) is represented by an integer from 1 to 31 
  *     in the usual manner. 
@@ -100,7 +100,7 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.71, 12/03/01
+ * @version 1.72, 02/12/02
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone

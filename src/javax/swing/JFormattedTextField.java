@@ -1,5 +1,5 @@
 /*
- * @(#)JFormattedTextField.java	1.12 01/12/03
+ * @(#)JFormattedTextField.java	1.13 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -149,7 +149,7 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.12 12/03/01
+ * @version 1.13 02/11/02
  * @since 1.4
  */
 public class JFormattedTextField extends JTextField {
@@ -519,8 +519,8 @@ public class JFormattedTextField extends JTextField {
     private void setEditValid(boolean isValid) {
         if (isValid != editValid) {
             editValid = isValid;
-            firePropertyChange("editValid", new Boolean(!isValid),
-                               new Boolean(isValid));
+            firePropertyChange("editValid", Boolean.valueOf(!isValid),
+                               Boolean.valueOf(isValid));
         }
     }
 

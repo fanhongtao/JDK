@@ -1,5 +1,5 @@
 /*
- * @(#)BeanContextContainerProxy.java	1.7 01/12/03
+ * @(#)BeanContextContainerProxy.java	1.8 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,11 +16,11 @@ import java.awt.Container;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.7, 12/03/01
+ * @version 1.8, 02/22/02
  * @since 1.2
  *
- * @seealso java.beans.beancontext.BeanContext
- * @seealso java.beans.beancontext.BeanContextSupport
+ * @see java.beans.beancontext.BeanContext
+ * @see java.beans.beancontext.BeanContextSupport
  */
 
 public interface BeanContextContainerProxy {

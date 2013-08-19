@@ -1,5 +1,5 @@
 /*
- * @(#)GraphicsEnvironment.java	1.51 01/12/03
+ * @(#)GraphicsEnvironment.java	1.53 02/04/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * <code>GraphicsDevice</code> can be used.  
  * @see GraphicsDevice
  * @see GraphicsConfiguration
- * @version 	1.51, 12/03/01
+ * @version 	1.53, 04/27/02
  */
 
 public abstract class GraphicsEnvironment {
@@ -50,7 +50,7 @@ public abstract class GraphicsEnvironment {
 
     /**
      * Returns the local <code>GraphicsEnvironment</code>.
-     * @return this <code>GraphicsEnvironment</code>.
+     * @return the local <code>GraphicsEnvironment</code>
      */
     public static synchronized GraphicsEnvironment getLocalGraphicsEnvironment() {
 	if (localEnv == null) {
@@ -86,7 +86,7 @@ public abstract class GraphicsEnvironment {
      * keyboard, or mouse.
      * @return <code>true</code> if this environment cannot support 
      * a display, keyboard, and mouse; <code>false</code> 
-     * otherwise.
+     * otherwise
      * @see java.awt.HeadlessException
      * @since 1.4
      */
@@ -130,7 +130,7 @@ public abstract class GraphicsEnvironment {
      * mouse.
      * @return <code>true</code> if a display, keyboard, and mouse 
      * can be supported in this environment; <code>false</code>
-     * otherwise.
+     * otherwise
      * @see java.awt.HeadlessException
      * @see #isHeadless
      * @since 1.4
@@ -145,7 +145,7 @@ public abstract class GraphicsEnvironment {
      * Returns an array of all of the screen <code>GraphicsDevice</code>
      * objects.
      * @return an array containing all the <code>GraphicsDevice</code>
-     * objects that represent screen devices.
+     * objects that represent screen devices
      * @exception HeadlessException if isHeadless() returns true
      * @see isHeadless
      */
@@ -155,7 +155,7 @@ public abstract class GraphicsEnvironment {
     /**
      * Returns the default screen <code>GraphicsDevice</code>.
      * @return the <code>GraphicsDevice</code> that represents the
-     * default screen device.
+     * default screen device
      * @exception HeadlessException if isHeadless() returns true
      * @see isHeadless
      */
@@ -167,7 +167,7 @@ public abstract class GraphicsEnvironment {
      * specified {@link BufferedImage}.
      * @param img the specified <code>BufferedImage</code>
      * @return a <code>Graphics2D</code> to be used for rendering into
-     * the specified <code>BufferedImage</code>.
+     * the specified <code>BufferedImage</code>
      */
     public abstract Graphics2D createGraphics(BufferedImage img);
 
@@ -190,7 +190,7 @@ public abstract class GraphicsEnvironment {
      * returned in the <code>Font</code> array.  The other variations
      * must be derived by the application.
      *
-     * @return an array of <code>Font</code> objects.
+     * @return an array of <code>Font</code> objects
      * @see #getAvailableFontFamilyNames
      * @see java.awt.Font
      * @see java.awt.Font#deriveFont
@@ -252,7 +252,7 @@ public abstract class GraphicsEnvironment {
      * Returns the Point where Windows should be centered.
      * It is recommended that centered Windows be checked to ensure they fit
      * within the available display area using getMaximumWindowBounds().
-     * @return the point where Windows should be centered.
+     * @return the point where Windows should be centered
      *
      * @exception HeadlessException if isHeadless() returns true
      * @see #getMaximumWindowBounds
@@ -278,7 +278,7 @@ public abstract class GraphicsEnvironment {
      * To get the usable bounds of a single display, use 
      * <code>GraphicsConfiguration.getBounds()</code> and
      * <code>Toolkit.getScreenInsets()</code>.
-     * @return  the maximum bounds for centered Windows.
+     * @return  the maximum bounds for centered Windows
      *
      * @exception HeadlessException if isHeadless() returns true
      * @see #getCenterPoint
@@ -288,7 +288,7 @@ public abstract class GraphicsEnvironment {
      */
     public Rectangle getMaximumWindowBounds() throws HeadlessException {
     // Default implementation: return the usable bounds of the default screen
-    // device.  This is correct for win32 and non-Xinerama X11.
+    // device.  This is correct for Microsoft Windows and non-Xinerama X11.
         return SunGraphicsEnvironment.getUsableBounds(getDefaultScreenDevice());
     }
 }

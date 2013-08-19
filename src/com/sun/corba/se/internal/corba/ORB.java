@@ -1,5 +1,5 @@
 /*
- * @(#)ORB.java	1.260 01/12/03
+ * @(#)ORB.java	1.263 02/03/28
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -393,8 +393,10 @@ public abstract class ORB extends com.sun.corba.se.internal.core.ORB
 	String[] propertyNamePrefixes = getPropertyNamePrefixes();
 
         if (app != null) {
-            appletHost = app.getCodeBase().getHost( );
             appletCodeBase = app.getCodeBase();
+
+	    if (appletCodeBase != null)
+		appletHost = appletCodeBase.getHost( );
         }
 
         // Build up the full list of configuration properties
@@ -1202,6 +1204,9 @@ public abstract class ORB extends com.sun.corba.se.internal.core.ORB
         param = props.getProperty(ORBConstants.CHAR_CODESETS);
         if (param != null) {
             charData = CodeSetComponentInfo.createFromString(param);
+
+            if (ORBInitDebug)
+                dprint("charData: " + charData);
         }
 
         CodeSetComponentInfo.CodeSetComponent wcharData
@@ -1210,6 +1215,9 @@ public abstract class ORB extends com.sun.corba.se.internal.core.ORB
         param = props.getProperty(ORBConstants.WCHAR_CODESETS);
         if (param != null) {
             wcharData = CodeSetComponentInfo.createFromString(param);
+
+            if (ORBInitDebug)
+                dprint("wcharData: " + wcharData);
         }
 
         codesets = new CodeSetComponentInfo(charData, wcharData);
@@ -1917,6 +1925,12 @@ public abstract class ORB extends com.sun.corba.se.internal.core.ORB
         // Handle the null objref case
         if (obj == null) 
 	    return IOR.NULL.stringify(this);
+
+	if (! (obj instanceof ObjectImpl)) {
+	    throw new MARSHAL("Argument is not an ObjectImpl.",
+			      MinorCodes.NOT_AN_OBJECT_IMPL,
+			      CompletionStatus.COMPLETED_NO);
+	}
 
 	// Try and get the objref's delegate if it exists
         ClientSubcontract rep=null;

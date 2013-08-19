@@ -1,5 +1,5 @@
 /*
- * @(#)DropTarget.java	1.41 01/12/03
+ * @(#)DropTarget.java	1.43 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,9 +37,14 @@ import java.awt.dnd.peer.DropTargetPeer;
  * The <code>DropTarget</code> is associated 
  * with a <code>Component</code> when that <code>Component</code> 
  * wishes
- * to accept drops during Drag and Drop operations. 
+ * to accept drops during Drag and Drop operations.
+ * <P>
+ *  Each
+ * <code>DropTarget</code> is associated with a <code>FlavorMap</code>.
+ * The default <code>FlavorMap</code> hereafter designates the
+ * <code>FlavorMap</code> returned by <code>SystemFlavorMap.getDefaultFlavorMap()</code>. 
  * 
- * @version 	1.41, 12/03/01
+ * @version 	1.43, 04/09/02
  * @since 1.2
  */
 
@@ -54,20 +59,20 @@ public class DropTarget implements DropTargetListener, Serializable {
     static private final FlavorMap defaultFlavorMap = SystemFlavorMap.getDefaultFlavorMap();
 
     /**
-     * Construct a new DropTarget given the <code>Component</code> 
+     * Creates a new DropTarget given the <code>Component</code> 
      * to associate itself with, an <code>int</code> representing
      * the default acceptable action(s) to 
      * support, a <code>DropTargetListener</code>
      * to handle event processing, a <code>boolean</code> indicating 
      * if the <code>DropTarget</code> is currently accepting drops, and 
-     * a <code>FlavorMap</code> to use (or null).
+     * a <code>FlavorMap</code> to use (or null for the default <CODE>FlavorMap</CODE>).
      * <P>
      * The Component will receive drops only if it is enabled.
      * @param c 	The <code>Component</code> with which this <code>DropTarget</code> is associated
      * @param ops	The default acceptable actions for this <code>DropTarget</code>
      * @param dtl	The <code>DropTargetListener</code> for this <code>DropTarget</code>
      * @param act	Is the <code>DropTarget</code> accepting drops.
-     * @param fm	The <code>FlavorMap</code> to use or null 
+     * @param fm	The <code>FlavorMap</code> to use, or null for the default <CODE>FlavorMap</CODE> 
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      *            returns true
      * @see java.awt.GraphicsEnvironment#isHeadless
@@ -99,7 +104,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Construct a <code>DropTarget</code> given the <code>Component</code> 
+     * Creates a <code>DropTarget</code> given the <code>Component</code> 
      * to associate itself with, an <code>int</code> representing
      * the default acceptable action(s) 
      * to support, a <code>DropTargetListener</code>
@@ -123,7 +128,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Construct a <code>DropTarget</code>.
+     * Creates a <code>DropTarget</code>.
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      *            returns true
      * @see java.awt.GraphicsEnvironment#isHeadless
@@ -133,7 +138,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Construct a <code>DropTarget</code> given the <code>Component</code> 
+     * Creates a <code>DropTarget</code> given the <code>Component</code> 
      * to associate itself with, and the <code>DropTargetListener</code>
      * to handle event processing.
      * <P>
@@ -151,7 +156,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Construct a <code>DropTarget</code> given the <code>Component</code> 
+     * Creates a <code>DropTarget</code> given the <code>Component</code> 
      * to associate itself with, an <code>int</code> representing
      * the default acceptable action(s) to support, and a
      * <code>DropTargetListener</code> to handle event processing.
@@ -213,7 +218,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * This method returns the <code>Component</code> associated 
+     * Gets the <code>Component</code> associated 
      * with this <code>DropTarget</code>.
      * <P>
      * @return the current </code>Component</code>
@@ -244,7 +249,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * This method returns an <code>int</code> representing the
+     * Gets an <code>int</code> representing the
      * current action(s) supported by this <code>DropTarget</code>.
      * <P>
      * @return the current default actions
@@ -255,7 +260,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Set the DropTarget active if <code>true</code>, 
+     * Sets the DropTarget active if <code>true</code>, 
      * inactive if <code>false</code>.
      * <P>
      * @param isActive sets the <code>DropTarget</code> (in)active.
@@ -270,11 +275,11 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * This method returns a <code>boolean</code> 
-     * indicating whether or not this <code>DropTarget</code> 
+     * Reports whether or not 
+     * this <code>DropTarget</code> 
      * is currently active (ready to accept drops).
      * <P>
-     * @return is the <code>DropTarget</code> active?
+     * @return <CODE>true</CODE> if active, <CODE>false</CODE> if not
      */
 
     public boolean isActive() {
@@ -282,7 +287,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Add a new <code>DropTargetListener</code> (UNICAST SOURCE)
+     * Adds a new <code>DropTargetListener</code> (UNICAST SOURCE).
      * <P>
      * @param dtl The new <code>DropTargetListener</code>
      * <P>
@@ -303,7 +308,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Remove the current <code>DropTargetListener</code> (UNICAST SOURCE)
+     * Removes the current <code>DropTargetListener</code> (UNICAST SOURCE).
      * <P>
      * @param dtl the DropTargetListener to deregister.
      */
@@ -403,8 +408,11 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * This method returns the <code>FlavorMap</code>
-     * associated with this <code>DropTarget</code>
+     * Gets the <code>FlavorMap</code>
+     * associated with this <code>DropTarget</code>.
+     * If no <code>FlavorMap</code> has been set for this
+     * <code>DropTarget</code>, it is associated with the default
+     * <code>FlavorMap</code>.
      * <P>
      * @return the FlavorMap for this DropTarget
      */
@@ -412,10 +420,11 @@ public class DropTarget implements DropTargetListener, Serializable {
     public FlavorMap getFlavorMap() { return flavorMap; }
 
     /**
-     * This method sets the <code>FlavorMap</code> associated
+     * Sets the <code>FlavorMap</code> associated
      * with this <code>DropTarget</code>.
      * <P>
-     * @param fm set the new <code>FlavorMap</code>, or null for default
+     * @param fm the new <code>FlavorMap</code>, or null to 
+     * associate the default FlavorMap with this DropTarget.
      */
 
     public void setFlavorMap(FlavorMap fm) {
@@ -486,7 +495,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * This method returns the <code>DropTargetContext</code> associated 
+     * Gets the <code>DropTargetContext</code> associated 
      * with this <code>DropTarget</code>.
      * <P>
      * @return the <code>DropTargetContext</code> associated with this <code>DropTarget</code>.
@@ -497,7 +506,7 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * Create the DropTargetContext associated with this DropTarget.
+     * Creates the DropTargetContext associated with this DropTarget.
      * Subclasses may override this method to instantiate their own
      * DropTargetContext subclass.
      *

@@ -1,5 +1,5 @@
 /*
- * @(#)Menu.java	1.68 01/12/03
+ * @(#)Menu.java	1.69 02/02/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import javax.accessibility.*;
  * (an instance of <code>Menu</code>), or a check box (an instance of
  * <code>CheckboxMenuItem</code>).
  *
- * @version 1.68, 12/03/01
+ * @version 1.69, 02/04/02
  * @author Sami Shaio
  * @see     java.awt.MenuItem
  * @see     java.awt.CheckboxMenuItem
@@ -472,7 +472,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
     void deleteShortcut(MenuShortcut s) {
 	int nitems = getItemCount();
 	for (int i = 0 ; i < nitems ; i++) {
-	    getItem(i).deleteShortcut();
+	    getItem(i).deleteShortcut(s);
 	}
     }
 

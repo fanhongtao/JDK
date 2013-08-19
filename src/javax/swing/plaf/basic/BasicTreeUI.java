@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.150 01/12/03
+ * @(#)BasicTreeUI.java	1.155 02/04/16
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import javax.swing.text.Position;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.150 12/03/01
+ * @version 1.155 04/16/02
  * @author Scott Violet
  */
 
@@ -1992,6 +1992,8 @@ public class BasicTreeUI extends TreeUI
 		    stopEditingInCompleteEditing = true;
 		}
 
+		BasicLookAndFeel.compositeRequestFocus(editingComponent);
+		
 		if(event != null && event instanceof MouseEvent) {
 		    /* Find the component that will get forwarded all the
 		       mouse events until mouseReleased. */
@@ -2493,6 +2495,7 @@ public class BasicTreeUI extends TreeUI
 	    // Stop editing
 	    completeEditing();
 	    // Make sure all the paths are visible, if necessary.
+            // PENDING: This should be tweaked when isAdjusting is added
 	    if(tree.getExpandsSelectedPaths() && treeSelectionModel != null) {
 		TreePath[]           paths = treeSelectionModel
 		                         .getSelectionPaths();
@@ -2500,7 +2503,23 @@ public class BasicTreeUI extends TreeUI
 		if(paths != null) {
 		    for(int counter = paths.length - 1; counter >= 0;
 			counter--) {
-			tree.makeVisible(paths[counter]);
+                        TreePath path = paths[counter].getParentPath();
+                        boolean expand = true;
+
+                        while (path != null) {
+                            // Indicates this path isn't valid anymore,
+                            // we shouldn't attempt to expand it then.
+                            if (treeModel.isLeaf(path.getLastPathComponent())){
+                                expand = false;
+                                path = null;
+                            }
+                            else {
+                                path = path.getParentPath();
+                            }
+                        }
+                        if (expand) {
+                            tree.makeVisible(paths[counter]);
+                        }
 		    }
 		}
 	    }
@@ -2587,7 +2606,10 @@ public class BasicTreeUI extends TreeUI
 	 */
 	public void keyTyped(KeyEvent e) {
 	    // handle first letter navigation
-	    if(tree != null && tree.hasFocus() && tree.isEnabled()) {
+	    if(tree != null && tree.getRowCount()>0 && tree.hasFocus() && tree.isEnabled()) {
+		if (e.isAltDown() || e.isControlDown() || e.isMetaDown()) {
+		    return;
+		}
 		boolean startingFromSelection = true;
 
 		char [] c = new char[1];
@@ -3698,7 +3720,9 @@ public class BasicTreeUI extends TreeUI
 
     private static final TransferHandler defaultTransferHandler = new TreeTransferHandler();
 
-    static class TreeTransferHandler extends TransferHandler implements UIResource {
+    static class TreeTransferHandler extends TransferHandler implements UIResource, Comparator {
+	
+	private JTree tree;
 
 	/**
 	 * Create a Transferable to use as the source for a data transfer.
@@ -3711,128 +3735,81 @@ public class BasicTreeUI extends TreeUI
 	 */
         protected Transferable createTransferable(JComponent c) {
 	    if (c instanceof JTree) {
-		JTree tree = (JTree) c;
+		tree = (JTree) c;
 		TreePath[] paths = tree.getSelectionPaths();
-		return new TreeTransferable(tree, paths);
+		
+		if (paths == null || paths.length == 0) {
+		    return null;
+		}
+		
+                StringBuffer plainBuf = new StringBuffer();
+                StringBuffer htmlBuf = new StringBuffer();
+                
+                htmlBuf.append("<html>\n<body>\n<ul>\n");
+                
+                TreeModel model = tree.getModel();
+                TreePath lastPath = null;
+                TreePath[] displayPaths = getDisplayOrderPaths(paths);
+
+                for (int i = 0; i < displayPaths.length; i++) {
+                    TreePath path = displayPaths[i];
+                    
+                    Object node = path.getLastPathComponent();
+                    boolean leaf = model.isLeaf(node);
+                    String label = getDisplayString(path, true, leaf);
+                    
+                    plainBuf.append(label + "\n");
+                    htmlBuf.append("  <li>" + label + "\n");
+                }
+                
+                // remove the last newline
+                plainBuf.deleteCharAt(plainBuf.length() - 1);
+                htmlBuf.append("</ul>\n</body>\n</html>");
+                
+                tree = null;
+                
+                return new BasicTransferable(plainBuf.toString(), htmlBuf.toString());
 	    }
+
 	    return null;
 	}
+	
+        public int compare(Object o1, Object o2) {
+            int row1 = tree.getRowForPath((TreePath)o1);
+            int row2 = tree.getRowForPath((TreePath)o2);
+            return row1 - row2;
+        }
+
+        String getDisplayString(TreePath path, boolean selected, boolean leaf) {
+            int row = tree.getRowForPath(path);
+            boolean hasFocus = tree.getLeadSelectionRow() == row;
+            Object node = path.getLastPathComponent();
+            return tree.convertValueToText(node, selected, tree.isExpanded(row), 
+                                           leaf, row, hasFocus);
+        }
+        
+        /**
+         * Selection paths are in selection order.  The conversion to
+         * HTML requires display order.  This method resorts the paths
+         * to be in the display order.
+         */
+        TreePath[] getDisplayOrderPaths(TreePath[] paths) {
+            // sort the paths to display order rather than selection order
+            ArrayList selOrder = new ArrayList();
+            for (int i = 0; i < paths.length; i++) {
+                selOrder.add(paths[i]);
+            }
+            Collections.sort(selOrder, this);
+            int n = selOrder.size();
+            TreePath[] displayPaths = new TreePath[n];
+            for (int i = 0; i < n; i++) {
+                displayPaths[i] = (TreePath) selOrder.get(i);
+            }
+            return displayPaths;
+        }
 
         public int getSourceActions(JComponent c) {
 	    return COPY;
-	}
-
-	static class TreeTransferable extends BasicTransferable implements Comparator {
-
-	    TreeTransferable(JTree tree, TreePath[] paths) {
-		this.paths = paths;
-		this.tree = tree;
-
-	    }
-
-	    // --- Comparator methods ------------------------------------------
-
-	    /**
-	     * Compares its two arguments for order. Returns a negative integer, zero, 
-	     * or a positive integer as the first argument is less than, equal
-	     * to, or greater than the second.
-	     */
-            public int compare(Object o1, Object o2) {
-		int row1 = tree.getRowForPath((TreePath)o1);
-		int row2 = tree.getRowForPath((TreePath)o2);
-		return row1 - row2;
-	    }
-
-	    // --- Plain ----------------------------------------------------------
-
-	    /**
-	     * Should the plain text flavors be offered?  If so, the method
-	     * getPlainData should be implemented to provide something reasonable.
-	     */
-            protected boolean isPlainSupported() {
-		return (paths.length == 1);
-	    }
-
-	    /**
-	     * Fetch the data in a text/plain format.
-	     */
-            protected String getPlainData() {
-		TreeModel model = tree.getModel();
-		TreePath path = paths[0];
-		Object node = path.getLastPathComponent();
-		boolean leaf = model.isLeaf(node);
-		String label = getDisplayString(path, true, leaf);
-		return label;
-	    }
-
-	    // --- HTML ---------------------------------------------------------
-
-	    /**
-	     * Should the HTML flavors be offered?  If so, the method
-	     * getHTMLData should be implemented to provide something reasonable.
-	     */
-            protected boolean isHTMLSupported() {
-		return true;
-	    }
-
-            protected String getHTMLData() {
-		TreePath[] displayPaths = getDisplayOrderPaths();
-		StringBuffer buf = new StringBuffer();
-		buf.append("<html><body><ol>");
-
-		// create the string
-		TreeModel model = tree.getModel();
-		TreePath lastPath = null;
-		for (int i = 0; i < displayPaths.length; i++) {
-		    TreePath path = displayPaths[i];
-
-		    // show the selected node
-		    Object node = path.getLastPathComponent();
-		    boolean leaf = model.isLeaf(node);
-		    String label = getDisplayString(path, true, leaf);
-		    buf.append("\n<li>" + label);
-		}
-		buf.append("\n</ol></body></html>");
-		return buf.toString();
-	    }
-
-	    /**
-	     * Selection paths are in selection order.  The conversion to
-	     * HTML requires display order.  This method resorts the paths
-	     * to be in the display order.
-	     */
-	    TreePath[] getDisplayOrderPaths() {
-		// sort the paths to display order rather than selection order
-		ArrayList selOrder = new ArrayList();
-		for (int i = 0; i < paths.length; i++) {
-		    selOrder.add(paths[i]);
-		}
-		Collections.sort(selOrder, this);
-		int n = selOrder.size();
-		TreePath[] displayPaths = new TreePath[n];
-		for (int i = 0; i < n; i++) {
-		    displayPaths[i] = (TreePath) selOrder.get(i);
-		}
-		return displayPaths;
-	    }
-
-	    TreePath getLeadingPath(TreePath path, int lastIndex) {
-		Object[] nodes = new Object[lastIndex + 1];
-		for (int i = 0; i <= lastIndex; i++)
-		    nodes[i] = path.getPathComponent(i);
-		return new TreePath(nodes);
-	    }
-
-	    String getDisplayString(TreePath path, boolean selected, boolean leaf) {
-		int row = tree.getRowForPath(path);
-		boolean hasFocus = tree.getLeadSelectionRow() == row;
-		Object node = path.getLastPathComponent();
-		return tree.convertValueToText(node, selected, tree.isExpanded(row), 
-					       leaf, row, hasFocus);
-	    }
-
-	    private TreePath[] paths;
-	    private JTree tree;
 	}
 
     }

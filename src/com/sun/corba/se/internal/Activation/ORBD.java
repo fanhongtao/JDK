@@ -1,5 +1,5 @@
 /*
- * @(#)ORBD.java	1.47 01/12/03
+ * @(#)ORBD.java	1.48 02/01/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -62,6 +62,7 @@ import com.sun.corba.se.ActivationIDL.ServerAlreadyRegistered;
  */
 public class ORBD
 {
+    private int initSvcPort;
     protected InitialNamingImpl initializeBootNaming(POAORB orb)
     {
 	// construct boostrap server args
@@ -72,7 +73,7 @@ public class ORBD
 
     	// create a bootstrap server
         BootstrapServer bootServer;
-	int initSvcPort = orb.getORBInitialPort();
+	initSvcPort = orb.getORBInitialPort();
     	bootServer = new BootstrapServer(orb, initSvcPort, nameFile, props);
     	bootServer.start();
 
@@ -152,9 +153,15 @@ public class ORBD
             theThread.start( );
 
 	    orb.run();
-	} catch (Exception ex) {
-	    System.out.println(CorbaResourceUtil.getText("orbd.usage", "orbd"));
-	    System.out.println();
+	} catch( org.omg.CORBA.COMM_FAILURE cex ) {
+            System.out.println( CorbaResourceUtil.getText("orbd.commfailure"));
+        } catch( org.omg.CORBA.INTERNAL iex ) {
+            System.out.println( CorbaResourceUtil.getText(
+                "orbd.internalexception"));
+        } catch (Exception ex) {
+	    System.out.println(CorbaResourceUtil.getText(
+                "orbd.usage", "orbd"));
+	    System.out.println( ex );
 	    ex.printStackTrace();
 	}
     }

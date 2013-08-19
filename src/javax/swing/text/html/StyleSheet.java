@@ -1,5 +1,5 @@
 /*
- * @(#)StyleSheet.java	1.74 01/12/03
+ * @(#)StyleSheet.java	1.75 01/12/07
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -106,7 +106,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.74 12/03/01
+ * @version 1.75 12/07/01
  */
 public class StyleSheet extends StyleContext {
     // As the javadoc states, this class maintains a mapping between
@@ -1924,6 +1924,8 @@ public class StyleSheet extends StyleContext {
 						    LIST_STYLE_TYPE);
 	    }
             start = 1;
+
+            paintRect = new Rectangle();
 	}
 
 	/**
@@ -2035,7 +2037,31 @@ public class StyleSheet extends StyleContext {
                 name != HTML.Tag.LI) {
                 return;
             }
-	    float align = cv.getAlignment(View.Y_AXIS);
+            // How the list indicator is aligned is not specified, it is
+            // left up to the UA. IE and NS differ on this behavior.
+            // This is closer to NS where we align to the first line of text.
+            // If the child is not text we draw the indicator at the
+            // origin (0).
+	    float align = 0;
+            if (cv.getViewCount() > 0) {
+                View pView = cv.getView(0);
+                Object cName = pView.getElement().getAttributes().
+                               getAttribute(StyleConstants.NameAttribute);
+                if ((cName == HTML.Tag.P || cName == HTML.Tag.IMPLIED) &&
+                              pView.getViewCount() > 0) {
+                    paintRect.setBounds((int)x, (int)y, (int)w, (int)h);
+                    Shape shape = cv.getChildAllocation(0, paintRect);
+                    if (shape != null && (shape = pView.getView(0).
+                                 getChildAllocation(0, shape)) != null) {
+                        Rectangle rect = (shape instanceof Rectangle) ?
+                                         (Rectangle)shape : shape.getBounds();
+
+                        align = pView.getView(0).getAlignment(View.Y_AXIS);
+                        y = rect.y;
+                        h = rect.height;
+                    }
+                }
+            }
 	    if (img != null) {
     		drawIcon(g, (int) x, (int) y, (int) h, align,
 			 v.getContainer());
@@ -2053,19 +2079,19 @@ public class StyleSheet extends StyleContext {
 	    } else if (childtype == CSS.Value.CIRCLE) {
     		drawShape(g, childtype, (int) x, (int) y, (int) h, align);
 	    } else if (childtype == CSS.Value.DECIMAL) {
-		drawLetter(g, '1', (int) x, (int) y, (int) h,
+		drawLetter(g, '1', (int) x, (int) y, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.LOWER_ALPHA) {
-		drawLetter(g, 'a', (int) x, (int) y, (int) h,
+		drawLetter(g, 'a', (int) x, (int) y, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.UPPER_ALPHA) {
-		drawLetter(g, 'A', (int) x, (int) y, (int) h,
+		drawLetter(g, 'A', (int) x, (int) y, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.LOWER_ROMAN) {
-		drawLetter(g, 'i', (int) x, (int) y, (int) h,
+		drawLetter(g, 'i', (int) x, (int) y, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.UPPER_ROMAN) {
-		drawLetter(g, 'I', (int) x, (int) y, (int) h,
+		drawLetter(g, 'I', (int) x, (int) y, (int) h, align,
                            getRenderIndex(v, item));
 	    }
 	}
@@ -2081,9 +2107,10 @@ public class StyleSheet extends StyleContext {
 	 */
 	void drawIcon(Graphics g, int ax, int ay, int ah,
 		      float align, Component c) {
+            // Align to bottom of icon.
 	    g.setColor(Color.black);
 	    int x = ax - img.getIconWidth() - bulletgap;
-	    int y = ay + (int)(ah * align) - 3;
+            int y = Math.max(ay, ay + (int)(align * ah) -img.getIconHeight());
 
 	    img.paintIcon(c, g, x, y);
 	}
@@ -2100,16 +2127,17 @@ public class StyleSheet extends StyleContext {
 	 */
 	void drawShape(Graphics g, CSS.Value type, int ax, int ay, int ah,
 		       float align) {
+            // Align to bottom of shape.
 	    g.setColor(Color.black);
-	    int x = ax - bulletgap - 7;
-	    int y = ay + (int)(ah * align) - 3;
+	    int x = ax - bulletgap - 8;
+            int y = Math.max(ay, ay + (int)(align * ah) - 8);
 
 	    if (type == CSS.Value.SQUARE) {
-		g.drawRect(x, y, 7, 7);
+		g.drawRect(x, y, 8, 8);
 	    } else if (type == CSS.Value.CIRCLE) {
-		g.drawOval(x, y, 7, 7);
+		g.drawOval(x, y, 8, 8);
 	    } else {
-		g.fillOval(x, y, 7, 7);
+		g.fillOval(x, y, 8, 8);
 	    }
 	}
 
@@ -2124,13 +2152,13 @@ public class StyleSheet extends StyleContext {
 	 * @param index position of the list item in the list
 	 */
 	void drawLetter(Graphics g, char letter, int ax, int ay, int ah,
-			int index) {
+                        float align, int index) {
 	    g.setColor(Color.black);
 	    String str = formatItemNum(index, letter) + ".";
 	    FontMetrics fm = g.getFontMetrics();
 	    int stringwidth = fm.stringWidth(str);
 	    int x = ax - stringwidth - bulletgap;
-	    int y = ay + fm.getAscent() + fm.getLeading();
+	    int y = Math.max(ay + fm.getAscent(), ay + (int)(ah * align));
 	    g.drawString(str, x, y);
 	}
 
@@ -2254,6 +2282,7 @@ public class StyleSheet extends StyleContext {
 	    return result;
 	}
 
+        private Rectangle paintRect;
         private boolean checkedForStart;
         private int start;
         private CSS.Value type;

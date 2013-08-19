@@ -1,5 +1,5 @@
 /*
- * @(#)File.java	1.102 01/12/03
+ * @(#)File.java	1.110 02/05/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import sun.security.action.GetPropertyAction;
  * <ol>
  * <li> An optional system-dependent <em>prefix</em> string,
  *      such as a disk-drive specifier, <code>"/"</code>&nbsp;for the UNIX root
- *      directory, or <code>"\\"</code>&nbsp;for a Win32 UNC pathname, and
+ *      directory, or <code>"\\"</code>&nbsp;for a Microsoft Windows UNC pathname, and
  * <li> A sequence of zero or more string <em>names</em>.
  * </ol>
  *
@@ -61,7 +61,7 @@ import sun.security.action.GetPropertyAction;
  * virtual machine was invoked.
  *
  * <p> The prefix concept is used to handle root directories on UNIX platforms,
- * and drive specifiers, root directories and UNC pathnames on Win32 platforms,
+ * and drive specifiers, root directories and UNC pathnames on Microsoft Windows platforms,
  * as follows:
  *
  * <ul>
@@ -71,7 +71,7 @@ import sun.security.action.GetPropertyAction;
  * denoting the root directory has the prefix <code>"/"</code> and an empty
  * name sequence.
  *
- * <li> For Win32 platforms, the prefix of a pathname that contains a drive
+ * <li> For Microsoft Windows platforms, the prefix of a pathname that contains a drive
  * specifier consists of the drive letter followed by <code>":"</code> and
  * possibly followed by <code>"\"</code> if the pathname is absolute.  The
  * prefix of a UNC pathname is <code>"\\"</code>; the hostname and the share
@@ -84,7 +84,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.102, 12/03/01
+ * @version 1.110, 05/06/02
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -123,7 +123,7 @@ public class File implements java.io.Serializable, Comparable {
      * The system-dependent default name-separator character.  This field is
      * initialized to contain the first character of the value of the system
      * property <code>file.separator</code>.  On UNIX systems the value of this
-     * field is <code>'/'</code>; on Win32 systems it is <code>'\'</code>.
+     * field is <code>'/'</code>; on Microsoft Windows systems it is <code>'\'</code>.
      *
      * @see     java.lang.System#getProperty(java.lang.String)
      */
@@ -141,7 +141,7 @@ public class File implements java.io.Serializable, Comparable {
      * initialized to contain the first character of the value of the system
      * property <code>path.separator</code>.  This character is used to
      * separate filenames in a sequence of files given as a <em>path list</em>.
-     * On UNIX systems, this character is <code>':'</code>; on Win32 systems it
+     * On UNIX systems, this character is <code>':'</code>; on Microsoft Windows systems it
      * is <code>';'</code>.
      *
      * @see     java.lang.System#getProperty(java.lang.String)
@@ -187,7 +187,7 @@ public class File implements java.io.Serializable, Comparable {
        parent abstract pathname as the current user directory.  An empty parent
        instead causes the child to be resolved against the system-dependent
        directory defined by the FileSystem.getDefaultParent method.  On Unix
-       this default is "/", while on Win32 it is "\\".  This is required for
+       this default is "/", while on Microsoft Windows it is "\\".  This is required for
        compatibility with the original behavior of this class. */
 
     /**
@@ -421,7 +421,7 @@ public class File implements java.io.Serializable, Comparable {
     /**
      * Tests whether this abstract pathname is absolute.  The definition of
      * absolute pathname is system dependent.  On UNIX systems, a pathname is
-     * absolute if its prefix is <code>"/"</code>.  On Win32 systems, a
+     * absolute if its prefix is <code>"/"</code>.  On Microsoft Windows systems, a
      * pathname is absolute if its prefix is a drive specifier followed by
      * <code>"\\"</code>, or if its prefix is <code>"\\"</code>.
      *
@@ -442,7 +442,7 @@ public class File implements java.io.Serializable, Comparable {
      * system property <code>user.dir</code>, is returned.  Otherwise this
      * pathname is resolved in a system-dependent way.  On UNIX systems, a
      * relative pathname is made absolute by resolving it against the current
-     * user directory.  On Win32 systems, a relative pathname is made absolute
+     * user directory.  On Microsoft Windows systems, a relative pathname is made absolute
      * by resolving it against the current directory of the drive named by the
      * pathname, if any; if not, it is resolved against the current user
      * directory.
@@ -485,7 +485,7 @@ public class File implements java.io.Serializable, Comparable {
      * system-dependent way.  This typically involves removing redundant names
      * such as <tt>"."</tt> and <tt>".."</tt> from the pathname, resolving
      * symbolic links (on UNIX platforms), and converting drive letters to a
-     * standard case (on Win32 platforms).
+     * standard case (on Microsoft Windows platforms).
      *
      * <p> Every pathname that denotes an existing file or directory has a
      * unique canonical form.  Every pathname that denotes a nonexistent file
@@ -728,7 +728,7 @@ public class File implements java.io.Serializable, Comparable {
      * Tests whether the file named by this abstract pathname is a hidden
      * file.  The exact definition of <em>hidden</em> is system-dependent.  On
      * UNIX systems, a file is considered to be hidden if its name begins with
-     * a period character (<code>'.'</code>).  On Win32 systems, a file is
+     * a period character (<code>'.'</code>).  On Microsoft Windows systems, a file is
      * considered to be hidden if it has been marked as such in the filesystem.
      *
      * @return  <code>true</code> if and only if the file denoted by this
@@ -800,10 +800,12 @@ public class File implements java.io.Serializable, Comparable {
      * and only if a file with this name does not yet exist.  The check for the
      * existence of the file and the creation of the file if it does not exist
      * are a single operation that is atomic with respect to all other
-     * filesystem activities that might affect the file.  This method, in
-     * combination with the <code>{@link #deleteOnExit}</code> method, can
-     * therefore serve as the basis for a simple but reliable cooperative
-     * file-locking protocol.
+     * filesystem activities that might affect the file.
+     * <P>
+     * Note: this method should <i>not</i> be used for file-locking, as
+     * the resulting protocol cannot be made to work reliably. The 
+     * {@link java.nio.channels.FileLock FileLock}
+     * facility should be used instead. 
      *
      * @return  <code>true</code> if the named file does not exist and was
      *          successfully created; <code>false</code> if the named file
@@ -847,13 +849,19 @@ public class File implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Requests that the file or directory denoted by this abstract pathname
-     * be deleted when the virtual machine terminates.  Deletion will be
-     * attempted only for normal termination of the virtual machine, as defined
-     * by the Java Language Specification (12.9).
+     * Requests that the file or directory denoted by this abstract 
+     * pathname be deleted when the virtual machine terminates.  
+     * Deletion will be attempted only for normal termination of the 
+     * virtual machine, as defined by the Java Language Specification. 
      *
      * <p> Once deletion has been requested, it is not possible to cancel the
      * request.  This method should therefore be used with care.
+     *
+     * <P>
+     * Note: this method should <i>not</i> be used for file-locking, as 
+     * the resulting protocol cannot be made to work reliably. The 
+     * {@link java.nio.channels.FileLock FileLock}
+     * facility should be used instead.
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
@@ -1113,12 +1121,23 @@ public class File implements java.io.Serializable, Comparable {
 	if (mkdir()) {
  	    return true;
  	}
-	String parent = getParent();
-	return (parent != null) && (new File(parent).mkdirs() && mkdir());
+        File canonFile = null;
+        try {
+            canonFile = getCanonicalFile();
+        } catch (IOException e) {
+            return false;
+        }
+	String parent = canonFile.getParent();
+        return (parent != null) && (new File(parent).mkdirs() &&
+                                    canonFile.mkdir());
     }
 
     /**
      * Renames the file denoted by this abstract pathname.
+     * 
+     * <p> Whether or not this method can move a file from one filesystem 
+     * to another is platform-dependent.  The return value should always 
+     * be checked to make sure that the rename operation was successful.
      *
      * @param  dest  The new abstract pathname for the named file
      * 
@@ -1332,7 +1351,7 @@ public class File implements java.io.Serializable, Comparable {
      * default temporary-file directory is specified by the system property
      * <code>java.io.tmpdir</code>.  On UNIX systems the default value of this
      * property is typically <code>"/tmp"</code> or <code>"/var/tmp"</code>; on
-     * Win32 systems it is typically <code>"c:\\temp"</code>.  A different
+     * Microsoft Windows systems it is typically <code>"c:\\temp"</code>.  A different
      * value may be given to this system property when the Java virtual machine
      * is invoked, but programmatic changes to this property are not guaranteed
      * to have any effect upon the the temporary directory used by this method.
@@ -1425,7 +1444,7 @@ public class File implements java.io.Serializable, Comparable {
     /**
      * Compares two abstract pathnames lexicographically.  The ordering
      * defined by this method depends upon the underlying system.  On UNIX
-     * systems, alphabetic case is significant in comparing pathnames; on Win32
+     * systems, alphabetic case is significant in comparing pathnames; on Microsoft Windows
      * systems it is not.
      *
      * @param   pathname  The abstract pathname to be compared to this abstract
@@ -1476,7 +1495,7 @@ public class File implements java.io.Serializable, Comparable {
      * <code>null</code> and is an abstract pathname that denotes the same file
      * or directory as this abstract pathname.  Whether or not two abstract
      * pathnames are equal depends upon the underlying system.  On UNIX
-     * systems, alphabetic case is significant in comparing pathnames; on Win32
+     * systems, alphabetic case is significant in comparing pathnames; on Microsoft Windows
      * systems it is not.
      *
      * @param   obj   The object to be compared with this abstract pathname
@@ -1496,7 +1515,7 @@ public class File implements java.io.Serializable, Comparable {
      * abstract pathnames is inherently system-dependent, so is the computation
      * of their hash codes.  On UNIX systems, the hash code of an abstract
      * pathname is equal to the exclusive <em>or</em> of its pathname string
-     * and the decimal value <code>1234321</code>.  On Win32 systems, the hash
+     * and the decimal value <code>1234321</code>.  On Microsoft Windows systems, the hash
      * code is equal to the exclusive <em>or</em> of its pathname string,
      * convered to lower case, and the decimal value <code>1234321</code>.
      *

@@ -1,5 +1,5 @@
 /*
- * @(#)BufferCapabilities.java	1.3 01/12/03
+ * @(#)BufferCapabilities.java	1.6 02/03/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,8 +10,8 @@ package java.awt;
 /**
  * Capabilities and properties of buffers.
  *
- * @see BufferStrategy#getCapabilities
- * @see GraphicsConfiguration#getCapabilities
+ * @see java.awt.image.BufferStrategy#getCapabilities()
+ * @see GraphicsConfiguration#getBufferCapabilities
  * @author Michael Martak
  * @since 1.4
  */
@@ -65,7 +65,7 @@ public class BufferCapabilities implements Cloneable {
      * more back buffers by switching the video pointer (or by copying memory
      * internally).  A non-flipping set of
      * buffers uses blitting to copy the contents from one buffer to
-     * another; when this is the case, <code>getFlipContents<code> returns
+     * another; when this is the case, <code>getFlipContents</code> returns
      * <code>null</code>
      */
     public boolean isPageFlipping() {
@@ -81,10 +81,10 @@ public class BufferCapabilities implements Cloneable {
      * <code>FlipContents.PRIOR</code>, or
      * <code>FlipContents.COPIED</code>.
      * @see #isPageFlipping
-     * @see #UNDEFINED
-     * @see #BACKGROUND
-     * @see #PRIOR
-     * @see #COPIED
+     * @see FlipContents#UNDEFINED
+     * @see FlipContents#BACKGROUND
+     * @see FlipContents#PRIOR
+     * @see FlipContents#COPIED
      */
     public FlipContents getFlipContents() {
         return flipContents;

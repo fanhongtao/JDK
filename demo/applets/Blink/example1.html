@@ -5,25 +5,14 @@
   <body>
       <h1>Blinking Text</h1>
       <hr>
-
-<OBJECT classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
-         width="300" height="100" align="baseline">
-
-     <PARAM NAME="code" VALUE="Blink.class">
-     <PARAM NAME="codebase" VALUE=".">
-     <PARAM NAME="type" VALUE="application/x-java-applet;version=1.3">
-     <PARAM NAME="lbl" VALUE="This is the next best thing to sliced bread! Toast, toast, toast, butter, jam, toast, marmite, toast.">
-     <COMMENT>
-         <EMBED type="application/x-java-applet;version=1.3" width="300" height="100"
-             align="baseline" code="Blink.class" codebase="."
-             lbl="This is the next best thing to sliced bread! Toast, toast, toast, butter, jam, toast, marmite, toast."
-             pluginspage="http://javaweb.eng/plugin/plugin-install.html">
-         <NOEMBED></COMMENT>
-             No JDK 1.3 support for APPLET!!
-         </NOEMBED>
-         </EMBED>
-     </OBJECT>
-
+      <applet code="Blink.class" width=300 height=100>
+        <param name=lbl value="This is the next best thing to sliced bread! Toas
+t, toast, toast, butter, jam, toast, marmite, toast.">
+          <param name=speed value="4">
+            alt="Your browser understands the &lt;APPLET&gt; tag but isn't runni
+ng the applet, for some reason."
+            Your browser is completely ignoring the &lt;APPLET&gt; tag!
+      </applet>
       <hr>
       <a href="Blink.java">The source.</a>
   </body>

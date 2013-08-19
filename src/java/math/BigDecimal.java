@@ -1,11 +1,10 @@
 /*
- * @(#)BigDecimal.java	1.36 01/09/21
- *
- * Copyright 1996-2000 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
- * 
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)BigDecimal.java	1.40 02/06/11
  */
 
 package java.math;
@@ -19,14 +18,12 @@ package java.math;
  * provides operations for basic arithmetic, scale manipulation, comparison,
  * hashing, and format conversion.
  * <p>
-
  * The BigDecimal class gives its user complete control over rounding
  * behavior, forcing the user to explicitly specify a rounding
  * behavior for operations capable of discarding precision ({@link
  * #divide(BigDecimal, int)}, {@link #divide(BigDecimal, int, int)},
  * and {@link #setScale}).  Eight <em>rounding modes</em> are provided
  * for this purpose.
-
  * <p>
  * Two types of operations are provided for manipulating the scale of a
  * BigDecimal: scaling/rounding operations and decimal point motion
@@ -62,7 +59,7 @@ package java.math;
  * @see     BigInteger
  * @see	    java.util.SortedMap
  * @see	    java.util.SortedSet
- * @version 1.36, 09/21/01
+ * @version 1.40, 06/11/02
  * @author Josh Bloch
  */
 public class BigDecimal extends Number implements Comparable {
@@ -250,9 +247,9 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Translates a double into a BigDecimal.  The scale of the BigDecimal
-     * is the smallest value such that <tt>(10<sup>scale</sup> * val)</tt>
-     * is an integer.
+     * Translates a <code>double</code> into a BigDecimal.  The scale
+     * of the BigDecimal is the smallest value such that
+     * <tt>(10<sup>scale</sup> * val)</tt> is an integer.
      * <p>
      * Note: the results of this constructor can be somewhat unpredictable.
      * One might assume that <tt>new BigDecimal(.1)</tt> is exactly equal
@@ -261,17 +258,16 @@ public class BigDecimal extends Number implements Comparable {
      * This is so because .1 cannot be represented exactly as a double
      * (or, for that matter, as a binary fraction of any finite length).
      * Thus, the long value that is being passed <i>in</i> to the constructor 
-     * is not exactly equal to .1, appearances nonwithstanding.
+     * is not exactly equal to .1, appearances notwithstanding.
      * <p>
      * The (String) constructor, on the other hand, is perfectly predictable:
      * <tt>new BigDecimal(".1")</tt> is <i>exactly</i> equal to .1, as one
      * would expect.  Therefore, it is generally recommended that the (String)
      * constructor be used in preference to this one.
      *
-     * @param val double value to be converted to BigDecimal.
-     * @throws NumberFormatException <tt>val</tt> is equal to
-     * 	       <tt>Double.NEGATIVE_INFINITY</tt>,
-     *	       <tt>Double.POSITIVE_INFINITY</tt>, or <tt>Double.NaN</tt>.
+     * @param val <code>double</code> value to be converted to BigDecimal.
+     * @throws NumberFormatException <tt>val</tt> if <tt>val</tt> is
+     *         infinite or NaN.
      */
     public BigDecimal(double val) {
 	if (Double.isInfinite(val) || Double.isNaN(val))
@@ -325,8 +321,8 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Translates a BigInteger unscaled value and an int scale into a
-     * BigDecimal.  The value of the BigDecimal is
+     * Translates a BigInteger unscaled value and an <code>int</code>
+     * scale into a BigDecimal.  The value of the BigDecimal is
      * <tt>(unscaledVal/10<sup>scale</sup>)</tt>.
      *
      * @param unscaledVal unscaled value of the BigDecimal.
@@ -345,10 +341,11 @@ public class BigDecimal extends Number implements Comparable {
     // Static Factory Methods
 
     /**
-     * Translates a long unscaled value and an int scale into a BigDecimal.
-     * This "static factory method" is provided in preference to a
-     * (long, int) constructor because it allows for reuse of frequently used
-     * BigDecimals.
+     * Translates a <code>long</code> unscaled value and an
+     * <code>int</code> scale into a BigDecimal.  This &quot;static factory
+     * method&quot; is provided in preference to a (<code>long</code>,
+     * <code>int</code>) constructor because it allows for reuse of
+     * frequently used BigDecimals.
      *
      * @param unscaledVal unscaled value of the BigDecimal.
      * @param scale scale of the BigDecimal.
@@ -360,10 +357,10 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Translates a long value into a BigDecimal with a scale of zero.
-     * This "static factory method" is provided in preference to a
-     * (long) constructor because it allows for reuse of frequently
-     * used BigDecimals.
+     * Translates a <code>long</code> value into a BigDecimal with a
+     * scale of zero.  This &quot;static factory method&quot; is provided in
+     * preference to a (<code>long</code>) constructor because it
+     * allows for reuse of frequently used BigDecimals.
      *
      * @param val value of the BigDecimal.
      * @return a BigDecimal whose value is <tt>val</tt>.
@@ -657,6 +654,14 @@ public class BigDecimal extends Number implements Comparable {
      * unscaled value must be divided (rather than multiplied), and the value
      * may be changed; in this case, the specified rounding mode is applied to
      * the division.
+     * <p>
+     * Note that since BigDecimal objects are immutable, calls of this
+     * method do <i>not</i> result in the original object being
+     * modified, contrary to the usual convention of having methods
+     * named <code>set<i>X</i></code> mutate field
+     * <code><i>X</i></code>.  Instead, <code>setScale</code> returns
+     * an object with the proper scale; the returned object may or may
+     * not be newly allocated.
      *
      * @param  scale scale of the BigDecimal value to be returned.
      * @param  roundingMode The rounding mode to apply.
@@ -705,9 +710,17 @@ public class BigDecimal extends Number implements Comparable {
      * part (i.e., factors of ten in its integer value) to allow for the
      * rescaling without loss of precision.
      * <p>
-     * Note that this call returns the same result as the two argument version
-     * of setScale, but saves the caller the trouble of specifying a rounding
-     * mode in cases where it is irrelevant.
+     * This method returns the same result as the two argument version
+     * of setScale, but saves the caller the trouble of specifying a
+     * rounding mode in cases where it is irrelevant.
+     * <p>
+     * Note that since BigDecimal objects are immutable, calls of this
+     * method do <i>not</i> result in the original object being
+     * modified, contrary to the usual convention of having methods
+     * named <code>set<i>X</i></code> mutate field
+     * <code><i>X</i></code>.  Instead, <code>setScale</code> returns
+     * an object with the proper scale; the returned object may or may
+     * not be newly allocated.
      *
      * @param  scale scale of the BigDecimal value to be returned.
      * @return a BigDecimal whose scale is the specified value, and whose
@@ -742,7 +755,6 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-
      * Moves the decimal point the specified number of places to the right.
      * If this BigDecimal's scale is &gt;= <tt>n</tt>, the call merely
      * subtracts <tt>n</tt> from the scale; otherwise, it sets the scale to
@@ -793,7 +805,7 @@ public class BigDecimal extends Number implements Comparable {
 
     /**
      * Compares this BigDecimal with the specified Object.  If the Object is a
-     * BigDecimal, this method behaves like {@link #compareTo}.
+     * BigDecimal, this method behaves like {@link #compareTo compareTo}.
      * Otherwise, it throws a <tt>ClassCastException</tt> (as BigDecimals are
      * comparable only to other BigDecimals).
      *
@@ -812,9 +824,10 @@ public class BigDecimal extends Number implements Comparable {
 
     /**
      * Compares this BigDecimal with the specified Object for
-     * equality.  Unlike {@link #compareTo}, this method considers two
-     * BigDecimals equal only if they are equal in value and scale
-     * (thus 2.0 is not equal to 2.00 when compared by this method).
+     * equality.  Unlike {@link #compareTo compareTo}, this method
+     * considers two BigDecimals equal only if they are equal in value
+     * and scale (thus 2.0 is not equal to 2.00 when compared by this
+     * method).
      *
      * @param  x Object to which this BigDecimal is to be compared.
      * @return <tt>true</tt> if and only if the specified Object is a
@@ -832,10 +845,10 @@ public class BigDecimal extends Number implements Comparable {
     /**
      * Returns the minimum of this BigDecimal and <tt>val</tt>.
      *
-     * @param  val value with with the minimum is to be computed.
+     * @param  val value with which the minimum is to be computed.
      * @return the BigDecimal whose value is the lesser of this BigDecimal and 
      *	       <tt>val</tt>.  If they are equal, as defined by the
-     * 	       {@link #compareTo} method, either may be returned.
+     * 	       {@link #compareTo compareTo} method, either may be returned.
      * @see    #compareTo(java.math.BigDecimal)
      */
     public BigDecimal min(BigDecimal val){
@@ -845,10 +858,10 @@ public class BigDecimal extends Number implements Comparable {
     /**
      * Returns the maximum of this BigDecimal and <tt>val</tt>.
      *
-     * @param  val value with with the maximum is to be computed.
+     * @param  val value with which the maximum is to be computed.
      * @return the BigDecimal whose value is the greater of this BigDecimal
      *	       and <tt>val</tt>.  If they are equal, as defined by the
-     * 	       {@link #compareTo} method, either may be returned.
+     * 	       {@link #compareTo compareTo} method, either may be returned.
      * @see    #compareTo(java.math.BigDecimal)
      */
     public BigDecimal max(BigDecimal val){
@@ -919,10 +932,15 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigDecimal to a BigInteger.  Standard <i>narrowing
-     * primitive conversion</i> as defined in <i>The Java Language
-     * Specification</i>: any fractional part of this BigDecimal will be
-     * discarded.
+     * Converts this BigDecimal to a BigInteger.  This conversion is
+     * analogous to a <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>double</code> to
+     * <code>long</code> as defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: any fractional part of this BigDecimal will
+     * be discarded.  Note that this conversion can lose information
+     * about the precision of the BigDecimal value.
      *
      * @return this BigDecimal converted to a BigInteger.
      */
@@ -932,40 +950,62 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigDecimal to an int.  This is standard <i>narrowing
-     * primitive conversion</i> as defined in <i>The Java Language
-     * Specification</i>: any fractional part of this BigDecimal will be
-     * discarded, and if the resulting "BigInteger" is too big to fit in
-     * an int, only the low-order 32 bits are returned.
+     * Converts this BigDecimal to an <code>int</code>.  This
+     * conversion is analogous to a <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>double</code> to
+     * <code>short</code> as defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: any fractional part of this BigDecimal will
+     * be discarded, and if the resulting &quot;BigInteger&quot; is
+     * too big to fit in an <code>int</code>, only the low-order 32
+     * bits are returned.  Note that this conversion can lose
+     * information about the overall magnitude and precision of the
+     * BigDecimal value as well as return a result with the opposite
+     * sign.
      * 
-     * @return this BigDecimal converted to an int.
+     * @return this BigDecimal converted to an <code>int</code>.
      */
     public int intValue(){
 	return toBigInteger().intValue();
     }
 
     /**
-     * Converts this BigDecimal to a long.  This is standard <i>narrowing
-     * primitive conversion</i> as defined in <i>The Java Language
-     * Specification</i>: any fractional part of this BigDecimal will be
-     * discarded, and if the resulting "BigInteger" is too big to fit in a
-     * long, only the low-order 64 bits are returned.
+     * Converts this BigDecimal to a <code>long</code>.  This
+     * conversion is analogous to a <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>double</code> to
+     * <code>short</code> as defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: any fractional part of this BigDecimal will
+     * be discarded, and if the resulting &quot;BigInteger&quot; is
+     * too big to fit in a <code>long</code>, only the low-order 64
+     * bits are returned.  Note that this conversion can lose
+     * information about the overall magnitude and precision of the
+     * BigDecimal value as well as return a result with the opposite
+     * sign.
      * 
-     * @return this BigDecimal converted to an int.
+     * @return this BigDecimal converted to an <code>long</code>.
      */
     public long longValue(){
 	return toBigInteger().longValue();
     }
 
     /**
-     * Converts this BigDecimal to a float.  Similar to the double-to-float
-     * <i>narrowing primitive conversion</i> defined in <i>The Java Language
-     * Specification</i>: if this BigDecimal has too great a magnitude to
-     * represent as a float, it will be converted to
-     * <tt>Float.NEGATIVE_INFINITY</tt> or <tt>Float.POSITIVE_INFINITY</tt>
-     * as appropriate.
+     * Converts this BigDecimal to a <code>float</code>.  This
+     * conversion is similar to the <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>double</code> to
+     * <code>float</code> defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: if this BigDecimal has too great a magnitude
+     * to represent as a <code>float</code>, it will be converted to
+     * {@link Float#NEGATIVE_INFINITY} or {@link
+     * Float#POSITIVE_INFINITY} as appropriate.  Note that even when
+     * the return value is finite, this conversion can lose
+     * information about the precision of the BigDecimal value.
      * 
-     * @return this BigDecimal converted to a float.
+     * @return this BigDecimal converted to a <code>float</code>.
      */
     public float floatValue(){
 	/* Somewhat inefficient, but guaranteed to work. */
@@ -973,14 +1013,20 @@ public class BigDecimal extends Number implements Comparable {
     }
 
     /**
-     * Converts this BigDecimal to a double.  Similar to the double-to-float
-     * <i>narrowing primitive conversion</i> defined in <i>The Java Language
-     * Specification</i>: if this BigDecimal has too great a magnitude to
-     * represent as a double, it will be converted to
-     * <tt>Double.NEGATIVE_INFINITY</tt> or <tt>Double.POSITIVE_INFINITY</tt>
-     * as appropriate.
+     * Converts this BigDecimal to a <code>double</code>.  This
+     * conversion is similar to the <a
+     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
+     * primitive conversion</i></a> from <code>double</code> to
+     * <code>float</code> as defined in the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>: if this BigDecimal has too great a magnitude
+     * represent as a <code>double</code>, it will be converted to
+     * {@link Double#NEGATIVE_INFINITY} or {@link
+     * Double#POSITIVE_INFINITY} as appropriate.  Note that even when
+     * the return value is finite, this conversion can lose
+     * information about the precision of the BigDecimal value.
      * 
-     * @return this BigDecimal converted to a double.
+     * @return this BigDecimal converted to a <code>double</code>.
      */
     public double doubleValue(){
 	/* Somewhat inefficient, but guaranteed to work. */

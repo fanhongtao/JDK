@@ -2,9 +2,11 @@
 // Written by David Megginson, sax@megginson.com
 // NO WARRANTY!  This class is in the public domain.
 
-// $Id: DefaultHandler.java,v 1.1.1.1 2000/11/23 01:53:36 edwingo Exp $
+// $Id: DefaultHandler.java,v 1.1.2.1 2001/11/15 19:46:10 edwingo Exp $
 
 package org.xml.sax.helpers;
+
+import java.io.IOException;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -47,7 +49,7 @@ import org.xml.sax.SAXParseException;
  * @since SAX 2.0
  * @author David Megginson, 
  *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0
+ * @version 2.0r2pre w/ JAXP 1.1 signatures
  * @see org.xml.sax.EntityResolver
  * @see org.xml.sax.DTDHandler
  * @see org.xml.sax.ContentHandler
@@ -77,11 +79,14 @@ public class DefaultHandler
      *                 document.
      * @return The new input source, or null to require the
      *         default behaviour.
+     * @exception java.io.IOException If there is an error setting
+     *            up the new input source.
      * @exception org.xml.sax.SAXException Any SAX exception, possibly
      *            wrapping another exception.
      * @see org.xml.sax.EntityResolver#resolveEntity
      */
     public InputSource resolveEntity (String publicId, String systemId)
+// 	throws IOException, SAXException
 	throws SAXException
     {
 	return null;

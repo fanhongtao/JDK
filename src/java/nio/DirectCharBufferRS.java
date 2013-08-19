@@ -1,5 +1,5 @@
 /*
- * @(#)Direct-X-Buffer.java	1.38 02/03/08
+ * @(#)Direct-X-Buffer.java	1.39 02/05/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -272,6 +272,16 @@ class DirectCharBufferRS
 
 
 
+
+
+
+
+
+
+
+
+
+
 	throw new ReadOnlyBufferException();
 
     }
@@ -299,10 +309,10 @@ class DirectCharBufferRS
 
 
 
-        throw new ReadOnlyBufferException();
+	throw new ReadOnlyBufferException();
 
     }
-
+    
     public CharBuffer compact() {
 
 

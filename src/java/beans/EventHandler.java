@@ -1,5 +1,5 @@
 /*
- * @(#)EventHandler.java	1.7 01/12/03
+ * @(#)EventHandler.java	1.9 02/03/13
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -95,7 +95,7 @@ import java.util.EventObject;
  * <blockquote>
  *<pre>
 //Equivalent code using an inner class instead of EventHandler.
- *myButton.addActionListener(new ActionListener {
+ *myButton.addActionListener(new ActionListener() {
  *    public void actionPerformed(ActionEvent e) {
  *        frame.toFront();
  *    }
@@ -122,7 +122,7 @@ import java.util.EventObject;
  * <blockquote>
  *<pre>
 //Equivalent code using an inner class instead of EventHandler.
- *new ActionListener {
+ *new ActionListener() {
  *    public void actionPerformed(ActionEvent e) {
  *        button.setNextFocusableComponent((Component)e.getSource()); 
  *    }
@@ -349,9 +349,6 @@ public class EventHandler implements InvocationHandler {
         }
 
         if (listenerMethodName == null || listenerMethodName.equals(methodName)) {
-                    
-            Object source = ((EventObject)arguments[0]).getSource(); 
-            
             Class[] argTypes = null; 
             Object[] newArgs = null; 
 

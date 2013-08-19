@@ -1,5 +1,5 @@
 /*
- * @(#)Socket.java	1.90 01/12/03
+ * @(#)Socket.java	1.93 02/04/23
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.security.PrivilegedExceptionAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.90, 12/03/01
+ * @version 1.93, 04/23/02
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -42,6 +42,7 @@ class Socket {
     private boolean bound = false;
     private boolean connected = false;
     private boolean closed = false;
+    private Object closeLock = new Object();
     private boolean shutIn = false;
     private boolean shutOut = false;
 
@@ -570,7 +571,7 @@ class Socket {
 
     /**
      * Returns the address of the endpoint this socket is connected to, or
-     * <code>null</null> if it is unconnected.
+     * <code>null</code> if it is unconnected.
      * @return a <code>SocketAddress</code> reprensenting the remote endpoint of this
      *	       socket, or <code>null</code> if it is not connected yet.
      * @see #getInetAddress()
@@ -632,9 +633,37 @@ class Socket {
      * is in non-blocking mode then the input stream's <tt>read</tt> operations
      * will throw an {@link java.nio.channels.IllegalBlockingModeException}.
      *
+     * <p>Under abnormal conditions the underlying connection may be
+     * broken by the remote host or the network software (for example
+     * a connection reset in the case of TCP connections). When a
+     * broken connection is detected by the network software the
+     * following applies to the returned input stream :-
+     *
+     * <ul>
+     *
+     *   <li><p>The network software may discard bytes that are buffered
+     *   by the socket. Bytes that aren't discarded by the network 
+     *   software can be read using {@link java.io.InputStream#read read}.
+     *
+     *   <li><p>If there are no bytes buffered on the socket, or all
+     *   buffered bytes have been consumed by  
+     *   {@link java.io.InputStream#read read}, then all subsequent
+     *   calls to {@link java.io.InputStream#read read} will throw an 
+     *   {@link java.io.IOException IOException}. 
+     *
+     *   <li><p>If there are no bytes buffered on the socket, and the
+     *   socket has not been closed using {@link #close close}, then
+     *   {@link java.io.InputStream#available available} will
+     *   return <code>0</code>.
+     *
+     * </ul>
+     *
      * @return     an input stream for reading bytes from this socket.
      * @exception  IOException  if an I/O error occurs when creating the
-     *               input stream or if the socket is not connected.
+     *             input stream, the socket is closed, the socket is
+     *             not connected, or the socket input has been shutdown
+     *             using {@link #shutdownInput()}
+     *
      * @revised 1.4
      * @spec JSR-51
      */
@@ -1185,11 +1214,13 @@ class Socket {
      * @see #isClosed
      */
     public synchronized void close() throws IOException {
-	if (isClosed())
-	    return;
-	if (created)
-	    impl.close();
-	closed = true;
+	synchronized(closeLock) {
+	    if (isClosed())
+		return;
+	    if (created)
+		impl.close();
+	    closed = true;
+	}
     }
 
     /**
@@ -1298,7 +1329,9 @@ class Socket {
      * @see #close
      */
     public boolean isClosed() {
-	return closed;
+	synchronized(closeLock) {
+	    return closed;
+	}
     }
 
     /**

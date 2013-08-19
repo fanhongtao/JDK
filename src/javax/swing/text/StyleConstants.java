@@ -1,5 +1,5 @@
 /*
- * @(#)StyleConstants.java	1.30 02/05/14
+ * @(#)StyleConstants.java	1.31 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import javax.swing.Icon;
  * <p>
  * 
  * @author  Timothy Prinzing
- * @version 1.30 05/14/02
+ * @version 1.31 02/11/02
  */
 public class StyleConstants {
 
@@ -797,7 +797,7 @@ public class StyleConstants {
         /**
          * The amount of space between lines
          * of the paragraph.
-         * Type is float and specifies the size as a factor of the line height
+	 * Type is float and specifies the size as a factor of the line height
          */
         public static final Object LineSpacing = new ParagraphConstants("LineSpacing");
 

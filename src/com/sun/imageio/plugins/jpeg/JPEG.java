@@ -1,5 +1,5 @@
 /*
- * @(#)JPEG.java	1.12 01/12/03
+ * @(#)JPEG.java	1.13 02/02/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -304,10 +304,11 @@ public class JPEG {
         }
         
         if (quality < 0.5F) {
-            quality = 50.0F / (quality * 100.0F);
+            quality = 0.5F / quality;
         } else {
-            quality = 2.0F - quality*2.0F;
+            quality = 2.0F - (quality * 2.0F);
         }
+
         return quality;
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)Inet6Address.java	1.19 01/12/03
+ * @(#)Inet6Address.java	1.21 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -532,60 +532,3 @@ class Inet6Address extends InetAddress {
 
 }
 
-/*
- * An IPv4/IPv6 impl. If InetAddress.preferIPv6Address is
- * true then anyLocalAddress(), loopbackAddress(), and localHost()
- * will return IPv6 addresses, otherwise IPv4 addresses.
- */
-class Inet6AddressImpl implements InetAddressImpl {
-    public native String getLocalHostName() throws UnknownHostException;
-    public native byte[][]
-        lookupAllHostAddr(String hostname) throws UnknownHostException;
-    public native String getHostByAddr(byte[] addr) throws UnknownHostException;
-
-    public synchronized InetAddress anyLocalAddress() {
-	if (anyLocalAddress == null) {
-	    if (InetAddress.preferIPv6Address) {
-	        anyLocalAddress = new Inet6Address();
-                anyLocalAddress.hostName = "::";
-	    } else {
-		anyLocalAddress = (new Inet4AddressImpl()).anyLocalAddress();
-	    }
-	}
-	return anyLocalAddress;
-    }
-
-    public synchronized InetAddress loopbackAddress() {
-	if (loopbackAddress == null) {
-	     if (InetAddress.preferIPv6Address) {
-	         byte[] loopback = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
-	         loopbackAddress = new Inet6Address("localhost", loopback);
-	     } else {
-		loopbackAddress = (new Inet4AddressImpl()).loopbackAddress();
-	     }
-	}
-	return loopbackAddress;
-    }
-
-    public synchronized InetAddress localHost() {
-	if (localHost == null) {
-	    if (InetAddress.preferIPv6Address) {
-		try {
-	    	    String host = getLocalHostName();
-            	    localHost = InetAddress.getAllByName(host)[0];
-        	} catch (Exception ex) { /* this shouldn't happen */
-            	    localHost = new Inet6Address();
-        	}
-	    } else {
-		localHost = (new Inet4AddressImpl()).localHost();
-	    }
- 	}
-
-	return localHost;
-    }
-
-    private InetAddress      anyLocalAddress;
-    private InetAddress      loopbackAddress;
-    private InetAddress      localHost;
-}

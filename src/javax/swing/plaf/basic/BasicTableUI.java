@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTableUI.java	1.120 01/12/03
+ * @(#)BasicTableUI.java	1.122 02/02/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -761,7 +761,7 @@ public class BasicTableUI extends TableUI
 	map.put("selectFirstColumn",
 		new PagingAction(false, false, false, true));
 	map.put("selectLastColumn",
-		new PagingAction(false, true, false, false));
+		new PagingAction(false, true, false, true));
 
 	map.put("scrollUpExtendSelection",
 		new PagingAction(true, false, true, false));
@@ -770,7 +770,7 @@ public class BasicTableUI extends TableUI
 	map.put("selectFirstColumnExtendSelection",
 		new PagingAction(true, false, false, true));
 	map.put("selectLastColumnExtendSelection",
-		new PagingAction(true, true, false, false));
+		new PagingAction(true, true, false, true));
 
 	map.put("selectFirstRow",
 		new PagingAction(false, false, true, true));
@@ -1258,9 +1258,13 @@ public class BasicTableUI extends TableUI
         protected Transferable createTransferable(JComponent c) {
 	    if (c instanceof JTable) {
 		JTable table = (JTable) c;
-		int[] rows = table.getSelectedRows();
-		int[] cols = table.getSelectedColumns();
-
+		int[] rows;
+		int[] cols;
+		
+		if (!table.getRowSelectionAllowed() && !table.getColumnSelectionAllowed()) {
+		    return null;
+		}
+		
                 if (!table.getRowSelectionAllowed()) {
                     int rowCount = table.getRowCount();
 
@@ -1268,7 +1272,10 @@ public class BasicTableUI extends TableUI
                     for (int counter = 0; counter < rowCount; counter++) {
                         rows[counter] = counter;
                     }
-                }
+                } else {
+		    rows = table.getSelectedRows();
+		}
+		
                 if (!table.getColumnSelectionAllowed()) {
                     int colCount = table.getColumnCount();
 
@@ -1276,128 +1283,44 @@ public class BasicTableUI extends TableUI
                     for (int counter = 0; counter < colCount; counter++) {
                         cols[counter] = counter;
                     }
+                } else {
+		    cols = table.getSelectedColumns();
+		}
+                
+		if (rows == null || cols == null || rows.length == 0 || cols.length == 0) {
+		    return null;
+		}
+                
+                StringBuffer plainBuf = new StringBuffer();
+                StringBuffer htmlBuf = new StringBuffer();
+                
+                htmlBuf.append("<html>\n<body>\n<table>\n");
+                
+                for (int row = 0; row < rows.length; row++) {
+                    htmlBuf.append("<tr>\n");
+                    for (int col = 0; col < cols.length; col++) {
+                        Object obj = table.getValueAt(rows[row], cols[col]);
+                        String val = ((obj == null) ? "" : obj.toString());
+                        plainBuf.append(val + "\t");
+                        htmlBuf.append("  <td>" + val + "</td>\n");
+                    }
+                    // we want a newline at the end of each line and not a tab
+                    plainBuf.deleteCharAt(plainBuf.length() - 1).append("\n");
+                    htmlBuf.append("</tr>\n");
                 }
-		return new TableTransferable(table, rows, cols);
+
+                // remove the last newline
+                plainBuf.deleteCharAt(plainBuf.length() - 1);
+                htmlBuf.append("</table>\n</body>\n</html>");
+                
+                return new BasicTransferable(plainBuf.toString(), htmlBuf.toString());
 	    }
+
 	    return null;
 	}
 
         public int getSourceActions(JComponent c) {
 	    return COPY;
-	}
-
-	static class TableTransferable extends BasicTransferable {
-
-	    TableTransferable(JTable table, int[] rows, int[] cols) {
-		this.rows = rows;
-		this.cols = cols;
-		this.table = table;
-	    }
-
-	    // --- Plain ----------------------------------------------------------
-
-	    /**
-	     * Should the plain text flavors be offered?  If so, the method
-	     * getPlainData should be implemented to provide something reasonable.
-	     */
-            protected boolean isPlainSupported() {
-                return isValid();
-	    }
-
-	    /**
-	     * Fetch the data in a text/plain format.
-	     */
-            protected String getPlainData() {
-                if (!isValid()) {
-                    return "";
-                }
-                StringBuffer result = new StringBuffer();
-                for (int rowCounter = 0; rowCounter < rows.length;
-                     rowCounter++) {
-                    for (int colCounter = 0; colCounter < cols.length;
-                                             colCounter++) {
-                        if (colCounter > 0) {
-                            result.append("\t");
-                        }
-                        Object value = table.getValueAt(rows[rowCounter],
-                                                        cols[colCounter]);
-                        value = (value == null) ? "" : value.toString();
-                        result.append(value);
-                    }
-                    result.append("\n");
-                }
-		return result.toString();
-	    }
-
-	    // --- HTML ---------------------------------------------------------
-
-	    /**
-	     * Should the HTML flavors be offered?  If so, the method
-	     * getHTMLData should be implemented to provide something reasonable.
-	     */
-            protected boolean isHTMLSupported() {
-		return isValid();
-	    }
-
-            protected String getHTMLData() {
-                if (!isValid()) {
-                    return "";
-                }
-		StringBuffer buf = new StringBuffer();
-		buf.append("<html>\n<table>");
-
-		// column headings
-		buf.append("\n<tr>");
-		for (int j = 0; j < cols.length; j++) {
-		    buf.append("\n  <th id=" + cols[j] + ">" + table.getColumnName(cols[j]));
-		}
-
-		// table data
-		for (int i = 0; i < rows.length; i++) {
-		    buf.append("\n<tr id=" + rows[i] + ">");
-		    for (int j = 0; j < cols.length; j++) {
-			Object value = table.getValueAt(rows[i], cols[j]);
-			buf.append("\n  <td>" + value.toString());
-		    }
-		}
-
-		buf.append("\n</table>\n</html>");
-		return buf.toString();
-	    }
-
-            /**
-             * Returns true if the content is still valid. It won't be
-             * if the model has changed out from under us.
-             */
-            private boolean isValid() {
-                if (rows != null) {
-                    int rowCount = table.getRowCount();
-
-                    for (int counter = 0; counter < rows.length; counter++) {
-                        if (rows[counter] >= rowCount) {
-                            cols = rows = null;
-                            break;
-                        }
-                    }
-                    if (cols != null) {
-                        int colCount = table.getColumnCount();
-
-                        for (int counter = 0; counter < cols.length;
-                                              counter++) {
-                            if (cols[counter] >= colCount) {
-                                cols = rows = null;
-                                break;
-                            }
-                        }
-                    }
-                }
-                return (rows != null);
-            }
-	    // --- fiels ---------------------------------------------------
-
-	    private int[] rows;
-	    private int[] cols;
-	    private JTable table;
 	}
 
     }

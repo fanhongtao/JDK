@@ -1,5 +1,5 @@
 /*
- * @(#)BeanContext.java	1.20 01/12/03
+ * @(#)BeanContext.java	1.21 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,17 +24,17 @@ import java.util.Locale;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.20, 12/03/01
+ * @version 1.21, 02/22/02
  * @since 1.2
  *
- * @seealso java.beans.Beans
- * @seealso java.beans.beancontext.BeanContextChild
- * @seealso java.beans.beancontext.BeanContextMembershipListener
- * @seealso java.beans.PropertyChangeEvent
- * @seealso java.beans.VetoableChangeEvent
- * @seealso java.beans.DesignMode
- * @seealso java.beans.Visibility
- * @seealso java.util.Collection
+ * @see java.beans.Beans
+ * @see java.beans.beancontext.BeanContextChild
+ * @see java.beans.beancontext.BeanContextMembershipListener
+ * @see java.beans.PropertyChangeEvent
+ * @see java.beans.VetoableChangeEvent
+ * @see java.beans.DesignMode
+ * @see java.beans.Visibility
+ * @see java.util.Collection
  */
 
 public interface BeanContext extends BeanContextChild, Collection, DesignMode, Visibility {

@@ -1,5 +1,5 @@
 /*
- * @(#)ImageWriter.java	1.88 01/12/03
+ * @(#)ImageWriter.java	1.89 02/02/08
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1932,7 +1932,14 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>finalize</code>) subsequent to a call to this method
      * is undefined.
      *
-     * <p> The default implementation does nothing.
+     * <p>It is important for applications to call this method when they
+     * know they will no longer be using this <code>ImageWriter</code>.
+     * Otherwise, the writer may continue to hold on to resources
+     * indefinitely.
+     *
+     * <p>The default implementation of this method in the superclass does
+     * nothing.  Subclass implementations should ensure that all resources,
+     * especially native resources, are released.
      */
     public void dispose() {
     }

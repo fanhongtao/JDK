@@ -1,5 +1,5 @@
 /*
- * @(#)BasicColorChooserUI.java	1.36 01/12/03
+ * @(#)BasicColorChooserUI.java	1.38 02/04/15
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import java.io.Serializable;
 /**
  * Provides the basic look and feel for a JColorChooser.
  * <p>
- * @version 1.36 12/03/01
+ * @version 1.38 04/15/02
  * @author Tom Santos
  * @author Steve Wilson
  */
@@ -38,6 +38,7 @@ public class BasicColorChooserUI extends ColorChooserUI
 
     JPanel previewPanelHolder;
     JComponent previewPanel;
+    MouseListener previewMouseListener;
     boolean isMultiPanel = false;
     private static TransferHandler defaultTransferHandler = new ColorTransferHandler();
 
@@ -78,46 +79,61 @@ public class BasicColorChooserUI extends ColorChooserUI
 	chooser.setChooserPanels(defaultChoosers);
 
 
+	previewPanelHolder = new JPanel(new CenterLayout());
+	String previewString = UIManager.getString("ColorChooser.previewText",
+					       chooser.getLocale());
+	previewPanelHolder.setBorder(new TitledBorder(previewString));
+	chooser.add(previewPanelHolder, BorderLayout.SOUTH);
+
+	previewMouseListener = new MouseAdapter() {
+	    public void mousePressed(MouseEvent e) {
+		if (chooser.getDragEnabled()) {
+		    TransferHandler th = chooser.getTransferHandler();
+		    th.exportAsDrag(chooser, e, TransferHandler.COPY);
+		}
+	    }
+	};
+
 	installPreviewPanel();
 	chooser.applyComponentOrientation(c.getComponentOrientation());
 
     }
 
     public void uninstallUI( JComponent c ) {
+	chooser.remove(tabbedPane);
+	chooser.remove(singlePanel);
+	chooser.remove(previewPanelHolder);
+
 	uninstallListeners();
         uninstallDefaultChoosers();
 	uninstallDefaults();
 
+	previewPanelHolder.remove(previewPanel);
+	if (previewPanel instanceof UIResource) {
+	    chooser.setPreviewPanel(null);
+	}
+
+	previewPanelHolder = null;
+	previewPanel = null;
 	defaultChoosers = null;
 	chooser = null;
 	tabbedPane = null;
-
-
     }
 
     protected void installPreviewPanel() {
-	previewPanelHolder = new JPanel(new CenterLayout());
-	String previewString = UIManager.getString("ColorChooser.previewText",
-                                                   chooser.getLocale());
-	previewPanelHolder.setBorder(new TitledBorder(previewString));
+	if (previewPanel != null) {
+	    previewPanelHolder.remove(previewPanel);
+	    previewPanel.removeMouseListener(previewMouseListener);
+	}
 
 	previewPanel = chooser.getPreviewPanel();
 	if (previewPanel == null || previewPanel instanceof UIResource) { 
 	  previewPanel = ColorChooserComponentFactory.getPreviewPanel(); // get from table?
+	    chooser.setPreviewPanel(previewPanel);
 	}
 	previewPanel.setForeground(chooser.getColor());
 	previewPanelHolder.add(previewPanel);
-	chooser.add(previewPanelHolder, BorderLayout.SOUTH);
-
-	MouseListener ml = new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                if (chooser.getDragEnabled()) {
-                    TransferHandler th = chooser.getTransferHandler();
-                    th.exportAsDrag(chooser, e, TransferHandler.COPY);
-                }
-	    }
-	};
-	previewPanel.addMouseListener(ml);
+	previewPanel.addMouseListener(previewMouseListener);
     }
 
     protected void installDefaults() {
@@ -152,6 +168,7 @@ public class BasicColorChooserUI extends ColorChooserUI
     protected void uninstallListeners() {
 	chooser.removePropertyChangeListener( propertyChangeListener );
 	chooser.getSelectionModel().removeChangeListener(previewListener);
+	previewPanel.removeMouseListener(previewMouseListener);
     }
 
 
@@ -203,7 +220,6 @@ public class BasicColorChooserUI extends ColorChooserUI
 		else {   // multi-panel case
 		    if ( oldPanels.length < 2 ) {// moving from single to multiple
 		        chooser.remove(singlePanel);
-			tabbedPane = new JTabbedPane();
 			chooser.add(tabbedPane, BorderLayout.CENTER);
 		    }
 
@@ -235,13 +251,9 @@ public class BasicColorChooserUI extends ColorChooserUI
 	    }
 
 	    if ( e.getPropertyName().equals( JColorChooser.PREVIEW_PANEL_PROPERTY ) ) {
-            JComponent oldPanel = (JComponent) e.getOldValue();
-                JComponent newPanel = (JComponent) e.getNewValue();
-                if (oldPanel != null) {  // fix for 4166059
-                    chooser.remove(oldPanel);
-                }
-                chooser.add(newPanel, BorderLayout.SOUTH);
-                previewPanel = newPanel;
+		if (e.getNewValue() != previewPanel) {
+		    installPreviewPanel();
+		}
             }
 	    if (e.getPropertyName().equals("componentOrientation")) {
 		ComponentOrientation o = (ComponentOrientation)e.getNewValue();

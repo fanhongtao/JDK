@@ -1,5 +1,5 @@
 /*
- * @(#)MappedByteBuffer.java	1.19 01/12/03
+ * @(#)MappedByteBuffer.java	1.20 02/04/04
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.19, 01/12/03
+ * @version 1.20, 02/04/04
  * @since 1.4
  */
 
@@ -52,7 +52,9 @@ public abstract class MappedByteBuffer
     // for optimization purposes, it's easier to do it the other way around.
     // This works because DirectByteBuffer is a package-private class.
 
-    boolean isAMappedBuffer;			// package-private
+    // Volatile to make sure that the finalization thread sees the current
+    // value of this so that a region is not accidentally unmapped again later.
+    volatile boolean isAMappedBuffer;			// package-private
 
     // This should only be invoked by the DirectByteBuffer constructors
     //

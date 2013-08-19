@@ -1,5 +1,5 @@
 /*
- * @(#)CallableStatement.java	1.42 01/12/03
+ * @(#)CallableStatement.java	1.43 02/02/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1058,7 +1058,7 @@ public interface CallableStatement extends PreparedStatement {
      * typeName is ignored.
      *
      *
-     * @param paramName the name of the parameter
+     * @param parameterName the name of the parameter
      * @param sqlType a value from <code>java.sql.Types</code>
      * @param typeName the fully-qualified name of an SQL user-defined type;
      *        ignored if the parameter is not a user-defined type or 

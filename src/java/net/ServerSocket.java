@@ -1,5 +1,5 @@
 /*
- * @(#)ServerSocket.java	1.69 01/12/03
+ * @(#)ServerSocket.java	1.73 02/04/12
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import java.nio.channels.ServerSocketChannel;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.69, 12/03/01
+ * @version 1.73, 04/12/02
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel
@@ -37,6 +37,7 @@ class ServerSocket {
     private boolean created = false;
     private boolean bound = false;
     private boolean closed = false;
+    private Object closeLock = new Object();
 
     /**
      * The implementation of this Socket.
@@ -59,7 +60,7 @@ class ServerSocket {
     }
 
     /**
-     * Creates a server socket on a specified port. A port of 
+     * Creates a server socket, bound to the specified port. A port of 
      * <code>0</code> creates a socket on any free port. 
      * <p>
      * The maximum queue length for incoming connection indications (a 
@@ -179,7 +180,7 @@ class ServerSocket {
 	if (backlog < 1)
 	  backlog = 50;
 	try {
-	    bind(new InetSocketAddress(bindAddr, port));
+	    bind(new InetSocketAddress(bindAddr, port), backlog);
 	} catch(SecurityException e) {
 	    close();
 	    throw e;
@@ -320,8 +321,8 @@ class ServerSocket {
     /**
      * Returns the local address of this server socket.
      *
-     * @return  the address to which this socket is connected,
-     *          or <code>null</code> if the socket is not yet connected.
+     * @return  the address to which this socket is bound,
+     *          or <code>null</code> if the socket is unbound.
      */
     public InetAddress getInetAddress() {
 	if (!isBound())
@@ -471,11 +472,13 @@ class ServerSocket {
      * @spec JSR-51
      */
     public void close() throws IOException {
-	if (isClosed())
-	    return;
-	if (created)
-	    impl.close();
-	closed = true;
+	synchronized(closeLock) {
+	    if (isClosed())
+		return;
+	    if (created)
+		impl.close();
+	    closed = true;
+	}
     }
 
     /**
@@ -516,7 +519,9 @@ class ServerSocket {
      * @since 1.4
      */
     public boolean isClosed() {
-	return closed;
+	synchronized(closeLock) {
+	    return closed;
+	}
     }
 
     /**
@@ -644,26 +649,6 @@ class ServerSocket {
      * The factory for all server sockets.
      */
     private static SocketImplFactory factory;
-
-    static {
-	int port = -1;
-	String socksPort = null;
-	String useSocks = 
-	    (String) java.security.AccessController.doPrivileged(
-		     new sun.security.action.GetPropertyAction("socksProxyHost"));
-	socksPort =
-	    (String) java.security.AccessController.doPrivileged(
-		     new sun.security.action.GetPropertyAction("socksProxyPort"));
-	if (socksPort != null) {
-	    try {
-		port = Integer.parseInt(socksPort);
-	    } catch (Exception e) {
-		port = -1;
-	    }
-	}
-	if (useSocks != null)
-	    factory = new SocksSocketImplFactory(useSocks, port);
-    }
 
     /**
      * Sets the server socket implementation factory for the 

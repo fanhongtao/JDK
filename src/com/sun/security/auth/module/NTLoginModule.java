@@ -1,5 +1,5 @@
 /*
- * @(#)NTLoginModule.java	1.5 01/12/03
+ * @(#)NTLoginModule.java	1.6 02/02/26
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -169,7 +169,7 @@ public class NTLoginModule implements LoginModule {
 		}
 	    }
 	    System.out.println("\t\t\timpersonationToken = "
-			       + Integer.toString
+			       + Long.toString
 			       (ntNumericCredential.getToken()));
 	}
 	succeeded = true;

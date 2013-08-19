@@ -1,5 +1,5 @@
 /*
- * @(#)XmlSupport.java	1.10 01/12/03
+ * @(#)XmlSupport.java	1.11 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,7 +19,7 @@ import org.apache.crimson.tree.*;
  * nodes and subtrees.
  *
  * @author  Josh Bloch and Mark Reinhold
- * @version 1.10, 12/03/01
+ * @version 1.11, 02/06/02
  * @see     Preferences
  * @since   1.4
  */
@@ -210,7 +210,8 @@ class XmlSupport {
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	dbf.setIgnoringElementContentWhitespace(true);
 	dbf.setValidating(true);
-	dbf.setCoalescing(true);
+        dbf.setCoalescing(true);
+        dbf.setIgnoringComments(true);
 	try {
 	    DocumentBuilder db = dbf.newDocumentBuilder();
 	    db.setEntityResolver(new Resolver());

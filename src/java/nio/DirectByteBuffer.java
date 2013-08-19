@@ -1,5 +1,5 @@
 /*
- * @(#)Direct-X-Buffer.java	1.38 02/03/08
+ * @(#)Direct-X-Buffer.java	1.39 02/05/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,7 +61,7 @@ class DirectByteBuffer
             // storage for proper cleanup
             DirectByteBuffer tmpBuf =
                 new DirectByteBuffer(a, cap + ps, true, false);
-            address = a + ps - (a % ps);
+            address = a + ps - (a & (ps - 1));
             allocated = false;
             viewedBuffer = tmpBuf;
         } else {
@@ -198,28 +198,28 @@ class DirectByteBuffer
 
     public ByteBuffer get(byte[] dst, int offset, int length) {
 
-        if ((length << 0) > Bits.JNI_COPY_TO_ARRAY_THRESHOLD) {
-            checkBounds(offset, length, dst.length);
-            int pos = position();
-            int lim = limit();
-            assert (pos <= lim);
-            int rem = (pos <= lim ? lim - pos : 0);
-            if (length > rem)
-                throw new BufferUnderflowException();
+	if ((length << 0) > Bits.JNI_COPY_TO_ARRAY_THRESHOLD) {
+	    checkBounds(offset, length, dst.length);
+	    int pos = position();
+	    int lim = limit();
+	    assert (pos <= lim);
+	    int rem = (pos <= lim ? lim - pos : 0);
+	    if (length > rem)
+		throw new BufferUnderflowException();
 
-            if (order() != ByteOrder.nativeOrder())
-                Bits.copyToByteArray(ix(pos), dst,
-                                       offset << 0,
-                                       length << 0);
-            else
-                Bits.copyToByteArray(ix(pos), dst,
-                                     offset << 0,
-                                     length << 0);
-            position(pos + length);
-        } else {
-            super.get(dst, offset, length);
-        }
-        return this;
+	    if (order() != ByteOrder.nativeOrder())
+		Bits.copyToByteArray(ix(pos), dst,
+				       offset << 0,
+				       length << 0);
+	    else
+		Bits.copyToByteArray(ix(pos), dst,
+				     offset << 0,
+				     length << 0);
+	    position(pos + length);
+	} else {
+	    super.get(dst, offset, length);
+	}
+	return this;
 
 
 
@@ -267,6 +267,16 @@ class DirectByteBuffer
  	    unsafe.copyMemory(sb.ix(spos), ix(pos), srem << 0);
  	    sb.position(spos + srem);
  	    position(pos + srem);
+	} else if (!src.isDirect()) {
+
+	    int spos = src.position();
+	    int slim = src.limit();
+	    assert (spos <= slim);
+	    int srem = (spos <= slim ? slim - spos : 0);
+
+	    put(src.array(), src.arrayOffset() + spos, srem);
+	    src.position(spos + srem);
+
 	} else {
 	    super.put(src);
 	}
@@ -278,31 +288,31 @@ class DirectByteBuffer
 
     public ByteBuffer put(byte[] src, int offset, int length) {
 
-        if ((length << 0) > Bits.JNI_COPY_FROM_ARRAY_THRESHOLD) {
-            checkBounds(offset, length, src.length);
-            int pos = position();
-            int lim = limit();
-            assert (pos <= lim);
-            int rem = (pos <= lim ? lim - pos : 0);
-            if (length > rem)
-                throw new BufferOverflowException();
+	if ((length << 0) > Bits.JNI_COPY_FROM_ARRAY_THRESHOLD) {
+	    checkBounds(offset, length, src.length);
+	    int pos = position();
+	    int lim = limit();
+	    assert (pos <= lim);
+	    int rem = (pos <= lim ? lim - pos : 0);
+	    if (length > rem)
+		throw new BufferOverflowException();
 
-            if (order() != ByteOrder.nativeOrder())
-                Bits.copyFromByteArray(src, offset << 0,
-                                         ix(pos), length << 0);
-            else
-                Bits.copyFromByteArray(src, offset << 0,
-                                       ix(pos), length << 0);
-            position(pos + length);
-        } else {
-            super.put(src, offset, length);
-        }
-        return this;
+	    if (order() != ByteOrder.nativeOrder()) 
+		Bits.copyFromByteArray(src, offset << 0,
+					 ix(pos), length << 0);
+	    else
+		Bits.copyFromByteArray(src, offset << 0,
+				       ix(pos), length << 0);
+	    position(pos + length);
+	} else {
+	    super.put(src, offset, length);
+	}
+	return this;
 
 
 
     }
-
+    
     public ByteBuffer compact() {
 
 	int pos = position();

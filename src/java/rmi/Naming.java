@@ -1,5 +1,5 @@
 /*
- * @(#)Naming.java	1.18 01/12/03
+ * @(#)Naming.java	1.20 02/04/30
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,9 +13,10 @@ import java.net.URISyntaxException;
 
 /**
  * The <code>Naming</code> class provides methods for storing and obtaining
- * references to remote objects in the remote object registry. The
- * <code>Naming</code> class's methods take, as one of their arguments, a name
- * that is a URL formatted <code>java.lang.String</code> of the form:
+ * references to remote objects in a remote object registry.  Each method of
+ * the <code>Naming</code> class takes as one of its arguments a name that
+ * is a <code>java.lang.String</code> in URL format (without the
+ * scheme component) of the form:
  *
  * <PRE>
  *    //host:port/name
@@ -61,7 +62,7 @@ public final class Naming {
      * Returns a reference, a stub, for the remote object associated
      * with the specified <code>name</code>.
      *
-     * @param name a URL-formatted name for the remote object
+     * @param name a name in URL format (without the scheme component) 
      * @return a reference for a remote object
      * @exception NotBoundException if name is not currently bound
      * @exception RemoteException if registry could not be contacted
@@ -86,7 +87,7 @@ public final class Naming {
     /**
      * Binds the specified <code>name</code> to a remote object.
      *
-     * @param name a URL-formatted name for the remote object
+     * @param name a name in URL format (without the scheme component) 
      * @param obj a reference for the remote object (usually a stub)
      * @exception AlreadyBoundException if name is already bound
      * @exception MalformedURLException if the name is not an appropriately
@@ -114,7 +115,7 @@ public final class Naming {
      * Destroys the binding for the specified name that is associated
      * with a remote object.
      *
-     * @param name a URL-formatted name associated with a remote object
+     * @param name a name in URL format (without the scheme component) 
      * @exception NotBoundException if name is not currently bound
      * @exception MalformedURLException if the name is not an appropriately
      *  formatted URL
@@ -138,7 +139,7 @@ public final class Naming {
      * Rebinds the specified name to a new remote object. Any existing
      * binding for the name is replaced.
      *
-     * @param name a URL-formatted name associated with the remote object
+     * @param name a name in URL format (without the scheme component)
      * @param obj new remote object to associate with the name
      * @exception MalformedURLException if the name is not an appropriately
      *  formatted URL
@@ -161,12 +162,14 @@ public final class Naming {
 
     /**
      * Returns an array of the names bound in the registry.  The names are
-     * URL-formatted strings. The array contains a snapshot of the names
-     * present in the registry at the time of the call.
+     * URL-formatted (without the scheme component) strings. The array contains
+     * a snapshot of the names present in the registry at the time of the
+     * call.
      *
-     * @param name a URL-formatted name that specifies the remote registry
-     * @return an array of names (in the appropriate URL format) bound
-     *  in the registry
+     * @param 	name a registry name in URL format (without the scheme
+     *		component)
+     * @return 	an array of names (in the appropriate format) bound
+     * 		in the registry
      * @exception MalformedURLException if the name is not an appropriately
      *  formatted URL
      * @exception RemoteException if registry could not be contacted.
@@ -178,7 +181,7 @@ public final class Naming {
 	ParsedNamingURL parsed = parseURL(name);
 	Registry registry = getRegistry(parsed);
 
-	String prefix = "rmi:";
+	String prefix = "";
  	if (parsed.port > 0 || !parsed.host.equals(""))
 	    prefix += "//" + parsed.host;
 	if (parsed.port > 0)

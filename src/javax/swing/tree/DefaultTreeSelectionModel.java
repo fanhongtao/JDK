@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultTreeSelectionModel.java	1.43 01/12/03
+ * @(#)DefaultTreeSelectionModel.java	1.45 02/03/20
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import javax.swing.DefaultListSelectionModel;
  *
  * @see javax.swing.JTree
  *
- * @version 1.43 12/03/01
+ * @version 1.45 03/20/02
  * @author Scott Violet
  */
 public class DefaultTreeSelectionModel extends Object implements Cloneable, Serializable, TreeSelectionModel
@@ -612,7 +612,7 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
     /**
      * Notifies all listeners that are registered for
      * tree selection events on this object.  
-     * @see addTreeSelectionListener
+     * @see #addTreeSelectionListener
      * @see EventListenerList
      */
     protected void fireValueChanged(TreeSelectionEvent e) {
@@ -881,10 +881,15 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
 			    clearSelection();
 			}
 			else {
-			    TreePath[]   newSel = new TreePath[counter - min];
-
-			    System.arraycopy(selection, 0, newSel,
-					     0, counter - min);
+			    TreePath[] newSel = new TreePath[counter - min];
+			    int selectionIndex[] = rowMapper.getRowsForPaths(selection);
+			    // find the actual selection pathes corresponded to the
+			    // rows of the new selection
+			    for (int i = 0; i < selectionIndex.length; i++) {
+				if (selectionIndex[i]<counter) {
+				    newSel[selectionIndex[i]-min] = selection[i];
+				}
+			    }
 			    setSelectionPaths(newSel);
 			    break;
 			}

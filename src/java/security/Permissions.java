@@ -1,5 +1,5 @@
 /*
- * @(#)Permissions.java	1.49 01/12/03
+ * @(#)Permissions.java	1.50 02/02/01
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * @see PermissionCollection
  * @see AllPermission
  * 
- * @version 1.49, 01/12/03
+ * @version 1.50, 02/02/01
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -127,12 +127,12 @@ implements Serializable
      */
 
     public boolean implies(Permission permission) {
-	PermissionCollection pc = getPermissionCollection(permission);
-
-	if (allPermission != null && allPermission.implies(permission))
+	if (allPermission != null && allPermission.implies(permission)) {
 	    return true;
-	else 
+	} else {
+	    PermissionCollection pc = getPermissionCollection(permission);
 	    return pc.implies(permission);
+	}
     }
 
     /**
@@ -209,8 +209,8 @@ implements Serializable
 		    if (pc == null)
 			pc = new PermissionsHash();
 		}
+		perms.put(c, pc);
 	    }
-	    perms.put(c, pc);
 	}
 	return pc;
     }
@@ -340,7 +340,7 @@ final class PermissionsEnumerator implements Enumeration {
  * @see Permission
  * @see Permissions
  *
- * @version 1.49, 12/03/01
+ * @version 1.50, 02/01/02
  *
  * @author Roland Schemers
  *

@@ -1,5 +1,5 @@
 /*
- * @(#)StreamTokenizer.java	1.37 01/12/03
+ * @(#)StreamTokenizer.java	1.38 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,7 +38,7 @@ package java.io;
  * it returns the value <code>TT_EOF</code>.
  *
  * @author  James Gosling
- * @version 1.37, 12/03/01
+ * @version 1.38, 02/06/02
  * @see     java.io.StreamTokenizer#nextToken()
  * @see     java.io.StreamTokenizer#TT_EOF
  * @since   JDK1.0
@@ -267,6 +267,9 @@ public class StreamTokenizer {
      * are white space characters. White space characters serve only to
      * separate tokens in the input stream.
      *
+     * <p>Any other attribute settings for the characters in the specified
+     * range are cleared.
+     *
      * @param   low   the low end of the range.
      * @param   hi    the high end of the range.
      */
@@ -321,6 +324,8 @@ public class StreamTokenizer {
      * comment. All characters from the comment character to the end of
      * the line are ignored by this stream tokenizer.
      *
+     * <p>Any other attribute settings for the specified character are cleared.
+     *
      * @param   ch   the character.
      */
     public void commentChar(int ch) {
@@ -344,6 +349,8 @@ public class StreamTokenizer {
      * terminator, or end of file. The usual escape sequences such as
      * <code>"&#92;n"</code> and <code>"&#92;t"</code> are recognized and
      * converted to single characters as the string is parsed.
+     *
+     * <p>Any other attribute settings for the specified character are cleared.
      *
      * @param   ch   the character.
      * @see     java.io.StreamTokenizer#nextToken()
@@ -750,11 +757,15 @@ public class StreamTokenizer {
     }
 
     /**
-     * Returns the string representation of the current stream token.
+     * Returns the string representation of the current stream token and
+     * the line number it occurs on.
      *
-     * @return  a string representation of the token specified by the
-     *          <code>ttype</code>, <code>nval</code>, and <code>sval</code>
-     *          fields.
+     * <p>The precise string returned is unspecified, although the following
+     * example can be considered typical:
+     *
+     * <blockquote><pre>Token['a'], line 10</pre></blockquote>
+     *
+     * @return  a string representation of the token
      * @see     java.io.StreamTokenizer#nval
      * @see     java.io.StreamTokenizer#sval
      * @see     java.io.StreamTokenizer#ttype

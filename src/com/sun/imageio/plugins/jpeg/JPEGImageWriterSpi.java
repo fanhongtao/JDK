@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGImageWriterSpi.java	1.5 01/12/03
+ * @(#)JPEGImageWriterSpi.java	1.6 02/04/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -71,12 +71,7 @@ public class JPEGImageWriterSpi extends ImageWriterSpi {
     }
 
     public boolean canEncodeImage(ImageTypeSpecifier type) {
-        // Indexed images should be expanded before writing
-        ColorModel cm = type.getColorModel();
-        if (cm instanceof IndexColorModel) {
-            return false;
-        }
-        // Anything else should be encodable given the right metadata
+        // Any image type should be encodable given the right metadata
         return true;
     }
 

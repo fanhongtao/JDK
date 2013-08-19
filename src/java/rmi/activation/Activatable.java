@@ -1,5 +1,5 @@
 /*
- * @(#)Activatable.java	1.30 01/12/03
+ * @(#)Activatable.java	1.31 02/03/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,6 +14,7 @@ import java.rmi.activation.UnknownObjectException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.MarshalledObject;
+import java.rmi.NoSuchObjectException;
 
 import java.rmi.server.*;
 
@@ -24,7 +25,7 @@ import java.rmi.server.*;
  * can be activated by the system.
  *
  * @author	Ann Wollrath
- * @version	1.30, 01/12/03
+ * @version	1.31, 02/03/18
  * @since	1.2
  */
 public abstract class Activatable extends RemoteServer {
@@ -454,7 +455,7 @@ public abstract class Activatable extends RemoteServer {
      * @since 1.2
      */
     public static boolean unexportObject(Remote obj, boolean force)
-	throws java.rmi.NoSuchObjectException
+	throws NoSuchObjectException
     {
 	return sun.rmi.transport.ObjectTable.unexportObject(obj, force);
     }

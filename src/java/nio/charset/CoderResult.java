@@ -1,5 +1,5 @@
 /*
- * @(#)CoderResult.java	1.5 01/12/03
+ * @(#)CoderResult.java	1.6 02/04/10
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,7 +61,7 @@ import java.util.HashMap;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.5, 01/12/03
+ * @version 1.6, 02/04/10
  * @since 1.4
  */
 
@@ -260,7 +260,7 @@ public class CoderResult {
 	case CR_MALFORMED:   throw new MalformedInputException(length);
 	case CR_UNMAPPABLE:  throw new UnmappableCharacterException(length);
 	default:
-	    throw new Error();		// ## assert false;
+	    assert false;
 	}
     }
 

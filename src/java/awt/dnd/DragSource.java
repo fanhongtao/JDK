@@ -1,5 +1,5 @@
 /*
- * @(#)DragSource.java	1.37 01/12/03
+ * @(#)DragSource.java	1.40 02/04/25
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -97,7 +97,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * duration of the operation with respect to the 
  * <code>DragSource</code>. 
  *
- * @version 	1.37, 12/03/01
+ * @version 	1.40, 04/25/02
  * @since 1.2
  */
 
@@ -194,7 +194,7 @@ public class DragSource implements Serializable {
     static final String dragSourceMotionListenerK = "dragSourceMotionL";
 
     /**
-     * This method returns the <code>DragSource</code> object associated with
+     * Gets the <code>DragSource</code> object associated with
      * the underlying platform.
      *
      * @return the platform DragSource
@@ -211,8 +211,8 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * This method returns a <code>boolean</code> 
-     * indicating whether or not drag 
+     * Reports  
+     * whether or not drag 
      * <code>Image</code> support 
      * is available on the underlying platform.
      * <P>
@@ -234,7 +234,7 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Construct a new <code>DragSource</code>.
+     * Creates a new <code>DragSource</code>.
      *
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      *            returns true
@@ -258,20 +258,20 @@ public class DragSource implements Serializable {
      * of the drag, the <code>DragSourceListener</code>, 
      * and the <code>FlavorMap</code>. 
      * <P>
-     * @param trigger	     The <code>DragGestureEvent</code> that initiated the drag
-     * @param dragCursor     The initial <code>Cursor</code> or <code>null</code> for defaults
-     * @param dragImage	     The image to drag or null,
-     * @param imageOffset    The offset of the <code>Image</code> origin from the hotspot
+     * @param trigger	     the <code>DragGestureEvent</code> that initiated the drag
+     * @param dragCursor     the initial <code>Cursor</code> or <code>null</code> for defaults
+     * @param dragImage	     the image to drag or null,
+     * @param imageOffset    the offset of the <code>Image</code> origin from the hotspot
      *			     of the <code>Cursor</code> at the instant of the trigger
-     * @param transferable   The subject data of the drag
-     * @param dsl	     The <code>DragSourceListener</code>
-     * @param flavorMap	     The <code>FlavorMap</code> to use, or <code>null</code>
+     * @param transferable   the subject data of the drag
+     * @param dsl	     the <code>DragSourceListener</code>
+     * @param flavorMap	     the <code>FlavorMap</code> to use, or <code>null</code>
      * <P>
      * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
-     * if the Drag and Drop
-     * system is unable to initiate a drag operation, or if the user
-     * attempts to start a drag while an existing drag operation 
-     * is still executing.
+     *    if the Drag and Drop
+     *    system is unable to initiate a drag operation, or if the user
+     *    attempts to start a drag while an existing drag operation 
+     *    is still executing
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -317,19 +317,19 @@ public class DragSource implements Serializable {
      * of the drag, the <code>DragSourceListener</code>, 
      * and the <code>FlavorMap</code>. 
      * <P>
-     * @param trigger	     The <code>DragGestureEvent</code> that 
+     * @param trigger	     the <code>DragGestureEvent</code> that 
      * initiated the drag
-     * @param dragCursor     The initial <code>Cursor</code> or 
+     * @param dragCursor     the initial <code>Cursor</code> or 
      * <code>null</code> for defaults
-     * @param transferable   The subject data of the drag
-     * @param dsl	     The <code>DragSourceListener</code>
-     * @param flavorMap	     The <code>FlavorMap to use or <code>null</code>
+     * @param transferable   the subject data of the drag
+     * @param dsl	     the <code>DragSourceListener</code>
+     * @param flavorMap	     the <code>FlavorMap to use or <code>null</code>
      * <P>
      * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
-     * if the Drag and Drop
-     * system is unable to initiate a drag operation, or if the user
-     * attempts to start a drag while an existing drag operation 
-     * is still executing.
+     *    if the Drag and Drop
+     *    system is unable to initiate a drag operation, or if the user
+     *    attempts to start a drag while an existing drag operation 
+     *    is still executing
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -351,19 +351,19 @@ public class DragSource implements Serializable {
      * the subject data of the drag, and 
      * the <code>DragSourceListener</code>. 
      * <P>
-     * @param trigger		The <code>DragGestureEvent</code> that initiated the drag
-     * @param dragCursor	The initial <code>Cursor</code> or <code>null</code> for defaults
-     * @param dragImage		The <code>Image</code> to drag or <code>null</code>
-     * @param imageOffset	The offset of the <code>Image</code> origin from the hotspot
+     * @param trigger		the <code>DragGestureEvent</code> that initiated the drag
+     * @param dragCursor	the initial <code>Cursor</code> or <code>null</code> for defaults
+     * @param dragImage		the <code>Image</code> to drag or <code>null</code>
+     * @param imageOffset	the offset of the <code>Image</code> origin from the hotspot
      *				of the <code>Cursor</code> at the instant of the trigger
-     * @param transferable	The subject data of the drag
-     * @param dsl		The <code>DragSourceListener</code>
+     * @param transferable	the subject data of the drag
+     * @param dsl		the <code>DragSourceListener</code>
      * <P>
      * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
-     * if the Drag and Drop
-     * system is unable to initiate a drag operation, or if the user
-     * attempts to start a drag while an existing drag operation  
-     * is still executing.
+     *    if the Drag and Drop
+     *    system is unable to initiate a drag operation, or if the user
+     *    attempts to start a drag while an existing drag operation  
+     *    is still executing
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -383,16 +383,16 @@ public class DragSource implements Serializable {
      * the <code>Transferable</code> subject data 
      * of the drag, and the <code>DragSourceListener</code>. 
      * <P>
-     * @param trigger		The <code>DragGestureEvent</code> that initiated the drag
-     * @param dragCursor	The initial <code>Cursor</code> or <code>null</code> for defaults
-     * @param transferable	The subject data of the drag
-     * @param dsl		The <code>DragSourceListener</code>
+     * @param trigger		the <code>DragGestureEvent</code> that initiated the drag
+     * @param dragCursor	the initial <code>Cursor</code> or <code>null</code> for defaults
+     * @param transferable	the subject data of the drag
+     * @param dsl		the <code>DragSourceListener</code>
      * <P>
      * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
-     * if the Drag and Drop
-     * system is unable to initiate a drag operation, or if the user
-     * attempts to start a drag while an existing drag operation 
-     * is still executing.
+     *    if the Drag and Drop
+     *    system is unable to initiate a drag operation, or if the user
+     *    attempts to start a drag while an existing drag operation 
+     *    is still executing
      */
 
     public void startDrag(DragGestureEvent   trigger,
@@ -403,22 +403,50 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Create the <code>DragSourceContext</code> to handle this drag.
-     * 
+     * Creates the <code>DragSourceContext</code> to handle this drag.
+     * <p> 
      * To incorporate a new <code>DragSourceContext</code> 
      * subclass, subclass <code>DragSource</code> and
      * override this method.
-     * <P>
-     * @param dscp 		The <code>DragSourceContextPeer</code> for this drag
-     * @param trigger	        The <code>DragGestureEvent</code> that triggered the drag
-     * @param dragCursor	The initial <code>Cursor</code> to display
-     * @param dragImage		The <code>Image</code> to drag or <code>null</code>
-     * @param imageOffset	The offset of the <code>Image</code> origin from the hotspot
-     *				of the cursor at the instant of the trigger
-     * @param transferable	The subject data of the drag
-     * @param dsl		The <code>DragSourceListener</code>
-     * <P>
+     * <p>
+     * If <code>dragImage</code> is <code>null</code>, no image is used 
+     * to represent the drag over feedback for this drag operation, but 
+     * <code>NullPointerException</code> is not thrown.
+     * <p>
+     * If <code>dsl</code> is <code>null</code>, no drag source listener 
+     * is registered with the created <code>DragSourceContext</code>,  
+     * but <code>NullPointerException</code> is not thrown.
+     * <p>
+     * If <code>dragCursor</code> is <code>null</code>, the default drag 
+     * cursors are used for this drag operation.  
+     * <code>NullPointerException</code> is not thrown.
+     *
+     * @param dscp          The <code>DragSourceContextPeer</code> for this drag
+     * @param dgl	    The <code>DragGestureEvent</code> that triggered the 
+     *                      drag
+     * @param dragCursor    The initial <code>Cursor</code> to display
+     * @param dragImage	    The <code>Image</code> to drag or <code>null</code>
+     * @param imageOffset   The offset of the <code>Image</code> origin from the 
+     *                      hotspot of the cursor at the instant of the trigger
+     * @param t             The subject data of the drag
+     * @param dsl	    The <code>DragSourceListener</code>
+     * 
      * @return the <code>DragSourceContext</code>
+     * 
+     * @throws NullPointerException if <code>dscp</code> is <code>null</code>
+     * @throws NullPointerException if <code>dgl</code> is <code>null</code>
+     * @throws NullPointerException if <code>dragImage</code> is not 
+     *    <code>null</code> and <code>imageOffset</code> is <code>null</code>
+     * @throws NullPointerException if <code>t</code> is <code>null</code>
+     * @throws IllegalArgumentException if the <code>Component</code> 
+     *         associated with the trigger event is <code>null</code>.
+     * @throws IllegalArgumentException if the <code>DragSource</code> for the 
+     *         trigger event is <code>null</code>.
+     * @throws IllegalArgumentException if the drag action for the
+     *         trigger event is <code>DnDConstants.ACTION_NONE</code>.
+     * @throws IllegalArgumentException if the source actions for the
+     *         <code>DragGestureRecognizer</code> associated with the trigger
+     *         event are equal to <code>DnDConstants.ACTION_NONE</code>. 
      */
 
     protected DragSourceContext createDragSourceContext(DragSourceContextPeer dscp, DragGestureEvent dgl, Cursor dragCursor, Image dragImage, Point imageOffset, Transferable t, DragSourceListener dsl) {
@@ -443,16 +471,16 @@ public class DragSource implements Serializable {
      * and <code>DragGestureListener</code> on 
      * the newly created object.
      * <P>
-     * @param recognizerAbstractClass The requested abstract type
-     * @param actions		      The permitted source drag actions
-     * @param c			      The <code>Component</code> target 
-     * @param dgl	 The <code>DragGestureListener</code> to notify
+     * @param recognizerAbstractClass the requested abstract type
+     * @param actions		      the permitted source drag actions
+     * @param c			      the <code>Component</code> target 
+     * @param dgl	 the <code>DragGestureListener</code> to notify
      * <P>
      * @return the new <code>DragGestureRecognizer</code> or <code>null</code>
-     * if the Toolkit.createDragGestureRecognizer() method
-     * has no implementation available for 
-     * the requested <code>DragGestureRecognizer</code>
-     * subclass and returns <code>null</code>.
+     *    if the <code>Toolkit.createDragGestureRecognizer</code> method
+     *    has no implementation available for 
+     *    the requested <code>DragGestureRecognizer</code>
+     *    subclass and returns <code>null</code>
      */
 
     public DragGestureRecognizer createDragGestureRecognizer(Class recognizerAbstractClass, Component c, int actions, DragGestureListener dgl) {
@@ -461,7 +489,7 @@ public class DragSource implements Serializable {
 
 	
     /**
-     * Creates a new <code>DragSourceRecognizer</code> 
+     * Creates a new <code>DragGestureRecognizer</code> 
      * that implements the default
      * abstract subclass of <code>DragGestureRecognizer</code>
      * for this <code>DragSource</code>,
@@ -472,15 +500,15 @@ public class DragSource implements Serializable {
      * For this <code>DragSource</code> 
      * the default is <code>MouseDragGestureRecognizer</code>.
      * <P>
-     * @param c	      The <code>Component</code> target for the recognizer
-     * @param actions The permitted source actions
-     * @param dgl     The <code>DragGestureListener</code> to notify
+     * @param c	      the <code>Component</code> target for the recognizer
+     * @param actions the permitted source actions
+     * @param dgl     the <code>DragGestureListener</code> to notify
      * <P>
      * @return the new <code>DragGestureRecognizer</code> or <code>null</code>
-     * if the Toolkit.createDragGestureRecognizer() method
-     * has no implementation available for 
-     * the requested <code>DragGestureRecognizer</code>
-     * subclass and returns <code>null</code>.
+     *    if the <code>Toolkit.createDragGestureRecognizer</code> method
+     *    has no implementation available for 
+     *    the requested <code>DragGestureRecognizer</code>
+     *    subclass and returns <code>null</code>
      */
 
     public DragGestureRecognizer createDefaultDragGestureRecognizer(Component c, int actions, DragGestureListener dgl) {
@@ -488,13 +516,13 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Add the specified <code>DragSourceListener</code> to this
+     * Adds the specified <code>DragSourceListener</code> to this
      * <code>DragSource</code> to receive drag source events during drag
      * operations intiated with this <code>DragSource</code>.
      * If a <code>null</code> listener is specified, no action is taken and no
      * exception is thrown.
      *
-     * @param dsl the <code>DragSourceListener</code> to add.
+     * @param dsl the <code>DragSourceListener</code> to add
      *
      * @see      #removeDragSourceListener
      * @see      #getDragSourceListeners
@@ -509,7 +537,7 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Remove the specified <code>DragSourceListener</code> from this
+     * Removes the specified <code>DragSourceListener</code> from this
      * <code>DragSource</code>. 
      * If a <code>null</code> listener is specified, no action is taken and no
      * exception is thrown.
@@ -517,7 +545,7 @@ public class DragSource implements Serializable {
      * this <code>DragSource</code>, no action is taken and no exception
      * is thrown.
      * 
-     * @param dsl the <code>DragSourceListener</code> to remove.
+     * @param dsl the <code>DragSourceListener</code> to remove
      *
      * @see      #addDragSourceListener
      * @see      #getDragSourceListeners
@@ -532,7 +560,7 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Returns an array of all the <code>DragSourceListener</code>s
+     * Gets all the <code>DragSourceListener</code>s
      * registered with this <code>DragSource</code>.
      *
      * @return all of this <code>DragSource</code>'s
@@ -548,13 +576,13 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Add the specified <code>DragSourceMotionListener</code> to this
+     * Adds the specified <code>DragSourceMotionListener</code> to this
      * <code>DragSource</code> to receive drag motion events during drag
      * operations intiated with this <code>DragSource</code>.
      * If a <code>null</code> listener is specified, no action is taken and no
      * exception is thrown.
      *
-     * @param dsl the <code>DragSourceMotionListener</code> to add.
+     * @param dsl the <code>DragSourceMotionListener</code> to add
      *
      * @see      #removeDragSourceMotionListener
      * @see      #getDragSourceMotionListeners
@@ -569,7 +597,7 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Remove the specified <code>DragSourceMotionListener</code> from this
+     * Removes the specified <code>DragSourceMotionListener</code> from this
      * <code>DragSource</code>. 
      * If a <code>null</code> listener is specified, no action is taken and no
      * exception is thrown.
@@ -577,7 +605,7 @@ public class DragSource implements Serializable {
      * this <code>DragSource</code>, no action is taken and no exception
      * is thrown.
      * 
-     * @param dsml the <code>DragSourceMotionListener</code> to remove.
+     * @param dsml the <code>DragSourceMotionListener</code> to remove
      *
      * @see      #addDragSourceMotionListener
      * @see      #getDragSourceMotionListeners
@@ -592,7 +620,7 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Returns an array of all the <code>DragSourceMotionListener</code>s
+     * Gets all of the  <code>DragSourceMotionListener</code>s
      * registered with this <code>DragSource</code>.
      *
      * @return all of this <code>DragSource</code>'s
@@ -609,7 +637,7 @@ public class DragSource implements Serializable {
     }
 
     /**
-     * Returns an array of all the objects currently registered as
+     * Gets all the objects currently registered as
      * <code><em>Foo</em>Listener</code>s upon this <code>DragSource</code>.
      * <code><em>Foo</em>Listener</code>s are registered using the
      * <code>add<em>Foo</em>Listener</code> method.

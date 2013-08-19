@@ -1,5 +1,5 @@
 /*
- * @(#)List.java	1.91 01/12/03
+ * @(#)List.java	1.92 02/03/27
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -80,7 +80,7 @@ import javax.accessibility.*;
  * For multiple-selection scrolling lists, it is considered a better
  * user interface to use an external gesture (such as clicking on a
  * button) to trigger the action.
- * @version 	1.91, 12/03/01
+ * @version 	1.92, 03/27/02
  * @author 	Sami Shaio
  * @see         java.awt.event.ItemEvent
  * @see         java.awt.event.ItemListener
@@ -465,7 +465,7 @@ public class List extends Component implements ItemSelectable, Accessible {
 	if (peer != null) {
 	    selected = ((ListPeer)peer).getSelectedIndexes();
 	}
-	return selected;
+	return (int[])selected.clone();
     }
 
     /**

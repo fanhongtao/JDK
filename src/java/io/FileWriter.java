@@ -1,5 +1,5 @@
 /*
- * @(#)FileWriter.java	1.15 01/12/03
+ * @(#)FileWriter.java	1.16 02/02/06
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ package java.io;
  * @see OutputStreamWriter
  * @see FileOutputStream
  *
- * @version 	1.15, 01/12/03
+ * @version 	1.16, 02/02/06
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -38,8 +38,9 @@ public class FileWriter extends OutputStreamWriter {
      * Constructs a FileWriter object given a file name.
      *
      * @param fileName  String The system-dependent filename.
-     * @throws IOException if the specified file is not found or if some other
-     *                     I/O error occurs.
+     * @throws IOException  if the named file exists but is a directory rather
+     *                  than a regular file, does not exist but cannot be
+     *                  created, or cannot be opened for any other reason
      */
     public FileWriter(String fileName) throws IOException {
 	super(new FileOutputStream(fileName));
@@ -52,8 +53,9 @@ public class FileWriter extends OutputStreamWriter {
      * @param fileName  String The system-dependent filename.
      * @param append    boolean if <code>true</code>, then data will be written
      *                  to the end of the file rather than the beginning.
-     * @throws IOException if the specified file is not found or if some other
-     *                     I/O error occurs.
+     * @throws IOException  if the named file exists but is a directory rather
+     *                  than a regular file, does not exist but cannot be
+     *                  created, or cannot be opened for any other reason
      */
     public FileWriter(String fileName, boolean append) throws IOException {
 	super(new FileOutputStream(fileName, append));
@@ -63,8 +65,9 @@ public class FileWriter extends OutputStreamWriter {
      * Constructs a FileWriter object given a File object.
      *
      * @param file  a File object to write to.
-     * @throws IOException if the specified file is not found or if some other
-     *                     I/O error occurs.
+     * @throws IOException  if the file exists but is a directory rather than
+     *                  a regular file, does not exist but cannot be created,
+     *                  or cannot be opened for any other reason
      */
     public FileWriter(File file) throws IOException {
 	super(new FileOutputStream(file));
@@ -78,8 +81,9 @@ public class FileWriter extends OutputStreamWriter {
      * @param file  a File object to write to
      * @param     append    if <code>true</code>, then bytes will be written
      *                      to the end of the file rather than the beginning
-     * @throws IOException if the specified file is not found or if some other
-     *                     I/O error occurs
+     * @throws IOException  if the file exists but is a directory rather than
+     *                  a regular file, does not exist but cannot be created,
+     *                  or cannot be opened for any other reason
      * @since 1.4
      */
     public FileWriter(File file, boolean append) throws IOException {

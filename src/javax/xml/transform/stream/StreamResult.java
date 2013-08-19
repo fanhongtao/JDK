@@ -1,20 +1,10 @@
-/**
- * $Id: StreamResult.java,v 1.5 2001/06/22 19:00:57 costin Exp $
- *
- * Copyright (c) 2000-2001 Sun Microsystems, Inc. All Rights Reserved.
- *
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
+/*
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)StreamResult.java	1.12 02/06/11
  */
 package javax.xml.transform.stream;
 

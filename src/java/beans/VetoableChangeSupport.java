@@ -1,5 +1,5 @@
 /*
- * @(#)VetoableChangeSupport.java	1.39 01/12/03
+ * @(#)VetoableChangeSupport.java	1.40 02/02/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -256,7 +256,7 @@ public class VetoableChangeSupport implements java.io.Serializable {
 	if (oldValue == newValue) {
 	    return;
 	}
-	fireVetoableChange(propertyName, new Boolean(oldValue), new Boolean(newValue));
+	fireVetoableChange(propertyName, Boolean.valueOf(oldValue), Boolean.valueOf(newValue));
     }
 
 

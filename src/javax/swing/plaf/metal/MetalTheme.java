@@ -1,5 +1,5 @@
 /*
- * @(#)MetalTheme.java	1.20 01/12/03
+ * @(#)MetalTheme.java	1.22 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,11 +15,19 @@ import javax.swing.*;
  * used by Metal.  Classes which implement this interface can
  * be used to swap the colors in a Metal application.
  *
- * @version 1.20 12/03/01
+ * @version 1.22 04/18/02
  * @author Steve Wilson
  */
 
 public abstract class MetalTheme {
+
+    // Contants identifying the various Fonts that are Theme can support
+    static final int CONTROL_TEXT_FONT = 0;
+    static final int SYSTEM_TEXT_FONT = 1;
+    static final int USER_TEXT_FONT = 2;
+    static final int MENU_TEXT_FONT = 3;
+    static final int WINDOW_TITLE_FONT = 4;
+    static final int SUB_TEXT_FONT = 5;
 
     private static ColorUIResource white = new ColorUIResource( 255, 255, 255 );
     private static ColorUIResource black = new ColorUIResource( 0, 0, 0 );
@@ -90,4 +98,19 @@ public abstract class MetalTheme {
     public ColorUIResource getAcceleratorSelectedForeground() { return getBlack(); }
 
     public void addCustomEntriesToTable(UIDefaults table) {}
+
+    /**
+     * This is invoked when a MetalLookAndFeel is installed and about to
+     * start using this theme. When we can add API this should be nuked
+     * in favor of DefaultMetalTheme overriding addCustomEntriesToTable.
+     */
+    void install() {
+    }
+
+    /**
+     * Returns true if this is a theme provided by the core platform.
+     */
+    boolean isSystemTheme() {
+        return false;
+    }
 }

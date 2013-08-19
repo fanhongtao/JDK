@@ -1,20 +1,10 @@
-/**
- * $Id: Transformer.java,v 1.4 2001/01/26 22:58:06 jamieh Exp $
- *
- * Copyright (c) 2000-2001 Sun Microsystems, Inc. All Rights Reserved.
- *
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- *
- * SUN MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
- * SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT. SUN SHALL NOT BE LIABLE FOR ANY DAMAGES
- * SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
- * THIS SOFTWARE OR ITS DERIVATIVES.
+/*
+ * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+/*
+ * @(#)Transformer.java	1.13 02/06/11
  */
 package javax.xml.transform;
 
@@ -25,7 +15,7 @@ import java.util.Properties;
  * An instance of this abstract class can transform a
  * source tree into a result tree.
  *
- * <p>An instance of this class can be obtained with the <code>
+ * <p>An instance of this class can be obtained with the
  * {@link TransformerFactory#newTransformer TransformerFactory.newTransformer}
  * method. This instance may then be used to process XML from a
  * variety of sources and write the transformation output to a

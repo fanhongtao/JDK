@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGImageWriter.java	1.24 01/12/03
+ * @(#)JPEGImageWriter.java	1.26 02/04/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -38,6 +38,7 @@ import java.awt.color.ICC_ColorSpace;
 import java.awt.color.ICC_Profile;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.Transparency;
 
 import java.io.IOException;
 
@@ -453,10 +454,11 @@ public class JPEGImageWriter extends ImageWriter {
                 throw new IIOException("JPEG compression cannot be disabled");
             case ImageWriteParam.MODE_EXPLICIT:
                 float quality = param.getCompressionQuality();
+                quality = JPEG.convertToLinearQuality(quality);
                 qTables = new JPEGQTable[2];
-                qTables[0] = JPEGQTable.K1Div2Luminance.getScaledInstance
+                qTables[0] = JPEGQTable.K1Luminance.getScaledInstance
                     (quality, true);
-                qTables[1] = JPEGQTable.K2Div2Chrominance.getScaledInstance
+                qTables[1] = JPEGQTable.K2Chrominance.getScaledInstance
                     (quality, true);
                 break;
             case ImageWriteParam.MODE_DEFAULT:
@@ -1525,8 +1527,13 @@ public class JPEGImageWriter extends ImageWriter {
                                             sourceWidth, 1,
                                             0, 0,
                                             new int [] {0});
+            // If the image has BITMASK transparency, we need to make sure
+            // it gets converted to 32-bit ARGB, because the JPEG encoder
+            // relies upon the full 8-bit alpha channel.
+            boolean forceARGB =
+                (indexCM.getTransparency() != Transparency.OPAQUE);
             BufferedImage temp = indexCM.convertToIntDiscrete(sourceLine,
-                                                              false);
+                                                              forceARGB);
             sourceLine = temp.getRaster();
         } else {
             sourceLine = srcRas.createChild(sourceXOffset, 

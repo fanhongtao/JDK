@@ -1,5 +1,5 @@
 /*
- * @(#)BasicSpinnerUI.java	1.10 01/12/13
+ * @(#)BasicSpinnerUI.java	1.12 02/04/18
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,8 +14,10 @@ import java.text.ParseException;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
+import javax.swing.text.*;
 
 import java.beans.*;
+import java.text.*;
 import java.util.*;
 
 
@@ -23,7 +25,7 @@ import java.util.*;
 /**
  * The default Spinner UI delegate.
  *
- * @version 1.10 12/13/01
+ * @version 1.12 04/18/02
  * @author Hans Muller
  * @since 1.4
  */
@@ -64,8 +66,8 @@ public class BasicSpinnerUI extends SpinnerUI
      * @see #createNextButton
      * @see #createPreviousButton
      */
-    private static final ArrowButtonHandler nextButtonHandler = new ArrowButtonHandler(true);
-    private static final ArrowButtonHandler previousButtonHandler = new ArrowButtonHandler(false);
+    private static final ArrowButtonHandler nextButtonHandler = new ArrowButtonHandler("increment", true);
+    private static final ArrowButtonHandler previousButtonHandler = new ArrowButtonHandler("decrement", false);
 
 
     /**
@@ -353,6 +355,8 @@ public class BasicSpinnerUI extends SpinnerUI
 	SwingUtilities.replaceUIInputMap(spinner, JComponent.
 					 WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
 					 iMap);
+
+	SwingUtilities.replaceUIActionMap(spinner, getActionMap());
     }
 
     /**
@@ -363,6 +367,27 @@ public class BasicSpinnerUI extends SpinnerUI
 	    return (InputMap)UIManager.get("Spinner.ancestorInputMap");
         }
         return null;
+    }
+
+    private ActionMap getActionMap() {
+	ActionMap map = (ActionMap)UIManager.get("Spinner.actionMap");
+
+	if (map == null) {
+	    map = createActionMap();
+	    if (map != null) {
+		UIManager.getLookAndFeelDefaults().put("Spinner.actionMap",
+                                                       map);
+	    }
+	}
+        return map;
+    }
+
+    private ActionMap createActionMap() {
+        ActionMap map = new ActionMapUIResource();
+
+        map.put("increment", nextButtonHandler);
+        map.put("decrement", previousButtonHandler);
+        return map;
     }
 
     /**
@@ -381,13 +406,14 @@ public class BasicSpinnerUI extends SpinnerUI
      * so it doesn't have any state that persists beyond the limits
      * of a single button pressed/released gesture.
      */
-    private static class ArrowButtonHandler extends MouseAdapter implements ActionListener 
+    private static class ArrowButtonHandler extends AbstractAction implements MouseListener 
     {
 	final javax.swing.Timer autoRepeatTimer;
 	final boolean isNext;
 	JSpinner spinner = null;
 
-	ArrowButtonHandler(boolean isNext) {
+	ArrowButtonHandler(String name, boolean isNext) {
+            super(name);
 	    this.isNext = isNext;
 	    autoRepeatTimer = new javax.swing.Timer(60, this);
 	    autoRepeatTimer.setInitialDelay(300);
@@ -402,26 +428,140 @@ public class BasicSpinnerUI extends SpinnerUI
 	}
 
 	public void actionPerformed(ActionEvent e) {
-	    if (spinner != null) {
+            JSpinner spinner = this.spinner;
+
+            if (!(e.getSource() instanceof javax.swing.Timer)) {
+                // Most likely resulting from being in ActionMap.
+                spinner = eventToSpinner(e);
+            }
+            if (spinner != null) {
                 try {
+                    int calendarField = getCalendarField(spinner);
                     spinner.commitEdit();
+                    if (calendarField != -1) {
+                        ((SpinnerDateModel)spinner.getModel()).
+                                 setCalendarField(calendarField);
+                    }
                     Object value = (isNext) ? spinner.getNextValue() :
-                           spinner.getPreviousValue();
+                               spinner.getPreviousValue();
                     if (value != null) {
                         spinner.setValue(value);
+                        select(spinner);
                     }
                 } catch (IllegalArgumentException iae) {
                     UIManager.getLookAndFeel().provideErrorFeedback(spinner);
                 } catch (ParseException pe) {
                     UIManager.getLookAndFeel().provideErrorFeedback(spinner);
                 }
-	    }
+            }
 	}
+
+        /**
+         * If the spinner's editor is a DateEditor, this selects the field
+         * associated with the value that is being incremented.
+         */
+        private void select(JSpinner spinner) {
+            JComponent editor = spinner.getEditor();
+
+            if (editor instanceof JSpinner.DateEditor) {
+                JSpinner.DateEditor dateEditor = (JSpinner.DateEditor)editor;
+                JFormattedTextField ftf = dateEditor.getTextField();
+                Format format = dateEditor.getFormat();
+                Object value;
+
+                if (format != null && (value = spinner.getValue()) != null) {
+                    SpinnerDateModel model = dateEditor.getModel();
+                    DateFormat.Field field = DateFormat.Field.ofCalendarField(
+                        model.getCalendarField());
+
+                    if (field != null) {
+                        try {
+                            AttributedCharacterIterator iterator = format.
+                                formatToCharacterIterator(value);
+                            if (!select(ftf, iterator, field) &&
+                                       field == DateFormat.Field.HOUR0) {
+                                select(ftf, iterator, DateFormat.Field.HOUR1);
+                            }
+                        }
+                        catch (IllegalArgumentException iae) {}
+                    }
+                }
+            }
+        }
+
+        /**
+         * Selects the passed in field, returning true if it is found,
+         * false otherwise.
+         */
+        private boolean select(JFormattedTextField ftf,
+                               AttributedCharacterIterator iterator,
+                               DateFormat.Field field) {
+            int max = ftf.getDocument().getLength();
+
+            iterator.first();
+            do {
+                Map attrs = iterator.getAttributes();
+
+                if (attrs != null && attrs.containsKey(field)){
+                    int start = iterator.getRunStart(field);
+                    int end = iterator.getRunLimit(field);
+
+                    if (start != -1 && end != -1 && start <= max &&
+                                       end <= max) {
+                        ftf.select(start, end);
+                    }
+                    return true;
+                }
+            } while (iterator.next() != CharacterIterator.DONE);
+            return false;
+        }
+
+        /**
+         * Returns the calendarField under the start of the selection, or
+         * -1 if there is no valid calendar field under the selection (or
+         * the spinner isn't editing dates.
+         */
+        private int getCalendarField(JSpinner spinner) {
+            JComponent editor = spinner.getEditor();
+
+            if (editor instanceof JSpinner.DateEditor) {
+                JSpinner.DateEditor dateEditor = (JSpinner.DateEditor)editor;
+                JFormattedTextField ftf = dateEditor.getTextField();
+                int start = ftf.getSelectionStart();
+                JFormattedTextField.AbstractFormatter formatter =
+                                    ftf.getFormatter();
+
+                if (formatter instanceof InternationalFormatter) {
+                    Format.Field[] fields = ((InternationalFormatter)
+                                             formatter).getFields(start);
+
+                    for (int counter = 0; counter < fields.length; counter++) {
+                        if (fields[counter] instanceof DateFormat.Field) {
+                            int calendarField;
+
+                            if (fields[counter] == DateFormat.Field.HOUR1) {
+                                calendarField = Calendar.HOUR;
+                            }
+                            else {
+                                calendarField = ((DateFormat.Field)
+                                        fields[counter]).getCalendarField();
+                            }
+                            if (calendarField != -1) {
+                                return calendarField;
+                            }
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
 
 	public void mousePressed(MouseEvent e) {
 	    if (SwingUtilities.isLeftMouseButton(e) && e.getComponent().isEnabled()) {
 		spinner = eventToSpinner(e);
 		autoRepeatTimer.start();
+
+                focusSpinnerIfNecessary();
 	    }
 	}
 
@@ -429,6 +569,42 @@ public class BasicSpinnerUI extends SpinnerUI
 	    autoRepeatTimer.stop();	    
 	    spinner = null;
 	}
+
+        public void mouseClicked(MouseEvent e) {
+        }
+
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        public void mouseExited(MouseEvent e) {
+        }
+
+        /**
+         * Requests focus on a child of the spinner if the spinner doesn't
+         * have focus.
+         */
+        private void focusSpinnerIfNecessary() {
+            Component fo = KeyboardFocusManager.
+                              getCurrentKeyboardFocusManager().getFocusOwner();
+            if (spinner.isRequestFocusEnabled() && (
+                        fo == null ||
+                        !SwingUtilities.isDescendingFrom(fo, spinner))) {
+                Container root = spinner;
+
+                if (!root.isFocusCycleRoot()) {
+                    root = root.getFocusCycleRootAncestor();
+                }
+                if (root != null) {
+                    FocusTraversalPolicy ftp = root.getFocusTraversalPolicy();
+                    Component child = ftp.getComponentAfter(root, spinner);
+
+                    if (child != null && SwingUtilities.isDescendingFrom(
+                                                        child, spinner)) {
+                        child.requestFocus();
+                    }
+                }
+            }
+        }
     }
 
 
@@ -559,4 +735,3 @@ public class BasicSpinnerUI extends SpinnerUI
 	}
     }
 }
-

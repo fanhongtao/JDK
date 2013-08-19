@@ -1,5 +1,5 @@
 /*
- * @(#)Float.java	1.77 01/12/03
+ * @(#)Float.java	1.78 02/04/09
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,7 +21,7 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.77, 12/03/01
+ * @version 1.78, 04/09/02
  * @since JDK1.0 
  */
 public final class Float extends Number implements Comparable {
@@ -48,15 +48,16 @@ public final class Float extends Number implements Comparable {
 
     /**
      * A constant holding the largest positive finite value of type
-     * <code>float</code>. It is equal to the value returned by
+     * <code>float</code>, (2-2<sup>-23</sup>)&middot;2<sup>127</sup>.
+     * It is equal to the value returned by
      * <code>Float.intBitsToFloat(0x7f7fffff)</code>.
      */
     public static final float MAX_VALUE = 3.4028235e+38f;
 
     /**
      * A constant holding the smallest positive nonzero value of type
-     * <code>float</code>. It is equal to the value returned by
-     * <code>Float.intBitsToFloat(0x1)</code>.
+     * <code>float</code>, 2<sup>-149</sup>. It is equal to the value
+     * returned by <code>Float.intBitsToFloat(0x1)</code>.
      */
     public static final float MIN_VALUE = 1.4e-45f;
 
@@ -525,6 +526,25 @@ public final class Float extends Number implements Comparable {
      * </pre></blockquote>
      * Then the floating-point result equals the value of the mathematical 
      * expression <i>s</i>&middot;<i>m</i>&middot;2<sup><i>e</i>-150</sup>.
+     *<p>
+     * Note that this method may not be able to return a
+     * <code>float</code> NaN with exactly same bit pattern as the
+     * <code>int</code> argument.  IEEE 754 distinguishes between two
+     * kinds of NaNs, quiet NaNs and <i>signaling NaNs</i>.  The
+     * differences between the two kinds of NaN are generally not
+     * visible in Java.  Arithmetic operations on signaling NaNs turn
+     * them into quiet NaNs with a different, but often similar, bit
+     * pattern.  However, on some processors merely copying a
+     * signaling NaN also performs that conversion.  In particular,
+     * copying a signaling NaN to return it to the calling method may
+     * perform this conversion.  So <code>intBitsToFloat</code> may
+     * not be able to return a <code>float</code> with a signaling NaN
+     * bit pattern.  Consequently, for some <code>int</code> values,
+     * <code>floatToRawIntBits(intBitsToFloat(start))</code> may
+     * <i>not</i> equal <code>start</code>.  Moreover, which
+     * particular bit patterns represent signaling NaNs is platform
+     * dependent; although all NaN bit patterns, quiet or signaling,
+     * must be in the NaN range identified above.
      *
      * @param   bits   an integer.
      * @return  the <code>float</code> floating-point value with the same bit

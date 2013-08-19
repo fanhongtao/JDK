@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.12 02/03/02
+ * @(#)DefaultKeyboardFocusManager.java	1.14 02/04/11
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import sun.awt.SunToolkit;
  * Container's FocusTraversalPolicy.
  *
  * @author David Mendenhall
- * @version 1.12, 03/02/02
+ * @version 1.14, 04/11/02
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -64,51 +64,54 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
      * the user attempts to focus a non-focusable Component or Window.
      */
     private void restoreFocus(FocusEvent fe, Window newFocusedWindow) {
-	Component realOppositeComponent = this.realOppositeComponent;
-	if (newFocusedWindow != null && restoreFocus(newFocusedWindow, false))
+        Component realOppositeComponent = this.realOppositeComponent;
+        Component vetoedComponent = fe.getComponent();
+        if (newFocusedWindow != null && restoreFocus(newFocusedWindow, 
+                                                     vetoedComponent, false))
         {
-	} else if (realOppositeComponent != null &&
-		   restoreFocus(realOppositeComponent, false)) {
-	} else if (fe.getOppositeComponent() != null &&
-		   restoreFocus(fe.getOppositeComponent(), false)) {
-	} else {
-	    clearGlobalFocusOwner();
-	}
+        } else if (realOppositeComponent != null &&
+                   restoreFocus(realOppositeComponent, false)) {
+        } else if (fe.getOppositeComponent() != null &&
+                   restoreFocus(fe.getOppositeComponent(), false)) {
+        } else {
+            clearGlobalFocusOwner();
+        }
     }
     private void restoreFocus(WindowEvent we) {
-	Window realOppositeWindow = this.realOppositeWindow;
-	if (realOppositeWindow != null && restoreFocus(realOppositeWindow,
-						       false)) {
-	} else if (we.getOppositeWindow() != null &&
-		   restoreFocus(we.getOppositeWindow(), false)) {
-	} else {
-	    clearGlobalFocusOwner();
-	}
+        Window realOppositeWindow = this.realOppositeWindow;
+        if (realOppositeWindow != null && restoreFocus(realOppositeWindow,
+                                                       null, false)) {
+        } else if (we.getOppositeWindow() != null &&
+                   restoreFocus(we.getOppositeWindow(), null, false)) {
+        } else {
+            clearGlobalFocusOwner();
+        }
     }
-    private boolean restoreFocus(Window aWindow, boolean clearOnFailure) {
+    private boolean restoreFocus(Window aWindow, Component vetoedComponent, 
+                                 boolean clearOnFailure) {
         Component toFocus =
-	    KeyboardFocusManager.getMostRecentFocusOwner(aWindow);
-        if (toFocus != null && restoreFocus(toFocus, false)) {
-	    return true;
-	} else if (clearOnFailure) {
-	    clearGlobalFocusOwner();
-	    return true;
-	} else {
-	    return false;
-	}
+            KeyboardFocusManager.getMostRecentFocusOwner(aWindow);
+        if (toFocus != null && toFocus != vetoedComponent && restoreFocus(toFocus, false)) {
+            return true;
+        } else if (clearOnFailure) {
+            clearGlobalFocusOwner();
+            return true;
+        } else {
+            return false;
+        }
     }
     private boolean restoreFocus(Component toFocus, boolean clearOnFailure) {
-	if (toFocus.isShowing() && toFocus.isFocusable() &&
-	    toFocus.requestFocus(false)) {
-	    return true;
-	} else if (toFocus.nextFocusHelper()) {
-	    return true;
-	} else if (clearOnFailure) {
-	    clearGlobalFocusOwner();
-	    return true;
-	} else {
-	    return false;
-	}
+        if (toFocus.isShowing() && toFocus.isFocusable() &&
+            toFocus.requestFocus(false)) {
+            return true;
+        } else if (toFocus.nextFocusHelper()) {
+            return true;
+        } else if (clearOnFailure) {
+            clearGlobalFocusOwner();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -153,8 +156,10 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
      * If the Component is in a different AppContext, then the event is
      * posted to the other AppContext's EventQueue, and this method blocks
      * until the event is handled or target AppContext is disposed.
+     * Returns true if successfuly dispatched event, false if failed 
+     * to dispatch.
      */
-    private void sendMessage(Component target, AWTEvent e) {
+    private boolean sendMessage(Component target, AWTEvent e) {
 	AppContext myAppContext = AppContext.getAppContext();
         final AppContext targetAppContext = target.appContext;
 	final SentEvent se =
@@ -164,7 +169,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 	    se.dispatch();
 	} else {
             if (targetAppContext.isDisposed()) {
-                return;
+                return false;
             }
 	    SunToolkit.postEvent(targetAppContext, se);
 	    if (EventQueue.isDispatchThread()) {
@@ -187,6 +192,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 		}
 	    }
 	}
+        return se.dispatched;
     }
 
     /**
@@ -217,10 +223,16 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 		// If there exists a current focused window, then notify it
 		// that it has lost focus.
 		if (oldFocusedWindow != null) {
-		    sendMessage(oldFocusedWindow,
-				new WindowEvent(oldFocusedWindow,
-						WindowEvent.WINDOW_LOST_FOCUS,
-						newFocusedWindow));
+		    boolean isEventDispatched = 
+                        sendMessage(oldFocusedWindow,
+                                new WindowEvent(oldFocusedWindow,
+                                                WindowEvent.WINDOW_LOST_FOCUS,
+                                                newFocusedWindow));
+                    // Failed to dispatch, clear by ourselfves
+                    if (!isEventDispatched) {
+                        setGlobalFocusOwner(null);
+                        setGlobalFocusedWindow(null);
+                    }
 		}
 
 		// Because the native libraries do not post WINDOW_ACTIVATED
@@ -301,10 +313,15 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 		// If there exists a current active window, then notify it that
 		// it has lost activation.
 		if (oldActiveWindow != null) {
-		    sendMessage(oldActiveWindow,
-				new WindowEvent(oldActiveWindow,
-						WindowEvent.WINDOW_DEACTIVATED,
-						newActiveWindow));
+                    boolean isEventDispatched = 
+                        sendMessage(oldActiveWindow,
+                                new WindowEvent(oldActiveWindow,
+                                                WindowEvent.WINDOW_DEACTIVATED,
+                                                newActiveWindow));
+                    // Failed to dispatch, clear by ourselfves
+                    if (!isEventDispatched) {
+                        setGlobalActiveWindow(null);
+                    }
 		    if (getGlobalActiveWindow() != null) {
 			// Activation change was rejected. Unlikely, but
 			// possible.
@@ -334,11 +351,19 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 		// If there exists a current focus owner, then notify it that
 		// it has lost focus.
 		if (oldFocusOwner != null) {
-		    sendMessage(oldFocusOwner,
-				new FocusEvent(oldFocusOwner,
-					       FocusEvent.FOCUS_LOST,
-					       fe.isTemporary(),
-					       newFocusOwner));
+                    boolean isEventDispatched =
+                        sendMessage(oldFocusOwner,
+                                    new FocusEvent(oldFocusOwner,
+                                                   FocusEvent.FOCUS_LOST,
+                                                   fe.isTemporary(),
+                                                   newFocusOwner));
+                    // Failed to dispatch, clear by ourselfves
+                    if (!isEventDispatched) {
+                        setGlobalFocusOwner(null);
+                        if (!fe.isTemporary()) {
+                            setGlobalPermanentFocusOwner(null);
+                        }
+                    }
 		}
 		    
 		// Because the native windowing system has a different notion
@@ -501,7 +526,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 		setGlobalFocusedWindow(null);
 		if (getGlobalFocusedWindow() != null) {
 		    // Focus change was rejected. Unlikely, but possible.
-		    restoreFocus(currentFocusedWindow, true);
+                    restoreFocus(currentFocusedWindow, null, true);
 		    break;
 		}
 
@@ -522,7 +547,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
 		    if (getGlobalActiveWindow() != null) {
 		        // Activation change was rejected. Unlikely,
 			// but possible.
-			restoreFocus(currentFocusedWindow, true);
+                        restoreFocus(currentFocusedWindow, null, true);
 		    }
 		}
 		break;

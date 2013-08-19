@@ -1,5 +1,5 @@
 /*
- * @(#)InetSocketAddress.java	1.12 01/12/03
+ * @(#)InetSocketAddress.java	1.13 02/02/22
  *
  * Copyright 2002 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -96,7 +96,7 @@ public class InetSocketAddress extends SocketAddress {
      * @param	port	The port number
      * @throws IllegalArgumentException if the port parameter is outside the range
      * of valid port values, or if the hostname parameter is <TT>null</TT>.
-     * @see	isUnresolved()
+     * @see	#isUnresolved()
      */
     public InetSocketAddress(String hostname, int port) {
 	if (port < 0 || port > 0xFFFF) {
@@ -187,7 +187,7 @@ public class InetSocketAddress extends SocketAddress {
      * @param   obj   the object to compare against.
      * @return  <code>true</code> if the objects are the same;
      *          <code>false</code> otherwise.
-     * @see java.net.InetAddress#equals()
+     * @see java.net.InetAddress#equals(java.lang.Object)
      */
     public final boolean equals(Object obj) {
 	if (obj == null || !(obj instanceof InetSocketAddress))
