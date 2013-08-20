@@ -1,7 +1,7 @@
 /*
- * @(#)RepositoryId.java	1.34 05/01/15
+ * @(#)RepositoryId.java	1.33 04/10/28
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*

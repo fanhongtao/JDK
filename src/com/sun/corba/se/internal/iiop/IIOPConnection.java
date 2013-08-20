@@ -1,7 +1,7 @@
 /*
- * @(#)IIOPConnection.java	1.126 05/08/30
+ * @(#)IIOPConnection.java	1.130 08/09/23
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -884,7 +884,8 @@ public final class IIOPConnection extends Connection
     public boolean isBusy()
     {
         // Note: Hashtable.size() is not synchronized
-        if (requestCount > 0 || out_calls.size() > 0)
+        if (requestCount > 0 || out_calls.size() > 0 ||
+                getConnectionUseCounter() > 0)
             return true;
         else
             return false;
@@ -906,7 +907,8 @@ public final class IIOPConnection extends Connection
         // will be accepted by ReaderThread while the ListenerThread is 
         // attempting to close this connection.
         
-        if (requestCount > 0 || out_calls.size() > 0) { // we are busy!
+        if (requestCount > 0 || out_calls.size() > 0 ||
+                getConnectionUseCounter() > 0) { // we are busy!
             writeUnlock();
             throw new Exception();
         }

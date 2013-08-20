@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageWriter.java	1.28 03/01/23
+ * @(#)JPEGImageWriter.java	1.29 08/05/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,6 +45,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import sun.java2d.Disposer;
+import sun.java2d.DisposerRecord;
 
 public class JPEGImageWriter extends ImageWriter {
 
@@ -118,6 +121,12 @@ public class JPEGImageWriter extends ImageWriter {
 
     private int numScans = 0;
 
+    /** The referent to be registered with the Disposer. */
+    private Object disposerReferent = new Object();
+
+    /** The DisposerRecord that handles the actual disposal of this writer. */
+    private DisposerRecord disposerRecord;
+
     ///////// End of Private variables
 
     ///////// Protected variables
@@ -158,18 +167,15 @@ public class JPEGImageWriter extends ImageWriter {
     public JPEGImageWriter(ImageWriterSpi originator) {
         super(originator);
         structPointer = initJPEGImageWriter();
+        disposerRecord = new JPEGWriterDisposerRecord(structPointer);
+        Disposer.addRecord(disposerReferent, disposerRecord);
     }
-
 
     public void setOutput(Object output) {
         super.setOutput(output); // validates output
         ios = (ImageOutputStream) output; // so this will always work
-        // Set the native destination
+        resetInternalState();
         setDest(structPointer, ios);
-        srcRas = null;
-        raster = null;
-        currentImage = 0;
-        System.gc();
     }
 
     public ImageWriteParam getDefaultWriteParam() {
@@ -1068,29 +1074,29 @@ public class JPEGImageWriter extends ImageWriter {
         abortWrite(structPointer);
     }
 
-    public void reset() {
+    private void resetInternalState() {
         // reset C structures
         resetWriter(structPointer);
         // reset local Java structures
-        super.reset();
-        ios = null;
         srcRas = null;
         raster = null;
         convertTosRGB = false;
         currentImage = 0;
         numScans = 0;
-        System.gc();
+        metadata = null;
     }
+
+    /**
+     * Note that there is no need to override reset() here, as the default
+     * implementation will call setOutput(null), which will invoke
+     * resetInternalState().
+     */
 
     public void dispose() {
         if (structPointer != 0) {
-            disposeWriter(structPointer);
+            disposerRecord.dispose();
             structPointer = 0;
         }
-    }
-    
-    public void finalize() {
-        dispose();
     }
 
     ////////// End of public API
@@ -1583,6 +1589,20 @@ public class JPEGImageWriter extends ImageWriter {
     private native void resetWriter(long structPointer);
 
     /** Releases native structures */
-    private native void disposeWriter(long structPointer);
+    private static native void disposeWriter(long structPointer);
 
+    private static class JPEGWriterDisposerRecord extends DisposerRecord {
+        private long pData;
+
+        public JPEGWriterDisposerRecord(long pData) {
+            this.pData = pData;
+        }
+
+        public synchronized void dispose() {
+            if (pData != 0) {
+                disposeWriter(pData);
+                pData = 0;
+            }
+        }
+    }
 }

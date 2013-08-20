@@ -1,7 +1,7 @@
 /*
- * @(#)ConnectionTable.java	1.80 03/01/23
+ * @(#)ConnectionTable.java	1.84 08/09/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -120,6 +120,7 @@ public class ConnectionTable {
                 synchronized( this ) {
                     c = new IIOPConnection(orb, server, this, key);
                     stampTime(c);
+	            c.incrementConnectionUseCounter();
                     connectionCache.put(key, c);
 		    c.setConnection(socket, this);
 	            if (orb.transportDebugFlag)
@@ -218,6 +219,7 @@ public class ConnectionTable {
 	    Connection c = new IIOPConnection(orb, server, key, sock, 
 					      in, out, this);
 
+	    c.incrementConnectionUseCounter();
 	    connectionCache.put(key, c);
 
 	    stampTime(c);

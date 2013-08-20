@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleDateFormat.java	1.74 03/01/27
+ * @(#)SimpleDateFormat.java	1.75 08/08/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -304,7 +304,7 @@ import sun.text.resources.LocaleData;
  * @see          java.util.TimeZone
  * @see          DateFormat
  * @see          DateFormatSymbols
- * @version      1.74, 01/27/03
+ * @version      1.75, 08/21/08
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {
@@ -1319,9 +1319,13 @@ public class SimpleDateFormat extends DateFormat {
 	    }
 	}
 	if (tz != null) { // Matched any ?
-	    calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
-	    calendar.set(Calendar.DST_OFFSET, 
-			 j >= 3 ? tz.getDSTSavings() : 0);
+	    // if tz.getDSTSaving() returns 0 for DST, use tz to
+            // determine the local time. (6645292)
+	    int dstAmount = (j >= 3) ? tz.getDSTSavings() : 0;
+	    if(!(j >= 3 && dstAmount == 0))  {
+	        calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
+	        calendar.set(Calendar.DST_OFFSET, dstAmount);
+	    }
 	    return (start + formatData.zoneStrings[i][j].length());
 	}
 	return 0;

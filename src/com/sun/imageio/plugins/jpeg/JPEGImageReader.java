@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageReader.java	1.44 03/01/23
+ * @(#)JPEGImageReader.java	1.45 08/05/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,6 +35,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+
+import sun.java2d.Disposer;
+import sun.java2d.DisposerRecord;
 
 public class JPEGImageReader extends ImageReader {
 
@@ -180,6 +183,12 @@ public class JPEGImageReader extends ImageReader {
      */
     private boolean tablesOnlyChecked = false;
 
+    /** The referent to be registered with the Disposer. */
+    private Object disposerReferent = new Object();
+
+    /** The DisposerRecord that handles the actual disposal of this reader. */
+    private DisposerRecord disposerRecord;
+
     /**
      * Maintain an array of the default image types corresponding to the
      * various supported IJG colorspace codes.
@@ -231,6 +240,8 @@ public class JPEGImageReader extends ImageReader {
     public JPEGImageReader(ImageReaderSpi originator) {
         super(originator);
         structPointer = initJPEGImageReader();
+        disposerRecord = new JPEGReaderDisposerRecord(structPointer);
+        Disposer.addRecord(disposerReferent, disposerRecord);
     }
 
     /** Sets up per-reader C structure and returns a pointer to it. */
@@ -273,13 +284,8 @@ public class JPEGImageReader extends ImageReader {
         super.setInput(input, seekForwardOnly, ignoreMetadata);
         this.ignoreMetadata = ignoreMetadata;
         iis = (ImageInputStream) input; // Always works
-        numImages = 0;
-        imagePositions = new ArrayList();
+        resetInternalState();
         setSource(structPointer, iis);
-        imageMetadata = null;
-        imageMetadataIndex = -1;
-        tablesOnlyChecked = false;
-        haveSeeked = false;
     }
 
     private native void setSource(long structPointer, 
@@ -1292,12 +1298,10 @@ public class JPEGImageReader extends ImageReader {
         return  jfif.getThumbnail(iis, thumbnailIndex, this);
     }
 
-    public void reset() {
+    private void resetInternalState() {
         // reset C structures
         resetReader(structPointer);
         // reset local Java structures
-        super.reset();
-        iis = null;
         numImages = 0;
         imagePositions = new ArrayList();
         currentImage = -1;
@@ -1314,22 +1318,37 @@ public class JPEGImageReader extends ImageReader {
         tablesOnlyChecked = false;
         iccCS = null;
         initProgressData();
-        System.gc();
     }
+
+    /**
+     * Note that there is no need to override reset() here, as the default
+     * implementation will call setInput(null, false, false), which will
+     * invoke resetInternalState().
+     */
 
     private native void resetReader(long structPointer);
 
     public void dispose() {
         if (structPointer != 0) {
-            disposeReader(structPointer);
+            disposerRecord.dispose();
             structPointer = 0;
         }
     }
 
-    private native void disposeReader(long structPointer);
+    private static native void disposeReader(long structPointer);
 
-    public void finalize() {
-        dispose();
+    private static class JPEGReaderDisposerRecord extends DisposerRecord {
+        private long pData;
+
+        public JPEGReaderDisposerRecord(long pData) {
+            this.pData = pData;
+        }
+
+        public synchronized void dispose() {
+            if (pData != 0) {
+                disposeReader(pData);
+                pData = 0;
+            }
+        }
     }
-
 }

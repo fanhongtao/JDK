@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGMetadata.java	1.25 03/01/23
+ * @(#)JPEGMetadata.java	1.26 08/05/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -2385,7 +2385,6 @@ public class JPEGMetadata extends IIOMetadata implements Cloneable {
         if (resetSequence != null) {  // Otherwise no need to reset
             markerSequence = resetSequence;
             resetSequence = null;
-            System.gc();
         }
     }
 

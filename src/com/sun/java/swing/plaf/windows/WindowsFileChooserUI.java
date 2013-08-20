@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.80 04/01/13
+ * @(#)WindowsFileChooserUI.java	1.82 08/09/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,13 +23,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import sun.awt.shell.ShellFolder;
 
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.80 01/13/04
+ * @version 1.82 09/23/08
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -472,16 +474,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	if (prop != null) {
 	    useShellFolder = prop.booleanValue();
 	} else {
-	    // See if FileSystemView.getRoots() returns the desktop folder,
-	    // i.e. the normal Windows hierarchy.
-	    useShellFolder = false;
-	    File[] roots = fc.getFileSystemView().getRoots();
-	    if (roots != null && roots.length == 1) {
-		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
-		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
-		    useShellFolder = true;
-		}
-	    }
+	    useShellFolder = fc.getFileSystemView().equals(FileSystemView.getFileSystemView());
 	}
 	if (OS_LEVEL >= WIN_2k) {
 	    if (useShellFolder) {
@@ -1948,7 +1941,11 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	    File[] baseFolders;
 	    if (useShellFolder) {
-		baseFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
+		baseFolders = (File[])AccessController.doPrivileged(new PrivilegedAction() {
+                    public Object run() {
+                        return ShellFolder.get("fileChooserComboBoxFolders");
+                    }
+                });
 	    } else {
 		baseFolders = fsv.getRoots();
 	    }

@@ -1,7 +1,7 @@
 /*
- * @(#)File.java	1.113 03/01/23
+ * @(#)File.java	1.114 08/09/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,9 +14,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Hashtable;
-import java.util.Random;
 import java.security.AccessController;
 import java.security.AccessControlException;
+import java.security.SecureRandom;
 import sun.security.action.GetPropertyAction;
 
 
@@ -84,7 +84,7 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.113, 01/23/03
+ * @version 1.114, 09/05/08
  * @author  unascribed
  * @since   JDK1.0
  */
@@ -1271,31 +1271,30 @@ public class File implements java.io.Serializable, Comparable {
 	return fs.listRoots();
     }
 
-
     /* -- Temporary files -- */
 
-    private static final Object tmpFileLock = new Object();
-
-    private static int counter = -1; /* Protected by tmpFileLock */
+    // lazy initialization of SecureRandom and temporary file directory
+    private static class LazyInitialization {
+        static final SecureRandom random = new SecureRandom();
+  
+        static final String temporaryDirectory = temporaryDirectory();
+        static String temporaryDirectory() {
+            return fs.normalize(
+                (String) AccessController.doPrivileged(
+                    new GetPropertyAction("java.io.tmpdir")));
+        }
+    }
 
     private static File generateFile(String prefix, String suffix, File dir)
 	throws IOException
     {
-	if (counter == -1) {
-	    counter = new Random().nextInt() & 0xffff;
-	}
-	counter++;
-	return new File(dir, prefix + Integer.toString(counter) + suffix);
-    }
-
-    private static String tmpdir; /* Protected by tmpFileLock */
-
-    private static String getTempDir() {
-	if (tmpdir == null) {
-	    GetPropertyAction a = new GetPropertyAction("java.io.tmpdir");
-	    tmpdir = ((String) AccessController.doPrivileged(a));
-	}
-	return tmpdir;
+        long n = LazyInitialization.random.nextLong();
+        if (n == Long.MIN_VALUE) {
+            n = 0;      // corner case
+        } else {
+            n = Math.abs(n);
+        }
+        return new File(dir, prefix + Long.toString(n) + suffix);
     }
 
     private static boolean checkAndCreate(String filename, SecurityManager sm)
@@ -1391,17 +1390,16 @@ public class File implements java.io.Serializable, Comparable {
 	if (prefix.length() < 3)
 	    throw new IllegalArgumentException("Prefix string too short");
 	String s = (suffix == null) ? ".tmp" : suffix;
-	synchronized (tmpFileLock) {
-	    if (directory == null) {
-		directory = new File(getTempDir());
-	    }
-	    SecurityManager sm = System.getSecurityManager();
-	    File f;
-	    do {
-		f = generateFile(prefix, s, directory);
-	    } while (!checkAndCreate(f.getPath(), sm));
-	    return f;
+	if (directory == null) {
+	    directory = new File(LazyInitialization.temporaryDirectory());
 	}
+	SecurityManager sm = System.getSecurityManager();
+	File f;
+	do {
+	    f = generateFile(prefix, s, directory);
+	} while (!checkAndCreate(f.getPath(), sm));
+	return f;
+
     }
 
     /**

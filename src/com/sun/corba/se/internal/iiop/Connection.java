@@ -1,7 +1,7 @@
 /*
- * @(#)Connection.java	1.85 03/01/23
+ * @(#)Connection.java	1.89 08/09/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,6 +58,8 @@ abstract public class Connection
     public static final int CONN_ABORT = MinorCodes.CONN_ABORT;
     public static final int CONN_REBIND = MinorCodes.CONN_REBIND;
 
+    protected int connectionUseCounter = 0;
+
     protected ORB orb;
     protected Socket socket;    // The socket used for this connection.
     protected long timeStamp = 0;
@@ -77,6 +79,18 @@ abstract public class Connection
 
     public Socket getSocket() {
 	return socket;
+    }
+
+    public synchronized int getConnectionUseCounter() {
+       return connectionUseCounter;
+    }
+
+    public synchronized void incrementConnectionUseCounter() {
+       connectionUseCounter++;
+    }
+
+    public synchronized void decrementConnectionUseCounter() {
+       connectionUseCounter--;
     }
 
     abstract public IIOPInputStream invoke(IIOPOutputStream s)

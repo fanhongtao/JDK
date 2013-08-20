@@ -1,7 +1,7 @@
 /*
- * @(#)ClientDelegate.java	1.89 05/08/30
+ * @(#)ClientDelegate.java	1.93 08/09/23
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -81,6 +81,7 @@ import com.sun.corba.se.internal.orbutil.ORBUtility;
 import com.sun.corba.se.internal.iiop.messages.ReplyMessage;
 import com.sun.corba.se.internal.iiop.Connection;
 import com.sun.corba.se.internal.iiop.ClientRequestImpl;
+import com.sun.corba.se.internal.iiop.IIOPInputStream;
 import com.sun.corba.se.internal.iiop.LocalClientRequestImpl;
 import com.sun.corba.se.internal.iiop.messages.KeyAddr;
 import com.sun.corba.se.internal.core.ORBVersionFactory;
@@ -688,6 +689,13 @@ public class ClientDelegate
     public void releaseReply(org.omg.CORBA.Object self, 
 			     InputStream input)
     {
+	if (input instanceof IIOPInputStream) {
+		IIOPInputStream iis = (IIOPInputStream)input;
+		Connection c = iis.getConnection();
+		if (c != null)
+			c.decrementConnectionUseCounter();
+	}
+
 	orb.sendCancelRequestIfFinalFragmentNotSent();
 
         // Invoke Portable Interceptors cleanup.  This is done to handle
