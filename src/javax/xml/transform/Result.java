@@ -1,22 +1,19 @@
+//  $Id: Result.java,v 1.2 2003/10/22 03:53:16 jsuttor Exp $
+
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Result.java	1.13 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-/*
- * @(#)Result.java	1.8 03/01/23
- */
 package javax.xml.transform;
 
-import java.lang.String;
-
-import java.io.OutputStream;
-import java.io.Writer;
-
-
 /**
- * An object that implements this interface contains the information
- * needed to build a transformation result tree.
+ * <p>An object that implements this interface contains the information
+ * needed to build a transformation result tree.</p>
+ * 
+ * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
  */
 public interface Result {
 

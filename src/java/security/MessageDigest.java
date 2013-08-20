@@ -1,7 +1,7 @@
 /*
- * @(#)MessageDigest.java	1.74 03/01/23
+ * @(#)MessageDigest.java	1.77 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
+
+import java.nio.ByteBuffer;
 
 /**
  * This MessageDigest class provides applications the functionality of a
@@ -63,7 +65,7 @@ import java.io.ByteArrayInputStream;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.74, 01/23/03
+ * @version 1.77, 12/19/03
  *
  * @see DigestInputStream
  * @see DigestOutputStream
@@ -275,6 +277,24 @@ public abstract class MessageDigest extends MessageDigestSpi {
      */
     public void update(byte[] input) {
 	engineUpdate(input, 0, input.length);
+	state = IN_PROGRESS;
+    }
+
+    /**
+     * Update the digest using the specified ByteBuffer. The digest is
+     * updated using the <code>input.remaining()</code> bytes starting
+     * at <code>input.position()</code>.
+     * Upon return, the buffer's position will be equal to its limit;
+     * its limit will not have changed.
+     *
+     * @param input the ByteBuffer
+     * @since 1.5
+     */
+    public final void update(ByteBuffer input) {
+	if (input == null) {
+	    throw new NullPointerException();
+	}
+	engineUpdate(input);
 	state = IN_PROGRESS;
     }
 
@@ -501,6 +521,10 @@ public abstract class MessageDigest extends MessageDigestSpi {
 
 	protected void engineUpdate(byte[] input, int offset, int len) {
 	    digestSpi.engineUpdate(input, offset, len);
+	}
+
+	protected void engineUpdate(ByteBuffer input) {
+	    digestSpi.engineUpdate(input);
 	}
 
 	protected byte[] engineDigest() {

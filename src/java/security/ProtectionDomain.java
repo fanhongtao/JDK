@@ -1,14 +1,16 @@
 /*
- * @(#)ProtectionDomain.java	1.41 03/01/23
+ * @(#)ProtectionDomain.java	1.45 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
 
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
+import sun.security.util.Debug;
 import sun.security.util.SecurityConstants;
 
 /** 
@@ -26,7 +28,7 @@ import sun.security.util.SecurityConstants;
  * is checked.
  * <p>
  * 
- * @version 	1.41, 01/23/03
+ * @version 	1.45, 12/19/03
  * @author Li Gong 
  * @author Roland Schemers
  * @author Gary Ellison
@@ -49,6 +51,8 @@ public class ProtectionDomain {
     /* the PermissionCollection is static (pre 1.4 constructor)
        or dynamic (via a policy refresh) */
     private boolean staticPermissions;
+
+    private static final Debug debug = Debug.getInstance("domain");
 
     /**
      * Creates a new ProtectionDomain with the given CodeSource and
@@ -94,7 +98,9 @@ public class ProtectionDomain {
      * @param codesource the CodeSource associated with this domain
      * @param permissions the permissions granted to this domain
      * @param classloader the ClassLoader associated with this domain
-     * @param principals the array of Principals associated with this domain
+     * @param principals the array of Principals associated with this 
+     * domain. The contents of the array are copied to protect against 
+     * subsequent modification.
      * @see Policy#refresh
      * @see Policy#getPermissions(ProtectionDomain)
      * @since 1.4
@@ -138,8 +144,8 @@ public class ProtectionDomain {
 
     /**
      * Returns an array of principals for this domain.
-     * @return returns a non-null array of principals for this domain.
-     * Changes to this array will have no impact on the ProtectionDomain.
+     * @return a non-null array of principals for this domain.
+     * Returns a new array each time this method is called.
      *
      * @since 1.4
      */
@@ -201,7 +207,7 @@ public class ProtectionDomain {
     public String toString() {
 	String pals = "<no principals>";
 	if (principals != null && principals.length > 0) {
-	    StringBuffer palBuf = new StringBuffer("(principals ");
+	    StringBuilder palBuf = new StringBuilder("(principals ");
 	    
 	    for (int i = 0; i < principals.length; i++) {
 		palBuf.append(principals[i].getClass().getName() +
@@ -228,23 +234,44 @@ public class ProtectionDomain {
 	    " "+pc+"\n"; 
     }
 
-    private boolean seeAllp() {
+    /**
+     * Return true (merge policy permissions) in the following cases:
+     *
+     * . SecurityManager is null
+     *
+     * . SecurityManager is not null,
+     *		debug is not null,
+     *		SecurityManager impelmentation is in bootclasspath,
+     *		Policy implementation is in bootclasspath
+     *		(the bootclasspath restrictions avoid recursion)
+     *
+     * . SecurityManager is not null,
+     *		debug is null,
+     *		caller has Policy.getPolicy permission
+     */
+    private static boolean seeAllp() {
 	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    String debug =
-		(String) java.security.AccessController.doPrivileged(
-	     new sun.security.action.GetPropertyAction("java.security.debug"));
+
+	if (sm == null) {
+	    return true;
+	} else {
 	    if (debug != null) {
-		return true;
-	    }
-	    try {
-		sm.checkPermission(SecurityConstants.GET_POLICY_PERMISSION);
-	    } catch (SecurityException se) {
-		return false;
+		if (sm.getClass().getClassLoader() == null &&
+		    Policy.getPolicyNoCheck().getClass().getClassLoader()
+								== null) {
+		    return true;
+		}
+	    } else {
+		try {
+		    sm.checkPermission(SecurityConstants.GET_POLICY_PERMISSION);
+		    return true;
+		} catch (SecurityException se) {
+		    // fall thru and return false
+		}
 	    }
 	}
 
-	return true;
+	return false;
     }
 
     private PermissionCollection mergePermissions() {
@@ -260,31 +287,34 @@ public class ProtectionDomain {
                     }
                 });
 	
-
 	Permissions mergedPerms = new Permissions();
 	int swag = 32;
 	int vcap = 8;       
 	Enumeration e;
-	Vector pdVector = new Vector(vcap);
-	Vector plVector = new Vector(swag);
+	List pdVector = new ArrayList(vcap);
+	List plVector = new ArrayList(swag);
             
 	//
 	// Build a vector of domain permissions for subsequent merge
 	if (permissions != null) {
-	    e = permissions.elements();
-	    while (e.hasMoreElements()) {
-		Permission p = (Permission)e.nextElement();
-		pdVector.add(p);
+	    synchronized (permissions) {
+		e = permissions.elements();
+		while (e.hasMoreElements()) {
+		    Permission p = (Permission)e.nextElement();
+		    pdVector.add(p);
+		}
 	    }
 	}
 
 	//
 	// Build a vector of Policy permissions for subsequent merge
 	if (perms != null) {
-	    e = perms.elements();
-	    while (e.hasMoreElements()) {
-		plVector.add(e.nextElement());
-		vcap++;
+	    synchronized (perms) {
+		e = perms.elements();
+		while (e.hasMoreElements()) {
+		    plVector.add(e.nextElement());
+		    vcap++;
+		}
 	    }
 	}
 
@@ -293,20 +323,25 @@ public class ProtectionDomain {
 	    // Weed out the duplicates from the policy. Unless a refresh
 	    // has occured since the pd was consed this should result in
 	    // an empty vector.
-	    e = permissions.elements();   // domain vs policy
-	    while (e.hasMoreElements()) {
-		Permission pdp = (Permission)e.nextElement();
-		for (int i = 0; i < plVector.size(); i++) {
-		    Permission pp = (Permission) plVector.elementAt(i);
-		    if (pdp.getClass().isInstance(pp)) {
-			// The equals() method on some permissions
-			// have some side effects so this manual 
-			// comparison is sufficient.
-			if (pdp.getName().equals(pp.getName()) &&
-			    pdp.getActions().equals(pp.getActions())) {
-			    plVector.remove(i);
-			    break;
-			} 
+	    synchronized (permissions) {
+		e = permissions.elements();   // domain vs policy
+		while (e.hasMoreElements()) {
+		    Permission pdp = (Permission)e.nextElement();
+		    Class pdpClass = pdp.getClass();
+		    String pdpActions = pdp.getActions();
+		    String pdpName = pdp.getName();
+		    for (int i = 0; i < plVector.size(); i++) {
+			Permission pp = (Permission) plVector.get(i);
+			if (pdpClass.isInstance(pp)) {
+			    // The equals() method on some permissions
+			    // have some side effects so this manual 
+			    // comparison is sufficient.
+			    if (pdpName.equals(pp.getName()) &&
+				pdpActions.equals(pp.getActions())) {
+				plVector.remove(i);
+				break;
+			    } 
+			}
 		    }
 		}
 	    }
@@ -317,16 +352,15 @@ public class ProtectionDomain {
 	    // needs to preserve the bugfix 4301064
                 
 	    for (int i = plVector.size()-1; i >= 0; i--) {
-		mergedPerms.add((Permission)plVector.elementAt(i));
+		mergedPerms.add((Permission)plVector.get(i));
 	    }
 	}
 	if (permissions != null) {
 	    for (int i = pdVector.size()-1; i >= 0; i--) {
-		mergedPerms.add((Permission)pdVector.elementAt(i));
+		mergedPerms.add((Permission)pdVector.get(i));
 	    }
 	}
 
 	return mergedPerms;
     }
-    
 }

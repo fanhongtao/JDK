@@ -1,14 +1,13 @@
 /*
- * @(#)CertPathValidatorException.java	1.7 03/01/23
+ * @(#)CertPathValidatorException.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.security.GeneralSecurityException;
 
 /**
  * An exception indicating one of a variety of problems encountered when 
@@ -35,12 +34,13 @@ import java.io.PrintWriter;
  *
  * @see CertPathValidator
  *
- * @version 	1.7 01/23/03
+ * @version 	1.10 12/19/03
  * @since	1.4
  * @author 	Yassir Elley
  */
-public class CertPathValidatorException extends 
-    java.security.GeneralSecurityException {
+public class CertPathValidatorException extends GeneralSecurityException {
+
+    private static final long serialVersionUID = -3083180014971893139L;
 
     /**
      * @serial the index of the certificate in the certification path  
@@ -87,8 +87,7 @@ public class CertPathValidatorException extends
      * permitted, and indicates that the cause is nonexistent or unknown.)
      */
     public CertPathValidatorException(Throwable cause) {
-	super();
-	initCause(cause);
+	super(cause);
     }
 
     /**
@@ -101,8 +100,7 @@ public class CertPathValidatorException extends
      * permitted, and indicates that the cause is nonexistent or unknown.)
      */
     public CertPathValidatorException(String msg, Throwable cause) {
-        super(msg);
-	initCause(cause);
+        super(msg, cause);
     }
 
     /**
@@ -123,27 +121,17 @@ public class CertPathValidatorException extends
      * <code>null</code> and <code>index</code> is not -1
      */
     public CertPathValidatorException(String msg, Throwable cause, 
-	CertPath certPath, int index) 
-    {
-        this(msg, cause);
-	if (certPath == null && index != -1)
+	    CertPath certPath, int index) {
+        super(msg, cause);
+	if (certPath == null && index != -1) {
 	    throw new IllegalArgumentException();
+	}
 	if (index < -1 || 
-	    (certPath != null && index >= certPath.getCertificates().size()))
+	    (certPath != null && index >= certPath.getCertificates().size())) {
 	    throw new IndexOutOfBoundsException();
+	}
 	this.certPath = certPath;
 	this.index = index;
-    }
-
-    /**
-     * Returns the detail message for this 
-     * <code>CertPathValidatorException</code>.
-     *
-     * @return the detail message, or <code>null</code> if neither the message
-     * nor cause were specified
-     */
-    public String getMessage() {
-        return super.getMessage();
     }
 
     /**
@@ -169,58 +157,4 @@ public class CertPathValidatorException extends
 	return this.index;
     }
 
-    /**
-     * Returns the cause of this <code>CertPathValidatorException</code> or 
-     * <code>null</code> if the cause is nonexistent or unknown.
-     *
-     * @return the cause of this throwable or <code>null</code> if the cause 
-     * is nonexistent or unknown.
-     */
-    public Throwable getCause() {
-        return super.getCause();
-    }
-
-    /**
-     * Returns a string describing this exception, including a description
-     * of the internal (wrapped) cause if there is one.
-     *
-     * @return a string representation of this 
-     * <code>CertPathValidatorException</code>
-     */
-    public String toString() {
-	if (getCause() == null)
-            return super.toString();
-        else
-            return super.toString() +
-                "; internal cause is: \n\t" +
-                getCause().toString();
-    }
-
-    /**
-     * Prints a stack trace to <code>System.err</code>, including the backtrace 
-     * of the cause, if any.
-     */
-    public void printStackTrace() {
-	printStackTrace(System.err);
-    }
-
-    /**
-     * Prints a stack trace to a <code>PrintStream</code>, including the 
-     * backtrace of the cause, if any.
-     *
-     * @param ps the <code>PrintStream</code> to use for output
-     */
-    public void printStackTrace(PrintStream ps) {
-	super.printStackTrace(ps);
-    }
-
-    /**
-     * Prints a stack trace to a <code>PrintWriter</code>, including the 
-     * backtrace of the cause, if any.
-     *
-     * @param pw the <code>PrintWriter</code> to use for output
-     */
-    public void printStackTrace(PrintWriter pw) {
-        super.printStackTrace(pw);
-    }
 }

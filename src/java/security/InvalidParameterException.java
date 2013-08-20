@@ -1,7 +1,7 @@
 /*
- * @(#)InvalidParameterException.java	1.18 03/01/23
+ * @(#)InvalidParameterException.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,10 +13,12 @@ package java.security;
  * to a method.
  *
  * @author Benjamin Renaud
- * @version 1.18, 03/01/23
+ * @version 1.20, 03/12/19
  */
 
 public class InvalidParameterException extends IllegalArgumentException {
+
+    private static final long serialVersionUID = -857968536935667808L;
 
     /**
      * Constructs an InvalidParameterException with no detail message.

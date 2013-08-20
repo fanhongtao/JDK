@@ -1,7 +1,7 @@
 /*
- * @(#)ServerSocket.java	1.75 03/01/23
+ * @(#)ServerSocket.java	1.86 04/05/24
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.security.PrivilegedExceptionAction;
  * appropriate to the local firewall. 
  *
  * @author  unascribed
- * @version 1.75, 01/23/03
+ * @version 1.86, 05/24/04
  * @see     java.net.SocketImpl
  * @see     java.net.ServerSocket#setSocketFactory(java.net.SocketImplFactory)
  * @see     java.nio.channels.ServerSocketChannel
@@ -233,7 +233,7 @@ class ServerSocket {
 	} else {
 	    // No need to do a checkOldImpl() here, we know it's an up to date
 	    // SocketImpl!
-	    impl = new PlainSocketImpl();
+	    impl = new SocksSocketImpl();
 	}
 	if (impl != null)
 	    impl.setServerSocket(this);
@@ -246,7 +246,8 @@ class ServerSocket {
      * @since 1.4
      */
     void createImpl() throws SocketException {
-	setImpl();
+	if (impl == null)
+	    setImpl();
 	try {
 	    impl.create(true);
 	    created = true;
@@ -402,8 +403,9 @@ class ServerSocket {
      * @exception  SocketTimeoutException if a timeout was previously set with setSoTimeout and
      *             the timeout has been reached.
      * @exception  java.nio.channels.IllegalBlockingModeException
-     *             if this socket has an associated channel,
-     *             and the channel is in non-blocking mode.
+     *             if this socket has an associated channel, the channel is in
+     *             non-blocking mode, and there is no connection ready to be
+     *             accepted
      *
      * @return the new Socket
      * @see SecurityManager#checkAccept
@@ -594,7 +596,7 @@ class ServerSocket {
      * <p>
      * When a <tt>ServerSocket</tt> is created the initial setting
      * of <tt>SO_REUSEADDR</tt> is not defined. Applications can
-     * use {@link getReuseAddress()} to determine the initial 
+     * use {@link #getReuseAddress()} to determine the initial 
      * setting of <tt>SO_REUSEADDR</tt>. 
      * <p>
      * The behaviour when <tt>SO_REUSEADDR</tt> is enabled or
@@ -614,7 +616,7 @@ class ServerSocket {
     public void setReuseAddress(boolean on) throws SocketException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
-        getImpl().setOption(SocketOptions.SO_REUSEADDR, new Boolean(on));
+        getImpl().setOption(SocketOptions.SO_REUSEADDR, Boolean.valueOf(on));
     }
 
     /**
@@ -657,7 +659,7 @@ class ServerSocket {
     /**
      * The factory for all server sockets.
      */
-    private static SocketImplFactory factory;
+    private static SocketImplFactory factory = null;
 
     /**
      * Sets the server socket implementation factory for the 
@@ -666,6 +668,9 @@ class ServerSocket {
      * When an application creates a new server socket, the socket 
      * implementation factory's <code>createSocketImpl</code> method is 
      * called to create the actual socket implementation. 
+     * <p>
+     * Passing <code>null</code> to the method is a no-op unless the factory
+     * was already set.
      * <p>
      * If there is a security manager, this method first calls
      * the security manager's <code>checkSetFactory</code> method 
@@ -760,4 +765,50 @@ class ServerSocket {
 	}
 	return result;
     }
+
+    /**
+     * Sets performance preferences for this ServerSocket.
+     *
+     * <p> Sockets use the TCP/IP protocol by default.  Some implementations
+     * may offer alternative protocols which have different performance
+     * characteristics than TCP/IP.  This method allows the application to
+     * express its own preferences as to how these tradeoffs should be made
+     * when the implementation chooses from the available protocols.
+     *
+     * <p> Performance preferences are described by three integers
+     * whose values indicate the relative importance of short connection time,
+     * low latency, and high bandwidth.  The absolute values of the integers
+     * are irrelevant; in order to choose a protocol the values are simply
+     * compared, with larger values indicating stronger preferences.  If the
+     * application prefers short connection time over both low latency and high
+     * bandwidth, for example, then it could invoke this method with the values
+     * <tt>(1, 0, 0)</tt>.  If the application prefers high bandwidth above low
+     * latency, and low latency above short connection time, then it could
+     * invoke this method with the values <tt>(0, 1, 2)</tt>.
+     *
+     * <p> Invoking this method after this socket has been bound
+     * will have no effect. This implies that in order to use this capability
+     * requires the socket to be created with the no-argument constructor.
+     *
+     * @param  connectionTime
+     *         An <tt>int</tt> expressing the relative importance of a short
+     *         connection time
+     *
+     * @param  latency
+     *         An <tt>int</tt> expressing the relative importance of low
+     *         latency
+     *
+     * @param  bandwidth
+     *         An <tt>int</tt> expressing the relative importance of high
+     *         bandwidth
+     *
+     * @since 1.5
+     */
+    public void setPerformancePreferences(int connectionTime,
+                                          int latency,
+                                          int bandwidth)
+    {
+	/* Not implemented yet */
+    }
+ 
 }

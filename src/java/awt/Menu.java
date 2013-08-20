@@ -1,7 +1,7 @@
 /*
- * @(#)Menu.java	1.71 03/01/23
+ * @(#)Menu.java	1.75 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -31,7 +31,7 @@ import javax.accessibility.*;
  * (an instance of <code>Menu</code>), or a check box (an instance of
  * <code>CheckboxMenuItem</code>).
  *
- * @version 1.71, 01/23/03
+ * @version 1.75, 05/18/04
  * @author Sami Shaio
  * @see     java.awt.MenuItem
  * @see     java.awt.CheckboxMenuItem
@@ -200,6 +200,7 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getItemCount()</code>.
      */
+    @Deprecated
     public int countItems() {
 	return countItemsImpl();
     }
@@ -564,6 +565,13 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
     }
 
     /**
+     * Defined in MenuComponent. Overridden here.
+     */
+    int getAccessibleChildIndex(MenuComponent child) {
+        return items.indexOf(child);
+    }
+
+    /**
      * Inner class of Menu used to provide default support for
      * accessibility.  This class is not meant to be used directly by
      * application developers, but is instead meant only to be
@@ -573,7 +581,12 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
      * <code>Menu</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to menu user-interface elements.
      */
-    protected class AccessibleAWTMenu extends AccessibleAWTMenuItem {
+    protected class AccessibleAWTMenu extends AccessibleAWTMenuItem
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 5228160894980069094L;
 
         /**
          * Get the role of this object.

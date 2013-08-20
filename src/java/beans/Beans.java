@@ -1,7 +1,7 @@
 /*
- * @(#)Beans.java	1.59 03/01/27
+ * @(#)Beans.java	1.63 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -104,7 +104,7 @@ public class Beans {
      * particular, bean applets have no access to "parameters", so they may
      * wish to provide property get/set methods to set parameter values.  We
      * advise bean-applet developers to test their bean-applets against both
-     * the SDK appletviewer (for a reference browser environment) and the
+     * the JDK appletviewer (for a reference browser environment) and the
      * BDK BeanBox (for a reference bean container).
      *
      * @param     cls         the class-loader from which we should create
@@ -205,7 +205,7 @@ public class Beans {
 	    } catch (Exception ex) {
 		// We have to remap the exception to one in our signature.
 		// But we pass extra information in the detail message.
-	        throw new ClassNotFoundException("" + cl + " : " + ex);
+	        throw new ClassNotFoundException("" + cl + " : " + ex, ex);
 	    }
 	}
 
@@ -335,7 +335,7 @@ public class Beans {
      * @param targetType  The type of view we'd like to get.
      *
      */
-    public static Object getInstanceOf(Object bean, Class targetType) {
+    public static Object getInstanceOf(Object bean, Class<?> targetType) {
         return bean;
     }
 
@@ -350,7 +350,7 @@ public class Beans {
      * @return "true" if the given bean supports the given targetType.
      *
      */
-    public static boolean isInstanceOf(Object bean, Class targetType) {
+    public static boolean isInstanceOf(Object bean, Class<?> targetType) {
 	return Introspector.isSubclass(bean.getClass(), targetType);
     }
 

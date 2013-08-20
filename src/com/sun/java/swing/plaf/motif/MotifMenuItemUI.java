@@ -1,7 +1,7 @@
 /*
- * @(#)MotifMenuItemUI.java	1.48 03/01/23
+ * @(#)MotifMenuItemUI.java	1.50 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -62,11 +62,8 @@ public class MotifMenuItemUI extends BasicMenuItemUI
 
 	public void stateChanged(ChangeEvent e) {
 	    JMenuItem c = (JMenuItem)e.getSource();
-	    if (c.isArmed() || c.isSelected()) {
-		c.setBorderPainted(true);
-	    } else {
-		c.setBorderPainted(false);
-	    }
+            LookAndFeel.installProperty(c, "borderPainted",
+                        Boolean.valueOf(c.isArmed() || c.isSelected()));
 	}
     }
 

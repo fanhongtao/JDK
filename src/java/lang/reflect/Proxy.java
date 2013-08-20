@@ -1,15 +1,19 @@
 /*
- * @(#)Proxy.java	1.13 05/11/29
+ * @(#)Proxy.java	1.20 04/04/20
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang.reflect;
 
-import java.lang.ref.*;
-import java.util.*;
-
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 import sun.misc.ProxyGenerator;
 
 /**
@@ -182,7 +186,7 @@ import sun.misc.ProxyGenerator;
  * the proxy interfaces that it can be invoked through.  If the
  * <code>invoke</code> method throws a checked exception that is not
  * assignable to any of the exception types declared by the method in one
- * of the the proxy interfaces that it can be invoked through, then an
+ * of the proxy interfaces that it can be invoked through, then an
  * unchecked <code>UndeclaredThrowableException</code> will be thrown by
  * the invocation on the proxy instance.  This restriction means that not
  * all of the exception types returned by invoking
@@ -191,11 +195,13 @@ import sun.misc.ProxyGenerator;
  * successfully by the <code>invoke</code> method.
  *
  * @author	Peter Jones
- * @version	1.13, 05/11/29
+ * @version	1.20, 04/04/20
  * @see		InvocationHandler
- * @since	JDK1.3
+ * @since	1.3
  */
 public class Proxy implements java.io.Serializable {
+
+    private static final long serialVersionUID = -2222568056686623797L;
 
     /** prefix for all proxy class names */
     private final static String proxyClassNamePrefix = "$Proxy";
@@ -205,7 +211,7 @@ public class Proxy implements java.io.Serializable {
 	{ InvocationHandler.class };
 
     /** maps a class loader to the proxy class cache for that loader */
-    private static Map loaderToCache = new WeakHashMap(3);
+    private static Map loaderToCache = new WeakHashMap();
 
     /** marks that a particular proxy class is currently being generated */
     private static Object pendingGenerationMarker = new Object();
@@ -216,7 +222,7 @@ public class Proxy implements java.io.Serializable {
 
     /** set of all generated proxy classes, for isProxyClass implementation */
     private static Map proxyClasses =
-	Collections.synchronizedMap(new WeakHashMap(3));
+	Collections.synchronizedMap(new WeakHashMap());
 
     /**
      * the invocation handler for this proxy instance.
@@ -275,8 +281,16 @@ public class Proxy implements java.io.Serializable {
      * implement all of the interfaces, regardless of what package it is
      * defined in.
      *
-     * <li>No two interfaces may each have a method with the same name
-     * and parameter signature but different return type.
+     * <li>For any set of member methods of the specified interfaces
+     * that have the same signature:
+     * <ul>
+     * <li>If the return type of any of the methods is a primitive
+     * type or void, then all of the methods must have that same
+     * return type.
+     * <li>Otherwise, one of the methods must have a return type that
+     * is assignable to all of the return types of the rest of the
+     * methods.
+     * </ul>
      *
      * <li>The resulting proxy class must not exceed any limits imposed
      * on classes by the virtual machine.  For example, the VM may limit
@@ -307,30 +321,24 @@ public class Proxy implements java.io.Serializable {
      * @throws	NullPointerException if the <code>interfaces</code> array
      *		argument or any of its elements are <code>null</code>
      */
-    public static Class getProxyClass(ClassLoader loader, 
-				      Class[] interfaces)
+    public static Class<?> getProxyClass(ClassLoader loader, 
+                                         Class<?>... interfaces)
 	throws IllegalArgumentException
     {
-        if (interfaces.length > 65535) {
-            throw new IllegalArgumentException("interface limit exceeded");
-        }
-        
 	Class proxyClass = null;
 
-	/* buffer to generate string key for proxy class cache */
-	StringBuffer keyBuffer = new StringBuffer();
-
-        Set interfaceSet = new HashSet();       // for detecting duplicates
+	/* collect interface names to use as key for proxy class cache */
+	String[] interfaceNames = new String[interfaces.length];
 
 	for (int i = 0; i < interfaces.length; i++) {
 	    /*
 	     * Verify that the class loader resolves the name of this
 	     * interface to the same Class object.
 	     */
+	    String interfaceName = interfaces[i].getName();
 	    Class interfaceClass = null;
 	    try {
-		interfaceClass =
-		    Class.forName(interfaces[i].getName(), false, loader);
+		interfaceClass = Class.forName(interfaceName, false, loader);
 	    } catch (ClassNotFoundException e) {
 	    }
 	    if (interfaceClass != interfaces[i]) {
@@ -347,30 +355,19 @@ public class Proxy implements java.io.Serializable {
 		    interfaceClass.getName() + " is not an interface");
 	    }
 
-            /*
-             * Verify that this interface is not a duplicate.
-             */
-            if (interfaceSet.contains(interfaceClass)) {
-                throw new IllegalArgumentException(
-                    "repeated interface: " + interfaceClass.getName());
-            }
-            interfaceSet.add(interfaceClass);
-
-	    // continue building string key for proxy class cache
-	    keyBuffer.append(interfaces[i].getName()).append(';');
+	    interfaceNames[i] = interfaceName;
 	}
 
 	/*
-	 * Using a string representation of the proxy interfaces as keys
-	 * in the proxy class cache instead of a collection of their Class
-	 * objects is sufficiently correct because we require the proxy
-	 * interfaces to be resolvable by name through the supplied class
-	 * loader, and it has a couple of advantages: matching String
-	 * objects is simpler and faster than matching collections of
-	 * objects, and using a string representation of a class makes
-	 * for an implicit weak reference to the class.
+	 * Using string representations of the proxy interfaces as
+	 * keys in the proxy class cache (instead of their Class
+	 * objects) is sufficient because we require the proxy
+	 * interfaces to be resolvable by name through the supplied
+	 * class loader, and it has the advantage that using a string
+	 * representation of a class makes for an implicit weak
+	 * reference to the class.
 	 */
-	String key = keyBuffer.toString();
+	Object key = Arrays.asList(interfaceNames);
 
 	/*
 	 * Find or create the proxy class cache for the class loader.
@@ -379,7 +376,7 @@ public class Proxy implements java.io.Serializable {
 	synchronized (loaderToCache) {
 	    cache = (Map) loaderToCache.get(loader);
 	    if (cache == null) {
-		cache = new HashMap(3);
+		cache = new HashMap();
 		loaderToCache.put(loader, cache);
 	    }
 	    /*
@@ -391,7 +388,7 @@ public class Proxy implements java.io.Serializable {
 
 	/*
 	 * Look up the list of interfaces in the proxy class cache using
-	 * the string key.  This lookup will result in one of three possible
+	 * the key.  This lookup will result in one of three possible
 	 * kinds of values:
 	 *     null, if there is currently no proxy class for the list of
 	 *         interfaces in the class loader,
@@ -553,7 +550,7 @@ public class Proxy implements java.io.Serializable {
      *		<code>null</code>
      */
     public static Object newProxyInstance(ClassLoader loader,
-					  Class[] interfaces,
+					  Class<?>[] interfaces,
 					  InvocationHandler h)
 	throws IllegalArgumentException
     {
@@ -597,7 +594,7 @@ public class Proxy implements java.io.Serializable {
      *		<code>false</code> otherwise
      * @throws	NullPointerException if <code>cl</code> is <code>null</code>
      */
-    public static boolean isProxyClass(Class cl) {
+    public static boolean isProxyClass(Class<?> cl) {
 	if (cl == null) {
 	    throw new NullPointerException();
 	}

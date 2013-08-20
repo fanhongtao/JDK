@@ -1,7 +1,7 @@
 /*
- * @(#)LabelView.java	1.62 03/01/23
+ * @(#)LabelView.java	1.68 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -16,7 +16,7 @@ import javax.swing.event.*;
  * used for rendering.
  *
  * @author Timothy Prinzing
- * @version 1.62 01/23/03
+ * @version 1.68 06/28/04
  */
 public class LabelView extends GlyphView implements TabableView {
 
@@ -101,6 +101,22 @@ public class LabelView extends GlyphView implements TabableView {
     }
 
     /**
+     * Sets the background color for the view. This method is typically
+     * invoked as part of configuring this <code>View</code>. If you need
+     * to customize the background color you should override
+     * <code>setPropertiesFromAttributes</code> and invoke this method. A
+     * value of null indicates no background should be rendered, so that the
+     * background of the parent <code>View</code> will show through.
+     *
+     * @param bg background color, or null
+     * @see #setPropertiesFromAttributes
+     * @since 1.5
+     */
+    protected void setBackground(Color bg) {
+        this.bg = bg;
+    }
+    
+    /**
      * Sets the cached properties from the attributes.
      */
     protected void setPropertiesFromAttributes() {
@@ -129,11 +145,14 @@ public class LabelView extends GlyphView implements TabableView {
     /**
      * Fetches the <code>FontMetrics</code> used for this view.
      * @deprecated FontMetrics are not used for glyph rendering
-     *  when running in the Java2 SDK.
+     *  when running in the JDK.
      */
+    @Deprecated
     protected FontMetrics getFontMetrics() {
 	sync();
-	return Toolkit.getDefaultToolkit().getFontMetrics(font);
+        Container c = getContainer();
+        return (c != null) ? c.getFontMetrics(font) :
+            Toolkit.getDefaultToolkit().getFontMetrics(font);
     }
 
     /**

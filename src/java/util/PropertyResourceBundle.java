@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyResourceBundle.java	1.25 03/01/23
+ * @(#)PropertyResourceBundle.java	1.27 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -108,7 +108,7 @@ public class PropertyResourceBundle extends ResourceBundle {
     /**
      * Implementation of ResourceBundle.getKeys.
      */
-    public Enumeration getKeys() {
+    public Enumeration<String> getKeys() {
         ResourceBundle parent = this.parent;
         return new ResourceBundleEnumeration(lookup.keySet(),
                 (parent != null) ? parent.getKeys() : null);

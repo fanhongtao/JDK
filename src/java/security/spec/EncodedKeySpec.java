@@ -1,7 +1,7 @@
 /*
- * @(#)EncodedKeySpec.java	1.18 03/01/23
+ * @(#)EncodedKeySpec.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.18, 01/23/03
+ * @version 1.20, 12/19/03
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -30,7 +30,8 @@ public abstract class EncodedKeySpec implements KeySpec {
     /**
      * Creates a new EncodedKeySpec with the given encoded key.
      *
-     * @param encodedKey the encoded key.
+     * @param encodedKey the encoded key. The contents of the 
+     * array are copied to protect against subsequent modification.
      */
     public EncodedKeySpec(byte[] encodedKey) {
 	this.encodedKey = (byte[])encodedKey.clone();
@@ -39,7 +40,8 @@ public abstract class EncodedKeySpec implements KeySpec {
     /**
      * Returns the encoded key.
      *
-     * @return the encoded key.
+     * @return the encoded key. Returns a new array each time
+     * this method is called.
      */
     public byte[] getEncoded() {
 	return (byte[])this.encodedKey.clone();

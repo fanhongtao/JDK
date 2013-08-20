@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleResourceBundle.java	1.30 03/01/23
+ * @(#)AccessibleResourceBundle.java	1.32 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,11 +14,12 @@ import java.util.ListResourceBundle;
  * package.  This is meant only for internal use by Java Accessibility and
  * is not meant to be used by assistive technologies or applications.
  *
- * @version     1.30 01/23/03 12:55:14
+ * @version     1.32 05/18/04 21:18:13
  * @author      Willie Walker
  * @deprecated This class is deprecated as of version 1.3 of the 
  *             Java 2 Platform.
  */
+@Deprecated
 public class AccessibleResourceBundle extends ListResourceBundle {
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)TreeModelEvent.java	1.31 03/01/23
+ * @(#)TreeModelEvent.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import javax.swing.tree.TreePath;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.31 01/23/03
+ * @version 1.33 12/19/03
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -91,7 +91,7 @@ public class TreeModelEvent extends EventObject {
      *    of the vector. So you can use <code>insertElementAt(Integer, 0)</code>
      *    even when the vector is empty.
      * <ul>To create a node changed event for the root node, specify the parent
-     *     as null and the "child" index as zero.
+     *     and the child indices as <code>null</code>.
      * </ul>
      *
      * @param source the Object responsible for generating the event (typically

@@ -1,7 +1,7 @@
 /*
- * @(#)Selector.java	1.34 03/01/23
+ * @(#)Selector.java	1.37 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -140,7 +140,7 @@ import java.util.Set;
  * presence of a key in one or more of a selector's key sets does not imply
  * that the key is valid or that its channel is open.  Application code should
  * be careful to synchronize and check these conditions as necessary if there
- * is any possiblity that another thread will cancel a key or close a channel.
+ * is any possibility that another thread will cancel a key or close a channel.
  *
  * <p> A thread blocked in one of the {@link #select()} or {@link
  * #select(long)} methods may be interrupted by some other thread in one of
@@ -178,7 +178,7 @@ import java.util.Set;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.34, 03/01/23
+ * @version 1.37, 04/05/05
  * @since 1.4
  *
  * @see SelectableChannel
@@ -238,7 +238,7 @@ public abstract class Selector {
      * @throws  ClosedSelectorException
      *          If this selector is closed
      */
-    public abstract Set keys();
+    public abstract Set<SelectionKey> keys();
 
     /**
      * Returns this selector's selected-key set.
@@ -254,7 +254,7 @@ public abstract class Selector {
      * @throws  ClosedSelectorException
      *          If this selector is closed
      */
-    public abstract Set selectedKeys();
+    public abstract Set<SelectionKey> selectedKeys();
 
     /**
      * Selects a set of keys whose corresponding channels are ready for I/O

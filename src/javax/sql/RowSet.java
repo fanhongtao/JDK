@@ -1,7 +1,7 @@
 /*
- * @(#)RowSet.java	1.13 03/01/23
+ * @(#)RowSet.java	1.15 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -215,7 +215,7 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    * @see #setTypeMap
    */
-  java.util.Map getTypeMap() throws SQLException;
+  java.util.Map<String,Class<?>> getTypeMap() throws SQLException;
 
   /**
    * Installs the given <code>java.util.Map</code> object as the default 
@@ -228,7 +228,7 @@ public interface RowSet extends ResultSet {
    * @exception SQLException if a database access error occurs
    * @see #getTypeMap
    */
-  void setTypeMap(java.util.Map map) throws SQLException;
+  void setTypeMap(java.util.Map<String,Class<?>> map) throws SQLException;
 
   //-----------------------------------------------------------------------
   // The following properties may be used to create a Statement.

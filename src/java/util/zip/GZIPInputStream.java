@@ -1,7 +1,7 @@
 /*
- * @(#)GZIPInputStream.java	1.27 06/03/17
+ * @(#)GZIPInputStream.java	1.28 04/06/11
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,10 +15,10 @@ import java.io.EOFException;
 
 /**
  * This class implements a stream filter for reading compressed data in
- * the GZIP format.
+ * the GZIP file format.
  *
  * @see		InflaterInputStream
- * @version 	1.27, 03/17/06
+ * @version 	1.28, 06/11/04
  * @author 	David Connelly
  *
  */
@@ -95,7 +95,8 @@ class GZIPInputStream extends InflaterInputStream {
     }
 
     /**
-     * Closes the input stream.
+     * Closes this input stream and releases any system resources associated
+     * with the stream.
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
@@ -169,11 +170,10 @@ class GZIPInputStream extends InflaterInputStream {
 	    in = new SequenceInputStream(
 			new ByteArrayInputStream(buf, len - n, n), in);
 	}
-        // Uses left-to-right evaluation order
-        if ((readUInt(in) != crc.getValue()) ||
-            // rfc1952; ISIZE is the input size modulo 2^32
-            (readUInt(in) != (inf.getTotalOut() & 0xffffffffL)))
-            throw new IOException("Corrupt GZIP trailer");
+	long v = crc.getValue();
+	if (readUInt(in) != v || readUInt(in) != inf.getTotalOut()) {
+	    throw new IOException("Corrupt GZIP trailer");
+	}
     }
 
     /*

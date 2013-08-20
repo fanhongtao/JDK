@@ -1,24 +1,20 @@
+// $Id: TransformerHandler.java,v 1.2.26.1 2004/07/13 22:27:51 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)TransformerHandler.java	1.11 03/01/23
+ * @(#)TransformerHandler.java	1.13 04/07/13
  */
 package javax.xml.transform.sax;
 
-import java.util.Properties;
-
 import javax.xml.transform.Result;
-import javax.xml.transform.URIResolver;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.Transformer;
 
 import org.xml.sax.ContentHandler;
-import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.DTDHandler;
-
+import org.xml.sax.ext.LexicalHandler;
 
 /**
  * A TransformerHandler
@@ -29,10 +25,11 @@ public interface TransformerHandler
     extends ContentHandler, LexicalHandler, DTDHandler {
 
     /**
-     * Enables the user of the TransformerHandler to set the
-     * to set the Result for the transformation.
+     * <p>Set  the <code>Result</code> associated with this
+     * <code>TransformerHandler</code> to be used for the transformation.</p>
      *
-     * @param result A Result instance, should not be null.
+     * @param result A <code>Result</code> instance, should not be
+     *   <code>null<code>.
      *
      * @throws IllegalArgumentException if result is invalid for some reason.
      */
@@ -53,8 +50,11 @@ public interface TransformerHandler
     public String getSystemId();
 
     /**
-     * Get the Transformer associated with this handler, which
-     * is needed in order to set parameters and output properties.
+     * <p>Get the <code>Transformer</code> associated with this handler, which
+     * is needed in order to set parameters and output properties.</p>
+     * 
+     * @return <code>Transformer</code> associated with this
+     *   <code>TransformerHandler</code>.
      */
     public Transformer getTransformer();
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)RuntimePermission.java	1.44 03/01/23
+ * @(#)RuntimePermission.java	1.53 04/04/20
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -72,6 +72,16 @@ import java.util.StringTokenizer;
  * </tr>
  *
  * <tr>
+ *   <td>enableContextClassLoaderOverride</td>
+ *   <td>Subclass implementation of the thread context class loader methods</td>
+ *   <td>The context class loader is used by system code and extensions
+ * when they need to lookup resources that might not exist in the system
+ * class loader. Granting enableContextClassLoaderOverride permission would allow
+ * a subclass of Thread to override the methods that are used
+ * to get or set the context class loader for a particular thread.</td>
+ * </tr>
+ *
+ * <tr>
  *   <td>setSecurityManager</td>
  *   <td>Setting of the security manager (possibly replacing an existing one)
  * </td>
@@ -88,6 +98,14 @@ import java.util.StringTokenizer;
  *   <td>Creation of a new security manager</td>
  *   <td>This gives code access to protected, sensitive methods that may
  * disclose information about other classes or the execution stack.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>getenv.{variable name}</td>
+ *   <td>Reading of the value of the specified environment variable</td>
+ *   <td>This would allow code to read the value, or determine the
+ *       existence, of a particular environment variable.  This is
+ *       dangerous if the variable contains confidential data.</td>
  * </tr>
  *
  * <tr>
@@ -122,17 +140,19 @@ import java.util.StringTokenizer;
  *   <td>Setting of System.out, System.in, and System.err</td>
  *   <td>This allows changing the value of the standard system streams.
  * An attacker may change System.in to monitor and
- * steal user input, or may set System.err to a "null" OutputSteam,
+ * steal user input, or may set System.err to a "null" OutputStream,
  * which would hide any error messages sent to System.err. </td>
  * </tr>
  *
  * <tr>
  *   <td>modifyThread</td>
- *   <td>Modification of threads, e.g., via calls to Thread <code>stop</code>,
- * <code>suspend</code>, <code>resume</code>, <code>setPriority</code>,
- * and <code>setName</code> methods</td>
- *   <td>This allows an attacker to start or suspend any thread
- * in the system.</td>
+ *   <td>Modification of threads, e.g., via calls to Thread
+ * <tt>interrupt</tt>, <tt>stop</tt>, <tt>suspend</tt>,
+ * <tt>resume</tt>, <tt>setDaemon</tt>, <tt>setPriority</tt>,
+ * <tt>setName</tt> and <tt>setUncaughtExceptionHandler</tt>
+ * methods</td> 
+ * <td>This allows an attacker to modify the behaviour of
+ * any thread in the system.</td>
  * </tr>
  *
  * <tr>
@@ -194,7 +214,7 @@ import java.util.StringTokenizer;
  *   <td>accessClassInPackage.{package name}</td>
  *   <td>Access to the specified package via a class loader's
  * <code>loadClass</code> method when that class loader calls
- * the SecurityManager <code>checkPackageAcesss</code> method</td>
+ * the SecurityManager <code>checkPackageAccess</code> method</td>
  *   <td>This gives code access to classes in packages
  * to which it normally does not have access. Malicious code
  * may use these classes to help in its attempt to compromise
@@ -238,6 +258,36 @@ import java.util.StringTokenizer;
  * or simply waste paper.</td>
  * </tr>
  *
+ * <tr>
+ *   <td>getStackTrace</td>
+ *   <td>Retrieval of the stack trace information of another thread.</td>
+ *   <td>This allows retrieval of the stack trace information of 
+ * another thread.  This might allow malicious code to monitor the 
+ * execution of threads and discover vulnerabilities in applications.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>setDefaultUncaughtExceptionHandler</td>
+ *   <td>Setting the default handler to be used when a thread
+ *   terminates abruptly due to an uncaught exception</td>
+ *   <td>This allows an attacker to register a malicious
+ *   uncaught exception handler that could interfere with termination
+ *   of a thread</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>preferences</td>
+ *   <td>Represents the permission required to get access to the
+ *   java.util.prefs.Preferences implementations user or system root
+ *   which in turn allows retrieval or update operations within the
+ *   Preferences persistent backing store.) </td>
+ *   <td>This permission allows the user to read from or write to the
+ *   preferences backing store if the user running the code has 
+ *   sufficient OS privileges to read/write to that backing store.
+ *   The actual backing store may reside within a traditional filesystem
+ *   directory or within a registry depending on the platform OS</td>
+ * </tr>
+
  * </table>
  *
  * @see java.security.BasicPermission
@@ -246,13 +296,15 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.44 03/01/23
+ * @version 1.53 04/04/20
  *
  * @author Marianne Mueller
  * @author Roland Schemers
  */
 
 public final class RuntimePermission extends BasicPermission {
+
+    private static final long serialVersionUID = 7399184964622342223L;
 
     /**
      * Creates a new RuntimePermission with the specified name.

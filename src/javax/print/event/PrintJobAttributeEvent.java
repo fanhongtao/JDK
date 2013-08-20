@@ -1,7 +1,7 @@
 /*
- * @(#)PrintJobAttributeEvent.java	1.3 03/01/23
+ * @(#)PrintJobAttributeEvent.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,12 +19,16 @@ import javax.print.attribute.PrintJobAttributeSet;
 
 public class PrintJobAttributeEvent extends PrintEvent {
 
+    private static final long serialVersionUID = -6534469883874742101L;
+
     private PrintJobAttributeSet attributes;
     
     /**
      * Constructs a PrintJobAttributeEvent object.
      * @param source the print job generating  this event
      * @param attributes the attribute changes being reported
+     * @throws IllegalArgumentException if <code>source</code> is
+     *         <code>null</code>.
      */
     public PrintJobAttributeEvent (DocPrintJob source,
     	                           PrintJobAttributeSet attributes)  {

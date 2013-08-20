@@ -1,13 +1,16 @@
 /*
- * @(#)X-Buffer.java	1.48 03/01/23
+ * @(#)X-Buffer.java	1.56 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
 
 package java.nio;
+
+
+
 
 
 /**
@@ -114,7 +117,7 @@ package java.nio;
  * ByteOrder} class.  The initial order of a byte buffer is always {@link
  * ByteOrder#BIG_ENDIAN BIG_ENDIAN}.
  *
- * <p> For access to heterogenous binary data, that is, sequences of values of
+ * <p> For access to heterogeneous binary data, that is, sequences of values of
  * different types, this class defines a family of absolute and relative
  * <i>get</i> and <i>put</i> methods for each type.  For 32-bit floating-point
  * values, for example, this class defines:
@@ -230,13 +233,13 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.48, 03/01/23
+ * @version 1.56, 04/07/16
  * @since 1.4
  */
 
 public abstract class ByteBuffer
     extends Buffer
-    implements Comparable
+    implements Comparable<ByteBuffer>
 {
 
     // These fields are declared here rather than in Heap-X-Buffer in order to
@@ -312,7 +315,7 @@ public abstract class ByteBuffer
     /**
      * Wraps a byte array into a buffer.
      *
-     * <p> The new buffer will be backed by the the given byte array;
+     * <p> The new buffer will be backed by the given byte array;
      * that is, modifications to the buffer will cause the array to be modified
      * and vice versa.  The new buffer's capacity will be
      * <tt>array.length</tt>, its position will be <tt>offset</tt>, its limit
@@ -353,7 +356,7 @@ public abstract class ByteBuffer
     /**
      * Wraps a byte array into a buffer.
      *
-     * <p> The new buffer will be backed by the the given byte array;
+     * <p> The new buffer will be backed by the given byte array;
      * that is, modifications to the buffer will cause the array to be modified
      * and vice versa.  The new buffer's capacity and limit will be
      * <tt>array.length</tt>, its position will be zero, and its mark will be
@@ -369,6 +372,39 @@ public abstract class ByteBuffer
     public static ByteBuffer wrap(byte[] array) {
 	return wrap(array, 0, array.length);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1075,22 +1111,18 @@ public abstract class ByteBuffer
     }
 
     /**
-     * Compares this buffer to another object.
+     * Compares this buffer to another.
      *
      * <p> Two byte buffers are compared by comparing their sequences of
      * remaining elements lexicographically, without regard to the starting
      * position of each sequence within its corresponding buffer.
      *
-     * <p> A byte buffer is not comparable to any other type of object.  </p>
+     * <p> A byte buffer is not comparable to any other type of object.
      *
      * @return  A negative integer, zero, or a positive integer as this buffer
      *		is less than, equal to, or greater than the given buffer
-     *
-     * @throws  ClassCastException
-     *          If the argument is not a byte buffer
      */
-    public int compareTo(Object ob) {
-	ByteBuffer that = (ByteBuffer)ob;
+    public int compareTo(ByteBuffer that) {
 	int n = this.position() + Math.min(this.remaining(), that.remaining());
 	for (int i = this.position(), j = that.position(); i < n; i++, j++) {
 	    byte v1 = this.get(i);
@@ -1109,6 +1141,111 @@ public abstract class ByteBuffer
 
 
     // -- Other char stuff --
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

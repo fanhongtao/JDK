@@ -1,7 +1,7 @@
 /*
- * @(#)Dialog.java	1.92 05/11/29
+ * @(#)Dialog.java	1.99 04/05/18
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -15,8 +15,6 @@ import javax.accessibility.*;
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
 import sun.awt.PeerEvent;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 /**
  * A Dialog is a top-level window with a title and a border
@@ -67,7 +65,7 @@ import java.security.PrivilegedAction;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.92, 11/29/05
+ * @version 	1.99, 05/18/04
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -130,7 +128,7 @@ public class Dialog extends Window {
     String title;
 
     private transient boolean keepBlocking = false;
-    
+
     private static final String base = "dialog";
     private static int nameCounter = 0;
 
@@ -220,13 +218,10 @@ public class Dialog extends Window {
      */
     public Dialog(Frame owner, String title, boolean modal) {
 	super(owner);
-	 
+
 	this.title = title;
 	this.modal = modal;
-        setFocusTraversalPolicy(KeyboardFocusManager.
-                                getCurrentKeyboardFocusManager().
-                                getDefaultFocusTraversalPolicy()
-                                );
+        SunToolkit.checkAndSetPolicy(this, false);
     }
 
     /**
@@ -253,13 +248,10 @@ public class Dialog extends Window {
     public Dialog(Frame owner, String title, boolean modal, 
                   GraphicsConfiguration gc) {
         super(owner, gc);
-	 
+
         this.title = title;
         this.modal = modal;
-        setFocusTraversalPolicy(KeyboardFocusManager.
-                                getCurrentKeyboardFocusManager().
-                                getDefaultFocusTraversalPolicy()
-                                );
+        SunToolkit.checkAndSetPolicy(this, false);
     }
 
     /**
@@ -313,13 +305,10 @@ public class Dialog extends Window {
      */
     public Dialog(Dialog owner, String title, boolean modal) {
 	super(owner);
-	 
+
 	this.title = title;
 	this.modal = modal;
-        setFocusTraversalPolicy(KeyboardFocusManager.
-                                getCurrentKeyboardFocusManager().
-                                getDefaultFocusTraversalPolicy()
-                                );
+        SunToolkit.checkAndSetPolicy(this, false);
     }
 
     /**
@@ -353,11 +342,7 @@ public class Dialog extends Window {
 	 
 	this.title = title;
 	this.modal = modal;
-
-        setFocusTraversalPolicy(KeyboardFocusManager.
-                                getCurrentKeyboardFocusManager().
-                                getDefaultFocusTraversalPolicy()
-                                );
+        SunToolkit.checkAndSetPolicy(this, false);
     }
 
     /**
@@ -397,7 +382,7 @@ public class Dialog extends Window {
      * When a modal Dialog is made visible, user input will be
      * blocked to the other windows in the application, except for
      * any windows created with this dialog as their owner.
-     *   
+     *
      * @return    <code>true</code> if this dialog window is modal;
      *            <code>false</code> otherwise.
      * @see       java.awt.Dialog#setModal
@@ -407,7 +392,7 @@ public class Dialog extends Window {
     }
 
     /**
-     * Specifies whether this dialog should be modal.  
+     * Specifies whether this dialog should be modal.
      * @see       java.awt.Dialog#isModal
      * @since     JDK1.1
      */
@@ -483,7 +468,7 @@ public class Dialog extends Window {
 
         return retval;
     }
-    
+
     /**
     * Stores the app context on which event dispatch thread the dialog
     * is being shown. Initialized in show(), used in hideAndDisposeHandler()
@@ -491,23 +476,10 @@ public class Dialog extends Window {
     transient private AppContext showAppContext;
 
    /**
-     * Makes the Dialog visible. If the dialog and/or its owner
-     * are not yet displayable, both are made displayable.  The 
-     * dialog will be validated prior to being made visible.  
-     * If the dialog is already visible, this will bring the dialog 
-     * to the front.
-     * <p>
-     * If the dialog is modal and is not already visible, this call will
-     * not return until the dialog is hidden by calling <code>hide</code> or
-     * <code>dispose</code>. It is permissible to show modal dialogs from
-     * the event dispatching thread because the toolkit will ensure that
-     * another event pump runs while the one which invoked this method
-     * is blocked. 
-     * @see Component#hide
-     * @see Component#isDisplayable
-     * @see Component#validate
-     * @see java.awt.Dialog#isModal
+     * @deprecated As of JDK version 1.5, replaced by
+     * {@link Component#setVisible(boolean) Component.setVisible(boolean)}.
      */
+    @Deprecated
     public void show() {
         beforeFirstShow = false;
         if (!isModal()) {
@@ -523,79 +495,73 @@ public class Dialog extends Window {
             // we wake it by any event from hideAndDisposeHandler().
             showAppContext = AppContext.getAppContext();
 
-            if (conditionalShow()) {
-                // We have two mechanisms for blocking: 1. If we're on the
-                // EventDispatchThread, start a new event pump. 2. If we're
-                // on any other thread, call wait() on the treelock.
+            // keep the KeyEvents from being dispatched
+            // until the focus has been transfered
+            long time = Toolkit.getEventQueue().getMostRecentEventTimeEx();
+            Component predictedFocusOwner = getMostRecentFocusOwner();
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                enqueueKeyEvents(time, predictedFocusOwner); 
 
-                // keep the KeyEvents from being dispatched
-                // until the focus has been transfered
-                long time = Toolkit.getEventQueue().getMostRecentEventTime();
-                Component predictedFocusOwner = getMostRecentFocusOwner();
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                     enqueueKeyEvents(time, predictedFocusOwner); 
+            try {
+                if (conditionalShow()) {
+                    // We have two mechanisms for blocking: 1. If we're on the
+                    // EventDispatchThread, start a new event pump. 2. If we're
+                    // on any other thread, call wait() on the treelock.
 
-                final Runnable pumpEventsForHierarchy = new Runnable() {
-                        public void run() {
-                            EventDispatchThread dispatchThread =
-                                (EventDispatchThread)Thread.currentThread();
-                            dispatchThread.pumpEventsForHierarchy(new Conditional() {
-                                    public boolean evaluate() {
-                                        return keepBlocking && windowClosingException == null;
-                                    }
-                                }, Dialog.this);
-                        }
-                    };
+                    Runnable pumpEventsForHierarchy = new Runnable() {
+                            public void run() {
+                                EventDispatchThread dispatchThread =
+                                    (EventDispatchThread)Thread.currentThread();
+                                dispatchThread.pumpEventsForHierarchy(new Conditional() {
+                                        public boolean evaluate() {
+                                            return keepBlocking && windowClosingException == null;
+                                        }
+                                    }, Dialog.this);
+                            }
+                        };
 
-                if (EventQueue.isDispatchThread()) {
-                    /*
-                     * dispose SequencedEvent we are dispatching on current
-                     * AppContext, to prevent us from hang.
+                    if (EventQueue.isDispatchThread()) {
+                        /*
+                         * dispose SequencedEvent we are dispatching on current
+                         * AppContext, to prevent us from hang.
                      *
                      * BugId 4531693 (son@sparc.spb.su)
                      */
-                    SequencedEvent currentSequencedEvent = KeyboardFocusManager.
-                        getCurrentKeyboardFocusManager().getCurrentSequencedEvent();
-                    if (currentSequencedEvent != null) {
-                        currentSequencedEvent.dispose();
-                    }
-                    /* 
-                     * Event processing is done inside doPrivileged block so that
-                     * it wouldn't matter even if user code is on the stack
-                     * Fix for BugId 6300270
-                     */
-                     AccessController.doPrivileged(new PrivilegedAction() {
-                             public Object run() {
-                                pumpEventsForHierarchy.run();
-                                return null;
-                             }
-                     });
+                        SequencedEvent currentSequencedEvent = KeyboardFocusManager.
+                            getCurrentKeyboardFocusManager().getCurrentSequencedEvent();
+                        if (currentSequencedEvent != null) {
+                            currentSequencedEvent.dispose();
+                        }
 
-                } else {
-                    synchronized (getTreeLock()) {
-                        Toolkit.getEventQueue().
-                            postEvent(new PeerEvent(this,
-                                                    pumpEventsForHierarchy,
-                                                    PeerEvent.PRIORITY_EVENT));
-                        while (keepBlocking && windowClosingException == null) {
-                            try {
-                                getTreeLock().wait();
-                            } catch (InterruptedException e) {
-                                break;
+                        pumpEventsForHierarchy.run();
+                    } else {
+                        synchronized (getTreeLock()) {
+                            Toolkit.getEventQueue().
+                                postEvent(new PeerEvent(this,
+                                                        pumpEventsForHierarchy,
+                                                        PeerEvent.PRIORITY_EVENT));
+                            while (keepBlocking && windowClosingException == null) {
+                                try {
+                                    getTreeLock().wait();
+                                } catch (InterruptedException e) {
+                                    break;
+                                }
                             }
                         }
                     }
+                    if (windowClosingException != null) {
+                        windowClosingException.fillInStackTrace();
+                        throw windowClosingException;
+                    }
                 }
+            } finally {
+                // Restore normal key event dispatching
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().
                     dequeueKeyEvents(time, predictedFocusOwner);
-                if (windowClosingException != null) {
-                    windowClosingException.fillInStackTrace();
-                    throw windowClosingException;
-                }
             }
         }
     }
-    
+
     void interruptBlocking() {
         if (modal) {
             disposeImpl();
@@ -627,12 +593,13 @@ public class Dialog extends Window {
                 getTreeLock().notifyAll();
             }
         }
-    }   
+    }
 
     /**
-     * Hides the Dialog and then causes show() to return if it is currently
-     * blocked.
+     * @deprecated As of JDK version 1.5, replaced by
+     * {@link Component#setVisible(boolean) Component.setVisible(boolean)}.
      */
+    @Deprecated
     public void hide() {
         super.hide();
         hideAndDisposeHandler();
@@ -642,15 +609,11 @@ public class Dialog extends Window {
      * Disposes the Dialog and then causes show() to return if it is currently
      * blocked.
      */
-    public void dispose() {
-        disposeImpl();
-    }
-    
-    private void disposeImpl() {
-        super.dispose();
+    void doDispose() {
+        super.doDispose();
         hideAndDisposeHandler();
     }
-    
+
     /**
      * Indicates whether this dialog is resizable by the user.
      * @return    <code>true</code> if the user can resize the dialog;
@@ -712,7 +675,7 @@ public class Dialog extends Window {
     }
 
     /**
-     * Indicates whether this dialog is undecorated.  
+     * Indicates whether this dialog is undecorated.
      * By default, all dialogs are initially decorated. 
      * @return    <code>true</code> if dialog is undecorated; 
      *                        <code>false</code> otherwise.
@@ -771,7 +734,12 @@ public class Dialog extends Window {
      * <code>Dialog</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to dialog user-interface elements.
      */
-    protected class AccessibleAWTDialog extends AccessibleAWTWindow {
+    protected class AccessibleAWTDialog extends AccessibleAWTWindow
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 4837230331833941201L;
 
         /**
          * Get the role of this object.
@@ -804,6 +772,6 @@ public class Dialog extends Window {
 	    }
             return states;
         }
-    
+
     } // inner class AccessibleAWTDialog
 }

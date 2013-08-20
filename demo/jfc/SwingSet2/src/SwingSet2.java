@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)SwingSet2.java	1.50 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)SwingSet2.java	1.35 03/01/23
+ * @(#)SwingSet2.java	1.50 04/07/26
  */
 
 import javax.swing.*;
@@ -45,6 +46,8 @@ import javax.swing.colorchooser.*;
 import javax.swing.filechooser.*;
 import javax.accessibility.*;
 
+import javax.swing.plaf.metal.MetalTheme;
+import javax.swing.plaf.metal.OceanTheme;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
@@ -60,7 +63,7 @@ import java.net.*;
 /**
  * A demo that shows all of the Swing components.
  *
- * @version 1.35 01/23/03
+ * @version 1.50 07/26/04
  * @author Jeff Dinkins
  */
 public class SwingSet2 extends JPanel {
@@ -111,7 +114,7 @@ public class SwingSet2 extends JPanel {
     private static String currentLookAndFeel = metal;
 
     // List of demos
-    private Vector demosVector = new Vector();
+    private ArrayList<DemoModule> demosList = new ArrayList<DemoModule>();
 
     // The preferred size of the demo
     private static final int PREFERRED_WIDTH = 720;
@@ -143,11 +146,10 @@ public class SwingSet2 extends JPanel {
     private JMenu lafMenu = null;
     private JMenu themesMenu = null;
     private JMenu audioMenu = null;
-    private JMenu toolTipMenu = null;
+    private JMenu optionsMenu = null;
     private ButtonGroup lafMenuGroup = new ButtonGroup();
     private ButtonGroup themesMenuGroup = new ButtonGroup();
     private ButtonGroup audioMenuGroup = new ButtonGroup();
-    private ButtonGroup toolTipMenuGroup = new ButtonGroup();
 
     // Popup menu
     private JPopupMenu popupMenu = null;
@@ -179,7 +181,9 @@ public class SwingSet2 extends JPanel {
     // keep track of the number of SwingSets created - we only want to exit
     // the program when the last one has been closed.
     private static int numSSs = 0;
-    private static Vector swingSets = new Vector();
+    private static Vector<SwingSet2> swingSets = new Vector<SwingSet2>();
+    
+    private boolean dragEnabled = false;
 
     public SwingSet2(SwingSet2Applet applet) {
         this(applet, null);
@@ -240,6 +244,7 @@ public class SwingSet2 extends JPanel {
      */
     public static void main(String[] args) {
     // Create SwingSet on the default monitor
+        UIManager.put("swing.boldMetal", Boolean.FALSE);
 	SwingSet2 swingset = new SwingSet2(null, GraphicsEnvironment.
                                              getLocalGraphicsEnvironment().
                                              getDefaultScreenDevice().
@@ -258,7 +263,12 @@ public class SwingSet2 extends JPanel {
 	add(top, BorderLayout.NORTH);
 
 	menuBar = createMenus();
-	top.add(menuBar, BorderLayout.NORTH);
+	
+    if (isApplet()) {
+        applet.setJMenuBar(menuBar);
+    } else {
+        frame.setJMenuBar(menuBar);
+    }
 
  	// creates popup menu accessible via keyboard
  	popupMenu = createPopupMenu();
@@ -286,7 +296,7 @@ public class SwingSet2 extends JPanel {
 	// Add html src code viewer 
 	demoSrcPane = new JEditorPane("text/html", getString("SourceCode.loading"));
 	demoSrcPane.setEditable(false);
-    
+
 	JScrollPane scroller = new JScrollPane();
 	scroller.getViewport().add(demoSrcPane);
     
@@ -365,17 +375,22 @@ public class SwingSet2 extends JPanel {
 		       "LafMenu.java_accessible_description", metal);
 	mi.setSelected(true); // this is the default l&f
 
-	createLafMenuItem(lafMenu, "LafMenu.mac_label", "LafMenu.mac_mnemonic",
-		       "LafMenu.mac_accessible_description", mac);
+        UIManager.LookAndFeelInfo[] lafInfo = UIManager.
+                                       getInstalledLookAndFeels();
 
-	createLafMenuItem(lafMenu, "LafMenu.motif_label", "LafMenu.motif_mnemonic",
-		       "LafMenu.motif_accessible_description", motif);
-
-	createLafMenuItem(lafMenu, "LafMenu.windows_label", "LafMenu.windows_mnemonic",
-		       "LafMenu.windows_accessible_description", windows);
-
-	createLafMenuItem(lafMenu, "LafMenu.gtk_label", "LafMenu.gtk_mnemonic",
-		       "LafMenu.gtk_accessible_description", gtk);
+        for (int counter = 0; counter < lafInfo.length; counter++) {
+            String className = lafInfo[counter].getClassName();
+            if (className == motif) {
+                createLafMenuItem(lafMenu, "LafMenu.motif_label", "LafMenu.motif_mnemonic",
+                        "LafMenu.motif_accessible_description", motif);        
+            } else if (className == windows) {
+                createLafMenuItem(lafMenu, "LafMenu.windows_label", "LafMenu.windows_mnemonic",
+                        "LafMenu.windows_accessible_description", windows);
+            } else if (className == gtk) {
+                createLafMenuItem(lafMenu, "LafMenu.gtk_label", "LafMenu.gtk_mnemonic", 
+                        "LafMenu.gtk_accessible_description", gtk);
+            }
+        }
 
 	// ***** create themes menu 
 	themesMenu = (JMenu) menuBar.add(new JMenu(getString("ThemesMenu.themes_label")));
@@ -405,10 +420,36 @@ public class SwingSet2 extends JPanel {
 			    "AudioMenu.off_accessible_description",
 			    new OffAudioAction(this));
 
+
+	// ***** create the font submenu under the theme menu
+	JMenu fontMenu = (JMenu) themesMenu.add(new JMenu(getString("FontMenu.fonts_label")));
+        fontMenu.setMnemonic(getMnemonic("FontMenu.fonts_mnemonic"));
+	fontMenu.getAccessibleContext().setAccessibleDescription(
+	    getString("FontMenu.fonts_accessible_description"));
+        ButtonGroup fontButtonGroup = new ButtonGroup();
+        mi = createButtonGroupMenuItem(fontMenu, "FontMenu.plain_label",
+                "FontMenu.plain_mnemonic",
+                "FontMenu.plain_accessible_description",
+                new ChangeFontAction(this, true), fontButtonGroup);
+        mi.setSelected(true);
+        mi = createButtonGroupMenuItem(fontMenu, "FontMenu.bold_label",
+                "FontMenu.bold_mnemonic",
+                "FontMenu.bold_accessible_description",
+                new ChangeFontAction(this, false), fontButtonGroup);
+
+
+
 	// *** now back to adding color/font themes to the theme menu
-	mi = createThemesMenuItem(themesMenu, "ThemesMenu.default_label", "ThemesMenu.default_mnemonic",
-		       "ThemesMenu.default_accessible_description", new DefaultMetalTheme());
-	mi.setSelected(true); // This is the default theme
+        mi = createThemesMenuItem(themesMenu, "ThemesMenu.ocean_label",
+                                              "ThemesMenu.ocean_mnemonic",
+                                              "ThemesMenu.ocean_accessible_description",
+                                              new OceanTheme());
+        mi.setSelected(true); // This is the default theme
+
+        createThemesMenuItem(themesMenu, "ThemesMenu.steel_label",
+                             "ThemesMenu.steel_mnemonic",
+                             "ThemesMenu.steel_accessible_description",
+                             new DefaultMetalTheme());
 	
 	createThemesMenuItem(themesMenu, "ThemesMenu.aqua_label", "ThemesMenu.aqua_mnemonic",
 		       "ThemesMenu.aqua_accessible_description", new AquaTheme());
@@ -425,24 +466,26 @@ public class SwingSet2 extends JPanel {
 	createThemesMenuItem(themesMenu, "ThemesMenu.ruby_label", "ThemesMenu.ruby_mnemonic",
 		       "ThemesMenu.ruby_accessible_description", new RubyTheme());
 
-	// ***** create the tooltip menu.
-	toolTipMenu = (JMenu) menuBar.add(new JMenu(
-                getString("ToolTipMenu.tooltip_label")));
-        toolTipMenu.setMnemonic(getMnemonic("ToolTipMenu.tooltip_mnemonic"));
-	toolTipMenu.getAccessibleContext().setAccessibleDescription(
-	    getString("ToolTipMenu.tooltip_accessible_description"));
+        // ***** create the options menu
+        optionsMenu = (JMenu)menuBar.add(
+            new JMenu(getString("OptionsMenu.options_label")));
+        optionsMenu.setMnemonic(getMnemonic("OptionsMenu.options_mnemonic"));
+        optionsMenu.getAccessibleContext().setAccessibleDescription(
+            getString("OptionsMenu.options_accessible_description"));
 
-        // ***** create tool tip submenu items.
-        mi = createToolTipMenuItem(toolTipMenu, "ToolTipMenu.on_label",
-                "ToolTipMenu.on_mnemonic",
-                "ToolTipMenu.on_accessible_description",
-                new ToolTipAction(this, true));
+        // ***** create tool tip submenu item.
+        mi = createCheckBoxMenuItem(optionsMenu, "OptionsMenu.tooltip_label",
+                "OptionsMenu.tooltip_mnemonic",
+                "OptionsMenu.tooltip_accessible_description",
+                new ToolTipAction());
         mi.setSelected(true);
 
-        createToolTipMenuItem(toolTipMenu, "ToolTipMenu.off_label",
-                "ToolTipMenu.off_mnemonic",
-                "ToolTipMenu.off_accessible_description",
-                new ToolTipAction(this, false));
+        // ***** create drag support submenu item.
+        createCheckBoxMenuItem(optionsMenu, "OptionsMenu.dragEnabled_label",
+                "OptionsMenu.dragEnabled_mnemonic",
+                "OptionsMenu.dragEnabled_accessible_description",
+                new DragSupportAction());
+
         }
 
 
@@ -471,20 +514,37 @@ public class SwingSet2 extends JPanel {
     }
 
     /**
-     * Create the tool tip submenu
+     * Create a checkbox menu menu item
      */
-    public JMenuItem createToolTipMenuItem(JMenu menu, String label,
-                                           String mnemonic,
-                                           String accessibleDescription,
-                                           Action action) {
-        JRadioButtonMenuItem mi = (JRadioButtonMenuItem)menu.add(
-                new JRadioButtonMenuItem(getString(label)));
-        toolTipMenuGroup.add(mi);
+    private JMenuItem createCheckBoxMenuItem(JMenu menu, String label,
+                                             String mnemonic,
+                                             String accessibleDescription,
+                                             Action action) {
+        JCheckBoxMenuItem mi = (JCheckBoxMenuItem)menu.add(
+                new JCheckBoxMenuItem(getString(label)));
         mi.setMnemonic(getMnemonic(mnemonic));
         mi.getAccessibleContext().setAccessibleDescription(getString(
                 accessibleDescription));
         mi.addActionListener(action);
+        return mi;
+    }
 
+    /**
+     * Create a radio button menu menu item for items that are part of a
+     * button group.
+     */
+    private JMenuItem createButtonGroupMenuItem(JMenu menu, String label,
+                                                String mnemonic,
+                                                String accessibleDescription,
+                                                Action action,
+                                                ButtonGroup buttonGroup) {
+        JRadioButtonMenuItem mi = (JRadioButtonMenuItem)menu.add(
+                new JRadioButtonMenuItem(getString(label)));
+        buttonGroup.add(mi);
+        mi.setMnemonic(getMnemonic(mnemonic));
+        mi.getAccessibleContext().setAccessibleDescription(getString(
+                accessibleDescription));
+        mi.addActionListener(action);
         return mi;
     }
 
@@ -523,7 +583,7 @@ public class SwingSet2 extends JPanel {
      * Creates a JRadioButtonMenuItem for the Themes menu
      */
     public JMenuItem createThemesMenuItem(JMenu menu, String label, String mnemonic,
-			       String accessibleDescription, DefaultMetalTheme theme) {
+			       String accessibleDescription, MetalTheme theme) {
         JRadioButtonMenuItem mi = (JRadioButtonMenuItem) menu.add(new JRadioButtonMenuItem(getString(label)));
 	themesMenuGroup.add(mi);
 	mi.setMnemonic(getMnemonic(mnemonic));
@@ -592,7 +652,7 @@ public class SwingSet2 extends JPanel {
 
  	// register key binding to activate popup menu
  	InputMap map = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
- 	map.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.CTRL_MASK),
+ 	map.put(KeyStroke.getKeyStroke(KeyEvent.VK_F10, InputEvent.SHIFT_MASK),
  		"postMenuAction");
  	getActionMap().put("postMenuAction", new ActivatePopupMenuAction(this, popup));
  	
@@ -629,7 +689,10 @@ public class SwingSet2 extends JPanel {
      * Add a demo to the toolbar
      */
     public DemoModule addDemo(DemoModule demo) {
-	demosVector.addElement(demo);
+	demosList.add(demo);
+        if (dragEnabled) {
+            demo.updateDragEnabled(true);
+        }
 	// do the following on the gui thread
 	SwingUtilities.invokeLater(new SwingSetRunnable(this, demo) {
 	    public void run() {
@@ -893,6 +956,24 @@ public class SwingSet2 extends JPanel {
 	return value;
     }
 
+    void setDragEnabled(boolean dragEnabled) {
+        if (dragEnabled == this.dragEnabled) {
+            return;
+        }
+
+        this.dragEnabled = dragEnabled;
+
+        for (DemoModule dm : demosList) {
+            dm.updateDragEnabled(dragEnabled);
+        }
+
+        demoSrcPane.setDragEnabled(dragEnabled);
+    }
+    
+    boolean isDragEnabled() {
+        return dragEnabled;
+    }
+
     /**
      * Returns the resource bundle associated with this demo. Used
      * to get accessable and internationalized strings.
@@ -935,9 +1016,46 @@ public class SwingSet2 extends JPanel {
     public void setLookAndFeel(String laf) {
 	if(currentLookAndFeel != laf) {
 	    currentLookAndFeel = laf;
+            /* The recommended way of synchronizing state between multiple
+             * controls that represent the same command is to use Actions.
+             * The code below is a workaround and will be replaced in future
+             * version of SwingSet2 demo.
+             */
+            String lafName = null;
+            if(laf == mac) lafName = getString("LafMenu.mac_label");
+            if(laf == metal) lafName = getString("LafMenu.java_label");
+            if(laf == motif) lafName = getString("LafMenu.motif_label");
+            if(laf == windows) lafName = getString("LafMenu.windows_label");
+            if(laf == gtk) lafName = getString("LafMenu.gtk_label");
 	    themesMenu.setEnabled(laf == metal);
 	    updateLookAndFeel();
+            for(int i=0;i<lafMenu.getItemCount();i++) {
+                JMenuItem item = lafMenu.getItem(i);
+                if(item.getText() == lafName) {
+                    item.setSelected(true);
+                } else {
+                    item.setSelected(false);
+                }
+            }
 	}
+    }
+
+    private void updateThisSwingSet() {
+        if (isApplet()) {
+            SwingUtilities.updateComponentTreeUI(getApplet());
+        } else {
+            JFrame frame = getFrame();
+            if (frame == null) {
+                SwingUtilities.updateComponentTreeUI(this);
+            } else {
+                SwingUtilities.updateComponentTreeUI(frame);
+            }
+        }
+
+        SwingUtilities.updateComponentTreeUI(popupMenu);
+        if (aboutBox != null) {
+            SwingUtilities.updateComponentTreeUI(aboutBox);
+        }
     }
 
     /**
@@ -946,36 +1064,17 @@ public class SwingSet2 extends JPanel {
     public void updateLookAndFeel() {
 	try {
 	    UIManager.setLookAndFeel(currentLookAndFeel);
-            for (Iterator itr = swingSets.iterator(); itr.hasNext(); ) {
-                SwingSet2 ss = (SwingSet2)itr.next();
-	        SwingUtilities.updateComponentTreeUI(ss);
-            }
-            // update LAF for the toplevel frame, too
-            if (!isApplet()) {
-                SwingUtilities.updateComponentTreeUI(getFrame());
+            if (isApplet()) {
+                updateThisSwingSet();
             } else {
-                SwingUtilities.updateComponentTreeUI(getApplet());
+                for (SwingSet2 ss : swingSets) {
+                    ss.updateThisSwingSet();
+                }
             }
- 	    SwingUtilities.updateComponentTreeUI(popupMenu);
-
 	} catch (Exception ex) {
 	    System.out.println("Failed loading L&F: " + currentLookAndFeel);
 	    System.out.println(ex);
 	}
-
-	// lazily update update the UI's for the remaining demos
-	for (int i = 0; i < demosVector.size(); i++) {
-	    DemoModule demo = (DemoModule) demosVector.elementAt(i);
-	    if(currentDemo != demo) {
-		// do the following on the gui thread
-		SwingUtilities.invokeLater(new SwingSetRunnable(this, demo) {
-		    public void run() {
-			SwingUtilities.updateComponentTreeUI(((DemoModule)obj).getDemoPanel());
-		    }
-		});
-	    }
-	}
-
     }
 
     /**
@@ -1181,23 +1280,37 @@ public class SwingSet2 extends JPanel {
 
     // Turns on or off the tool tips for the demo.
     class ToolTipAction extends AbstractAction {
-        SwingSet2 swingset;
-        boolean status;
-        protected ToolTipAction(SwingSet2 swingset, boolean status) {
+        protected ToolTipAction() {
             super("ToolTip Control");
-            this.swingset = swingset;
-            this.status = status;
         }
 
         public void actionPerformed(ActionEvent e) {
+            boolean status = ((JCheckBoxMenuItem)e.getSource()).isSelected();
             ToolTipManager.sharedInstance().setEnabled(status);
+        }
+    }
+
+    class DragSupportAction extends AbstractAction {
+        protected DragSupportAction() {
+            super("DragSupport Control");
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            boolean dragEnabled = ((JCheckBoxMenuItem)e.getSource()).isSelected();
+            if (isApplet()) {
+                setDragEnabled(dragEnabled);
+            } else {
+                for (SwingSet2 ss : swingSets) {
+                    ss.setDragEnabled(dragEnabled);
+                }
+            }
         }
     }
 
     class ChangeThemeAction extends AbstractAction {
 	SwingSet2 swingset;
-	DefaultMetalTheme theme;
-        protected ChangeThemeAction(SwingSet2 swingset, DefaultMetalTheme theme) {
+	MetalTheme theme;
+        protected ChangeThemeAction(SwingSet2 swingset, MetalTheme theme) {
             super("ChangeTheme");
 	    this.swingset = swingset;
 	    this.theme = theme;
@@ -1235,6 +1348,7 @@ public class SwingSet2 extends JPanel {
 		panel.setLayout(new BorderLayout());
 
 		aboutBox = new JDialog(swingset.getFrame(), getString("AboutBox.title"), false);
+                aboutBox.setResizable(false);
 		aboutBox.getContentPane().add(panel, BorderLayout.CENTER);
 
 		// JButton button = new JButton(getString("AboutBox.ok_button_text"));
@@ -1270,11 +1384,13 @@ public class SwingSet2 extends JPanel {
                 for (int i = 0; i < gds.length; i++) {
                     SwingSet2 swingset = new SwingSet2(null,
                                   gds[i].getDefaultConfiguration());
+                    swingset.setDragEnabled(dragEnabled);
                 }
             }
             else {
                 SwingSet2 swingset = new SwingSet2(null,
                              gds[screen].getDefaultConfiguration());
+                swingset.setDragEnabled(dragEnabled);
             }
         }
     }
@@ -1316,5 +1432,27 @@ public class SwingSet2 extends JPanel {
 	}
     }
 
+
+    private class ChangeFontAction extends AbstractAction {
+	private SwingSet2 swingset;
+        private boolean plain;
+
+        ChangeFontAction(SwingSet2 swingset, boolean plain) {
+            super("FontMenu");
+	    this.swingset = swingset;
+            this.plain = plain;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (plain) {
+                UIManager.put("swing.boldMetal", Boolean.FALSE);
+            }
+            else {
+                UIManager.put("swing.boldMetal", Boolean.TRUE);
+            }
+            // Change the look and feel to force the settings to take effect.
+            updateLookAndFeel();
+        }
+    }
 }
 

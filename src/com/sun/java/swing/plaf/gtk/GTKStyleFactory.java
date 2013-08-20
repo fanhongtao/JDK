@@ -1,16 +1,20 @@
 /*
- * @(#)GTKStyleFactory.java	1.26 04/01/13
+ * @(#)GTKStyleFactory.java	1.29 04/03/18
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import javax.swing.plaf.synth.*;
 import java.awt.*;
 import java.util.*;
 import java.util.regex.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
+import sun.swing.BakedArrayList;
+import sun.swing.plaf.synth.DefaultSynthStyle;
+import sun.swing.plaf.synth.StyleAssociation;
 
 /**
  * GTKStyleFactory extends DefaultSynthStyleFactory providing a mapping that
@@ -18,8 +22,8 @@ import javax.swing.plaf.*;
  * the corresponding gtk class name. Similarly styles registered for
  * CLASS are mapped to the corresponding gtk class name, including the
  * corresponding gtk class hierarchy.
- *
- * @version 1.26, 01/13/04
+ * 
+ * @version 1.29, 03/18/04
  * @author Scott Violet
  */
 class GTKStyleFactory extends SynthStyleFactory {
@@ -93,16 +97,17 @@ class GTKStyleFactory extends SynthStyleFactory {
     private GTKStyle _tooltipStyle;
 
     /**
-    * Default style for progressbars.
-      */
-     private GTKStyle _pbStyle;
+     * Default style for progressbars.
+     */
+    private GTKStyle _pbStyle;
 
-     /**
-      * Default style for menu items.
-      */
-     private GTKStyle _menuItemStyle;
+    /**
+     * Default style for menu items.
+     */
+    private GTKStyle _menuItemStyle;
 
-     /** * Maps from List to the resolved DefaultSynthStyle.
+    /**
+     * Maps from List to the resolved DefaultSynthStyle.
      */
     private Map _resolvedStyles;
 
@@ -132,6 +137,7 @@ class GTKStyleFactory extends SynthStyleFactory {
         REGION_MAP.put(Region.COLOR_CHOOSER, "GtkColorSelectionDialog");
         REGION_MAP.put(Region.COMBO_BOX, "GtkCombo");
         REGION_MAP.put(Region.DESKTOP_ICON, "GtkLabel");
+        REGION_MAP.put(Region.DESKTOP_PANE, "GtkContainer");
         REGION_MAP.put(Region.EDITOR_PANE, "GtkTextView");
         REGION_MAP.put(Region.FORMATTED_TEXT_FIELD, "GtkEntry");
         REGION_MAP.put(GTKRegion.HANDLE_BOX, "GtkHandleBox");
@@ -147,7 +153,7 @@ class GTKStyleFactory extends SynthStyleFactory {
         REGION_MAP.put(Region.MENU_ITEM_ACCELERATOR, "GtkLabel");
         REGION_MAP.put(Region.OPTION_PANE, "GtkMessageDialog");
         REGION_MAP.put(Region.PANEL, "GtkContainer");
-        REGION_MAP.put(Region.PASSWORD_FIELD, "GtkEntry");
+        REGION_MAP.put(Region.PASSWORD_FIELD, "GtkEntry"); 
         // GTK does not have a distinct class for popups.
         REGION_MAP.put(Region.POPUP_MENU, "GtkMenu");
         REGION_MAP.put(Region.POPUP_MENU_SEPARATOR, "GtkSeparatorMenuItem");
@@ -340,6 +346,33 @@ class GTKStyleFactory extends SynthStyleFactory {
     }
 
     /**
+     * Returns the <code>SynthStyle</code> to use based on the
+     * class name of a GtkWidget.  This will throw an
+     * <code>IllegalArgumentException</code> if
+     * <code>gtkWidgetClassName</code> is not a valid Gtk class name.
+     *
+     * @param gtkWidget Class name of a GtkWidget.
+     * @throws IllegalArgumentException if <code>gtkWidgetClassName</code> is
+     *         not a valid class name.
+     */
+    synchronized SynthStyle getStyle(String gtkWidgetClassName)
+                      throws IllegalArgumentException {
+        if (!GTK_CLASS_MAP.containsKey(gtkWidgetClassName)) {
+            throw new IllegalArgumentException("Invalid class name: " +
+                                               gtkWidgetClassName);
+        }
+        BakedArrayList matches = _tmpList;
+
+        matches.clear();
+        if (_classStyles != null) {
+            getClassMatches(matches, gtkWidgetClassName);
+        }
+        matches.add(_defaultStyle);
+
+        return getStyle(matches);
+    }
+
+    /**
      * Returns the style for the specified Component.
      *
      * @param c Component asking for
@@ -347,11 +380,10 @@ class GTKStyleFactory extends SynthStyleFactory {
      */
     public synchronized SynthStyle getStyle(JComponent c, Region id) {
         if ((id == Region.FORMATTED_TEXT_FIELD &&
-                c.getName() == "Spinner.formattedTextField") ||
-            (id == Region.ARROW_BUTTON &&
+               c.getName() == "Spinner.formattedTextField") ||
+               (id == Region.ARROW_BUTTON &&
                 (c.getName() == "Spinner.previousButton" ||
-                 c.getName() == "Spinner.nextButton"))) {
-
+                 c.getName() == "Spinner.nextButton"))){
             // Force all the widgets of a spinner to be treated like a spinner
             id = Region.SPINNER;
             Container parent = c.getParent();
@@ -379,8 +411,12 @@ class GTKStyleFactory extends SynthStyleFactory {
         matches.clear();
         getMatchingStyles(matches, c, id);
 
+        return getStyle(matches);
+    }
+
+    private SynthStyle getStyle(BakedArrayList matches) {
         // Use a cached Style if possible, otherwise create a new one.
-        matches.bake();
+        matches.cacheHashCode();
         SynthStyle style = getCachedStyle(matches);
 
         if (style == null) {
@@ -403,7 +439,9 @@ class GTKStyleFactory extends SynthStyleFactory {
         // DefaultTableCellRenderer which does NOT pass along the property
         // change that would trigger the style to be refetched.
         if (c != null && (c.getParent() != null ||
-                          c.getName() == "TableHeader.renderer")) {
+                          c.getName() == "TableHeader.renderer" || 
+                          c.getName() == "Slider.label") ||
+                          c.getName() == "ComboBox.list") {
             // First match on WIDGET
             if (_widgetStyles != null) {
                 getMatches(getPath(WIDGET, c, id), _widgetStyles, matches, c,
@@ -423,16 +461,16 @@ class GTKStyleFactory extends SynthStyleFactory {
             matches.add(getToolTipStyle());
         }
         else if (id == Region.PROGRESS_BAR && GTKLookAndFeel.is2_2()) {
-             matches.add(getProgressBarStyle());
-         }
-         else if ((id == Region.MENU || id == Region.MENU_ITEM ||
-                   id == Region.POPUP_MENU_SEPARATOR ||
-                   id == Region.CHECK_BOX_MENU_ITEM ||
-                   id == Region.RADIO_BUTTON_MENU_ITEM ||
-                   id == Region.MENU_ITEM_ACCELERATOR) &&
-                  GTKLookAndFeel.is2_2()) {
-             matches.add(getMenuItemStyle());
-         }
+            matches.add(getProgressBarStyle());
+        }
+        else if ((id == Region.MENU || id == Region.MENU_ITEM ||
+                  id == Region.POPUP_MENU_SEPARATOR ||
+                  id == Region.CHECK_BOX_MENU_ITEM ||
+                  id == Region.RADIO_BUTTON_MENU_ITEM ||
+                  id == Region.MENU_ITEM_ACCELERATOR) &&
+                 GTKLookAndFeel.is2_2()) {
+            matches.add(getMenuItemStyle());
+        }
         matches.add(_defaultStyle);
     }
 
@@ -441,7 +479,7 @@ class GTKStyleFactory extends SynthStyleFactory {
         for (int counter = styles.size() - 1; counter >= 0; counter--){
             StyleAssociation sa = (StyleAssociation)styles.get(counter);
 
-            if (sa.matches(path)) {
+            if (sa.matches(path) && matches.indexOf(sa.getStyle()) == -1) {
                 matches.add(sa.getStyle());
             }
         }
@@ -449,6 +487,10 @@ class GTKStyleFactory extends SynthStyleFactory {
 
     private void getClassMatches(java.util.List matches, JComponent c,
                                  Region id) {
+        getClassMatches(matches, getClass(c, id));
+    }
+
+    private void getClassMatches(java.util.List matches, Object gtkClassName){
         if (_depth == null) {
             _depth = new int[4];
         }
@@ -458,7 +500,7 @@ class GTKStyleFactory extends SynthStyleFactory {
 
         for (int counter = _classStyles.size() - 1; counter >= 0; counter--){
             StyleAssociation sa = (StyleAssociation)_classStyles.get(counter);
-            Object klass = getClass(c, id);
+            Object klass = gtkClassName;
 
             while (klass != null) {
                 if (sa.matches(getClassName(klass))) {
@@ -642,7 +684,7 @@ class GTKStyleFactory extends SynthStyleFactory {
         _labelStyleList.clear();
         _labelStyleList.add(style);
         _labelStyleList.add(labelStyle);
-        _labelStyleList.bake();
+        _labelStyleList.cacheHashCode();
 
         GTKStyle mergedStyle = (GTKStyle)_mergedStyleMap.get(_labelStyleList);
 
@@ -703,189 +745,69 @@ class GTKStyleFactory extends SynthStyleFactory {
         return null;
     }
 
-
     private GTKStyle getProgressBarStyle() {
-         if (_pbStyle == null) {
-             Color[] moColors = new Color[GTKColorType.MAX_COUNT];
-             Color[] normalColors = new Color[GTKColorType.MAX_COUNT];
-             moColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
-                 0x4B6983);
-             normalColors[GTKColorType.BACKGROUND.getID()] =
-                   new ColorUIResource(0xBAB5AB);
-             _pbStyle = new GTKStyle(new GTKStyle.GTKStateInfo[]
-                 { new GTKStyle.GTKStateInfo(SynthConstants.ENABLED, null, null,
-                                             null, normalColors, null),
-                   new GTKStyle.GTKStateInfo(SynthConstants.MOUSE_OVER, null, null,
+        if (_pbStyle == null) {
+            Color[] moColors = new Color[GTKColorType.MAX_COUNT];
+            Color[] normalColors = new Color[GTKColorType.MAX_COUNT];
+            moColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
+                0x4B6983);
+            normalColors[GTKColorType.BACKGROUND.getID()] = 
+                  new ColorUIResource(0xBAB5AB);
+            _pbStyle = new GTKStyle(new GTKStyle.GTKStateInfo[]
+                { new GTKStyle.GTKStateInfo(SynthConstants.ENABLED,
+                                            null, normalColors, null),
+                  new GTKStyle.GTKStateInfo(SynthConstants.MOUSE_OVER,
                                             null, moColors, null)
-                 }, null, null, GTKStyle.UNDEFINED_THICKNESS,
-                 GTKStyle.UNDEFINED_THICKNESS, null);
-         }
-         return _pbStyle;
-     }
+                }, null, null, GTKStyle.UNDEFINED_THICKNESS,
+                GTKStyle.UNDEFINED_THICKNESS, null);
+        }
+        return _pbStyle;
+    }
 
-     private GTKStyle getMenuItemStyle() {
-         if (_menuItemStyle == null) {
-             Color[] moColors = new Color[GTKColorType.MAX_COUNT];
-             Color[] selectedColors = new Color[GTKColorType.MAX_COUNT];
-             moColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
-                 0x9db8d2);
-             moColors[GTKColorType.FOREGROUND.getID()] = GTKStyle.WHITE_COLOR;
-             moColors[GTKColorType.TEXT_FOREGROUND.getID()] =
-                                   new ColorUIResource(0xFFFFFF);
-             selectedColors[GTKColorType.TEXT_FOREGROUND.getID()] =
-                   new ColorUIResource(0xFFFFFF);
-             _menuItemStyle = new GTKStyle(new GTKStyle.GTKStateInfo[]
-                 {
-                   new GTKStyle.GTKStateInfo(SynthConstants.MOUSE_OVER, null, null,
-                                             null, moColors, null),
-                   new GTKStyle.GTKStateInfo(SynthConstants.SELECTED, null, null,
-                                             null, selectedColors, null),
-                 }, null, null, GTKStyle.UNDEFINED_THICKNESS,
-                 GTKStyle.UNDEFINED_THICKNESS, null);
-         }
-         return _menuItemStyle;
+    private GTKStyle getMenuItemStyle() {
+        if (_menuItemStyle == null) {
+            Color[] moColors = new Color[GTKColorType.MAX_COUNT];
+            Color[] selectedColors = new Color[GTKColorType.MAX_COUNT];
+            moColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
+                0x9db8d2);
+            moColors[GTKColorType.FOREGROUND.getID()] = GTKStyle.WHITE_COLOR;
+            moColors[GTKColorType.TEXT_FOREGROUND.getID()] =
+                                  new ColorUIResource(0xFFFFFF);
+            selectedColors[GTKColorType.TEXT_FOREGROUND.getID()] = 
+                  new ColorUIResource(0xFFFFFF);
+            _menuItemStyle = new GTKStyle(new GTKStyle.GTKStateInfo[]
+                { 
+                  new GTKStyle.GTKStateInfo(SynthConstants.MOUSE_OVER,
+                                            null, moColors, null),
+                  new GTKStyle.GTKStateInfo(SynthConstants.SELECTED,
+                                            null, selectedColors, null),
+                }, null, null, GTKStyle.UNDEFINED_THICKNESS,
+                GTKStyle.UNDEFINED_THICKNESS, null);
+        }
+        return _menuItemStyle;
     }
 
     private GTKStyle getToolTipStyle() {
         if (_tooltipStyle == null) {
-            // PENDING: this should have a priority of gtk, but we don't
-            // yet supported priority.
             Color[] ttColors = new Color[GTKColorType.MAX_COUNT];
-
             if (GTKLookAndFeel.is2_2()) {
-                 ttColors[GTKColorType.BACKGROUND.getID()] =
-                                  new ColorUIResource(0xEEE1B3);
-                 ttColors[GTKColorType.FOREGROUND.getID()] =
-                                  new ColorUIResource(0x000000);
-             }
-             else {
-                 ttColors[GTKColorType.BACKGROUND.getID()] =
-                                  new ColorUIResource(0xFFFFC0);
-                 ttColors[GTKColorType.FOREGROUND.getID()] =
-                                  new ColorUIResource(0x000000);
-             }
-            ttColors[GTKColorType.BACKGROUND.getID()] = new ColorUIResource(
-                0xFFFFC0);
-            ttColors[GTKColorType.FOREGROUND.getID()] =  new ColorUIResource(
-                0x000000);
+                ttColors[GTKColorType.BACKGROUND.getID()] =
+                                 new ColorUIResource(0xEEE1B3);
+                ttColors[GTKColorType.FOREGROUND.getID()] = 
+                                 new ColorUIResource(0x000000);
+            }
+            else {
+                ttColors[GTKColorType.BACKGROUND.getID()] =
+                                 new ColorUIResource(0xFFFFC0);
+                ttColors[GTKColorType.FOREGROUND.getID()] = 
+                                 new ColorUIResource(0x000000);
+            }
             _tooltipStyle = new GTKStyle(new GTKStyle.GTKStateInfo[] {
-                new GTKStyle.GTKStateInfo(SynthConstants.ENABLED, null, null,
+                new GTKStyle.GTKStateInfo(SynthConstants.ENABLED,
                 null, ttColors, null)}, null, null,
                 GTKStyle.UNDEFINED_THICKNESS, GTKStyle.UNDEFINED_THICKNESS,
                 null);
         }
         return _tooltipStyle;
-    }
-
-
-    /**
-     * A specialized ArrayList that caches its hashCode as well as overriding
-     * equals to avoid creating an Iterator.
-     */
-    private static class BakedArrayList extends ArrayList {
-        private int hashCode;
-
-        BakedArrayList(int size) {
-            super(size);
-        }
-
-        BakedArrayList(java.util.List data) {
-            this(data.size());
-            for (int counter = 0, max = data.size(); counter < max; counter++){
-                add(data.get(counter));
-            }
-            bake();
-        }
-
-        void bake() {
-            hashCode = 1;
-            for (int counter = size() - 1; counter >= 0; counter--) {
-                hashCode = 31 * hashCode + get(counter).hashCode();
-            }
-        }
-
-        public int hashCode() {
-            return hashCode;
-        }
-
-        public boolean equals(Object o) {
-            BakedArrayList list = (BakedArrayList)o;
-            int size = size();
-
-            if (list.size() != size) {
-                return false;
-            }
-            while (size-- > 0) {
-                if (!get(size).equals(list.get(size))) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-
-    /**
-     * StyleAssociation is used to lookup a style for a particular
-     * component (or region).
-     */
-    private static class StyleAssociation {
-        /**
-         * The style
-         */
-        private SynthStyle _style;
-
-        /**
-         * Pattern used for matching.
-         */
-        private Pattern _pattern;
-        /**
-         * Matcher used for testing if path matches that of pattern.
-         */
-        private Matcher _matcher;
-
-
-        /**
-         * Returns a StyleAssociation that can be used to determine if
-         * a particular string matches the returned association.
-         */
-        public static StyleAssociation createStyleAssociation(
-                           String text, SynthStyle style)
-                           throws PatternSyntaxException {
-            return new StyleAssociation(text, style);
-        }
-
-
-        StyleAssociation(String text, SynthStyle style)
-                            throws PatternSyntaxException {
-            _style = style;
-            _pattern = Pattern.compile(text);
-        }
-
-        // NOTE: Matcher is not thread safe, it is assumed this will not be
-        // called from multiple threads.
-        public boolean matches(CharSequence path) {
-            if (_matcher == null) {
-                _matcher = _pattern.matcher(path);
-            }
-            else {
-                _matcher.reset(path);
-            }
-            return _matcher.matches();
-        }
-
-        /**
-         * Returns the text used in matching the string.
-         */
-        public String getText() {
-            return _pattern.pattern();
-        }
-
-        /**
-         * Returns the style this association is mapped to.
-         */
-        public SynthStyle getStyle() {
-            return _style;
-        }
     }
 }

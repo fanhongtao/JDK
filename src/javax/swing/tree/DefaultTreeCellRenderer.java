@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeCellRenderer.java	1.47 03/01/23
+ * @(#)DefaultTreeCellRenderer.java	1.51 04/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package javax.swing.tree;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.basic.BasicGraphicsUtils;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
@@ -18,6 +19,8 @@ import java.util.*;
 
 /**
  * Displays an entry in a tree.
+ * <code>DefaultTreeCellRenderer</code> is not opaque and
+ * unless you subclass paint you should not change this.
  * See <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a> 
  * in <em>The Java Tutorial</em>
@@ -26,6 +29,7 @@ import java.util.*;
  * 
  * <strong><a name="override">Implementation Note:</a></strong>
  * This class overrides
+ * <code>invalidate</code>,
  * <code>validate</code>,
  * <code>revalidate</code>,
  * <code>repaint</code>,
@@ -48,7 +52,7 @@ import java.util.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.47 01/23/03
+ * @version 1.51 01/23/04
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -64,6 +68,19 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
     protected boolean hasFocus;
     /** True if draws focus border around icon as well. */
     private boolean drawsFocusBorderAroundIcon;
+    /** If true, a dashed line is drawn as the focus indicator. */
+    private boolean drawDashedFocusIndicator;
+    
+    // If drawDashedFocusIndicator is true, the following are used.
+    /**
+     * Background color of the tree.
+     */
+    private Color treeBGColor;
+    /**
+     * Color to draw the focus indicator in, determined from the background.
+     * color.
+     */
+    private Color focusBGColor;
 
     // Icons
     /** Icon used to show non-leaf nodes that aren't expanded. */
@@ -111,6 +128,9 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 	Object value = UIManager.get("Tree.drawsFocusBorderAroundIcon");
 	drawsFocusBorderAroundIcon = (value != null && ((Boolean)value).
 				      booleanValue());
+	value = UIManager.get("Tree.drawDashedFocusIndicator");
+	drawDashedFocusIndicator = (value != null && ((Boolean)value).
+				    booleanValue());
     }
 
 
@@ -366,10 +386,10 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 	    imageOffset = getLabelStart();
 	    g.setColor(bColor);
 	    if(getComponentOrientation().isLeftToRight()) {
-	        g.fillRect(imageOffset, 0, getWidth() - 1 - imageOffset,
+	        g.fillRect(imageOffset, 0, getWidth() - imageOffset,
 			   getHeight());
 	    } else {
-	        g.fillRect(0, 0, getWidth() - 1 - imageOffset,
+	        g.fillRect(0, 0, getWidth() - imageOffset,
 			   getHeight());
 	    }
 	}
@@ -381,20 +401,41 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
 	    else if (imageOffset == -1) {
 		imageOffset = getLabelStart();
 	    }
-	    Color       bsColor = getBorderSelectionColor();
-
-	    if (bsColor != null) {
-		g.setColor(bsColor);
-		if(getComponentOrientation().isLeftToRight()) {
-		    g.drawRect(imageOffset, 0, getWidth() - 1 - imageOffset,
-			       getHeight() - 1);
-		} else {
-		    g.drawRect(0, 0, getWidth() - 1 - imageOffset,
-			       getHeight() - 1);
-		}
+	    if(getComponentOrientation().isLeftToRight()) {
+		paintFocus(g, imageOffset, 0, getWidth() - imageOffset,
+			   getHeight());
+	    } else {
+		paintFocus(g, 0, 0, getWidth() - imageOffset, getHeight());
 	    }
 	}
 	super.paint(g);
+    }
+
+    private void paintFocus(Graphics g, int x, int y, int w, int h) {
+	Color       bsColor = getBorderSelectionColor();
+
+	if (bsColor != null && (selected || !drawDashedFocusIndicator)) {
+	    g.setColor(bsColor);
+	    g.drawRect(x, y, w - 1, h - 1);
+	}
+	if (drawDashedFocusIndicator) {
+	    Color color;
+	    if (selected) {
+		color = getBackgroundSelectionColor();
+	    } else {
+		color = getBackgroundNonSelectionColor();
+		if(color == null) {
+		    color = getBackground();
+		}
+	    }
+	    
+	    if (treeBGColor != color) {
+		treeBGColor = color;
+		focusBGColor = new Color(~color.getRGB());
+	    }
+	    g.setColor(focusBGColor);
+	    BasicGraphicsUtils.drawDashedRect(g, x, y, w, h);
+	}
     }
 
     private int getLabelStart() {
@@ -429,6 +470,15 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
     * Overridden for performance reasons.
     * See the <a href="#override">Implementation Note</a>
     * for more information.
+    *
+    * @since 1.5
+    */
+    public void invalidate() {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
     */
     public void revalidate() {}
 
@@ -445,6 +495,15 @@ public class DefaultTreeCellRenderer extends JLabel implements TreeCellRenderer
     * for more information.
     */
     public void repaint(Rectangle r) {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    *
+    * @since 1.5
+    */
+    public void repaint() {}
 
    /**
     * Overridden for performance reasons.

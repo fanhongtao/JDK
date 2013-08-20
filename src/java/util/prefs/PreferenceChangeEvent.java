@@ -1,7 +1,7 @@
 /*
- * @(#)PreferenceChangeEvent.java	1.4 03/01/23
+ * @(#)PreferenceChangeEvent.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.NotSerializableException;
  * serialization methods are implemented to throw NotSerializableException. 
  *
  * @author  Josh Bloch
- * @version 1.4, 01/23/03
+ * @version 1.6, 12/19/03
  * @see Preferences
  * @see PreferenceChangeListener
  * @see NodeChangeEvent
@@ -101,4 +101,8 @@ public class PreferenceChangeEvent extends java.util.EventObject {
                                                throws NotSerializableException {
          throw new NotSerializableException("Not serializable.");
      }
+
+    // Defined so that this class isn't flagged as a potential problem when
+    // searches for missing serialVersionUID fields are done.
+    private static final long serialVersionUID = 793724513368024975L;
 }

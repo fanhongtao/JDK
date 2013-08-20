@@ -1,11 +1,12 @@
 /*
- * @(#)MediaPrintableArea.java	1.9 03/01/23
+ * @(#)MediaPrintableArea.java	1.12 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.DocAttribute;
 import javax.print.attribute.PrintJobAttribute;
 import javax.print.attribute.PrintRequestAttribute;
@@ -64,6 +65,8 @@ public final class MediaPrintableArea
 
     private int x, y, w, h;
     private int units;
+
+    private static final long serialVersionUID = -1597171464050795793L;
 
     /**
      * Value to indicate units of inches (in). It is actually the conversion
@@ -248,7 +251,7 @@ public final class MediaPrintableArea
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
         return MediaPrintableArea.class;
     }
 

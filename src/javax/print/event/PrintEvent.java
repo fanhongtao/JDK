@@ -1,7 +1,7 @@
 /*
- * @(#)PrintEvent.java	1.3 03/01/23
+ * @(#)PrintEvent.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,10 +13,14 @@ package javax.print.event;
  */
 
 public class PrintEvent extends java.util.EventObject {
+    
+    private static final long serialVersionUID = 2286914924430763847L;
 
     /**
      * Constructs a PrintEvent object.
      * @param source is the source of the event
+     * @throws IllegalArgumentException if <code>source</code> is
+     *         <code>null</code>.
      */
     public PrintEvent (Object source) {
         super(source);

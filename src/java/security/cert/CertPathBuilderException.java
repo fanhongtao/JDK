@@ -1,14 +1,13 @@
 /*
- * @(#)CertPathBuilderException.java	1.4 03/01/23
+ * @(#)CertPathBuilderException.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.security.GeneralSecurityException;
 
 /**
  * An exception indicating one of a variety of problems encountered when
@@ -28,12 +27,13 @@ import java.io.PrintWriter;
  *
  * @see CertPathBuilder
  *
- * @version 	1.4 01/23/03
+ * @version 	1.7 12/19/03
  * @since	1.4
  * @author 	Sean Mullan
  */
-public class CertPathBuilderException extends 
-    java.security.GeneralSecurityException {
+public class CertPathBuilderException extends GeneralSecurityException {
+
+    private static final long serialVersionUID = 5316471420178794402L;
 
     /**
      * Creates a <code>CertPathBuilderException</code> with <code>null</code>
@@ -68,8 +68,7 @@ public class CertPathBuilderException extends
      * permitted, and indicates that the cause is nonexistent or unknown.)
      */
     public CertPathBuilderException(Throwable cause) {
-        super();
-	initCause(cause);
+        super(cause);
     }
 
     /**
@@ -82,73 +81,7 @@ public class CertPathBuilderException extends
      * permitted, and indicates that the cause is nonexistent or unknown.)
      */
     public CertPathBuilderException(String msg, Throwable cause) {
-        super(msg);
-	initCause(cause);
+        super(msg, cause);
     }
 
-    /**
-     * Returns the internal (wrapped) cause, or <code>null</code>
-     * if the cause is nonexistent or unknown.
-     *
-     * @return the cause of this throwable or <code>null</code> if the cause 
-     * is nonexistent or unknown.
-     */
-    public Throwable getCause() {
-	return super.getCause();
-    }
-
-    /**
-     * Returns the detail message for this 
-     * <code>CertPathBuilderException</code>.
-     *
-     * @return the detail message, or <code>null</code> if neither the message
-     * nor internal cause were specified
-     */
-    public String getMessage() {
-        return super.getMessage();
-    }
-
-    /**
-     * Returns a string describing this exception, including a description 
-     * of the internal (wrapped) cause if there is one.
-     *
-     * @return a string representation of this 
-     * <code>CertPathBuilderException</code>
-     */
-    public String toString() {
-        if (getCause() == null)
-            return super.toString();
-        else
-            return super.toString() +
-                "; internal cause is: \n\t" +
-                getCause().toString();
-    }
-
-    /**
-     * Prints a stack trace to <code>System.err</code>, including the backtrace 
-     * of the cause, if any.
-     */
-    public void printStackTrace() {
-        printStackTrace(System.err);
-    }
-
-    /**
-     * Prints a stack trace to a <code>PrintStream</code>, including the 
-     * backtrace of the cause, if any.
-     *
-     * @param ps the <code>PrintStream</code> to use for output
-     */
-    public void printStackTrace(PrintStream ps) {
-        super.printStackTrace(ps);
-    }
-
-    /**
-     * Prints a stack trace to a <code>PrintWriter</code>, including the 
-     * backtrace of the cause, if any.
-     *
-     * @param pw the <code>PrintWriter</code> to use for output
-     */
-    public void printStackTrace(PrintWriter pw) {
-        super.printStackTrace(pw);
-    }
 }

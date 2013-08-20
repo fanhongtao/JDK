@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultHSBChooserPanel.java	1.22 03/01/23
+ * @(#)DefaultHSBChooserPanel.java	1.25 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -17,7 +17,7 @@ import java.awt.image.*;
 /**
  * Implements the default HSB Color chooser
  *
- *  @version 1.22 01/23/03
+ *  @version 1.25 12/19/03
  *  @author Tom Santos
  *  @author Steve Wilson
  *  @author Mark Davidson
@@ -25,11 +25,11 @@ import java.awt.image.*;
  */
 class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements ChangeListener, HierarchyListener {
 
-    private HSBImage palette;
-    private HSBImage sliderPalette;
+    private transient HSBImage palette;
+    private transient HSBImage sliderPalette;
     
-    private Image paletteImage;
-    private Image sliderPaletteImage;
+    private transient Image paletteImage;
+    private transient Image sliderPaletteImage;
     
     private JSlider slider;
     private JSpinner hField; 
@@ -418,7 +418,9 @@ class DefaultHSBChooserPanel extends AbstractColorChooserPanel implements Change
         slider.setPaintTrack(false);
         slider.setPreferredSize(new Dimension(slider.getPreferredSize().width, PALETTE_DIMENSION + 15));
         slider.addChangeListener(this);
-
+	// We're not painting ticks, but need to ask UI classes to
+	// paint arrow shape anyway, if possible.
+	slider.putClientProperty("Slider.paintThumbArrowShape", Boolean.TRUE);
         paletteLabel = createPaletteLabel();
         addPaletteListeners();
         sliderPaletteLabel = new JLabel();

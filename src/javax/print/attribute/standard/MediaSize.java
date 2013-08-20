@@ -1,7 +1,7 @@
 /*
- * @(#)MediaSize.java	1.9 03/01/23
+ * @(#)MediaSize.java	1.14 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -33,6 +33,8 @@ import javax.print.attribute.Attribute;
  * @author  Phil Race, Alan Kaminsky
  */
 public class MediaSize extends Size2DSyntax implements Attribute {
+
+    private static final long serialVersionUID = -1967958664615414771L;
 
     private MediaSizeName mediaName;
 
@@ -243,7 +245,7 @@ public class MediaSize extends Size2DSyntax implements Attribute {
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return MediaSize.class;
     }
 
@@ -754,6 +756,14 @@ public class MediaSize extends Size2DSyntax implements Attribute {
 	public static final MediaSize
 	    LEDGER = new MediaSize(11.0f, 17.0f, Size2DSyntax.INCH,
 				   MediaSizeName.LEDGER);
+
+	/**
+	 * Specifies the tabloid size, 11 inches by 17 inches.
+	 */
+	public static final MediaSize
+	    TABLOID = new MediaSize(11.0f, 17.0f, Size2DSyntax.INCH,
+				   MediaSizeName.TABLOID);
+
 	/**
 	 * Specifies the invoice size, 5.5 inches by 8.5 inches.
 	 */
@@ -813,11 +823,10 @@ public class MediaSize extends Size2DSyntax implements Attribute {
      * are created and inserted into the hashmap.
      */
     static {
-	Class c = ISO.class;
-	c = JIS.class;
-	c = NA.class;
-	c = Engineering.class;
-	c = Other.class;
-    } 
-
+	MediaSize ISOA4 = ISO.A4;
+	MediaSize JISB5 = JIS.B5;
+	MediaSize NALETTER = NA.LETTER;
+	MediaSize EngineeringC = Engineering.C;
+	MediaSize OtherEXECUTIVE = Other.EXECUTIVE;
+    }
 }

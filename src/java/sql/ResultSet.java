@@ -1,7 +1,7 @@
 /*
- * @(#)ResultSet.java	1.44 03/01/23
+ * @(#)ResultSet.java	1.49 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -70,8 +70,8 @@ import java.util.Calendar;
  * the intended columns.
  * <P>
  * A set of updater methods were added to this interface
- * in the JDBC 2.0 API (Java<sup><font size=-2>TM</font></sup> 2 SDK,
- * Standard Edition, version 1.2). The comments regarding parameters
+ * in the JDBC 2.0 API (JDK 1.2).
+ * The comments regarding parameters
  * to the getter methods also apply to parameters to the
  * updater methods.
  *<P>
@@ -289,6 +289,7 @@ public interface ResultSet {
      * @exception SQLException if a database access error occurs
      * @deprecated
      */
+    @Deprecated
     BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException;
 
     /**
@@ -394,6 +395,7 @@ public interface ResultSet {
      * @deprecated use <code>getCharacterStream</code> in place of 
      *              <code>getUnicodeStream</code>
      */
+    @Deprecated
     java.io.InputStream getUnicodeStream(int columnIndex) throws SQLException;
 
     /**
@@ -533,6 +535,7 @@ public interface ResultSet {
      * @exception SQLException if a database access error occurs
      * @deprecated
      */
+    @Deprecated
     BigDecimal getBigDecimal(String columnName, int scale) throws SQLException;
 
     /**
@@ -636,6 +639,7 @@ public interface ResultSet {
      * @exception SQLException if a database access error occurs
      * @deprecated use <code>getCharacterStream</code> instead
      */
+    @Deprecated
     java.io.InputStream getUnicodeStream(String columnName) throws SQLException;
 
     /**
@@ -1960,7 +1964,8 @@ public interface ResultSet {
      * @exception SQLException if a database access error occurs
      * @since 1.2
      */
-    Object getObject(int i, java.util.Map map) throws SQLException;
+    Object getObject(int i, java.util.Map<String,Class<?>> map)
+	throws SQLException;
 
     /**
      * Retrieves the value of the designated column in the current row
@@ -2031,7 +2036,8 @@ public interface ResultSet {
      * @exception SQLException if a database access error occurs
      * @since 1.2
      */
-    Object getObject(String colName, java.util.Map map) throws SQLException;
+    Object getObject(String colName, java.util.Map<String,Class<?>> map)
+	throws SQLException;
 
     /**
      * Retrieves the value of the designated column in the current row

@@ -1,7 +1,7 @@
 /*
- * @(#)NetPermission.java	1.44 03/01/23
+ * @(#)NetPermission.java	1.49 04/02/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -67,6 +67,60 @@ creating a ProtectionDomain/CodeSource for a class even though
 that class really didn't come from that location.</td>
  * </tr>
  *
+ * <tr> 
+ *   <td>setProxySelector</td>
+ *   <td>The ability to set the proxy selector used to make decisions
+ *   on which proxies to use when making network connections.</td>
+ *   <td>Malicious code can set a ProxySelector that directs network
+ *   traffic to an arbitrary network host.</td>
+ * </tr>
+ *
+ * <tr> 
+ *   <td>getProxySelector</td>
+ *   <td>The ability to get the proxy selector used to make decisions
+ *   on which proxies to use when making network connections.</td>
+ *   <td>Malicious code can get a ProxySelector to discover proxy
+ *   hosts and ports on internal networks, which could then become
+ *   targets for attack.</td>
+ * </tr>
+ *
+ * <tr> 
+ *   <td>setCookieHandler</td>
+ *   <td>The ability to set the cookie handler that processes highly
+ *   security sensitive cookie information for an Http session.</td>
+ *   <td>Malicious code can set a cookie handler to obtain access to
+ *   highly security sensitive cookie information. Some web servers
+ *   use cookies to save user private information such as access
+ *   control information, or to track user browsing habit.</td>
+ *   </tr>
+ *
+ * <tr> 
+ *   <td>getCookieHandler</td>
+ *   <td>The ability to get the cookie handler that processes highly
+ *   security sensitive cookie information for an Http session.</td>
+ *   <td>Malicious code can get a cookie handler to obtain access to
+ *   highly security sensitive cookie information. Some web servers
+ *   use cookies to save user private information such as access
+ *   control information, or to track user browsing habit.</td>
+ *   </tr>
+ *
+ * <tr> 
+ *   <td>setResponseCache</td>
+ *   <td>The ability to set the response cache that provides access to
+ *   a local response cache.</td>
+ *   <td>Malicious code getting access to the local response cache
+ *   could access security sensitive information, or create false
+ *   entries in the response cache.</td>
+ *   </tr>
+ *
+ * <tr> 
+ *   <td>getResponseCache</td>
+ *   <td>The ability to get the response cache that provides
+ *   access to a local response cache.</td>
+ *   <td>Malicious code getting access to the local response cache
+ *   could access security sensitive information.</td>
+ *   </tr>
+ *
  * </table>
  *
  * @see java.security.BasicPermission
@@ -75,7 +129,7 @@ that class really didn't come from that location.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.44 03/01/23
+ * @version 1.49 04/02/03
  *
  * @author Marianne Mueller
  * @author Roland Schemers

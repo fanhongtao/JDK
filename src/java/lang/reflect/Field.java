@@ -1,7 +1,7 @@
 /*
- * @(#)Field.java	1.31 03/01/23
+ * @(#)Field.java	1.42 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,14 @@ package java.lang.reflect;
 
 import sun.reflect.FieldAccessor;
 import sun.reflect.Reflection;
+import sun.reflect.generics.repository.FieldRepository;
+import sun.reflect.generics.factory.CoreReflectionFactory;
+import sun.reflect.generics.factory.GenericsFactory;
+import sun.reflect.generics.scope.ClassScope;
+import java.lang.annotation.Annotation;
+import java.util.Map;
+import sun.reflect.annotation.AnnotationParser;
+
 
 /**
  * A <code>Field</code> provides information about, and dynamic access to, a
@@ -39,7 +47,15 @@ class Field extends AccessibleObject implements Member {
     private String		name;
     private Class		type;
     private int			modifiers;
-    private volatile FieldAccessor fieldAccessor;
+    // Generics and annotations support
+    private transient String    signature;
+    // generic info repository; lazily initialized
+    private transient FieldRepository genericInfo;
+    private byte[]              annotations;
+    // Cached field accessor created without override
+    private FieldAccessor fieldAccessor;
+    // Cached field accessor created with override
+    private FieldAccessor overrideFieldAccessor;    
     // For sharing of FieldAccessors. This branching structure is
     // currently only two levels deep (i.e., one root Field and
     // potentially many Field objects pointing to it.)
@@ -48,6 +64,29 @@ class Field extends AccessibleObject implements Member {
     // More complicated security check cache needed here than for
     // Class.newInstance() and Constructor.newInstance()
     private volatile Class      securityCheckTargetClassCache;
+
+    // Generics infrastructure
+
+    private String getGenericSignature() {return signature;}
+
+    // Accessor for factory
+    private GenericsFactory getFactory() {
+	Class<?> c = getDeclaringClass();
+	// create scope and factory
+	return CoreReflectionFactory.make(c, ClassScope.make(c)); 
+    }
+
+    // Accessor for generic info repository
+    private FieldRepository getGenericInfo() {
+	// lazily initialize repository if necessary
+	if (genericInfo == null) {
+	    // create and cache generic info repository
+	    genericInfo = FieldRepository.make(getGenericSignature(), 
+					       getFactory());
+	}
+	return genericInfo; //return cached repository
+    }
+
 
     /**
      * Package-private constructor used by ReflectAccess to enable
@@ -58,13 +97,17 @@ class Field extends AccessibleObject implements Member {
           String name,
           Class type,
           int modifiers,
-          int slot)
+          int slot,
+          String signature,
+          byte[] annotations)
     {
         this.clazz = declaringClass;
         this.name = name;
         this.type = type;
         this.modifiers = modifiers;
         this.slot = slot;
+        this.signature = signature;
+        this.annotations = annotations;
     }
 
     /**
@@ -80,10 +123,11 @@ class Field extends AccessibleObject implements Member {
         // which implicitly requires that new java.lang.reflect
         // objects be fabricated for each reflective call on Class
         // objects.)
-        Field res = new Field(clazz, name, type, modifiers, slot);
+        Field res = new Field(clazz, name, type, modifiers, slot, signature, annotations);
         res.root = this;
         // Might as well eagerly propagate this if already present
         res.fieldAccessor = fieldAccessor;
+        res.overrideFieldAccessor = overrideFieldAccessor;
         return res;
     }
 
@@ -91,7 +135,7 @@ class Field extends AccessibleObject implements Member {
      * Returns the <code>Class</code> object representing the class or interface
      * that declares the field represented by this <code>Field</code> object.
      */
-    public Class getDeclaringClass() {
+    public Class<?> getDeclaringClass() {
 	return clazz;
     }
 
@@ -114,6 +158,30 @@ class Field extends AccessibleObject implements Member {
     }
 
     /**
+     * Returns <tt>true</tt> if this field represents an element of
+     * an enumerated type; returns <tt>false</tt> otherwise.
+     *
+     * @return <tt>true</tt> if and only if this field represents an element of
+     * an enumerated type.
+     * @since 1.5
+     */
+    public boolean isEnumConstant() {
+        return (getModifiers() & Modifier.ENUM) != 0;
+    }
+
+    /**
+     * Returns <tt>true</tt> if this field is a synthetic
+     * field; returns <tt>false</tt> otherwise.
+     *
+     * @return true if and only if this field is a synthetic
+     * field as defined by the Java Language Specification.
+     * @since 1.5
+     */
+    public boolean isSynthetic() {
+        return Modifier.isSynthetic(getModifiers());
+    }
+
+    /**
      * Returns a <code>Class</code> object that identifies the
      * declared type for the field represented by this
      * <code>Field</code> object.
@@ -121,9 +189,41 @@ class Field extends AccessibleObject implements Member {
      * @return a <code>Class</code> object identifying the declared
      * type of the field represented by this object
      */
-    public Class getType() {
+    public Class<?> getType() {
 	return type;
     }
+
+    /**
+     * Returns a <tt>Type</tt> object that represents the declared type for
+     * the field represented by this <tt>Field</tt> object.
+     * 
+     * <p>If the <tt>Type</tt> is a parameterized type, the
+     * <tt>Type</tt> object returned must accurately reflect the
+     * actual type parameters used in the source code.
+     * 
+     * <p>If an the  type of the underlying field is a type variable or a
+     * parameterized type, it is created. Otherwise, it is resolved.
+     *
+     * @return a <tt>Type</tt> object that represents the declared type for
+     *     the field represented by this <tt>Field</tt> object
+     * @throws GenericSignatureFormatError if the generic field
+     *     signature does not conform to the format specified in the Java
+     *     Virtual Machine Specification, 3rd edition
+     * @throws TypeNotPresentException if the generic type
+     *     signature of the underlying field refers to a non-existent
+     *     type declaration
+     * @throws MalformedParameterizedTypeException if the generic
+     *     signature of the underlying field refers to a parameterized type
+     *     that cannot be instantiated for any reason
+     * @since 1.5
+     */
+    public Type getGenericType() {
+	if (getGenericSignature() != null)
+	    return getGenericInfo().getGenericType();
+	else
+	    return getType();
+    }
+
 
     /**
      * Compares this <code>Field</code> against the specified object.  Returns
@@ -172,6 +272,35 @@ class Field extends AccessibleObject implements Member {
 	int mod = getModifiers();
 	return (((mod == 0) ? "" : (Modifier.toString(mod) + " "))
 	    + getTypeName(getType()) + " "
+	    + getTypeName(getDeclaringClass()) + "."
+	    + getName());
+    }
+
+    /**
+     * Returns a string describing this <code>Field</code>, including
+     * its generic type.  The format is the access modifiers for the
+     * field, if any, followed by the generic field type, followed by
+     * a space, followed by the fully-qualified name of the class
+     * declaring the field, followed by a period, followed by the name
+     * of the field.
+     *
+     * <p>The modifiers are placed in canonical order as specified by
+     * "The Java Language Specification".  This is <tt>public</tt>,
+     * <tt>protected</tt> or <tt>private</tt> first, and then other
+     * modifiers in the following order: <tt>static</tt>, <tt>final</tt>,
+     * <tt>transient</tt>, <tt>volatile</tt>.
+     *
+     * @return a string describing this <code>Field</code>, including
+     * its generic type
+     *
+     * @since 1.5
+     */
+    public String toGenericString() {
+	int mod = getModifiers();
+	Type fieldType = getGenericType();
+	return (((mod == 0) ? "" : (Modifier.toString(mod) + " "))
+	    +  ((fieldType instanceof Class) ?
+		getTypeName((Class)fieldType): fieldType.toString())+ " "
 	    + getTypeName(getDeclaringClass()) + "."
 	    + getName());
     }
@@ -478,7 +607,15 @@ class Field extends AccessibleObject implements Member {
      * <code>IllegalAccessException</code>.
      *
      * <p>If the underlying field is final, the method throws an
-     * <code>IllegalAccessException</code>.
+     * <code>IllegalAccessException</code> unless
+     * <code>setAccessible(true)</code> has succeeded for this field
+     * and this field is non-static. Setting a final field in this way
+     * is meaningful only during deserialization or reconstruction of
+     * instances of classes with blank final fields, before they are
+     * made available for access by other parts of a program. Use in
+     * any other context may have unpredictable effects, including cases
+     * in which other parts of a program continue to use the original
+     * value of this field.
      *
      * <p>If the underlying field is of a primitive type, an unwrapping
      * conversion is attempted to convert the new value to a value of
@@ -756,43 +893,49 @@ class Field extends AccessibleObject implements Member {
         throws IllegalAccessException
     {
         doSecurityCheck(obj);
-        if (fieldAccessor == null) {
-            acquireFieldAccessor();
-        }
-        return fieldAccessor;
+        boolean ov = override;
+        FieldAccessor a = (ov)? overrideFieldAccessor : fieldAccessor;
+        return (a != null)? a : acquireFieldAccessor(ov);
     }
 
     // NOTE that there is no synchronization used here. It is correct
     // (though not efficient) to generate more than one FieldAccessor
     // for a given Field. However, avoiding synchronization will
     // probably make the implementation more scalable.
-    private void acquireFieldAccessor() {
+    private FieldAccessor acquireFieldAccessor(boolean overrideFinalCheck) {
         // First check to see if one has been created yet, and take it
         // if so
         FieldAccessor tmp = null;
-        if (root != null) tmp = root.getFieldAccessor();
+        if (root != null) tmp = root.getFieldAccessor(overrideFinalCheck);
         if (tmp != null) {
-            fieldAccessor = tmp;
-            return;
+            if (overrideFinalCheck)
+                overrideFieldAccessor = tmp;
+            else
+                fieldAccessor = tmp;
+        } else {
+            // Otherwise fabricate one and propagate it up to the root
+            tmp = reflectionFactory.newFieldAccessor(this, overrideFinalCheck);
+            setFieldAccessor(tmp, overrideFinalCheck);
         }
-        // Otherwise fabricate one and propagate it up to the root
-        tmp = reflectionFactory.newFieldAccessor(this);
-        setFieldAccessor(tmp);
+        return tmp;
     }
 
     // Returns FieldAccessor for this Field object, not looking up
     // the chain to the root
-    private FieldAccessor getFieldAccessor() {
-        return fieldAccessor;
+    private FieldAccessor getFieldAccessor(boolean overrideFinalCheck) {
+        return (overrideFinalCheck)? overrideFieldAccessor : fieldAccessor;
     }
 
     // Sets the FieldAccessor for this Field object and
     // (recursively) its root
-    private void setFieldAccessor(FieldAccessor accessor) {
-        fieldAccessor = accessor;
+    private void setFieldAccessor(FieldAccessor accessor, boolean overrideFinalCheck) {
+        if (overrideFinalCheck)
+            overrideFieldAccessor = accessor;
+        else
+            fieldAccessor = accessor;
         // Propagate up
         if (root != null) {
-            root.setFieldAccessor(accessor);
+            root.setFieldAccessor(accessor, overrideFinalCheck);
         }
     }
 
@@ -839,4 +982,28 @@ class Field extends AccessibleObject implements Member {
 	return type.getName();
     }
 
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        if (annotationClass == null)
+            throw new NullPointerException();
+
+        return (T) declaredAnnotations().get(annotationClass);
+    }
+
+    private static final Annotation[] EMPTY_ANNOTATION_ARRAY=new Annotation[0];
+
+    public Annotation[] getDeclaredAnnotations()  {
+        return declaredAnnotations().values().toArray(EMPTY_ANNOTATION_ARRAY);
+    }
+
+    private transient Map<Class, Annotation> declaredAnnotations;
+
+    private synchronized  Map<Class, Annotation> declaredAnnotations() {
+        if (declaredAnnotations == null) {
+            declaredAnnotations = AnnotationParser.parseAnnotations(
+                annotations, sun.misc.SharedSecrets.getJavaLangAccess().
+                getConstantPool(getDeclaringClass()),
+                getDeclaringClass());
+        }
+        return declaredAnnotations;
+    }
 }

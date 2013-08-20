@@ -1,7 +1,7 @@
 /*
- * @(#)URL.java	1.122 03/01/23
+ * @(#)URL.java	1.129 04/01/27
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +51,9 @@ import sun.security.util.SecurityConstants;
  * href="http://www.ietf.org/rfc/rfc2396.txt""><i>RFC&nbsp;2396: Uniform
  * Resource Identifiers (URI): Generic Syntax</i></a>, amended by <a
  * href="http://www.ietf.org/rfc/rfc2732.txt"><i>RFC&nbsp;2732: Format for
- * Literal IPv6 Addresses in URLs</i></a>.
+ * Literal IPv6 Addresses in URLs</i></a>. The Literal IPv6 address format
+ * also supports scope_ids. The syntax and usage of scope_ids is described
+ * <a href="Inet6Address.html#scoped">here</a>.
  * <p>
  * A URL may have appended to it a "fragment", also known
  * as a "ref" or a "reference". The fragment is indicated by the sharp
@@ -86,9 +88,29 @@ import sun.security.util.SecurityConstants;
  * the protocol, host name, or port number is missing, the value is
  * inherited from the fully specified URL. The file component must be
  * specified. The optional fragment is not inherited.
+ * <p>
+ * The URL class does not itself encode or decode any URL components
+ * according to the escaping mechanism defined in RFC2396. It is the
+ * responsibility of the caller to encode any fields, which need to be
+ * escaped prior to calling URL, and also to decode any escaped fields,
+ * that are returned from URL. Furthermore, because URL has no knowledge
+ * of URL escaping, it does not recognise equivalence between the encoded
+ * or decoded form of the same URL. For example, the two URLs:<br>
+ * <pre>    http://foo.com/hello world/ and http://foo.com/hello%20world</pre>
+ * would be considered not equal to each other.
+ * <p>
+ * Note, the {@link java.net.URI} class does perform escaping of its
+ * component fields in certain circumstances. The recommended way
+ * to manage the encoding and decoding of URLs is to use {@link java.net.URI},
+ * and to convert between these two classes using {@link #toURI()} and
+ * {@link URI#toURL()}.
+ * <p>
+ * The {@link URLEncoder} and {@link URLDecoder} classes can also be
+ * used, but only for HTML form encoding, which is not the same
+ * as the encoding scheme defined in RFC2396.
  *
  * @author  James Gosling
- * @version 1.122, 01/23/03
+ * @version 1.129, 01/27/04
  * @since JDK1.0 
  */
 public final class URL implements java.io.Serializable {
@@ -232,6 +254,14 @@ public final class URL implements java.io.Serializable {
      *     subclass of <code>URLStreamHandler</code>, then a
      *     <code>MalformedURLException</code> is thrown.
      * </ol>
+     *
+     * <p>Protocol handlers for the following protocols are guaranteed
+     * to exist on the search path :-
+     * <blockquote><pre>
+     *     http, https, ftp, file, and jar
+     * </pre></blockquote>
+     * Protocol handlers for additional protocols may also be
+     * available.
      *
      * <p>No validation of the inputs is performed by this constructor.
      *
@@ -870,6 +900,23 @@ public final class URL implements java.io.Serializable {
     }
 
     /**
+     * Returns a {@link java.net.URI} equivalent to this URL.
+     * This method functions in the same way as <code>new URI (this.toString())</code>.
+     * <p>Note, any URL instance that complies with RFC 2396 can be converted 
+     * to a URI. However, some URLs that are not strictly in compliance 
+     * can not be converted to a URI.
+     *
+     * @exception URISyntaxException if this URL is not formatted strictly according to
+     *		  to RFC2396 and cannot be converted to a URI.
+     *
+     * @return    a URI instance equivalent to this URL.
+     * @since 1.5
+     */
+    public URI toURI() throws URISyntaxException {
+	return new URI (toString());
+    }
+     
+    /**
      * Returns a <code>URLConnection</code> object that represents a
      * connection to the remote object referred to by the <code>URL</code>.
      *
@@ -894,6 +941,53 @@ public final class URL implements java.io.Serializable {
      */
     public URLConnection openConnection() throws java.io.IOException {
 	return handler.openConnection(this);
+    }
+
+    /**
+     * Same as openConnection(), except that the connection will be
+     * made through the specified proxy; Protocol handlers that do not
+     * support proxing will ignore the proxy parameter and make a
+     * normal connection.
+     *
+     * Calling this method preempts the system's default ProxySelector
+     * settings.
+     *
+     * @param      proxy the Proxy through which this connection
+     *             will be made. If direct connection is desired,
+     *             Proxy.NO_PROXY should be specified.
+     * @return     a <code>URLConnection</code> to the URL.
+     * @exception  IOException  if an I/O exception occurs.
+     * @exception  SecurityException if a security manager is present
+     *             and the caller doesn't have permission to connect
+     *             to the proxy.
+     * @exception  IllegalArgumentException will be thrown if proxy is null,
+     *             or proxy has the wrong type
+     * @exception  UnsupportedOperationException if the subclass that
+     *             implements the protocol handler doesn't support
+     *             this method.
+     * @see        java.net.URL#URL(java.lang.String, java.lang.String,
+     *             int, java.lang.String)
+     * @see        java.net.URLConnection
+     * @see        java.net.URLStreamHandler#openConnection(java.net.URL,
+     *             java.net.Proxy)
+     * @since      1.5
+     */
+    public URLConnection openConnection(Proxy proxy)
+	throws java.io.IOException {
+	if (proxy == null) {
+	    throw new IllegalArgumentException("proxy can not be null");
+	}
+	
+	SecurityManager sm = System.getSecurityManager();
+	InetSocketAddress epoint = (InetSocketAddress) proxy.address();
+	if (sm != null) {
+	    if (epoint.isUnresolved())
+		sm.checkConnect(epoint.getHostName(), epoint.getPort());
+	    else
+		sm.checkConnect(epoint.getAddress().getHostAddress(),
+				epoint.getPort());
+	}
+	return handler.openConnection(this, proxy);
     }
 
     /**

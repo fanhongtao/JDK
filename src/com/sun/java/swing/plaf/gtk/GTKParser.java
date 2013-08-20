@@ -1,7 +1,7 @@
 /*
- * @(#)GTKParser.java	1.79 03/07/25
+ * @(#)GTKParser.java	1.87 04/06/24
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,10 +14,11 @@ import java.util.regex.PatternSyntaxException;
 import javax.swing.plaf.ColorUIResource;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
+import javax.swing.plaf.synth.SynthConstants;
 
 /**
  * @author  Shannon Hickey
- * @version 1.79 07/25/03
+ * @version 1.87 06/24/04
  */
 class GTKParser {
     
@@ -40,6 +41,7 @@ class GTKParser {
     {
         engineParsers.put("pixmap", "com.sun.java.swing.plaf.gtk.PixmapEngineParser");
         engineParsers.put("bluecurve", "com.sun.java.swing.plaf.gtk.BluecurveEngineParser");
+        engineParsers.put("wonderland", "com.sun.java.swing.plaf.gtk.BluecurveEngineParser");
         engineParsers.put("blueprint", "com.sun.java.swing.plaf.gtk.BlueprintEngineParser");
     }
     
@@ -228,9 +230,8 @@ class GTKParser {
                 
                 if (colors != null || bgPixmapName[i] != null) {
                     GTKStyle.GTKStateInfo stateInfo =
-                       new GTKStyle.GTKStateInfo(toSynthState(i),
-                                                 null, null, null,
-                                                 colors, bgPixmapName[i]);
+                        new GTKStyle.GTKStateInfo(toSynthState(i),
+                                                  null, colors, bgPixmapName[i]);
                     stateInfos.add(stateInfo);
                 }
             }
@@ -901,7 +902,7 @@ class GTKParser {
             return GTKScanner.TOKEN_EQUAL_SIGN;
         }
         
-        return parseColor(cols, state[0]);
+        return parseColor(scanner, cols, state[0]);
     }
     
     private int parseState(int[] retVal) throws IOException {
@@ -934,8 +935,11 @@ class GTKParser {
         
         return GTKScanner.TOKEN_NONE;
     }
-    
-    private int parseColor(Color[] colors, int index) throws IOException {
+
+    // this is static, and takes a scanner as a parameter, so that it can
+    // be used in other places that need to parse colors
+    static int parseColor(GTKScanner scanner, Color[] colors, int index)
+                                                        throws IOException {
         int token;
         
         long lVal;
@@ -1014,7 +1018,7 @@ class GTKParser {
         return GTKScanner.TOKEN_NONE;
     }
     
-    private static Color parseColorString(String str) {
+    static Color parseColorString(String str) {
         if (str.charAt(0) == '#') {
             str = str.substring(1);
             
@@ -1054,7 +1058,7 @@ class GTKParser {
     
     private static float javaColorVal(long col) {
         int color = (int)Math.max(Math.min(col, 65535), 0);
-        return col / 65535.0f;
+        return color / 65535.0f;
     }
     
     private static float javaColorVal(double col) {
@@ -1470,13 +1474,7 @@ class GTKParser {
             if (token != GTKScanner.TOKEN_STRING) {
                 return GTKScanner.TOKEN_STRING;
             }
-
             size = scanner.currValue.stringVal;
-
-            // if an invalid size, use * instead
-            if (GTKStyle.getIconSize(size) == null) {
-                size = null;
-            }
         }
         
         token = scanner.getToken();
@@ -1537,15 +1535,29 @@ class GTKParser {
             return token;
         }
 
-        PropertyParser pp = null;
-        if (value[0] instanceof String && (pp = PropertyParser.getParserFor(prop)) != null) {
-            Object parsedVal = pp.parse((String)value[0]);
+        // for Strings or StringBuffers (representing complex values) we check
+        // for a parser that might want to parse the value
+        if (value[0] instanceof String || value[0] instanceof StringBuffer) {
+            Object val = value[0];
 
-            if (parsedVal == null) {
-                scanner.printMessage("Failed to parse property value \"" + value[0] + "\" for `"
-                                     + klass + "::" + prop + "'", false);
+            PropertyParser pp = PropertyParser.getParserFor(prop);
+
+            if (pp == null) {
+                // just add the property (but convert to String first if StringBuffer)
+                info.addProperty(klass, prop,
+                        val instanceof String ? val : val.toString());
             } else {
-                info.addProperty(klass, prop, parsedVal);
+                String toParse = val instanceof String ?
+                        '"' + escapeString((String) val) + '"' :
+                        val.toString();
+
+                Object parsedVal = pp.parse(toParse);
+                if (parsedVal == null) {
+                    scanner.printMessage("Failed to parse property value \"" + toParse + "\" for `"
+                            + klass + "::" + prop + "'", false);
+                } else {
+                    info.addProperty(klass, prop, parsedVal);
+                }
             }
         } else {
             info.addProperty(klass, prop, value[0]);
@@ -1553,10 +1565,10 @@ class GTKParser {
 
         return GTKScanner.TOKEN_NONE;
     }
-    
+
     private int parsePropertyAssignment(Object[] retVal) throws IOException {
         int token;
-        
+
         token = scanner.getToken();
         if (token != '=') {
             return '=';
@@ -1618,7 +1630,8 @@ class GTKParser {
                     token = parseComplexPropVal(result, GTKScanner.TOKEN_EOF);
                     if (token == GTKScanner.TOKEN_NONE) {
                         result.append(' ');
-                        retVal[0] = result.toString();
+                        // return the StringBuffer directly to indicate a complex value
+                        retVal[0] = result;
                     }
                 }
                 break;

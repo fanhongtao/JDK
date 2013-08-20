@@ -1,7 +1,7 @@
 /*
- * @(#)HRuleView.java	1.30 03/01/23
+ * @(#)HRuleView.java	1.32 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -18,7 +18,7 @@ import java.lang.Integer;
  *
  * @author  Timothy Prinzing
  * @author  Sara Swanson
- * @version 1.30 01/23/03
+ * @version 1.32 12/19/03
  */
 class HRuleView extends View  {
 
@@ -40,17 +40,19 @@ class HRuleView extends View  {
 	AttributeSet eAttr = getElement().getAttributes();
 	attr = sheet.getViewAttributes(this);
 
-	alignment = StyleConstants.ALIGN_LEFT;
+	alignment = StyleConstants.ALIGN_CENTER;
 	size = 0;
 	noshade = null;
 	widthValue = null;
-	// Get the width/height
-	Enumeration attributes = attr.getAttributeNames();
-	while (attributes.hasMoreElements()) {
-	    Object key = attributes.nextElement();
-	}
+
 	if (attr != null) {
+            // getAlignment() returns ALIGN_LEFT by default, and HR should
+            // use ALIGN_CENTER by default, so we check if the alignment
+            // attribute is actually defined
+            if (attr.getAttribute(StyleConstants.Alignment) != null) {
             alignment = StyleConstants.getAlignment(attr);
+            }
+
 	    noshade = (String)eAttr.getAttribute(HTML.Attribute.NOSHADE);
 	    Object value = eAttr.getAttribute(HTML.Attribute.SIZE);
 	    if (value != null && (value instanceof String))
@@ -284,7 +286,7 @@ class HRuleView extends View  {
     private float bottomMargin;
     private float leftMargin;
     private float rightMargin;
-    private int alignment = StyleConstants.ALIGN_LEFT;
+    private int alignment = StyleConstants.ALIGN_CENTER;
     private String noshade = null;
     private int size = 0;
     private CSS.LengthValue widthValue;

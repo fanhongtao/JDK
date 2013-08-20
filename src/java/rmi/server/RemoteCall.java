@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteCall.java	1.17 03/01/23
+ * @(#)RemoteCall.java	1.19 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,13 +19,14 @@ import java.io.IOException;
  * deprecated in the Java 2 platform since it is only used by deprecated methods of
  * <code>java.rmi.server.RemoteRef</code>.
  *
- * @version 1.17, 01/23/03
+ * @version 1.19, 05/18/04
  * @since   JDK1.1
  * @author  Ann Wollrath
  * @author  Roger Riggs
  * @see     java.rmi.server.RemoteRef
  * @deprecated no replacement.
  */
+@Deprecated
 public interface RemoteCall {
 
     /**
@@ -37,6 +38,7 @@ public interface RemoteCall {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     ObjectOutput getOutputStream()  throws IOException;
     
     /**
@@ -47,6 +49,7 @@ public interface RemoteCall {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     void releaseOutputStream()  throws IOException;
 
     /**
@@ -58,6 +61,7 @@ public interface RemoteCall {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     ObjectInput getInputStream()  throws IOException;
 
     
@@ -69,6 +73,7 @@ public interface RemoteCall {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     void releaseInputStream() throws IOException;
 
     /**
@@ -84,6 +89,7 @@ public interface RemoteCall {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     ObjectOutput getResultStream(boolean success) throws IOException,
 	StreamCorruptedException;
     
@@ -94,6 +100,7 @@ public interface RemoteCall {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     void executeCall() throws Exception;
 
     /**
@@ -103,5 +110,6 @@ public interface RemoteCall {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     void done() throws IOException;
 }

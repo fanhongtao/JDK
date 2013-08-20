@@ -1,7 +1,7 @@
 /*
- * @(#)CollectionCertStoreParameters.java	1.6 03/01/23
+ * @(#)CollectionCertStoreParameters.java	1.8 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.util.Collections;
  * provide the necessary locking. Multiple threads each manipulating
  * separate objects need not synchronize.
  *
- * @version 	1.6 01/23/03
+ * @version 	1.8 05/05/04
  * @since	1.4
  * @author	Steve Hanna
  * @see         java.util.Collection
@@ -66,7 +66,7 @@ public class CollectionCertStoreParameters
      * @exception NullPointerException if <code>collection</code> is
      * <code>null</code>
      */
-    public CollectionCertStoreParameters(Collection collection) {
+    public CollectionCertStoreParameters(Collection<?> collection) {
         if (collection == null)
             throw new NullPointerException();
         coll = collection;
@@ -90,7 +90,7 @@ public class CollectionCertStoreParameters
      *
      * @return the <code>Collection</code> (never null)
      */
-    public Collection getCollection() {
+    public Collection<?> getCollection() {
         return coll;
     }
 

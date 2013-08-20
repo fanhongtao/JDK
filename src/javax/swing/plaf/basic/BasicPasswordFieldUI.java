@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPasswordFieldUI.java	1.28 03/01/23
+ * @(#)BasicPasswordFieldUI.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -21,7 +21,7 @@ import javax.swing.plaf.*;
  * real text contained in the field.
  *
  * @author  Timothy Prinzing
- * @version 1.28 01/23/03
+ * @version 1.30 12/19/03
  */
 public class BasicPasswordFieldUI extends BasicTextFieldUI {
 
@@ -54,6 +54,24 @@ public class BasicPasswordFieldUI extends BasicTextFieldUI {
      */
     public View create(Element elem) {
 	return new PasswordView(elem);
+    }
+
+    /**
+     * Create the action map for Password Field.  This map provides
+     * same actions for double mouse click and
+     * and for triple mouse click (see bug 4231444).
+     */
+
+    ActionMap createActionMap() {
+	ActionMap map = super.createActionMap();
+	if (map.get(DefaultEditorKit.selectWordAction) != null) {
+	    Action a = map.get(DefaultEditorKit.selectLineAction);
+	    if (a != null) {
+		map.remove(DefaultEditorKit.selectWordAction);
+		map.put(DefaultEditorKit.selectWordAction, a);
+	    }
+	}
+	return map;
     }
 
 }

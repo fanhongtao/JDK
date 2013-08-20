@@ -1,7 +1,7 @@
 /*
- * @(#)X509CertSelector.java	1.14 03/01/23
+ * @(#)X509CertSelector.java	1.20 04/06/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import sun.security.x509.*;
  * @see CertSelector
  * @see X509Certificate
  *
- * @version 	1.14, 01/23/03
+ * @version 	1.20, 06/08/04
  * @since	1.4
  * @author	Steve Hanna
  */
@@ -87,13 +87,14 @@ public class X509CertSelector implements CertSelector {
     private PublicKey subjectPublicKey;
     private byte[] subjectPublicKeyBytes;
     private boolean[] keyUsage;
-    private Set keyPurposeSet, keyPurposeOIDSet;
-    private Set subjectAlternativeNames;
-    private Set subjectAlternativeGeneralNames;
+    private Set<String> keyPurposeSet;
+    private Set<ObjectIdentifier> keyPurposeOIDSet;
+    private Set<List<?>> subjectAlternativeNames;
+    private Set<GeneralNameInterface> subjectAlternativeGeneralNames;
     private CertificatePolicySet policy;
-    private Set policySet;
-    private Set pathToNames;
-    private Set pathToGeneralNames;
+    private Set<String> policySet;
+    private Set<List<?>> pathToNames;
+    private Set<GeneralNameInterface> pathToGeneralNames;
     private NameConstraintsExtension nc;
     private byte[] ncBytes;
     private int basicConstraints = -1;
@@ -170,12 +171,27 @@ public class X509CertSelector implements CertSelector {
 	serialNumber = serial;
     }
   
-    // called from CertPathHelperImpl, to be made public in a future release
-    void setIssuer(X500Principal issuer) {
+    /**
+     * Sets the issuer criterion. The specified distinguished name
+     * must match the issuer distinguished name in the
+     * <code>X509Certificate</code>. If <code>null</code>, any issuer
+     * distinguished name will do.
+     *
+     * @param issuer a distinguished name as X500Principal
+     *                 (or <code>null</code>)
+     * @since 1.5
+     */
+    public void setIssuer(X500Principal issuer) {
 	this.issuer = issuer;
     }
 
     /**
+     * <strong>Denigrated</strong>, use {@linkplain #setIssuer(X500Principal)} 
+     * or {@linkplain #setIssuer(byte[])} instead. This method should not be 
+     * relied on as it can fail to match some certificates because of a loss of 
+     * encoding information in the RFC 2253 String form of some distinguished
+     * names.
+     * <p>
      * Sets the issuer criterion. The specified distinguished name
      * must match the issuer distinguished name in the
      * <code>X509Certificate</code>. If <code>null</code>, any issuer
@@ -192,7 +208,7 @@ public class X509CertSelector implements CertSelector {
 	if (issuerDN == null) {
 	    issuer = null;
 	} else {
-	    issuer = new X500Name(issuerDN, "RFC2253").asX500Principal();
+	    issuer = new X500Name(issuerDN).asX500Principal();
 	}
     }
 
@@ -238,7 +254,7 @@ public class X509CertSelector implements CertSelector {
      *                 in ASN.1 DER encoded form (or <code>null</code>)
      * @throws IOException if an encoding error occurs (incorrect form for DN)
      */
-    public void setIssuer(byte [] issuerDN) throws IOException {
+    public void setIssuer(byte[] issuerDN) throws IOException {
 	try {
 	    issuer = (issuerDN == null ? null : new X500Principal(issuerDN));
 	} catch (IllegalArgumentException e) {
@@ -246,12 +262,27 @@ public class X509CertSelector implements CertSelector {
 	}
     }
   
-    // called from CertPathHelperImpl, to be made public in a future release
-    void setSubject(X500Principal subject) {
+    /**
+     * Sets the subject criterion. The specified distinguished name
+     * must match the subject distinguished name in the
+     * <code>X509Certificate</code>. If <code>null</code>, any subject
+     * distinguished name will do.
+     *
+     * @param subject a distinguished name as X500Principal
+     *                  (or <code>null</code>)
+     * @since 1.5
+     */
+    public void setSubject(X500Principal subject) {
 	this.subject = subject;
     }
 
     /**
+     * <strong>Denigrated</strong>, use {@linkplain #setSubject(X500Principal)} 
+     * or {@linkplain #setSubject(byte[])} instead. This method should not be 
+     * relied on as it can fail to match some certificates because of a loss of 
+     * encoding information in the RFC 2253 String form of some distinguished
+     * names.
+     * <p>
      * Sets the subject criterion. The specified distinguished name
      * must match the subject distinguished name in the
      * <code>X509Certificate</code>. If <code>null</code>, any subject
@@ -268,7 +299,7 @@ public class X509CertSelector implements CertSelector {
 	if (subjectDN == null) {
 	    subject = null;
 	} else {
-	    subject = new X500Name(subjectDN, "RFC2253").asX500Principal();
+	    subject = new X500Name(subjectDN).asX500Principal();
 	}
     }
 
@@ -287,7 +318,7 @@ public class X509CertSelector implements CertSelector {
      *                  ASN.1 DER format (or <code>null</code>)
      * @throws IOException if an encoding error occurs (incorrect form for DN)
      */
-    public void setSubject(byte [] subjectDN) throws IOException {
+    public void setSubject(byte[] subjectDN) throws IOException {
 	try {
 	    subject = (subjectDN == null ? null : new X500Principal(subjectDN));
 	} catch (IllegalArgumentException e) {
@@ -331,7 +362,7 @@ public class X509CertSelector implements CertSelector {
 	if (subjectKeyID == null) {
 	    this.subjectKeyID = null;
 	} else {
-	    this.subjectKeyID = (byte []) subjectKeyID.clone();
+	    this.subjectKeyID = (byte[])subjectKeyID.clone();
 	}
     }
 
@@ -563,15 +594,15 @@ public class X509CertSelector implements CertSelector {
      * being greater than 39.
      * @see #getExtendedKeyUsage
      */
-    public void setExtendedKeyUsage(Set keyPurposeSet) throws IOException {
+    public void setExtendedKeyUsage(Set<String> keyPurposeSet) throws IOException {
 	if ((keyPurposeSet == null) || keyPurposeSet.isEmpty()) {
 	    this.keyPurposeSet = null;
+	    keyPurposeOIDSet = null;
 	} else {
 	    this.keyPurposeSet = 
-		Collections.unmodifiableSet(new HashSet(keyPurposeSet));
-	    keyPurposeOIDSet = new HashSet();
-	    for (Iterator t = this.keyPurposeSet.iterator(); t.hasNext();) {
-		String s = (String)t.next();
+		Collections.unmodifiableSet(new HashSet<String>(keyPurposeSet));
+	    keyPurposeOIDSet = new HashSet<ObjectIdentifier>();
+	    for (String s : this.keyPurposeSet) {
 		keyPurposeOIDSet.add(new ObjectIdentifier(s));
 	    }
 	}
@@ -628,6 +659,10 @@ public class X509CertSelector implements CertSelector {
      * {@link #addSubjectAlternativeName(int type, byte [] name) 
      * addSubjectAlternativeName(int type, byte [] name)}.
      * <p>
+     * <strong>Note:</strong> for distinguished names, specify the byte
+     * array form instead of the String form. See the note in 
+     * {@link #addSubjectAlternativeName(int, String)} for more information. 
+     * <p>
      * Note that the <code>names</code> parameter can contain duplicate
      * names (same name and name type), but they may be removed from the
      * <code>Collection</code> of names returned by the
@@ -640,7 +675,7 @@ public class X509CertSelector implements CertSelector {
      * @throws IOException if a parsing error occurs
      * @see #getSubjectAlternativeNames
      */
-    public void setSubjectAlternativeNames(Collection names) 
+    public void setSubjectAlternativeNames(Collection<List<?>> names) 
 	    throws IOException {
 	if (names == null) {
 	    subjectAlternativeNames = null;
@@ -651,7 +686,7 @@ public class X509CertSelector implements CertSelector {
 		subjectAlternativeGeneralNames = null;
 		return;
 	    }
-	    Set tempNames = cloneAndCheckNames(names);
+	    Set<List<?>> tempNames = cloneAndCheckNames(names);
 	    // Ensure that we either set both of these or neither
 	    subjectAlternativeGeneralNames = parseNames(tempNames);
 	    subjectAlternativeNames = tempNames;
@@ -683,6 +718,12 @@ public class X509CertSelector implements CertSelector {
      * {@link #addSubjectAlternativeName(int type, byte [] name) 
      * addSubjectAlternativeName(int type, byte [] name)}
      * method.
+     * <p>
+     * <strong>Note:</strong> for distinguished names, use 
+     * {@linkplain #addSubjectAlternativeName(int, byte[])} instead. 
+     * This method should not be relied on as it can fail to match some 
+     * certificates because of a loss of encoding information in the RFC 2253 
+     * String form of some distinguished names.
      *
      * @param type the name type (0-8, as specified in
      *             RFC 2459, section 4.2.1.7)
@@ -754,13 +795,13 @@ public class X509CertSelector implements CertSelector {
 	// First, ensure that the name parses
 	GeneralNameInterface tempName = makeGeneralNameInterface(type, name);
 	if (subjectAlternativeNames == null) {
-	    subjectAlternativeNames = new HashSet();
+	    subjectAlternativeNames = new HashSet<List<?>>();
 	}
 	if (subjectAlternativeGeneralNames == null) {
-	    subjectAlternativeGeneralNames = new HashSet();
+	    subjectAlternativeGeneralNames = new HashSet<GeneralNameInterface>();
 	}
-	ArrayList list = new ArrayList();
-	list.add(new Integer(type));
+	List<Object> list = new ArrayList<Object>(2);
+	list.add(Integer.valueOf(type));
 	list.add(name);
 	subjectAlternativeNames.add(list);
 	subjectAlternativeGeneralNames.add(tempName);
@@ -783,15 +824,15 @@ public class X509CertSelector implements CertSelector {
      * @return a Set of <code>GeneralNameInterface</code>s
      * @throws IOException if a parsing error occurs
      */
-    private static Set parseNames(Collection names) throws IOException {
-	Set genNames = new HashSet();
-	Iterator i = names.iterator();
+    private static Set<GeneralNameInterface> parseNames(Collection<List<?>> names) throws IOException {
+	Set<GeneralNameInterface> genNames = new HashSet<GeneralNameInterface>();
+	Iterator<List<?>> i = names.iterator();
 	while (i.hasNext()) {
 	    Object o = i.next();
 	    if (!(o instanceof List)) {
 		throw new IOException("expected List");
 	    }
-	    List nameList = (List) o;
+	    List<Object> nameList = (List<Object>)o;
 	    if (nameList.size() != 2) {
 		throw new IOException("name list size not 2");
 	    }
@@ -799,7 +840,7 @@ public class X509CertSelector implements CertSelector {
 	    if (!(o instanceof Integer)) {
 		throw new IOException("expected an Integer");
 	    }
-	    int nameType = ((Integer) o).intValue();
+	    int nameType = ((Integer)o).intValue();
 	    o = nameList.get(1);
 	    genNames.add(makeGeneralNameInterface(nameType, o));
 	}
@@ -859,7 +900,7 @@ public class X509CertSelector implements CertSelector {
 		result = new DNSName((String)name);
 		break;
 	    case NAME_DIRECTORY:
-		result = new X500Name((String)name, "RFC2253");
+		result = new X500Name((String)name);
 		break;
 	    case NAME_URI:
 		result = new URIName((String)name);
@@ -1033,17 +1074,17 @@ public class X509CertSelector implements CertSelector {
      * greater than 39.
      * @see #getPolicy
      */
-    public void setPolicy(Set certPolicySet) throws IOException {
+    public void setPolicy(Set<String> certPolicySet) throws IOException {
 	if (certPolicySet == null) {
 	    policySet = null;
 	    policy = null;
 	} else {
 	    // Snapshot set and parse it
-	    Set tempSet = Collections.unmodifiableSet(
-						  new HashSet(certPolicySet));
+	    Set<String> tempSet = Collections.unmodifiableSet
+	    				(new HashSet<String>(certPolicySet));
 	    /* Convert to Vector of ObjectIdentifiers */
 	    Iterator i = tempSet.iterator();
-	    Vector polIdVector = new Vector();
+	    Vector<CertificatePolicyId> polIdVector = new Vector<CertificatePolicyId>();
 	    while (i.hasNext()) {
 		Object o = i.next();
 		if (!(o instanceof String)) {
@@ -1092,6 +1133,10 @@ public class X509CertSelector implements CertSelector {
      * {@link #addPathToName(int type, byte [] name) 
      * addPathToName(int type, byte [] name)}.
      * <p>
+     * <strong>Note:</strong> for distinguished names, specify the byte
+     * array form instead of the String form. See the note in
+     * {@link #addPathToName(int, String)} for more information. 
+     * <p>
      * Note that the <code>names</code> parameter can contain duplicate
      * names (same name and name type), but they may be removed from the
      * <code>Collection</code> of names returned by the
@@ -1105,12 +1150,12 @@ public class X509CertSelector implements CertSelector {
      * @throws IOException if a parsing error occurs
      * @see #getPathToNames
      */
-    public void setPathToNames(Collection names) throws IOException {
+    public void setPathToNames(Collection<List<?>> names) throws IOException {
 	if ((names == null) || names.isEmpty()) {
 	    pathToNames = null;
 	    pathToGeneralNames = null;
 	} else {
-	    Set tempNames = cloneAndCheckNames(names);
+	    Set<List<?>> tempNames = cloneAndCheckNames(names);
 	    pathToGeneralNames = parseNames(tempNames);
 	    // Ensure that we either set both of these or neither
 	    pathToNames = tempNames;
@@ -1118,10 +1163,10 @@ public class X509CertSelector implements CertSelector {
     }
   
     // called from CertPathHelper
-    void setPathToNamesInternal(Set names) {
+    void setPathToNamesInternal(Set<GeneralNameInterface> names) {
 	// set names to non-null dummy value
 	// this breaks getPathToNames()
-	pathToNames = Collections.EMPTY_SET;
+	pathToNames = Collections.<List<?>>emptySet();
 	pathToGeneralNames = names;
     }
 
@@ -1146,6 +1191,12 @@ public class X509CertSelector implements CertSelector {
      * should be specified using the 
      * {@link #addPathToName(int type, byte [] name) 
      * addPathToName(int type, byte [] name)} method.
+     * <p>
+     * <strong>Note:</strong> for distinguished names, use 
+     * {@linkplain #addPathToName(int, byte[])} instead. 
+     * This method should not be relied on as it can fail to match some 
+     * certificates because of a loss of encoding information in the RFC 2253 
+     * String form of some distinguished names.
      *
      * @param type the name type (0-8, as specified in
      *             RFC 2459, section 4.2.1.7)
@@ -1201,11 +1252,11 @@ public class X509CertSelector implements CertSelector {
 	// First, ensure that the name parses
 	GeneralNameInterface tempName = makeGeneralNameInterface(type, name);
 	if (pathToGeneralNames == null) {
-	    pathToNames = new HashSet();
-	    pathToGeneralNames = new HashSet();
+	    pathToNames = new HashSet<List<?>>();
+	    pathToGeneralNames = new HashSet<GeneralNameInterface>();
 	}
-	ArrayList list = new ArrayList(2);
-	list.add(new Integer(type));
+	List<Object> list = new ArrayList<Object>(2);
+	list.add(Integer.valueOf(type));
 	list.add(name);
 	pathToNames.add(list);
 	pathToGeneralNames.add(tempName);
@@ -1238,12 +1289,27 @@ public class X509CertSelector implements CertSelector {
 	return serialNumber;
     }
   
-    // called from CertPathHelperImpl, to be made public in a future release
-    X500Principal getIssuer() {
+    /**
+     * Returns the issuer criterion as an <code>X500Principal</code>. This
+     * distinguished name must match the issuer distinguished name in the
+     * <code>X509Certificate</code>. If <code>null</code>, the issuer criterion
+     * is disabled and any issuer distinguished name will do.
+     *
+     * @return the required issuer distinguished name as X500Principal
+     *         (or <code>null</code>)
+     * @since 1.5
+     */
+    public X500Principal getIssuer() {
 	return issuer;
     }
 
     /**
+     * <strong>Denigrated</strong>, use {@linkplain #getIssuer()} or 
+     * {@linkplain #getIssuerAsBytes()} instead. This method should not be 
+     * relied on as it can fail to match some certificates because of a loss of 
+     * encoding information in the RFC 2253 String form of some distinguished
+     * names.
+     * <p>
      * Returns the issuer criterion as a <code>String</code>. This
      * distinguished name must match the issuer distinguished name in the
      * <code>X509Certificate</code>. If <code>null</code>, the issuer criterion
@@ -1282,12 +1348,27 @@ public class X509CertSelector implements CertSelector {
 	return (issuer == null ? null: issuer.getEncoded()); 
     }
   
-    // called from CertPathHelperImpl, to be made public in a future release
-    X500Principal getSubject() {
+    /**
+     * Returns the subject criterion as an <code>X500Principal</code>. This
+     * distinguished name must match the subject distinguished name in the
+     * <code>X509Certificate</code>. If <code>null</code>, the subject criterion
+     * is disabled and any subject distinguished name will do.
+     *
+     * @return the required subject distinguished name as X500Principal
+     *         (or <code>null</code>)
+     * @since 1.5
+     */
+    public X500Principal getSubject() {
 	return subject;
     }
 
     /**
+     * <strong>Denigrated</strong>, use {@linkplain #getSubject()} or 
+     * {@linkplain #getSubjectAsBytes()} instead. This method should not be 
+     * relied on as it can fail to match some certificates because of a loss of 
+     * encoding information in the RFC 2253 String form of some distinguished
+     * names.
+     * <p>
      * Returns the subject criterion as a <code>String</code>. This
      * distinguished name must match the subject distinguished name in the
      * <code>X509Certificate</code>. If <code>null</code>, the subject criterion
@@ -1465,7 +1546,7 @@ public class X509CertSelector implements CertSelector {
      * format (or <code>null</code>)
      * @see #setExtendedKeyUsage
      */
-    public Set getExtendedKeyUsage() {
+    public Set<String> getExtendedKeyUsage() {
 	return keyPurposeSet;
     }
 
@@ -1522,7 +1603,7 @@ public class X509CertSelector implements CertSelector {
      * @return a <code>Collection</code> of names (or <code>null</code>)
      * @see #setSubjectAlternativeNames
      */
-    public Collection getSubjectAlternativeNames() {
+    public Collection<List<?>> getSubjectAlternativeNames() {
 	if (subjectAlternativeNames == null) {
 	    return null;
 	}
@@ -1549,7 +1630,7 @@ public class X509CertSelector implements CertSelector {
      * @return a deep copy of the specified <code>Collection</code>
      * @throws RuntimeException if a parsing error occurs
      */
-    private static Set cloneNames(Collection names) {
+    private static Set<List<?>> cloneNames(Collection<List<?>> names) {
 	try {
 	    return cloneAndCheckNames(names);
 	} catch (IOException e) {
@@ -1573,22 +1654,22 @@ public class X509CertSelector implements CertSelector {
      * @return a deep copy of the specified <code>Collection</code>
      * @throws IOException if a parsing error occurs
      */
-    private static Set cloneAndCheckNames(Collection names) throws IOException {
+    private static Set<List<?>> cloneAndCheckNames(Collection<List<?>> names) throws IOException {
 	// Copy the Lists and Collection
-	Set namesCopy = new HashSet();
-	Iterator i = names.iterator();
+	Set<List<?>> namesCopy = new HashSet<List<?>>();
+	Iterator<List<?>> i = names.iterator();
 	while (i.hasNext()) {
 	    Object o = i.next();
 	    if (!(o instanceof List)) {
 		throw new IOException("expected a List");
 	    }
-	    namesCopy.add(new ArrayList((List) o));
+	    namesCopy.add(new ArrayList<Object>((List<?>)o));
 	}
     
 	// Check the contents of the Lists and clone any byte arrays
 	i = namesCopy.iterator();
 	while (i.hasNext()) {
-	    List nameList = (List) i.next();
+	    List<Object> nameList = (List<Object>)i.next();
 	    if (nameList.size() != 2) {
 		throw new IOException("name list size not 2");
 	    }
@@ -1670,7 +1751,7 @@ public class X509CertSelector implements CertSelector {
      *         string format (or <code>null</code>)
      * @see #setPolicy
      */
-    public Set getPolicy() {
+    public Set<String> getPolicy() {
 	return policySet;
     }
 
@@ -1705,7 +1786,7 @@ public class X509CertSelector implements CertSelector {
      * @return a <code>Collection</code> of names (or <code>null</code>)
      * @see #setPathToNames
      */
-    public Collection getPathToNames() {
+    public Collection<List<?>> getPathToNames() {
 	if (pathToNames == null) {
 	    return null;
 	}
@@ -2204,8 +2285,8 @@ public class X509CertSelector implements CertSelector {
 		(ExtendedKeyUsageExtension)getExtensionObject(xcert, 
 						EXTENDED_KEY_USAGE_ID);
 	    if (ext != null) {
-		Vector certKeyPurposeVector = 
-		    (Vector)ext.get(ExtendedKeyUsageExtension.USAGES);
+		Vector<ObjectIdentifier> certKeyPurposeVector = 
+		    (Vector<ObjectIdentifier>)ext.get(ExtendedKeyUsageExtension.USAGES);
 		if (!certKeyPurposeVector.contains(ANY_EXTENDED_KEY_USAGE) 
 		        && !certKeyPurposeVector.containsAll(keyPurposeOIDSet)) {
 		    if (debug != null) {
@@ -2309,16 +2390,14 @@ public class X509CertSelector implements CertSelector {
 		}
 		return false;
 	    }
-	    Vector policies = (Vector)ext.get(CertificatePoliciesExtension.POLICIES);
+	    List<PolicyInformation> policies = (List<PolicyInformation>)ext.get(CertificatePoliciesExtension.POLICIES);
 	    /*
 	     * Convert the Vector of PolicyInformation to a Vector 
 	     * of CertificatePolicyIds for easier comparison.
 	     */
-	    Vector policyOIDs = new Vector(policies.size());
-	    Enumeration e = policies.elements();
-	    while (e.hasMoreElements()) {
-		policyOIDs.addElement(
-		      ((PolicyInformation)e.nextElement()).getPolicyIdentifier());
+	    List<CertificatePolicyId> policyIDs = new ArrayList<CertificatePolicyId>(policies.size());
+	    for (PolicyInformation info : policies) {
+		policyIDs.add(info.getPolicyIdentifier());
 	    }
 	    if (policy != null) {
 		boolean foundOne = false;
@@ -2328,7 +2407,7 @@ public class X509CertSelector implements CertSelector {
 		 * has some policy OID in its CertPoliciesExtension
 		 */
 		if (policy.getCertPolicyIds().isEmpty()) {
-		    if (policyOIDs.isEmpty()) {
+		    if (policyIDs.isEmpty()) {
 			if (debug != null) {
 			    debug.println("X509CertSelector.match: "
 			        + "cert failed policyAny criterion");
@@ -2336,10 +2415,10 @@ public class X509CertSelector implements CertSelector {
 			return false;
 		    }
 		} else {
-		    for (Iterator e2 = policy.getCertPolicyIds().iterator();
-			    e2.hasNext() && !foundOne;) {
-			if (policyOIDs.contains(e2.next())) {
+		    for (CertificatePolicyId id : policy.getCertPolicyIds()) {
+			if (policyIDs.contains(id)) {
 			    foundOne = true;
+			    break;
 			}
 		    }
 		    if (!foundOne) {
@@ -2501,12 +2580,12 @@ public class X509CertSelector implements CertSelector {
 	return true;
     }
   
-    private static Set cloneSet(Set set) {
+    private static Set<?> cloneSet(Set<?> set) {
 	if (set instanceof HashSet) {
-	    Object clone = ((HashSet)set).clone();
-	    return (Set)clone;
+	    Object clone = ((HashSet<?>)set).clone();
+	    return (Set<?>)clone;
 	} else {
-	    return new HashSet(set);
+	    return new HashSet<Object>(set);
 	}
     }
 
@@ -2517,16 +2596,21 @@ public class X509CertSelector implements CertSelector {
      */
     public Object clone() {
 	try {
-	    Object copy = super.clone();
+	    X509CertSelector copy = (X509CertSelector)super.clone();
 	    // Must clone these because addPathToName et al. modify them
 	    if (subjectAlternativeNames != null) {
-		subjectAlternativeNames = cloneSet(subjectAlternativeNames);
-		subjectAlternativeGeneralNames = 
-				      cloneSet(subjectAlternativeGeneralNames);
+		copy.subjectAlternativeNames = 
+			(Set<List<?>>)cloneSet(subjectAlternativeNames);
+		copy.subjectAlternativeGeneralNames = 
+			(Set<GeneralNameInterface>)cloneSet
+				(subjectAlternativeGeneralNames);
 	    }
 	    if (pathToGeneralNames != null) {
-		pathToNames = cloneSet(pathToNames);
-		pathToGeneralNames = cloneSet(pathToGeneralNames);
+		copy.pathToNames = 
+			(Set<List<?>>)cloneSet(pathToNames);
+		copy.pathToGeneralNames = 
+			(Set<GeneralNameInterface>)cloneSet
+				(pathToGeneralNames);
 	    }
 	    return copy;
 	} catch (CloneNotSupportedException e) {

@@ -1,7 +1,7 @@
 /*
- * @(#)URLConnection.java	1.95 03/01/23
+ * @(#)URLConnection.java	1.102 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.Collections;
 import java.util.Map;
+import java.util.List;
 import java.security.Permission;
 import java.security.AccessController;
 import sun.security.util.SecurityConstants;
@@ -118,13 +119,13 @@ import sun.security.util.SecurityConstants;
  * "http://java.sun.com/products/jdk/1.2/compatibility.html#incompatibilities1.2">
  * Compatibility</a> page.
  *
- * Calling the <tt>close()</tt> methods on the <tt>InputStream</tt> or <tt>OutputStream</tt> of an 
+ * Invoking the <tt>close()</tt> methods on the <tt>InputStream</tt> or <tt>OutputStream</tt> of an 
  * <tt>URLConnection</tt> after a request may free network resources associated with this 
  * instance, unless particular protocol specifications specify different behaviours 
  * for it.
  *
  * @author  James Gosling
- * @version 1.95, 01/23/03
+ * @version 1.102, 05/18/04
  * @see     java.net.URL#openConnection()
  * @see     java.net.URLConnection#connect()
  * @see     java.net.URLConnection#getContent()
@@ -261,9 +262,15 @@ public abstract class URLConnection {
      */
     protected boolean connected = false;
 
+    /**
+     * @since 1.5
+     */
+    private int connectTimeout;
+    private int readTimeout;
+
    /**
     * @since   JDK1.1
-     */
+    */
     private static FileNameMap fileNameMap;
 
     /**
@@ -333,10 +340,100 @@ public abstract class URLConnection {
      * connected, like getContentLength, will implicitly perform the
      * connection, if necessary.
      *
+     * @throws SocketTimeoutException if the timeout expires before
+     *               the connection can be established
      * @exception  IOException  if an I/O error occurs while opening the
      *               connection.
-     * @see java.net.URLConnection#connected */
+     * @see java.net.URLConnection#connected
+     * @see #getConnectTimeout()
+     * @see #setConnectTimeout(int)
+     */
     abstract public void connect() throws IOException;
+
+    /**
+     * Sets a specified timeout value, in milliseconds, to be used
+     * when opening a communications link to the resource referenced
+     * by this URLConnection.  If the timeout expires before the
+     * connection can be established, a
+     * java.net.SocketTimeoutException is raised. A timeout of zero is
+     * interpreted as an infinite timeout.
+
+     * <p> Some non-standard implmentation of this method may ignore
+     * the specified timeout. To see the connect timeout set, please
+     * call getConnectTimeout().
+     *
+     * @param timeout an <code>int</code> that specifies the connect
+     *               timeout value in milliseconds
+     * @throws IllegalArgumentException if the timeout parameter is negative
+     *
+     * @see #getConnectTimeout()
+     * @see #connect()
+     * @since 1.5
+     */
+    public void setConnectTimeout(int timeout) {
+	if (timeout < 0) {
+	    throw new IllegalArgumentException("timeout can not be negative");
+	}
+	connectTimeout = timeout;
+    }
+
+    /**
+     * Returns setting for connect timeout.
+     * <p>
+     * 0 return implies that the option is disabled
+     * (i.e., timeout of infinity).
+     *
+     * @return an <code>int</code> that indicates the connect timeout
+     *         value in milliseconds
+     * @see #setConnectTimeout(int)
+     * @see #connect()
+     * @since 1.5
+     */
+    public int getConnectTimeout() {
+	return connectTimeout;
+    }
+
+    /**
+     * Sets the read timeout to a specified timeout, in
+     * milliseconds. A non-zero value specifies the timeout when
+     * reading from Input stream when a connection is established to a
+     * resource. If the timeout expires before there is data available
+     * for read, a java.net.SocketTimeoutException is raised. A
+     * timeout of zero is interpreted as an infinite timeout.
+     *
+     *<p> Some non-standard implementation of this method ignores the
+     * specified timeout. To see the read timeout set, please call
+     * getReadTimeout().
+     *
+     * @param timeout an <code>int</code> that specifies the timeout
+     * value to be used in milliseconds
+     * @throws IllegalArgumentException if the timeout parameter is negative
+     *
+     * @see #getReadTimeout()
+     * @see InputStream#read()
+     * @since 1.5
+     */
+    public void setReadTimeout(int timeout) {
+	if (timeout < 0) {
+	    throw new IllegalArgumentException("timeout can not be negative");
+	}
+	readTimeout = timeout;
+    }
+
+    /**
+     * Returns setting for read timeout. 0 return implies that the
+     * option is disabled (i.e., timeout of infinity).
+     *
+     * @return an <code>int</code> that indicates the read timeout
+     *         value in milliseconds
+     *
+     * @see #setReadTimeout(int)
+     * @see InputStream#read()
+     * @since 1.5
+     */
+    public int getReadTimeout() {
+	return readTimeout;
+    }
 
     /**
      * Constructs a URL connection to the specified URL. A connection to 
@@ -454,7 +551,7 @@ public abstract class URLConnection {
      * @return a Map of header fields
      * @since 1.4
      */
-    public Map getHeaderFields() {
+    public Map<String,List<String>> getHeaderFields() {
         return Collections.EMPTY_MAP;
     }
 
@@ -659,11 +756,17 @@ public abstract class URLConnection {
     /**
      * Returns an input stream that reads from this open connection.
      *
+     * A SocketTimeoutException can be thrown when reading from the
+     * returned input stream if the read timeout expires before data
+     * is available for read.
+     *
      * @return     an input stream that reads from this open connection.
      * @exception  IOException              if an I/O error occurs while
      *               creating the input stream.
      * @exception  UnknownServiceException  if the protocol does not support
      *               input.
+     * @see #setReadTimeout(int)
+     * @see #getReadTimeout()
      */
     public InputStream getInputStream() throws IOException {
 	throw new UnknownServiceException("protocol doesn't support input");
@@ -925,7 +1028,7 @@ public abstract class URLConnection {
      * @param   value  the value associated with it.
      * @throws IllegalStateException if already connected
      * @throws NullPointerException if key is null
-     * @see #getRequestProperties(java.lang.String)
+     * @see #getRequestProperties()
      * @since 1.4
      */
     public void addRequestProperty(String key, String value) {
@@ -964,7 +1067,7 @@ public abstract class URLConnection {
      * @throws IllegalStateException if already connected
      * @since 1.4
      */
-    public Map getRequestProperties() {
+    public Map<String,List<String>> getRequestProperties() {
         if (connected)
             throw new IllegalStateException("Already connected");
 	return Collections.EMPTY_MAP;
@@ -983,10 +1086,11 @@ public abstract class URLConnection {
      *
      * @deprecated The instance specific setRequestProperty method
      * should be used after an appropriate instance of URLConnection
-     * is obtained.
+     * is obtained. Invoking this method will have no effect.
      *
      * @see #getDefaultRequestProperty(java.lang.String)
      */
+    @Deprecated
     public static void setDefaultRequestProperty(String key, String value) {
     }
 
@@ -1006,6 +1110,7 @@ public abstract class URLConnection {
      *
      * @see #setDefaultRequestProperty(java.lang.String, java.lang.String)
      */
+    @Deprecated
     public static String getDefaultRequestProperty(String key) {
 	return null;
     }

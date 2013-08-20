@@ -1,7 +1,7 @@
 /*
- * @(#)BasicAttribute.java	1.11 03/01/23
+ * @(#)BasicAttribute.java	1.13 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,7 +49,7 @@ import javax.naming.OperationNotSupportedException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.11 03/01/23
+  * @version 1.13 04/05/05
   * @since 1.3
   */
 public class BasicAttribute implements Attribute {
@@ -66,7 +66,7 @@ public class BasicAttribute implements Attribute {
      * Cannot be null unless methods in BasicAttribute that use
      * values have been overridden.
      */
-    protected transient Vector values;
+    protected transient Vector<Object> values;
 
     /**
      * A flag for recording whether this attribute's values are ordered.
@@ -264,7 +264,7 @@ public class BasicAttribute implements Attribute {
       * A subclass may override this to retrieve the values dynamically
       * from the directory.
       */
-    public NamingEnumeration getAll() throws NamingException {
+    public NamingEnumeration<?> getAll() throws NamingException {
       return new ValuesEnumImpl();
     }
 
@@ -504,7 +504,7 @@ public class BasicAttribute implements Attribute {
     }
 
 
-    class ValuesEnumImpl implements NamingEnumeration {
+    class ValuesEnumImpl implements NamingEnumeration<Object> {
     Enumeration list;
 
     ValuesEnumImpl() {

@@ -1,7 +1,7 @@
 /*
- * @(#)JarEntry.java	1.19 03/01/23
+ * @(#)JarEntry.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@ package java.util.jar;
 
 import java.io.IOException;
 import java.util.zip.ZipEntry;
+import java.security.CodeSigner;
 import java.security.cert.Certificate;
 
 /**
@@ -18,6 +19,7 @@ public
 class JarEntry extends ZipEntry {
     Attributes attr;
     Certificate[] certs;
+    CodeSigner[] signers;
 
     /**
      * Creates a new <code>JarEntry</code> for the specified JAR file
@@ -52,6 +54,7 @@ class JarEntry extends ZipEntry {
 	this((ZipEntry)je);
 	this.attr = je.attr;
 	this.certs = je.certs;
+	this.signers = je.signers;
     }
 
     /**
@@ -84,5 +87,24 @@ class JarEntry extends ZipEntry {
      */
     public Certificate[] getCertificates() {
 	return certs;
+    }
+
+    /**
+     * Returns the <code>CodeSigner</code> objects for this entry, or
+     * <code>null</code> if none. This method can only be called once
+     * the <code>JarEntry</code> has been completely verified by reading
+     * from the entry input stream until the end of the stream has been
+     * reached. Otherwise, this method will return <code>null</code>.
+     *
+     * <p>The returned array comprises all the code signers that have signed
+     * this entry. 
+     *
+     * @return the <code>CodeSigner</code> objects for this entry, or
+     * <code>null</code> if none.
+     *
+     * @since 1.5
+     */
+    public CodeSigner[] getCodeSigners() {
+	return signers;
     }
 }

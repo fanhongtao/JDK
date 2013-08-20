@@ -1,7 +1,7 @@
 /*
- * @(#)MediaSizeName.java	1.9 03/01/23
+ * @(#)MediaSizeName.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -27,6 +27,9 @@ import javax.print.attribute.Attribute;
  *
  */
 public class MediaSizeName extends Media {
+
+    private static final long serialVersionUID = 2778798329756942747L;
+
     /**
      * A0 size.
      */

@@ -1,7 +1,7 @@
 /*
- * @(#)FailedLoginException.java	1.13 03/01/23
+ * @(#)FailedLoginException.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,9 +14,11 @@ package javax.security.auth.login;
  * For example, a <code>LoginModule</code> throws this exception if
  * the user entered an incorrect password.
  *
- * @version 1.13, 01/23/03
+ * @version 1.15, 12/19/03
  */
 public class FailedLoginException extends LoginException {
+
+    private static final long serialVersionUID = 802556922354616286L;
 
     /**
      * Constructs a FailedLoginException with no detail message. A detail

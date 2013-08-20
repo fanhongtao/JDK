@@ -1,23 +1,15 @@
 /*
- * @(#)java_md.c	1.38 05/11/29
+ * @(#)java_md.c	1.54 04/05/05
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * Backported from Tiger (1.5) java_md.c	1.43 03/11/03
- *
- * Support for amd64 removed.
- * Much, if not all, of:
- *      4884169: RFE: JVM could adapt to the class of machine it's on
- * removed or disabled.
  */
 
 #include "java.h"
 #include <dirent.h>
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -38,10 +30,13 @@
 
 /*
  * If a processor / os combination has the ability to run binaries of
- * with two data models (e.g. Solaris) then
- * DUAL_MODE is defined.  When DUAL_MODE is defined, the architecture
- * names for the narrow and wide version of the architecture are
- * defined in BIG_ARCH and SMALL_ARCH.
+ * with two data models and cohabitation of jre/jdk bits with both 
+ * data models is supported, then DUAL_MODE is defined.  When 
+ * DUAL_MODE is defined, the architecture names for the narrow and 
+ * wide version of the architecture are defined in BIG_ARCH and 
+ * SMALL_ARCH.  Currently only SPARC/Solaris is DUAL_MODE; linux 
+ * i586/amd64 could be defined as DUAL_MODE; but that is not the 
+ * current policy. 
  */
 
 #ifdef _LP64
@@ -54,31 +49,24 @@
 #    define ARCH "sparcv9"
 #  else
 #    define ARCH "unknown" /* unknown 64-bit architecture */
-#  endif
+#endif
 
 #else /* 32-bit data model */
 
 #  ifdef i586
 #    define ARCH "i386"
-#  elif defined(__sparc)
-#    define ARCH "sparc"
 #  endif
-
 #endif /* _LP64 */
 
-#ifdef __sun
+#ifdef __sparc
 #  define DUAL_MODE
-#  ifdef __sparc
-#    define BIG_ARCH "sparcv9"
-#    define SMALL_ARCH "sparc"
-#  else
-#    define BIG_ARCH "amd64"
-#    define SMALL_ARCH "i386"
-#  endif
+#  define BIG_ARCH "sparcv9"
+#  define SMALL_ARCH "sparc"
 #  include <sys/systeminfo.h>
 #  include <sys/elf.h>
 #  include <stdio.h>
 #else
+
 #  ifndef ARCH
 #    include <sys/systeminfo.h>
 #  endif
@@ -200,8 +188,8 @@ CreateExecutionEnvironment(int *_argcp,
    * are running the desired data model, all the error messages
    * associated with calling GetJREPath, ReadKnownVMs, etc. should be
    * output.  However, if we are not running the desired data model,
-   * some of the errors should be surpressed since it is more
-   * infomrative to issue an error message based on whether or not the
+   * some of the errors should be suppressed since it is more
+   * informative to issue an error message based on whether or not the
    * os/processor combination has dual mode capabilities.
    */
 
@@ -228,7 +216,7 @@ CreateExecutionEnvironment(int *_argcp,
 #ifdef _LP64 
 	64;
 #else
-	32;
+      32;
 #endif
 
       int wanted	= running;	/* What data mode is being
@@ -242,9 +230,9 @@ CreateExecutionEnvironment(int *_argcp,
 
       char** newenvp	= NULL; /* current environment */
 
-#ifdef __sun
       char** newargv	= NULL;
       int    newargc	= 0;
+#ifdef __sun
       char*  dmpath	= NULL;  /* data model specific LD_LIBRARY_PATH,
 				    Solaris only */
 #endif    
@@ -254,17 +242,8 @@ CreateExecutionEnvironment(int *_argcp,
        * options.  On platforms where only one data-model is supported
        * (e.g. ia-64 Linux), using the flag for the other data model is
        * an error and will terminate the program.
-       *
-       * But that is the future (and the source for this backport).
-       * Pre-1.5, Solaris is the only supported platform which
-       * accepts the -d32 and -d64 options since it is the only
-       * supported platform that allows running either 32 or 64 bit
-       * binaries.  If other such platforms are added in the future
-       * (Linux on Hammer?), the #ifdef below will have to be adjusted
-       * accordingly.
        */
 
-#ifdef __sun
       { /* open new scope to declare local variables */
 	int i;
 
@@ -312,7 +291,6 @@ CreateExecutionEnvironment(int *_argcp,
 	argc = newargc;
 	argv = newargv;
       }
-#endif /* end of __sun */
 
       /* If the data model is not changing, it is an error if the
 	 jvmpath does not exist */
@@ -512,11 +490,11 @@ CreateExecutionEnvironment(int *_argcp,
 #endif
 	    ) {
 
-	  return; /* already have right LD_LIBRARY_PATH (and data model,
-		     where appropriate)*/
+	  return;
+
 	}
       }
-
+    
       /* 
        * Place the desired environment setting onto the prefix of
        * LD_LIBRARY_PATH.  Note that this prevents any possible infinite
@@ -564,7 +542,7 @@ CreateExecutionEnvironment(int *_argcp,
 	 * olddir/sparcv9/execname
 	 * olddir/amd64/execname
 	 *
-	 * for Solaris SPARC and amd64, respectively.
+	 * for Solaris SPARC and Linux amd64, respectively.
 	 */
 
 	if (running != wanted) {
@@ -591,18 +569,12 @@ CreateExecutionEnvironment(int *_argcp,
 	if (running != wanted) {
 	  fprintf(stderr, "Failed to start a %d-bit JVM process from a %d-bit JVM.\n",
 		  wanted, running);
-#  ifdef __sun
-
-#    ifdef __sparc
+#ifdef __sparc
 	  fprintf(stderr, "Verify all necessary J2SE components have been installed.\n" );
 	  fprintf(stderr,
 		  "(Solaris SPARC 64-bit components must be installed after 32-bit components.)\n" );
-#    else 
-	  fprintf(stderr, "Either 64-bit processes are not supported by this platform\n");
-	  fprintf(stderr, "or the 64-bit components have not been installed.\n");
-#    endif
+#endif
 	}
-#  endif
 #endif
 
       }
@@ -756,19 +728,15 @@ error:
 void
 GetXUsagePath(char *buf, jint bufsize)
 {
+    static const char Xusage_txt[] = "/Xusage.txt";
     Dl_info dlinfo;
    
     /* we use RTLD_NOW because of problems with ld.so.1 and green threads */
     dladdr(dlsym(dlopen(JVM_DLL, RTLD_NOW), "JNI_CreateJavaVM"), &dlinfo);
-#ifdef __linux__
-    strncpy(buf, (char *)dlinfo.dli_fname, bufsize - 2);
-#else
-    strncpy(buf, (char *)dlinfo.dli_fname, bufsize - 1);
-#endif
+    strncpy(buf, (char *)dlinfo.dli_fname, bufsize - sizeof(Xusage_txt));
 
     buf[bufsize-1] = '\0';
-    *(strrchr(buf, '/')) = '\0';
-    strcat(buf, "/Xusage.txt");
+    strcpy(strrchr(buf, '/'), Xusage_txt);
 }
 
 /*
@@ -791,7 +759,7 @@ GetApplicationHome(char *buf, jint bufsize)
 
     dladdr((void *)GetApplicationHome, &dlinfo);
     if (realpath(dlinfo.dli_fname, buf) == NULL) {
-	fprintf(stderr, "Error: realpath(`%s') failed.\n", buf);
+	fprintf(stderr, "Error: realpath(`%s') failed.\n", dlinfo.dli_fname);
 	return JNI_FALSE;
     }
 #endif
@@ -806,7 +774,7 @@ GetApplicationHome(char *buf, jint bufsize)
 	return JNI_FALSE;
     }
     if (strcmp("/bin", buf + strlen(buf) - 4) != 0) 
-	*(strrchr(buf, '/')) = '\0';	/* sparcv9 or amd64     */
+	*(strrchr(buf, '/')) = '\0';	/* sparcv9              */
     if (strlen(buf) < 4 || strcmp("/bin", buf + strlen(buf) - 4) != 0) {
 	buf[0] = '\0';
 	return JNI_FALSE;
@@ -986,7 +954,7 @@ void  ReportExceptionDescription(JNIEnv * env) {
 /*
  * Return JNI_TRUE for an option string that has no effect but should
  * _not_ be passed on to the vm; return JNI_FALSE otherwise.  On
- * Solaris, this screening needs to be done if:
+ * Solaris SPARC, this screening needs to be done if:
  * 1) LD_LIBRARY_PATH does _not_ need to be reset and
  * 2) -d32 or -d64 is passed to a binary with a matching data model
  *    (the exec in SetLibraryPath removes -d<n> options and points the
@@ -994,7 +962,6 @@ void  ReportExceptionDescription(JNIEnv * env) {
  *    would end up getting passed onto the vm.
  */
 jboolean RemovableMachineDependentOption(char * option) {
-#ifdef __sun
   /*
    * Unconditionally remove both -d32 and -d64 options since only
    * the last such options has an effect; e.g. 
@@ -1008,109 +975,427 @@ jboolean RemovableMachineDependentOption(char * option) {
     return JNI_TRUE;
   else
     return JNI_FALSE;
-#else /* not __sun */
-  return JNI_FALSE;
-#endif
 }
 
 void PrintMachineDependentOptions() {
-#ifdef __sun
       fprintf(stdout,
 	"    -d32          use a 32-bit data model if available\n"
 	"\n"
 	"    -d64          use a 64-bit data model if available\n");
-#endif
       return;
 }
 
+/* 
+ * The following methods (down to ServerClassMachine()) answer
+ * the question about whether a machine is a "server-class"
+ * machine.  A server-class machine is loosely defined as one
+ * with 2 or more processors and 2 gigabytes or more physical
+ * memory.  The definition of a processor is a physical package,
+ * not a hyperthreaded chip masquerading as a multi-processor.
+ * The definition of memory is also somewhat fuzzy, since x86
+ * machines seem not to report all the memory in their DIMMs, we
+ * think because of memory mapping of graphics cards, etc.
+ * 
+ * This code is somewhat more confused with #ifdef's than we'd
+ * like because this file is used by both Solaris and Linux
+ * platforms, and so needs to be parameterized for SPARC and
+ * i586 hardware.  The other Linux platforms (amd64 and ia64)
+ * don't even ask this question, because they only come with
+ * server JVMs.  */
+
+# define KB (1024UL)
+# define MB (1024UL * KB)
+# define GB (1024UL * MB)
+
+/* Compute physical memory by asking the OS */
+uint64_t
+physical_memory(void) {
+  const uint64_t pages     = (uint64_t) sysconf(_SC_PHYS_PAGES);
+  const uint64_t page_size = (uint64_t) sysconf(_SC_PAGESIZE);
+  const uint64_t result    = pages * page_size;
+# define UINT64_FORMAT "%" PRIu64
+    
+  if (_launcher_debug) {
+    printf("pages: " UINT64_FORMAT
+           "  page_size: " UINT64_FORMAT
+           "  physical memory: " UINT64_FORMAT " (%.3fGB)\n",
+           pages, page_size, result, result / (double) GB);
+  }
+  return result;
+}
+
+#if defined(__sun) && defined(__sparc)
+
+/* Methods for solaris-sparc: these are easy. */
+
+/* Ask the OS how many processors there are. */
+unsigned long 
+physical_processors(void) {
+  const unsigned long sys_processors = sysconf(_SC_NPROCESSORS_CONF);
+
+  if (_launcher_debug) {
+    printf("sysconf(_SC_NPROCESSORS_CONF): %lu\n", sys_processors);
+  }
+  return sys_processors;
+}
+
+/* The solaris-sparc version of the "server-class" predicate. */
 jboolean
-ServerClassMachine() {
-  /* Stub for 1.5 backport */
+solaris_sparc_ServerClassMachine(void) {
+  jboolean            result            = JNI_FALSE;
+  /* How big is a server class machine? */
+  const unsigned long server_processors = 2UL;
+  const uint64_t      server_memory     = 2UL * GB;
+  const uint64_t      actual_memory     = physical_memory();
+
+  /* Is this a server class machine? */
+  if (actual_memory >= server_memory) {
+    const unsigned long actual_processors = physical_processors();
+    if (actual_processors >= server_processors) {
+      result = JNI_TRUE;
+    }
+  }
+  if (_launcher_debug) {
+    printf("solaris_sparc_ServerClassMachine: %s\n",
+           (result == JNI_TRUE ? "JNI_TRUE" : "JNI_FALSE"));
+  }
+  return result;
+}
+
+#endif /* __sun && __sparc */
+
+#if defined(__sun) && defined(i586)
+
+/*
+ * A utility method for asking the CPU about itself.
+ * There's a corresponding version of linux-i586
+ * because the compilers are different.
+ */
+void 
+get_cpuid(uint32_t arg,
+          uint32_t* eaxp,
+          uint32_t* ebxp,
+          uint32_t* ecxp,
+          uint32_t* edxp) {
+  /* EBX is a callee-saved register */
+  asm(" pushl   %ebx");
+  /* Need ESI for storing through arguments */
+  asm(" pushl   %esi");
+  asm(" movl     8(%ebp), %eax  \n"
+      " cpuid                   \n"
+      " movl    12(%ebp), %esi  \n"
+      " movl    %eax, (%esi)    \n"
+      " movl    16(%ebp), %esi  \n"
+      " movl    %ebx, (%esi)    \n"
+      " movl    20(%ebp), %esi  \n"
+      " movl    %ecx, (%esi)    \n"
+      " movl    24(%ebp), %esi  \n"
+      " movl    %edx, (%esi)      ");
+  /* Restore ESI and EBX */
+  asm(" popl    %esi");
+  /* Restore EBX */
+  asm(" popl    %ebx");
+}
+
+#endif /* __sun && i586 */
+
+#if defined(__linux__) && defined(i586)
+
+/*
+ * A utility method for asking the CPU about itself.
+ * There's a corresponding version of solaris-i586
+ * because the compilers are different.
+ */
+void 
+get_cpuid(uint32_t arg,
+          uint32_t* eaxp,
+          uint32_t* ebxp,
+          uint32_t* ecxp,
+          uint32_t* edxp) {
+  uint32_t value_of_eax = 0;
+  uint32_t value_of_ebx = 0;
+  uint32_t value_of_ecx = 0;
+  uint32_t value_of_edx = 0;
+  __asm__ volatile (/* Instructions */
+                        /* ebx is callee-save, so push it */
+                        /* even though it's in the clobbers section */
+                    "   pushl   %%ebx      \n"
+                    "	movl	%4, %%eax  \n"
+                    "	cpuid              \n"
+                    "	movl    %%eax, %0  \n"
+                    "	movl    %%ebx, %1  \n"
+                    "	movl    %%ecx, %2  \n"
+                    "	movl    %%edx, %3  \n"
+                        /* restore ebx */
+                    "   popl    %%ebx      \n"
+                    : /* Outputs */
+                    "=m" (value_of_eax), 
+                    "=m" (value_of_ebx),
+                    "=m" (value_of_ecx),
+                    "=m" (value_of_edx)
+                    : /* Inputs */
+                    "m" (arg)
+                    : /* Clobbers */
+                    "%eax", "%ebx", "%ecx", "%edx"
+                    );
+  *eaxp = value_of_eax;
+  *ebxp = value_of_ebx;
+  *ecxp = value_of_ecx;
+  *edxp = value_of_edx;
+}
+
+#endif /* __linux__ && i586 */
+
+#ifdef i586
+/* 
+ * Routines shared by solaris-i586 and linux-i586.
+ */
+
+enum HyperThreadingSupport_enum {
+  hts_supported        =  1,
+  hts_too_soon_to_tell =  0,
+  hts_not_supported    = -1,
+  hts_not_pentium4     = -2,
+  hts_not_intel        = -3
+};
+typedef enum HyperThreadingSupport_enum HyperThreadingSupport;
+
+/* Determine if hyperthreading is supported */
+HyperThreadingSupport
+hyperthreading_support(void) {
+  HyperThreadingSupport result = hts_too_soon_to_tell;
+  /* Bits 11 through 8 is family processor id */
+# define FAMILY_ID_SHIFT 8
+# define FAMILY_ID_MASK 0xf
+  /* Bits 23 through 20 is extended family processor id */
+# define EXT_FAMILY_ID_SHIFT 20
+# define EXT_FAMILY_ID_MASK 0xf
+  /* Pentium 4 family processor id */
+# define PENTIUM4_FAMILY_ID 0xf
+  /* Bit 28 indicates Hyper-Threading Technology support */
+# define HT_BIT_SHIFT 28
+# define HT_BIT_MASK 1
+  uint32_t vendor_id[3] = { 0U, 0U, 0U };
+  uint32_t value_of_eax = 0U;
+  uint32_t value_of_edx = 0U;
+  uint32_t dummy        = 0U;
+
+  /* Yes, this is supposed to be [0], [2], [1] */
+  get_cpuid(0, &dummy, &vendor_id[0], &vendor_id[2], &vendor_id[1]);
+  if (_launcher_debug) {
+    printf("vendor: %c %c %c %c %c %c %c %c %c %c %c %c \n",
+           ((vendor_id[0] >>  0) & 0xff), 
+           ((vendor_id[0] >>  8) & 0xff), 
+           ((vendor_id[0] >> 16) & 0xff), 
+           ((vendor_id[0] >> 24) & 0xff), 
+           ((vendor_id[1] >>  0) & 0xff), 
+           ((vendor_id[1] >>  8) & 0xff), 
+           ((vendor_id[1] >> 16) & 0xff), 
+           ((vendor_id[1] >> 24) & 0xff), 
+           ((vendor_id[2] >>  0) & 0xff), 
+           ((vendor_id[2] >>  8) & 0xff), 
+           ((vendor_id[2] >> 16) & 0xff), 
+           ((vendor_id[2] >> 24) & 0xff));
+  }
+  get_cpuid(1, &value_of_eax, &dummy, &dummy, &value_of_edx);
+  if (_launcher_debug) {
+    printf("value_of_eax: 0x%x  value_of_edx: 0x%x\n",
+           value_of_eax, value_of_edx);
+  }
+  if ((((value_of_eax >> FAMILY_ID_SHIFT) & FAMILY_ID_MASK) == PENTIUM4_FAMILY_ID) ||
+      (((value_of_eax >> EXT_FAMILY_ID_SHIFT) & EXT_FAMILY_ID_MASK) != 0)) {
+    if ((((vendor_id[0] >>  0) & 0xff) == 'G') && 
+        (((vendor_id[0] >>  8) & 0xff) == 'e') && 
+        (((vendor_id[0] >> 16) & 0xff) == 'n') && 
+        (((vendor_id[0] >> 24) & 0xff) == 'u') && 
+        (((vendor_id[1] >>  0) & 0xff) == 'i') && 
+        (((vendor_id[1] >>  8) & 0xff) == 'n') && 
+        (((vendor_id[1] >> 16) & 0xff) == 'e') && 
+        (((vendor_id[1] >> 24) & 0xff) == 'I') && 
+        (((vendor_id[2] >>  0) & 0xff) == 'n') && 
+        (((vendor_id[2] >>  8) & 0xff) == 't') && 
+        (((vendor_id[2] >> 16) & 0xff) == 'e') && 
+        (((vendor_id[2] >> 24) & 0xff) == 'l')) {
+      if (((value_of_edx >> HT_BIT_SHIFT) & HT_BIT_MASK) == HT_BIT_MASK) {
+        if (_launcher_debug) {
+          printf("Hyperthreading supported\n");
+        }
+        result = hts_supported;
+      } else {
+        if (_launcher_debug) {
+          printf("Hyperthreading not supported\n");
+        }
+        result = hts_not_supported;
+      }
+    } else {
+      if (_launcher_debug) {
+        printf("Not GenuineIntel\n");
+      }
+      result = hts_not_intel;
+    }
+  } else {
+    if (_launcher_debug) {
+      printf("not Pentium 4 or extended\n");
+    }
+    result = hts_not_pentium4;
+  }
+  return result;
+}
+
+/* Determine how many logical processors there are per CPU */
+unsigned int
+logical_processors_per_package(void) {
+  /*
+   * After CPUID with EAX==1, register EBX bits 23 through 16 
+   * indicate the number of logical processors per package
+   */
+# define NUM_LOGICAL_SHIFT 16
+# define NUM_LOGICAL_MASK 0xff
+  unsigned int result                        = 1U;
+  const HyperThreadingSupport hyperthreading = hyperthreading_support();
+  
+  if (hyperthreading == hts_supported) {
+    uint32_t value_of_ebx = 0U;
+    uint32_t dummy        = 0U;
+
+    get_cpuid(1, &dummy, &value_of_ebx, &dummy, &dummy);
+    result = (value_of_ebx >> NUM_LOGICAL_SHIFT) & NUM_LOGICAL_MASK;
+    if (_launcher_debug) {
+      printf("logical processors per package: %u\n", result);
+    }
+  }
+  return result;
+}
+
+/* Compute the number of physical processors, not logical processors */
+unsigned long 
+physical_processors(void) {
+  const long sys_processors = sysconf(_SC_NPROCESSORS_CONF);
+  unsigned long result      = sys_processors;
+
+  if (_launcher_debug) {
+    printf("sysconf(_SC_NPROCESSORS_CONF): %lu\n", sys_processors);
+  }
+  if (sys_processors > 1) {
+    unsigned int logical_processors = logical_processors_per_package();
+    if (logical_processors > 1) {
+      result = (unsigned long) sys_processors / logical_processors;
+    }
+  }
+  if (_launcher_debug) {
+    printf("physical processors: %lu\n", result);
+  }
+  return result;
+}
+
+#endif /* i586 */
+
+#if defined(__sun) && defined(i586)
+
+/* The definition of a server-class machine for solaris-i586 */
+jboolean
+solaris_i586_ServerClassMachine(void) {
+  jboolean            result            = JNI_FALSE;
+  /* How big is a server class machine? */
+  const unsigned long server_processors = 2UL;
+  const uint64_t      server_memory     = 2UL * GB;
+  /*
+   * We seem not to get our full complement of memory.
+   *     We allow some part (1/8?) of the memory to be "missing",
+   *     based on the sizes of DIMMs, and maybe graphics cards.
+   */
+  const uint64_t      missing_memory    = 256UL * MB;
+  const uint64_t      actual_memory     = physical_memory();
+
+  /* Is this a server class machine? */
+  if (actual_memory >= (server_memory - missing_memory)) {
+    const unsigned long actual_processors = physical_processors();
+    if (actual_processors >= server_processors) {
+      result = JNI_TRUE;
+    }
+  }
+  if (_launcher_debug) {
+    printf("solaris_i586_ServerClassMachine: %s\n",
+           (result == JNI_TRUE ? "true" : "false"));
+  }
+  return result;
+}
+
+#endif /* __sun && i586 */
+
+#if defined(__linux__) && defined(i586)
+
+/* The definition of a server-class machine for linux-i586 */
+jboolean
+linux_i586_ServerClassMachine(void) {
+  jboolean            result            = JNI_FALSE;
+  /* How big is a server class machine? */
+  const unsigned long server_processors = 2UL;
+  const uint64_t      server_memory     = 2UL * GB;
+  /*
+   * We seem not to get our full complement of memory.
+   *     We allow some part (1/8?) of the memory to be "missing",
+   *     based on the sizes of DIMMs, and maybe graphics cards.
+   */
+  const uint64_t      missing_memory    = 256UL * MB;
+  const uint64_t      actual_memory     = physical_memory();
+
+  /* Is this a server class machine? */
+  if (actual_memory >= (server_memory - missing_memory)) {
+    const unsigned long actual_processors = physical_processors();
+    if (actual_processors >= server_processors) {
+      result = JNI_TRUE;
+    }
+  }
+  if (_launcher_debug) {
+    printf("linux_i586_ServerClassMachine: %s\n",
+           (result == JNI_TRUE ? "true" : "false"));
+  }
+  return result;
+}
+
+#endif /* __linux__ && i586 */
+
+/* Dispatch to the platform-specific definition of "server-class" */
+jboolean
+ServerClassMachine(void) {
   jboolean result = JNI_FALSE;
+#if   defined(__sun) && defined(__sparc)
+  result = solaris_sparc_ServerClassMachine();
+#elif defined(__sun) && defined(i586)
+  result = solaris_i586_ServerClassMachine();
+#elif defined(__linux__) && defined(i586)
+  result = linux_i586_ServerClassMachine();
+#else
+  if (_launcher_debug) {
+    printf("ServerClassMachine: returns default value of %s\n",
+           (result == JNI_TRUE ? "true" : "false"));
+  }
+#endif
   return result;
 }
 
 /*
- *	Determine if the candidate directory contains an appropriate JVM.
- *
- *	To accommodate Solaris patches, the full release/version name
- *	can't always be determined from the version portion of the
- *	directory name.  In these cases a file "RELEASE" should be
- *	present in the directory and used to identify the full release
- *	name.
- *
  *	Since using the file system as a registry is a bit risky, perform
  *	additional sanity checks on the identified directory to validate
  *	it as a valid jre/sdk.
  *
- *	Returns true (non-zero) if the directory is an appropriate
- *	candidate based on passing the validity tests and the identified
- *	release; otherwise returns false (zero).
+ *	Return 0 if the tests fail; otherwise return non-zero (true).
  *
  *	Note that checking for anything more than the existence of an
  *	executable object at bin/java relative to the path being checked
  *	will break the regression tests.
- *
- *	Parameters:
- *	    release:	A buffer of a least MAXNAMELEN + 1 characters in
- *			which the release name is returned upon success.
- *	    path:	The prefix path to the directory being considered.
- *	    dir:	The directory being considered.
- *	    version:	The version portion of the directory name being
- *			considered.
- *	    spec:	The requested release specification.
  */
 static int
-AppropriateJVM(char *release, const char *path, const char *dir,
-  const char *version, const char *spec)
+CheckSanity(char *path, char *dir)
 {
-    char    *javahome;
-    int     fd;
-    int     len;
     char    buffer[PATH_MAX];
 
     if (strlen(path) + strlen(dir) + 11 > PATH_MAX)
 	return (0);	/* Silently reject "impossibly" long paths */
 
-    /*
-     * Construct the constant portion of the path and maintain a pointer
-     * to the end of the constant portion (the equivalent of $JAVAHOME).
-     */
-    (void)strcat(strcat(strcpy(buffer, path), "/"), dir);
-    javahome = &buffer[strlen(buffer)];
-
-    /*
-     * See if there is a possible Java Virtual Machine at the appropriate
-     * relative location from $JAVAHOME.  If not, bail.
-     */
-    (void)strcpy(javahome, "/bin/java");
-    if (access(buffer, X_OK) != 0)
-	return (0);
-
-    /*
-     * See if there is a file named "RELEASE" in the potential $JAVAHOME
-     * directory. If so, assume it contains the full release information.
-     */
-    (void)strcpy(javahome, "/RELEASE");
-    if ((fd = open(buffer, O_RDONLY)) != -1) {
-	if ((len = read(fd, release, MAXNAMELEN)) <= 0)
-	    return (0);				/* corrupt or zero length */
-	(void)close(fd);
-	release[len] = '\0';
-	len = strcspn(release," \t\n\r\f");	/* terminate at cntl char */
-	release[len] = '\0';
-	return (acceptable_release(release, spec));
-    }
-
-    /*
-     * Determine if the version part of the directory name is an acceptable
-     * release.
-     */
-    if (acceptable_release(version, spec)) {
-	(void)strcpy(release, version);
-	return (1);
-    }
-    return (0);
+    (void)strcat(strcat(strcat(strcpy(buffer, path), "/"), dir), "/bin/java");
+    return ((access(buffer, X_OK) == 0) ? 1 : 0);
 }
 
 /*
@@ -1136,17 +1421,18 @@ static char
 {
     DIR	    *dirp;
     struct dirent *dp;
-    int     offset;			/* offset to version in the dir name */
-    char    version[MAXNAMELEN + 1];	/* extracted version string */
-    char    *best = NULL;		/* "best" dir name */
-    char    *best_version = NULL;	/* "best" version string */
+    char    *best = NULL;
+    int     offset;
+    int	    best_offset = 0;
     char    *ret_str = NULL;
+    char    buffer[PATH_MAX];
 
     if ((dirp = opendir(dirname)) == NULL)
 	return (NULL);
 
     do {
 	if ((dp = readdir(dirp)) != NULL) {
+	    offset = 0;
 	    if ((strncmp(dp->d_name, "jre", 3) == 0) ||
 	        (strncmp(dp->d_name, "jdk", 3) == 0))
 		offset = 3;
@@ -1154,23 +1440,20 @@ static char
 		offset = 4;
 	    else if (strncmp(dp->d_name, "j2sdk", 5) == 0)
 		offset = 5;
-	    else
-		continue;
-	    if (AppropriateJVM(version, dirname, dp->d_name,
-	      dp->d_name + offset, info->jre_version)) {
-		if ((best == NULL) ||
-		    (exact_version_id(version, best_version) > 0)) {
-		    free(best);
-		    best = strdup(dp->d_name);
-		    free(best_version);
-		    best_version = strdup(version);
-		}
+	    if (offset > 0) {
+	    	if ((acceptable_release(dp->d_name + offset,
+		    info->jre_version)) && CheckSanity(dirname, dp->d_name))
+	    	    if ((best == NULL) || (exact_version_id(
+		      dp->d_name + offset, best + best_offset) > 0)) {
+			if (best != NULL)
+			    free(best);
+			best = strdup(dp->d_name);
+			best_offset = offset;
+		    }
 	    }
 	}
     } while (dp != NULL);
     (void) closedir(dirp);
-    free(best_version);
-
     if (best == NULL)
 	return (NULL);
     else {

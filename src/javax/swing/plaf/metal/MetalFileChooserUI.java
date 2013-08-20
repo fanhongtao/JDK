@@ -1,7 +1,7 @@
 /*
- * @(#)MetalFileChooserUI.java	1.73 08/09/23
+ * @(#)MetalFileChooserUI.java	1.83 04/03/30
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,25 +14,22 @@ import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.table.*;
-import javax.swing.text.Position;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.*;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 
 import sun.awt.shell.ShellFolder;
+import sun.swing.*;
+import com.sun.java.swing.SwingUtilities2;
 
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.73 09/23/08
+ * @version 1.83 03/30/04
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -41,7 +38,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     // the windows implementation, but using Metal themed buttons, lists,
     // icons, etc. We are planning a complete rewrite, and hence we've
     // made most things in this class private.
-    private JPanel centerPanel;
 
     private JLabel lookInLabel;
     private JComboBox directoryComboBox;
@@ -52,24 +48,11 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
     private JTextField fileNameTextField;
 
+    private FilePane filePane;
     private JToggleButton listViewButton;
     private JToggleButton detailsViewButton;
-    private JPanel listViewPanel;
-    private JPanel detailsViewPanel;
-    private JPanel currentViewPanel;
-    private FocusListener editorFocusListener = new FocusAdapter() {
-	public void focusLost(FocusEvent e) {
-	    if (! e.isTemporary()) {
-		applyEdit();
-	    }
-	}
-    };
 
     private boolean useShellFolder;
-
-    private ListSelectionModel listSelectionModel;
-    private JList list;
-    private JTable detailsTable;
 
     private JButton approveButton;
     private JButton cancelButton;
@@ -99,15 +82,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     private static int LIST_PREF_HEIGHT = 135;
     private static Dimension LIST_PREF_SIZE = new Dimension(LIST_PREF_WIDTH, LIST_PREF_HEIGHT);
 
-    private static final int COLUMN_FILENAME = 0;
-    private static final int COLUMN_FILESIZE = 1;
-    private static final int COLUMN_FILETYPE = 2;
-    private static final int COLUMN_FILEDATE = 3;
-    private static final int COLUMN_FILEATTR = 4;
-    private static final int COLUMN_COLCOUNT = 5;
-
-    private int[] COLUMN_WIDTHS = { 150,  75,  130,  130,  40 };
-
     // Labels, mnemonics, and tooltips (oh my!)
     private int    lookInLabelMnemonic = 0;
     private String lookInLabelText = null;
@@ -134,12 +108,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     private String detailsViewButtonToolTipText = null;
     private String detailsViewButtonAccessibleName = null;
 
-    private String fileNameHeaderText = null;
-    private String fileSizeHeaderText = null;
-    private String fileTypeHeaderText = null;
-    private String fileDateHeaderText = null;
-    private String fileAttrHeaderText = null;
-
     //
     // ComponentUI Interface Implementation methods
     //
@@ -161,11 +129,63 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	buttonPanel = null;
     }
 
+    private class MetalFileChooserUIAccessor implements FilePane.FileChooserUIAccessor {
+	public JFileChooser getFileChooser() {
+	    return MetalFileChooserUI.this.getFileChooser();
+	}
+
+	public BasicDirectoryModel getModel() {
+	    return MetalFileChooserUI.this.getModel();
+	}
+
+	public JPanel createList() {
+	    return MetalFileChooserUI.this.createList(getFileChooser());
+	}
+
+	public JPanel createDetailsView() {
+	    return MetalFileChooserUI.this.createDetailsView(getFileChooser());
+	}
+
+	public boolean isDirectorySelected() {
+	    return MetalFileChooserUI.this.isDirectorySelected();
+	}
+
+	public File getDirectory() {
+	    return MetalFileChooserUI.this.getDirectory();
+	}
+
+	public Action getChangeToParentDirectoryAction() {
+	    return MetalFileChooserUI.this.getChangeToParentDirectoryAction();
+	}
+
+	public Action getApproveSelectionAction() {
+	    return MetalFileChooserUI.this.getApproveSelectionAction();
+	}
+
+	public Action getNewFolderAction() {
+	    return MetalFileChooserUI.this.getNewFolderAction();
+	}
+
+	public MouseListener createDoubleClickListener(JList list) {
+	    return MetalFileChooserUI.this.createDoubleClickListener(getFileChooser(),
+								     list);
+	}
+
+	public ListSelectionListener createListSelectionListener() {
+	    return MetalFileChooserUI.this.createListSelectionListener(getFileChooser());
+	}
+    }
+
     public void installComponents(JFileChooser fc) {
 	FileSystemView fsv = fc.getFileSystemView();
 
 	fc.setBorder(new EmptyBorder(12, 12, 11, 11));
 	fc.setLayout(new BorderLayout(0, 11));
+
+	filePane = new FilePane(new MetalFileChooserUIAccessor());
+	fc.addPropertyChangeListener(filePane);
+
+	updateUseShellFolder();
 
 	// ********************************* //
 	// **** Construct the top panel **** //
@@ -186,9 +206,16 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	topPanel.add(lookInLabel, BorderLayout.BEFORE_LINE_BEGINS);
 
 	// CurrentDir ComboBox
-	directoryComboBox = new JComboBox();
+	directoryComboBox = new JComboBox() {
+	    public Dimension getPreferredSize() {
+		Dimension d = super.getPreferredSize();
+		// Must be small enough to not affect total width.
+		d.width = 150;
+		return d;
+	    }
+	};
 	directoryComboBox.getAccessibleContext().setAccessibleDescription(lookInLabelText);
-	directoryComboBox.putClientProperty( "JComboBox.lightweightKeyboardNavigation", "Lightweight" );
+	directoryComboBox.putClientProperty( "JComboBox.isTableCellEditor", Boolean.TRUE );
 	lookInLabel.setLabelFor(directoryComboBox);
 	directoryComboBoxModel = createDirectoryComboBoxModel(fc);
 	directoryComboBox.setModel(directoryComboBoxModel);
@@ -235,51 +262,21 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	topButtonPanel.add(Box.createRigidArea(hstrut5));
 
 	// New Directory Button
-	b = new JButton(getNewFolderAction());
-	b.setText(null);
-	b.setIcon(newFolderIcon);
-     	b.setToolTipText(newFolderToolTipText);
-     	b.getAccessibleContext().setAccessibleName(newFolderAccessibleName);
-	b.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-	b.setAlignmentY(JComponent.CENTER_ALIGNMENT);
-	b.setMargin(shrinkwrap);
-
+	if (!UIManager.getBoolean("FileChooser.readOnly")) {
+	    b = new JButton(filePane.getNewFolderAction());
+	    b.setText(null);
+	    b.setIcon(newFolderIcon);
+	    b.setToolTipText(newFolderToolTipText);
+	    b.getAccessibleContext().setAccessibleName(newFolderAccessibleName);
+	    b.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+	    b.setAlignmentY(JComponent.CENTER_ALIGNMENT);
+	    b.setMargin(shrinkwrap);
+	}
 	topButtonPanel.add(b);
 	topButtonPanel.add(Box.createRigidArea(hstrut5));
 
 	// View button group
 	ButtonGroup viewButtonGroup = new ButtonGroup();
-
-	class ViewButtonListener implements ActionListener {
-	    JFileChooser fc;
-
-	    ViewButtonListener(JFileChooser fc) {
-		this.fc = fc;
-	    }
-
-	    public void actionPerformed(ActionEvent e) {
-		JToggleButton b = (JToggleButton)e.getSource();
-		JPanel oldViewPanel = currentViewPanel;
-
-		if (b == detailsViewButton) {
-		    if (detailsViewPanel == null) {
-			detailsViewPanel = createDetailsView(fc);
-			detailsViewPanel.setPreferredSize(LIST_PREF_SIZE);
-		    }
-		    currentViewPanel = detailsViewPanel;
-		} else {
-		    currentViewPanel = listViewPanel;
-		}
-		if (currentViewPanel != oldViewPanel) {
-		    centerPanel.remove(oldViewPanel);
-		    centerPanel.add(currentViewPanel, BorderLayout.CENTER);
-		    centerPanel.revalidate();
-		    centerPanel.repaint();
-		}
-	    }
-	}
-
-	ViewButtonListener viewButtonListener = new ViewButtonListener(fc);
 
 	// List Button
 	listViewButton = new JToggleButton(listViewIcon);
@@ -289,7 +286,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	listViewButton.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	listViewButton.setAlignmentY(JComponent.CENTER_ALIGNMENT);
 	listViewButton.setMargin(shrinkwrap);
-	listViewButton.addActionListener(viewButtonListener);
+	listViewButton.addActionListener(filePane.getViewTypeAction(FilePane.VIEWTYPE_LIST));
 	topButtonPanel.add(listViewButton);
 	viewButtonGroup.add(listViewButton);
 
@@ -300,27 +297,37 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	detailsViewButton.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	detailsViewButton.setAlignmentY(JComponent.CENTER_ALIGNMENT);
 	detailsViewButton.setMargin(shrinkwrap);
-	detailsViewButton.addActionListener(viewButtonListener);
+	detailsViewButton.addActionListener(filePane.getViewTypeAction(FilePane.VIEWTYPE_DETAILS));
 	topButtonPanel.add(detailsViewButton);
 	viewButtonGroup.add(detailsViewButton);
 
-	updateUseShellFolder();
+	filePane.addPropertyChangeListener(new PropertyChangeListener() {
+	    public void propertyChange(PropertyChangeEvent e) {
+		if ("viewType".equals(e.getPropertyName())) {
+		    int viewType = filePane.getViewType();
+		    switch (viewType) {
+		      case FilePane.VIEWTYPE_LIST:
+			listViewButton.setSelected(true);
+			break;
+
+		      case FilePane.VIEWTYPE_DETAILS:
+			detailsViewButton.setSelected(true);
+			break;
+		    }
+		}
+	    }
+	});
 
 	// ************************************** //
 	// ******* Add the directory pane ******* //
 	// ************************************** //
-	centerPanel = new JPanel(new BorderLayout());
-	listViewPanel = createList(fc);
-	listSelectionModel = list.getSelectionModel();
-	listViewPanel.setPreferredSize(LIST_PREF_SIZE);
-	centerPanel.add(listViewPanel, BorderLayout.CENTER);
-	currentViewPanel = listViewPanel;
-	centerPanel.add(getAccessoryPanel(), BorderLayout.AFTER_LINE_ENDS);
+	fc.add(getAccessoryPanel(), BorderLayout.AFTER_LINE_ENDS);
 	JComponent accessory = fc.getAccessory();
 	if(accessory != null) {
 	    getAccessoryPanel().add(accessory);
 	}
-	fc.add(centerPanel, BorderLayout.CENTER);
+	filePane.setPreferredSize(LIST_PREF_SIZE);
+	fc.add(filePane, BorderLayout.CENTER);
 
 	// ********************************** //
 	// **** Construct the bottom panel ** //
@@ -350,7 +357,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	    new FocusAdapter() {
 		public void focusGained(FocusEvent e) {
 		    if (!getFileChooser().isMultiSelectionEnabled()) {
-			listSelectionModel.clearSelection();
+			filePane.clearSelection();
 		    }
 		}
 	    }
@@ -409,7 +416,16 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	if (prop != null) {
 	    useShellFolder = prop.booleanValue();
 	} else {
-	    useShellFolder = fc.getFileSystemView().equals(FileSystemView.getFileSystemView());
+	    // See if FileSystemView.getRoots() returns the desktop folder,
+	    // i.e. the normal Windows hierarchy.
+	    useShellFolder = false;
+	    File[] roots = fc.getFileSystemView().getRoots();
+	    if (roots != null && roots.length == 1) {
+		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
+		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
+		    useShellFolder = true;
+		}
+	    }
 	}
     }
 
@@ -456,12 +472,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	
 	detailsViewButtonToolTipText = UIManager.getString("FileChooser.detailsViewButtonToolTipText",l); 
 	detailsViewButtonAccessibleName = UIManager.getString("FileChooser.detailsViewButtonAccessibleName",l); 
-
-	fileNameHeaderText = UIManager.getString("FileChooser.fileNameHeaderText",l);
-	fileSizeHeaderText = UIManager.getString("FileChooser.fileSizeHeaderText",l);
-	fileTypeHeaderText = UIManager.getString("FileChooser.fileTypeHeaderText",l);
-	fileDateHeaderText = UIManager.getString("FileChooser.fileDateHeaderText",l);
-	fileAttrHeaderText = UIManager.getString("FileChooser.fileAttrHeaderText",l);
     }
 
     protected void installListeners(JFileChooser fc) {
@@ -475,442 +485,18 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     }
 
     protected ActionMap createActionMap() {
-        AbstractAction escAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-		if (editFile != null) {
-		    cancelEdit();
-		} else {
-		    getFileChooser().cancelSelection();
-		}
-            }
-            public boolean isEnabled(){
-                return getFileChooser().isEnabled();
-            }
-        };
         ActionMap map = new ActionMapUIResource();
-        map.put("approveSelection", getApproveSelectionAction());
-        map.put("cancelSelection", escAction);
-        map.put("Go Up", getChangeToParentDirectoryAction());
+	FilePane.addActionsToMap(map, filePane.getActions());
         return map;
     }
 
     protected JPanel createList(JFileChooser fc) {
-	JPanel p = new JPanel(new BorderLayout());
-	final JFileChooser fileChooser = fc;
-	list = new JList() {
-	    public int getNextMatch(String prefix, int startIndex, Position.Bias bias) {
-		ListModel model = getModel();
-		int max = model.getSize();
-		if (prefix == null || startIndex < 0 || startIndex >= max) {
-		    throw new IllegalArgumentException();
-		}
-		// start search from the next element before/after the selected element
-		boolean backwards = (bias == Position.Bias.Backward);
-		for (int i = startIndex; backwards ? i >= 0 : i < max; i += (backwards ?  -1 : 1)) {
-		    String filename = fileChooser.getName((File)model.getElementAt(i));
-		    if (filename.regionMatches(true, 0, prefix, 0, prefix.length())) {
-			return i;
-		    }
-		}
-		return -1;
-	    }
-	};
-	list.setCellRenderer(new FileRenderer());
-	list.setLayoutOrientation(JList.VERTICAL_WRAP);
-	list.setVisibleRowCount(-1);
-
-	if (fc.isMultiSelectionEnabled()) {
-	    list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-	} else {
-	    list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	}
-	list.setModel(getModel());
-	list.addListSelectionListener(createListSelectionListener(fc));
-	list.addMouseListener(createDoubleClickListener(fc, list));
-	list.addMouseListener(createSingleClickListener(fc, list));
-	getModel().addListDataListener(new ListDataListener() {
-	    public void contentsChanged(ListDataEvent e) {
-		// Update the selection after JList has been updated
-		new DelayedSelectionUpdater();
-	    }
-	    public void intervalAdded(ListDataEvent e) {
-		new DelayedSelectionUpdater();
-	    }
-	    public void intervalRemoved(ListDataEvent e) {
-	    }
-	});
-
-	JScrollPane scrollpane = new JScrollPane(list);
-	p.add(scrollpane, BorderLayout.CENTER);
-	return p;
-    }
-
-    class DetailsTableModel extends AbstractTableModel implements ListDataListener {
-	String[] columnNames = {
-	    fileNameHeaderText,
-	    fileSizeHeaderText,
-	    fileTypeHeaderText,
-	    fileDateHeaderText,
-	    fileAttrHeaderText
-	};
-	JFileChooser chooser;
-	ListModel listModel;
-
-	DetailsTableModel(JFileChooser fc) {
-	    this.chooser = fc;
-	    listModel = getModel();
-	    listModel.addListDataListener(this);
-	}
-
-	public int getRowCount() {
-	    return listModel.getSize();
-	}
-
-	public int getColumnCount() {
-	    return COLUMN_COLCOUNT;
-	}
-
-	public String getColumnName(int column) {
-	    return columnNames[column];
-	}
-
-	public Class getColumnClass(int column) {
-	    switch (column) {
-	      case COLUMN_FILENAME:
-		  return File.class;
-	      case COLUMN_FILEDATE:
-		  return Date.class;
-	      default:
-		  return super.getColumnClass(column);
-	    }
-	}
-
-	public Object getValueAt(int row, int col) {
-	    // Note: It is very important to avoid getting info on drives, as
-	    // this will trigger "No disk in A:" and similar dialogs.
-	    //
-	    // Use (f.exists() && !chooser.getFileSystemView().isFileSystemRoot(f)) to
-	    // determine if it is safe to call methods directly on f.
-
-	    File f = (File)listModel.getElementAt(row);
-	    switch (col) {
-	      case COLUMN_FILENAME:
-		  return f;
-
-	      case COLUMN_FILESIZE:
-		  if (!f.exists() || f.isDirectory()) {
-		      return null;
-		  }
-		  long len = f.length() / 1024L;
-		  if (len < 1024L) {
-		      return ((len == 0L) ? 1L : len) + " KB";
-		  } else {
-		      len /= 1024L;
-		      if (len < 1024L) {
-			  return len + " MB";
-		      } else {
-			  len /= 1024L;
-			  return len + " GB";
-		      }
-		  }
-
-	      case COLUMN_FILETYPE:
-		  if (!f.exists()) {
-		      return null;
-		  }
-		  return chooser.getFileSystemView().getSystemTypeDescription(f);
-
-	      case COLUMN_FILEDATE:
-		  if (!f.exists() || chooser.getFileSystemView().isFileSystemRoot(f)) {
-		      return null;
-		  }
-		  long time = f.lastModified();
-		  return (time == 0L) ? null : new Date(time);
-
-	      case COLUMN_FILEATTR:
-		  if (!f.exists() || chooser.getFileSystemView().isFileSystemRoot(f)) {
-		      return null;
-		  }
-		  String attributes = "";
-		  if (!f.canWrite()) {
-		      attributes += "R";
-		  }
-		  if (f.isHidden()) {
-		      attributes += "H";
-		  }
-		  return attributes;
-	    }
-	    return null;
-	}
-
-	public void setValueAt(Object value, int row, int col) {
-	    if (col == COLUMN_FILENAME) {
-		JFileChooser chooser = getFileChooser();
-		File f = (File)getValueAt(row, col);
-		if (f != null) {
-		    String oldDisplayName = chooser.getName(f);
-		    String oldFileName = f.getName();
-		    String newDisplayName = ((String)value).trim();
-		    String newFileName;
-
-		    if (!newDisplayName.equals(oldDisplayName)) {
-			newFileName = newDisplayName;
-			//Check if extension is hidden from user
-			int i1 = oldFileName.length();
-			int i2 = oldDisplayName.length();
-			if (i1 > i2 && oldFileName.charAt(i2) == '.') {
-			    newFileName = newDisplayName + oldFileName.substring(i2);
-			}
-
-			// rename
-			FileSystemView fsv = chooser.getFileSystemView();
-			File f2 = fsv.createFileObject(f.getParentFile(), newFileName);
-			if (!f2.exists() && MetalFileChooserUI.this.getModel().renameFile(f, f2)) {
-			    if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
-				if (chooser.isMultiSelectionEnabled()) {
-				    chooser.setSelectedFiles(new File[] { f2 });
-				} else {
-				    chooser.setSelectedFile(f2);
-				}
-			    } else {
-				//Could be because of delay in updating Desktop folder
-				//chooser.setSelectedFile(null);
-			    }
-			} else {
-			    // PENDING(jeff) - show a dialog indicating failure
-			}
-		    }
-		}
-	    }
-	}
-
-	public boolean isCellEditable(int row, int column) {
-	    return (column == COLUMN_FILENAME);
-	}
-
-	public void contentsChanged(ListDataEvent e) {
-	    fireTableDataChanged();
-	}
-	public void intervalAdded(ListDataEvent e) {
-	    fireTableDataChanged();
-	}
-	public void intervalRemoved(ListDataEvent e) {
-	    fireTableDataChanged();
-	}
-    }
-
-    class DetailsTableCellRenderer extends DefaultTableCellRenderer {
-	JFileChooser chooser;
-	DateFormat df;
-
-	DetailsTableCellRenderer(JFileChooser chooser) {
-	    this.chooser = chooser;
-	    df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT,
-						chooser.getLocale());
-	}
-
-	public Component getTableCellRendererComponent(JTable table, Object value,
-			      boolean isSelected, boolean hasFocus, int row, int column) {
-
-	    if (column == COLUMN_FILESIZE || column == COLUMN_FILEATTR) {
-		setHorizontalAlignment(SwingConstants.TRAILING);
-	    } else {
-		setHorizontalAlignment(SwingConstants.LEADING);
-	    }
-
-	    return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-	}
-
-	public void setValue(Object value) { 
-	    setIcon(null);
-	    if (value instanceof File) {
-		File file = (File)value;
-		String fileName = chooser.getName(file);
-		setText(fileName);
-		Icon icon = chooser.getIcon(file);
-		setIcon(icon);
-	    } else if (value instanceof Date) {
-		setText((value == null) ? "" : df.format((Date)value));
-	    } else {
-		super.setValue(value);
-	    }
-	}
+	return filePane.createList();
     }
 
     protected JPanel createDetailsView(JFileChooser fc) {
-	final JFileChooser chooser = fc;
-	JPanel p = new JPanel(new BorderLayout());
-
-	DetailsTableModel detailsTableModel = new DetailsTableModel(chooser);
-
-	detailsTable = new JTable(detailsTableModel) {
-	    // Handle Escape key events here
-	    protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-		if (e.getKeyCode() == KeyEvent.VK_ESCAPE && getCellEditor() == null) {
-		    // We are not editing, forward to filechooser.
-		    chooser.dispatchEvent(e);
-		    return true;
-		}
-		return super.processKeyBinding(ks, e, condition, pressed);
-	    }
-	};
-
-	detailsTable.setComponentOrientation(chooser.getComponentOrientation());
-	detailsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-	detailsTable.setShowGrid(false);
-	detailsTable.setSelectionModel(listSelectionModel); 
-	detailsTable.putClientProperty("JTable.autoStartsEdit", Boolean.FALSE);
-
-	Font font = detailsTable.getFont();
-	detailsTable.setRowHeight(Math.max(font.getSize(), 19)+3);
-
-	TableColumnModel columnModel = detailsTable.getColumnModel();
-	TableColumn[] columns = new TableColumn[COLUMN_COLCOUNT];
-
-	for (int i = 0; i < COLUMN_COLCOUNT; i++) {
-	    columns[i] = columnModel.getColumn(i);
-	    columns[i].setPreferredWidth(COLUMN_WIDTHS[i]);
-	}
-
-	if (!System.getProperty("os.name").startsWith("Windows")) {
-	    columnModel.removeColumn(columns[COLUMN_FILETYPE]);
-	    columnModel.removeColumn(columns[COLUMN_FILEATTR]);
-	}
-
-	TableCellRenderer cellRenderer = new DetailsTableCellRenderer(chooser);
-	detailsTable.setDefaultRenderer(File.class, cellRenderer);
-	detailsTable.setDefaultRenderer(Date.class, cellRenderer);
-	detailsTable.setDefaultRenderer(Object.class, cellRenderer);
-
-	// Install cell editor for editing file name
-	final JTextField tf = new JTextField();
-	tf.addFocusListener(editorFocusListener);
-	columns[COLUMN_FILENAME].setCellEditor(new DefaultCellEditor(tf) {
-	    public boolean isCellEditable(EventObject e) {
-		if (e instanceof MouseEvent) { 
-		    MouseEvent me = (MouseEvent)e;
-		    int index = detailsTable.rowAtPoint(me.getPoint());
-		    return (me.getClickCount() == 1 && detailsTable.isRowSelected(index));
-		}
-		return super.isCellEditable(e);
-	    }
-
-	    public Component getTableCellEditorComponent(JTable table, Object value,
-							 boolean isSelected, int row, int column) {
-		Component comp = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-		if (value instanceof File) {
-		    tf.setText(chooser.getName((File)value));
-		    tf.requestFocus();
-		    tf.selectAll();
-		}		
-		return comp;
-	    }
-	});
-
-	JList fakeList = new JList(detailsTableModel.listModel) {
-	    JTable table = detailsTable;
-
-	    public int locationToIndex(Point location) {
-		return table.rowAtPoint(location);
-	    }
-
-	    public Rectangle getCellBounds(int index0, int index1) {
-		Rectangle r0 = table.getCellRect(index0, COLUMN_FILENAME, false);
-		Rectangle r1 = table.getCellRect(index1, COLUMN_FILENAME, false);
-		return r0.union(r1);
-	    }
-	    
-	    public Object getSelectedValue() {
-		return table.getValueAt(table.getSelectedRow(), COLUMN_FILENAME);
-	    }
-
-	    public Component add(Component comp) {
-		if (comp instanceof JTextField) {
-		    return table.add(comp);
-		} else {
-		    return super.add(comp);
-		}
-	    }
-
-	    public void repaint() {
-		if (table != null)
-		    table.repaint();
-	    }
-
-	    public TransferHandler getTransferHandler() {
-		if (table != null) {
-		    return table.getTransferHandler();
-		} else {
-		    return super.getTransferHandler();
-		}
-	    }
-
-	    public void setTransferHandler(TransferHandler newHandler) {
-		if (table != null) {
-		    table.setTransferHandler(newHandler);
-		} else {
-		    super.setTransferHandler(newHandler);
-		}
-	    }
-
-	    public boolean getDragEnabled() {
-		if (table != null) {
-		    return table.getDragEnabled();
-		} else {
-		    return super.getDragEnabled();
-		}
-	    }
-
-	    public void setDragEnabled(boolean b) {
-		if (table != null) {
-		    table.setDragEnabled(b);
-		} else {
-		    super.setDragEnabled(b);
-		}
-	    }
-	};
-
-	fakeList.setSelectionModel(listSelectionModel);
-	detailsTable.addMouseListener(createDoubleClickListener(chooser, fakeList));
-	//detailsTable.addMouseListener(createSingleClickListener(chooser, fakeList));
-
-	JScrollPane scrollpane = new JScrollPane(detailsTable);
-	scrollpane.setComponentOrientation(chooser.getComponentOrientation());
-        LookAndFeel.installColors(scrollpane.getViewport(), "Table.background", "Table.foreground");
-
-	// Adjust width of first column so the table fills the viewport when
-	// first displayed (temporary listener).
-	scrollpane.addComponentListener(new ComponentAdapter() {
-	    public void componentResized(ComponentEvent e) {
-		JScrollPane sp = (JScrollPane)e.getComponent();
-		fixNameColumnWidth(sp.getViewport().getSize().width);
-		sp.removeComponentListener(this);
-	    }
-	});
-
-	p.add(scrollpane, BorderLayout.CENTER);
-	return p;
+	return filePane.createDetailsView();
     }
-
-    private void fixNameColumnWidth(int viewWidth) {
-	TableColumn nameCol = detailsTable.getColumnModel().getColumn(COLUMN_FILENAME);
-	int tableWidth = detailsTable.getPreferredSize().width;
-
-	if (tableWidth < viewWidth) {
-	    nameCol.setPreferredWidth(nameCol.getPreferredWidth() + viewWidth - tableWidth);
-	}
-    }
-
-    private class DelayedSelectionUpdater implements Runnable {
-	DelayedSelectionUpdater() {
-	    SwingUtilities.invokeLater(this);
-	}
-
-	public void run() {
-	    setFileSelected();
-	}
-    }
-
 
     /**
      * Creates a selection listener for the list of files and directories.
@@ -919,237 +505,23 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
      * @return a <code>ListSelectionListener</code>
      */
     public ListSelectionListener createListSelectionListener(JFileChooser fc) {
-	return new SelectionListener() {
-	    public void valueChanged(ListSelectionEvent e) {
-		if (!e.getValueIsAdjusting()) {
-		    JFileChooser chooser = getFileChooser();
-		    FileSystemView fsv = chooser.getFileSystemView();
-		    JList list = (JList) e.getSource();
-
-		    if (chooser.isMultiSelectionEnabled()) {
-			File[] files = null;
-			Object[] objects = list.getSelectedValues();
-			if (objects != null) {
-			    if (objects.length == 1
-				&& ((File)objects[0]).isDirectory()
-				&& chooser.isTraversable(((File)objects[0]))
-				&& (chooser.getFileSelectionMode() == chooser.FILES_ONLY
-				    || !fsv.isFileSystem(((File)objects[0])))) {
-				setDirectorySelected(true);
-				setDirectory(((File)objects[0]));
-			    } else {
-				files = new File[objects.length];
-				int j = 0;
-				for (int i = 0; i < objects.length; i++) {
-				    File f = (File)objects[i];
-				    boolean isDir = f.isDirectory();
-				    boolean isFile = ShellFolder.disableFileChooserSpeedFix() ? f.isFile() : !isDir;
-				    if ((chooser.isFileSelectionEnabled() && isFile)
-					|| (chooser.isDirectorySelectionEnabled()
-					    && fsv.isFileSystem(f)
-					    && isDir)) {
-					files[j++] = f;
-				    }
-				}
-				if (j == 0) {
-				    files = null;
-				} else if (j < objects.length) {
-				    File[] tmpFiles = new File[j];
-				    System.arraycopy(files, 0, tmpFiles, 0, j);
-				    files = tmpFiles;
-				}
-				setDirectorySelected(false);
-			    }
-			}
-			chooser.setSelectedFiles(files);
-		    } else {
-			File file = (File)list.getSelectedValue();
-			if (file != null
-			    && file.isDirectory()
-			    && chooser.isTraversable(file)
-			    && (chooser.getFileSelectionMode() == chooser.FILES_ONLY
-				    || !fsv.isFileSystem(file))) {
-			    setDirectorySelected(true);
-			    setDirectory(file);
-			    chooser.setSelectedFile(null);
-			} else {
-			    setDirectorySelected(false);
-			    if (file != null) {
-			       chooser.setSelectedFile(file);
-			    }
-			}
-		    }
-		}
-	    }
-	};
+	return super.createListSelectionListener(fc);
     }
 
-    private MouseListener createSingleClickListener(JFileChooser fc, JList list) {
-	return new SingleClickListener(list);
-    }
-
-    int lastIndex = -1;
-    File editFile = null;
-    int editX = 20;
-
-    private int getEditIndex() {
-	return lastIndex;
-    }
-
-    private void setEditIndex(int i) {
-	lastIndex = i;
-    }
-
-    private void resetEditIndex() {
-	lastIndex = -1;
-    }
-
-    private void cancelEdit() {
-	if (editFile != null) {
-	    editFile = null;
-	    list.remove(editCell);
-	    centerPanel.repaint();
-	} else if (detailsTable != null && detailsTable.isEditing()) {
-	    detailsTable.getCellEditor().cancelCellEditing();
-	}
-    }
-
-    JTextField editCell = null;
-
-    private void editFileName(int index) {
-	ensureIndexIsVisible(index);
-	if (listViewPanel.isVisible()) {
-	    editFile = (File)getModel().getElementAt(index);
-	    Rectangle r = list.getCellBounds(index, index);
-	    if (editCell == null) {
-		editCell = new JTextField();
-		editCell.addActionListener(new EditActionListener());
-		editCell.addFocusListener(editorFocusListener);
-		editCell.setNextFocusableComponent(list);
-	    }
-	    list.add(editCell);
-	    editCell.setText(getFileChooser().getName(editFile));
-	    if (list.getComponentOrientation().isLeftToRight()) {
-		editCell.setBounds(editX + r.x, r.y, r.width - editX, r.height);
-	    } else {
-		editCell.setBounds(r.x, r.y, r.width - editX, r.height);
-	    }
-
-	    editCell.requestFocus();
-	    editCell.selectAll();
-	} else if (detailsViewPanel.isVisible()) {
-	    detailsTable.editCellAt(index, COLUMN_FILENAME);
-	}
-    }
-
-
+    // Obsolete class, not used in this version.
     protected class SingleClickListener extends MouseAdapter {
-	JList list;
-
 	public  SingleClickListener(JList list) {
-	    this.list = list;
-	}
-
-	public void mouseClicked(MouseEvent e) {
-	    if (SwingUtilities.isLeftMouseButton(e)) {
-		if (e.getClickCount() == 1) {
-		    JFileChooser fc = getFileChooser();
-		    int index = list.locationToIndex(e.getPoint());
-		    if ((!fc.isMultiSelectionEnabled() || fc.getSelectedFiles().length <= 1)
-			&& index >= 0 && list.isSelectedIndex(index)
-			&& getEditIndex() == index && editFile == null) {
-
-			editFileName(index);
-		    } else {
-			if (index >= 0) {
-			    setEditIndex(index);
-			} else {
-			    resetEditIndex();
-			}
-		    }
-		} else {
-		    // on double click (open or drill down one directory) be
-		    // sure to clear the edit index
-		    resetEditIndex();
-		}
-	    }	    
 	}
     }
 
-    class EditActionListener implements ActionListener {
-	public void actionPerformed(ActionEvent e) {
-	    applyEdit();
-	} 
-    }
-
-    private void applyEdit() {
-	if (editFile != null && editFile.exists()) {
-	    JFileChooser chooser = getFileChooser();
-	    String oldDisplayName = chooser.getName(editFile);
-	    String oldFileName = editFile.getName();
-	    String newDisplayName = editCell.getText().trim();
-	    String newFileName;
-
-	    if (!newDisplayName.equals(oldDisplayName)) {
-		newFileName = newDisplayName;
-		//Check if extension is hidden from user
-		int i1 = oldFileName.length();
-		int i2 = oldDisplayName.length();
-		if (i1 > i2 && oldFileName.charAt(i2) == '.') {
-		    newFileName = newDisplayName + oldFileName.substring(i2);
-		}
-
-		// rename
-		FileSystemView fsv = chooser.getFileSystemView();
-		File f2 = fsv.createFileObject(editFile.getParentFile(), newFileName);
-		if (!f2.exists() && getModel().renameFile(editFile, f2)) {
-			if (fsv.isParent(chooser.getCurrentDirectory(), f2)) {
-			    if (chooser.isMultiSelectionEnabled()) {
-				chooser.setSelectedFiles(new File[] { f2 });
-			    } else {
-				chooser.setSelectedFile(f2);
-			    }
-			} else {
-			    //Could be because of delay in updating Desktop folder
-			    //chooser.setSelectedFile(null);
-			}
-		    } else {
-			// PENDING(jeff) - show a dialog indicating failure
-		}
-	    }
-	}
-        if (detailsTable != null && detailsTable.isEditing()) {
-            detailsTable.getCellEditor().stopCellEditing();
-        }
-	cancelEdit();
-    }
-
+    // Obsolete class, not used in this version.
     protected class FileRenderer extends DefaultListCellRenderer  {
-
-	public Component getListCellRendererComponent(JList list, Object value,
-						      int index, boolean isSelected,
-						      boolean cellHasFocus) {
-
-	    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-	    File file = (File) value;
-	    String fileName = getFileChooser().getName(file);
-	    setText(fileName);
-
-	    Icon icon = getFileChooser().getIcon(file);
-	    setIcon(icon);
-
-	    if(isSelected) {
-		// PENDING(jeff) - grab padding (4) below from defaults table.
-		editX = icon.getIconWidth() + 4;
-	    }
-
-	    return this;
-	}
     }
 
     public void uninstallUI(JComponent c) {
 	// Remove listeners
 	c.removePropertyChangeListener(filterComboBoxModel);
+	c.removePropertyChangeListener(filePane);
 	cancelButton.removeActionListener(getCancelSelectionAction());
 	approveButton.removeActionListener(getApproveSelectionAction());
 	fileNameTextField.removeActionListener(getApproveSelectionAction());
@@ -1202,107 +574,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
-    void setFileSelected() {
-	if (getFileChooser().isMultiSelectionEnabled() && !isDirectorySelected()) {
-	    File[] files = getFileChooser().getSelectedFiles();	// Should be selected
-	    Object[] selectedObjects = list.getSelectedValues(); // Are actually selected
-
-	    if (ShellFolder.disableFileChooserSpeedFix()) {
-		// Remove files that shouldn't be selected
-		for (int j = 0; j < selectedObjects.length; j++) {
-		    boolean found = false;
-		    for (int i = 0; i < files.length; i++) {
-			if (files[i].equals(selectedObjects[j])) {
-			    found = true;
-			    break;
-			}
-		    }
-		    if (!found) {
-			int index = getModel().indexOf(selectedObjects[j]);
-			if (index >= 0) {
-			    listSelectionModel.removeSelectionInterval(index, index);
-			}
-		    }
-		}
-		// Add files that should be selected
-		for (int i = 0; i < files.length; i++) {
-		    boolean found = false;
-		    for (int j = 0; j < selectedObjects.length; j++) {
-			if (files[i].equals(selectedObjects[j])) {
-			    found = true;
-			    break;
-			}
-		    }
-		    if (!found) {
-			int index = getModel().indexOf(files[i]);
-			if (index >= 0) {
-			    listSelectionModel.addSelectionInterval(index, index);
-			}
-		    }
-		}
-	    } else {
-		listSelectionModel.setValueIsAdjusting(true);
-		try {
-		    Arrays.sort(files);
-		    Arrays.sort(selectedObjects);
-
-		    int shouldIndex = 0;
-		    int actuallyIndex = 0;
-
-		    // Remove files that shouldn't be selected and add files which should be selected
-		    // Note: Assume files are already sorted in compareTo order.
-		    while (shouldIndex < files.length &&
-			   actuallyIndex < selectedObjects.length) {
-			int comparison = files[shouldIndex].compareTo(selectedObjects[actuallyIndex]);
-			if (comparison < 0) {
-			    int index = getModel().indexOf(files[shouldIndex]);
-			    listSelectionModel.addSelectionInterval(index, index);
-			    shouldIndex++;
-			} else if (comparison > 0) {
-			    int index = getModel().indexOf(selectedObjects[actuallyIndex]);
-			    listSelectionModel.removeSelectionInterval(index, index);
-			    actuallyIndex++;
-			} else {
-			    // Do nothing
-			    shouldIndex++;
-			    actuallyIndex++;
-			}
-
-		    }
-
-		    while (shouldIndex < files.length) {
-			int index = getModel().indexOf(files[shouldIndex]);
-			listSelectionModel.addSelectionInterval(index, index);
-			shouldIndex++;
-		    }
-
-		    while (actuallyIndex < selectedObjects.length) {
-			int index = getModel().indexOf(selectedObjects[actuallyIndex]);
-			listSelectionModel.removeSelectionInterval(index, index);
-			actuallyIndex++;
-		    }
-		} finally {
-		    listSelectionModel.setValueIsAdjusting(false);
-		}
-	    }
-	} else {
-	    JFileChooser chooser = getFileChooser();
-	    File f = null;
-	    if (isDirectorySelected()) {
-		f = getDirectory();
-	    } else {
-		f = chooser.getSelectedFile();
-	    }
-	    int i;
-	    if (f != null && (i = getModel().indexOf(f)) >= 0) {
-		listSelectionModel.setSelectionInterval(i, i);
-		ensureIndexIsVisible(i);
-	    } else {
-		listSelectionModel.clearSelection();
-	    }
-	}
-    }
-
     private String fileNameString(File file) {
 	if (file == null) {
 	    return null;
@@ -1336,7 +607,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     /* The following methods are used by the PropertyChange Listener */
 
     private void doSelectedFileChanged(PropertyChangeEvent e) {
-	applyEdit();
 	File f = (File) e.getNewValue();
 	JFileChooser fc = getFileChooser();
 	if (f != null 
@@ -1344,19 +614,16 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		|| (f.isDirectory() && fc.isDirectorySelectionEnabled()))) {
 
 	    setFileName(fileNameString(f));
-	    setFileSelected();
 	}
     }
     
     private void doSelectedFilesChanged(PropertyChangeEvent e) {
-	applyEdit();
 	File[] files = (File[]) e.getNewValue();
 	JFileChooser fc = getFileChooser();
 	if (files != null
 	    && files.length > 0
 	    && (files.length > 1 || fc.isDirectorySelectionEnabled() || !files[0].isDirectory())) {
 	    setFileName(fileNameString(files));
-	    setFileSelected();
 	}
     }
     
@@ -1364,16 +631,10 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	JFileChooser fc = getFileChooser();
 	FileSystemView fsv = fc.getFileSystemView();
 
-	applyEdit();
-	resetEditIndex();
 	clearIconCache();
-	listSelectionModel.clearSelection();
-	ensureIndexIsVisible(0);
 	File currentDirectory = fc.getCurrentDirectory();
 	if(currentDirectory != null) {
 	    directoryComboBoxModel.addItem(currentDirectory);
-	    getNewFolderAction().setEnabled(currentDirectory.canWrite());
-	    getChangeToParentDirectoryAction().setEnabled(!fsv.isRoot(currentDirectory));
 
 	    if (fc.isDirectorySelectionEnabled() && !fc.isFileSelectionEnabled()) {
 		if (fsv.isFileSystem(currentDirectory)) {
@@ -1386,17 +647,11 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     }
 
     private void doFilterChanged(PropertyChangeEvent e) {
-	applyEdit();
-	resetEditIndex();
 	clearIconCache();
-	listSelectionModel.clearSelection();
     }
 
     private void doFileSelectionModeChanged(PropertyChangeEvent e) {
-	applyEdit();
-	resetEditIndex();
 	clearIconCache();
-	listSelectionModel.clearSelection();
 
 	JFileChooser fc = getFileChooser();
 	File currentDirectory = fc.getCurrentDirectory();
@@ -1411,16 +666,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	}
     }
 
-    private void doMultiSelectionChanged(PropertyChangeEvent e) {
-	if (getFileChooser().isMultiSelectionEnabled()) {
-	    listSelectionModel.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-	} else {
-	    listSelectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	    listSelectionModel.clearSelection();
-	    getFileChooser().setSelectedFiles(null);
-	}
-    }
-    
     private void doAccessoryChanged(PropertyChangeEvent e) {
 	if(getAccessoryPanel() != null) {
 	    if(e.getOldValue() != null) {
@@ -1480,8 +725,6 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		    doFilterChanged(e);
 		} else if(s.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
 		    doFileSelectionModeChanged(e);
-		} else if(s.equals(JFileChooser.MULTI_SELECTION_ENABLED_CHANGED_PROPERTY)) {
-		    doMultiSelectionChanged(e);
 		} else if(s.equals(JFileChooser.ACCESSORY_CHANGED_PROPERTY)) {
 		    doAccessoryChanged(e);
 		} else if (s.equals(JFileChooser.APPROVE_BUTTON_TEXT_CHANGED_PROPERTY) ||
@@ -1493,17 +736,11 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 		    doApproveButtonMnemonicChanged(e);
 		} else if(s.equals(JFileChooser.CONTROL_BUTTONS_ARE_SHOWN_CHANGED_PROPERTY)) {
 		    doControlButtonsChanged(e);
-		} else if(s.equals(JFileChooser.CANCEL_SELECTION)) {
-		    applyEdit();
 		} else if (s.equals("componentOrientation")) {
 		    ComponentOrientation o = (ComponentOrientation)e.getNewValue();
 		    JFileChooser cc = (JFileChooser)e.getSource();
 		    if (o != (ComponentOrientation)e.getOldValue()) {
 			cc.applyComponentOrientation(o);
-		    }
-		    if (detailsTable != null) {
-			detailsTable.setComponentOrientation(o);
-			detailsTable.getParent().getParent().setComponentOrientation(o);
 		    }
 		} else if (s == "FileChooser.useShellFolder") {
 		    updateUseShellFolder();
@@ -1528,21 +765,12 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	getBottomPanel().add(getButtonPanel());
     }
 
-    private void ensureIndexIsVisible(int i) {
-	if (i >= 0) {
-	    list.ensureIndexIsVisible(i);
-	    if (detailsTable != null) {
-		detailsTable.scrollRectToVisible(detailsTable.getCellRect(i, COLUMN_FILENAME, true));
-	    }
-	}
-    }
-
     public void ensureFileIsVisible(JFileChooser fc, File f) {
-	ensureIndexIsVisible(getModel().indexOf(f));
+	filePane.ensureFileIsVisible(fc, f);
     }
 
     public void rescanCurrentDirectory(JFileChooser fc) {
-	getModel().validateFileCache();
+	filePane.rescanCurrentDirectory();
     }
 
     public String getFileName() {
@@ -1570,11 +798,15 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	super.setDirectorySelected(directorySelected);
 	JFileChooser chooser = getFileChooser();
 	if(directorySelected) {
-	    approveButton.setText(directoryOpenButtonText);
-	    approveButton.setToolTipText(directoryOpenButtonToolTipText);
+            if (approveButton != null) {
+	        approveButton.setText(directoryOpenButtonText);
+	        approveButton.setToolTipText(directoryOpenButtonToolTipText);
+            }
 	} else {
-	    approveButton.setText(getApproveButtonText(chooser));
-	    approveButton.setToolTipText(getApproveButtonToolTipText(chooser));
+            if (approveButton != null) {
+                approveButton.setText(getApproveButtonText(chooser));
+                approveButton.setToolTipText(getApproveButtonToolTipText(chooser));
+            }
 	}
     }
 
@@ -1682,11 +914,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
 	    File[] baseFolders;
 	    if (useShellFolder) {
-		baseFolders = (File[])AccessController.doPrivileged(new PrivilegedAction() {
-                    public Object run() {
-                        return ShellFolder.get("fileChooserComboBoxFolders");
-                    }
-                });
+		baseFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
 	    } else {
 		baseFolders = fsv.getRoots();
 	    }
@@ -1890,8 +1118,11 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	}
 
 	public void actionPerformed(ActionEvent e) {
+            directoryComboBox.hidePopup();
 	    File f = (File)directoryComboBox.getSelectedItem();
-	    getFileChooser().setCurrentDirectory(f);
+            if (!getFileChooser().getCurrentDirectory().equals(f)) {
+	        getFileChooser().setCurrentDirectory(f);
+            }
 	}
     }
 

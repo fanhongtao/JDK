@@ -1,7 +1,7 @@
 /*
- * @(#)AccessController.java	1.52 03/01/23
+ * @(#)AccessController.java	1.55 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -222,7 +222,7 @@ import sun.security.util.Debug;
  * 
  * @see AccessControlContext
  *
- * @version 1.52 03/01/23
+ * @version 1.55 04/05/05
  * @author Li Gong 
  * @author Roland Schemers
  */
@@ -243,17 +243,22 @@ public final class AccessController {
      * it will propagate through this method.
      *
      * @param action the action to be performed.
+     *
      * @return the value returned by the action's <code>run</code> method.
+     *
+     * @exception NullPointerException if the action is <code>null</code>
+     *
      * @see #doPrivileged(PrivilegedAction,AccessControlContext)
      * @see #doPrivileged(PrivilegedExceptionAction)
      */
 
-    public static native Object doPrivileged(PrivilegedAction action);
+    public static native <T> T doPrivileged(PrivilegedAction<T> action);
 
 
     /**
      * Performs the specified <code>PrivilegedAction</code> with privileges
-     * enabled and restricted by the specified <code>AccessControlContext</code>.
+     * enabled and restricted by the specified
+     * <code>AccessControlContext</code>.
      * The action is performed with the intersection of the permissions
      * possessed by the caller's protection domain, and those possessed
      * by the domains represented by the specified
@@ -263,15 +268,22 @@ public final class AccessController {
      * it will propagate through this method.
      *
      * @param action the action to be performed.
-     * @param context an <i>access control context</i> representing the
-     *		      restriction to be applied to the caller's domain's
-     *		      privileges before performing the specified action.
+     * @param context an <i>access control context</i>
+     *                representing the restriction to be applied to the
+     *                caller's domain's privileges before performing
+     *                the specified action.  If the context is
+     *                <code>null</code>,
+     *                then no additional restriction is applied.
+     *
      * @return the value returned by the action's <code>run</code> method.
+     *
+     * @exception NullPointerException if the action is <code>null</code>
+     * 
      * @see #doPrivileged(PrivilegedAction)
      * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
      */
-    public static native Object doPrivileged(PrivilegedAction action,
-					   AccessControlContext context);
+    public static native <T> T doPrivileged(PrivilegedAction<T> action,
+					    AccessControlContext context);
 
     /**
      * Performs the specified <code>PrivilegedExceptionAction</code> with
@@ -282,14 +294,19 @@ public final class AccessController {
      * exception, it will propagate through this method.
      *
      * @param action the action to be performed
+     *
      * @return the value returned by the action's <code>run</code> method
-     * @throws PrivilegedActionException if the specified action's
+     *
+     * @exception PrivilegedActionException if the specified action's
      *         <code>run</code> method threw a <i>checked</i> exception
+     * @exception NullPointerException if the action is <code>null</code>
+     * 
      * @see #doPrivileged(PrivilegedAction)
      * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
      */
-    public static native Object doPrivileged(PrivilegedExceptionAction action)
-	 throws PrivilegedActionException;
+    public static native <T> T
+	doPrivileged(PrivilegedExceptionAction<T> action)
+	throws PrivilegedActionException;
 
 
     /**
@@ -304,19 +321,27 @@ public final class AccessController {
      * exception, it will propagate through this method.
      *
      * @param action the action to be performed
-     * @param context an <i>access control context</i> representing the
-     *		      restriction to be applied to the caller's domain's
-     *		      privileges before performing the specified action
+     * @param context an <i>access control context</i>
+     *                representing the restriction to be applied to the
+     *                caller's domain's privileges before performing
+     *                the specified action.  If the context is
+     *                <code>null</code>,
+     *                then no additional restriction is applied.
+     *
      * @return the value returned by the action's <code>run</code> method
-     * @throws PrivilegedActionException if the specified action's
+     *
+     * @exception PrivilegedActionException if the specified action's
      *         <code>run</code> method
      *	       threw a <i>checked</i> exception
+     * @exception NullPointerException if the action is <code>null</code>
+     * 
      * @see #doPrivileged(PrivilegedAction)
      * @see #doPrivileged(PrivilegedExceptionAction,AccessControlContext)
      */
-    public static native Object doPrivileged(PrivilegedExceptionAction action,
-					   AccessControlContext context)
-	 throws PrivilegedActionException;
+    public static native <T> T
+	doPrivileged(PrivilegedExceptionAction<T> action,
+		     AccessControlContext context)
+	throws PrivilegedActionException;
 
     /**
      * Returns the AccessControl context. i.e., it gets 
@@ -326,8 +351,6 @@ public final class AccessController {
      *
      * @return the access control context based on the current stack or
      *         null if there was only privileged system code.
-     * 
-     * 
      */
 
     private static native AccessControlContext getStackAccessControlContext();
@@ -373,7 +396,10 @@ public final class AccessController {
      * @param perm the requested permission.
      * 
      * @exception AccessControlException if the specified permission
-     * is not permitted, based on the current security policy.
+     *            is not permitted, based on the current security policy.
+     * @exception NullPointerException if the specified permission
+     *            is <code>null</code> and is checked based on the
+     *            security policy currently in effect.
      */
 
     public static void checkPermission(Permission perm)

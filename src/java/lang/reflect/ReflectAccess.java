@@ -1,7 +1,7 @@
 /*
- * @(#)ReflectAccess.java	1.7 03/01/23
+ * @(#)ReflectAccess.java	1.12 04/01/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,13 +19,17 @@ class ReflectAccess implements sun.reflect.LangReflectAccess {
                           String name,
                           Class type,
                           int modifiers,
-                          int slot)
+                          int slot,
+                          String signature,
+                          byte[] annotations)
     {
         return new Field(declaringClass,
                          name,
                          type,
                          modifiers,
-                         slot);
+                         slot,
+                         signature,
+                         annotations);
     }
 
     public Method newMethod(Class declaringClass,
@@ -34,7 +38,11 @@ class ReflectAccess implements sun.reflect.LangReflectAccess {
                             Class returnType,
                             Class[] checkedExceptions,
                             int modifiers,
-                            int slot)
+                            int slot,
+                            String signature,
+                            byte[] annotations,
+                            byte[] parameterAnnotations,
+                            byte[] annotationDefault)
     {
         return new Method(declaringClass,
                           name,
@@ -42,20 +50,30 @@ class ReflectAccess implements sun.reflect.LangReflectAccess {
                           returnType,
                           checkedExceptions,
                           modifiers,
-                          slot);
+                          slot,
+                          signature,
+                          annotations,
+                          parameterAnnotations,
+                          annotationDefault);
     }
 
-    public Constructor newConstructor(Class declaringClass,
-                                      Class[] parameterTypes,
-                                      Class[] checkedExceptions,
-                                      int modifiers,
-                                      int slot)
+    public <T> Constructor<T> newConstructor(Class<T> declaringClass,
+					     Class[] parameterTypes,
+					     Class[] checkedExceptions,
+					     int modifiers,
+					     int slot,
+                                             String signature,
+                                             byte[] annotations,
+                                             byte[] parameterAnnotations)
     {
-        return new Constructor(declaringClass,
-                               parameterTypes,
-                               checkedExceptions,
-                               modifiers,
-                               slot);
+        return new Constructor<T>(declaringClass,
+				  parameterTypes,
+				  checkedExceptions,
+				  modifiers,
+				  slot,
+                                  signature,
+                                  annotations,
+                                  parameterAnnotations);
     }
 
     public MethodAccessor getMethodAccessor(Method m) {
@@ -80,6 +98,18 @@ class ReflectAccess implements sun.reflect.LangReflectAccess {
         return c.getSlot();
     }
 
+    public String getConstructorSignature(Constructor c) {
+        return c.getSignature();
+    }
+
+    public byte[] getConstructorAnnotations(Constructor c) {
+        return c.getRawAnnotations();
+    }
+
+    public byte[] getConstructorParameterAnnotations(Constructor c) {
+        return c.getRawParameterAnnotations();
+    }
+
     //
     // Copying routines, needed to quickly fabricate new Field,
     // Method, and Constructor objects from templates
@@ -92,7 +122,7 @@ class ReflectAccess implements sun.reflect.LangReflectAccess {
         return arg.copy();
     }
 
-    public Constructor copyConstructor(Constructor arg) {
+    public <T> Constructor<T> copyConstructor(Constructor<T> arg) {
         return arg.copy();
     }
 }

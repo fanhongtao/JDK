@@ -1,12 +1,13 @@
 /*
- * @(#)DateTimeAtCreation.java	1.4 03/01/23
+ * @(#)DateTimeAtCreation.java	1.7 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
 import java.util.Date;
+import javax.print.attribute.Attribute;
 import javax.print.attribute.DateTimeSyntax;
 import javax.print.attribute.PrintJobAttribute;
 
@@ -34,6 +35,8 @@ import javax.print.attribute.PrintJobAttribute;
  */
 public final class DateTimeAtCreation	extends DateTimeSyntax
 	implements PrintJobAttribute {
+
+    private static final long serialVersionUID = -2923732231056647903L;
 
     /**
      * Construct a new date-time at creation attribute with the given {@link 
@@ -82,7 +85,7 @@ public final class DateTimeAtCreation	extends DateTimeSyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return DateTimeAtCreation.class;
     }
     

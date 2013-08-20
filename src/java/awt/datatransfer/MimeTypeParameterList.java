@@ -1,7 +1,7 @@
 /*
- * @(#)MimeTypeParameterList.java	1.13 03/01/23
+ * @(#)MimeTypeParameterList.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.util.Set;
  * An object that encapsualtes the parameter list of a MimeType
  * as defined in RFC 2045 and 2046.
  *
- * @version 1.13, 01/23/03
+ * @version 1.15, 12/19/03
  * @author jeff.dunn@eng.sun.com
  */
 class MimeTypeParameterList implements Cloneable {
@@ -42,10 +42,10 @@ class MimeTypeParameterList implements Cloneable {
     public int hashCode() {
         int code = Integer.MAX_VALUE/45; // "random" value for empty lists
         String paramName = null;
-        Enumeration enum = this.getNames();
+        Enumeration enum_ = this.getNames();
 
-        while (enum.hasMoreElements()) {
-            paramName = (String)enum.nextElement();
+        while (enum_.hasMoreElements()) {
+            paramName = (String)enum_.nextElement();
             code += paramName.hashCode();
             code += this.get(paramName).hashCode();
         }

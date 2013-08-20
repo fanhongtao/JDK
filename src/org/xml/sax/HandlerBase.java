@@ -1,6 +1,7 @@
 // SAX default handler base class.
+// http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
-// $Id: HandlerBase.java,v 1.1 2001/05/20 03:12:56 curcuru Exp $
+// $Id: HandlerBase.java,v 1.1.24.1 2004/05/01 08:34:39 jsuttor Exp $
 
 package org.xml.sax;
 
@@ -10,6 +11,8 @@ package org.xml.sax;
  * <blockquote>
  * <em>This module, both source code and documentation, is in the
  * Public Domain, and comes with <strong>NO WARRANTY</strong>.</em>
+ * See <a href='http://www.saxproject.org'>http://www.saxproject.org</a>
+ * for further information.
  * </blockquote>
  *
  * <p>This class implements the default behaviour for four SAX1
@@ -32,9 +35,8 @@ package org.xml.sax;
  *             {@link org.xml.sax.helpers.DefaultHandler DefaultHandler}
  *             class.
  * @since SAX 1.0
- * @author David Megginson, 
- *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0r2pre
+ * @author David Megginson
+ * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.EntityResolver
  * @see org.xml.sax.DTDHandler
  * @see org.xml.sax.DocumentHandler
@@ -211,8 +213,7 @@ public class HandlerBase
      * each element (such as finalising a tree node or writing
      * output to a file).</p>
      *
-     * @param name The element type name.
-     * @param attributes The specified or defaulted attributes.
+     * @param name the element name
      * @exception org.xml.sax.SAXException Any SAX exception, possibly
      *            wrapping another exception.
      * @see org.xml.sax.DocumentHandler#endElement

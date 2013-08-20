@@ -1,7 +1,7 @@
 /*
- * @(#)RenderContext.java	1.14 03/01/23
+ * @(#)RenderContext.java	1.16 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -166,6 +166,7 @@ public class RenderContext implements Cloneable {
      * @deprecated     replaced by
      *                 <code>preConcatenateTransform(AffineTransform)</code>.
      */
+    @Deprecated
     public void preConcetenateTransform(AffineTransform modTransform) {
         usr2dev.preConcatenate(modTransform);                
     }
@@ -199,6 +200,7 @@ public class RenderContext implements Cloneable {
      * @deprecated     replaced by
      *                 <code>concatenateTransform(AffineTransform)</code>.
      */
+    @Deprecated
     public void concetenateTransform(AffineTransform modTransform) {
         usr2dev.concatenate(modTransform);                
     }

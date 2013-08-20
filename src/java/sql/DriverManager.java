@@ -1,7 +1,7 @@
 /*
- * @(#)DriverManager.java	1.38 03/01/23
+ * @(#)DriverManager.java	1.42 04/05/18 
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -317,7 +317,7 @@ public class DriverManager {
      *
      * @return the list of JDBC Drivers loaded by the caller's class loader
      */
-    public static synchronized java.util.Enumeration getDrivers() {
+    public static synchronized java.util.Enumeration<Driver> getDrivers() {
         java.util.Vector result = new java.util.Vector();
 
         if (!initialized) {
@@ -385,6 +385,7 @@ public class DriverManager {
      * @see SecurityManager#checkPermission
      * @see #getLogStream
      */
+    @Deprecated
     public static synchronized void setLogStream(java.io.PrintStream out) {
         
         SecurityManager sec = System.getSecurityManager();
@@ -407,6 +408,7 @@ public class DriverManager {
      * @deprecated
      * @see #setLogStream
      */
+    @Deprecated
     public static java.io.PrintStream getLogStream() {
         return logStream;
     }
@@ -485,6 +487,17 @@ public class DriverManager {
     //  Worker method called by the public getConnection() methods.
     private static synchronized Connection getConnection(
 	String url, java.util.Properties info, ClassLoader callerCL) throws SQLException {
+	
+        /*
+	 * When callerCl is null, we should check the application's
+	 * (which is invoking this class indirectly)
+	 * classloader, so that the JDBC driver class outside rt.jar
+	 * can be loaded from here.
+	 */
+	if(callerCL == null) {
+	    callerCL = Thread.currentThread().getContextClassLoader();
+	}    
+	  
 	if(url == null) {
 	    throw new SQLException("The url cannot be null", "08001");
 	}

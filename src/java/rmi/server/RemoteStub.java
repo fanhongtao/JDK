@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteStub.java	1.19 03/01/23
+ * @(#)RemoteStub.java	1.21 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -13,7 +13,7 @@ package java.rmi.server;
  * exactly the same set of remote interfaces defined by the actual
  * implementation of the remote object.
  *
- * @version 1.19, 01/23/03
+ * @version 1.21, 05/18/04
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
@@ -50,6 +50,7 @@ abstract public class RemoteStub extends RemoteObject {
      * is not needed since <code>RemoteStub</code>s can be created with
      * the <code>RemoteStub(RemoteRef)</code> constructor.
      */
+    @Deprecated
     protected static void setRef(RemoteStub stub, RemoteRef ref) {
 	throw new UnsupportedOperationException();
     }

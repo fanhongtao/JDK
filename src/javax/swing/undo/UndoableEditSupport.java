@@ -1,7 +1,7 @@
 /*
- * @(#)UndoableEditSupport.java	1.18 03/01/23
+ * @(#)UndoableEditSupport.java	1.20 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,12 +14,12 @@ import java.util.*;
  * A support class used for managing <code>UndoableEdit</code> listeners.
  *
  * @author Ray Ryan
- * @version 1.18 01/23/03
+ * @version 1.20 05/05/04
  */
 public class UndoableEditSupport {
     protected int updateLevel;
     protected CompoundEdit compoundEdit;
-    protected Vector listeners;
+    protected Vector<UndoableEditListener> listeners;
     protected Object realSource;
 
     /**
@@ -38,7 +38,7 @@ public class UndoableEditSupport {
 	realSource = r == null ? this : r;
 	updateLevel = 0;
 	compoundEdit = null;
-	listeners = new Vector();
+	listeners = new Vector<UndoableEditListener>();
     }
 
     /**

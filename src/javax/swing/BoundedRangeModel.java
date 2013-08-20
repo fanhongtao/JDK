@@ -1,7 +1,7 @@
 /*
- * @(#)BoundedRangeModel.java	1.26 03/01/23
+ * @(#)BoundedRangeModel.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,8 @@ import javax.swing.event.*;
 
 
 /**
- * Defines the data model used by components like Sliders and ProgressBars.
+ * Defines the data model used by components like <code>Slider</code>s
+ * and <code>ProgressBar</code>s.
  * Defines four interrelated integer properties: minimum, maximum, extent
  * and value.  These four integers define two nested ranges like this:
  * <pre>
@@ -25,7 +26,8 @@ import javax.swing.event.*;
  * must be greater than or equal to <code>minimum</code>.
  * There are a few features of this model that one might find a little 
  * surprising.  These quirks exist for the convenience of the
- * Swing BoundedRangeModel clients like like  Slider and ScrollBar.
+ * Swing BoundedRangeModel clients, such as <code>Slider</code> and
+ * <code>ScrollBar</code>.
  * <ul>
  * <li> 
  *   The minimum and maximum set methods "correct" the other 
@@ -54,7 +56,7 @@ import javax.swing.event.*;
  href="http://java.sun.com/docs/books/tutorial/uiswing/overview/anatomy.html">The Anatomy of a Swing-Based Program</a>
  * in <em>The Java Tutorial.</em>
  * 
- * @version 1.26 01/23/03
+ * @version 1.28 12/19/03
  * @author Hans Muller
  * @see DefaultBoundedRangeModel
  */

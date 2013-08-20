@@ -1,7 +1,7 @@
 /*
- * @(#)Signature.java	1.91 03/01/23
+ * @(#)Signature.java	1.99 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -9,9 +9,24 @@ package java.security;
 
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.*;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+
+import java.nio.ByteBuffer;
+
+import java.security.Provider.Service;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherSpi;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.BadPaddingException;
+import javax.crypto.NoSuchPaddingException;
+
+import sun.security.util.Debug;
+import sun.security.jca.*;
+import sun.security.jca.GetInstance.Instance;
 
 /**
  * This Signature class is used to provide applications the functionality
@@ -90,14 +105,14 @@ import java.security.cert.X509Certificate;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.91, 01/23/03
+ * @version 1.99, 05/18/04
  */
 
 public abstract class Signature extends SignatureSpi {
 
-    /*  Are we in debugging mode? */
-    private static final boolean debug = false;
-
+    private static final Debug debug =
+			Debug.getInstance("jca", "Signature");
+    
     /*
      * The algorithm for this signature object.
      * This value is used to map an OID to the particular algorithm.
@@ -106,7 +121,7 @@ public abstract class Signature extends SignatureSpi {
     private String algorithm;
 
     // The provider
-    private Provider provider;
+    Provider provider;
 
     /** 
      * Possible {@link #state} value, signifying that       
@@ -143,6 +158,23 @@ public abstract class Signature extends SignatureSpi {
     protected Signature(String algorithm) {
 	this.algorithm = algorithm;
     }
+    
+    // name of the special signature alg
+    private final static String RSA_SIGNATURE = "NONEwithRSA";
+
+    // name of the equivalent cipher alg
+    private final static String RSA_CIPHER = "RSA/ECB/PKCS1Padding";
+    
+    // all the services we need to lookup for compatibility with Cipher
+    private final static List<ServiceId> rsaIds = Arrays.asList(
+	new ServiceId[] {
+	    new ServiceId("Signature", "NONEwithRSA"),
+	    new ServiceId("Cipher", "RSA/ECB/PKCS1Padding"),
+	    new ServiceId("Cipher", "RSA/ECB"),
+	    new ServiceId("Cipher", "RSA//PKCS1Padding"),
+	    new ServiceId("Cipher", "RSA"),
+	}
+    );
 
     /**
      * Generates a Signature object that implements the specified digest
@@ -164,23 +196,96 @@ public abstract class Signature extends SignatureSpi {
      * not available in the environment.
      */
     public static Signature getInstance(String algorithm) 
-    throws NoSuchAlgorithmException {
-	try {
-	    Object[] objs = Security.getImpl(algorithm, "Signature", 
-					     (String)null);
-	    if (objs[0] instanceof Signature) {
-		Signature sig = (Signature)objs[0];
-		sig.provider = (Provider)objs[1];
-		return sig;
-	    } else {
-		Signature delegate =
-		    new Delegate((SignatureSpi)objs[0], algorithm);
-		delegate.provider = (Provider)objs[1];
-		return delegate;
-	    }
-	} catch(NoSuchProviderException e) {
-	    throw new NoSuchAlgorithmException(algorithm + " not found");
+	    throws NoSuchAlgorithmException {
+	List list;
+	if (algorithm.equalsIgnoreCase(RSA_SIGNATURE)) {
+	    list = GetInstance.getServices(rsaIds);
+	} else {
+	    list = GetInstance.getServices("Signature", algorithm);
 	}
+	Iterator t = list.iterator();
+	if (t.hasNext() == false) {
+	    throw new NoSuchAlgorithmException
+	    	(algorithm + " Signature not available");
+	}
+	// try services until we find an Spi or a working Signature subclass
+	NoSuchAlgorithmException failure;
+	do {
+	    Service s = (Service)t.next();
+	    if (isSpi(s)) {
+		return new Delegate(s, t, algorithm);
+	    } else {
+		// must be a subclass of Signature, disable dynamic selection
+		try {
+		    Instance instance = 
+		    	GetInstance.getInstance(s, SignatureSpi.class);
+		    return getInstance(instance, algorithm);
+		} catch (NoSuchAlgorithmException e) {
+		    failure = e;
+		}
+	    }
+	} while (t.hasNext());
+	throw failure;
+    }
+    
+    private static Signature getInstance(Instance instance, String algorithm) {
+	Signature sig;
+	if (instance.impl instanceof Signature) {
+	    sig = (Signature)instance.impl;
+	} else {
+	    SignatureSpi spi = (SignatureSpi)instance.impl;
+	    sig = new Delegate(spi, algorithm);
+	}
+	sig.provider = instance.provider;
+	return sig;
+    }
+    
+    private final static Map<String,Boolean> signatureInfo;
+    
+    static {
+    	signatureInfo = new ConcurrentHashMap<String,Boolean>();
+	Boolean TRUE = Boolean.TRUE;
+	// pre-initialize with values for our SignatureSpi implementations
+	signatureInfo.put("sun.security.provider.DSA$RawDSA", TRUE);
+	signatureInfo.put("sun.security.provider.DSA$SHA1withDSA", TRUE);
+	signatureInfo.put("sun.security.rsa.RSASignature$MD2withRSA", TRUE);
+	signatureInfo.put("sun.security.rsa.RSASignature$MD5withRSA", TRUE);
+	signatureInfo.put("sun.security.rsa.RSASignature$SHA1withRSA", TRUE);
+	signatureInfo.put("sun.security.rsa.RSASignature$SHA256withRSA", TRUE);
+	signatureInfo.put("sun.security.rsa.RSASignature$SHA384withRSA", TRUE);
+	signatureInfo.put("sun.security.rsa.RSASignature$SHA512withRSA", TRUE);
+	signatureInfo.put("com.sun.net.ssl.internal.ssl.RSASignature", TRUE);
+	signatureInfo.put("sun.security.pkcs11.P11Signature", TRUE);
+    }
+    
+    private static boolean isSpi(Service s) {
+	if (s.getType().equals("Cipher")) {
+	    // must be a CipherSpi, which we can wrap with the CipherAdapter
+	    return true;
+	}
+	String className = s.getClassName();
+	Boolean result = signatureInfo.get(className);
+	if (result == null) {
+	    try {
+		Object instance = s.newInstance(null);
+		// Signature extends SignatureSpi
+		// so it is a "real" Spi if it is an 
+		// instance of SignatureSpi but not Signature
+		boolean r = (instance instanceof SignatureSpi) 
+				&& (instance instanceof Signature == false);
+		if ((debug != null) && (r == false)) {
+		    debug.println("Not a SignatureSpi " + className);
+		    debug.println("Delayed provider selection may not be "
+		    	+ "available for algorithm " + s.getAlgorithm());
+		}
+		result = Boolean.valueOf(r);
+		signatureInfo.put(className, result);
+	    } catch (Exception e) {
+		// something is wrong, assume not an SPI
+		return false;
+	    }
+	}
+	return result.booleanValue();
     }
 
     /** 
@@ -211,23 +316,24 @@ public abstract class Signature extends SignatureSpi {
      * @see Provider 
      */
     public static Signature getInstance(String algorithm, String provider) 
-	throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-	if (provider == null || provider.length() == 0)
-	    throw new IllegalArgumentException("missing provider");
-	Object[] objs = Security.getImpl(algorithm, "Signature", provider);
-	if (objs[0] instanceof Signature) {
-	    Signature sig = (Signature)objs[0];
-	    sig.provider = (Provider)objs[1];
-	    return sig;
-	} else {
-	    Signature delegate =
-		new Delegate((SignatureSpi)objs[0], algorithm);
-	    delegate.provider = (Provider)objs[1];
-	    return delegate;
+	    throws NoSuchAlgorithmException, NoSuchProviderException {
+	if (algorithm.equalsIgnoreCase(RSA_SIGNATURE)) {
+	    // exception compatibility with existing code
+	    if ((provider == null) || (provider.length() == 0)) {
+		throw new IllegalArgumentException("missing provider");
+	    }
+	    Provider p = Security.getProvider(provider);
+	    if (p == null) {
+		throw new NoSuchProviderException
+		    ("no such provider: " + provider);
+	    }
+	    return getInstanceRSA(p);
 	}
+	Instance instance = GetInstance.getInstance
+		("Signature", SignatureSpi.class, algorithm, provider);
+	return getInstance(instance, algorithm);
     }
-
+    
     /** 
      * Generates a Signature object implementing the specified
      * algorithm, as supplied from the specified provider, if such an 
@@ -256,20 +362,38 @@ public abstract class Signature extends SignatureSpi {
      * @since 1.4
      */
     public static Signature getInstance(String algorithm, Provider provider) 
-	throws NoSuchAlgorithmException
-    {
-	if (provider == null)
-	    throw new IllegalArgumentException("missing provider");
-	Object[] objs = Security.getImpl(algorithm, "Signature", provider);
-	if (objs[0] instanceof Signature) {
-	    Signature sig = (Signature)objs[0];
-	    sig.provider = (Provider)objs[1];
-	    return sig;
-	} else {
-	    Signature delegate =
-		new Delegate((SignatureSpi)objs[0], algorithm);
-	    delegate.provider = (Provider)objs[1];
-	    return delegate;
+	    throws NoSuchAlgorithmException {
+	if (algorithm.equalsIgnoreCase(RSA_SIGNATURE)) {
+	    // exception compatibility with existing code
+	    if (provider == null) {
+		throw new IllegalArgumentException("missing provider");
+	    }
+	    return getInstanceRSA(provider);
+	}
+	Instance instance = GetInstance.getInstance
+		("Signature", SignatureSpi.class, algorithm, provider);
+	return getInstance(instance, algorithm);
+    }
+
+    // return an implementation for NONEwithRSA, which is a special case
+    // because of the Cipher.RSA/ECB/PKCS1Padding compatibility wrapper
+    private static Signature getInstanceRSA(Provider p)
+	    throws NoSuchAlgorithmException {
+	// try Signature first
+	Service s = p.getService("Signature", RSA_SIGNATURE);
+	if (s != null) {
+	    Instance instance = GetInstance.getInstance(s, SignatureSpi.class);
+	    return getInstance(instance, RSA_SIGNATURE);
+	}
+	// check Cipher
+	try {
+	    Cipher c = Cipher.getInstance(RSA_CIPHER, p);
+	    return new Delegate(new CipherAdapter(c), RSA_SIGNATURE);
+	} catch (GeneralSecurityException e) {
+	    // throw Signature style exception message to avoid confusion,
+	    // but append Cipher exception as cause
+	    throw new NoSuchAlgorithmException("no such algorithm: "
+		+ RSA_SIGNATURE + " for provider " + p.getName(), e);
 	}
     }
 
@@ -279,7 +403,12 @@ public abstract class Signature extends SignatureSpi {
      * @return the provider of this signature object
      */
     public final Provider getProvider() {
+	chooseFirstProvider();
 	return this.provider;
+    }
+    
+    void chooseFirstProvider() {
+	// empty, overridden in Delegate
     }
 
     /**
@@ -293,20 +422,20 @@ public abstract class Signature extends SignatureSpi {
      * @exception InvalidKeyException if the key is invalid.
      */
     public final void initVerify(PublicKey publicKey) 
-	throws InvalidKeyException {
-	    engineInitVerify(publicKey);
-	    state = VERIFY;
+	    throws InvalidKeyException {
+	engineInitVerify(publicKey);
+	state = VERIFY;
     }
 
     /**
-      * Initializes this object for verification, using the public key from
-      * the given certificate.
-      * <p>If the certificate is of type X.509 and has a <i>key usage</i>
+     * Initializes this object for verification, using the public key from
+     * the given certificate.
+     * <p>If the certificate is of type X.509 and has a <i>key usage</i>
      * extension field marked as critical, and the value of the <i>key usage</i>
      * extension field implies that the public key in
      * the certificate and its corresponding private key are not
-     * supposed to be used for digital signatures, an <code>InvalidKeyException</code>
-     * is thrown.
+     * supposed to be used for digital signatures, an 
+     * <code>InvalidKeyException</code> is thrown.
      *
      * @param certificate the certificate of the identity whose signature is
      * going to be verified.
@@ -316,29 +445,29 @@ public abstract class Signature extends SignatureSpi {
      * information or cannot be used for digital signature purposes.
      */
     public final void initVerify(Certificate certificate)
-	throws InvalidKeyException {
-	    // If the certificate is of type X509Certificate,
-	    // we should check whether it has a Key Usage
-	    // extension marked as critical.
-	    if (certificate instanceof java.security.cert.X509Certificate) {
-		// Check whether the cert has a key usage extension
-		// marked as a critical extension.
-		// The OID for KeyUsage extension is 2.5.29.15.
-		X509Certificate cert = (X509Certificate)certificate;
-		Set critSet = cert.getCriticalExtensionOIDs();
+	    throws InvalidKeyException {
+	// If the certificate is of type X509Certificate,
+	// we should check whether it has a Key Usage
+	// extension marked as critical.
+	if (certificate instanceof java.security.cert.X509Certificate) {
+	    // Check whether the cert has a key usage extension
+	    // marked as a critical extension.
+	    // The OID for KeyUsage extension is 2.5.29.15.
+	    X509Certificate cert = (X509Certificate)certificate;
+	    Set critSet = cert.getCriticalExtensionOIDs();
 
-		if (critSet != null && !critSet.isEmpty()
-		    && critSet.contains(new String("2.5.29.15"))) {
-		    boolean[] keyUsageInfo = cert.getKeyUsage();
-		    // keyUsageInfo[0] is for digitalSignature.
-		    if ((keyUsageInfo != null) && (keyUsageInfo[0] == false))
-			throw new InvalidKeyException("Wrong key usage");
-		}
+	    if (critSet != null && !critSet.isEmpty()
+		&& critSet.contains("2.5.29.15")) {
+		boolean[] keyUsageInfo = cert.getKeyUsage();
+		// keyUsageInfo[0] is for digitalSignature.
+		if ((keyUsageInfo != null) && (keyUsageInfo[0] == false))
+		    throw new InvalidKeyException("Wrong key usage");
 	    }
-		
-	    PublicKey publicKey = certificate.getPublicKey();
-	    engineInitVerify(publicKey);
-	    state = VERIFY;
+	}
+	    
+	PublicKey publicKey = certificate.getPublicKey();
+	engineInitVerify(publicKey);
+	state = VERIFY;
     }
 
     /**
@@ -352,9 +481,9 @@ public abstract class Signature extends SignatureSpi {
      * @exception InvalidKeyException if the key is invalid.  
      */
     public final void initSign(PrivateKey privateKey) 
-	throws InvalidKeyException {
-	    engineInitSign(privateKey);
-	    state = SIGN;
+	    throws InvalidKeyException {
+	engineInitSign(privateKey);
+	state = SIGN;
     }
 
     /**
@@ -370,9 +499,9 @@ public abstract class Signature extends SignatureSpi {
      * @exception InvalidKeyException if the key is invalid.  
      */
     public final void initSign(PrivateKey privateKey, SecureRandom random) 
-	throws InvalidKeyException {
-	    engineInitSign(privateKey, random);
-	    state = SIGN;
+	    throws InvalidKeyException {
+	engineInitSign(privateKey, random);
+	state = SIGN;
     }
 
     /**
@@ -390,7 +519,8 @@ public abstract class Signature extends SignatureSpi {
      * @return the signature bytes of the signing operation's result.
      *
      * @exception SignatureException if this signature object is not
-     * initialized properly.
+     * initialized properly or if this signature algorithm is unable to
+     * process the input data provided.
      */
     public final byte[] sign() throws SignatureException {
 	if (state == SIGN) {
@@ -421,8 +551,10 @@ public abstract class Signature extends SignatureSpi {
      *
      * @return the number of bytes placed into <code>outbuf</code>.
      *
-     * @exception SignatureException if an error occurs or <code>len</code>
-     * is less than the actual signature length.
+     * @exception SignatureException if this signature object is not
+     * initialized properly, if this signature algorithm is unable to
+     * process the input data provided, or if <code>len</code> is less
+     * than the actual signature length.
      *
      * @since 1.2
      */
@@ -456,8 +588,9 @@ public abstract class Signature extends SignatureSpi {
      * @return true if the signature was verified, false if not. 
      *
      * @exception SignatureException if this signature object is not 
-     * initialized properly, or the passed-in signature is improperly 
-     * encoded or of the wrong type, etc.
+     * initialized properly, the passed-in signature is improperly 
+     * encoded or of the wrong type, if this signature algorithm is unable to
+     * process the input data provided, etc.
      */
     public final boolean verify(byte[] signature) throws SignatureException {
 	if (state == VERIFY) {
@@ -485,8 +618,9 @@ public abstract class Signature extends SignatureSpi {
      * @return true if the signature was verified, false if not. 
      *
      * @exception SignatureException if this signature object is not 
-     * initialized properly, or the passed-in signature is improperly 
-     * encoded or of the wrong type, etc.
+     * initialized properly, the passed-in signature is improperly 
+     * encoded or of the wrong type, if this signature algorithm is unable to
+     * process the input data provided, etc.
      * @exception IllegalArgumentException if the <code>signature</code>
      * byte array is null, or the <code>offset</code> or <code>length</code>
      * is less than 0, or the sum of the <code>offset</code> and 
@@ -549,13 +683,37 @@ public abstract class Signature extends SignatureSpi {
      * initialized properly.          
      */
     public final void update(byte[] data, int off, int len) 
-	throws SignatureException {
-	    if (state == SIGN || state == VERIFY) {
-		engineUpdate(data, off, len);
-	    } else {
-		throw new SignatureException("object not initialized for "
-					     + "signature or verification");
-	    }
+	    throws SignatureException {
+	if (state == SIGN || state == VERIFY) {
+	    engineUpdate(data, off, len);
+	} else {
+	    throw new SignatureException("object not initialized for "
+					 + "signature or verification");
+	}
+    }
+
+    /**
+     * Updates the data to be signed or verified using the specified
+     * ByteBuffer. Processes the <code>data.remaining()</code> bytes
+     * starting at at <code>data.position()</code>.
+     * Upon return, the buffer's position will be equal to its limit;
+     * its limit will not have changed.
+     *
+     * @param data the ByteBuffer
+     *
+     * @exception SignatureException if this signature object is not
+     * initialized properly.
+     * @since 1.5
+     */
+    public final void update(ByteBuffer data) throws SignatureException {
+	if ((state != SIGN) && (state != VERIFY)) {
+	    throw new SignatureException("object not initialized for "
+					 + "signature or verification");
+	}
+	if (data == null) {
+	    throw new NullPointerException();
+	}
+	engineUpdate(data);
     }
 
     /** 
@@ -580,10 +738,10 @@ public abstract class Signature extends SignatureSpi {
 	case UNINITIALIZED:
 	    initState = "<not initialized>";
 	    break;
-	  case VERIFY:
+	case VERIFY:
 	    initState = "<initialized for verifying>";
 	    break;	      
-	  case SIGN:
+	case SIGN:
 	    initState = "<initialized for signing>";
 	    break;	      
 	}
@@ -615,9 +773,10 @@ public abstract class Signature extends SignatureSpi {
      * {@link #setParameter(java.security.spec.AlgorithmParameterSpec)
      * setParameter}.
      */
+    @Deprecated
     public final void setParameter(String param, Object value) 
-	throws InvalidParameterException {
-	    engineSetParameter(param, value);
+	    throws InvalidParameterException {
+	engineSetParameter(param, value);
     }
 
     /**
@@ -631,8 +790,8 @@ public abstract class Signature extends SignatureSpi {
      * @see #getParameters
      */
     public final void setParameter(AlgorithmParameterSpec params)
-	throws InvalidAlgorithmParameterException {
-	    engineSetParameter(params);
+	    throws InvalidAlgorithmParameterException {
+	engineSetParameter(params);
     }
 
     /**
@@ -676,9 +835,10 @@ public abstract class Signature extends SignatureSpi {
      *
      * @deprecated
      */
+    @Deprecated
     public final Object getParameter(String param) 
-	throws InvalidParameterException {
-	    return engineGetParameter(param);
+	    throws InvalidParameterException {
+	return engineGetParameter(param);
     }
 
     /**
@@ -696,24 +856,7 @@ public abstract class Signature extends SignatureSpi {
 	    throw new CloneNotSupportedException();
 	}
     }
-
-    // private debugging method.
-    private static void debug(String statement) {
-	if (debug) {
-	    System.err.println(statement);
-	}
-    }
-
-    // private debugging method.
-    private static void debug(Exception e) {
-	if (debug) {
-	    e.printStackTrace();
-	}
-    }
-
-
-
-
+    
     /*
      * The following class allows providers to extend from SignatureSpi
      * rather than from Signature. It represents a Signature with an
@@ -728,17 +871,38 @@ public abstract class Signature extends SignatureSpi {
      * and its original parent (Object).
      */
 
-    static class Delegate extends Signature {
+    private static class Delegate extends Signature {
 
 	// The provider implementation (delegate)
+	// filled in once the provider is selected
 	private SignatureSpi sigSpi;
+	
+	// lock for mutex during provider selection
+	private final Object lock;
 
+	// next service to try in provider selection
+	// null once provider is selected
+	private Service firstService;
+	
+	// remaining services to try in provider selection
+	// null once provider is selected
+	private Iterator serviceIterator;
+	
 	// constructor
-	public Delegate(SignatureSpi sigSpi, String algorithm) {
+	Delegate(SignatureSpi sigSpi, String algorithm) {
 	    super(algorithm);
 	    this.sigSpi = sigSpi;
+	    this.lock = null; // no lock needed
 	}
-
+	
+	// used with delayed provider selection
+	Delegate(Service service, Iterator iterator, String algorithm) {
+	    super(algorithm);
+	    this.firstService = service;
+	    this.serviceIterator = iterator;
+	    this.lock = new Object();
+	}
+	
 	/*
 	 * Returns a clone if the delegate is cloneable.    
 	 * 
@@ -748,6 +912,7 @@ public abstract class Signature extends SignatureSpi {
 	 * delegate that does not support <code>Cloneable</code>.
 	 */
 	public Object clone() throws CloneNotSupportedException {
+	    chooseFirstProvider();
 	    if (sigSpi instanceof Cloneable) {
 		SignatureSpi sigSpiClone = (SignatureSpi)sigSpi.clone();
 		// Because 'algorithm' and 'provider' are private
@@ -761,75 +926,340 @@ public abstract class Signature extends SignatureSpi {
 		throw new CloneNotSupportedException();
 	    }
 	}
-
-	protected void engineInitVerify(PublicKey publicKey)
-	    throws InvalidKeyException {
-		sigSpi.engineInitVerify(publicKey);
+	
+	private static SignatureSpi newInstance(Service s) 
+		throws NoSuchAlgorithmException {
+	    if (s.getType().equals("Cipher")) {
+		// must be NONEwithRSA
+		try {
+		    Cipher c = Cipher.getInstance(RSA_CIPHER, s.getProvider());
+		    return new CipherAdapter(c);
+		} catch (NoSuchPaddingException e) {
+		    throw new NoSuchAlgorithmException(e);
+		}
+	    } else {
+		Object o = s.newInstance(null);
+		if (o instanceof SignatureSpi == false) {
+		    throw new NoSuchAlgorithmException
+			("Not a SignatureSpi: " + o.getClass().getName());
+		}
+		return (SignatureSpi)o;
+	    }
 	}
 
+	// max number of debug warnings to print from chooseFirstProvider()
+	private static int warnCount = 10;
+
+	/**
+	 * Choose the Spi from the first provider available. Used if
+	 * delayed provider selection is not possible because initSign()/
+	 * initVerify() is not the first method called.
+	 */
+	void chooseFirstProvider() {
+	    if (sigSpi != null) {
+		return;
+	    }
+	    synchronized (lock) {
+		if (sigSpi != null) {
+		    return;
+		}
+		if (debug != null) {
+		    int w = --warnCount;
+		    if (w >= 0) {
+			debug.println("Signature.init() not first method "
+			    + "called, disabling delayed provider selection");
+			if (w == 0) {
+			    debug.println("Further warnings of this type will "
+			    	+ "be suppressed");
+			}
+			new Exception("Call trace").printStackTrace();
+		    }
+		}
+		Exception lastException = null;
+		while ((firstService != null) || serviceIterator.hasNext()) {
+		    Service s;
+		    if (firstService != null) {
+			s = firstService;
+			firstService = null;
+		    } else {
+			s = (Service)serviceIterator.next();
+		    }
+		    if (isSpi(s) == false) {
+			continue;
+		    }
+		    try {
+			sigSpi = newInstance(s);
+			provider = s.getProvider();
+			// not needed any more
+			firstService = null;
+			serviceIterator = null;
+			return;
+		    } catch (NoSuchAlgorithmException e) {
+			lastException = e;
+		    }
+		}
+		ProviderException e = new ProviderException
+			("Could not construct SignatureSpi instance");
+		if (lastException != null) {
+		    e.initCause(lastException);
+		}
+		throw e;
+	    }
+	}
+	
+	private void chooseProvider(int type, Key key, SecureRandom random)
+		throws InvalidKeyException {
+	    synchronized (lock) {
+		if (sigSpi != null) {
+		    init(sigSpi, type, key, random);
+		    return;
+		}
+		Exception lastException = null;
+		while ((firstService != null) || serviceIterator.hasNext()) {
+		    Service s;
+		    if (firstService != null) {
+			s = firstService;
+			firstService = null;
+		    } else {
+			s = (Service)serviceIterator.next();
+		    }
+		    // if provider says it does not support this key, ignore it
+		    if (s.supportsParameter(key) == false) {
+			continue;
+		    }
+		    // if instance is not a SignatureSpi, ignore it
+		    if (isSpi(s) == false) {
+			continue;
+		    }
+		    try {
+			SignatureSpi spi = newInstance(s);
+			init(spi, type, key, random);
+			provider = s.getProvider();
+			sigSpi = spi;
+			firstService = null;
+			serviceIterator = null;
+			return;
+		    } catch (Exception e) {
+			// NoSuchAlgorithmException from newInstance()
+			// InvalidKeyException from init()
+			// RuntimeException (ProviderException) from init()
+			if (lastException == null) {
+			    lastException = e;
+			}
+		    }
+		}
+		// no working provider found, fail
+		if (lastException instanceof InvalidKeyException) {
+		    throw (InvalidKeyException)lastException;
+		}
+		if (lastException instanceof RuntimeException) {
+		    throw (RuntimeException)lastException;
+		}
+		String k = (key != null) ? key.getClass().getName() : "(null)";
+		throw new InvalidKeyException
+		    ("No installed provider supports this key: "
+		    + k, lastException);
+	    }
+	}
+
+	private final static int I_PUB     = 1;
+	private final static int I_PRIV    = 2;
+	private final static int I_PRIV_SR = 3;
+	
+	private void init(SignatureSpi spi, int type, Key  key, 
+		SecureRandom random) throws InvalidKeyException {
+	    switch (type) {
+	    case I_PUB:
+		spi.engineInitVerify((PublicKey)key);
+		break;
+	    case I_PRIV:
+		spi.engineInitSign((PrivateKey)key);
+		break;
+	    case I_PRIV_SR:
+		spi.engineInitSign((PrivateKey)key, random);
+		break;
+	    default:
+		throw new AssertionError("Internal error: " + type);
+	    }
+	}
+	
+	protected void engineInitVerify(PublicKey publicKey)
+	    	throws InvalidKeyException {
+	    if (sigSpi != null) {
+		sigSpi.engineInitVerify(publicKey);
+	    } else {
+		chooseProvider(I_PUB, publicKey, null);
+	    }
+	}
+	
 	protected void engineInitSign(PrivateKey privateKey)
-	    throws InvalidKeyException {
+	    	throws InvalidKeyException {
+	    if (sigSpi != null) {
 		sigSpi.engineInitSign(privateKey);
+	    } else {
+		chooseProvider(I_PRIV, privateKey, null);
+	    }
 	}
 
         protected void engineInitSign(PrivateKey privateKey, SecureRandom sr)
-            throws InvalidKeyException {
-                sigSpi.engineInitSign(privateKey, sr);
+            	throws InvalidKeyException {
+	    if (sigSpi != null) {
+		sigSpi.engineInitSign(privateKey, sr);
+	    } else {
+		chooseProvider(I_PRIV_SR, privateKey, sr);
+	    }
         }
 
 	protected void engineUpdate(byte b) throws SignatureException {
+	    chooseFirstProvider();
 	    sigSpi.engineUpdate(b);
 	}
 
 	protected void engineUpdate(byte[] b, int off, int len) 
-	    throws SignatureException {
-		sigSpi.engineUpdate(b, off, len);
+	    	throws SignatureException {
+	    chooseFirstProvider();
+	    sigSpi.engineUpdate(b, off, len);
 	}
 	
+	protected void engineUpdate(ByteBuffer data) {
+	    chooseFirstProvider();
+	    sigSpi.engineUpdate(data);
+	}
+
 	protected byte[] engineSign() throws SignatureException {
+	    chooseFirstProvider();
 	    return sigSpi.engineSign();
 	}
 
 	protected int engineSign(byte[] outbuf, int offset, int len)
-	    throws SignatureException {
-		return sigSpi.engineSign(outbuf, offset, len);
+	    	throws SignatureException {
+	    chooseFirstProvider();
+	    return sigSpi.engineSign(outbuf, offset, len);
 	}
 
 	protected boolean engineVerify(byte[] sigBytes) 
-	    throws SignatureException {
-		return sigSpi.engineVerify(sigBytes);
+	    	throws SignatureException {
+	    chooseFirstProvider();
+	    return sigSpi.engineVerify(sigBytes);
 	}
 
 	protected boolean engineVerify(byte[] sigBytes, int offset, int length)
-	    throws SignatureException {
+	    	throws SignatureException {
+	    chooseFirstProvider();
 	    return sigSpi.engineVerify(sigBytes, offset, length);
 	}
 
 	protected void engineSetParameter(String param, Object value) 
-	    throws InvalidParameterException {
-		sigSpi.engineSetParameter(param, value);
+	    	throws InvalidParameterException {
+	    chooseFirstProvider();
+	    sigSpi.engineSetParameter(param, value);
 	}
 
 	protected void engineSetParameter(AlgorithmParameterSpec params)
-	    throws InvalidAlgorithmParameterException {
-		sigSpi.engineSetParameter(params);
+	    	throws InvalidAlgorithmParameterException {
+	    chooseFirstProvider();
+	    sigSpi.engineSetParameter(params);
 	}
 
 	protected Object engineGetParameter(String param)
-	    throws InvalidParameterException {
-		return sigSpi.engineGetParameter(param);
+		throws InvalidParameterException {
+	    chooseFirstProvider();
+	    return sigSpi.engineGetParameter(param);
 	}
 
 	protected AlgorithmParameters engineGetParameters() {
+	    chooseFirstProvider();
 	    return sigSpi.engineGetParameters();
 	}
     }
-}
-    
-	    
 
-
-
-	    
-	    
+    // adapter for RSA/ECB/PKCS1Padding ciphers
+    private static class CipherAdapter extends SignatureSpi {
 	
+	private final Cipher cipher;
+	
+	private ByteArrayOutputStream data;
+	
+	CipherAdapter(Cipher cipher) {
+	    this.cipher = cipher;
+	}
+	
+	protected void engineInitVerify(PublicKey publicKey) 
+		throws InvalidKeyException {
+	    cipher.init(Cipher.DECRYPT_MODE, publicKey);
+	    if (data == null) {
+		data = new ByteArrayOutputStream(128);
+	    } else {
+		data.reset();
+	    }
+	}
+
+	protected void engineInitSign(PrivateKey privateKey) 
+		throws InvalidKeyException {
+	    cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+	    data = null;
+	}
+	
+	protected void engineInitSign(PrivateKey privateKey, 
+		SecureRandom random) throws InvalidKeyException {
+	    cipher.init(Cipher.ENCRYPT_MODE, privateKey, random);
+	    data = null;
+	}
+
+	protected void engineUpdate(byte b) throws SignatureException {
+	    engineUpdate(new byte[] {b}, 0, 1);
+	}
+
+	protected void engineUpdate(byte[] b, int off, int len) 
+		throws SignatureException {
+	    if (data != null) {
+		data.write(b, off, len);
+		return;
+	    }
+	    byte[] out = cipher.update(b, off, len);
+	    if ((out != null) && (out.length != 0)) {
+		throw new SignatureException
+		    ("Cipher unexpectedly returned data");
+	    }
+	}
+	
+	protected byte[] engineSign() throws SignatureException {
+	    try {
+		return cipher.doFinal();
+	    } catch (IllegalBlockSizeException e) {
+		throw new SignatureException("doFinal() failed", e);
+	    } catch (BadPaddingException e) {
+		throw new SignatureException("doFinal() failed", e);
+	    }
+	}
+
+	protected boolean engineVerify(byte[] sigBytes) 
+		throws SignatureException {
+	    try {
+		byte[] out = cipher.doFinal(sigBytes);
+		byte[] dataBytes = data.toByteArray();
+		data.reset();
+		return Arrays.equals(out, dataBytes);
+	    } catch (BadPaddingException e) {
+		// e.g. wrong public key used
+		// return false rather than throwing exception
+		return false;
+	    } catch (IllegalBlockSizeException e) {
+		throw new SignatureException("doFinal() failed", e);
+	    }
+	}
+
+	protected void engineSetParameter(String param, Object value) 
+		throws InvalidParameterException {
+	    throw new InvalidParameterException("Parameters not supported");
+	}
+
+	protected Object engineGetParameter(String param) 
+		throws InvalidParameterException {
+	    throw new InvalidParameterException("Parameters not supported");
+	}
+	
+    }
+
+}
+

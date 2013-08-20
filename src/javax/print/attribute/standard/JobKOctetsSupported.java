@@ -1,11 +1,12 @@
 /*
- * @(#)JobKOctetsSupported.java	1.4 03/01/23
+ * @(#)JobKOctetsSupported.java	1.7 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.SetOfIntegerSyntax;
 import javax.print.attribute.SupportedValuesAttribute;
 
@@ -29,6 +30,8 @@ import javax.print.attribute.SupportedValuesAttribute;
  */
 public final class JobKOctetsSupported extends SetOfIntegerSyntax
     implements SupportedValuesAttribute	{
+
+    private static final long serialVersionUID = -2867871140549897443L;
 
     /**
      * Construct a new job K octets supported attribute containing a single 
@@ -87,7 +90,7 @@ public final class JobKOctetsSupported extends SetOfIntegerSyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return JobKOctetsSupported.class;
     }
     

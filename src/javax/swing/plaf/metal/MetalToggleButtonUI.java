@@ -1,21 +1,23 @@
 /*
- * @(#)MetalToggleButtonUI.java	1.21 03/01/23
+ * @(#)MetalToggleButtonUI.java	1.28 04/04/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.metal;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.ref.*;
+import java.util.*;
 import javax.swing.plaf.basic.BasicToggleButtonUI;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 
 import java.io.Serializable;
 
@@ -31,7 +33,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.21 01/23/03
+ * @version 1.28 04/02/04
  * @author Tom Santos
  */
 public class MetalToggleButtonUI extends BasicToggleButtonUI {
@@ -88,26 +90,59 @@ public class MetalToggleButtonUI extends BasicToggleButtonUI {
     // ********************************
     //        Paint Methods
     // ********************************
+    /**
+     * If necessary paints the background of the component, then invokes
+     * <code>paint</code>.
+     *
+     * @param g Graphics to paint to
+     * @param c JComponent painting on
+     * @throws NullPointerException if <code>g</code> or <code>c</code> is
+     *         null
+     * @see javax.swing.plaf.ComponentUI#update
+     * @see javax.swing.plaf.ComponentUI#paint
+     * @since 1.5
+     */
+    public void update(Graphics g, JComponent c) {
+        AbstractButton button = (AbstractButton)c;
+        if ((c.getBackground() instanceof UIResource) &&
+                        button.isContentAreaFilled() && c.isEnabled()) {
+            ButtonModel model = button.getModel();
+            if (!MetalUtils.isToolBarButton(c)) {
+                if (!model.isArmed() && !model.isPressed() &&
+                        MetalUtils.drawGradient(
+                        c, g, "ToggleButton.gradient", 0, 0, c.getWidth(),
+                        c.getHeight(), true)) {
+                    paint(g, c);
+                    return;
+                }
+            }
+            else if ((model.isRollover() || model.isSelected()) &&
+                        MetalUtils.drawGradient(c, g, "ToggleButton.gradient",
+                        0, 0, c.getWidth(), c.getHeight(), true)) {
+                paint(g, c);
+                return;
+            }
+        }
+        super.update(g, c);
+    }
+
     protected void paintButtonPressed(Graphics g, AbstractButton b) {
         if ( b.isContentAreaFilled() ) {
-            Dimension size = b.getSize();
 	    g.setColor(getSelectColor());
-	    g.fillRect(0, 0, size.width, size.height);
+	    g.fillRect(0, 0, b.getWidth(), b.getHeight());
 	}
     }
 
     protected void paintText(Graphics g, JComponent c, Rectangle textRect, String text) {
 	AbstractButton b = (AbstractButton) c;			     
 	ButtonModel model = b.getModel();
-	FontMetrics fm = g.getFontMetrics();
+	FontMetrics fm = SwingUtilities2.getFontMetrics(b, g);
         int mnemIndex = b.getDisplayedMnemonicIndex();
 
 	/* Draw the Text */
 	if(model.isEnabled()) {
 	    /*** paint the text normally */
 	    g.setColor(b.getForeground());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemIndex,
-                textRect.x, textRect.y + fm.getAscent());
 	}
 	else {
 	    /*** paint the text disabled ***/
@@ -116,10 +151,9 @@ public class MetalToggleButtonUI extends BasicToggleButtonUI {
 	    } else {
 	        g.setColor(getDisabledTextColor());
 	    }
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g, text, mnemIndex,
+        }
+        SwingUtilities2.drawStringUnderlineCharAt(c, g, text, mnemIndex,
                 textRect.x, textRect.y + fm.getAscent());
-
-	}
     }
 
     protected void paintFocus(Graphics g, AbstractButton b,
@@ -147,5 +181,19 @@ public class MetalToggleButtonUI extends BasicToggleButtonUI {
 	g.drawRect((focusRect.x-1), (focusRect.y-1),
 		  focusRect.width+1, focusRect.height+1);
 	
+    }
+
+    /**
+     * Paints the appropriate icon of the button <code>b</code> in the
+     * space <code>iconRect</code>.
+     *
+     * @param g Graphics to paint to
+     * @param b Button to render for
+     * @param iconRect space to render in
+     * @throws NullPointerException if any of the arguments are null.
+     * @since 1.5
+     */
+    protected void paintIcon(Graphics g, AbstractButton b, Rectangle iconRect) {
+        super.paintIcon(g, b, iconRect);
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyEditorManager.java	1.40 03/01/23
+ * @(#)PropertyEditorManager.java	1.45 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ package java.beans;
 public class PropertyEditorManager {
 
     /**
-     * Register an editor class to be used to editor values of
+     * Register an editor class to be used to edit values of
      * a given target class.
      * 
      * <p>First, if there is a security manager, its <code>checkPropertiesAccess</code> 
@@ -50,7 +50,7 @@ public class PropertyEditorManager {
      * @see SecurityManager#checkPropertiesAccess
      */
 
-    public static void registerEditor(Class targetType, Class editorClass) {
+    public static void registerEditor(Class<?> targetType, Class<?> editorClass) {
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
 	    sm.checkPropertiesAccess();
@@ -71,7 +71,7 @@ public class PropertyEditorManager {
      * The result is null if no suitable editor can be found.
      */
 
-    public static synchronized PropertyEditor findEditor(Class targetType) {
+    public static synchronized PropertyEditor findEditor(Class<?> targetType) {
 	initialize();
 	Class editorClass = (Class)registry.get(targetType);
 	if (editorClass != null) {
@@ -116,9 +116,9 @@ public class PropertyEditorManager {
      *
      * @return  The array of package names that will be searched in
      *		order to find property editors.
-     * <p>     This is initially set to {"sun.beans.editors"}.
+     * <p>     The default value for this array is implementation-dependent,
+     *         e.g. Sun implementation initially sets to  {"sun.beans.editors"}.
      */
-
     public static synchronized String[] getEditorSearchPath() {
 	// Return a copy of the searchPath.
 	String result[] = new String[searchPath.length];
@@ -147,6 +147,7 @@ public class PropertyEditorManager {
 	if (sm != null) {
 	    sm.checkPropertiesAccess();
 	}
+	initialize();
 	if (path == null) {
 	    path = new String[0];
 	}

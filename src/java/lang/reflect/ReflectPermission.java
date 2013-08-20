@@ -1,7 +1,7 @@
 /*
- * @(#)ReflectPermission.java	1.18 03/01/23
+ * @(#)ReflectPermission.java	1.21 04/03/01
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,10 +51,18 @@ package java.lang.reflect;
 public final
 class ReflectPermission extends java.security.BasicPermission {
 
+    private static final long serialVersionUID = 7412737110241507485L;
+
     /**
      * Constructs a ReflectPermission with the specified name.
      *
      * @param name the name of the ReflectPermission
+     *
+     * @throws  NullPointerException
+     *          If <tt>name</tt> is <tt>null</tt>
+     *
+     * @throws  IllegalArgumentException
+     *          If <tt>name</tt> is empty
      */
     public ReflectPermission(String name) {
 	super(name);
@@ -65,7 +73,14 @@ class ReflectPermission extends java.security.BasicPermission {
      * The actions should be null; they are ignored.
      *
      * @param name the name of the ReflectPermission
-     * @param actions should be null.
+     *
+     * @param actions should be null
+     *
+     * @throws  NullPointerException
+     *          If <tt>name</tt> is <tt>null</tt>
+     *
+     * @throws  IllegalArgumentException
+     *          If <tt>name</tt> is empty
      */
     public ReflectPermission(String name, String actions) {
 	super(name, actions);

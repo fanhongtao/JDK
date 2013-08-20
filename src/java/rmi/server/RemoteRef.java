@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteRef.java	1.20 03/01/23
+ * @(#)RemoteRef.java	1.23 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.rmi.*;
  * <code>RemoteStub</code> uses a remote reference to carry out a
  * remote method invocation to a remote object.
  *
- * @version 1.20, 01/23/03
+ * @version 1.23, 05/18/04
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @see     java.rmi.server.RemoteStub
@@ -76,10 +76,6 @@ public interface RemoteRef extends java.io.Externalizable {
      * marshalling, remote method executing and unmarshalling of the return
      * value.
      *
-     * <p>1.2 stubs are generated using <code>rmic -v1.2</code>. By
-     * default, <code>rmic</code> generates stubs compatible with JDK1.1 and
-     * the Java 2 SDK. The compatible stubs can also be generated using
-     * <code>rmic -vcompat</code>.
      * @param obj remote stub through which to make call
      * @param op array of stub operations
      * @param opnum operation number
@@ -88,6 +84,7 @@ public interface RemoteRef extends java.io.Externalizable {
      * @throws RemoteException if failed to initiate new remote call
      * @see #invoke(Remote,java.lang.reflect.Method,Object[],long)
      */
+    @Deprecated
     RemoteCall newCall(RemoteObject obj, Operation[] op, int opnum, long hash) 
 	throws RemoteException;
     
@@ -109,14 +106,11 @@ public interface RemoteRef extends java.io.Externalizable {
      * marshalling, remote method executing and unmarshalling of the return
      * value.
      *
-     * <p>1.2 stubs are generated using <code>rmic -v1.2</code>. By
-     * default, <code>rmic</code> generates stubs compatible with JDK1.1 and
-     * the Java 2 SDK. The compatible stubs can also be generated using
-     * <code>rmic -vcompat</code>.
      * @param call object representing remote call
      * @throws Exception if any exception occurs during remote method
      * @see #invoke(Remote,java.lang.reflect.Method,Object[],long)
      */
+    @Deprecated
     void invoke(RemoteCall call) throws Exception;
     
     /**
@@ -133,14 +127,11 @@ public interface RemoteRef extends java.io.Externalizable {
      * marshalling, remote method executing and unmarshalling of the return
      * value.
      *
-     * <p>1.2 stubs are generated using <code>rmic -v1.2</code>. By
-     * default, <code>rmic</code> generates stubs compatible with JDK1.1 and
-     * the Java 2 SDK. The compatible stubs can also be generated using <code>rmic
-     * -vcompat</code>.
      * @param call object representing remote call
      * @throws RemoteException if remote error occurs during call cleanup
      * @see #invoke(Remote,java.lang.reflect.Method,Object[],long)
      */
+    @Deprecated
     void done(RemoteCall call) throws RemoteException;
     
     /**

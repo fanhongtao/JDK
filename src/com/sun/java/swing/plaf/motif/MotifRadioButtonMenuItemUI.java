@@ -1,7 +1,7 @@
 /*
- * @(#)MotifRadioButtonMenuItemUI.java	1.40 03/01/23
+ * @(#)MotifRadioButtonMenuItemUI.java	1.42 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -11,7 +11,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.BasicRadioButtonMenuItemUI;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -28,7 +27,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.40 01/23/03
+ * @version 1.42 12/19/03
  * @author Georges Saab
  * @author Rich Schiavi
  */

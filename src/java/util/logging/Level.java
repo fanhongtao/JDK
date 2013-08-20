@@ -1,7 +1,7 @@
 /*
- * @(#)Level.java	1.12 03/01/27
+ * @(#)Level.java	1.19 04/02/25
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.ResourceBundle;
  * they maintain the Object uniqueness property across serialization
  * by defining a suitable readResolve method.
  *
- * @version 1.12, 01/27/03
+ * @version 1.19, 02/25/04
  * @since 1.4
  */
 
@@ -161,6 +161,7 @@ public class Level implements java.io.Serializable {
      * constants.
      * @param name  the name of the Level, for example "SEVERE".
      * @param value an integer value for the level.
+     * @throws NullPointerException if the name is null
      */
     protected Level(String name, int value) {
 	this(name, value, null);
@@ -173,9 +174,14 @@ public class Level implements java.io.Serializable {
      * @param name  the name of the Level, for example "SEVERE".
      * @param value an integer value for the level.
      * @param resourceBundleName name of a resource bundle to use in
-     *    localizing the given name (may be null).
+     *    localizing the given name. If the resourceBundleName is null 
+     *    or an empty string, it is ignored. 
+     * @throws NullPointerException if the name is null
      */
     protected Level(String name, int value, String resourceBundleName) {
+	if (name == null) {
+	    throw new NullPointerException(); 
+        }
         this.name = name;
         this.value = value;
 	this.resourceBundleName = resourceBundleName;
@@ -238,8 +244,10 @@ public class Level implements java.io.Serializable {
 	return value;
     }
 
+    private static final long serialVersionUID = -8176160795706313070L;
+
     // Serialization magic to prevent "doppelgangers".
-    // This is a peformance optimization.
+    // This is a performance optimization.
     private Object readResolve() {
 	synchronized (Level.class) {
 	    for (int i = 0; i < known.size(); i++) {
@@ -270,10 +278,19 @@ public class Level implements java.io.Serializable {
      * <li>	"1000"
      * </ul>
      * @param  name   string to be parsed
-     * @return parsed value
      * @throws NullPointerException if the name is null
-     * @throws IllegalArgumentException if the value is neither one of the
-     *		known names nor an integer.
+     * @throws IllegalArgumentException if the value is not valid. 
+     * Valid values are integers between <CODE>Integer.MIN_VALUE</CODE> 
+     * and <CODE>Integer.MAX_VALUE</CODE>, and all known level names. 
+     * Known names are the levels defined by this class (i.e. <CODE>FINE</CODE>,
+     * <CODE>FINER</CODE>, <CODE>FINEST</CODE>), or created by this class with
+     * appropriate package access, or new levels defined or created
+     * by subclasses.
+     *
+     * @return The parsed value. Passing an integer that corresponds to a known name
+     * (eg 700) will return the associated name (eg <CODE>CONFIG</CODE>).
+     * Passing an integer that does not (eg 1) will return a new level name
+     * initialized to that value.
      */
     public static synchronized Level parse(String name) throws IllegalArgumentException {
 	// Check that name is not null.
@@ -315,7 +332,7 @@ public class Level implements java.io.Serializable {
 	    }
 	}
 
-        // OK, we'ved tried everything and failed
+        // OK, we've tried everything and failed
         throw new IllegalArgumentException("Bad level \"" + name + "\"");
     }
 

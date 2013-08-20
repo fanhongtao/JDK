@@ -1,7 +1,7 @@
 /*
- * @(#)UnixLoginModule.java	1.5 03/01/23
+ * @(#)UnixLoginModule.java	1.7 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import com.sun.security.auth.UnixNumericGroupPrincipal;
  * If set to true in the login Configuration,
  * debug messages will be output to the output stream, System.out.
  *
- * @version 1.5, 01/23/03
+ * @version 1.7, 05/05/04
  */
 public class UnixLoginModule implements LoginModule {
 
@@ -72,7 +72,8 @@ public class UnixLoginModule implements LoginModule {
      *			<code>LoginModule</code>.
      */
     public void initialize(Subject subject, CallbackHandler callbackHandler,
-			Map sharedState, Map options) {
+			   Map<String,?> sharedState,
+			   Map<String,?> options) {
 
 	this.subject = subject;
 	this.callbackHandler = callbackHandler;

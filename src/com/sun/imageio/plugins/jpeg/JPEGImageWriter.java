@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageWriter.java	1.29 08/05/08
+ * @(#)JPEGImageWriter.java	1.33 03/10/01
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,6 +82,9 @@ public class JPEGImageWriter extends ImageWriter {
 
     private boolean convertTosRGB = false;  // Used by PhotoYCC only
     private WritableRaster converted = null;
+
+    private boolean isAlphaPremultiplied = false;
+    private ColorModel srcCM = null;
 
     /**
      * If there are thumbnails to be written, this is the list.
@@ -173,8 +176,9 @@ public class JPEGImageWriter extends ImageWriter {
 
     public void setOutput(Object output) {
         super.setOutput(output); // validates output
-        ios = (ImageOutputStream) output; // so this will always work
         resetInternalState();
+        ios = (ImageOutputStream) output; // so this will always work
+        // Set the native destination
         setDest(structPointer, ios);
     }
 
@@ -308,6 +312,10 @@ public class JPEGImageWriter extends ImageWriter {
             throw new IllegalStateException("Output has not been set!");
         }
 
+        if (image == null) {
+            throw new IllegalArgumentException("image is null!");
+        }
+
         // if streamMetadata is not null, issue a warning
         if (streamMetadata != null) {
             warningOccurred(WARNING_STREAM_METADATA_IGNORED);
@@ -337,6 +345,8 @@ public class JPEGImageWriter extends ImageWriter {
         indexCM = null;
         ColorModel cm = null;
         ColorSpace cs = null;
+        isAlphaPremultiplied = false;
+        srcCM = null;
         if (!rasterOnly) {
             cm = rimage.getColorModel();
             if (cm != null) {
@@ -345,6 +355,10 @@ public class JPEGImageWriter extends ImageWriter {
                     indexed = true;
                     indexCM = (IndexColorModel) cm;
                     numSrcBands = cm.getNumComponents();
+                }
+                if (cm.isAlphaPremultiplied()) {
+                    isAlphaPremultiplied = true;
+                    srcCM = cm;
                 }
             }
         }
@@ -434,8 +448,8 @@ public class JPEGImageWriter extends ImageWriter {
 
         // Examine the param
 
-        sourceXOffset = 0;
-        sourceYOffset = 0;
+        sourceXOffset = srcRas.getMinX();
+        sourceYOffset = srcRas.getMinY();
         int imageWidth = srcRas.getWidth();
         int imageHeight = srcRas.getHeight();
         sourceWidth = imageWidth;
@@ -455,6 +469,11 @@ public class JPEGImageWriter extends ImageWriter {
 
             Rectangle sourceRegion = param.getSourceRegion();
             if (sourceRegion != null) {
+                Rectangle imageBounds = new Rectangle(sourceXOffset,
+                                                      sourceYOffset,
+                                                      sourceWidth,
+                                                      sourceHeight);
+                sourceRegion = sourceRegion.intersection(imageBounds);
                 sourceXOffset = sourceRegion.x;
                 sourceYOffset = sourceRegion.y;
                 sourceWidth = sourceRegion.width;
@@ -1077,6 +1096,7 @@ public class JPEGImageWriter extends ImageWriter {
     private void resetInternalState() {
         // reset C structures
         resetWriter(structPointer);
+
         // reset local Java structures
         srcRas = null;
         raster = null;
@@ -1575,6 +1595,21 @@ public class JPEGImageWriter extends ImageWriter {
             // on subsequent lines.
             converted = convertOp.filter(sourceLine, converted);
             sourceLine = converted;
+        }
+        if (isAlphaPremultiplied) {
+            WritableRaster wr = sourceLine.createCompatibleWritableRaster();
+            int[] data = null;
+            data = sourceLine.getPixels(sourceLine.getMinX(), sourceLine.getMinY(),
+                                        sourceLine.getWidth(), sourceLine.getHeight(),
+                                        data);
+            wr.setPixels(sourceLine.getMinX(), sourceLine.getMinY(),
+                         sourceLine.getWidth(), sourceLine.getHeight(),
+                         data);
+            srcCM.coerceData(wr, false);
+            sourceLine = wr.createChild(wr.getMinX(), wr.getMinY(),
+                                        wr.getWidth(), wr.getHeight(),
+                                        0, 0,
+                                        srcBands);
         }
         raster.setRect(sourceLine);
         if ((y > 7) && (y%8 == 0)) {  // Every 8 scanlines

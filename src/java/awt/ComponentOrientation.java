@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentOrientation.java	1.12 03/01/23
+ * @(#)ComponentOrientation.java	1.14 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -150,6 +150,7 @@ public final class ComponentOrientation implements java.io.Serializable
      *
      * @deprecated As of J2SE 1.4, use {@link #getOrientation(java.util.Locale)}.
      */
+    @Deprecated
     public static ComponentOrientation getOrientation(ResourceBundle bdl)
     {
         ComponentOrientation result = null;

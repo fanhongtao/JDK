@@ -12,7 +12,7 @@ run this command from the Java2D directory:
 
     jar xvf Java2Demo.jar
 
-Note: These instructions assume that the 1.4 versions of the java,
+Note: These instructions assume that this installation's versions of the java,
 appletviewer, and jar commands are in your path.  If they aren't,
 then you should either specify the complete path to the commands
 or update your PATH environment variable as described in the

@@ -1,7 +1,7 @@
 /*
- * @(#)LogStream.java	1.18 03/01/23
+ * @(#)LogStream.java	1.20 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -13,11 +13,12 @@ import java.util.*;
  * <code>LogStream</code> provides a mechanism for logging errors that are
  * of possible interest to those monitoring a system.  
  *
- * @version 1.18, 01/23/03
+ * @version 1.20, 05/18/04
  * @author  Ann Wollrath (lots of code stolen from Ken Arnold)
  * @since   JDK1.1
  * @deprecated no replacement
  */
+@Deprecated
 public class LogStream extends PrintStream {
 
     /** table mapping known log names to log stream objects */
@@ -49,6 +50,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     private LogStream(String name, OutputStream out)
     {
 	super(new ByteArrayOutputStream());
@@ -67,6 +69,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public static LogStream log(String name) {
 	LogStream stream;
 	synchronized (known) {
@@ -86,6 +89,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public static synchronized PrintStream getDefaultStream() {
 	return defaultStream;
     }
@@ -97,6 +101,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public static synchronized void setDefaultStream(PrintStream newDefault) {
 	defaultStream = newDefault;
     }
@@ -108,6 +113,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public synchronized OutputStream getOutputStream()
     {
 	return logOut;
@@ -120,6 +126,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public synchronized void setOutputStream(OutputStream out)
     {
 	logOut = out;
@@ -136,6 +143,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public void write(int b)
     {
 	if (b == '\n') {
@@ -179,6 +187,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public void write(byte b[], int off, int len)
     {
 	if (len < 0)
@@ -193,6 +202,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public String toString()
     {
 	return name;
@@ -213,6 +223,7 @@ public class LogStream extends PrintStream {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public static int parseLevel(String s)
     {
 	if ((s == null) || (s.length() < 1))

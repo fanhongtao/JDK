@@ -1,7 +1,7 @@
 /*
- * @(#)Delegate.java	1.35 03/01/23
+ * @(#)Delegate.java	1.37 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.CORBA.portable;
@@ -26,7 +26,7 @@ import org.omg.CORBA.SystemException;
  *
  * @see org.omg.CORBA.Object
  * @author OMG
- * @version 1.35 01/23/03
+ * @version 1.37 12/19/03
  */
 
 public abstract class Delegate {
@@ -318,7 +318,9 @@ public abstract class Delegate {
      * @param output the OutputStream which contains marshaled arguments
      * @return input the InputStream from which reply parameters can be 
      * unmarshaled.
-     * @throws ApplicationException thrown when implementation throws (upon invocation) an exception defined as part of its remote method definition.
+     * @throws ApplicationException thrown when implementation throws 
+     * (upon invocation) an exception defined as part of its remote method 
+     * definition.
      * @throws RemarshalException thrown when remarshalling fails. 
      * @see <a href="package-summary.html#unimpl"><code>portable</code>
      * package comments for unimplemented features</a>

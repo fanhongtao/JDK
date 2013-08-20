@@ -1,7 +1,7 @@
 /*
- * @(#)DateFormat.java	1.47 03/01/23
+ * @(#)DateFormat.java	1.51 04/04/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import sun.text.resources.LocaleData;
  * language and country conventions multiple times.
  * <pre>
  *  DateFormat df = DateFormat.getDateInstance();
- *  for (int i = 0; i < a.length; ++i) {
+ *  for (int i = 0; i < myDate.length; ++i) {
  *    output.println(df.format(myDate[i]) + "; ");
  *  }
  * </pre>
@@ -118,7 +118,7 @@ import sun.text.resources.LocaleData;
  * @see          java.util.Calendar
  * @see          java.util.GregorianCalendar
  * @see          java.util.TimeZone
- * @version      1.47 01/23/03
+ * @version      1.51 04/12/04
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public abstract class DateFormat extends Format {
@@ -528,8 +528,14 @@ public abstract class DateFormat extends Format {
     }
 
     /**
-     * Gets the set of locales for which DateFormats are installed.
-     * @return the set of locales for which DateFormats are installed.
+     * Returns an array of all locales for which the
+     * <code>get*Instance</code> methods of this class can return
+     * localized instances.
+     * The array returned must contain at least a <code>Locale</code>
+     * instance equal to {@link java.util.Locale#US Locale.US}.
+     *
+     * @return An array of locales for which localized
+     *         <code>DateFormat</code> instances are available.
      */
     public static Locale[] getAvailableLocales()
     {
@@ -700,6 +706,10 @@ public abstract class DateFormat extends Format {
      * @see java.util.Calendar
      */
     public static class Field extends Format.Field {
+
+        // Proclaim serial compatibility with 1.4 FCS
+        private static final long serialVersionUID = 7441350119349544720L;
+
         // table of all instances in this class, used by readResolve
         private static final Map instanceMap = new HashMap(18);
         // Maps from Calendar constant (such as Calendar.ERA) to Field

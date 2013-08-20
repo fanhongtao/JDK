@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsTreeUI.java	1.21 03/01/23
+ * @(#)WindowsTreeUI.java	1.23 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import javax.swing.tree.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 01/23/03
+ * @version 1.23 12/19/03
  * @author Scott Violet
  */
 public class WindowsTreeUI extends BasicTreeUI {
@@ -39,26 +39,6 @@ public class WindowsTreeUI extends BasicTreeUI {
       {
 	return new WindowsTreeUI();
       }
-
-
-    protected void paintHorizontalPartOfLeg(Graphics g, Rectangle clipBounds,
-					    Insets insets, Rectangle bounds,
-					    TreePath path, int row,
-					    boolean isExpanded,
-					    boolean hasBeenExpanded, boolean
-					    isLeaf) {
-	if (XPStyle.getXP() == null) {
-	    super.paintHorizontalPartOfLeg(g, clipBounds, insets, bounds, path,
-					   row, isExpanded, hasBeenExpanded, isLeaf);
-	}
-    }
-
-    protected void paintVerticalPartOfLeg(Graphics g, Rectangle clipBounds,
-					  Insets insets, TreePath path) {
-	if (XPStyle.getXP() == null) {
-	    super.paintVerticalPartOfLeg(g, clipBounds, insets, path);
-	}
-    }    
 
 
     /**

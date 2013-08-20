@@ -1,7 +1,7 @@
 /*
- * @(#)InterruptedException.java	1.14 03/01/23
+ * @(#)InterruptedException.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.lang;
  * <code>interrupt</code>  method in class <code>Thread</code>. 
  *
  * @author  Frank Yellin
- * @version 1.14, 01/23/03
+ * @version 1.15, 12/19/03
  * @see     java.lang.Object#wait()
  * @see     java.lang.Object#wait(long)
  * @see     java.lang.Object#wait(long, int)

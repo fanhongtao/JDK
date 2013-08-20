@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)FontPanel.java	1.18 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)FontPanel.java	1.14 03/01/23
+ * @(#)FontPanel.java	1.18 04/07/26
  */
 
 import java.awt.BorderLayout;
@@ -334,7 +335,7 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
 
         if ( textToUse == RANGE_TEXT ) {
             for ( int i = drawRange[0]; i < drawRange[1]; i++ )
-              if ( testFont.canDisplay( (char) i ))
+              if ( testFont.canDisplay( i ))
                 numGlyphs++;
             fontInfos[1] = fontInfos[1] + numGlyphs + " / " + numCharsInRange;
         }
@@ -542,15 +543,18 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
                                           int baseX, int baseY ) {
             GlyphVector gv;
             int oneGlyph[] = { charCode };
-            char oneChar[] = { (char) charCode };
+            char charArray[] = Character.toChars( charCode );
+
+            FontRenderContext frc = g2.getFontRenderContext();
+            AffineTransform oldTX = g2.getTransform();
 
             /// Create GlyphVector to measure the exact visual advance
             /// Using that number, adjust the position of the character drawn
             if ( textToUse == ALL_GLYPHS )
-              gv = testFont.createGlyphVector( g2.getFontRenderContext(), oneGlyph );
+              gv = testFont.createGlyphVector( frc, oneGlyph );
             else
-              gv = testFont.createGlyphVector( g2.getFontRenderContext(), oneChar );
-            Rectangle2D r2d2 = gv.getPixelBounds(g2.getFontRenderContext(), 0, 0);
+              gv = testFont.createGlyphVector( frc, charArray );
+            Rectangle2D r2d2 = gv.getPixelBounds(frc, 0, 0);
             int shiftedX = baseX;
 	    // getPixelBounds returns a result in device space.
 	    // we need to convert back to user space to be able to
@@ -561,21 +565,20 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
                  pt[1] = r2d2.getY();
                  pt[2] = r2d2.getX()+r2d2.getWidth();
                  pt[3] = r2d2.getY()+r2d2.getHeight();
-                 g2.getTransform().inverseTransform(pt,0,pt,0,2);
+                 oldTX.inverseTransform(pt,0,pt,0,2);
                  shiftedX = baseX - (int) ( pt[2] / 2 + pt[0] );
             } catch (NoninvertibleTransformException e) {
             }
 
 	    /// ABP - keep track of old tform, restore it later
-	    AffineTransform oldTx = null;
-	    oldTx = g2.getTransform();
+
   	    g2.translate( shiftedX, baseY );      	    
 	    g2.transform( getAffineTransform( g2Transform ) );
 
             if ( textToUse == ALL_GLYPHS )
               g2.drawGlyphVector( gv, 0f, 0f );              
             else {
-                if ( testFont.canDisplay( (char) charCode ))
+                if ( testFont.canDisplay( charCode ))
                   g2.setColor( Color.black );
                 else {
                   g2.setColor( Color.lightGray );
@@ -583,10 +586,10 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
 
                 switch ( drawMethod ) {
                   case DRAW_STRING:
-                    g2.drawString( new String( oneChar ), 0, 0 );
+                    g2.drawString( new String( charArray ), 0, 0 );
                     break;
                   case DRAW_CHARS:
-                    g2.drawChars( oneChar, 0, 1, 0, 0 );
+                    g2.drawChars( charArray, 0, 1, 0, 0 );
                     break;
                   case DRAW_BYTES:
                     if ( charCode > 0xff )
@@ -598,8 +601,7 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
                     g2.drawGlyphVector( gv, 0f, 0f );
                     break;
                   case TL_DRAW:
-                    TextLayout tl = new TextLayout( new String( oneChar ), testFont,
-                                                    g2.getFontRenderContext() );
+                    TextLayout tl = new TextLayout( new String( charArray ), testFont, frc );
                     tl.draw( g2, 0f, 0f );
                     break;
                   case GV_OUTLINE:
@@ -611,16 +613,17 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
 		    r2d2 = gv.getVisualBounds();
 		    shiftedX = baseX - (int) ( r2d2.getWidth() / 2 + r2d2.getX() );
                     TextLayout tlo =
-                      new TextLayout( new String( oneChar ), testFont,
+                      new TextLayout( new String( charArray ), testFont,
                                       g2.getFontRenderContext() );
-                    AffineTransform at = new AffineTransform();
-                    g2.draw( tlo.getOutline( at ));
+                    g2.draw( tlo.getOutline( null ));
                 }
             }
             
 	    /// ABP - restore old tform
-    	    g2.setTransform ( oldTx );
+    	    g2.setTransform ( oldTX );
         }
+
+        // Java2D!\\U01d586\\U01d587\\U01d588
 
         /// Draws one line of text at given position
         private void modeSpecificDrawLine( Graphics2D g2, String line,
@@ -641,7 +644,7 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
               case DRAW_BYTES:
                 try {
                     byte lineBytes[] = line.getBytes( "ISO-8859-1" );
-                    g2.drawBytes( lineBytes, 0, line.length(), 0, 0 );
+                    g2.drawBytes( lineBytes, 0, lineBytes.length, 0, 0 );
                 }
                 catch ( Exception e ) {
                     e.printStackTrace();
@@ -979,6 +982,7 @@ public final class FontPanel extends JPanel implements AdjustmentListener {
                 }
                 catch ( CannotDrawException e ) {
                     f2dt.fireChangeStatus( ERRORS[ e.id ], true );
+                    super.paintComponent(g);
                     return;
                 }
             }

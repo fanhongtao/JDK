@@ -1,7 +1,7 @@
 /*
- * @(#)Preferences.java	1.20 03/09/05
+ * @(#)Preferences.java	1.25 04/06/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,9 +10,12 @@ package java.util.prefs;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.AccessController; 
+import java.security.AccessController;
 import java.security.Permission;
 import java.security.PrivilegedAction;
+import java.util.Iterator;
+import sun.misc.Service;
+import sun.misc.ServiceConfigurationError;
 
 
 // These imports needed only as a workaround for a JavaDoc bug
@@ -118,7 +121,7 @@ import java.lang.Double;
  * &lt;!DOCTYPE preferences SYSTEM "http://java.sun.com/dtd/preferences.dtd"&gt;
  * </pre>
  * Note that the system URI (http://java.sun.com/dtd/preferences.dtd) is
- * <i>not</i> accessed when exporting or importing prefereneces; it merely
+ * <i>not</i> accessed when exporting or importing preferences; it merely
  * serves as a string to uniquely identify the DTD, which is:
  * <pre>
  *    &lt;?xml version="1.0" encoding="UTF-8"?&gt;
@@ -169,58 +172,120 @@ import java.lang.Double;
  * alternative implementation.
  *
  * <p>Implementation note: In Sun's JRE, the <tt>PreferencesFactory</tt>
- * implementation is specified using the system property
- * <tt>java.util.prefs.PreferencesFactory</tt>, which must be set to the fully 
- * qualified name of a class implementing the <tt>PreferencesFactory</tt>.
+ * implementation is located as follows:
+ *
+ * <ol>
+ *
+ * <li><p>If the system property
+ * <tt>java.util.prefs.PreferencesFactory</tt> is defined, then it is
+ * taken to be the fully-qualified name of a class implementing the
+ * <tt>PreferencesFactory</tt> interface.  The class is loaded and
+ * instantiated; if this process fails then an unspecified error is
+ * thrown.</p></li>
+ *
+ * <li><p> If a <tt>PreferencesFactory</tt> implementation class file
+ * has been installed in a jar file that is visible to the
+ * {@link java.lang.ClassLoader#getSystemClassLoader system class loader},
+ * and that jar file contains a provider-configuration file named
+ * <tt>java.util.prefs.PreferencesFactory</tt> in the resource
+ * directory <tt>META-INF/services</tt>, then the first class name
+ * specified in that file is taken.  If more than one such jar file is
+ * provided, the first one found will be used.  The class is loaded
+ * and instantiated; if this process fails then an unspecified error
+ * is thrown.  </p></li>
+ *
+ * <li><p>Finally, if neither the above-mentioned system property nor
+ * an extension jar file is provided, then the system-wide default
+ * <tt>PreferencesFactory</tt> implementation for the underlying
+ * platform is loaded and instantiated.</p></li>
+ *
+ * </ol>
  *
  * @author  Josh Bloch
- * @version 1.20, 09/05/03
+ * @version 1.25, 06/21/04
  * @since   1.4
  */
 public abstract class Preferences {
-    /*
-     * Initialize factory as specified by system property
-     * java.util.prefs.PreferencesFactory.
-     */
-    private static final PreferencesFactory factory;
 
-    static {
-	PreferencesFactory factory0=null;
-        String factoryName =
-        (String) AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                  return System.getProperty(
-                                        "java.util.prefs.PreferencesFactory");
-              }
-        });
+    private static final PreferencesFactory factory = factory();
 
-        if (factoryName == null)
-            throw new InternalError(
-                "System property java.util.prefs.PreferencesFactory not set");
-
-        try {
-            factory0 = (PreferencesFactory)
-               Class.forName(factoryName, false,
-                             ClassLoader.getSystemClassLoader()).newInstance();
-        } catch(Exception ex) {
+    private static PreferencesFactory factory() {
+	// 1. Try user-specified system property
+	String factoryName = AccessController.doPrivileged(
+	    new PrivilegedAction<String>() {
+		public String run() {
+		    return System.getProperty(
+			"java.util.prefs.PreferencesFactory");}});
+	if (factoryName != null) {
+	    // FIXME: This code should be run in a doPrivileged and
+	    // not use the context classloader, to avoid being
+	    // dependent on the invoking thread.
+	    // Checking AllPermission also seems wrong.
 	    try {
-		//workaround for javaws, plugin, 
-		//load factory class using non-system classloader
-		//We enforce the security here to require All Permission
-		SecurityManager sm = System.getSecurityManager();
-		if (sm != null) {
-		    sm.checkPermission(new java.security.AllPermission());
+		return (PreferencesFactory)
+		    Class.forName(factoryName, false,
+				  ClassLoader.getSystemClassLoader())
+		    .newInstance();
+	    } catch (Exception ex) {
+		try {
+		    // workaround for javaws, plugin,
+		    // load factory class using non-system classloader
+		    SecurityManager sm = System.getSecurityManager();
+		    if (sm != null) {
+			sm.checkPermission(new java.security.AllPermission());
+		    }
+		    return (PreferencesFactory)
+			Class.forName(factoryName, false,
+				      Thread.currentThread()
+				      .getContextClassLoader())
+			.newInstance();
+		} catch (Exception e) {
+		    InternalError error = new InternalError(
+			"Can't instantiate Preferences factory "
+			+ factoryName);
+		    error.initCause(e);
+		    throw error;
 		}
-	        factory0 = (PreferencesFactory)
-                    Class.forName(factoryName, false,
-                        Thread.currentThread().getContextClassLoader()).newInstance();
-	    } catch (Exception e) {
-                throw new InternalError(
-                    "Can't instantiate Preferences factory " + e);
-            }
-        }
-	finally {
-	    factory = factory0;
+	    }
+	}
+
+	return AccessController.doPrivileged(
+	    new PrivilegedAction<PreferencesFactory>() {
+		public PreferencesFactory run() {
+		    return factory1();}});
+    }
+
+    private static PreferencesFactory factory1() {
+	// 2. Try service provider interface
+	Iterator i = Service.providers(PreferencesFactory.class,
+				       ClassLoader.getSystemClassLoader());
+	// choose first provider instance
+	while (i.hasNext()) {
+	    try {
+		return (PreferencesFactory) i.next();
+	    } catch (ServiceConfigurationError sce) {
+		if (sce.getCause() instanceof SecurityException) {
+		    // Ignore the security exception, try the next provider
+		    continue;
+		}
+		throw sce;
+	    }
+	}
+
+	// 3. Use platform-specific system-wide default
+	String platformFactory =
+	    System.getProperty("os.name").startsWith("Windows")
+	    ? "java.util.prefs.WindowsPreferencesFactory"
+	    : "java.util.prefs.FileSystemPreferencesFactory";
+	try {
+	    return (PreferencesFactory)
+		Class.forName(platformFactory, false, null).newInstance();
+	} catch (Exception e) {
+	    InternalError error = new InternalError(
+		"Can't instantiate platform default Preferences factory "
+		+ platformFactory);
+	    error.initCause(e);
+	    throw error;
 	}
     }
 
@@ -261,7 +326,7 @@ public abstract class Preferences {
      * </pre>
      * This idiom obviates the need for using a string to describe the
      * preferences node and decreases the likelihood of a run-time failure.
-     * (If the class name is is misspelled, it will typically result in a
+     * (If the class name is misspelled, it will typically result in a
      * compile-time error.)
      *
      * <p>Invoking this method will result in the creation of the returned
@@ -279,7 +344,7 @@ public abstract class Preferences {
      *         it denies <tt>RuntimePermission("preferences")</tt>.
      * @see    RuntimePermission
      */
-    public static Preferences userNodeForPackage(Class c) {
+    public static Preferences userNodeForPackage(Class<?> c) {
         return userRoot().node(nodeName(c));
     }
 
@@ -305,7 +370,7 @@ public abstract class Preferences {
      * </pre>
      * This idiom obviates the need for using a string to describe the
      * preferences node and decreases the likelihood of a run-time failure.
-     * (If the class name is is misspelled, it will typically result in a
+     * (If the class name is misspelled, it will typically result in a
      * compile-time error.)
      *
      * <p>Invoking this method will result in the creation of the returned
@@ -323,7 +388,7 @@ public abstract class Preferences {
      *         it denies <tt>RuntimePermission("preferences")</tt>.
      * @see    RuntimePermission
      */
-    public static Preferences systemNodeForPackage(Class c) {
+    public static Preferences systemNodeForPackage(Class<?> c) {
         return systemRoot().node(nodeName(c));
     }
 
@@ -897,7 +962,7 @@ s     * @throws IllegalStateException if this node (or an ancestor) has been
      * node exposes any stored defaults at or below this node.  Thus, a
      * subsequent call to <tt>nodeExists</tt> on this node's path name may
      * return <tt>true</tt>, and a subsequent call to <tt>node</tt> on this
-     * path name may may return a (different) <tt>Preferences</tt> instance
+     * path name may return a (different) <tt>Preferences</tt> instance
      * representing a non-empty collection of preferences and/or children.
      *
      * @throws BackingStoreException if this operation cannot be completed

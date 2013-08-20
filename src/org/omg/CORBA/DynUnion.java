@@ -1,7 +1,7 @@
 /*
- * @(#)DynUnion.java	1.13 03/01/23
+ * @(#)DynUnion.java	1.16 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,8 +15,9 @@ package org.omg.CORBA;
  * The first component in the union corresponds to the discriminator;
  * the second corresponds to the actual value of the union.
  * Calling the method <code>next()</code> twice allows you to access both components.
+ * @deprecated Use the new <a href="../DynamicAny/DynUnion.html">DynUnion</a> instead
  */
-
+@Deprecated
 public interface DynUnion extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**

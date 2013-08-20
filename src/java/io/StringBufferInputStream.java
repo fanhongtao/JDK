@@ -1,7 +1,7 @@
 /*
- * @(#)StringBufferInputStream.java	1.24 03/01/23
+ * @(#)StringBufferInputStream.java	1.26 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ package java.io;
  * this class.
  *
  * @author     Arthur van Hoff
- * @version    1.24, 01/23/03
+ * @version    1.26, 05/18/04
  * @see        java.io.ByteArrayInputStream
  * @see        java.io.StringReader
  * @since      JDK1.0
@@ -25,6 +25,7 @@ package java.io;
  *             of JDK&nbsp;1.1, the preferred way to create a stream from a
  *             string is via the <code>StringReader</code> class.
  */
+@Deprecated
 public
 class StringBufferInputStream extends InputStream {
     /**

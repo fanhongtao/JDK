@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)DitherTest.java	1.15 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)DitherTest.java	1.12 03/01/23
+ * @(#)DitherTest.java	1.15 04/07/26
  */
 
 import java.applet.Applet;
@@ -137,7 +138,7 @@ public class DitherTest extends Applet implements Runnable {
                 begval = Integer.parseInt(lower.substring(0, dash));
                 endval = Integer.parseInt(lower.substring(dash + 1));
             }
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException nfe) {
         }
 
         if (begval < 0) {
@@ -316,8 +317,8 @@ class DitherCanvas extends Canvas {
 }
 
 class DitherControls extends Panel implements ActionListener {
-    private TextField start;
-    private TextField end;
+    private CardinalTextField start;
+    private CardinalTextField end;
     private Button button;
     private Choice choice;
     private DitherTest applet;
@@ -338,8 +339,8 @@ class DitherControls extends Panel implements ActionListener {
         choice.addItem("Alpha");
         choice.addItem("Saturation");
         choice.select(type);
-        add(start = new TextField(Integer.toString(s), 4));
-        add(end = new TextField(Integer.toString(e), 4));
+        add(start = new CardinalTextField(Integer.toString(s), 4));
+        add(end = new CardinalTextField(Integer.toString(e), 4));
     }
 
     /* puts on the button */
@@ -352,12 +353,12 @@ class DitherControls extends Panel implements ActionListener {
     public int getParams(int vals[]) {
         try {
             vals[0] = scale(Integer.parseInt(start.getText()));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException nfe) {
             vals[0] = 0;
         }
         try {
             vals[1] = scale(Integer.parseInt(end.getText()));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException nfe) {
             vals[1] = 255;
         }
         return choice.getSelectedIndex();
@@ -380,3 +381,75 @@ class DitherControls extends Panel implements ActionListener {
         }
     }
 }
+
+class CardinalTextField extends TextField {
+
+    String oldText = null;
+
+    public CardinalTextField(String text, int columns) { 
+        super(text, columns);
+        enableEvents(AWTEvent.KEY_EVENT_MASK | AWTEvent.TEXT_EVENT_MASK);
+        oldText = getText();
+    }
+
+    // Consume non-digit KeyTyped events
+    // Note that processTextEvent kind of eliminates the need for this 
+    // function, but this is neater, since ideally, it would prevent 
+    // the text from appearing at all.  Sigh.  See bugid 4100317/4114565. 
+    //
+    protected void processEvent(AWTEvent evt) {
+        int id = evt.getID();
+        if (id != KeyEvent.KEY_TYPED) {
+            super.processEvent(evt);
+            return;
+        }
+
+        KeyEvent kevt = (KeyEvent) evt;
+        char c = kevt.getKeyChar();
+
+        // Digits, backspace, and delete are okay 
+        // Note that the minus sign is not allowed (neither is decimal)
+        if (Character.isDigit(c) || (c == '\b') || (c == '\u007f')) {
+            super.processEvent(evt);
+            return;
+        }
+
+        Toolkit.getDefaultToolkit().beep();
+        kevt.consume();
+    }
+
+    // Should consume TextEvents for non-integer Strings
+    // Store away the text in the tf for every TextEvent
+    // so we can revert to it on a TextEvent (paste, or 
+    // legal key in the wrong location) with bad text
+    //
+    // Note: it would be easy to extend this to an eight-bit 
+    // TextField (range 0-255), but I'll leave it as-is.  
+    //
+    protected void processTextEvent(TextEvent te) { 
+        // The empty string is okay, too 
+        String newText = getText();
+        if (newText.equals("") || textIsCardinal(newText)) {
+            oldText = newText;
+            super.processTextEvent(te);
+            return;
+        }
+
+        Toolkit.getDefaultToolkit().beep();
+        setText(oldText);
+    }
+
+    // Returns true for Cardinal (non-negative) numbers
+    // Note that the empty string is not allowed
+    private boolean textIsCardinal(String textToCheck) {
+        int value = -1;
+
+        try { 
+            value = Integer.parseInt(textToCheck, 10); 
+            return (value >= 0);
+        } catch (NumberFormatException nfe) { 
+            return false; 
+        }
+    }
+}
+

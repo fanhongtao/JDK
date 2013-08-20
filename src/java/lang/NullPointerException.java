@@ -1,7 +1,7 @@
 /*
- * @(#)NullPointerException.java	1.18 03/01/23
+ * @(#)NullPointerException.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ package java.lang;
  * other illegal uses of the <code>null</code> object. 
  *
  * @author  unascribed
- * @version 1.18, 01/23/03
+ * @version 1.19, 12/19/03
  * @since   JDK1.0
  */
 public

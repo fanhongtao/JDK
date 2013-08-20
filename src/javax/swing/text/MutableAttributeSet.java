@@ -1,7 +1,7 @@
 /*
- * @(#)MutableAttributeSet.java	1.15 03/01/23
+ * @(#)MutableAttributeSet.java	1.17 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -15,7 +15,7 @@ import java.util.Enumeration;
  * form:<tt>
  * public XXXAttributeSet(ConstAttributeSet source);</tt>
  *
- * @version 1.15 01/23/03
+ * @version 1.17 05/05/04
  */
 public interface MutableAttributeSet extends AttributeSet {
 
@@ -49,7 +49,7 @@ public interface MutableAttributeSet extends AttributeSet {
      *
      * @param names the set of names
      */
-    public void removeAttributes(Enumeration names);
+    public void removeAttributes(Enumeration<?> names);
 
     /**
      * Removes a set of attributes with the given <code>name</code>.

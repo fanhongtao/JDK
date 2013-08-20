@@ -1,7 +1,7 @@
 /*
- * @(#)UndeclaredThrowableException.java	1.11 03/01/23
+ * @(#)UndeclaredThrowableException.java	1.13 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ package java.lang.reflect;
  * method."
  *
  * @author	Peter Jones
- * @version	1.11, 03/01/23
+ * @version	1.13, 04/02/19
  * @see		InvocationHandler
  * @since	JDK1.3
  */
@@ -89,7 +89,7 @@ public class UndeclaredThrowableException extends RuntimeException {
     }
 
     /**
-     * Returns the the cause of this exception (the <code>Throwable</code>
+     * Returns the cause of this exception (the <code>Throwable</code>
      * instance wrapped in this <code>UndeclaredThrowableException</code>,
      * which may be <tt>null</tt>).
      *

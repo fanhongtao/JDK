@@ -1,7 +1,7 @@
 /*
- * @(#)GTKColorChooserPanel.java	1.5 03/01/23
+ * @(#)GTKColorChooserPanel.java	1.8 04/04/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -18,7 +18,7 @@ import javax.swing.plaf.*;
  * A color chooser panel mimicking that of GTK's: a color wheel showing
  * hue and a triangle that varies saturation and brightness.
  *
- * @version 1.5, 01/23/03
+ * @version 1.8, 04/16/04
  * @author Scott Violet
  */
 class GTKColorChooserPanel extends AbstractColorChooserPanel implements
@@ -115,7 +115,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
      */
     public int getDisplayedMnemonicIndex() {
         String m = (String)UIManager.get(
-                           "GTKColorChooserPanel.dispalyedMnemonicIndex");
+                           "GTKColorChooserPanel.displayedMnemonicIndex");
 
         if (m != null) {
             try {
@@ -133,6 +133,11 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
 
     public Icon getLargeDisplayIcon() {
         return null;
+    }
+
+    public void uninstallChooserPanel(JColorChooser enclosingChooser) {
+        super.uninstallChooserPanel(enclosingChooser);
+        removeAll();
     }
 
     /**

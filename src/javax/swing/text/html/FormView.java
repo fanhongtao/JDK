@@ -1,7 +1,7 @@
 /*
- * @(#)FormView.java	1.21 03/01/27
+ * @(#)FormView.java	1.26 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -85,7 +85,7 @@ import javax.swing.text.*;
  *
  * @author Timothy Prinzing
  * @author Sunita Mani
- * @version 1.21 01/27/03
+ * @version 1.26 05/18/04
  */
 public class FormView extends ComponentView implements ActionListener {
 
@@ -96,6 +96,7 @@ public class FormView extends ComponentView implements ActionListener {
      * @deprecated As of 1.3, value now comes from UIManager property
      *             FormView.submitButtonText
      */
+    @Deprecated
     public static final String SUBMIT = new String("Submit Query");
     /**
      * If a value attribute is not specified for a FORM input element
@@ -104,6 +105,7 @@ public class FormView extends ComponentView implements ActionListener {
      * @deprecated As of 1.3, value comes from UIManager UIManager property
      *             FormView.resetButtonText
      */
+    @Deprecated
     public static final String RESET = new String("Reset");
 
     /**
@@ -395,10 +397,12 @@ public class FormView extends ComponentView implements ActionListener {
 
 	String data;
 	HTMLDocument hdoc;
-	HTMLDocument newDoc;
 	AttributeSet formAttr;
-	InputStream in;
-	
+	URL url;
+	String method;
+	String target;
+	URL actionURL;
+
 	public SubmitThread(Element elem, String data) {
 	    this.data = data;
 	    hdoc = (HTMLDocument)elem.getDocument();
@@ -406,6 +410,31 @@ public class FormView extends ComponentView implements ActionListener {
             if (formE != null) {
                 formAttr = formE.getAttributes();
             }
+
+	    method = getMethod();
+
+	    try {
+		
+		String action = getAction();
+		method = getMethod();
+		target = getTarget();		
+		
+		/* if action is null use the base url and ensure that
+		   the file name excludes any parameters that may be attached */
+		URL baseURL = hdoc.getBase();
+		if (action == null) {
+		    
+		    String file = baseURL.getFile();
+		    actionURL = new URL(baseURL.getProtocol(), 
+					baseURL.getHost(), 
+					baseURL.getPort(), 
+					file);
+		} else {
+			actionURL = new URL(baseURL, action);
+		}
+	    } catch (MalformedURLException m) {
+		actionURL = null;
+	    }
 	}
 
 
@@ -424,77 +453,77 @@ public class FormView extends ComponentView implements ActionListener {
 
 	    if (data.length() > 0) {
 
-		String method = getMethod();
-		String action = getAction();
-		
-		URL url;
 		try {
-		    URL actionURL;
-
-		    /* if action is null use the base url and ensure that
-		       the file name excludes any parameters that may be attached */
-		    URL baseURL = hdoc.getBase();
-		    if (action == null) {
-			
-			String file = baseURL.getFile();
-			actionURL = new URL(baseURL.getProtocol(), 
-					    baseURL.getHost(), 
-					    baseURL.getPort(), 
-					    file);
-		    } else {
-			actionURL = new URL(baseURL, action);
-		    }
 
 		    URLConnection connection;
 
-
-		    if ("post".equals(method)) {
-			url = actionURL;
-			connection = url.openConnection();
-			postData(connection, data);
-		    } else {
-			/* the default, GET */
-			url = new URL(actionURL+"?"+data);
-			connection = url.openConnection();
-		    }
-		    in = connection.getInputStream();
-
 		    // safe assumption since we are in an html document
-		    JEditorPane c = (JEditorPane)getContainer();
-		    HTMLEditorKit kit = (HTMLEditorKit)c.getEditorKit();
-		    newDoc = (HTMLDocument)kit.createDefaultDocument();
-		    newDoc.putProperty(Document.StreamDescriptionProperty, url);
-
-		    
-		    Runnable callLoadDocument = new Runnable() {
-			public void run() {
-			    loadDocument();
-			}
-		    };
-		    SwingUtilities.invokeLater(callLoadDocument);
-		} catch (MalformedURLException m) {
-		    // REMIND how do we deal with exceptions ??
-		} catch (IOException e) {
-		    // REMIND how do we deal with exceptions ??
-		}
+                    JEditorPane c = (JEditorPane)getContainer();
+                    HTMLEditorKit kit = (HTMLEditorKit)c.getEditorKit();
+                    if (kit.isAutoFormSubmission()) {
+                        if ("post".equals(method)) {
+                            url = actionURL;
+                            connection = url.openConnection();
+                            postData(connection, data);
+                        } else {
+                            /* the default, GET */
+                            url = new URL(actionURL+"?"+data);
+                        }
+        
+                        Runnable callLoadDocument = new Runnable() {
+                            public void run() {
+				JEditorPane c = (JEditorPane)getContainer();
+                                if (hdoc.isFrameDocument()) {
+                                    c.fireHyperlinkUpdate(createFormSubmitEvent());
+                                } else {
+                                    try {
+                                        c.setPage(url);
+                                    } catch (IOException e) {
+                                    }
+                                }
+                            }
+                        };
+                        SwingUtilities.invokeLater(callLoadDocument);
+                    } else {
+                        c.fireHyperlinkUpdate(createFormSubmitEvent());
+                    }
+                } catch (MalformedURLException m) {
+                    // REMIND how do we deal with exceptions ??
+                } catch (IOException e) {
+                    // REMIND how do we deal with exceptions ??
+                }
 	    }
 	}
-
 
 	/**
-	 * This method is responsible for loading the
-	 * document into the FormView's container,
-	 * which is a JEditorPane.
+	 * Create an event that notifies about form submission
 	 */
-	public void loadDocument() {
-	    JEditorPane c = (JEditorPane)getContainer();
-	    try {
-		c.read(in, newDoc);
-	    } catch (IOException e) {
-		// REMIND failed to load document
-	    }
+	private FormSubmitEvent createFormSubmitEvent() {
+	    FormSubmitEvent.MethodType formMethod = 
+		"post".equals(method) ? FormSubmitEvent.MethodType.POST : 
+                                        FormSubmitEvent.MethodType.GET;
+	    return new FormSubmitEvent(FormView.this, 
+				       HyperlinkEvent.EventType.ACTIVATED, 
+				       actionURL, 
+				       getElement(),
+				       target, 
+				       formMethod, 
+				       data);	    
 	}
 
+	/**
+	 * Get the value of the target attribute.
+	 */
+	private String getTarget() {
+	    if (formAttr != null) {
+		String target = (String)formAttr.getAttribute(HTML.Attribute.TARGET);
+		if (target != null) {
+		    return target.toLowerCase();
+		}
+	    }
+	    return "_self";
+	}
+	
 	/**
 	 * Get the value of the action attribute.
 	 */
@@ -660,7 +689,7 @@ public class FormView extends ComponentView implements ActionListener {
                                        (HTML.Attribute.TYPE);
 
                     if (type != null && type.equals("submit") && 
-                        next != this) {
+                        next != getElement()) {
                         // do nothing - this submit isnt the trigger
                     } else if (type == null || !type.equals("image")) {
                         // images only result in data if they triggered

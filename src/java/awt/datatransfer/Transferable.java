@@ -1,7 +1,7 @@
 /*
- * @(#)Transferable.java	1.11 03/01/23
+ * @(#)Transferable.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,8 +12,13 @@ import java.io.IOException;
 /**
  * Defines the interface for classes that can be used to provide data
  * for a transfer operation.
+ * <p>
+ * For information on using data transfer with Swing, see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/dnd.html">
+ * How to Use Drag and Drop and Data Transfer</a>,
+ * a section in <em>The Java Tutorial</em>, for more information.
  *
- * @version 	1.11, 01/23/03
+ * @version 	1.13, 12/19/03
  * @author	Amy Fowler  
  */
 

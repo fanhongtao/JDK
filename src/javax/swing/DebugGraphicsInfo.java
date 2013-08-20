@@ -1,7 +1,7 @@
 /*
- * @(#)DebugGraphicsInfo.java	1.11 03/01/23
+ * @(#)DebugGraphicsInfo.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.util.*;
 /** Class used by DebugGraphics for maintaining information about how
   * to render graphics calls.
   *
-  * @version 1.11 01/23/03
+  * @version 1.13 12/19/03
   * @author Dave Karlton
   */
 class DebugGraphicsInfo {
@@ -25,6 +25,9 @@ class DebugGraphicsInfo {
     java.io.PrintStream  stream = System.out;
 
     void setDebugOptions(JComponent component, int debug) {
+	if (debug == 0) {
+	    return;
+	}
         if (componentToDebug == null) {
             componentToDebug = new Hashtable();
         }

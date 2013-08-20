@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyEditor.java	1.35 03/01/23
+ * @(#)PropertyEditor.java	1.37 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -88,15 +88,35 @@ public interface PropertyEditor {
     //----------------------------------------------------------------------
 
     /**
-     * This method is intended for use when generating Java code to set
-     * the value of the property.  It should return a fragment of Java code
-     * that can be used to initialize a variable with the current property
-     * value.
+     * Returns a fragment of Java code that can be used to set a property
+     * to match the editors current state. This method is intended
+     * for use when generating Java code to reflect changes made through the 
+     * property editor.
      * <p>
-     * Example results are "2", "new Color(127,127,34)", "Color.orange", etc.
+     * The code fragment should be context free and must be a legal Java 
+     * expression as specified by the JLS.
+     * <p>
+     * Specifically, if the expression represents a computation then all
+     * classes and static members should be fully qualified. This rule 
+     * applies to constructors, static methods and non primitive arguments.
+     * <p>
+     * Caution should be used when evaluating the expression as it may throw
+     * exceptions. In particular, code generators must ensure that generated
+     * code will compile in the presence of an expression that can throw 
+     * checked exceptions.
+     * <p>
+     * Example results are:
+     * <ul>
+     * <li>Primitive expresssion: <code>2</code>
+     * <li>Class constructor: <code>new java.awt.Color(127,127,34)</code>
+     * <li>Static field: <code>java.awt.Color.orange</code>
+     * <li>Static method: <code>javax.swing.Box.createRigidArea(new 
+     *                                   java.awt.Dimension(0, 5))</code>
+     * </ul>
      *
-     * @return A fragment of Java code representing an initializer for the
-     *   	current value.
+     * @return a fragment of Java code representing an initializer for the
+     *         current value. It should not contain a semi-colon 
+     *         ('<code>;</code>') to end the expression.
      */
     String getJavaInitializationString();
 

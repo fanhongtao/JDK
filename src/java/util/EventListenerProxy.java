@@ -1,7 +1,7 @@
 /*
- * @(#)EventListenerProxy.java	1.3 03/01/23
+ * @(#)EventListenerProxy.java	1.5 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.util;
  * of additional parameters with the listener. Subclasses must provide the
  * storage and accessor methods for the additional arguments or parameters.
  * 
- * Subclasses of EventListerProxy may be returned by getListeners() methods
+ * Subclasses of EventListenerProxy may be returned by getListeners() methods
  * as a way of associating named properties with their listeners.
  * 
  * For example, a Bean which supports named properties would have a two

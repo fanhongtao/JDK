@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)Animator.java	1.13 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)Animator.java	1.9 03/01/23
+ * @(#)Animator.java	1.13 04/07/26
  */
 
 import java.awt.*;
@@ -57,7 +58,7 @@ import java.util.Iterator;
  * home page</a> for details and updates.
  *
  * @author Herb Jellinek
- * @version 1.9, 01/23/03
+ * @version 1.13, 07/26/04
  */
 public class Animator extends Applet implements Runnable, MouseListener {
     int appWidth = 0;                // Animator width
@@ -272,7 +273,6 @@ public class Animator extends Applet implements Runnable, MouseListener {
      * Initialize the applet.  Get parameters.
      */
     public void init() {
-        
         //animation.tracker = new MediaTracker(this);
 	appWidth = getSize().width;
 	appHeight = getSize().height;
@@ -328,11 +328,17 @@ public class Animator extends Applet implements Runnable, MouseListener {
      */
     public void run() {
         Thread me = Thread.currentThread();
+
+        if (animation == null) 
+            return; 
         if (animation.frames == null)
             return;
         if ((appWidth <= 0) || (appHeight <= 0))
             return;
+
 	try {
+            animation.startPlaying();  
+
             while (engine == me) {
                 // Get current frame and paint it, play its sound
                 AnimationFrame thisFrame = (AnimationFrame) 
@@ -342,7 +348,7 @@ public class Animator extends Applet implements Runnable, MouseListener {
                     thisFrame.sound.play();
 
                 animation.currentFrame++;
-                 // Check if we are done
+                // Check if we are done
                 if (animation.currentFrame >= animation.frames.size()) {
                     if (animation.repeat)
                         animation.currentFrame = 0;
@@ -358,14 +364,13 @@ public class Animator extends Applet implements Runnable, MouseListener {
                             wait();
                         }
                     }
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                 }
             }
         } finally {
             synchronized(this) {
-            if (engine == me)
-                animation.stopPlaying();
+                if (engine == me)
+                    animation.stopPlaying();
             }
         }
     }
@@ -415,9 +420,9 @@ public class Animator extends Applet implements Runnable, MouseListener {
      * Stop the insanity, um, applet.
      */
     public synchronized void stop() {
-	engine = null;
+        engine = null;
         animation.stopPlaying();
-         if (userPause) {
+        if (userPause) {
             userPause = false;
             notify();
         }
@@ -430,37 +435,39 @@ public class Animator extends Applet implements Runnable, MouseListener {
      */
     public synchronized void mousePressed(MouseEvent event) {
         event.consume();
-	if ((event.getModifiers() & InputEvent.SHIFT_MASK) != 0) {
-	    showDescription();
-	    return;
-	} else if (hrefURL != null) {
-            //Let mouseClicked handle this.
+        if ((event.getModifiers() & InputEvent.SHIFT_MASK) != 0) {
+            showDescription();
+            return;
+        } else if (hrefURL != null) {
+            // Let mouseClicked handle this.
             return;
         } else if (loaded) {
-	    userPause = !userPause;
+            userPause = !userPause;
             if (!userPause) {
                 animation.startPlaying();
                 notifyAll();
             }
-	}
+        }
     }
 
     public void mouseClicked(MouseEvent event) {
-	if ((hrefURL != null) &&
-	        ((event.getModifiers() & InputEvent.SHIFT_MASK) == 0)) {
-	    getAppletContext().showDocument(hrefURL, hrefTarget);
-	}
+        if ((hrefURL != null) &&
+            ((event.getModifiers() & InputEvent.SHIFT_MASK) == 0)) 
+        {
+            // Note: currently ignored by appletviewer
+            getAppletContext().showDocument(hrefURL, hrefTarget);
+        }
+
+        showStatus(getAppletInfo() + " -- " + userInstructions);
     }
 
     public void mouseReleased(MouseEvent event) {
     }
 
     public void mouseEntered(MouseEvent event) {
-	showStatus(getAppletInfo()+" -- "+userInstructions);
     }
 
     public void mouseExited(MouseEvent event) {
-        showStatus("");
     }    
 }
 
@@ -499,9 +506,8 @@ class Animation extends Object {
 
     void init() {
         tracker = new MediaTracker(owner);
-	currentFrame = 0;
+        currentFrame = 0;
         loadAnimationMedia();
-	startPlaying();
     }
 
     void setGlobalPause(int pause) {
@@ -775,13 +781,15 @@ class Animation extends Object {
     }	
 
     void startPlaying() {
-	if (soundTrack != null)
+	if (soundTrack != null) {
 	    soundTrack.loop();
+        }
     }
 
     void stopPlaying() {
-	if (soundTrack != null)
+	if (soundTrack != null) {
 	    soundTrack.stop();
+        }
     }
 
     public void paint(Graphics g) {
@@ -874,3 +882,4 @@ class DescriptionFrame extends Frame implements ActionListener {
 	setVisible(false);
     }
 }
+

@@ -1,7 +1,7 @@
 /*
- * @(#)FramePeer.java	1.26 03/01/23
+ * @(#)FramePeer.java	1.28 04/06/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,4 +24,5 @@ public interface FramePeer extends WindowPeer {
     void setState(int state);
     int  getState();
     void setMaximizedBounds(Rectangle bounds); // XXX
+    void setBoundsPrivate(int x, int y, int width, int height);
 }

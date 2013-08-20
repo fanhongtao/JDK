@@ -1,7 +1,7 @@
 /*
- * @(#)PKCS8EncodedKeySpec.java	1.17 03/01/23
+ * @(#)PKCS8EncodedKeySpec.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.17, 01/23/03
+ * @version 1.19, 12/19/03
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -48,7 +48,8 @@ public class PKCS8EncodedKeySpec extends EncodedKeySpec {
      * Creates a new PKCS8EncodedKeySpec with the given encoded key.
      *
      * @param encodedKey the key, which is assumed to be
-     * encoded according to the PKCS #8 standard.
+     * encoded according to the PKCS #8 standard. The contents of 
+     * the array are copied to protect against subsequent modification.
      */
     public PKCS8EncodedKeySpec(byte[] encodedKey) {
 	super(encodedKey);
@@ -57,7 +58,8 @@ public class PKCS8EncodedKeySpec extends EncodedKeySpec {
     /**
      * Returns the key bytes, encoded according to the PKCS #8 standard.
      *
-     * @return the PKCS #8 encoding of the key.
+     * @return the PKCS #8 encoding of the key. Returns a new array 
+     * each time this method is called.
      */
     public byte[] getEncoded() {
 	return super.getEncoded();

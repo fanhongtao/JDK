@@ -1,7 +1,7 @@
 /*
- * @(#)MetalInternalFrameUI.java	1.29 03/01/23
+ * @(#)MetalInternalFrameUI.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import javax.swing.plaf.*;
  * Metal implementation of JInternalFrame.  
  * <p>
  *
- * @version 1.29 01/23/03
+ * @version 1.30 12/19/03
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {

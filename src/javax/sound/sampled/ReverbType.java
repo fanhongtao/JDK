@@ -1,7 +1,7 @@
 /*
- * @(#)ReverbType.java	1.11 03/01/23
+ * @(#)ReverbType.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -119,7 +119,7 @@ package javax.sound.sampled;
  * </table>
  * 
  * @author Kara Kytle
- * @version 1.11, 03/01/23
+ * @version 1.13, 03/12/19
  * @since 1.3
  */
 public class ReverbType {
@@ -176,6 +176,16 @@ public class ReverbType {
     }
 
 
+    /**
+     * Obtains the name of this reverb type.
+     * @return the name of this reverb type
+     * @since 1.5
+     */
+    public String getName() {
+            return name;
+    }
+
+    
     /**
      * Returns the early reflection delay time in microseconds. 
      * This is the amount of time between when the direct signal is

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultDesktopManager.java	1.49 03/01/23
+ * @(#)DefaultDesktopManager.java	1.52 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.awt.event.ComponentEvent;
   * methods will call into the DesktopManager.</p>
   * @see JDesktopPane
   * @see JInternalFrame
-  * @version 1.49 01/23/03
+  * @version 1.52 12/19/03
   * @author David Kloba
   * @author Steve Wilson
   */
@@ -84,22 +84,25 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
      * @param f the frame to be resized
      */
     public void maximizeFrame(JInternalFrame f) {
-
-        Rectangle p;
-        if(!f.isIcon()) {
-            p = f.getParent().getBounds();
+        if (f.isIcon()) {
+            try {
+                // In turn calls deiconifyFrame in the desktop manager.
+                // That method will handle the maximization of the frame.
+                f.setIcon(false);
+            } catch (PropertyVetoException e2) {
+            }
         } else {
-            Container c = f.getDesktopIcon().getParent();
-            if(c == null)
-                return;
-            p = c.getBounds();
-            try { f.setIcon(false); } catch (PropertyVetoException e2) { }
+            f.setNormalBounds(f.getBounds());
+            Rectangle desktopBounds = f.getParent().getBounds();
+            setBoundsForFrame(f, 0, 0,
+                desktopBounds.width, desktopBounds.height);
         }
-	f.setNormalBounds(f.getBounds());
-        setBoundsForFrame(f, 0, 0, p.width, p.height);
-        try { f.setSelected(true); } catch (PropertyVetoException e2) { }
 
-        removeIconFor(f);
+        // Set the maximized frame as selected.
+        try {
+            f.setSelected(true);
+        } catch (PropertyVetoException e2) {
+        }
     }
 
     /**
@@ -108,13 +111,18 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
      * @param f the <code>JInternalFrame</code> to be restored
      */
     public void minimizeFrame(JInternalFrame f) {
-        if((f.getNormalBounds()) != null) {
+        // If the frame was an icon restore it back to an icon.
+        if (f.isIcon()) {
+            iconifyFrame(f);
+            return;
+        }
+
+        if ((f.getNormalBounds()) != null) {
             Rectangle r = f.getNormalBounds();
 	    f.setNormalBounds(null);
             try { f.setSelected(true); } catch (PropertyVetoException e2) { }
             setBoundsForFrame(f, r.x, r.y, r.width, r.height);
         }
-        removeIconFor(f);
     }
 
     /**
@@ -124,7 +132,7 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
      */
     public void iconifyFrame(JInternalFrame f) {
         JInternalFrame.JDesktopIcon desktopIcon;
-        Container c;
+        Container c = f.getParent();
 	JDesktopPane d = f.getDesktopPane();
 	boolean findNext = f.isSelected();
 
@@ -135,27 +143,34 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
             setWasIcon(f, Boolean.TRUE);
         }
 
-        c = f.getParent();
-
-	if (c == null) return;
+	if (c == null) {
+            return;
+        }
 
 	if (c instanceof JLayeredPane) {
 	    JLayeredPane lp = (JLayeredPane)c;
 	    int layer = lp.getLayer(f);
 	    lp.putLayer(desktopIcon, layer);
 	}
-	if (f.isMaximum()) {
-	    try { f.setMaximum(false); } catch (PropertyVetoException e2) { }
-	}
+
+        // If we are maximized we already have the normal bounds recorded
+        // don't try to re-record them, otherwise we incorrectly set the
+        // normal bounds to maximized state.
+        if (!f.isMaximum()) {
+            f.setNormalBounds(f.getBounds());
+        }
         c.remove(f);
         c.add(desktopIcon);
         c.repaint(f.getX(), f.getY(), f.getWidth(), f.getHeight());
-        try { f.setSelected(false); } catch (PropertyVetoException e2) { }
-	/* get topmost of the remaining frames */
+        try {
+            f.setSelected(false);
+        } catch (PropertyVetoException e2) {
+        }
+
+	// Get topmost of the remaining frames
 	if (findNext) {
 	  activateNextFrame(c);
 	}
-
     }
 
     void activateNextFrame(Container c) {
@@ -182,13 +197,21 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
      * @param f the <code>JInternalFrame</code> to be de-iconified
      */
     public void deiconifyFrame(JInternalFrame f) {
-        JInternalFrame.JDesktopIcon desktopIcon;
-
-        desktopIcon = f.getDesktopIcon();
-        if(desktopIcon.getParent() != null) {
-            desktopIcon.getParent().add(f);
+        JInternalFrame.JDesktopIcon desktopIcon = f.getDesktopIcon();
+        Container c = desktopIcon.getParent();
+        if (c != null) {
+            c.add(f);
+            // If the frame is to be restored to a maximized state make
+            // sure it still fills the whole desktop.
+            if (f.isMaximum()) {
+                Rectangle desktopBounds = c.getBounds();
+                if (f.getWidth() != desktopBounds.width ||
+                        f.getHeight() != desktopBounds.height) {
+                    setBoundsForFrame(f, 0, 0,
+                        desktopBounds.width, desktopBounds.height);
+                }
+            }
             removeIconFor(f);
-            // Fix for bug id #4418262.
             if (f.isSelected()) {
                 f.moveToFront();
             } else {
@@ -406,12 +429,14 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
       JInternalFrame.JDesktopIcon icon = f.getDesktopIcon();
       Dimension prefSize = icon.getPreferredSize();
-
       //
       // Get the parent bounds and child components.
       //
 
       Container c = f.getParent();
+      if (c == null) {
+	  c = f.getDesktopIcon().getParent();
+      }
 
       if (c == null) {
 	/* the frame has not yet been added to the parent; how about (0,0) ?*/

@@ -1,12 +1,14 @@
 /*
- * @(#)BasicMenuBarUI.java	1.78 03/01/23
+ * @(#)BasicMenuBarUI.java	1.80 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.Color;
@@ -29,7 +31,7 @@ import javax.swing.plaf.*;
  * A default L&F implementation of MenuBarUI.  This implementation
  * is a "combined" view/controller.
  *
- * @version 1.78 01/23/03
+ * @version 1.80 12/19/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -38,10 +40,14 @@ public class BasicMenuBarUI extends MenuBarUI  {
     protected JMenuBar              menuBar = null;
     protected ContainerListener     containerListener;
     protected ChangeListener        changeListener;
-    private PropertyChangeListener  propertyChangeListener;
+    private Handler handler;
 
     public static ComponentUI createUI(JComponent x) {
 	return new BasicMenuBarUI();
+    }
+
+    static void loadActionMap(LazyActionMap map) {
+        map.put(new Actions(Actions.TAKE_FOCUS));
     }
 
     public void installUI(JComponent c) {
@@ -58,7 +64,8 @@ public class BasicMenuBarUI extends MenuBarUI  {
 	    menuBar.getLayout() instanceof UIResource) {
             menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.LINE_AXIS));
         }
-	menuBar.setOpaque(true);
+  
+	LookAndFeel.installProperty(menuBar, "opaque", Boolean.TRUE);
 	LookAndFeel.installBorder(menuBar,"MenuBar.border");
 	LookAndFeel.installColorsAndFont(menuBar,
 					      "MenuBar.background",
@@ -69,7 +76,6 @@ public class BasicMenuBarUI extends MenuBarUI  {
     protected void installListeners() {
         containerListener = createContainerListener();
         changeListener = createChangeListener();
-        propertyChangeListener = createPropertyChangeListener();
 	
         for (int i = 0; i < menuBar.getMenuCount(); i++) {
             JMenu menu = menuBar.getMenu(i);
@@ -77,7 +83,6 @@ public class BasicMenuBarUI extends MenuBarUI  {
 		menu.getModel().addChangeListener(changeListener);        
 	}
 	menuBar.addContainerListener(containerListener);
-        menuBar.addPropertyChangeListener(propertyChangeListener);
     }
 
     protected void installKeyboardActions() {
@@ -85,39 +90,20 @@ public class BasicMenuBarUI extends MenuBarUI  {
 
 	SwingUtilities.replaceUIInputMap(menuBar,
 			   JComponent.WHEN_IN_FOCUSED_WINDOW, inputMap);
-	ActionMap actionMap = getActionMap();
 
-	SwingUtilities.replaceUIActionMap(menuBar, actionMap);
+        LazyActionMap.installLazyActionMap(menuBar, BasicMenuBarUI.class,
+                                           "MenuBar.actionMap");
     } 
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_IN_FOCUSED_WINDOW) {
-	    Object[] bindings = (Object[])UIManager.get
-		                ("MenuBar.windowBindings");
+	    Object[] bindings = (Object[])DefaultLookup.get
+		                (menuBar, this, "MenuBar.windowBindings");
 	    if (bindings != null) {
 		return LookAndFeel.makeComponentInputMap(menuBar, bindings);
 	    }
 	}
 	return null;
-    }
-
-    ActionMap getActionMap() {
-	ActionMap map = (ActionMap)UIManager.get("MenuBar.actionMap");
-
-	if (map == null) {
-	    map = createActionMap();
-	    if (map != null) {
-		UIManager.getLookAndFeelDefaults().put("MenuBar.actionMap",
-                                                       map);
-	    }
-	}
-	return map;
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-	map.put("takeFocus", new TakeFocus()); 
-	return map;
     }
 
     public void uninstallUI(JComponent c) {
@@ -136,7 +122,6 @@ public class BasicMenuBarUI extends MenuBarUI  {
 
     protected void uninstallListeners() {
 	menuBar.removeContainerListener(containerListener);
-        menuBar.removePropertyChangeListener(propertyChangeListener);
 
         for (int i = 0; i < menuBar.getMenuCount(); i++) {
 	    JMenu menu = menuBar.getMenu(i);
@@ -146,7 +131,7 @@ public class BasicMenuBarUI extends MenuBarUI  {
 
 	containerListener = null;
 	changeListener = null;
-        propertyChangeListener = null;
+        handler = null;
     }
 
     protected void uninstallKeyboardActions() {
@@ -156,18 +141,33 @@ public class BasicMenuBarUI extends MenuBarUI  {
     }
 
     protected ContainerListener createContainerListener() {
-	return new ContainerHandler();
+	return getHandler();
     }
 
     protected ChangeListener createChangeListener() {
-        return new ChangeHandler();
+        return getHandler();
     }
 
-    private PropertyChangeListener createPropertyChangeListener() {
-        return new PropertyChangeHandler();
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
     }
 
-    private class ChangeHandler implements ChangeListener {
+
+    public Dimension getMinimumSize(JComponent c) {
+        return null;
+    }
+
+    public Dimension getMaximumSize(JComponent c) {
+        return null;
+    }
+
+    private class Handler implements ChangeListener, ContainerListener {
+        //
+        // ChangeListener
+        //
 	public void stateChanged(ChangeEvent e) {
 	    int i,c;
 	    for(i=0,c = menuBar.getMenuCount() ; i < c ; i++) {
@@ -178,40 +178,10 @@ public class BasicMenuBarUI extends MenuBarUI  {
 		}
 	    }
 	}
-    }
 
-    /*
-     * This PropertyChangeListener is used to adjust the default layout
-     * manger when the menuBar is given a right-to-left ComponentOrientation.
-     * This is a hack to work around the fact that the DefaultMenuLayout
-     * (BoxLayout) isn't aware of ComponentOrientation.  When BoxLayout is
-     * made aware of ComponentOrientation, this listener will no longer be
-     * necessary.
-     */
-    private class PropertyChangeHandler implements PropertyChangeListener {
-        public void propertyChange(PropertyChangeEvent e) {
-            String name = e.getPropertyName();
-            if( name.equals("componentOrientation")
-                && (menuBar.getLayout() instanceof UIResource) )
-            {
-                menuBar.setLayout(new DefaultMenuLayout(menuBar,BoxLayout.LINE_AXIS));
-            }
-        }
-    }
-    
-    public Dimension getPreferredSize(JComponent c) {
-        return null;
-    }
-
-    public Dimension getMinimumSize(JComponent c) {
-        return null;
-    }
-
-    public Dimension getMaximumSize(JComponent c) {
-        return null;
-    }
-
-    private class ContainerHandler implements ContainerListener {
+        //
+        // ContainerListener
+        //
 	public void componentAdded(ContainerEvent e) {
 	    Component c = e.getChild();
 	    if (c instanceof JMenu)
@@ -225,11 +195,15 @@ public class BasicMenuBarUI extends MenuBarUI  {
     }
 
 
-    private static class TakeFocus extends AbstractAction {
-        TakeFocus() {
+    private static class Actions extends UIAction {
+        private static final String TAKE_FOCUS = "takeFocus";
+
+        Actions(String key) {
+            super(key);
 	}
-	
+
 	public void actionPerformed(ActionEvent e) {
+            // TAKE_FOCUS
 	    JMenuBar menuBar = (JMenuBar)e.getSource();
             MenuSelectionManager defaultManager = MenuSelectionManager.defaultManager();
 	    MenuElement me[];

@@ -1,7 +1,7 @@
 /*
- * @(#)PrintService.java	1.9 03/01/23
+ * @(#)PrintService.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -110,7 +110,8 @@ public interface PrintService {
      *     <code>Class</code> that implements interface 
      *{@link javax.print.attribute.PrintServiceAttribute PrintServiceAttribute}. 
      */
-    public PrintServiceAttribute getAttribute(Class category);
+    public <T extends PrintServiceAttribute>
+	T getAttribute(Class<T> category);
 
     /**
      * Determines the print data formats a client can specify when setting
@@ -172,7 +173,7 @@ public interface PrintService {
      *          javax.print.attribute.Attribute Attribute}.
      *          The array is empty if no categories are supported.
      */
-    public Class[] getSupportedAttributeCategories();
+    public Class<?>[] getSupportedAttributeCategories();
     	
     /**
      * Determines whether a client can specify the given printing
@@ -210,7 +211,8 @@ public interface PrintService {
      *     <code>Class</code> that implements interface 
      *     {@link javax.print.attribute.Attribute Attribute}. 
      */
-    public boolean isAttributeCategorySupported(Class category);
+    public boolean
+	isAttributeCategorySupported(Class<? extends Attribute> category);
     
     /**
      * Determines this print service's default printing attribute value in
@@ -253,7 +255,8 @@ public interface PrintService {
      *     {@link java.lang.Class Class} that implements interface {@link 
      *     javax.print.attribute.Attribute Attribute}. 
      */
-    public Object getDefaultAttributeValue(Class category);
+    public Object
+	getDefaultAttributeValue(Class<? extends Attribute> category);
 
     /**
      * Determines the printing attribute values a client can specify in
@@ -328,9 +331,10 @@ public interface PrintService {
      *     javax.print.attribute.Attribute Attribute}, or
      *     <code>DocFlavor</code> is not supported by this service.
      */	
-    public Object getSupportedAttributeValues(Class category,
-                                              DocFlavor flavor,
-                                              AttributeSet attributes);
+    public Object
+	getSupportedAttributeValues(Class<? extends Attribute> category,
+				    DocFlavor flavor,
+				    AttributeSet attributes);
 
     /**
      * Determines whether a client can specify the given printing

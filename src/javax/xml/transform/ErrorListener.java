@@ -1,30 +1,37 @@
+// $Id: ErrorListener.java,v 1.2 2003/09/19 10:10:13 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)ErrorListener.java	1.12 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-/*
- * @(#)ErrorListener.java	1.7 03/01/23
- */
 package javax.xml.transform;
 
 /**
  * <p>To provide customized error handling, implement this interface and
- * use the setErrorListener method to register an instance of the implmentation
- * with the {@link javax.xml.transform.Transformer}. The Transformer then reports
- * all errors and warnings through this interface.</p>
+ * use the <code>setErrorListener</code> method to register an instance of the
+ * implmentation with the {@link javax.xml.transform.Transformer}.  The
+ * <code>Transformer</code> then reports all errors and warnings through this
+ * interface.</p>
  *
- * <p>If an application does <em>not</em>
- * register an ErrorListener, errors are reported to System.err.</p>
+ * <p>If an application does <em>not</em> register its own custom
+ * <code>ErrorListener</code>, the default <code>ErrorListener</code>
+ * is used which reports all warnings and errors to <code>System.err</code>
+ * and does not throw any <code>Exception</code>s.
+ * Applications are <em>strongly</em> encouraged to register and use
+ * <code>ErrorListener</code>s that insure proper behavior for warnings and
+ * errors.</p>
  *
- * <p>For transformation errors, a Transformer must use this interface
- * instead of throwing an exception: it is up to the application
- * to decide whether to throw an exception for different types of
- * errors and warnings.  Note however that the Transformer is not required
- * to continue with the transformation after a call to fatalError.</p>
+ * <p>For transformation errors, a <code>Transformer</code> must use this
+ * interface instead of throwing an <code>Exception</code>: it is up to the
+ * application to decide whether to throw an <code>Exception</code> for
+ * different types of errors and warnings.  Note however that the
+ * <code>Transformer</code> is not required to continue with the transformation
+ * after a call to {@link #fatalError(TransformerException exception)}.</p>
  *
- * <p>Transformers may use this mechanism to report XML parsing errors
- * as well as transformation errors.</p>
+ * <p><code>Transformer</code>s may use this mechanism to report XML parsing
+ * errors as well as transformation errors.</p>
  */
 public interface ErrorListener {
 
@@ -70,16 +77,16 @@ public interface ErrorListener {
         throws TransformerException;
 
     /**
-     * Receive notification of a non-recoverable error.
+     * <p>Receive notification of a non-recoverable error.</p>
      *
-     * <p>The transformer must continue to try and provide normal transformation
-     * after invoking this method.  It should still be possible for the
+     * <p>The <code>Transformer</code> must continue to try and provide normal
+     * transformation after invoking this method.  It should still be possible for the
      * application to process the document through to the end if no other errors
      * are encountered, but there is no guarantee that the output will be
      * useable.</p>
      *
      * @param exception The error information encapsulated in a
-     *                  transformer exception.
+     *    <code>TransformerException</code>.
      *
      * @throws javax.xml.transform.TransformerException if the application
      * chooses to discontinue the transformation.

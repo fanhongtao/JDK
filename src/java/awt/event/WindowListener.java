@@ -1,7 +1,7 @@
 /*
- * @(#)WindowListener.java	1.19 03/01/23
+ * @(#)WindowListener.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,11 @@ import java.util.EventListener;
  * <code>WindowEvent</code> is passed to it.
  *
  * @author Carl Quinn
- * @version 1.19, 01/23/03
+ * @version 1.21, 12/19/03
  *
  * @see WindowAdapter
  * @see WindowEvent
- * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/windowlistener.html">Tutorial: Writing a Window Listener</a>
- * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
+ * @see <a href="http://java.sun.com/docs/books/tutorial/uiswing/events/windowlistener.html">Tutorial: How to Write Window Listeners</a>
  *
  * @since 1.1
  */
@@ -40,9 +39,7 @@ public interface WindowListener extends EventListener {
 
     /**
      * Invoked when the user attempts to close the window
-     * from the window's system menu.  If the program does not 
-     * explicitly hide or dispose the window while processing 
-     * this event, the window close operation will be cancelled.
+     * from the window's system menu.
      */
     public void windowClosing(WindowEvent e);
 

@@ -1,0 +1,20 @@
+/*
+ * @(#)IORTemplateList.java	1.5 03/12/19
+ *
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+
+package com.sun.corba.se.spi.ior ;
+
+import java.util.List ;
+
+/** An IORTemplateList is a list of IORTemplate instances.  It can be used to create IORs.
+ * This is useful for representing IORs made of profiles from different object
+ * adapters.
+ * Note that any IORFactory can be added to an IORTemplateList, but it is flattened
+ * so that the result is just a list of IORTemplate instances.
+ */
+public interface IORTemplateList extends List, IORFactory, MakeImmutable {
+}
+

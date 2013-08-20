@@ -1,7 +1,7 @@
 /*
- * @(#)DecimalFormatSymbols.java	1.39 03/01/23
+ * @(#)DecimalFormatSymbols.java	1.41 04/05/10
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import sun.text.resources.LocaleData;
  *
  * @see          java.util.Locale
  * @see          DecimalFormat
- * @version      1.39, 01/23/03
+ * @version      1.41, 05/10/04
  * @author       Mark Davis
  * @author       Alan Liu
  */
@@ -105,14 +105,14 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     }
 
     /**
-     * Gets the character used for mille percent sign. Different for Arabic, etc.
+     * Gets the character used for per mille sign. Different for Arabic, etc.
      */
     public char getPerMill() {
         return perMill;
     }
 
     /**
-     * Sets the character used for mille percent sign. Different for Arabic, etc.
+     * Sets the character used for per mille sign. Different for Arabic, etc.
      */
     public void setPerMill(char perMill) {
         this.perMill = perMill;
@@ -527,7 +527,7 @@ final public class DecimalFormatSymbols implements Cloneable, Serializable {
     private  char    decimalSeparator;
 
     /**
-     * Character used for mille percent sign.
+     * Character used for per mille sign.
      *
      * @serial
      * @see #getPerMill

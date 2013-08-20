@@ -1,13 +1,13 @@
 /*
- * @(#)Random.java	1.39 03/01/23
+ * @(#)Random.java	1.43 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
 import java.io.*;
-import sun.misc.AtomicLong;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * An instance of this class is used to generate a stream of 
@@ -33,7 +33,7 @@ import sun.misc.AtomicLong;
  * class <code>Math</code> simpler to use.
  *
  * @author  Frank Yellin
- * @version 1.39, 01/23/03
+ * @version 1.43, 01/12/04
  * @see     java.lang.Math#random()
  * @since   JDK1.0
  */
@@ -55,17 +55,13 @@ class Random implements java.io.Serializable {
     private final static long addend = 0xBL;
     private final static long mask = (1L << 48) - 1;
 
-    /** 
-     * Creates a new random number generator. Its seed is initialized to 
-     * a value based on the current time:
-     * <blockquote><pre>
-     * public Random() { this(System.currentTimeMillis()); }</pre></blockquote>
-     * Two Random objects created within the same millisecond will have
-     * the same sequence of random numbers.
-     *
-     * @see     java.lang.System#currentTimeMillis()
+    /**
+     * Creates a new random number generator. This constructor sets
+     * the seed of the random number generator to a value very likely
+     * to be distinct from any other invocation of this constructor.
      */
-    public Random() { this(System.currentTimeMillis()); }
+    public Random() { this(++seedUniquifier + System.nanoTime()); }
+    private static volatile long seedUniquifier = 8682522807148012L;
 
     /** 
      * Creates a new random number generator using a single 
@@ -79,7 +75,7 @@ class Random implements java.io.Serializable {
      * @see     java.util.Random#setSeed(long)
      */
     public Random(long seed) {
-        this.seed = AtomicLong.newAtomicLong(0L);
+        this.seed = new AtomicLong(0L);
         setSeed(seed);
     }
 
@@ -108,7 +104,7 @@ class Random implements java.io.Serializable {
      */
     synchronized public void setSeed(long seed) {
         seed = (seed ^ multiplier) & mask;
-        while(!this.seed.attemptSet(seed));
+        this.seed.set(seed);
     	haveNextNextGaussian = false;
     }
 
@@ -138,10 +134,11 @@ class Random implements java.io.Serializable {
      */
     protected int next(int bits) {
         long oldseed, nextseed;
+        AtomicLong seed = this.seed;
         do {
-          oldseed = seed.get();
-          nextseed = (oldseed * multiplier + addend) & mask;
-        } while (!seed.attemptUpdate(oldseed, nextseed));
+	    oldseed = seed.get();
+	    nextseed = (oldseed * multiplier + addend) & mask;
+        } while (!seed.compareAndSet(oldseed, nextseed));
         return (int)(nextseed >>> (48 - bits));
     }
 
@@ -477,7 +474,7 @@ class Random implements java.io.Serializable {
         if (seedVal < 0)
           throw new java.io.StreamCorruptedException(
                               "Random: invalid seed");
-        seed = AtomicLong.newAtomicLong(seedVal);
+        seed = new AtomicLong(seedVal);
         nextNextGaussian = fields.get("nextNextGaussian", 0.0);
         haveNextNextGaussian = fields.get("haveNextNextGaussian", false);
     }

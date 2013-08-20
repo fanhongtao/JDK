@@ -1,7 +1,7 @@
 /*
- * @(#)DigraphNode.java	1.7 03/01/23
+ * @(#)DigraphNode.java 1.7 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -114,15 +114,15 @@ class DigraphNode implements Cloneable, Serializable {
      * appropriately.
      */
     public void dispose() {
-        Iterator inIter = inNodes.iterator();
-        while (inIter.hasNext()) {
-            DigraphNode node = (DigraphNode)inIter.next();
+        Object[] inNodesArray = inNodes.toArray();
+        for(int i=0; i<inNodesArray.length; i++) {
+            DigraphNode node = (DigraphNode) inNodesArray[i];
             node.removeEdge(this);
         }
 
-        Iterator outIter = outNodes.iterator();
-        while (outIter.hasNext()) {
-            DigraphNode node = (DigraphNode)outIter.next();
+        Object[] outNodesArray = outNodes.toArray();
+        for(int i=0; i<outNodesArray.length; i++) {
+            DigraphNode node = (DigraphNode) outNodesArray[i];
             removeEdge(node);
         }
     }

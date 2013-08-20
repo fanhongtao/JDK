@@ -1,7 +1,7 @@
 /*
- * @(#)CertPathValidator.java	1.6 03/01/23
+ * @(#)CertPathValidator.java	1.9 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,8 +15,9 @@ import java.security.PrivilegedAction;
 import java.security.Provider;
 import java.security.Security;
 import sun.security.util.Debug;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+
+import sun.security.jca.*;
+import sun.security.jca.GetInstance.Instance;
 
 /**
  * A class for validating certification paths (also known as certificate 
@@ -50,7 +51,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @see CertPath
  *
- * @version 	1.6 01/23/03
+ * @version 	1.9 06/28/04
  * @since	1.4
  * @author	Yassir Elley
  */
@@ -70,37 +71,6 @@ public class CertPathValidator {
     private Provider provider;
     private String algorithm;
 
-    // for use with the reflection API
-    private static final Class cl = java.security.Security.class;
-    private static final Class[] GET_IMPL_PARAMS = { String.class,
-						     String.class,
-						     String.class };
-    private static final Class[] GET_IMPL_PARAMS2 = { String.class,
-						      String.class,
-						      Provider.class };
-    // Get the implMethod via the name of a provider. Note: the name could
-    // be null. 
-    private static Method implMethod;
-    // Get the implMethod2 via a Provider object. 
-    private static Method implMethod2;
-    private static Boolean implMethod2Set = new Boolean(false);
-
-    static {
-	implMethod = (Method)
-	    AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-		Method m = null;
-		try {
-		    m = cl.getDeclaredMethod("getImpl", GET_IMPL_PARAMS);
-		    if (m != null)
-			m.setAccessible(true);
-		} catch (NoSuchMethodException nsme) {
-		}
-		return m;
-	    }
-	});
-    }
-
     /**
      * Creates a <code>CertPathValidator</code> object of the given algorithm, 
      * and encapsulates the given provider implementation (SPI object) in it.
@@ -116,7 +86,7 @@ public class CertPathValidator {
 	this.provider = provider;
 	this.algorithm = algorithm;
     }
-
+    
     /**
      * Returns a <code>CertPathValidator</code> object that implements the 
      * specified algorithm.
@@ -136,37 +106,11 @@ public class CertPathValidator {
      * provider packages that were searched
      */
     public static CertPathValidator getInstance(String algorithm)
-	throws NoSuchAlgorithmException 
-    {
-	try {
-	    if (implMethod == null) {
-		throw new NoSuchAlgorithmException(algorithm + " not found");
-	    }
-
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod.invoke(null,
-					       new Object[]
-					       { algorithm,
-						 "CertPathValidator",
-						 (String)null
-					       } );
-	    return new CertPathValidator((CertPathValidatorSpi)objs[0],
-				       (Provider)objs[1], algorithm);
-	} catch (IllegalAccessException iae) {
-            NoSuchAlgorithmException nsae = new
-                NoSuchAlgorithmException(algorithm + " not found");
-            nsae.initCause(iae);
-            throw nsae;
-	} catch (InvocationTargetException ite) {
-            Throwable t = ite.getCause();
-            if (t != null && t instanceof NoSuchAlgorithmException)
-                throw (NoSuchAlgorithmException)t;
-            NoSuchAlgorithmException nsae = new
-                NoSuchAlgorithmException(algorithm + " not found");
-            nsae.initCause(ite);
-            throw nsae;
-	} 
+	    throws NoSuchAlgorithmException {
+	Instance instance = GetInstance.getInstance("CertPathValidator", 
+	    CertPathValidatorSpi.class, algorithm);
+	return new CertPathValidator((CertPathValidatorSpi)instance.impl,
+	    instance.provider, algorithm);
     }
 
     /**
@@ -186,46 +130,14 @@ public class CertPathValidator {
      * null
      */
     public static CertPathValidator getInstance(String algorithm, 
-	String provider) 
-	throws NoSuchAlgorithmException, NoSuchProviderException 
-    {
-	if (provider == null || provider.length() == 0)
-	    throw new IllegalArgumentException("missing provider");
-	try {
-	    if (implMethod == null) {
-		throw new NoSuchAlgorithmException(algorithm + " not found");
-	    }
-
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod.invoke(null,
-					       new Object[]
-					       { algorithm,
-						 "CertPathValidator",
-						 provider
-					       } );
-	    return new CertPathValidator((CertPathValidatorSpi)objs[0],
-				       (Provider)objs[1], algorithm);
-	} catch (IllegalAccessException iae) {
-	    NoSuchAlgorithmException nsae = new
-		  NoSuchAlgorithmException(algorithm + " not found");
-	    nsae.initCause(iae);
-	    throw nsae;
-	} catch (InvocationTargetException ite) {
-	    Throwable t = ite.getTargetException();
-	    if (t != null) {
-		if (t instanceof NoSuchProviderException)
-		    throw (NoSuchProviderException)t;
-                if (t instanceof NoSuchAlgorithmException)
-                    throw (NoSuchAlgorithmException)t;
-            }
-	    NoSuchAlgorithmException nsae = new
-	        NoSuchAlgorithmException(algorithm + " not found");
-	    nsae.initCause(ite);
-	    throw nsae;
-	} 
+	    String provider) throws NoSuchAlgorithmException, 
+	    NoSuchProviderException {
+	Instance instance = GetInstance.getInstance("CertPathValidator", 
+	    CertPathValidatorSpi.class, algorithm, provider);
+	return new CertPathValidator((CertPathValidatorSpi)instance.impl,
+	    instance.provider, algorithm);
     }
-
+	  
     /**
      * Returns a <code>CertPathValidator</code> object that implements the
      * specified algorithm, as supplied by the specified provider.
@@ -242,70 +154,11 @@ public class CertPathValidator {
      * null
      */
     public static CertPathValidator getInstance(String algorithm, 
-						Provider provider) 
-	throws NoSuchAlgorithmException
-    {
-	if (provider == null)
-	    throw new IllegalArgumentException("missing provider");
-
-	if (implMethod2Set.booleanValue() == false) {
-	    synchronized (implMethod2Set) {
-		if (implMethod2Set.booleanValue() == false) {
-		    implMethod2 = (Method)
-			AccessController.doPrivileged(
-					   new PrivilegedAction() {
-			    public Object run() {
-				Method m = null;
-				try {
-				    m = cl.getDeclaredMethod("getImpl",
-							     GET_IMPL_PARAMS2);
-				    if (m != null)
-					m.setAccessible(true);
-				} catch (NoSuchMethodException nsme) {
-				    if (debug != null)
-					debug.println("CertPathValidator." +
-					      "getInstance(): Cannot find " +
-					      "Security.getImpl(String, " +
-					      "String, Provider)");
-				}
-				return m;
-			    }
-			});
-		    implMethod2Set = new Boolean(true);
-		}		
-	    }
-	}
-
-	if (implMethod2 == null) {
-	    throw new NoSuchAlgorithmException(algorithm +
-					       " not found");
-	}
-
-	try {
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod2.invoke(null,
-					       new Object[]
-					       { algorithm,
-						 "CertPathValidator",
-						 provider
-					       } );
-	    return new CertPathValidator((CertPathValidatorSpi)objs[0],
-				       (Provider)objs[1], algorithm);
-	} catch (IllegalAccessException iae) {
-	    NoSuchAlgorithmException nsae = new
-	                   NoSuchAlgorithmException(algorithm + " not found");
-	    nsae.initCause(iae);
-	    throw nsae;
-	} catch (InvocationTargetException ite) {
-            Throwable t = ite.getCause();
-            if (t != null && t instanceof NoSuchAlgorithmException)
-                throw (NoSuchAlgorithmException)t;
-	    NoSuchAlgorithmException nsae = new
-	        NoSuchAlgorithmException(algorithm + " not found");
-	    nsae.initCause(ite);
-	    throw nsae;
-	} 
+	    Provider provider) throws NoSuchAlgorithmException {
+	Instance instance = GetInstance.getInstance("CertPathValidator", 
+	    CertPathValidatorSpi.class, algorithm, provider);
+	return new CertPathValidator((CertPathValidatorSpi)instance.impl,
+	    instance.provider, algorithm);
     }
 
     /**
@@ -358,7 +211,7 @@ public class CertPathValidator {
      * the Java security properties file, or the string &quot;PKIX&quot;
      * if no such property exists. The Java security properties file is 
      * located in the file named &lt;JAVA_HOME&gt;/lib/security/java.security, 
-     * where &lt;JAVA_HOME&gt; refers to the directory where the SDK was 
+     * where &lt;JAVA_HOME&gt; refers to the directory where the JDK was 
      * installed.
      *
      * <p>The default <code>CertPathValidator</code> type can be used by 

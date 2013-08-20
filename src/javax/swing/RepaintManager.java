@@ -1,7 +1,7 @@
 /*
- * @(#)RepaintManager.java	1.53 03/08/26
+ * @(#)RepaintManager.java	1.60 04/02/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -9,6 +9,8 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.peer.ComponentPeer;
+import java.awt.peer.ContainerPeer;
 import java.awt.image.VolatileImage;
 import java.util.*;
 import java.applet.*;
@@ -21,7 +23,7 @@ import sun.security.action.GetPropertyAction;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.53 08/26/03
+ * @version 1.60 02/18/04
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -30,7 +32,7 @@ public class RepaintManager
      * Maps from GraphicsConfiguration to VolatileImage.
      */
     private Map volatileMap = new HashMap(1);
-
+     
     Hashtable dirtyComponents = new Hashtable();
     Hashtable tmpDirtyComponents = new Hashtable();
     Vector    invalidComponents;
@@ -119,14 +121,13 @@ public class RepaintManager
      * RepaintManager.currentManager(JComponent) (normally "this").
      */
     public RepaintManager() {
-	SwingUtilities.doPrivileged(new Runnable() {
-	    public void run() {	       
-	        boolean nativeDoubleBuffering = Boolean.getBoolean("awt.nativeDoubleBuffering");
-	        // If native doublebuffering is being used, do NOT use
-	        // Swing doublebuffering.
-                doubleBufferingEnabled = !nativeDoubleBuffering;
-	    }
-	});
+	Object dbe = java.security.AccessController.doPrivileged(
+               new GetPropertyAction("awt.nativeDoubleBuffering"));
+        boolean nativeDoubleBuffering = (dbe != null) ?
+                      Boolean.valueOf(dbe.toString()).booleanValue() : false;
+        // If native doublebuffering is being used, do NOT use
+        // Swing doublebuffering.
+        doubleBufferingEnabled = !nativeDoubleBuffering;
     }
 
 
@@ -227,7 +228,7 @@ public class RepaintManager
      * 
      * @see JComponent#repaint
      */
-    public synchronized void addDirtyRegion(JComponent c, int x, int y, int w, int h) 
+    public void addDirtyRegion(JComponent c, int x, int y, int w, int h) 
     {
 	/* Special cases we don't have to bother with.
 	 */
@@ -239,14 +240,11 @@ public class RepaintManager
 	    return;
 	}
 
-	Rectangle r = (Rectangle)dirtyComponents.get(c);
-	if (r != null) {
-	    // A non-null r implies c is already marked as dirty,
-	    // and that the parent is valid. Therefore we can
-	    // just union the rect and bail.
-	    SwingUtilities.computeUnion(x, y, w, h, r);
-	    return;
-	}
+        if (extendDirtyRegion(c, x, y, w, h)) {
+            // Component was already marked as dirty, region has been
+            // extended, no need to continue.
+            return;
+        }
 
 	/* Make sure that c and all it ancestors (up to an Applet or
 	 * Window) are visible.  This loop has the same effect as 
@@ -256,6 +254,10 @@ public class RepaintManager
 	 */
 	Component root = null;
 
+        // Note: We can't synchronize around this, Frame.getExtendedState
+        // is synchronized so that if we were to synchronize around this
+        // it could lead to the possibility of getting locks out
+        // of order and deadlocking.
 	for (Container p = c; p != null; p = p.getParent()) {
 	    if (!p.isVisible() || (p.getPeer() == null)) {
 		return;
@@ -274,15 +276,39 @@ public class RepaintManager
 
 	if (root == null) return;
 
-	dirtyComponents.put(c, new Rectangle(x, y, w, h));
-
+        synchronized(this) {
+            if (extendDirtyRegion(c, x, y, w, h)) {
+                // In between last check and this check another thread
+                // queued up runnable, can bail here.
+                return;
+            }
+            dirtyComponents.put(c, new Rectangle(x, y, w, h));
+        }
 
 	/* Queues a Runnable that calls validateInvalidComponents() and
 	 * rm.paintDirtyRegions() with SwingUtilities.invokeLater().
 	 */
 	SystemEventQueueUtilities.queueComponentWorkRequest(root);
     }
-    
+
+    /**
+     * Extends the dirty region for the specified component to include
+     * the new region.
+     *
+     * @return false if <code>c</code> is not yet marked dirty.
+     */
+    private synchronized boolean extendDirtyRegion(
+        Component c, int x, int y, int w, int h) {
+        Rectangle r = (Rectangle)dirtyComponents.get(c);
+        if (r != null) {
+            // A non-null r implies c is already marked as dirty,
+            // and that the parent is valid. Therefore we can
+            // just union the rect and bail.
+            SwingUtilities.computeUnion(x, y, w, h, r);
+            return true;
+        }
+        return false;
+    }
 
     /** Return the current dirty region for a component.
      *  Return an empty rectangle if the component is not
@@ -407,6 +433,21 @@ public class RepaintManager
 					       localBoundsH,
 					       rect);
             // System.out.println("** paint of " + dirtyComponent + rect);
+            if (rect.x == 0 && rect.y == 0 &&
+                         rect.width == dirtyComponent.getWidth() &&
+                         rect.height == dirtyComponent.getHeight()) {
+                Container parent = dirtyComponent.getParent();
+                ComponentPeer parentPeer;
+                if (parent != null && !parent.isLightweight() &&
+                    (parentPeer = parent.getPeer()) != null) {
+                    // Cancel any pending paints on the heavy weight peer.
+                    // This avoid duplicate painting.
+                    ((ContainerPeer)parentPeer).cancelPendingPaint(
+                                    dirtyComponent.getX(),
+                                    dirtyComponent.getY(),
+                                    rect.width, rect.height);
+                }
+            }
             dirtyComponent.paintImmediately(rect.x,rect.y,rect.width,rect.height);
         }
 	tmpDirtyComponents.clear();
@@ -431,7 +472,10 @@ public class RepaintManager
 
         component = rootDirtyComponent = dirtyComponent;
 
-        cBounds = dirtyComponent._bounds;
+        int x = dirtyComponent.getX();
+        int y = dirtyComponent.getY();
+        int w = dirtyComponent.getWidth();
+        int h = dirtyComponent.getHeight();
 
         dx = rootDx = 0;
         dy = rootDy = 0;
@@ -439,7 +483,7 @@ public class RepaintManager
 
         // System.out.println("Collect dirty component for bound " + tmp + 
         //                                   "component bounds is " + cBounds);;
-        SwingUtilities.computeIntersection(0,0,cBounds.width,cBounds.height,tmp);
+        SwingUtilities.computeIntersection(0,0,w,h,tmp);
 
         if (tmp.isEmpty()) {
             // System.out.println("Empty 1");
@@ -456,13 +500,15 @@ public class RepaintManager
 
             component = parent;
 
-            dx += cBounds.x;
-            dy += cBounds.y;
-            tmp.setLocation(tmp.x + cBounds.x,
-                            tmp.y + cBounds.y);
+            dx += x;
+            dy += y;
+            tmp.setLocation(tmp.x + x, tmp.y + y);
 
-            cBounds = ((JComponent)component)._bounds;
-            tmp = SwingUtilities.computeIntersection(0,0,cBounds.width,cBounds.height,tmp);
+            x = component.getX();
+            y = component.getY();
+            w = component.getWidth();
+            h = component.getHeight();
+            tmp = SwingUtilities.computeIntersection(0,0,w,h,tmp);
 
             if (tmp.isEmpty()) {
                 // System.out.println("Empty 2");
@@ -532,26 +578,26 @@ public class RepaintManager
    */
     public Image getVolatileOffscreenBuffer(Component c, 
 					    int proposedWidth,int proposedHeight) {
-         GraphicsConfiguration config = c.getGraphicsConfiguration();
-         if (config == null) {
-             config = GraphicsEnvironment.getLocalGraphicsEnvironment().
-                             getDefaultScreenDevice().getDefaultConfiguration();
-         }
-         Dimension maxSize = getDoubleBufferMaximumSize();
-         int width = proposedWidth < 1 ? 1 :
-             (proposedWidth > maxSize.width? maxSize.width : proposedWidth);
-         int height = proposedHeight < 1 ? 1 :
-             (proposedHeight > maxSize.height? maxSize.height : proposedHeight);
-         VolatileImage image = (VolatileImage)volatileMap.get(config);
-         if (image == null || image.getWidth() < width ||
-                              image.getHeight() < height) {
-             if (image != null) {
-                 image.flush();
-             }
-             image = config.createCompatibleVolatileImage(width, height);
-             volatileMap.put(config, image);
-         }
-       return image;
+        GraphicsConfiguration config = c.getGraphicsConfiguration();
+        if (config == null) {
+            config = GraphicsEnvironment.getLocalGraphicsEnvironment().
+                            getDefaultScreenDevice().getDefaultConfiguration();
+        }
+	Dimension maxSize = getDoubleBufferMaximumSize();
+	int width = proposedWidth < 1 ? 1 :
+            (proposedWidth > maxSize.width? maxSize.width : proposedWidth);
+        int height = proposedHeight < 1 ? 1 :
+            (proposedHeight > maxSize.height? maxSize.height : proposedHeight);
+        VolatileImage image = (VolatileImage)volatileMap.get(config);
+        if (image == null || image.getWidth() < width ||
+                             image.getHeight() < height) {
+            if (image != null) {
+                image.flush();
+            }
+            image = config.createCompatibleVolatileImage(width, height);
+            volatileMap.put(config, image);
+        }
+	return image;
     }
 
     private Image _getOffscreenBuffer(Component c, int proposedWidth, int proposedHeight) {
@@ -559,10 +605,10 @@ public class RepaintManager
 	DoubleBufferInfo doubleBuffer = null;
         int width, height;
 
-	if (standardDoubleBuffer == null) {
-	    standardDoubleBuffer = new DoubleBufferInfo();
-	}
-	doubleBuffer = standardDoubleBuffer;
+        if (standardDoubleBuffer == null) {
+            standardDoubleBuffer = new DoubleBufferInfo();
+        }
+        doubleBuffer = standardDoubleBuffer;
 	    
 	width = proposedWidth < 1? 1 : 
 	          (proposedWidth > maxSize.width? maxSize.width : proposedWidth);
@@ -584,7 +630,7 @@ public class RepaintManager
 	Image result = doubleBuffer.image;
 
 	if (doubleBuffer.image == null) {
-	    result = c.createImage(width , height);
+            result = c.createImage(width , height);
             doubleBuffer.size = new Dimension(width, height);
 	    if (c instanceof JComponent) {
 		((JComponent)c).setCreatedDoubleBuffer(true);
@@ -616,8 +662,8 @@ public class RepaintManager
             if (image.getWidth() > d.width || image.getHeight() > d.height) {
                 image.flush();
                 gcs.remove();
-    	    }
-	}
+	    }
+	}	    
     }
 
     /**
@@ -679,10 +725,10 @@ public class RepaintManager
      * This resets the volatile double buffer. 
      */
     void resetVolatileDoubleBuffer(GraphicsConfiguration gc) {
-         Image image = (Image)volatileMap.remove(gc);
-         if (image != null) {
-             image.flush();
-	}
+        Image image = (Image)volatileMap.remove(gc);
+        if (image != null) {
+            image.flush();
+        }
     }
 
     /**
@@ -698,5 +744,4 @@ public class RepaintManager
         public Dimension size;
         public boolean needsReset = false;
     }
-     
 }

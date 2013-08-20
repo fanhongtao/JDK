@@ -1,7 +1,7 @@
 /*
- * @(#)ImageWriteParam.java	1.60 03/01/23
+ * @(#)ImageWriteParam.java	1.62 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,6 +59,11 @@ import java.util.Locale;
  * Also, they may ignore any optional features that they normally
  * disable when creating their own <code>ImageWriteParam</code>
  * instances via <code>getDefaultWriteParam</code>.
+ *
+ * <p> Note that unless a query method exists for a capability, it must
+ * be supported by all <code>ImageWriter</code> implementations
+ * (<i>e.g.</i> progressive encoding is optional, but subsampling must be
+ * supported).
  *
  * @version 0.5
  * 

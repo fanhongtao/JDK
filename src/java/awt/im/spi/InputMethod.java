@@ -1,7 +1,7 @@
 /*
- * @(#)InputMethod.java	1.26 03/01/23
+ * @(#)InputMethod.java	1.29 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.lang.Character.Subset;
  *
  * @since 1.3
  *
- * @version 	1.26, 01/23/03
+ * @version 	1.29, 12/19/03
  * @author JavaSoft International
  */
 
@@ -109,6 +109,13 @@ public interface InputMethod {
      * whether it is enabled or not, and that an input method that is disabled
      * for composition may still interpret events for control purposes,
      * including to enable or disable itself for composition.
+     * <p>
+     * For input methods provided by host operating systems, it is not always possible to 
+     * determine whether this operation is supported. For example, an input method may enable
+     * composition only for some locales, and do nothing for other locales. For such input 
+     * methods, it is possible that this method does not throw 
+     * {@link java.lang.UnsupportedOperationException UnsupportedOperationException},
+     * but also does not affect whether composition is enabled.
      * <p>
      * This method is called
      * <ul>

@@ -1,11 +1,9 @@
 /*
- * @(#)java.h	1.23 04/04/24
+ * @(#)java.h	1.26 04/01/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-
-/* Backported from Tiger (1.5) java.h	1.26 04/01/12 */
 
 #ifndef _JAVA_H_
 #define _JAVA_H_

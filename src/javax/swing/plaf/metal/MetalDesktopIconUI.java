@@ -1,7 +1,7 @@
 /*
- * @(#)MetalDesktopIconUI.java	1.19 03/01/23
+ * @(#)MetalDesktopIconUI.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.plaf.basic.BasicDesktopIconUI;
 /**
  * Metal desktop icon.
  *
- * @version 1.19 01/23/03
+ * @version 1.21 12/19/03
  * @author Steve Wilson
  */
 public class MetalDesktopIconUI extends BasicDesktopIconUI
@@ -41,7 +41,6 @@ public class MetalDesktopIconUI extends BasicDesktopIconUI
     protected void installDefaults() {
         super.installDefaults();
         LookAndFeel.installColorsAndFont(desktopIcon, "DesktopIcon.background", "DesktopIcon.foreground", "DesktopIcon.font");
-	desktopIcon.setOpaque(true);
         width = UIManager.getInt("DesktopIcon.width");
     }
    

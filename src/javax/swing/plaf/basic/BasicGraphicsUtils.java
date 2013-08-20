@@ -1,7 +1,7 @@
 /*
- * @(#)BasicGraphicsUtils.java	1.59 03/01/23
+ * @(#)BasicGraphicsUtils.java	1.61 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -16,7 +16,7 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
-
+import com.sun.java.swing.SwingUtilities2;
 
 
 /*
@@ -184,32 +184,24 @@ public class BasicGraphicsUtils
      *  not case sensitive.
      */
     public static void drawString(Graphics g,String text,int underlinedChar,int x,int y) {
+        int index=-1;
 
-    //        char b[] = new char[1];
-      //      String s;
-        char lc,uc;
-        int index=-1,lci,uci;
+        if (underlinedChar != '\0') {
+            char uc = Character.toUpperCase((char)underlinedChar);
+            char lc = Character.toLowerCase((char)underlinedChar);
+            int uci = text.indexOf(uc);
+            int lci = text.indexOf(lc);
 
-        if(underlinedChar != '\0') {
-          //           b[0] = (char)underlinedChar;
-          //           s = new String(b).toUpperCase();
-          //       uc = s.charAt(0);
-          uc = Character.toUpperCase((char)underlinedChar);
-
-          //            s = new String(b).toLowerCase();
-            lc = Character.toLowerCase((char)underlinedChar);
-
-            uci = text.indexOf(uc);
-            lci = text.indexOf(lc);
-
-            if(uci == -1)
+            if(uci == -1) {
                 index = lci;
-            else if(lci == -1)
+            }
+            else if(lci == -1) {
                 index = uci;
-            else
+            }
+            else {
                 index = (lci < uci) ? lci : uci;
+            }
         }
-
         drawStringUnderlineCharAt(g, text, index, x, y);
     }
 
@@ -231,16 +223,8 @@ public class BasicGraphicsUtils
      */
     public static void drawStringUnderlineCharAt(Graphics g, String text,
                            int underlinedIndex, int x,int y) {
-        g.drawString(text,x,y);
-        if (underlinedIndex >= 0 && underlinedIndex < text.length() ) {
-            FontMetrics fm = g.getFontMetrics();
-            int underlineRectX = x + fm.stringWidth(text.substring(0,underlinedIndex));
-            int underlineRectY = y;
-            int underlineRectWidth = fm.charWidth(text.charAt(underlinedIndex));
-            int underlineRectHeight = 1;
-            g.fillRect(underlineRectX, underlineRectY + fm.getDescent() - 1,
-                       underlineRectWidth, underlineRectHeight);
-        }
+        SwingUtilities2.drawStringUnderlineCharAt(null, g, text,
+                                                  underlinedIndex, x, y);
     }
 
     public static void drawDashedRect(Graphics g,int x,int y,int width,int height) {
@@ -269,7 +253,7 @@ public class BasicGraphicsUtils
         String text = b.getText();
 
         Font font = b.getFont();
-        FontMetrics fm = b.getToolkit().getFontMetrics(font);
+        FontMetrics fm = b.getFontMetrics(font);
           
         Rectangle iconR = new Rectangle();
         Rectangle textR = new Rectangle();

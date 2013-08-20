@@ -1,7 +1,7 @@
 /*
- * @(#)MediaTracker.java	1.39 03/01/23
+ * @(#)MediaTracker.java	1.42 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,8 +26,28 @@ import java.awt.image.ImageObserver;
  * to identify unique subsets of the images that can be waited on 
  * independently. Images with a lower ID are loaded in preference to 
  * those with a higher ID number. 
+ *
  * <p>
- * Here is an example: 
+ *
+ * Tracking an animated image 
+ * might not always be useful
+ * due to the multi-part nature of animated image
+ * loading and painting,
+ * but it is supported.
+ * <code>MediaTracker</code> treats an animated image
+ * as completely loaded
+ * when the first frame is completely loaded.
+ * At that point, the <code>MediaTracker</code> 
+ * signals any waiters 
+ * that the image is completely loaded.
+ * If no <code>ImageObserver</code>s are observing the image
+ * when the first frame has finished loading,
+ * the image might flush itself
+ * to conserve resources
+ * (see {@link Image#flush()}).
+ *
+ * <p>
+ * Here is an example of using <code>MediaTracker</code>: 
  * <p>
  * <hr><blockquote><pre>
  * import java.applet.Applet;
@@ -45,7 +65,7 @@ import java.awt.image.ImageObserver;
  *
  *	// Get the images for the background (id == 0) 
  *	// and the animation frames (id == 1) 
- *      // and add them to the MediaTracker
+ *	// and add them to the MediaTracker
  *	public void init() {
  *	    tracker = new MediaTracker(this);
  *	    bg = getImage(getDocumentBase(), 
@@ -71,7 +91,7 @@ import java.awt.image.ImageObserver;
  *
  *	// Run the animation thread.
  *	// First wait for the background image to fully load 
- *      // and paint.  Then wait for all of the animation 
+ *	// and paint.  Then wait for all of the animation 
  *	// frames to finish loading. Finally, loop and 
  *	// increment the animation frame index.
  *	public void run() {
@@ -100,7 +120,7 @@ import java.awt.image.ImageObserver;
  *
  *	// The background image fills the frame so we 
  *	// don't need to clear the applet on repaints. 
- *      // Just call the paint method.
+ *	// Just call the paint method.
  *	public void update(Graphics g) {
  *	    paint(g);
  *	}
@@ -108,7 +128,7 @@ import java.awt.image.ImageObserver;
  *	// Paint a large red rectangle if there are any errors 
  *	// loading the images.  Otherwise always paint the 
  *	// background so that it appears incrementally as it 
- *      // is loading.  Finally, only paint the current animation 
+ *	// is loading.  Finally, only paint the current animation 
  *	// frame if all of the frames (id == 1) are done loading,
  *	// so that we don't get partial animations.
  *	public void paint(Graphics g) {
@@ -124,8 +144,8 @@ import java.awt.image.ImageObserver;
  *	}
  * }
  * </pre></blockquote><hr>
- * <p>
- * @version 	1.39, 01/23/03
+ *
+ * @version 	1.42, 12/19/03
  * @author 	Jim Graham
  * @since       JDK1.0
  */

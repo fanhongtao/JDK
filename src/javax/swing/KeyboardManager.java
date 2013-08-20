@@ -1,7 +1,7 @@
 /*
- * @(#)KeyboardManager.java	1.14 03/01/23
+ * @(#)KeyboardManager.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -114,7 +114,9 @@ class KeyboardManager {
        */
      private static Container getTopAncestor(JComponent c) {
         for(Container p = c.getParent(); p != null; p = p.getParent()) {
-            if (p instanceof Window || p instanceof Applet || p instanceof JInternalFrame) {
+            if (p instanceof Window && ((Window)p).isFocusableWindow() ||
+                p instanceof Applet || p instanceof JInternalFrame) {
+
                 return p;
 	    }
         }

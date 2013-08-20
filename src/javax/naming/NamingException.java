@@ -1,7 +1,7 @@
 /*
- * @(#)NamingException.java	1.8 03/01/23
+ * @(#)NamingException.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,10 +27,15 @@ package javax.naming;
   * A NamingException instance is not synchronized against concurrent 
   * multithreaded access. Multiple threads trying to access and modify
   * a single NamingException instance should lock the object.
+  *<p>
+  * This exception has been retrofitted to conform to
+  * the general purpose exception-chaining mechanism.  The
+  * <i>root exception</i> (or <i>root cause</i>) is the same object as the
+  * <i>cause</i> returned by the {@link Throwable#getCause()} method.
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 03/01/23
+  * @version 1.10 03/12/19
   * @since 1.3
   */
 
@@ -76,14 +81,19 @@ public class NamingException extends Exception {
      * Contains the original exception that caused this NamingException to
      * be thrown. This field is set if there is additional
      * information that could be obtained from the original
-     * exception, or if there original exception could not be
+     * exception, or if the original exception could not be
      * mapped to a subclass of NamingException.
-     * Can be null. This field is initialized by the constructors.
-     * You should access and manipulate this field
-     * through its get and set methods.
+     * Can be null.
+     *<p>
+     * This field predates the general-purpose exception chaining facility.
+     * The {@link #initCause(Throwable)} and {@link #getCause()} methods
+     * are now the preferred means of accessing this information.
+     *
      * @serial
      * @see #getRootCause
-     * @see #setRootCause
+     * @see #setRootCause(Throwable)
+     * @see #initCause(Throwable)
+     * @see #getCause
      */
     protected Throwable rootException = null;
 
@@ -281,6 +291,10 @@ public class NamingException extends Exception {
       * wants to indicate to the caller a non-naming related exception
       * but at the same time wants to use the NamingException structure
       * to indicate how far the naming operation proceeded.
+      *<p>
+      * This method predates the general-purpose exception chaining facility.
+      * The {@link #getCause()} method is now the preferred means of obtaining
+      * this information.
       *
       * @return The possibly null exception that caused this naming 
       *    exception. If null, it means no root cause has been
@@ -296,6 +310,11 @@ public class NamingException extends Exception {
     /**
       * Records the root cause of this NamingException.
       * If <tt>e</tt> is <tt>this</tt>, this method does not do anything.
+      *<p>
+      * This method predates the general-purpose exception chaining facility.
+      * The {@link #initCause(Throwable)} method is now the preferred means
+      * of recording this information.
+      *
       * @param e The possibly null exception that caused the naming 
       * 	 operation to fail. If null, it means this naming
       * 	 exception has no root cause.
@@ -309,10 +328,39 @@ public class NamingException extends Exception {
 	}
     }
 
+    /**
+      * Returns the cause of this exception.  The cause is the
+      * throwable that caused this naming exception to be thrown.
+      * Returns <code>null</code> if the cause is nonexistent or
+      * unknown.
+      *
+      * @return  the cause of this exception, or <code>null</code> if the
+      *          cause is nonexistent or unknown.
+      * @see #initCause(Throwable)
+      * @since 1.4
+      */
     public Throwable getCause() {
 	return getRootCause();
     }
 
+    /**
+      * Initializes the cause of this exception to the specified value.
+      * The cause is the throwable that caused this naming exception to be
+      * thrown.
+      *<p>
+      * This method may be called at most once.
+      *
+      * @param  cause	the cause, which is saved for later retrieval by
+      *         the {@link #getCause()} method.  A <tt>null</tt> value
+      *         indicates that the cause is nonexistent or unknown.
+      * @return a reference to this <code>NamingException</code> instance.
+      * @throws IllegalArgumentException if <code>cause</code> is this
+      *         exception.  (A throwable cannot be its own cause.)
+      * @throws IllegalStateException if this method has already
+      *         been called on this exception.
+      * @see #getCause
+      * @since 1.4
+      */
     public Throwable initCause(Throwable cause) {
 	super.initCause(cause);
 	setRootCause(cause);

@@ -1,7 +1,7 @@
 /*
- * @(#)GuardedObject.java	1.13 03/01/23
+ * @(#)GuardedObject.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,12 +24,14 @@ package java.security;
  * @see Guard
  * @see Permission
  *
- * @version 1.13 03/01/23
+ * @version 1.15 03/12/19
  * @author Roland Schemers
  * @author Li Gong
  */
 
 public class GuardedObject implements java.io.Serializable {
+
+    private static final long serialVersionUID = -5240450096227834308L;
 
     private Object object; // the object we are guarding
     private Guard guard;   // the guard

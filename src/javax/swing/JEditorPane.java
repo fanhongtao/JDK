@@ -1,7 +1,7 @@
 /*
- * @(#)JEditorPane.java	1.118 03/01/23
+ * @(#)JEditorPane.java	1.125 04/07/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -73,11 +73,6 @@ import javax.accessibility.*;
  * for that content type will be set.
  * </ol>
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JEditorPane"><code>JEditorPane</code></a>
- * key assignments.
- * <p>
  * Some kinds of content may provide hyperlink support by generating
  * hyperlink events.  The HTML <code>EditorKit</code> will generate
  * hyperlink events if the <code>JEditorPane</code> is <em>not editable</em> 
@@ -110,6 +105,9 @@ import javax.accessibility.*;
 &nbsp;    }
 
  * </pre></code>
+ * <p>
+ * For information on customizing how <b>text/html</b> is rendered please see
+ * {@link #W3C_LENGTH_UNITS} and {@link #HONOR_DISPLAY_PROPERTIES}
  * <p>
  * Culturally dependent information in some documents is handled through
  * a mechanism called character encoding.  Character encoding is an
@@ -163,7 +161,7 @@ import javax.accessibility.*;
  * description: A text component to edit various types of content.
  *
  * @author  Timothy Prinzing
- * @version 1.118 01/23/03
+ * @version 1.125 07/23/04
  */
 public class JEditorPane extends JTextComponent {
 
@@ -218,10 +216,14 @@ public class JEditorPane extends JTextComponent {
 			: false;
 		}
 	    });		
-	setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-			   JComponent.getManagingFocusForwardTraversalKeys());
-	setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-			   JComponent.getManagingFocusBackwardTraversalKeys());
+        LookAndFeel.installProperty(this,
+                                    "focusTraversalKeysForward", 
+                                    JComponent.
+                                    getManagingFocusForwardTraversalKeys());
+        LookAndFeel.installProperty(this,
+                                    "focusTraversalKeysBackward", 
+                                    JComponent.
+                                    getManagingFocusBackwardTraversalKeys());
     }
 
     /**
@@ -255,7 +257,7 @@ public class JEditorPane extends JTextComponent {
      * <code>setContentType</code> and <code>setText</code> methods.
      *
      * @param type mime type of the given text
-     * @param text the text to initialize with
+     * @param text the text to initialize with; may be <code>null</code>
      * @exception NullPointerException if the <code>type</code> parameter
      *		is <code>null</code>
      */
@@ -328,7 +330,17 @@ public class JEditorPane extends JTextComponent {
      * a new default document is created and the URL is read into it.
      * If the URL contains and reference location, the location will
      * be scrolled to by calling the <code>scrollToReference</code> 
-     * method.  If the desired URL is not the one currently being
+     * method. If the desired URL is the one currently being displayed, 
+     * the document will not be reloaded. To force a document
+     * reload it is necessary to clear the stream description property 
+     * of the document. The following code shows how this can be done:
+     *
+     * <pre>
+     *   Document doc = jEditorPane.getDocument();
+     *   doc.putProperty(Document.StreamDescriptionProperty, null);
+     * </pre>
+     * 
+     * If the desired URL is not the one currently being
      * displayed, the <code>getStream</code> method is called to
      * give subclasses control over the stream provided.
      * <p>
@@ -384,7 +396,9 @@ public class JEditorPane extends JTextComponent {
 
 
 	// reset scrollbar
-	scrollRectToVisible(new Rectangle(0,0,1,1));
+	if (!page.equals(loaded) && page.getRef() == null) {
+	    scrollRectToVisible(new Rectangle(0,0,1,1));
+	}
 	boolean reloaded = false;
 	if ((loaded == null) || (! loaded.sameFile(page))) {
 
@@ -449,6 +463,7 @@ public class JEditorPane extends JTextComponent {
 		    }
 		});
 	    }
+	    getDocument().putProperty(Document.StreamDescriptionProperty, page);
 	}
         firePropertyChange("page", loaded, page);
     }
@@ -1281,7 +1296,8 @@ public class JEditorPane extends JTextComponent {
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.     
      *
-     * @param t the new text to be set
+     * @param t the new text to be set; if <code>null</code> the old
+     *    text will be deleted
      * @see #getText
      * @beaninfo
      * description: the text of this component
@@ -1427,6 +1443,33 @@ public class JEditorPane extends JTextComponent {
      */
     private static final String uiClassID = "EditorPaneUI";
 
+
+    /**
+     * Key for a client property used to indicate whether
+     * <a href="http://www.w3.org/TR/CSS21/syndata.html#length-units">
+     * w3c compliant</a> length units are used for html rendering.
+     * <p>
+     * By default this is not enabled; to enable
+     * it set the client {@link putClientProperty property} with this name
+     * to <code>Boolean.TRUE</code>.
+     *
+     * @since 1.5
+     */
+    public static final String W3C_LENGTH_UNITS = "JEditorPane.w3cLengthUnits";
+
+    /**
+     * Key for a client property used to indicate whether 
+     * the default font and foreground color from the component are
+     * used if a font or foreground color is not specified in the styled
+     * text. 
+     * <p>
+     * The default varies based on the look and feel;
+     * to enable it set the client {@link putClientProperty property} with
+     * this name to <code>Boolean.TRUE</code>.
+     *
+     * @since 1.5
+     */
+    public static final String HONOR_DISPLAY_PROPERTIES = "JEditorPane.honorDisplayProperties";
 
     /**
      * Returns a string representation of this <code>JEditorPane</code>.
@@ -2232,7 +2275,7 @@ static class HeaderParser {
     public String findValue(String k, String Default) {
 	if (k == null)
 	    return Default;
-	k.toLowerCase();
+	k = k.toLowerCase();
 	for (int i = 0; i < 10; ++i) {
 	    if (tab[i][0] == null) {
 		return Default;

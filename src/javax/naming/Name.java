@@ -1,7 +1,7 @@
 /*
- * @(#)Name.java	1.7 03/01/23
+ * @(#)Name.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,11 +34,20 @@ import java.util.Enumeration;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author R. Vasudevan
- * @version 1.7 03/01/23
+ * @version 1.11 04/05/05
  * @since 1.3
  */
 
-public interface Name extends Cloneable, java.io.Serializable {
+public interface Name
+    extends Cloneable, java.io.Serializable, Comparable<Object>
+{
+
+   /**
+    * The class fingerprint that is set to indicate
+    * serialization compatibility with a previous
+    * version of the class.
+    */
+    static final long serialVersionUID = -3617482732056931635L;
 
     /**
      * Generates a new copy of this name.
@@ -97,7 +106,7 @@ public interface Name extends Cloneable, java.io.Serializable {
      *
      * @return	an enumeration of the components of this name, each a string
      */
-    public Enumeration getAll();
+    public Enumeration<String> getAll();
 
     /**
      * Retrieves a component of this name.

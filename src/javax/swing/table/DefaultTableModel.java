@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableModel.java	1.36 03/01/23
+ * @(#)DefaultTableModel.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.event.TableModelEvent;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 01/23/03
+ * @version 1.39 12/19/03
  * @author Philip Milne
  *
  * @see TableModel
@@ -121,7 +121,9 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
      *  by passing <code>data</code> and <code>columnNames</code>
      *  to the <code>setDataVector</code> method.
      *
-     * @param data              the data of the table
+     * @param data              the data of the table, a <code>Vector</code>
+     *                          of <code>Vector</code>s of <code>Object</code>
+     *                          values
      * @param columnNames       <code>vector</code> containing the names
      *				of the new columns
      * @see #getDataVector
@@ -172,7 +174,9 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
 
     /**
      *  Replaces the current <code>dataVector</code> instance variable 
-     *  with the new Vector of rows, <code>dataVector</code>.
+     *  with the new <code>Vector</code> of rows, <code>dataVector</code>.
+     *  Each row is represented in <code>dataVector</code> as a
+     *  <code>Vector</code> of <code>Object</code> values.
      *  <code>columnIdentifiers</code> are the names of the new 
      *  columns.  The first name in <code>columnIdentifiers</code> is
      *  mapped to column 0 in <code>dataVector</code>. Each row in
@@ -378,7 +382,7 @@ public class DefaultTableModel extends AbstractTableModel implements Serializabl
     }
 
     /**
-     *  Moves one or more rows from the inlcusive range <code>start</code> to 
+     *  Moves one or more rows from the inclusive range <code>start</code> to 
      *  <code>end</code> to the <code>to</code> position in the model. 
      *  After the move, the row that was at index <code>start</code> 
      *  will be at index <code>to</code>. 

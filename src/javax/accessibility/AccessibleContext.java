@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleContext.java	1.39 03/01/23
+ * @(#)AccessibleContext.java	1.43 04/04/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ import java.awt.IllegalComponentStateException;
  * description: Minimal information that all accessible objects return
  *
 
- * @version     1.29 10/05/99
+ * @version     1.43 04/02/04
  * @author	Peter Korn
  * @author      Hans Muller
  * @author      Willie Walker
@@ -122,16 +122,6 @@ public abstract class AccessibleContext {
     * @see #addPropertyChangeListener
     */
    public static final String ACCESSIBLE_SELECTION_PROPERTY = "AccessibleSelection";
-
-   /**
-    * Constant used to determine when the accessibleText has changed.
-    * The old and new values in the PropertyChangeEvent are currently 
-    * reserved for future use.
-    *
-    * @see #getAccessibleText
-    * @see #addPropertyChangeListener
-    */
-   public static final String ACCESSIBLE_TEXT_PROPERTY = "AccessibleText";
 
    /**
     * Constant used to determine when the accessibleText caret has changed.
@@ -273,6 +263,80 @@ public abstract class AccessibleContext {
     public static final String ACCESSIBLE_HYPERTEXT_OFFSET =
 	"AccessibleHypertextOffset";
 
+    /**
+     * PropertyChangeEvent which indicates that text has changed.
+     * <br>
+     * For text insertion, the oldValue is null and the newValue
+     * is an AccessibleTextSequence specifying the text that was
+     * inserted.  
+     * <br>
+     * For text deletion, the oldValue is an AccessibleTextSequence
+     * specifying the text that was deleted and the newValue is null.
+     * <br>
+     * For text replacement, the oldValue is an AccessibleTextSequence
+     * specifying the old text and the newValue is an AccessibleTextSequence
+     * specifying the new text.
+     *
+     * @see #getAccessibleText
+     * @see #addPropertyChangeListener
+     * @see #AccessibleText.AccessibleTextSequence
+     */
+    public static final String ACCESSIBLE_TEXT_PROPERTY
+        = "AccessibleText"; 
+ 
+    /**
+     * PropertyChangeEvent which indicates that a significant change
+     * has occurred to the children of a component like a tree or text.  
+     * This change notifies the event listener that it needs to
+     * reacquire the state of the subcomponents. The oldValue is
+     * null and the newValue is the component whose children have
+     * become invalid.
+     *
+     * @see #getAccessibleText
+     * @see #addPropertyChangeListener
+     * @see #AccessibleText.AccessibleTextSequence
+     *
+     * @since 1.5
+     */
+    public static final String ACCESSIBLE_INVALIDATE_CHILDREN =
+        "accessibleInvalidateChildren";
+ 
+     /**
+     * PropertyChangeEvent which indicates that text attributes have changed.
+     * <br>
+     * For attribute insertion, the oldValue is null and the newValue
+     * is an AccessibleAttributeSequence specifying the attributes that were
+     * inserted.  
+     * <br>
+     * For attribute deletion, the oldValue is an AccessibleAttributeSequence
+     * specifying the attributes that were deleted and the newValue is null.
+     * <br>
+     * For attribute replacement, the oldValue is an AccessibleAttributeSequence
+     * specifying the old attributes and the newValue is an   
+     * AccessibleAttributeSequence specifying the new attributes.
+     *
+     * @see #getAccessibleText
+     * @see #addPropertyChangeListener
+     * @see #AccessibleText.AccessibleAttributeSequence
+     *
+     * @since 1.5
+     */
+    public static final String ACCESSIBLE_TEXT_ATTRIBUTES_CHANGED =
+        "accessibleTextAttributesChanged"; 
+ 
+   /**
+     * PropertyChangeEvent which indicates that a change has occurred
+     * in a component's bounds.  
+     * The oldValue is the old component bounds and the newValue is 
+     * the new component bounds.
+     *
+     * @see #addPropertyChangeListener
+     *
+     * @since 1.5
+     */
+    public static final String ACCESSIBLE_COMPONENT_BOUNDS_CHANGED =
+        "accessibleComponentBoundsChanged";
+ 
     /** 
      * The accessible parent of this object.
      *

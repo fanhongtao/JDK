@@ -1,7 +1,7 @@
 /*
- * @(#)FileDialog.java	1.50 03/01/23
+ * @(#)FileDialog.java	1.53 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -22,7 +22,7 @@ import java.io.ObjectInputStream;
  *
  * @see Window#show
  *
- * @version 	1.50, 01/23/03
+ * @version 	1.53, 12/19/03
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -83,8 +83,8 @@ public class FileDialog extends Dialog {
      * This variable may be <code>null</code>.
      *
      * @serial
-     * @see getFilenameFIlter()
-     * @see setFilenameFilter()
+     * @see #getFilenameFilter()
+     * @see #setFilenameFilter()
      * @see FileNameFilter
      */
     FilenameFilter filter;
@@ -160,6 +160,86 @@ public class FileDialog extends Dialog {
 	super(parent, title, true);
         this.setMode(mode);
 	setLayout(null);
+    }
+
+    /**
+     * Creates a file dialog for loading a file.  The title of the
+     * file dialog is initially empty.  This is a convenience method for
+     * <code>FileDialog(parent, "", LOAD)</code>.
+     *
+     * @param     parent   the owner of the dialog
+     * @exception java.lang.IllegalArgumentException if the <code>parent</code>'s
+     *            <code>GraphicsConfiguration</code>
+     *            is not from a screen device;
+     * @exception java.lang.IllegalArgumentException if <code>parent</code>
+     *            is <code>null</code>; this exception is always thrown when
+     *            <code>GraphicsEnvironment.isHeadless</code>
+     *            returns <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @since 1.5
+     */
+    public FileDialog(Dialog parent) {
+        this(parent, "", LOAD);
+    }
+
+    /**
+     * Creates a file dialog window with the specified title for loading
+     * a file. The files shown are those in the current directory.
+     * This is a convenience method for
+     * <code>FileDialog(parent, title, LOAD)</code>.
+     *
+     * @param     parent   the owner of the dialog
+     * @param     title    the title of the dialog; a <code>null</code> value
+     *                     will be accepted without causing a
+     *                     <code>NullPointerException</code> to be thrown
+     * @exception java.lang.IllegalArgumentException if the <code>parent</code>'s
+     *            <code>GraphicsConfiguration</code>
+     *            is not from a screen device;
+     * @exception java.lang.IllegalArgumentException if <code>parent</code>
+     *            is <code>null</code>; this exception is always thrown when
+     *            <code>GraphicsEnvironment.isHeadless</code>
+     *            returns <code>true</code>
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     * @since     1.5
+     */
+    public FileDialog(Dialog parent, String title) {
+        this(parent, title, LOAD);
+    }
+
+    /**
+     * Creates a file dialog window with the specified title for loading
+     * or saving a file.
+     * <p>
+     * If the value of <code>mode</code> is <code>LOAD</code>, then the
+     * file dialog is finding a file to read, and the files shown are those
+     * in the current directory.   If the value of
+     * <code>mode</code> is <code>SAVE</code>, the file dialog is finding
+     * a place to write a file.
+     *
+     * @param     parent   the owner of the dialog
+     * @param     title    the title of the dialog; a <code>null</code> value
+     *                     will be accepted without causing a
+     *                     <code>NullPointerException</code> to be thrown
+     * @param     mode     the mode of the dialog; either
+     *		           <code>FileDialog.LOAD</code> or <code>FileDialog.SAVE</code>
+     * @exception java.lang.IllegalArgumentException if an illegal 
+     *            file dialog mode is supplied;
+     * @exception java.lang.IllegalArgumentException if the <code>parent</code>'s
+     *            <code>GraphicsConfiguration</code>
+     *            is not from a screen device;
+     * @exception java.lang.IllegalArgumentException if <code>parent</code>
+     *            is <code>null</code>; this exception is always thrown when
+     *            <code>GraphicsEnvironment.isHeadless</code>
+     *            returns <code>true</code>
+     * @see       java.awt.GraphicsEnvironment#isHeadless
+     * @see       java.awt.FileDialog#LOAD
+     * @see       java.awt.FileDialog#SAVE
+     * @since     1.5
+     */
+    public FileDialog(Dialog parent, String title, int mode) {
+        super(parent, title, true);
+        this.setMode(mode);
+        setLayout(null);
     }
 
     /**
@@ -297,7 +377,7 @@ public class FileDialog extends Dialog {
      * Determines this file dialog's filename filter. A filename filter
      * allows the user to specify which files appear in the file dialog
      * window.  Filename filters do not function in Sun's reference
-     * implementation for Windows 95, 98, or NT 4.0.
+     * implementation for Microsoft Windows.
      *
      * @return    this file dialog's filename filter
      * @see       java.io.FilenameFilter
@@ -311,7 +391,7 @@ public class FileDialog extends Dialog {
      * Sets the filename filter for this file dialog window to the
      * specified filter.
      * Filename filters do not function in Sun's reference
-     * implementation for Windows 95, 98, or NT 4.0.
+     * implementation for Microsoft Windows.
      *
      * @param   filter   the specified filter
      * @see     java.io.FilenameFilter

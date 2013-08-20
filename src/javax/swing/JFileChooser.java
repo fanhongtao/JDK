@@ -1,7 +1,7 @@
 /*
- * @(#)JFileChooser.java	1.101 07/05/17
+ * @(#)JFileChooser.java	1.106 04/06/28
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,11 +23,17 @@ import java.awt.AWTEvent;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.BorderLayout;
+import java.awt.Window;
+import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.awt.event.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+import java.lang.ref.WeakReference;
 
 /**
  * <code>JFileChooser</code> provides a simple mechanism for the user to
@@ -44,7 +50,7 @@ import java.awt.event.*;
  * <pre>
  *    JFileChooser chooser = new JFileChooser();
  *    // Note: source for ExampleFileFilter can be found in FileChooserDemo,
- *    // under the demo/jfc directory in the Java 2 SDK, Standard Edition.
+ *    // under the demo/jfc directory in the JDK.
  *    ExampleFileFilter filter = new ExampleFileFilter();
  *    filter.addExtension("jpg");
  *    filter.addExtension("gif");
@@ -61,7 +67,7 @@ import java.awt.event.*;
  *   attribute: isContainer false
  * description: A component which allows for the interactive selection of a file.
  *
- * @version 1.101 05/17/07
+ * @version 1.106 06/28/04
  * @author Jeff Dinkins
  *
  */
@@ -242,6 +248,12 @@ public class JFileChooser extends JComponent implements Accessible {
     private boolean controlsShown = true;
 
     private boolean useFileHiding = true;
+    private static final String SHOW_HIDDEN_PROP = "awt.file.showHiddenFiles";
+
+    // Listens to changes in the native setting for showing hidden files.
+    // The Listener is removed and the native setting is ignored if
+    // setFileHidingEnabled() is ever called.
+    private PropertyChangeListener showFilesListener = null;
 
     private int fileSelectionMode = FILES_ONLY;
 
@@ -338,14 +350,23 @@ public class JFileChooser extends JComponent implements Accessible {
      * Performs common constructor initialization and setup.
      */
     protected void setup(FileSystemView view) {
-	if(view == null) {
-	    view = FileSystemView.getFileSystemView();
+        // Track native setting for showing hidden files
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        Object showHiddenProperty = tk.getDesktopProperty(SHOW_HIDDEN_PROP);
+        if (showHiddenProperty instanceof Boolean) {
+            useFileHiding = !((Boolean)showHiddenProperty).booleanValue();
+            showFilesListener = new WeakPCL(this);
+            tk.addPropertyChangeListener(SHOW_HIDDEN_PROP, showFilesListener);
         }
-	setFileSystemView(view);
-	updateUI(); 
-	if(isAcceptAllFileFilterUsed()) {
-	    setFileFilter(getAcceptAllFileFilter());
-	}
+
+        if(view == null) {
+            view = FileSystemView.getFileSystemView();
+        }
+        setFileSystemView(view);
+        updateUI(); 
+        if(isAcceptAllFileFilterUsed()) {
+            setFileFilter(getAcceptAllFileFilter());
+        }
     }
 
     /**
@@ -447,7 +468,7 @@ public class JFileChooser extends JComponent implements Accessible {
 	    if (file.isAbsolute() && !getFileSystemView().isParent(getCurrentDirectory(), selectedFile)) {
 		setCurrentDirectory(selectedFile.getParentFile());
 	    }
-	    if (!isMultiSelectionEnabled() || selectedFiles == null || selectedFiles.length > 1) {
+	    if (!isMultiSelectionEnabled() || selectedFiles == null || selectedFiles.length == 1) {
 		ensureFileIsVisible(selectedFile);
 	    }
 	}
@@ -694,8 +715,6 @@ public class JFileChooser extends JComponent implements Accessible {
 	rescanCurrentDirectory();
 
 	dialog.show();
-	firePropertyChange("JFileChooserDialogIsClosingProperty", dialog, null);
-	dialog.removeAll();
 	dialog.dispose();
 	dialog = null;
 	return returnValue;
@@ -727,13 +746,17 @@ public class JFileChooser extends JComponent implements Accessible {
      * @since 1.4
      */
     protected JDialog createDialog(Component parent) throws HeadlessException {
-        Frame frame = parent instanceof Frame ? (Frame) parent
-              : (Frame)SwingUtilities.getAncestorOfClass(Frame.class, parent);
-
 	String title = getUI().getDialogTitle(this);
         getAccessibleContext().setAccessibleDescription(title);
 
-        JDialog dialog = new JDialog(frame, title, true);
+        JDialog dialog;
+        Window window = JOptionPane.getWindowForComponent(parent);
+        if (window instanceof Frame) {
+            dialog = new JDialog((Frame)window, title, true);	
+        } else {
+            dialog = new JDialog((Dialog)window, title, true);
+        }
+        dialog.setComponentOrientation(this.getComponentOrientation());
 
         Container contentPane = dialog.getContentPane();
         contentPane.setLayout(new BorderLayout());
@@ -746,7 +769,6 @@ public class JFileChooser extends JComponent implements Accessible {
                 dialog.getRootPane().setWindowDecorationStyle(JRootPane.FILE_CHOOSER_DIALOG);
             }
         }
-
         dialog.pack();
         dialog.setLocationRelativeTo(parent);
 
@@ -1056,6 +1078,8 @@ public class JFileChooser extends JComponent implements Accessible {
 
     /**
      * Adds a filter to the list of user choosable file filters.
+     * For information on setting the file selection mode, see
+     * {@link #setFileSelectionMode setFileSelectionMode}.
      * 
      * @param filter the <code>FileFilter</code> to add to the choosable file
      *               filter list
@@ -1068,6 +1092,7 @@ public class JFileChooser extends JComponent implements Accessible {
      * @see #getChoosableFileFilters
      * @see #removeChoosableFileFilter
      * @see #resetChoosableFileFilters
+     * @see #setFileSelectionMode
      */ 
     public void addChoosableFileFilter(FileFilter filter) {
 	if(filter != null && !filters.contains(filter)) {
@@ -1216,7 +1241,7 @@ public class JFileChooser extends JComponent implements Accessible {
      * </ul>
      *
      * @exception IllegalArgumentException  if <code>mode</code> is an
-     *				illegal Dialog mode
+     *				illegal file selection mode
      * @beaninfo
      *   preferred: true
      *       bound: true
@@ -1238,7 +1263,7 @@ public class JFileChooser extends JComponent implements Accessible {
 	   fileSelectionMode = mode;
 	   firePropertyChange(FILE_SELECTION_MODE_CHANGED_PROPERTY, oldValue, fileSelectionMode);
         } else {
-	   throw new IllegalArgumentException("Incorrect Mode for Dialog: " + mode);
+	   throw new IllegalArgumentException("Incorrect Mode for file selection: " + mode);
         }
     }
 
@@ -1335,9 +1360,14 @@ public class JFileChooser extends JComponent implements Accessible {
      * @see #isFileHidingEnabled
      */
     public void setFileHidingEnabled(boolean b) {
-	boolean oldValue = useFileHiding;
-	useFileHiding = b;
-	firePropertyChange(FILE_HIDING_CHANGED_PROPERTY, oldValue, useFileHiding);
+        // Dump showFilesListener since we'll ignore it from now on
+        if (showFilesListener != null) {
+            Toolkit.getDefaultToolkit().removePropertyChangeListener(SHOW_HIDDEN_PROP, showFilesListener);
+            showFilesListener = null;
+        } 
+        boolean oldValue = useFileHiding;
+        useFileHiding = b;
+        firePropertyChange(FILE_HIDING_CHANGED_PROPERTY, oldValue, useFileHiding);
     }
 
     /**
@@ -1678,6 +1708,28 @@ public class JFileChooser extends JComponent implements Accessible {
                                         modifiers);
                 }
                 ((ActionListener)listeners[i+1]).actionPerformed(e);
+            }
+        }
+    }
+
+    private static class WeakPCL implements PropertyChangeListener {
+        WeakReference<JFileChooser> jfcRef;
+
+        public WeakPCL(JFileChooser jfc) {
+            jfcRef = new WeakReference(jfc);
+        }
+        public void propertyChange(PropertyChangeEvent ev) {
+            assert ev.getPropertyName().equals(SHOW_HIDDEN_PROP);
+            JFileChooser jfc = jfcRef.get();
+            if (jfc == null) {
+                // Our JFileChooser is no longer around, so we no longer need to
+                // listen for PropertyChangeEvents.
+                Toolkit.getDefaultToolkit().removePropertyChangeListener(SHOW_HIDDEN_PROP, this);
+            }
+            else {
+                boolean oldValue = jfc.useFileHiding;
+                jfc.useFileHiding = !((Boolean)ev.getNewValue()).booleanValue();
+                jfc.firePropertyChange(FILE_HIDING_CHANGED_PROPERTY, oldValue, jfc.useFileHiding);
             }
         }
     }

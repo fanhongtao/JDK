@@ -1,7 +1,7 @@
 /*
- * @(#)ImageWriter.java	1.90 03/01/23
+ * @(#)ImageWriter.java	1.94 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,12 +9,14 @@ package javax.imageio;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.awt.image.Raster;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import javax.imageio.event.IIOWriteWarningListener;
 import javax.imageio.event.IIOWriteProgressListener;
@@ -80,7 +82,7 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, which is synonymous with an empty
      * <code>List</code>.
      */
-    protected List warningListeners = null;
+    protected List<IIOWriteWarningListener> warningListeners = null;
 
     /**
      * A <code>List</code> of <code>Locale</code>s, one for each
@@ -88,7 +90,7 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, which is synonymous with an empty
      * <code>List</code>.
      */
-    protected List warningLocales = null;
+    protected List<Locale> warningLocales = null;
 
     /**
      * A <code>List</code> of currently registered
@@ -96,7 +98,7 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, which is synonymous with an empty
      * <code>List</code>.
      */
-    protected List progressListeners = null;
+    protected List<IIOWriteProgressListener> progressListeners = null;
 
     /**
      * If <code>true</code>, the current write operation should be
@@ -345,7 +347,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * metadata.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      * 
      * <p> Writers that do not make use of stream metadata
@@ -375,7 +378,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * metadata.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * @param imageType an <code>ImageTypeSpecifier</code> indicating the
@@ -412,7 +416,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * for cases where it may affect thumbnail handling.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> The default implementation returns 0.
@@ -456,7 +461,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * for cases where it may affect thumbnail handling.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> The default implementation returns <code>null</code>.
@@ -528,7 +534,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * will be used.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * @param streamMetadata an <code>IIOMetadata</code> object representing
@@ -695,7 +702,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, a default write param will be used.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> The default implementation throws an
@@ -939,7 +947,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, a default write param will be used.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> The default implementation throws an
@@ -1096,7 +1105,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, a default write param will be used.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> The default implementation throws an
@@ -1141,7 +1151,7 @@ public abstract class ImageWriter implements ImageTranscoder {
                                   ImageTypeSpecifier imageType,
                                   int width, int height,
                                   IIOMetadata imageMetadata,
-                                  List thumbnails,
+                                  List<? extends BufferedImage> thumbnails,
                                   ImageWriteParam param) throws IOException {
         unsupported();
     }
@@ -1253,7 +1263,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, a default write param will be used.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> The default implementation throws an
@@ -1300,7 +1311,7 @@ public abstract class ImageWriter implements ImageTranscoder {
                                    ImageTypeSpecifier imageType,
                                    int width, int height,
                                    IIOMetadata imageMetadata,
-                                   List thumbnails,
+                                   List<? extends BufferedImage> thumbnails,
                                    ImageWriteParam param) throws IOException {
         unsupported();
     }
@@ -1426,7 +1437,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * <code>null</code>, a default write param will be used.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> This method may only be called after a call to
@@ -1483,7 +1495,8 @@ public abstract class ImageWriter implements ImageTranscoder {
      * source must not be clipped, or an exception is thrown.
      *
      * <p> If the supplied <code>ImageWriteParam</code> contains
-     * optional setting values not supported by this writer, they
+     * optional setting values not supported by this writer (<i>e.g.</i>
+     * progressive encoding or any format-specific settings), they
      * will be ignored.
      *
      * <p> This method may only be called after a call to
@@ -1638,7 +1651,8 @@ public abstract class ImageWriter implements ImageTranscoder {
             warningListeners.remove(index);
             warningLocales.remove(index);
             if (warningListeners.size() == 0) {
-                warningListeners = warningLocales = null;
+                warningListeners = null;
+		warningLocales = null;
             }
         }
     }
@@ -1856,11 +1870,17 @@ public abstract class ImageWriter implements ImageTranscoder {
      * @param imageIndex the index of the image on which the warning
      * occurred.
      * @param warning the warning message.
+     *
+     * @exception IllegalArgumentException if <code>warning</code>
+     * is <code>null</code>.
      */
     protected void processWarningOccurred(int imageIndex,
                                           String warning) {
         if (warningListeners == null) {
             return;
+        }
+        if (warning == null) {
+            throw new IllegalArgumentException("warning == null!");
         }
         int numListeners = warningListeners.size();
         for (int i = 0; i < numListeners; i++) {
@@ -1885,6 +1905,18 @@ public abstract class ImageWriter implements ImageTranscoder {
      * messages.
      * @param keyword the keyword used to index the warning message
      * within the set of <code>ResourceBundle</code>s.
+     *
+     * @exception IllegalArgumentException if <code>baseName</code>
+     * is <code>null</code>.
+     * @exception IllegalArgumentException if <code>keyword</code>
+     * is <code>null</code>.
+     * @exception IllegalArgumentException if no appropriate
+     * <code>ResourceBundle</code> may be located.
+     * @exception IllegalArgumentException if the named resource is
+     * not found in the located <code>ResourceBundle</code>.
+     * @exception IllegalArgumentException if the object retrieved
+     * from the <code>ResourceBundle</code> is not a
+     * <code>String</code>.
      */
     protected void processWarningOccurred(int imageIndex,
                                           String baseName,
@@ -1892,16 +1924,56 @@ public abstract class ImageWriter implements ImageTranscoder {
         if (warningListeners == null) {
             return;
         }
+        if (baseName == null) {
+            throw new IllegalArgumentException("baseName == null!");
+        }
+        if (keyword == null) {
+            throw new IllegalArgumentException("keyword == null!");
+        }
         int numListeners = warningListeners.size();
         for (int i = 0; i < numListeners; i++) {
             IIOWriteWarningListener listener =
                 (IIOWriteWarningListener)warningListeners.get(i);
             Locale locale = (Locale)warningLocales.get(i);
+	    if (locale == null) {
+		locale = Locale.getDefault();
+	    }
 
-            ResourceBundle bundle = (locale == null) 
-                ? ResourceBundle.getBundle(baseName)
-                : ResourceBundle.getBundle(baseName, locale);
-            String warning = bundle.getString(keyword);
+	    /**
+             * If an applet supplies an implementation of ImageWriter and
+	     * resource bundles, then the resource bundle will need to be
+	     * accessed via the applet class loader. So first try the context
+	     * class loader to locate the resource bundle.
+	     * If that throws MissingResourceException, then try the
+	     * system class loader.
+	     */
+	    ClassLoader loader = (ClassLoader)
+	    	java.security.AccessController.doPrivileged(
+		   new java.security.PrivilegedAction() {
+		      public Object run() {
+                        return Thread.currentThread().getContextClassLoader();
+		      }
+                });
+
+            ResourceBundle bundle = null;
+            try {
+                bundle = ResourceBundle.getBundle(baseName, locale, loader);
+            } catch (MissingResourceException mre) {
+		try {
+		    bundle = ResourceBundle.getBundle(baseName, locale);
+		} catch (MissingResourceException mre1) {
+		    throw new IllegalArgumentException("Bundle not found!");
+		}
+            }
+
+            String warning = null;
+            try {
+                warning = bundle.getString(keyword);
+            } catch (ClassCastException cce) {
+                throw new IllegalArgumentException("Resource is not a String!");
+            } catch (MissingResourceException mre) {
+                throw new IllegalArgumentException("Resource is missing!");
+            }
             
             listener.warningOccurred(this, imageIndex, warning);
         }

@@ -1,7 +1,7 @@
 /*
- * @(#)Button.java	1.73 03/01/23
+ * @(#)Button.java	1.77 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import javax.accessibility.*;
  * <code>addActionListener</code> method. The application can
  * make use of the button's action command as a messaging protocol.
  *
- * @version 	1.73 01/23/03
+ * @version 	1.77 05/05/04
  * @author 	Sami Shaio
  * @see         java.awt.event.ActionEvent
  * @see         java.awt.event.ActionListener
@@ -69,23 +69,22 @@ import javax.accessibility.*;
  */
 public class Button extends Component implements Accessible {
 
-    /*
-    * The button's Label.
-    * If the Label is not specified it will default to "".
-	* @serial
-    * @see getLabel()
-    * @see setLabel()
-    */
-	String label;
-    /*
-    * The action to be performed once a button has been
-    * pressed.
-    * actionCommand can be null. 
-	* @serial
-    * @see getActionCommand()
-    * @see setActionCommand()
-    */
-	String actionCommand;
+    /**
+     * The button's label.  This value may be null.  
+     * @serial
+     * @see getLabel()
+     * @see setLabel()
+     */
+    String label;
+
+    /**
+     * The action to be performed once a button has been
+     * pressed.  This value may be null. 
+     * @serial
+     * @see getActionCommand()
+     * @see setActionCommand()
+     */
+    String actionCommand;
 
     transient ActionListener actionListener;
 
@@ -108,12 +107,13 @@ public class Button extends Component implements Accessible {
 
     /**
      * Initialize JNI field and method IDs for fields that may be
-       accessed from C.
+     * accessed from C.
      */
     private static native void initIDs();
 
     /**
-     * Constructs a Button with no label.
+     * Constructs a button with an empty string for its label.
+     * 
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true
      * @see java.awt.GraphicsEnvironment#isHeadless
@@ -123,8 +123,10 @@ public class Button extends Component implements Accessible {
     }
 
     /**
-     * Constructs a Button with the specified label.
-     * @param label A string label for the button.
+     * Constructs a button with the specified label.
+     * 
+     * @param label  a string label for the button, or 
+     *               <code>null</code> for no label
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true
      * @see java.awt.GraphicsEnvironment#isHeadless
@@ -148,6 +150,7 @@ public class Button extends Component implements Accessible {
      * Creates the peer of the button.  The button's peer allows the
      * application to change the look of the button without changing
      * its functionality.
+     * 
      * @see     java.awt.Toolkit#createButton(java.awt.Button)
      * @see     java.awt.Component#getToolkit()
      */
@@ -161,6 +164,7 @@ public class Button extends Component implements Accessible {
 
     /**
      * Gets the label of this button.
+     * 
      * @return    the button's label, or <code>null</code>
      *                if the button has no label.
      * @see       java.awt.Button#setLabel
@@ -171,6 +175,7 @@ public class Button extends Component implements Accessible {
 
     /**
      * Sets the button's label to be the specified string.
+     * 
      * @param     label   the new label, or <code>null</code>
      *                if the button has no label.
      * @see       java.awt.Button#getLabel
@@ -200,7 +205,8 @@ public class Button extends Component implements Accessible {
      * Sets the command name for the action event fired
      * by this button. By default this action command is
      * set to match the label of the button.
-     * @param     command  A string used to set the button's
+     * 
+     * @param     command  a string used to set the button's
      *                  action command.
      *            If the string is <code>null</code> then the action command
      *            is set to match the label of the button.
@@ -309,8 +315,8 @@ public class Button extends Component implements Accessible {
      * @see #getActionListeners
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
-	EventListener l = null; 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
+	EventListener l = null;
 	if  (listenerType == ActionListener.class) { 
 	    l = actionListener;
 	} else {
@@ -500,7 +506,12 @@ public class Button extends Component implements Accessible {
      * Java Accessibility API appropriate to button user-interface elements.
      */
     protected class AccessibleAWTButton extends AccessibleAWTComponent
-        implements AccessibleAction, AccessibleValue {
+        implements AccessibleAction, AccessibleValue
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = -5932203980244017102L;
 
         /**
          * Get the accessible name of this object.  

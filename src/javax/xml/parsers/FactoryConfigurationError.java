@@ -1,7 +1,9 @@
+// $Id: FactoryConfigurationError.java,v 1.2 2003/12/06 00:21:42 jsuttor Exp $
+
 /*
- * @(#)FactoryConfigurationError.java	1.7 03/01/23
- *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)FactoryConfigurationError.java	1.12 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,12 +15,15 @@ package javax.xml.parsers;
  * parser factory specified in the system properties cannot be found
  * or instantiated.
  *
- * @since JAXP 1.0
- * @version 1.0
+ * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @version $Revision: 1.2 $, $Date: 2003/12/06 00:21:42 $
  */
 
 public class FactoryConfigurationError extends Error {
 
+    /**
+     *<code>Exception</code> that represents the error.
+     */
     private Exception exception;
 
     /**
@@ -26,10 +31,10 @@ public class FactoryConfigurationError extends Error {
      * detail mesage.
      */
 
-     public FactoryConfigurationError() {
-         super();
-    	 this.exception = null; 
-     }
+    public FactoryConfigurationError() {
+        super();
+        this.exception = null;
+    }
 
     /**
      * Create a new <code>FactoryConfigurationError</code> with
@@ -64,7 +69,6 @@ public class FactoryConfigurationError extends Error {
      * @param e The exception to be encapsulated in a
      * FactoryConfigurationError
      * @param msg The detail message.
-     * @param e The exception to be wrapped in a FactoryConfigurationError
      */
     
     public FactoryConfigurationError(Exception e, String msg) {
@@ -104,10 +108,3 @@ public class FactoryConfigurationError extends Error {
         return exception;
     }
 }
-
-
-
-
-
-
-

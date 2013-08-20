@@ -1,7 +1,7 @@
 /*
- * @(#)WritableRaster.java	1.46 03/01/23
+ * @(#)WritableRaster.java	1.48 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -229,8 +229,11 @@ public class WritableRaster extends Raster {
         int deltaX = childMinX - parentX;
         int deltaY = childMinY - parentY;
 
+        // we use getDataBuffer() here, which will ensure that notifyStolen()
+        // is invoked if this is a SunWritableRaster, thus disabling future
+        // acceleration of this WritableRaster
         return new WritableRaster(sm,
-                                  dataBuffer,
+                                  getDataBuffer(),
                                   new Rectangle(childMinX,childMinY,
                                                 w, h),
                                   new Point(sampleModelTranslateX+deltaX,

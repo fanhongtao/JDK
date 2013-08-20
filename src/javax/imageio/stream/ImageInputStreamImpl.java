@@ -1,7 +1,7 @@
 /*
- * @(#)ImageInputStreamImpl.java	1.51 03/01/23
+ * @(#)ImageInputStreamImpl.java	1.53 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -243,7 +243,7 @@ public abstract class ImageInputStreamImpl implements ImageInputStream {
     }
 
     public long readUnsignedInt() throws IOException {
-        return ((long)readInt()) & 0xffffffff;
+        return ((long)readInt()) & 0xffffffffL;
     }
 
     public long readLong() throws IOException {

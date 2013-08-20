@@ -1,7 +1,7 @@
 /*
- * @(#)LayoutComparator.java	1.3 03/01/23
+ * @(#)LayoutComparator.java	1.7 04/02/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -19,7 +19,7 @@ import java.awt.Window;
  * position. Code adapted from original javax.swing.DefaultFocusManager
  * implementation.
  *
- * @version 1.3, 01/23/03
+ * @version 1.7, 02/05/04
  * @author David Mendenhall
  */
 final class LayoutComparator implements Comparator, java.io.Serializable {
@@ -58,7 +58,7 @@ final class LayoutComparator implements Comparator, java.io.Serializable {
 	    }
 	    if (a == null) {
 		// 'a' is not part of a Window hierarchy. Can't cope.
-		throw new ClassCastException(a.toString());
+		throw new ClassCastException();
 	    }
 
 	    for(bAncestory = new LinkedList(); b != null; b = b.getParent()) {
@@ -69,7 +69,7 @@ final class LayoutComparator implements Comparator, java.io.Serializable {
 	    }
 	    if (b == null) {
 		// 'b' is not part of a Window hierarchy. Can't cope.
-		throw new ClassCastException(b.toString());
+		throw new ClassCastException();
 	    }
 
 	    for (ListIterator
@@ -97,13 +97,14 @@ final class LayoutComparator implements Comparator, java.io.Serializable {
 
         int ax = a.getX(), ay = a.getY(), bx = b.getX(), by = b.getY();
 
+	int zOrder = a.getParent().getComponentZOrder(a) - b.getParent().getComponentZOrder(b);
 	if (horizontal) {
 	    if (leftToRight) {
 
 		// LT - Western Europe (optional for Japanese, Chinese, Korean)
 
 		if (Math.abs(ay - by) < ROW_TOLERANCE) {
-		    return (ax < bx) ? -1 : 1;
+		    return (ax < bx) ? -1 : ((ax > bx) ? 1 : zOrder);
 		} else {
 		    return (ay < by) ? -1 : 1;
 		}
@@ -112,7 +113,7 @@ final class LayoutComparator implements Comparator, java.io.Serializable {
 		// RT - Middle East (Arabic, Hebrew)
 
 		if (Math.abs(ay - by) < ROW_TOLERANCE) {
-		    return (ax > bx) ? -1 : 1;
+		    return (ax > bx) ? -1 : ((ax < bx) ? 1 : zOrder);
 		} else {
 		    return (ay < by) ? -1 : 1;
 		}
@@ -123,7 +124,7 @@ final class LayoutComparator implements Comparator, java.io.Serializable {
 		// TL - Mongolian
 
 		if (Math.abs(ax - bx) < ROW_TOLERANCE) {
-		    return (ay < by) ? -1 : 1;
+		    return (ay < by) ? -1 : ((ay > by) ? 1 : zOrder);
 		} else {
 		    return (ax < bx) ? -1 : 1;
 		}
@@ -132,7 +133,7 @@ final class LayoutComparator implements Comparator, java.io.Serializable {
 		// TR - Japanese, Chinese, Korean
 
 		if (Math.abs(ax - bx) < ROW_TOLERANCE) {
-		    return (ay < by) ? -1 : 1;
+		    return (ay < by) ? -1 : ((ay > by) ? 1 : zOrder);
 		} else {
 		    return (ax > bx) ? -1 : 1;
 		}

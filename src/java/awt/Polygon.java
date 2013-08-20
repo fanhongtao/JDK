@@ -1,7 +1,7 @@
 /*
- * @(#)Polygon.java	1.49 03/01/23
+ * @(#)Polygon.java	1.52 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -286,6 +286,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getBounds()</code>.
      */
+    @Deprecated
     public Rectangle getBoundingBox() {
 	if (npoints == 0) {
 	    return new Rectangle();
@@ -336,6 +337,7 @@ public class Polygon implements Shape, java.io.Serializable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>contains(int, int)</code>.
      */
+    @Deprecated
     public boolean inside(int x, int y) {
 	return contains((double) x, (double) y);
     }
@@ -469,7 +471,8 @@ public class Polygon implements Shape, java.io.Serializable {
      *			<code>Polygon</code> and the interior of the
      *			specified set of rectangular 
      * 			coordinates intersect each other;
-     *			<code>false</code> otherwise.
+     *			<code>false</code> otherwise
+     * @since 1.2
      */
     public boolean intersects(double x, double y, double w, double h) {
 	if (npoints <= 0 || !getBoundingBox().intersects(x, y, w, h)) {
@@ -504,7 +507,8 @@ public class Polygon implements Shape, java.io.Serializable {
      * @param h the height of the set of rectangular coordinates
      * @return <code>true</code> if this <code>Polygon</code> entirely
      * 			contains the specified set of rectangular
-     * 			coordinates; <code>false</code> otherwise.
+     * 			coordinates; <code>false</code> otherwise
+     * @since 1.2
      */
     public boolean contains(double x, double y, double w, double h) {
 	if (npoints <= 0 || !getBoundingBox().intersects(x, y, w, h)) {

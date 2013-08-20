@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDesktopIconUI.java	1.31 03/01/23
+ * @(#)BasicDesktopIconUI.java	1.35 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.Serializable;
 /**
  * Basic L&F for a minimized window on a desktop.
  *
- * @version 1.31 01/23/03
+ * @version 1.35 12/19/03
  * @author David Kloba
  * @author Steve Wilson
  * @author Rich Schiavi
@@ -31,9 +31,12 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     protected JInternalFrame.JDesktopIcon desktopIcon;
     protected JInternalFrame frame;
 
-    // This component is only used for windows look and feel, but it's package
-    // private.  This should be protected. (joutwate 2/22/2001)
-    JComponent iconPane;
+    /**
+     * The title pane component used in the desktop icon.
+     *
+     * @since 1.5
+     */
+    protected JComponent iconPane;
     MouseInputListener mouseInputListener;
 
 
@@ -50,6 +53,19 @@ public class BasicDesktopIconUI extends DesktopIconUI {
 	frame = desktopIcon.getInternalFrame();
 	installDefaults();
 	installComponents();
+
+	// Update icon layout if frame is already iconified
+	JInternalFrame f = desktopIcon.getInternalFrame();
+	if (f.isIcon() && f.getParent() == null) {
+	    JDesktopPane desktop = desktopIcon.getDesktopPane();
+	    if (desktop != null) {
+		DesktopManager desktopManager = desktop.getDesktopManager();
+		if (desktopManager instanceof DefaultDesktopManager) {
+		    desktopManager.iconifyFrame(f);
+		}
+	    }
+	}
+
 	installListeners();
 	JLayeredPane.putLayer(desktopIcon, JLayeredPane.getLayer(frame));
     }
@@ -57,6 +73,22 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     public void uninstallUI(JComponent c) {
 	uninstallDefaults();
 	uninstallComponents();
+
+	// Force future UI to relayout icon
+	JInternalFrame f = desktopIcon.getInternalFrame();
+	if (f.isIcon()) {
+	    JDesktopPane desktop = desktopIcon.getDesktopPane();
+	    if (desktop != null) {
+		DesktopManager desktopManager = desktop.getDesktopManager();
+		if (desktopManager instanceof DefaultDesktopManager) {
+		    // This will cause DefaultDesktopManager to layout the icon
+		    f.putClientProperty("wasIconOnce", null);
+		    // Move aside to allow fresh layout of all icons
+		    desktopIcon.setLocation(Integer.MIN_VALUE, 0);
+		}
+	    }
+	}
+
 	uninstallListeners();
 	frame = null;
 	desktopIcon = null;
@@ -69,8 +101,8 @@ public class BasicDesktopIconUI extends DesktopIconUI {
     }
 
     protected void uninstallComponents() {
-	desktopIcon.setLayout(null);
 	desktopIcon.remove(iconPane);
+	desktopIcon.setLayout(null);
         iconPane = null;
     }
 
@@ -88,6 +120,7 @@ public class BasicDesktopIconUI extends DesktopIconUI {
 
     protected void installDefaults() {
         LookAndFeel.installBorder(desktopIcon, "DesktopIcon.border");
+        LookAndFeel.installProperty(desktopIcon, "opaque", Boolean.TRUE);
     }
 
     protected void uninstallDefaults() {
@@ -113,6 +146,12 @@ public class BasicDesktopIconUI extends DesktopIconUI {
         return dim;
     } 
 
+    /**
+     * Desktop icons can not be resized.  Therefore, we should always
+     * return the minimum size of the desktop icon.
+     *
+     * @see #getMinimumSize
+     */
     public Dimension getMaximumSize(JComponent c){
         return iconPane.getMaximumSize();
     }

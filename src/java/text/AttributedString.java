@@ -1,7 +1,7 @@
 /*
- * @(#)AttributedString.java	1.33 03/01/23
+ * @(#)AttributedString.java	1.36 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -110,7 +110,9 @@ public class AttributedString {
      * and the attributes parameter is not an empty Map (attributes
      * cannot be applied to a 0-length range).
      */
-    public AttributedString(String text, Map attributes) {
+    public AttributedString(String text,
+			    Map<? extends Attribute, ?> attributes)
+    {
         if (text == null || attributes == null) {
             throw new NullPointerException();
         }
@@ -328,7 +330,9 @@ public class AttributedString {
      * subrange of the string and the attributes parameter is not an
      * empty Map.
      */
-    public void addAttributes(Map attributes, int beginIndex, int endIndex) {
+    public void addAttributes(Map<? extends Attribute, ?> attributes,
+			      int beginIndex, int endIndex)
+    {
         if (attributes == null) {
             throw new NullPointerException();
         }
@@ -842,7 +846,7 @@ public class AttributedString {
             }
         }
 
-        public int getRunStart(Set attributes) {
+        public int getRunStart(Set<? extends Attribute> attributes) {
             if (currentRunStart == beginIndex || currentRunIndex == -1) {
                 return currentRunStart;
             } else {
@@ -883,7 +887,7 @@ public class AttributedString {
             }
         }
         
-        public int getRunLimit(Set attributes) {
+        public int getRunLimit(Set<? extends Attribute> attributes) {
             if (currentRunLimit == endIndex || currentRunIndex == -1) {
                 return currentRunLimit;
             } else {
@@ -901,7 +905,7 @@ public class AttributedString {
             }
         }
         
-        public Map getAttributes() {
+        public Map<Attribute,Object> getAttributes() {
             if (runAttributes == null || currentRunIndex == -1 || runAttributes[currentRunIndex] == null) {
                 // ??? would be nice to return null, but current spec doesn't allow it
                 // returning Hashtable saves AttributeMap from dealing with emptiness
@@ -910,7 +914,7 @@ public class AttributedString {
             return new AttributeMap(currentRunIndex, beginIndex, endIndex);
         }
         
-        public Set getAllAttributeKeys() {
+        public Set<Attribute> getAllAttributeKeys() {
             // ??? This should screen out attribute keys that aren't relevant to the client
             if (runAttributes == null) {
                 // ??? would be nice to return null, but current spec doesn't allow it
@@ -1001,7 +1005,7 @@ public class AttributedString {
 
     // the map class associated with this string class, giving access to the attributes of one run
 
-    final private class AttributeMap extends AbstractMap {
+    final private class AttributeMap extends AbstractMap<Attribute,Object> {
     
         int runIndex;
         int beginIndex;

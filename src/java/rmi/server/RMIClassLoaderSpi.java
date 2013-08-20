@@ -1,7 +1,7 @@
 /*
- * @(#)RMIClassLoaderSpi.java	1.11 03/01/23
+ * @(#)RMIClassLoaderSpi.java	1.14 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.net.URL;
  * See the documentation for {@link RMIClassLoader} for a description
  * of how a provider instance is chosen.
  *
- * @version	1.11, 03/01/23
+ * @version	1.14, 04/05/05
  * @author	Peter Jones
  * @author	Laird Dornin
  * @see		RMIClassLoader
@@ -73,15 +73,14 @@ public abstract class RMIClassLoaderSpi {
      *
      * @throws	MalformedURLException if <code>codebase</code> is
      * non-<code>null</code> and contains an invalid URL, or
-     * if <code>codebase</code> is <code>null</code> and the system
-     * property <code>java.rmi.server.codebase</code> contains an
-     * invalid URL
+     * if <code>codebase</code> is <code>null</code> and a provider-specific
+     * URL used to load classes is invalid
      *
      * @throws	ClassNotFoundException if a definition for the class
      * could not be found at the specified location
      */
-    public abstract Class loadClass(String codebase, String name,
-				    ClassLoader defaultLoader)
+    public abstract Class<?> loadClass(String codebase, String name,
+				       ClassLoader defaultLoader)
 	throws MalformedURLException, ClassNotFoundException;
     
     /**
@@ -108,9 +107,8 @@ public abstract class RMIClassLoaderSpi {
      *
      * @throws	MalformedURLException if <code>codebase</code> is
      * non-<code>null</code> and contains an invalid URL, or
-     * if <code>codebase</code> is <code>null</code> and the system
-     * property <code>java.rmi.server.codebase</code> contains an
-     * invalid URL
+     * if <code>codebase</code> is <code>null</code> and a provider-specific
+     * URL used to load classes is invalid
      *
      * @throws	ClassNotFoundException if a definition for one of
      * the named interfaces could not be found at the specified location,
@@ -119,8 +117,9 @@ public abstract class RMIClassLoaderSpi {
      * would throw an <code>IllegalArgumentException</code> for the given
      * interface list)
      */
-    public abstract Class loadProxyClass(String codebase, String[] interfaces,
-					 ClassLoader defaultLoader)
+    public abstract Class<?> loadProxyClass(String codebase,
+					    String[] interfaces,
+					    ClassLoader defaultLoader)
 	throws MalformedURLException, ClassNotFoundException;
 
     /**
@@ -146,9 +145,8 @@ public abstract class RMIClassLoaderSpi {
      *
      * @throws	MalformedURLException if <code>codebase</code> is
      * non-<code>null</code> and contains an invalid URL, or
-     * if <code>codebase</code> is <code>null</code> and the system
-     * property <code>java.rmi.server.codebase</code> contains an
-     * invalid URL
+     * if <code>codebase</code> is <code>null</code> and a provider-specific
+     * URL used to identify the class loader is invalid
      *
      * @throws	SecurityException if there is a security manager and the
      * invocation of its <code>checkPermission</code> method fails, or
@@ -173,5 +171,5 @@ public abstract class RMIClassLoaderSpi {
      *
      * @throws	NullPointerException if <code>cl</code> is <code>null</code>
      */
-    public abstract String getClassAnnotation(Class cl);
+    public abstract String getClassAnnotation(Class<?> cl);
 }

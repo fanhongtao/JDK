@@ -1,5 +1,5 @@
 /*
- * @(#)Class.java	1.154 04/05/06
+ * @(#)Class.java	1.187 04/07/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,11 +7,16 @@
 
 package java.lang;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Member;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.ref.SoftReference;
 import java.io.InputStream;
@@ -27,22 +32,34 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 import sun.misc.Unsafe;
+import sun.reflect.ConstantPool;
 import sun.reflect.Reflection;
 import sun.reflect.ReflectionFactory;
 import sun.reflect.SignatureIterator;
+import sun.reflect.generics.factory.CoreReflectionFactory;
+import sun.reflect.generics.factory.GenericsFactory;
+import sun.reflect.generics.repository.ClassRepository;
+import sun.reflect.generics.repository.MethodRepository;
+import sun.reflect.generics.repository.ConstructorRepository;
+import sun.reflect.generics.scope.ClassScope;
 import sun.security.util.SecurityConstants;
-
+import java.lang.annotation.Annotation;
+import sun.reflect.annotation.*;
 
 /**
- * Instances of the class <code>Class</code> represent classes and interfaces
- * in a running Java application.  Every array also belongs to a class that is
- * reflected as a <code>Class</code> object that is shared by all arrays with
- * the same element type and number of dimensions.  The primitive Java types
- * (<code>boolean</code>, <code>byte</code>, <code>char</code>,
- * <code>short</code>, <code>int</code>, <code>long</code>,
- * <code>float</code>, and <code>double</code>), and the keyword
- * <code>void</code> are also represented as <code>Class</code> objects.
+ * Instances of the class <code>Class</code> represent classes and
+ * interfaces in a running Java application.  An enum is a kind of
+ * class and an annotation is a kind of interface.  Every array also
+ * belongs to a class that is reflected as a <code>Class</code> object
+ * that is shared by all arrays with the same element type and number
+ * of dimensions.  The primitive Java types (<code>boolean</code>,
+ * <code>byte</code>, <code>char</code>, <code>short</code>,
+ * <code>int</code>, <code>long</code>, <code>float</code>, and
+ * <code>double</code>), and the keyword <code>void</code> are also
+ * represented as <code>Class</code> objects.
  *
  * <p> <code>Class</code> has no public constructor. Instead <code>Class</code>
  * objects are constructed automatically by the Java Virtual Machine as classes
@@ -74,7 +91,13 @@ import sun.security.util.SecurityConstants;
  * @since   JDK1.0
  */
 public final
-class Class implements java.io.Serializable {
+    class Class<T> implements java.io.Serializable, 
+			      java.lang.reflect.GenericDeclaration, 
+			      java.lang.reflect.Type,
+                              java.lang.reflect.AnnotatedElement {
+    private static final int ANNOTATION= 0x00002000;
+    private static final int ENUM      = 0x00004000;
+    private static final int SYNTHETIC = 0x00001000;
 
     private static native void registerNatives();
     static {
@@ -136,7 +159,7 @@ class Class implements java.io.Serializable {
      *            by this method fails
      * @exception ClassNotFoundException if the class cannot be located
      */
-    public static Class forName(String className) 
+    public static Class<?> forName(String className) 
                 throws ClassNotFoundException {
         return forName0(className, true, ClassLoader.getCallerClassLoader());
     }
@@ -202,8 +225,8 @@ class Class implements java.io.Serializable {
      * @see 	  java.lang.ClassLoader
      * @since 	  1.2
      */
-    public static Class forName(String name, boolean initialize,
-				ClassLoader loader)
+    public static Class<?> forName(String name, boolean initialize,
+				   ClassLoader loader)
         throws ClassNotFoundException
     {
 	if (loader == null) {
@@ -221,7 +244,7 @@ class Class implements java.io.Serializable {
 
     /** Called after security checks have been made. */
     private static native Class forName0(String name, boolean initialize,
-					 ClassLoader loader)
+					    ClassLoader loader)
 	throws ClassNotFoundException;
 
     /**
@@ -230,12 +253,15 @@ class Class implements java.io.Serializable {
      * expression with an empty argument list.  The class is initialized if it
      * has not already been initialized.
      *
-     * <p>If there is a security manager, this method first calls the security
-     * manager's <code>checkMemberAccess</code> method with <code>this</code>
-     * and <code>Member.PUBLIC</code> as its arguments. If the class is in a
-     * package, then this method also calls the security manager's
-     * <code>checkPackageAccess</code> method with the package name as its
-     * argument. Either of these calls could result in a SecurityException.
+     * <p>Note that this method propagates any exception thrown by the
+     * nullary constructor, including a checked exception.  Use of
+     * this method effectively bypasses the compile-time exception
+     * checking that would otherwise be performed by the compiler.
+     * The {@link
+     * java.lang.reflect.Constructor#newInstance(java.lang.Object...)
+     * Constructor.newInstance} method avoids this problem by wrapping
+     * any exception thrown by the constructor in a (checked) {@link
+     * java.lang.reflect.InvocationTargetException}.
      *
      * @return     a newly allocated instance of the class represented by this
      *             object.
@@ -248,11 +274,27 @@ class Class implements java.io.Serializable {
      *               or if the instantiation fails for some other reason.
      * @exception  ExceptionInInitializerError if the initialization
      *               provoked by this method fails.
-     * @exception  SecurityException if there is no permission to create a new
-     *               instance.
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> denies
+     *             creation of new instances of this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
      *
      */
-    public Object newInstance() 
+    public T newInstance() 
         throws InstantiationException, IllegalAccessException
     {
 	if (System.getSecurityManager() != null) {
@@ -261,7 +303,7 @@ class Class implements java.io.Serializable {
 	return newInstance0();
     }
 
-    private Object newInstance0()
+    private T newInstance0()
         throws InstantiationException, IllegalAccessException
     {
         // NOTE: the following code may not be strictly correct under
@@ -275,8 +317,8 @@ class Class implements java.io.Serializable {
                 );
             }
             try {
-                final Constructor c =
-                  getConstructor0(new Class[] {}, Member.DECLARED);
+		Class[] empty = {};
+                final Constructor<T> c = getConstructor0(empty, Member.DECLARED);
                 // Disable accessibility checks on the constructor
                 // since we have to do the security check here anyway
                 // (the stack depth is wrong for the Constructor's
@@ -293,7 +335,7 @@ class Class implements java.io.Serializable {
                 throw new InstantiationException(getName());
             }
         }
-        Constructor tmpConstructor = cachedConstructor;
+        Constructor<T> tmpConstructor = cachedConstructor;
         // Security check (same as in java.lang.reflect.Constructor)
         int modifiers = tmpConstructor.getModifiers();
         if (!Reflection.quickCheckMemberAccess(this, modifiers)) {
@@ -305,14 +347,14 @@ class Class implements java.io.Serializable {
         }
         // Run constructor
         try {
-            return tmpConstructor.newInstance(null);
+            return tmpConstructor.newInstance((Object[])null);
         } catch (InvocationTargetException e) {
             Unsafe.getUnsafe().throwException(e.getTargetException());
             // Not reached
             return null;
         }
     }
-    private volatile transient Constructor cachedConstructor;
+    private volatile transient Constructor<T> cachedConstructor;
     private volatile transient Class       newInstanceCallerCache;
 
 
@@ -373,7 +415,7 @@ class Class implements java.io.Serializable {
      *            null.
      * @since JDK1.1
      */
-    public native boolean isAssignableFrom(Class cls);
+    public native boolean isAssignableFrom(Class<?> cls);
 
 
     /**
@@ -427,6 +469,30 @@ class Class implements java.io.Serializable {
     public native boolean isPrimitive();
 
     /**
+     * Returns true if this <tt>Class</tt> object represents an annotation
+     * type.  Note that if this method returns true, {@link #isInterface()}
+     * would also return true, as all annotation types are also interfaces.
+     *
+     * @return <tt>true</tt> if this class object represents an annotation
+     *      type; <tt>false</tt> otherwise
+     * @since 1.5
+     */
+    public boolean isAnnotation() {
+	return (getModifiers() & ANNOTATION) != 0;
+    }
+
+    /**
+     * Returns <tt>true</tt> if this class is a synthetic class;
+     * returns <tt>false</tt> otherwise.
+     * @return <tt>true</tt> if and only if this class is a synthetic class as
+     *         defined by the Java Language Specification.
+     * @since 1.5
+     */
+    public boolean isSynthetic() {
+	return (getModifiers() & SYNTHETIC) != 0;
+    }
+
+    /**
      * Returns the  name of the entity (class, interface, array class,
      * primitive type, or void) represented by this <tt>Class</tt> object,
      * as a <tt>String</tt>.
@@ -476,15 +542,14 @@ class Class implements java.io.Serializable {
      *          represented by this object.
      */
     public String getName() {
-      if (name == null)
-          name = getName0();
-      return name;
+	if (name == null)
+	    name = getName0();
+	return name;
     }
- 
+
     // cache the name to reduce the number of calls into the VM
     private transient String name;
     private native String getName0();
-
 
     /**
      * Returns the class loader for the class.  Some implementations may use
@@ -531,6 +596,29 @@ class Class implements java.io.Serializable {
 
 
     /**
+     * Returns an array of <tt>TypeVariable</tt> objects that represent the
+     * type variables declared by the generic declaration represented by this
+     * <tt>GenericDeclaration</tt> object, in declaration order.  Returns an
+     * array of length 0 if the underlying generic declaration declares no type
+     * variables.
+     *
+     * @return an array of <tt>TypeVariable</tt> objects that represent
+     *     the type variables declared by this generic declaration
+     * @throws GenericSignatureFormatError if the generic
+     *     signature of this generic declaration does not conform to
+     *     the format specified in the Java Virtual Machine Specification,
+     *     3rd edition
+     * @since 1.5
+     */
+    public TypeVariable<Class<T>>[] getTypeParameters() {
+	if (getGenericSignature() != null) 
+	    return (TypeVariable<Class<T>>[])getGenericInfo().getTypeParameters();
+	else
+	    return (TypeVariable<Class<T>>[])new TypeVariable[0];
+    }
+
+
+    /**
      * Returns the <code>Class</code> representing the superclass of the entity
      * (class, interface, primitive type or void) represented by this
      * <code>Class</code>.  If this <code>Class</code> represents either the
@@ -541,8 +629,49 @@ class Class implements java.io.Serializable {
      *
      * @return the superclass of the class represented by this object.
      */
-    public native Class getSuperclass();
+    public native Class<? super T> getSuperclass();
 
+
+    /**
+     * Returns the <tt>Type</tt> representing the direct superclass of
+     * the entity (class, interface, primitive type or void) represented by
+     * this <tt>Class</tt>.
+     * 
+     * <p>If the superclass is a parameterized type, the <tt>Type</tt>
+     * object returned must accurately reflect the actual type
+     * parameters used in the source code. The parameterized type
+     * representing the superclass is created if it had not been
+     * created before. See the declaration of {@link
+     * java.lang.reflect.ParameterizedType ParameterizedType} for the
+     * semantics of the creation process for parameterized types.  If
+     * this <tt>Class</tt> represents either the <tt>Object</tt>
+     * class, an interface, a primitive type, or void, then null is
+     * returned.  If this object represents an array class then the
+     * <tt>Class</tt> object representing the <tt>Object</tt> class is
+     * returned.
+     *
+     * @throws GenericSignatureFormatError if the generic
+     *     class signature does not conform to the format specified in the
+     *     Java Virtual Machine Specification, 3rd edition
+     * @throws TypeNotPresentException if the generic superclass
+     *     refers to a non-existent type declaration
+     * @throws MalformedParameterizedTypeException if the 
+     *     generic superclass refers to a parameterized type that cannot be
+     *     instantiated  for any reason
+     * @return the superclass of the class represented by this object
+     * @since 1.5
+     */
+    public Type getGenericSuperclass() {
+	if (getGenericSignature() != null) {
+	    // Historical irregularity:
+	    // Generic signature marks interfaces with superclass = Object
+	    // but this API returns null for interfaces
+	    if (isInterface())
+		return null;
+	    return getGenericInfo().getSuperclass();
+	} else
+	    return getSuperclass();
+    }
 
     /**
      * Gets the package for this class.  The class loader of this class is used
@@ -606,6 +735,61 @@ class Class implements java.io.Serializable {
      */
     public native Class[] getInterfaces();
 
+    /**
+     * Returns the <tt>Type</tt>s representing the interfaces 
+     * directly implemented by the class or interface represented by
+     * this object.
+     *
+     * <p>If a superinterface is a parameterized type, the
+     * <tt>Type</tt> object returned for it must accurately reflect
+     * the actual type parameters used in the source code. The
+     * parameterized type representing each superinterface is created
+     * if it had not been created before. See the declaration of
+     * {@link java.lang.reflect.ParameterizedType ParameterizedType}
+     * for the semantics of the creation process for parameterized
+     * types.
+     *
+     * <p> If this object represents a class, the return value is an
+     * array containing objects representing all interfaces
+     * implemented by the class. The order of the interface objects in
+     * the array corresponds to the order of the interface names in
+     * the <tt>implements</tt> clause of the declaration of the class
+     * represented by this object.  In the case of an array class, the
+     * interfaces <tt>Cloneable</tt> and <tt>Serializable</tt> are
+     * returned in that order.
+     *
+     * <p>If this object represents an interface, the array contains
+     * objects representing all interfaces directly extended by the
+     * interface.  The order of the interface objects in the array
+     * corresponds to the order of the interface names in the
+     * <tt>extends</tt> clause of the declaration of the interface
+     * represented by this object.
+     *
+     * <p>If this object represents a class or interface that
+     * implements no interfaces, the method returns an array of length
+     * 0.
+     *
+     * <p>If this object represents a primitive type or void, the
+     * method returns an array of length 0.
+     *
+     * @throws GenericSignatureFormatError
+     *     if the generic class signature does not conform to the format
+     *     specified in the Java Virtual Machine Specification, 3rd edition
+     * @throws TypeNotPresentException if any of the generic
+     *     superinterfaces refers to a non-existent type declaration
+     * @throws MalformedParameterizedTypeException if any of the 
+     *     generic superinterfaces refer to a parameterized type that cannot
+     *     be instantiated  for any reason
+     * @return an array of interfaces implemented by this class
+     * @since 1.5
+     */
+    public Type[] getGenericInterfaces() {
+	if (getGenericSignature() != null)
+	    return getGenericInfo().getSuperInterfaces();
+	else
+	    return getInterfaces();
+    }
+
 
     /**
      * Returns the <code>Class</code> representing the component type of an
@@ -617,7 +801,7 @@ class Class implements java.io.Serializable {
      * @see     java.lang.reflect.Array
      * @since JDK1.1
      */
-    public native Class getComponentType();
+    public native Class<?> getComponentType();
 
 
     /**
@@ -668,6 +852,196 @@ class Class implements java.io.Serializable {
 
 
     /**
+     * If this <tt>Class</tt> object represents a local or anonymous
+     * class within a method, returns a {@link
+     * java.lang.reflect.Method Method} object representing the
+     * immediately enclosing method of the underlying class. Returns
+     * <tt>null</tt> otherwise.
+     *
+     * In particular, this method returns <tt>null</tt> if the underlying
+     * class is a local or anonymous class immediately enclosed by a type
+     * declaration, instance initializer or static initializer.
+     *
+     * @return the immediately enclosing method of the underlying class, if
+     *     that class is a local or anonymous class; otherwise <tt>null</tt>.
+     * @since 1.5
+     */
+    public Method getEnclosingMethod() {
+	EnclosingMethodInfo enclosingInfo = getEnclosingMethodInfo();
+	
+	if (enclosingInfo == null)
+	    return null;
+	else {
+	    if (!enclosingInfo.isMethod())
+		return null;
+
+	    MethodRepository typeInfo = MethodRepository.make(enclosingInfo.getDescriptor(), 
+							      getFactory());
+	    Class      returnType       = toClass(typeInfo.getReturnType());
+	    Type []    parameterTypes   = typeInfo.getParameterTypes();
+	    Class<?>[] parameterClasses = new Class<?>[parameterTypes.length];
+
+	    // Convert Types to Classes; returned types *should*
+	    // be class objects since the methodDescriptor's used
+	    // don't have generics information
+	    for(int i = 0; i < parameterClasses.length; i++)
+		parameterClasses[i] = toClass(parameterTypes[i]);
+
+	    /*
+	     * Loop over all declared methods; match method name,
+	     * number of and type of parameters, *and* return
+	     * type.  Matching return type is also necessary
+	     * because of covariant returns, etc.
+	     */
+	    for(Method m: enclosingInfo.getEnclosingClass().getDeclaredMethods()) {
+		if (m.getName().equals(enclosingInfo.getName()) ) {
+		    Class<?>[] candidateParamClasses = m.getParameterTypes();
+		    if (candidateParamClasses.length == parameterClasses.length) {
+			boolean matches = true;
+			for(int i = 0; i < candidateParamClasses.length; i++) {
+			    if (!candidateParamClasses[i].equals(parameterClasses[i])) {
+				matches = false;
+				break;
+			    }
+			}
+			    
+			if (matches) { // finally, check return type
+			    if (m.getReturnType().equals(returnType) )
+				return m;
+			}
+		    }
+		}
+	    }
+		
+	    throw new InternalError("Enclosing method not found");
+	}
+    }
+
+    private native Object[] getEnclosingMethod0();
+
+    private EnclosingMethodInfo getEnclosingMethodInfo() {
+	if (isPrimitive())
+	    return null;
+	Object[] enclosingInfo = getEnclosingMethod0();
+	if (enclosingInfo == null)
+	    return null;
+	else {
+	    return new EnclosingMethodInfo(enclosingInfo);
+	}
+    }
+
+    private final static class EnclosingMethodInfo {
+	private Class<?> enclosingClass;
+	private String name;
+	private String descriptor;
+
+	private EnclosingMethodInfo(Object[] enclosingInfo) {
+	    if (enclosingInfo.length != 3)
+		throw new InternalError("Malformed enclosing method information");
+	    try {
+		// The array is expected to have three elements:
+
+		// the immediately enclosing class
+		enclosingClass = (Class<?>) enclosingInfo[0];
+		assert(enclosingClass != null);
+
+		// the immediately enclosing method or constructor's
+		// name (can be null).
+		name		= (String)   enclosingInfo[1]; 
+
+		// the immediately enclosing method or constructor's
+		// descriptor (null iff name is).
+		descriptor	= (String)   enclosingInfo[2];
+		assert((name != null && descriptor != null) || name == descriptor);
+	    } catch (ClassCastException cce) {
+		throw new InternalError("Invalid type in enclosing method information");
+	    }
+	}
+
+	boolean isPartial() {
+	    return enclosingClass == null || name == null || descriptor == null;
+	}
+
+	boolean isConstructor() { return !isPartial() && "<init>".equals(name); }
+
+	boolean isMethod() { return !isPartial() && !isConstructor() && !"<clinit>".equals(name); }
+
+	Class<?> getEnclosingClass() { return enclosingClass; }
+
+	String getName() { return name; }
+
+	String getDescriptor() { return descriptor; }
+
+    }
+
+    private static Class toClass(Type o) {
+	if (o instanceof GenericArrayType)
+	    return Array.newInstance(toClass(((GenericArrayType)o).getGenericComponentType()),
+				     0)
+		.getClass();
+	return (Class)o;
+     }
+
+    /**
+     * If this <tt>Class</tt> object represents a local or anonymous
+     * class within a constructor, returns a {@link
+     * java.lang.reflect.Constructor Constructor} object representing
+     * the immediately enclosing constructor of the underlying
+     * class. Returns <tt>null</tt> otherwise.  In particular, this
+     * method returns <tt>null</tt> if the underlying class is a local
+     * or anonymous class immediately enclosed by a type declaration,
+     * instance initializer or static initializer.
+     *
+     * @return the immediately enclosing constructor of the underlying class, if
+     *     that class is a local or anonymous class; otherwise <tt>null</tt>.
+     * @since 1.5
+     */
+    public Constructor<?> getEnclosingConstructor() {
+	EnclosingMethodInfo enclosingInfo = getEnclosingMethodInfo();
+	
+	if (enclosingInfo == null)
+	    return null;
+	else {
+	    if (!enclosingInfo.isConstructor())
+		return null;
+
+	    ConstructorRepository typeInfo = ConstructorRepository.make(enclosingInfo.getDescriptor(), 
+									getFactory());
+	    Type []    parameterTypes   = typeInfo.getParameterTypes();
+	    Class<?>[] parameterClasses = new Class<?>[parameterTypes.length];
+
+	    // Convert Types to Classes; returned types *should*
+	    // be class objects since the methodDescriptor's used
+	    // don't have generics information
+	    for(int i = 0; i < parameterClasses.length; i++)
+		parameterClasses[i] = toClass(parameterTypes[i]);
+
+	    /*
+	     * Loop over all declared constructors; match number
+	     * of and type of parameters.
+	     */
+	    for(Constructor c: enclosingInfo.getEnclosingClass().getDeclaredConstructors()) {
+		Class<?>[] candidateParamClasses = c.getParameterTypes();
+		if (candidateParamClasses.length == parameterClasses.length) {
+		    boolean matches = true;
+		    for(int i = 0; i < candidateParamClasses.length; i++) {
+			if (!candidateParamClasses[i].equals(parameterClasses[i])) {
+			    matches = false;
+			    break;
+			}
+		    }
+			
+		    if (matches)
+			return c;
+		}
+	    }
+		
+	    throw new InternalError("Enclosing constructor not found");
+	}
+    }
+
+
+    /**
      * If the class or interface represented by this <code>Class</code> object
      * is a member of another class, returns the <code>Class</code> object
      * representing the class in which it was declared.  This method returns
@@ -678,8 +1052,188 @@ class Class implements java.io.Serializable {
      * @return the declaring class for this class
      * @since JDK1.1
      */
-    public native Class getDeclaringClass();
+    public native Class<?> getDeclaringClass();
 
+
+    /**
+     * Returns the immediately enclosing class of the underlying
+     * class.  If the underlying class is a top level class this
+     * method returns <tt>null</tt>.
+     * @return the immediately enclosing class of the underlying class
+     * @since 1.5
+     */
+    public Class<?> getEnclosingClass() {
+	// There are five kinds of classes (or interfaces):
+	// a) Top level classes
+	// b) Nested classes (static member classes)
+	// c) Inner classes (non-static member classes)
+	// d) Local classes (named classes declared within a method)
+	// e) Anonymous classes
+
+
+	// JVM Spec 4.8.6: A class must have an EnclosingMethod
+	// attribute if and only if it is a local class or an
+	// anonymous class.
+	EnclosingMethodInfo enclosingInfo = getEnclosingMethodInfo();
+
+	if (enclosingInfo == null) {
+	    // This is a top level or a nested class or an inner class (a, b, or c)
+	    return getDeclaringClass();
+	} else {
+	    Class<?> enclosingClass = enclosingInfo.getEnclosingClass();
+	    // This is a local class or an anonymous class (d or e)
+	    if (enclosingClass == this || enclosingClass == null)
+		throw new InternalError("Malformed enclosing method information");
+	    else
+		return enclosingClass;
+	}
+    }
+
+    /**
+     * Returns the simple name of the underlying class as given in the
+     * source code. Returns an empty string if the underlying class is
+     * anonymous.
+     *
+     * <p>The simple name of an array is the simple name of the
+     * component type with "[]" appended.  In particular the simple
+     * name of an array whose component type is anonymous is "[]".
+     *
+     * @return the simple name of the underlying class
+     * @since 1.5
+     */
+    public String getSimpleName() {
+	if (isArray())
+	    return getComponentType().getSimpleName()+"[]";
+
+	String simpleName = getSimpleBinaryName();
+	if (simpleName == null) { // top level class
+	    simpleName = getName();
+	    return simpleName.substring(simpleName.lastIndexOf(".")+1); // strip the package name
+	}
+	// According to JLS3 "Binary Compatibility" (13.1) the binary
+	// name of non-package classes (not top level) is the binary
+	// name of the immediately enclosing class followed by a '$' followed by:
+	// (for nested and inner classes): the simple name.
+	// (for local classes): 1 or more digits followed by the simple name.
+	// (for anonymous classes): 1 or more digits.
+
+	// Since getSimpleBinaryName() will strip the binary name of
+	// the immediatly enclosing class, we are now looking at a
+	// string that matches the regular expression "\$[0-9]*"
+	// followed by a simple name (considering the simple of an
+	// anonymous class to be the empty string).
+
+	// Remove leading "\$[0-9]*" from the name
+	int length = simpleName.length();
+	if (length < 1 || simpleName.charAt(0) != '$')
+	    throw new InternalError("Malformed class name");
+	int index = 1;
+	while (index < length && isAsciiDigit(simpleName.charAt(index)))
+	    index++;
+	// Eventually, this is the empty string iff this is an anonymous class
+	return simpleName.substring(index);
+    }
+
+    /**
+     * Character.isDigit answers <tt>true</tt> to some non-ascii
+     * digits.  This one does not.
+     */
+    private static boolean isAsciiDigit(char c) {
+	return '0' <= c && c <= '9';
+    }
+
+    /**
+     * Returns the canonical name of the the underlying class as
+     * defined by the Java Language Specification.  Returns null if
+     * the underlying class does not have a canonical name (i.e., if
+     * it is a local or anonymous class or an array whose component
+     * type does not have a canonical name).
+     * @return the canonical name of the underlying class if it exists, and
+     * <tt>null</tt> otherwise.
+     * @since 1.5
+     */
+    public String getCanonicalName() {
+	if (isArray()) {
+	    String canonicalName = getComponentType().getCanonicalName();
+	    if (canonicalName != null)
+		return canonicalName + "[]";
+	    else
+		return null;
+	}
+	if (isLocalOrAnonymousClass())
+	    return null;
+	Class<?> enclosingClass = getEnclosingClass();
+	if (enclosingClass == null) { // top level class
+	    return getName();
+	} else {
+	    String enclosingName = enclosingClass.getCanonicalName();
+	    if (enclosingName == null)
+		return null;
+	    return enclosingName + "." + getSimpleName();
+	}
+    }
+ 
+    /**
+     * Returns <tt>true</tt> if and only if the underlying class
+     * is an anonymous class.
+     *
+     * @return <tt>true</tt> if and only if this class is an anonymous class.
+     * @since 1.5
+     */
+    public boolean isAnonymousClass() {
+	return "".equals(getSimpleName());
+    }
+ 
+    /**
+     * Returns <tt>true</tt> if and only if the underlying class
+     * is a local class.
+     *
+     * @return <tt>true</tt> if and only if this class is a local class.
+     * @since 1.5
+     */
+    public boolean isLocalClass() {
+	return isLocalOrAnonymousClass() && !isAnonymousClass();
+    }
+
+    /**
+     * Returns <tt>true</tt> if and only if the underlying class
+     * is a member class.
+     *
+     * @return <tt>true</tt> if and only if this class is a member class.
+     * @since 1.5
+     */
+    public boolean isMemberClass() {
+	return getSimpleBinaryName() != null && !isLocalOrAnonymousClass();
+    }
+
+    /**
+     * Returns the "simple binary name" of the underlying class, i.e.,
+     * the binary name without the leading enclosing class name.
+     * Returns <tt>null</tt> if the underlying class is a top level
+     * class.
+     */
+    private String getSimpleBinaryName() {
+	Class<?> enclosingClass = getEnclosingClass();
+	if (enclosingClass == null) // top level class
+	    return null;
+	// Otherwise, strip the enclosing class' name
+	try {
+	    return getName().substring(enclosingClass.getName().length());
+	} catch (IndexOutOfBoundsException ex) {
+	    throw new InternalError("Malformed class name");
+	}
+    }
+
+    /**
+     * Returns <tt>true</tt> if this is a local class or an anonymous
+     * class.  Returns <tt>false</tt> otherwise.
+     */
+    private boolean isLocalOrAnonymousClass() {
+	// JVM Spec 4.8.6: A class must have an EnclosingMethod
+	// attribute if and only if it is a local class or an
+	// anonymous class.
+	return getEnclosingMethodInfo() != null;
+    }
 
     /**
      * Returns an array containing <code>Class</code> objects representing all
@@ -692,22 +1246,26 @@ class Class implements java.io.Serializable {
      * this <code>Class</code> object represents a primitive type, an array
      * class, or void.
      * 
-     * <p>For this class and each of its superclasses, the following
-     * security checks are performed:
-     * If there is a security manager, the security manager's
-     * <code>checkMemberAccess</code> method is called with <code>this</code>
-     * and <code>Member.PUBLIC</code> as its arguments, where <code>this</code>
-     * is this class or the superclass whose members are being determined. If
-     * the class is in a package, then the security manager's
-     * <code>checkPackageAccess</code> method is also called with the package
-     * name as its argument. Either of these calls could result in a
-     * SecurityException.
-     *
      * @return the array of <code>Class</code> objects representing the public
      * members of this class
-     * @exception SecurityException    if access to the information is denied.
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> method
+     *             denies access to the classes within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package 
+     *             of this class
+     * 
+     *             </ul>
      *
      * @since JDK1.1
      */
@@ -726,7 +1284,7 @@ class Class implements java.io.Serializable {
 	Class[] result = (Class[]) java.security.AccessController.doPrivileged
 	    (new java.security.PrivilegedAction() {
 	        public Object run() {
-		    java.util.List list = new java.util.ArrayList();
+		    java.util.List<Class> list = new java.util.ArrayList();
 		    Class currentClass = Class.this;
 		    while (currentClass != null) {
 			Class[] members = currentClass.getDeclaredClasses();
@@ -737,7 +1295,8 @@ class Class implements java.io.Serializable {
 			}
 			currentClass = currentClass.getSuperclass();
 		    }
-		    return list.toArray(new Class[0]);
+		    Class[] empty = {};
+		    return list.toArray(empty);
 		}
 	    });
 
@@ -759,14 +1318,6 @@ class Class implements java.io.Serializable {
      * interface, this method returns the fields of this interface and of all
      * its superinterfaces.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.PUBLIC</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name as its argument. Either of these calls
-     * could result in a SecurityException.
-     * 
      * <p> The implicit length field for array class is not reflected by this
      * method. User code should use the methods of class <code>Array</code> to
      * manipulate arrays.
@@ -775,10 +1326,25 @@ class Class implements java.io.Serializable {
      *
      * @return the array of <code>Field</code> objects representing the
      * public fields
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Field
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> denies
+     *             access to the fields within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Field[] getFields() throws SecurityException {
@@ -794,21 +1360,14 @@ class Class implements java.io.Serializable {
      * Returns an array containing <code>Method</code> objects reflecting all
      * the public <em>member</em> methods of the class or interface represented
      * by this <code>Class</code> object, including those declared by the class
-     * or interface and and those inherited from superclasses and
-     * superinterfaces.  The elements in the array returned are not sorted and
-     * are not in any particular order.  This method returns an array of length
-     * 0 if this <code>Class</code> object represents a class or interface that
-     * has no public member methods, or if this <code>Class</code> object
-     * represents an array class, primitive type, or void.
+     * or interface and those inherited from superclasses and
+     * superinterfaces.  Array classes return all the (public) member methods 
+     * inherited from the <code>Object</code> class.  The elements in the array 
+     * returned are not sorted and are not in any particular order.  This 
+     * method returns an array of length 0 if this <code>Class</code> object
+     * represents a class or interface that has no public member methods, or if
+     * this <code>Class</code> object represents a primitive type or void.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.PUBLIC</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
-     * 
      * <p> The class initialization method <code>&lt;clinit&gt;</code> is not
      * included in the returned array. If the class declares multiple public
      * member methods with the same parameter types, they are all included in
@@ -818,10 +1377,25 @@ class Class implements java.io.Serializable {
      *
      * @return the array of <code>Method</code> objects representing the
      * public methods of this class
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Method
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> denies
+     *             access to the methods within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Method[] getMethods() throws SecurityException {
@@ -840,21 +1414,28 @@ class Class implements java.io.Serializable {
      * class has no public constructors, or if the class is an array class, or
      * if the class reflects a primitive type or void.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.PUBLIC</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
-     * 
      * @return the array containing <code>Method</code> objects for all the
      * declared public constructors of this class matches the specified
      * <code>parameterTypes</code>
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Constructor
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> denies
+     *             access to the constructors within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Constructor[] getConstructors() throws SecurityException {
@@ -871,14 +1452,6 @@ class Class implements java.io.Serializable {
      * member field of the class or interface represented by this
      * <code>Class</code> object. The <code>name</code> parameter is a
      * <code>String</code> specifying the simple name of the desired field.
-     *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.PUBLIC</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
      *
      * <p> The field to be reflected is determined by the algorithm that
      * follows.  Let C be the class represented by this object:
@@ -902,10 +1475,25 @@ class Class implements java.io.Serializable {
      * @exception NoSuchFieldException if a field with the specified name is
      *              not found.
      * @exception NullPointerException if <code>name</code> is <code>null</code>
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Field
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> denies
+     *             access to the field
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Field getField(String name)
@@ -931,14 +1519,6 @@ class Class implements java.io.Serializable {
      * objects that identify the method's formal parameter types, in declared
      * order. If <code>parameterTypes</code> is <code>null</code>, it is 
      * treated as if it were an empty array.
-     *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.PUBLIC</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
      *
      * <p> If the <code>name</code> is "&lt;init&gt;"or "&lt;clinit&gt;" a
      * <code>NoSuchMethodException</code> is raised. Otherwise, the method to
@@ -969,13 +1549,28 @@ class Class implements java.io.Serializable {
      * @exception NoSuchMethodException if a matching method is not found
      *            or if the name is "&lt;init&gt;"or "&lt;clinit&gt;".
      * @exception NullPointerException if <code>name</code> is <code>null</code>
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Method
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> denies
+     *             access to the method
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
-    public Method getMethod(String name, Class[] parameterTypes)
+    public Method getMethod(String name, Class ... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -1000,25 +1595,32 @@ class Class implements java.io.Serializable {
      * represented by this <code>Class</code> object whose formal parameter
      * types match those specified by <code>parameterTypes</code>.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.PUBLIC</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> method
-     * with the package name as its argument. Either of these calls could
-     * result in a SecurityException.
-     *
      * @param parameterTypes the parameter array
      * @return the <code>Method</code> object of the public constructor that
      * matches the specified <code>parameterTypes</code>
      * @exception NoSuchMethodException if a matching method is not found.
-     * @exception SecurityException     if access to the information is denied.
-     * @see       java.lang.reflect.Constructor
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.PUBLIC)}</tt> denies
+     *             access to the constructor
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
-    public Constructor getConstructor(Class[] parameterTypes)
+    public Constructor<T> getConstructor(Class ... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -1038,19 +1640,27 @@ class Class implements java.io.Serializable {
      * interfaces as members, or if this <code>Class</code> object represents a
      * primitive type, an array class, or void.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method also
-     * calls the security manager's <code>checkPackageAccess</code> method with
-     * the package name as its argument. Either of these calls could result in
-     * a SecurityException.
-     *
      * @return the array of <code>Class</code> objects representing all the 
      * declared members of this class
-     * @exception SecurityException    if access to the information is denied.
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared classes within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Class[] getDeclaredClasses() throws SecurityException {
@@ -1074,20 +1684,27 @@ class Class implements java.io.Serializable {
      *
      * <p> See <em>The Java Language Specification</em>, sections 8.2 and 8.3.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method with
-     * <code>this</code> and <code>Member.DECLARED</code> as its arguments. If
-     * the class is in a package, then this method also calls the security
-     * manager's <code>checkPackageAccess</code> method with the package name
-     * as its argument. Either of these calls could result in a
-     * SecurityException.
-     *
      * @return    the array of <code>Field</code> objects representing all the
      * declared fields of this class
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Field
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared fields within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Field[] getDeclaredFields() throws SecurityException {
@@ -1115,20 +1732,27 @@ class Class implements java.io.Serializable {
      *
      * <p> See <em>The Java Language Specification</em>, section 8.2.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> method
-     * with the package name as its argument. Either of these calls could
-     * result in a SecurityException.
-     *
      * @return    the array of <code>Method</code> objects representing all the
      * declared methods of this class
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Method
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared methods within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Method[] getDeclaredMethods() throws SecurityException {
@@ -1153,20 +1777,27 @@ class Class implements java.io.Serializable {
      *
      * <p> See <em>The Java Language Specification</em>, section 8.2.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> method
-     * with the package name as its argument. Either of these calls could
-     * result in a SecurityException.
-     *
      * @return    the array of <code>Method</code> objects representing all the
      * declared constructors of this class
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Constructor
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared constructors within this class
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Constructor[] getDeclaredConstructors() throws SecurityException {
@@ -1185,24 +1816,31 @@ class Class implements java.io.Serializable {
      * specifies the simple name of the desired field.  Note that this method
      * will not reflect the <code>length</code> field of an array class.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> method
-     * with the package name as its argument. Either of these calls could
-     * result in a SecurityException.
-     *
      * @param name the name of the field
      * @return the <code>Field</code> object for the specified field in this
      * class
      * @exception NoSuchFieldException if a field with the specified name is
      *              not found.
      * @exception NullPointerException if <code>name</code> is <code>null</code>
-     * @exception SecurityException    if access to the information is denied.
-     * @see       java.lang.reflect.Field
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared field
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
     public Field getDeclaredField(String name)
@@ -1233,27 +1871,34 @@ class Class implements java.io.Serializable {
      * name is "&lt;init&gt;"or "&lt;clinit&gt;" a <code>NoSuchMethodException</code>
      * is raised.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method also
-     * calls the security manager's <code>checkPackageAccess</code> method with
-     * the package name as its argument. Either of these calls could result in
-     * a SecurityException.
-     *
      * @param name the name of the method
      * @param parameterTypes the parameter array
      * @return    the <code>Method</code> object for the method of this class
      * matching the specified name and parameters
      * @exception NoSuchMethodException if a matching method is not found.
      * @exception NullPointerException if <code>name</code> is <code>null</code>
-     * @exception SecurityException     if access to the information is denied.
-     * @see       java.lang.reflect.Method
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared method
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
-    public Method getDeclaredMethod(String name, Class[] parameterTypes)
+    public Method getDeclaredMethod(String name, Class ... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -1274,25 +1919,32 @@ class Class implements java.io.Serializable {
      * an array of <code>Class</code> objects that identify the constructor's
      * formal parameter types, in declared order.
      *
-     * <p>If there is a security manager, this method first
-     * calls the security manager's <code>checkMemberAccess</code> method
-     * with <code>this</code> and <code>Member.DECLARED</code> 
-     * as its arguments. If the class is in a package, then this method
-     * also calls the security manager's <code>checkPackageAccess</code> 
-     * method with the package name 
-     * as its argument. Either of these calls could result in a SecurityException.
-     *
      * @param parameterTypes the parameter array
      * @return    The <code>Method</code> object for the constructor with the
      * specified parameter list
      * @exception NoSuchMethodException if a matching method is not found.
-     * @exception SecurityException     if access to the information is denied.
-     * @see       java.lang.reflect.Constructor
-     * @see       SecurityManager#checkMemberAccess(Class, int)
-     * @see       SecurityManager#checkPackageAccess(String)
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared constructor
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
      * @since JDK1.1
      */
-    public Constructor getDeclaredConstructor(Class[] parameterTypes)
+    public Constructor<T> getDeclaredConstructor(Class ... parameterTypes)
         throws NoSuchMethodException, SecurityException {
 	// be very careful not to change the stack depth of this
 	// checkMemberAccess call for security reasons 
@@ -1301,27 +1953,42 @@ class Class implements java.io.Serializable {
         return getConstructor0(parameterTypes, Member.DECLARED);
     }
 
-
     /**
-     * Finds a resource with a given name.  This method returns null if no
-     * resource with this name is found.  The rules for searching
-     * resources associated with a given class are implemented by the
-     * defining class loader of the class.
+     * Finds a resource with a given name.  The rules for searching resources
+     * associated with a given class are implemented by the defining
+     * {@linkplain ClassLoader class loader} of the class.  This method
+     * delegates to this object's class loader.  If this object was loaded by
+     * the bootstrap class loader, the method delegates to {@link
+     * ClassLoader#getSystemResourceAsStream}.
      *
-     * <p> This method delegates the call to its class loader, after making
-     * these changes to the resource name: if the resource name starts with
-     * "/", it is unchanged; otherwise, the package name is prepended to the
-     * resource name after converting "." to "/".  If this object was loaded by
-     * the bootstrap loader, the call is delegated to
-     * <code>ClassLoader.getSystemResourceAsStream</code>.
+     * <p> Before delegation, an absolute resource name is constructed from the
+     * given resource name using this algorithm:
      *
-     * @param name  name of the desired resource
-     * @return      a <code>java.io.InputStream</code> object.
-     * @throws NullPointerException if <code>name</code> is <code>null</code>.
-     * @see         java.lang.ClassLoader
-     * @since JDK1.1
+     * <ul>
+     *
+     * <li> If the <tt>name</tt> begins with a <tt>'/'</tt>
+     * (<tt>'&#92;u002f'</tt>), then the absolute name of the resource is the
+     * portion of the <tt>name</tt> following the <tt>'/'</tt>. 
+     *
+     * <li> Otherwise, the absolute name is of the following form:
+     *
+     * <blockquote><pre>
+     *   <tt>modified_package_name</tt>/<tt>name</tt>
+     * </pre></blockquote>
+     *
+     * <p> Where the <tt>modified_package_name</tt> is the package name of this
+     * object with <tt>'/'</tt> substituted for <tt>'.'</tt>
+     * (<tt>'&#92;u002e'</tt>).
+     *
+     * </ul>
+     *
+     * @param  name name of the desired resource
+     * @return      A {@link java.io.InputStream} object or <tt>null</tt> if
+     *              no resource with this name is found
+     * @throws  NullPointerException If <tt>name</tt> is <tt>null</tt>
+     * @since  JDK1.1
      */
-    public InputStream getResourceAsStream(String name) {
+     public InputStream getResourceAsStream(String name) {
         name = resolveName(name);
         ClassLoader cl = getClassLoader0();
         if (cl==null) {
@@ -1331,24 +1998,39 @@ class Class implements java.io.Serializable {
         return cl.getResourceAsStream(name);
     }
 
-
     /**
-     * Finds a resource with a given name.  This method returns null if no
-     * resource with this name is found.  The rules for searching resources
-     * associated with a given class are implemented by the * defining class
-     * loader of the class.
+     * Finds a resource with a given name.  The rules for searching resources
+     * associated with a given class are implemented by the defining
+     * {@linkplain ClassLoader class loader} of the class.  This method
+     * delegates to this object's class loader.  If this object was loaded by
+     * the bootstrap class loader, the method delegates to {@link
+     * ClassLoader#getSystemResource}.
      *
-     * <p> This method delegates the call to its class loader, after making
-     * these changes to the resource name: if the resource name starts with
-     * "/", it is unchanged; otherwise, the package name is prepended to the
-     * resource name after converting "." to "/".  If this object was loaded by
-     * the bootstrap loader, the call is delegated to
-     * <code>ClassLoader.getSystemResource</code>.
+     * <p> Before delegation, an absolute resource name is constructed from the
+     * given resource name using this algorithm:
      *
-     * @param name  name of the desired resource
-     * @return      a <code>java.net.URL</code> object.
-     * @see         java.lang.ClassLoader
-     * @since JDK1.1
+     * <ul>
+     *
+     * <li> If the <tt>name</tt> begins with a <tt>'/'</tt>
+     * (<tt>'&#92;u002f'</tt>), then the absolute name of the resource is the
+     * portion of the <tt>name</tt> following the <tt>'/'</tt>. 
+     *
+     * <li> Otherwise, the absolute name is of the following form:
+     *
+     * <blockquote><pre>
+     *   <tt>modified_package_name</tt>/<tt>name</tt>
+     * </pre></blockquote>
+     *
+     * <p> Where the <tt>modified_package_name</tt> is the package name of this
+     * object with <tt>'/'</tt> substituted for <tt>'.'</tt>
+     * (<tt>'&#92;u002e'</tt>).
+     *
+     * </ul>
+     *
+     * @param  name name of the desired resource
+     * @return      A  {@link java.net.URL} object or <tt>null</tt> if no
+     *              resource with this name is found
+     * @since  JDK1.1
      */
     public java.net.URL getResource(String name) {
         name = resolveName(name);
@@ -1431,8 +2113,8 @@ class Class implements java.io.Serializable {
      * throw a SecurityException.
      *
      * Be very careful not to change the stack depth of this checkMemberAccess
-     * call for security reasons reasons see
-     * java.lang.SecurityManager.checkMemberAccess
+     * call for security reasons.
+     * See java.lang.SecurityManager.checkMemberAccess.
      *
      * <p> Default policy: allow all clients access with normal Java access
      * control.
@@ -1494,6 +2176,34 @@ class Class implements java.io.Serializable {
     private volatile transient SoftReference declaredPublicFields;
     private volatile transient SoftReference declaredPublicMethods;
 
+    // Generic signature handling
+    private native String getGenericSignature();
+
+    // Generic info repository; lazily initialized
+    private transient ClassRepository genericInfo;
+
+    // accessor for factory
+    private GenericsFactory getFactory() {
+	// create scope and factory
+	return CoreReflectionFactory.make(this, ClassScope.make(this)); 
+    }
+
+    // accessor for generic info repository
+    private ClassRepository getGenericInfo() {
+	// lazily initialize repository if necessary
+	if (genericInfo == null) {
+	    // create and cache generic info repository
+	    genericInfo = ClassRepository.make(getGenericSignature(), 
+					       getFactory());
+	}
+	return genericInfo; //return cached repository
+    }
+
+    // Annotations handling
+    private native byte[] getRawAnnotations();
+
+    native ConstantPool getConstantPool();
+
     //
     //
     // java.lang.reflect.Field handling
@@ -1519,7 +2229,7 @@ class Class implements java.io.Serializable {
             if (res != null) return res;
         }
         // No cached value available; request value from VM
-        res = getDeclaredFields0(publicOnly);
+        res = Reflection.filterFields(this, getDeclaredFields0(publicOnly));
         if (useCaches) {
             if (publicOnly) {
                 declaredPublicFields = new SoftReference(res);
@@ -1924,7 +2634,7 @@ class Class implements java.io.Serializable {
         return null;
     }
 
-    private Constructor getConstructor0(Class[] parameterTypes,
+    private Constructor<T> getConstructor0(Class[] parameterTypes,
                                         int which) throws NoSuchMethodException
     {
         Constructor[] constructors = privateGetDeclaredConstructors((which == Member.PUBLIC));
@@ -1993,10 +2703,10 @@ class Class implements java.io.Serializable {
     private native Field[]       getDeclaredFields0(boolean publicOnly);
     private native Method[]      getDeclaredMethods0(boolean publicOnly);
     private native Constructor[] getDeclaredConstructors0(boolean publicOnly);
-    private native Class[]       getDeclaredClasses0();
+    private native Class[]   getDeclaredClasses0();
 
     private static String        argumentTypesToString(Class[] argTypes) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("(");
         if (argTypes != null) {
             for (int i = 0; i < argTypes.length; i++) {
@@ -2018,7 +2728,7 @@ class Class implements java.io.Serializable {
     /**
      * Class Class is special cased within the Serialization Stream Protocol. 
      *
-     * A Class instance is written intially into an ObjectOutputStream in the 
+     * A Class instance is written initially into an ObjectOutputStream in the 
      * following format:
      * <pre>
      *      <code>TC_CLASS</code> ClassDescriptor
@@ -2078,6 +2788,22 @@ class Class implements java.io.Serializable {
     // Retrieves the desired assertion status of this class from the VM
     private static native boolean desiredAssertionStatus0(Class clazz);
 
+    /**
+     * Returns true if and only if this class was declared as an enum in the
+     * source code.
+     *
+     * @return true if and only if this class was declared as an enum in the
+     *     source code
+     * @since 1.5
+     */
+    public boolean isEnum() {
+	// An enum must both directly extend java.lang.Enum and have
+	// the ENUM bit set; classes for specialized enum constants
+	// don't do the former.
+	return (this.getModifiers() & ENUM) != 0 && 
+	this.getSuperclass() == java.lang.Enum.class;
+    }
+
     // Fetches the factory for reflective objects
     private static ReflectionFactory getReflectionFactory() {
         if (reflectionFactory == null) {
@@ -2121,4 +2847,180 @@ class Class implements java.io.Serializable {
             });
     }
 
+    /**
+     * Returns the elements of this enum class or null if this
+     * Class object does not represent an enum type.
+     *
+     * @return an array containing the values comprising the enum class
+     *     represented by this Class object in the order they're
+     *     declared, or null if this Class object does not
+     *     represent an enum type
+     * @since 1.5
+     */
+    public T[] getEnumConstants() {
+	if (enumConstants == null) {
+	    if (!isEnum()) return null;
+	    try {
+		final Method values = getMethod("values");
+                java.security.AccessController.doPrivileged
+                    (new java.security.PrivilegedAction() {
+                            public Object run() {
+                                values.setAccessible(true);
+                                return null;
+                            }
+                        });
+		enumConstants = (T[])values.invoke(null);
+	    }
+	    // These can happen when users concoct enum-like classes
+	    // that don't comply with the enum spec.
+	    catch (InvocationTargetException ex) { return null; }
+	    catch (NoSuchMethodException ex) { return null; }
+	    catch (IllegalAccessException ex) { return null; }
+	}
+	return enumConstants.clone();
+    }
+    private volatile transient T[] enumConstants = null;
+
+    /**
+     * Returns a map from simple name to enum constant.  This package-private
+     * method is used internally by Enum to implement 
+     *     public static <T extends Enum<T>> T valueOf(Class<T>, String)
+     * efficiently.  Note that the map is returned by this method is
+     * created lazily on first use.  Typically it won't ever get created.
+     */
+    Map<String, T> enumConstantDirectory() {
+	if (enumConstantDirectory == null) {
+            T[] universe = getEnumConstants();  // Does unnecessary clone
+            if (universe == null)
+                throw new IllegalArgumentException(
+                    getName() + " is not an enum type");
+            Map<String, T> m = new HashMap<String, T>(2 * universe.length);
+            for (T constant : universe)
+                m.put(((Enum)constant).name(), constant);
+            enumConstantDirectory = m;
+        }
+        return enumConstantDirectory;
+    }
+    private volatile transient Map<String, T> enumConstantDirectory = null;
+
+    /**
+     * Casts an object to the class or interface represented
+     * by this <tt>Class</tt> object.
+     *
+     * @param obj the object to be cast
+     * @return the object after casting, or null if obj is null
+     *
+     * @throws ClassCastException if the object is not
+     * null and is not assignable to the type T.
+     *
+     * @since 1.5
+     */
+    public T cast(Object obj) {
+	if (obj != null && !isInstance(obj))
+	    throw new ClassCastException();
+	return (T) obj;
+    }
+
+    /**
+     * Casts this <tt>Class</tt> object to represent a subclass of the class
+     * represented by the specified class object.  Checks that that the cast
+     * is valid, and throws a <tt>ClassCastException</tt> if it is not.  If
+     * this method succeeds, it always returns a reference to this class object.
+     *
+     * <p>This method is useful when a client needs to "narrow" the type of
+     * a <tt>Class</tt> object to pass it to an API that restricts the
+     * <tt>Class</tt> objects that it is willing to accept.  A cast would
+     * generate a compile-time warning, as the correctness of the cast
+     * could not be checked at runtime (because generic types are implemented
+     * by erasure).
+     *
+     * @return this <tt>Class</tt> object, cast to represent a subclass of
+     *    the specified class object.
+     * @throws ClassCastException if this <tt>Class</tt> object does not
+     *    represent a subclass of the specified class (here "subclass" includes
+     *    the class itself).
+     * @since 1.5
+     */
+    public <U> Class<? extends U> asSubclass(Class<U> clazz) {
+        if (clazz.isAssignableFrom(this))
+            return (Class<? extends U>) this;
+        else
+            throw new ClassCastException(this.toString());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+        if (annotationClass == null)
+            throw new NullPointerException();
+
+        initAnnotationsIfNecessary();
+        return (A) annotations.get(annotationClass);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isAnnotationPresent(
+        Class<? extends Annotation> annotationClass) {
+        if (annotationClass == null)
+            throw new NullPointerException();
+
+        return getAnnotation(annotationClass) != null;
+    }
+
+
+    private static Annotation[] EMPTY_ANNOTATIONS_ARRAY = new Annotation[0];
+
+    /**
+     * {@inheritDoc}
+     */
+    public Annotation[] getAnnotations() { 
+        initAnnotationsIfNecessary();
+        return annotations.values().toArray(EMPTY_ANNOTATIONS_ARRAY);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Annotation[] getDeclaredAnnotations()  {
+        initAnnotationsIfNecessary();
+        return declaredAnnotations.values().toArray(EMPTY_ANNOTATIONS_ARRAY);
+    }
+
+    private transient Map<Class, Annotation> annotations;
+    private transient Map<Class, Annotation> declaredAnnotations;
+
+    private synchronized void initAnnotationsIfNecessary() {
+        if (annotations != null)
+            return;
+        declaredAnnotations = AnnotationParser.parseAnnotations(
+            getRawAnnotations(), getConstantPool(), this);
+        Class<?> superClass = getSuperclass();
+        if (superClass == null) {
+            annotations = declaredAnnotations;
+        } else {
+            annotations = new HashMap<Class, Annotation>();
+            superClass.initAnnotationsIfNecessary();
+            for (Map.Entry<Class, Annotation> e : superClass.annotations.entrySet()) {
+                Class annotationClass = e.getKey();
+                if (AnnotationType.getInstance(annotationClass).isInherited())
+                    annotations.put(annotationClass, e.getValue());
+            }
+            annotations.putAll(declaredAnnotations);
+        }
+    }
+
+    // Annotation types cache their internal (AnnotationType) form
+
+    private AnnotationType annotationType;
+
+    void setAnnotationType(AnnotationType type) {
+        annotationType = type;
+    }
+
+    AnnotationType getAnnotationType() {
+        return annotationType;
+    }
 }

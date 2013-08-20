@@ -1,7 +1,7 @@
 /*
- * @(#)InputStreamReader.java	1.43 03/01/23
+ * @(#)InputStreamReader.java	1.44 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import sun.nio.cs.StreamDecoder;
  * @see InputStream
  * @see java.nio.charset.Charset
  *
- * @version     1.43, 03/01/23
+ * @version     1.44, 03/12/19
  * @author      Mark Reinhold
  * @since       JDK1.1
  */

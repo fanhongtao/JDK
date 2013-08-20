@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsIconFactory.java	1.19 03/01/23
+ * @(#)WindowsIconFactory.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.19 01/23/03
+ * @version 1.21 12/19/03
  * @author David Kloba
  * @author Georges Saab
  * @author Rich Schiavi
@@ -128,15 +128,16 @@ public class WindowsIconFactory implements Serializable
 
 
     private static class FrameButtonIcon implements Icon, Serializable {
-	private int classicHeight = 16;
-	private int classicWidth = 14;
 	private String category;
 
 	private FrameButtonIcon(String category) {
 	    this.category = category;
 	}
 
-	public void paintIcon(Component c, Graphics g, int x, int y) {
+	public void paintIcon(Component c, Graphics g, int x0, int y0) {
+	    int width = getIconWidth();
+	    int height = getIconHeight();
+
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
 		XPStyle.Skin skin = xp.getSkin(category);
@@ -156,47 +157,88 @@ public class WindowsIconFactory implements Serializable
 		if (jif != null && !jif.isSelected()) {
 		    index += 4;
 		}
-		skin.paintSkin(g, 0, 0, index);
-	    } else if (category.equals("window.closebutton")) {
-                g.setColor(Color.black);
-                g.drawLine(4, 3, 10, 9);
-                g.drawLine(5, 3, 11, 9);
-                g.drawLine(10, 3, 4, 9);
-                g.drawLine(11, 3, 5, 9);
-	    } else if (category.equals("window.minbutton")) {
-                g.setColor(Color.black);
-                g.drawRect(4, 9, 6, 1);
-	    } else if (category.equals("window.maxbutton")) {
-                g.setColor(Color.black);
-                g.drawRect(3, 2, 8, 8);
-                g.drawLine(3, 3, 11, 3);
-	    } else if (category.equals("window.restorebutton")) {
-                g.setColor(Color.black);
-                g.drawRect(5, 2, 5, 5);
-                g.drawLine(5, 3, 10, 3);
-                g.drawRect(3, 5, 5, 5);
-                g.drawLine(3, 6, 7, 6);
-                g.setColor(UIManager.getColor("InternalFrame.minimizeIconBackground"));
-                g.fillRect(4, 7, 4, 3);
+		skin.paintSkin(g, 0, 0, width, height, index);
+	    } else {
+		g.setColor(Color.black);
+		int x = width / 12 + 2;
+		int y = height / 5;
+		int h = height - y * 2 - 1;
+		int w = width * 3/4 -3;
+		int thickness2 = Math.max(height / 8, 2);
+		int thickness  = Math.max(width / 15, 1);
+		if (category == "window.closebutton") {
+		    int lineWidth;
+		    if      (width > 47) lineWidth = 6;
+		    else if (width > 37) lineWidth = 5;
+		    else if (width > 26) lineWidth = 4;
+		    else if (width > 16) lineWidth = 3;
+		    else if (width > 12) lineWidth = 2;
+		    else                 lineWidth = 1;
+		    y = height / 12 + 2;
+		    if (lineWidth == 1) {
+			if (w % 2 == 1) { x++; w++; }
+			g.drawLine(x,     y, x+w-2, y+w-2);
+			g.drawLine(x+w-2, y, x,     y+w-2);
+		    } else if (lineWidth == 2) {
+			if (w > 6) { x++; w--; }
+			g.drawLine(x,     y, x+w-2, y+w-2);
+			g.drawLine(x+w-2, y, x,     y+w-2);
+			g.drawLine(x+1,   y, x+w-1, y+w-2);
+			g.drawLine(x+w-1, y, x+1,   y+w-2);
+		    } else {
+			x += 2; y++; w -= 2;
+			g.drawLine(x,     y,   x+w-1, y+w-1);
+			g.drawLine(x+w-1, y,   x,     y+w-1);
+			g.drawLine(x+1,   y,   x+w-1, y+w-2);
+			g.drawLine(x+w-2, y,   x,     y+w-2);
+			g.drawLine(x,     y+1, x+w-2, y+w-1);
+			g.drawLine(x+w-1, y+1, x+1,   y+w-1);
+			for (int i = 4; i <= lineWidth; i++) {
+			    g.drawLine(x+i-2,   y,     x+w-1,   y+w-i+1);
+			    g.drawLine(x,       y+i-2, x+w-i+1, y+w-1);
+			    g.drawLine(x+w-i+1, y,     x,       y+w-i+1);
+			    g.drawLine(x+w-1,   y+i-2, x+i-2,   y+w-1);
+			}
+		    }
+		} else if (category == "window.minbutton") {
+		    g.fillRect(x, y+h-thickness2, w-w/3, thickness2);
+		} else if (category == "window.maxbutton") {
+		    g.fillRect(x, y, w, thickness2);
+		    g.fillRect(x, y, thickness, h);
+		    g.fillRect(x+w-thickness, y, thickness, h);
+		    g.fillRect(x, y+h-thickness, w, thickness);
+		} else if (category == "window.restorebutton") {
+		    g.fillRect(x+w/3, y, w-w/3, thickness2);
+		    g.fillRect(x+w/3, y, thickness, h/3);
+		    g.fillRect(x+w-thickness, y, thickness, h-h/3);
+		    g.fillRect(x+w-w/3, y+h-h/3-thickness, w/3, thickness);
+
+		    g.fillRect(x, y+h/3, w-w/3, thickness2);
+		    g.fillRect(x, y+h/3, thickness, h-h/3);
+		    g.fillRect(x+w-w/3-thickness, y+h/3, thickness, h-h/3);
+		    g.fillRect(x, y+h-thickness, w-w/3, thickness);
+		}
 	    }
 	}
 
 	public int getIconWidth() {
-	    XPStyle xp = XPStyle.getXP();
-	    if (xp != null) {
-		return xp.getSkin(category).getWidth();
+	    int width;
+	    if (XPStyle.getXP() != null) {
+		// Fix for XP bug where sometimes these sizes aren't updated properly
+		// Assume for now that XP buttons are always square
+		width = UIManager.getInt("InternalFrame.titleButtonHeight") -2;
 	    } else {
-		return classicWidth;
+		width = UIManager.getInt("InternalFrame.titleButtonWidth") -2;
 	    }
+	    if (XPStyle.getXP() != null) {
+		width -= 2;
+	    }
+	    return width;
 	}
 
 	public int getIconHeight() {
-	    XPStyle xp = XPStyle.getXP();
-	    if (xp != null) {
-		return xp.getSkin(category).getHeight();
-	    } else {
-		return classicHeight;
-	    }
+	    int height = UIManager.getInt("InternalFrame.titleButtonHeight")-4;
+	    return height;
 	}
     }
 

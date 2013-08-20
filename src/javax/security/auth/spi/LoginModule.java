@@ -1,7 +1,7 @@
 /*
- * @(#)LoginModule.java	1.51 03/01/23
+ * @(#)LoginModule.java	1.53 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -105,7 +105,7 @@ import java.util.Map;
  * no arguments.  This allows classes which load the <code>LoginModule</code>
  * to instantiate it.
  *
- * @version 1.51, 01/23/03
+ * @version 1.53, 05/05/04
  * @see javax.security.auth.login.LoginContext
  * @see javax.security.auth.login.Configuration
  */
@@ -137,7 +137,8 @@ public interface LoginModule {
      *			<code>LoginModule</code>.
      */
     void initialize(Subject subject, CallbackHandler callbackHandler,
-		Map sharedState, Map options);
+		    Map<String,?> sharedState,
+		    Map<String,?> options);
 
     /**
      * Method to authenticate a <code>Subject</code> (phase 1).

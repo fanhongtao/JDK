@@ -1,7 +1,7 @@
 /*
- * @(#)FileInputStream.java	1.60 03/01/23
+ * @(#)FileInputStream.java	1.63 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileReader</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.60, 01/23/03
+ * @version 1.63, 12/19/03
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see	    java.io.FileOutputStream
@@ -196,13 +196,24 @@ class FileInputStream extends InputStream
 
     /**
      * Skips over and discards <code>n</code> bytes of data from the
-     * input stream. The <code>skip</code> method may, for a variety of
+     * input stream.
+     *
+     * <p>The <code>skip</code> method may, for a variety of
      * reasons, end up skipping over some smaller number of bytes,
-     * possibly <code>0</code>. The actual number of bytes skipped is returned.
+     * possibly <code>0</code>. If <code>n</code> is negative, an
+     * <code>IOException</code> is thrown, even though the <code>skip</code>
+     * method of the {@link InputStream} superclass does nothing in this case.
+     * The actual number of bytes skipped is returned.
+     *
+     * <p>This method may skip more bytes than are remaining in the backing
+     * file. This produces no exception and the number of bytes skipped
+     * may include some number of bytes that were beyond the EOF of the
+     * backing file. Attempting to read from the stream after skipping past
+     * the end will result in -1 indicating the end of the file.
      *
      * @param      n   the number of bytes to be skipped.
      * @return     the actual number of bytes skipped.
-     * @exception  IOException  if an I/O error occurs.
+     * @exception  IOException  if n is negative, or if an I/O error occurs.
      */
     public native long skip(long n) throws IOException;
 

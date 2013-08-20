@@ -1,7 +1,7 @@
 /*
- * @(#)ORB.java	1.129 03/01/23
+ * @(#)ORB.java	1.132 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -162,8 +162,8 @@ abstract public class ORB {
     // properties or applet parameters. Change these values to
     // vendor-specific class names.
     //
-    private static final String defaultORB = "com.sun.corba.se.internal.Interceptors.PIORB";
-    private static final String defaultORBSingleton = "com.sun.corba.se.internal.corba.ORBSingleton";
+    private static final String defaultORB = "com.sun.corba.se.impl.orb.ORBImpl";
+    private static final String defaultORBSingleton = "com.sun.corba.se.impl.orb.ORBSingleton";
 
     //
     // The global instance of the singleton ORB implementation which
@@ -855,6 +855,7 @@ abstract public class ORB {
      * @see #create_recursive_tc(String) create_recursive_tc
      * @see #create_sequence_tc(int, TypeCode) create_sequence_tc
      */
+    @Deprecated
     abstract public TypeCode create_recursive_sequence_tc(int bound, int offset);
 
     /**
@@ -1025,6 +1026,7 @@ abstract public class ORB {
      * @return		a newly-created <code>Current</code> object
      * @deprecated      use <code>resolve_initial_references</code>.
      */
+    @Deprecated
     public org.omg.CORBA.Current get_current()
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -1148,9 +1150,9 @@ abstract public class ORB {
      *         <code>Any</code> object
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
-     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
-     *      replaces these API</a> 
+     * @deprecated Use the new <a href="../DynamicAny/DynAnyFactory.html">DynAnyFactory</a> API instead
      */
+    @Deprecated
     public org.omg.CORBA.DynAny create_dyn_any(org.omg.CORBA.Any value)
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -1168,9 +1170,9 @@ abstract public class ORB {
      *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
-     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
-     *      replaces these API</a> 
+     * @deprecated Use the new <a href="../DynamicAny/DynAnyFactory.html">DynAnyFactory</a> API instead
      */
+    @Deprecated
     public org.omg.CORBA.DynAny create_basic_dyn_any(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -1188,9 +1190,9 @@ abstract public class ORB {
      *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
-     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
-     *      replaces these API</a>
+     * @deprecated Use the new <a href="../DynamicAny/DynAnyFactory.html">DynAnyFactory</a> API instead
      */
+    @Deprecated
     public org.omg.CORBA.DynStruct create_dyn_struct(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -1208,9 +1210,9 @@ abstract public class ORB {
      *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
-     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
-     *      replaces these API</a>
+     * @deprecated Use the new <a href="../DynamicAny/DynAnyFactory.html">DynAnyFactory</a> API instead
      */
+    @Deprecated
     public org.omg.CORBA.DynSequence create_dyn_sequence(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -1229,9 +1231,9 @@ abstract public class ORB {
      *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
-     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
-     *      replaces these API</a>     
+     * @deprecated Use the new <a href="../DynamicAny/DynAnyFactory.html">DynAnyFactory</a> API instead
      */
+    @Deprecated
     public org.omg.CORBA.DynArray create_dyn_array(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -1249,9 +1251,9 @@ abstract public class ORB {
      *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
-     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
-     *      replaces these API</a> 
+     * @deprecated Use the new <a href="../DynamicAny/DynAnyFactory.html">DynAnyFactory</a> API instead
      */
+    @Deprecated
     public org.omg.CORBA.DynUnion create_dyn_union(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
@@ -1269,9 +1271,9 @@ abstract public class ORB {
      *         <code>TypeCode</code> object is not consistent with the operation.
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
-     * @see <a href="../DynamicAny/package-summary.html"><code>DynamicAny</code> package
-     *      replaces these API</a> 
+     * @deprecated Use the new <a href="../DynamicAny/DynAnyFactory.html">DynAnyFactory</a> API instead
      */
+    @Deprecated
     public org.omg.CORBA.DynEnum create_dyn_enum(org.omg.CORBA.TypeCode type) throws org.omg.CORBA.ORBPackage.InconsistentTypeCode
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();

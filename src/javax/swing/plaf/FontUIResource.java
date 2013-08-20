@@ -1,7 +1,7 @@
 /*
- * @(#)FontUIResource.java	1.13 03/01/23
+ * @(#)FontUIResource.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  * 
  * @see javax.swing.plaf.UIResource
- * @version 1.13 01/23/03
+ * @version 1.14 12/19/03
  * @author Hans Muller
  * 
  */

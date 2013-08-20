@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphPainter2.java	1.19 03/01/23
+ * @(#)GlyphPainter2.java	1.21 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -23,12 +23,12 @@ import java.awt.geom.Rectangle2D;
  * shaping for i18n, etc).
  * <p>
  * This implementation is intended for operation
- * under the Java 2 SDK.  It uses the 
+ * under the JDK.  It uses the 
  * java.awt.font.TextLayout class to do i18n capable
  * rendering.
  *
  * @author  Timothy Prinzing
- * @version 1.19 01/23/03
+ * @version 1.21 06/28/04
  * @see GlyphView
  */
 class GlyphPainter2 extends GlyphView.GlyphPainter {
@@ -93,7 +93,7 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
      * Paint the glyphs for the given view.  This is implemented
      * to only render if the Graphics is of type Graphics2D which
      * is required by TextLayout (and this should be the case if
-     * running on the Java2 SDK).
+     * running on the JDK).
      */
     public void paint(GlyphView v, Graphics g, Shape a, int p0, int p1) {
 	if (g instanceof Graphics2D) {

@@ -1,7 +1,7 @@
 /*
- * @(#)FrameSetView.java	1.18 03/01/23
+ * @(#)FrameSetView.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -23,7 +23,7 @@ import javax.swing.event.*;
  *          conform to the HTML 4.0 standard and also be netscape
  *          compatible.
  *
- * @version 1.18 01/23/03
+ * @version 1.20 12/19/03
  */
 
 class FrameSetView extends javax.swing.text.BoxView {
@@ -43,12 +43,7 @@ class FrameSetView extends javax.swing.text.BoxView {
      */
     public FrameSetView(Element elem, int axis) {
 	super(elem, axis);
-	if (axis == View.Y_AXIS) {
-	    children = parseRowColSpec(HTML.Attribute.ROWS);
-	} else {
-	    children = parseRowColSpec(HTML.Attribute.COLS);
-	}
-	init();
+	children = null;
     }
 
     /**
@@ -69,9 +64,10 @@ class FrameSetView extends javax.swing.text.BoxView {
 
 	StringTokenizer tokenizer = new StringTokenizer(spec, ",");
 	int nTokens = tokenizer.countTokens();
-
-	String[] items = new String[nTokens];
-	for (int i = 0; i < nTokens; i++) {
+	int n = getViewCount();
+        String[] items = new String[Math.max(nTokens, n)];
+	int i = 0;
+	for (; i < nTokens; i++) {
 	    items[i] = tokenizer.nextToken().trim();
 	    // As per the spec, 100% is the same as *
 	    // hence the mapping.
@@ -80,6 +76,11 @@ class FrameSetView extends javax.swing.text.BoxView {
 		items[i] = "*";
 	    }
 	}
+        // extend spec if we have more children than specified
+        // in ROWS or COLS attribute
+        for (; i < items.length; i++) {
+            items[i] = "*";
+        }
 	return items;
     }
 
@@ -90,6 +91,11 @@ class FrameSetView extends javax.swing.text.BoxView {
      * for the frames contained within the frameset.
      */
     private void init() {
+	if (getAxis() == View.Y_AXIS) {
+	    children = parseRowColSpec(HTML.Attribute.ROWS);
+	} else {
+	    children = parseRowColSpec(HTML.Attribute.COLS);
+	}
 	percentChildren = new int[children.length];
 	relativeChildren = new int[children.length];
 	absoluteChildren = new int[children.length];
@@ -146,6 +152,9 @@ class FrameSetView extends javax.swing.text.BoxView {
      */
     protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, 
 				   int[] spans) {
+	if (children == null) {
+	    init();
+	}
 	SizeRequirements.calculateTiledPositions(targetSpan, null, 
 						 getChildRequests(targetSpan,
 								  axis),

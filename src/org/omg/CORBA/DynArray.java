@@ -1,7 +1,7 @@
 /*
- * @(#)DynArray.java	1.12 03/01/23
+ * @(#)DynArray.java	1.15 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,8 +11,9 @@ package org.omg.CORBA;
 
 /** Represents a <tt>DynAny</tt> object associated
  *  with an array.
+ * @deprecated Use the new <a href="../DynamicAny/DynArray.html">DynArray</a> instead
  */
-
+@Deprecated
 public interface DynArray extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**

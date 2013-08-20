@@ -1,7 +1,7 @@
 /*
- * @(#)KerberosKey.java	1.13 03/01/23
+ * @(#)KerberosKey.java	1.17 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -34,11 +34,12 @@ import javax.security.auth.DestroyFailedException;
  * {@link javax.security.auth.kerberos.ServicePermission ServicePermission}.
  *
  * @author Mayank Upadhyay
- * @version 1.13, 01/23/03
+ * @version 1.17, 01/13/04
  * @since 1.4
  */
 public class KerberosKey implements SecretKey, Destroyable {
 
+    private static final long serialVersionUID = -4625402278148246993L;
 
    /**
      * The principal that this secret key belongs to.
@@ -73,7 +74,7 @@ public class KerberosKey implements SecretKey, Destroyable {
 
     /**
      * Constructs a KerberosKey from the given bytes when the key type and
-     * key version number are known. This can used when reading the secret
+     * key version number are known. This can be used when reading the secret
      * key information from a Kerberos "keytab".
      * 
      * @param principal the principal that this secret key belongs to
@@ -96,9 +97,11 @@ public class KerberosKey implements SecretKey, Destroyable {
      *
      * @param principal the principal that this password belongs to
      * @param password the password that should be used to compute the key
-     * @param algorithm the name for the algorithm that this key wil be
-     * used for. This parameter may be null in which case "DES" will be
-     * assumed.
+     * @param algorithm the name for the algorithm that this key will be
+     * used for. This parameter may be null in which case the default
+     * algorithm "DES" will be assumed.
+     * @throws IllegalArgumentException if the name of the 
+     * algorithm passed is unsupported. 
      */
     public KerberosKey(KerberosPrincipal principal,
 		       char[] password,

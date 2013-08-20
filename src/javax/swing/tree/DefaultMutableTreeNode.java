@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultMutableTreeNode.java	1.19 03/01/23
+ * @(#)DefaultMutableTreeNode.java	1.23 04/07/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,7 @@ import java.util.*;
  *
  * @see MutableTreeNode
  *
- * @version 1.19 01/23/03
+ * @version 1.23 07/13/04
  * @author Rob Davis
  */
 public class DefaultMutableTreeNode extends Object implements Cloneable,
@@ -75,10 +75,10 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
      * An enumeration that is always empty. This is used when an enumeration
      * of a leaf node's children is requested.
      */
-    static public final Enumeration EMPTY_ENUMERATION
-	= new Enumeration() {
+    static public final Enumeration<TreeNode> EMPTY_ENUMERATION
+	= new Enumeration<TreeNode>() {
 	    public boolean hasMoreElements() { return false; }
-	    public Object nextElement() {
+	    public TreeNode nextElement() {
 		throw new NoSuchElementException("No more elements");
 	    }
     };
@@ -87,7 +87,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
     protected MutableTreeNode   parent;
 
     /** array of children, may be null if this node has no children */
-    protected Vector		children;
+    protected Vector children;
 
     /** optional user object */
     transient protected Object	userObject;
@@ -540,10 +540,10 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
      */
     public int getDepth() {
 	Object	last = null;
-	Enumeration	enum = breadthFirstEnumeration();
+	Enumeration	enum_ = breadthFirstEnumeration();
 	
-	while (enum.hasMoreElements()) {
-	    last = enum.nextElement();
+	while (enum_.hasMoreElements()) {
+	    last = enum_.nextElement();
 	}
 	
 	if (last == null) {
@@ -819,7 +819,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
      * @return	an enumeration for following the path from an ancestor of
      *		this node to this one
      */
-    public Enumeration pathFromAncestorEnumeration(TreeNode ancestor){
+    public Enumeration pathFromAncestorEnumeration(TreeNode ancestor) {
 	return new PathBetweenNodesEnumeration(ancestor, this);
     }
 
@@ -1195,10 +1195,10 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	int count = 0;
 
 	TreeNode node;
-	Enumeration enum = breadthFirstEnumeration(); // order matters not
+	Enumeration enum_ = breadthFirstEnumeration(); // order matters not
 
-	while (enum.hasMoreElements()) {
-	    node = (TreeNode)enum.nextElement();
+	while (enum_.hasMoreElements()) {
+	    node = (TreeNode)enum_.nextElement();
 	    if (node.isLeaf()) {
 		count++;
 	    }
@@ -1284,8 +1284,8 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	    userObject = tValues[1];
     }
 
-    final class PreorderEnumeration implements Enumeration {
-	protected Stack	stack;
+    final class PreorderEnumeration implements Enumeration<TreeNode> {
+	protected Stack stack;
 
 	public PreorderEnumeration(TreeNode rootNode) {
 	    super();
@@ -1300,7 +1300,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 		    ((Enumeration)stack.peek()).hasMoreElements());
 	}
 
-	public Object nextElement() {
+	public TreeNode nextElement() {
 	    Enumeration	enumer = (Enumeration)stack.peek();
 	    TreeNode	node = (TreeNode)enumer.nextElement();
 	    Enumeration	children = node.children();
@@ -1318,10 +1318,10 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 
 
 
-    final class PostorderEnumeration implements Enumeration {
+    final class PostorderEnumeration implements Enumeration<TreeNode> {
 	protected TreeNode root;
-	protected Enumeration children;
-	protected Enumeration subtree;
+	protected Enumeration<TreeNode> children;
+	protected Enumeration<TreeNode> subtree;
 
 	public PostorderEnumeration(TreeNode rootNode) {
 	    super();
@@ -1334,8 +1334,8 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	    return root != null;
 	}
 
-	public Object nextElement() {
-	    Object retval;
+	public TreeNode nextElement() {
+	    TreeNode retval;
 
 	    if (subtree.hasMoreElements()) {
 		retval = subtree.nextElement();
@@ -1355,7 +1355,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 
 
 
-    final class BreadthFirstEnumeration implements Enumeration {
+    final class BreadthFirstEnumeration implements Enumeration<TreeNode> {
 	protected Queue	queue;
 
 	public BreadthFirstEnumeration(TreeNode rootNode) {
@@ -1371,7 +1371,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 		    ((Enumeration)queue.firstObject()).hasMoreElements());
 	}
 
-	public Object nextElement() {
+	public TreeNode nextElement() {
 	    Enumeration	enumer = (Enumeration)queue.firstObject();
 	    TreeNode	node = (TreeNode)enumer.nextElement();
 	    Enumeration	children = node.children();
@@ -1443,8 +1443,8 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 
 
 
-    final class PathBetweenNodesEnumeration implements Enumeration {
-	protected Stack stack;
+    final class PathBetweenNodesEnumeration implements Enumeration<TreeNode> {
+	protected Stack<TreeNode> stack;
 
 	public PathBetweenNodesEnumeration(TreeNode ancestor,
 					   TreeNode descendant)
@@ -1457,7 +1457,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 
 	    TreeNode current;
 
-	    stack = new Stack();
+	    stack = new Stack<TreeNode>();
 	    stack.push(descendant);
 
 	    current = descendant;
@@ -1475,7 +1475,7 @@ public class DefaultMutableTreeNode extends Object implements Cloneable,
 	    return stack.size() > 0;
 	}
 
-	public Object nextElement() {
+	public TreeNode nextElement() {
 	    try {
 		return stack.pop();
 	    } catch (EmptyStackException e) {

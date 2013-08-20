@@ -1,10 +1,12 @@
 /*
- * @(#)MotifGraphicsUtils.java	1.43 03/01/23
+ * @(#)MotifGraphicsUtils.java	1.45 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
+
+import com.sun.java.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.Color;
@@ -22,7 +24,7 @@ import javax.swing.plaf.basic.*;
 import javax.swing.text.View;
 
 /*
- * @version 1.43 01/23/03
+ * @version 1.45 12/19/03
  * @author Jeff Dinkins
  * @author Dave Kloba
  */
@@ -74,6 +76,12 @@ public class MotifGraphicsUtils implements SwingConstants
       */
     public static void drawStringInRect(Graphics g, String aString, int x, int y,
                                  int width, int height, int justification) {
+        drawStringInRect(null, g, aString, x, y, width, height, justification);
+    }
+
+    static void drawStringInRect(JComponent c, Graphics g, String aString,
+                                 int x, int y, int width, int height,
+                                 int justification) {
         FontMetrics  fontMetrics;
         int          drawWidth, startX, startY, delta;
 
@@ -81,20 +89,20 @@ public class MotifGraphicsUtils implements SwingConstants
 //            throw new InconsistencyException("No font set");
             return;
         }
-        fontMetrics = g.getFontMetrics();
+        fontMetrics = SwingUtilities2.getFontMetrics(c, g);
         if (fontMetrics == null) {
 //            throw new InconsistencyException("No metrics for Font " + font());
             return;
         }
 
         if (justification == CENTER) {
-            drawWidth = fontMetrics.stringWidth(aString);
+            drawWidth = SwingUtilities2.stringWidth(c, fontMetrics, aString);
             if (drawWidth > width) {
                 drawWidth = width;
             }
             startX = x + (width - drawWidth) / 2;
         } else if (justification == RIGHT) {
-            drawWidth = fontMetrics.stringWidth(aString);
+            drawWidth = SwingUtilities2.stringWidth(c, fontMetrics, aString);
             if (drawWidth > width) {
                 drawWidth = width;
             }
@@ -110,7 +118,7 @@ public class MotifGraphicsUtils implements SwingConstants
 
         startY = y + height - delta - fontMetrics.getDescent();
 
-        g.drawString(aString, startX, startY);
+        SwingUtilities2.drawString(c, g, aString, startX, startY);
     }
 
 
@@ -142,8 +150,9 @@ public class MotifGraphicsUtils implements SwingConstants
 	Font holdf = g.getFont();
 	Font f = c.getFont();
 	g.setFont(f);
-	FontMetrics fm = g.getFontMetrics(f);
-	FontMetrics fmAccel = g.getFontMetrics( UIManager.getFont("MenuItem.acceleratorFont") );
+	FontMetrics fm = SwingUtilities2.getFontMetrics(c, g, f);
+	FontMetrics fmAccel = SwingUtilities2.getFontMetrics(
+            c, g, UIManager.getFont("MenuItem.acceleratorFont"));
 	
 	if (c.isOpaque()) {
 	    if (model.isArmed()|| (c instanceof JMenu && model.isSelected())) {
@@ -224,11 +233,11 @@ public class MotifGraphicsUtils implements SwingConstants
 		if(!model.isEnabled()) {
 		    // *** paint the text disabled
 		    g.setColor(b.getBackground().brighter());
-		    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+		    SwingUtilities2.drawStringUnderlineCharAt(b, g,text,
                         mnemIndex,
                         textRect.x, textRect.y + fmAccel.getAscent());
 		    g.setColor(b.getBackground().darker());
-		    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+		    SwingUtilities2.drawStringUnderlineCharAt(b, g,text,
                         mnemIndex,
                         textRect.x - 1, textRect.y + fmAccel.getAscent() - 1);
 		    
@@ -239,7 +248,7 @@ public class MotifGraphicsUtils implements SwingConstants
 		    } else {
 			g.setColor(b.getForeground());
 		    }
-		    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, 
+		    SwingUtilities2.drawStringUnderlineCharAt(b, g,text, 
 						  mnemIndex,
 						  textRect.x,
 						  textRect.y + fm.getAscent());
@@ -267,10 +276,10 @@ public class MotifGraphicsUtils implements SwingConstants
 	    if(!model.isEnabled()) {
 		// *** paint the acceleratorText disabled
 		g.setColor(b.getBackground().brighter());
-		BasicGraphicsUtils.drawString(g,acceleratorText,0,
+		SwingUtilities2.drawString(c, g,acceleratorText,
 					      acceleratorRect.x - accOffset, acceleratorRect.y + fm.getAscent());
 		g.setColor(b.getBackground().darker());
-		BasicGraphicsUtils.drawString(g,acceleratorText,0,
+		SwingUtilities2.drawString(c, g,acceleratorText,
 					      acceleratorRect.x - accOffset - 1, acceleratorRect.y + fm.getAscent() - 1);
 	    } else {
 		// *** paint the acceleratorText normally
@@ -280,7 +289,7 @@ public class MotifGraphicsUtils implements SwingConstants
 		    } else {
 			g.setColor(b.getForeground());
 		    }
-		BasicGraphicsUtils.drawString(g,acceleratorText, 0,
+		SwingUtilities2.drawString(c, g,acceleratorText,
 					      acceleratorRect.x - accOffset,
 					      acceleratorRect.y + fmAccel.getAscent());
 	    }
@@ -353,7 +362,7 @@ public class MotifGraphicsUtils implements SwingConstants
         }
         else {
             acceleratorR.width
-                = SwingUtilities.computeStringWidth(fmAccel, acceleratorText);
+                = SwingUtilities2.stringWidth(c, fmAccel, acceleratorText);
             acceleratorR.height = fmAccel.getHeight();
         }
 

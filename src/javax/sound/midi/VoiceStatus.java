@@ -1,7 +1,7 @@
 /*
- * @(#)VoiceStatus.java	1.17 03/01/23
+ * @(#)VoiceStatus.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -62,7 +62,7 @@ package javax.sound.midi;
  * @see Synthesizer#getMaxPolyphony
  * @see Synthesizer#getVoiceStatus
  *
- * @version 1.17, 01/23/03
+ * @version 1.18, 12/19/03
  * @author David Rivas
  * @author Kara Kytle
  */

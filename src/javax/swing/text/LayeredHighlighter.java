@@ -1,7 +1,7 @@
 /*
- * @(#)LayeredHighlighter.java	1.6 03/01/23
+ * @(#)LayeredHighlighter.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -13,7 +13,7 @@ import java.awt.Shape;
  * 
  * @author  Scott Violet
  * @author  Timothy Prinzing
- * @version 1.6 01/23/03
+ * @version 1.7 12/19/03
  * @see     Highlighter
  */
 public abstract class LayeredHighlighter implements Highlighter {

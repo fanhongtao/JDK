@@ -1,7 +1,7 @@
 /*
- * @(#)ItemEvent.java	1.26 03/01/23
+ * @(#)ItemEvent.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.awt.ItemSelectable;
  * clicks, and can instead process a "meaningful" (semantic) event like
  * "item selected" or "item deselected". 
  *
- * @version 1.26 01/23/03
+ * @version 1.28 12/19/03
  * @author Carl Quinn
  *
  * @see java.awt.ItemSelectable
@@ -88,7 +88,9 @@ public class ItemEvent extends AWTEvent {
     /**
      * Constructs an <code>ItemEvent</code> object.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source the <code>ItemSelectable</code> object
      *               that originated the event
@@ -97,6 +99,7 @@ public class ItemEvent extends AWTEvent {
      * @param stateChange 
      *               an integer that indicates whether the item was
      *               selected or deselected
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public ItemEvent(ItemSelectable source, int id, Object item, int stateChange) {
         super(source, id);

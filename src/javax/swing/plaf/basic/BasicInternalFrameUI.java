@@ -1,7 +1,7 @@
 /*
- * @(#)BasicInternalFrameUI.java	1.110 03/02/19
+ * @(#)BasicInternalFrameUI.java	1.118 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,11 +19,13 @@ import javax.swing.event.*;
 import java.beans.*;
 import java.io.Serializable;
 
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 
 /**
  * A basic L&F implementation of JInternalFrame.  
  *
- * @version 1.110 02/19/03
+ * @version 1.118 05/18/04
  * @author David Kloba
  * @author Rich Schiavi
  */
@@ -32,11 +34,13 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
     protected JInternalFrame frame;
 
+    private Handler handler;
     protected MouseInputAdapter          borderListener;
     protected PropertyChangeListener     propertyChangeListener;
     protected LayoutManager              internalFrameLayout;
     protected ComponentListener          componentListener;
     protected MouseInputListener         glassPaneDispatcher;
+    private InternalFrameListener        internalFrameListener;
  
     protected JComponent northPane;
     protected JComponent southPane;
@@ -60,13 +64,12 @@ public class BasicInternalFrameUI extends InternalFrameUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke openMenuKey;
 
     private boolean keyBindingRegistered = false;
     private boolean keyBindingActive = false;
 
-    private InternalFrameListener internalFrameListener = null;
-    
 /////////////////////////////////////////////////////////////////////////////
 // ComponentUI Interface Implementation methods
 /////////////////////////////////////////////////////////////////////////////
@@ -86,7 +89,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	installComponents();
 	installKeyboardActions();
 
-	frame.setOpaque(true);
+        LookAndFeel.installProperty(frame, "opaque", Boolean.TRUE);
     }
 
     public void uninstallUI(JComponent c) {
@@ -101,7 +104,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	uninstallListeners();
 	uninstallDefaults();
 	frame.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));	
-
+        handler = null;
         frame = null;
     }
     
@@ -111,9 +114,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
             frame.setFrameIcon(UIManager.getIcon("InternalFrame.icon"));
         }
 
-	/* enable the content pane to inherit background color from its
-	   parent by setting its background color to null. Fixes bug#
-	   4268949. */
+	// Enable the content pane to inherit background color from its
+	// parent by setting its background color to null.
 	JComponent contentPane = (JComponent) frame.getContentPane();
 	if (contentPane != null) {
           Color bg = contentPane.getBackground();
@@ -127,42 +129,43 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	
     }
     protected void installKeyboardActions(){
-      if (internalFrameListener == null)
-	createInternalFrameListener();
-      frame.addInternalFrameListener(internalFrameListener);
+        createInternalFrameListener();
+        if (internalFrameListener != null) {
+            frame.addInternalFrameListener(internalFrameListener);
+        }
 
-      ActionMap actionMap = getActionMap();
-      SwingUtilities.replaceUIActionMap(frame, actionMap);
+        LazyActionMap.installLazyActionMap(frame, BasicInternalFrameUI.class,
+            "InternalFrame.actionMap");
     }
 
-    ActionMap getActionMap() {
-      ActionMap map = (ActionMap)UIManager.get("InternalFrame.actionMap");
-      if (map == null) {
-        map = createActionMap();
-	  if (map != null) {
-	    UIManager.getLookAndFeelDefaults().put("InternalFrame.actionMap",
-						   map);
-	  }
-      }
-      return map;
-    }
+    static void loadActionMap(LazyActionMap map) {
+        map.put(new UIAction("showSystemMenu") {
+            public void actionPerformed(ActionEvent evt) {
+                JInternalFrame iFrame = (JInternalFrame)evt.getSource();
+                if (iFrame.getUI() instanceof BasicInternalFrameUI) {
+                    JComponent comp = ((BasicInternalFrameUI)
+                        iFrame.getUI()).getNorthPane();
+                    if (comp instanceof BasicInternalFrameTitlePane) {
+                        ((BasicInternalFrameTitlePane)comp).
+                            showSystemMenu();
+                    }
+                }
+            }
 
-    ActionMap createActionMap() {
-      ActionMap map = new ActionMapUIResource();
-      // add action for the system menu
-      map.put("showSystemMenu", new AbstractAction(){
-	      public void actionPerformed(ActionEvent e){
-		  titlePane.showSystemMenu();
-	      }
-	      public boolean isEnabled(){
-		  return isKeyBindingActive();
-	      }
-	  });
-      // Set the ActionMap's parent to the Auditory Feedback Action Map
-      BasicLookAndFeel lf = (BasicLookAndFeel)UIManager.getLookAndFeel();
-      ActionMap audioMap = lf.getAudioActionMap();
-      map.setParent(audioMap);
-      return map;
+            public boolean isEnabled(Object sender){
+                if (sender instanceof JInternalFrame) {
+                    JInternalFrame iFrame = (JInternalFrame)sender;
+                    if (iFrame.getUI() instanceof BasicInternalFrameUI) {
+                        return ((BasicInternalFrameUI)iFrame.getUI()).
+                            isKeyBindingActive();
+                    }
+                }
+                return false;
+            }
+        });
+
+        // Set the ActionMap's parent to the Auditory Feedback Action Map
+        BasicLookAndFeel.installAudioActionMap(map);
     }
 
     protected void installComponents(){
@@ -193,6 +196,13 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	}
     }
 
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
+    }
+
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_IN_FOCUSED_WINDOW) {
 	    return createInputMap(condition);
@@ -202,8 +212,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
     InputMap createInputMap(int condition) {
 	if (condition == JComponent.WHEN_IN_FOCUSED_WINDOW) {
-	    Object[] bindings = (Object[])UIManager.get
-		                          ("InternalFrame.windowBindings");
+	    Object[] bindings = (Object[])DefaultLookup.get(
+                    frame, this, "InternalFrame.windowBindings");
 
 	    if (bindings != null) {
 		return LookAndFeel.makeComponentInputMap(frame, bindings);
@@ -227,6 +237,9 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	setSouthPane(null);
 	setEastPane(null);
 	setWestPane(null);
+        if(titlePane != null) {
+            titlePane.uninstallDefaults();
+        }
         titlePane = null;
     }
 
@@ -252,6 +265,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
         if (internalFrameListener != null) {
 	    frame.removeInternalFrameListener(internalFrameListener);
         }
+        internalFrameListener = null;
+
 	SwingUtilities.replaceUIInputMap(frame, JComponent.
 					 WHEN_IN_FOCUSED_WINDOW, null);
 	SwingUtilities.replaceUIActionMap(frame, null);
@@ -259,11 +274,11 @@ public class BasicInternalFrameUI extends InternalFrameUI
     }
 
     protected LayoutManager createLayoutManager(){
-      return new InternalFrameLayout();
+        return getHandler();
     }
 
     protected PropertyChangeListener createPropertyChangeListener(){
-      return new InternalFramePropertyChangeListener();
+        return getHandler();
     }
 
 
@@ -336,12 +351,8 @@ public class BasicInternalFrameUI extends InternalFrameUI
         return new BorderListener();
     }
 
-    private InternalFrameListener getInternalFrameListener(){
-      return internalFrameListener;
-    }
-    
     protected void createInternalFrameListener(){
-      internalFrameListener = new BasicInternalFrameListener();
+        internalFrameListener = getHandler();
     }
 
     protected final boolean isKeyBindingRegistered(){
@@ -415,168 +426,42 @@ public class BasicInternalFrameUI extends InternalFrameUI
 
     public class InternalFramePropertyChangeListener implements
         PropertyChangeListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
         /**
          * Detects changes in state from the JInternalFrame and handles
          * actions.
          */
         public void propertyChange(PropertyChangeEvent evt) {
-            String prop = (String)evt.getPropertyName();
-            JInternalFrame f = (JInternalFrame)evt.getSource();
-            Object newValue = evt.getNewValue();
-            Object oldValue = evt.getOldValue();
-
-            if (JInternalFrame.IS_CLOSED_PROPERTY.equals(prop)) {
-                if (newValue == Boolean.TRUE) {
-                    if ((frame.getParent() != null) && componentListenerAdded) {
-                        frame.getParent().removeComponentListener(
-                                componentListener);
-                    }
-                    closeFrame(f);
-                }
-            } else if (JInternalFrame.IS_MAXIMUM_PROPERTY.equals(prop)) {
-                if(newValue == Boolean.TRUE) {
-                    maximizeFrame(f);
-                } else {
-                    minimizeFrame(f);
-                }
-            } else if(JInternalFrame.IS_ICON_PROPERTY.equals(prop)) {
-                if (newValue == Boolean.TRUE) {
-                    iconifyFrame(f);
-                } else {
-                    deiconifyFrame(f);
-                }
-            } else if (JInternalFrame.IS_SELECTED_PROPERTY.equals(prop)) {
-                Component glassPane = f.getGlassPane();
-                if (newValue == Boolean.TRUE && oldValue == Boolean.FALSE) {
-                    activateFrame(f);
-                    glassPane.setVisible(false);
-                } else if (newValue == Boolean.FALSE &&
-                           oldValue == Boolean.TRUE) {
-                    deactivateFrame(f);
-                    glassPane.setVisible(true);
-                }
-            } else if (prop.equals("ancestor")) {
-                if (frame.getParent() != null) {
-                    parentBounds = f.getParent().getBounds();
-                } else {
-                    parentBounds = null;
-                }
-                if ((frame.getParent() != null) && !componentListenerAdded) {
-                    f.getParent().addComponentListener(componentListener);
-                    componentListenerAdded = true;
-                } else if ((newValue == null) && componentListenerAdded) {
-                    if (f.getParent() != null) {
-                        f.getParent().removeComponentListener(
-                                componentListener);
-                    }
-                    componentListenerAdded = false;
-                }
-            } else if (JInternalFrame.TITLE_PROPERTY.equals(prop) ||
-                    prop.equals("closable") || prop.equals("iconable") ||
-                    prop.equals("maximizable")) {
-                Dimension dim = frame.getMinimumSize();
-                Dimension frame_dim = frame.getSize();
-                if (dim.width > frame_dim.width) {
-                    frame.setSize(dim.width, frame_dim.height);
-                }
-            }
+            getHandler().propertyChange(evt);
         }
     }
 
   public class InternalFrameLayout implements LayoutManager {
-    public void addLayoutComponent(String name, Component c) {}
-    public void removeLayoutComponent(Component c) {}    
+    // NOTE: This class exists only for backward compatability. All
+    // its functionality has been moved into Handler. If you need to add
+    // new functionality add it to the Handler, but make sure this      
+    // class calls into the Handler.
+    public void addLayoutComponent(String name, Component c) {
+        getHandler().addLayoutComponent(name, c);
+    }
+
+    public void removeLayoutComponent(Component c) {
+        getHandler().removeLayoutComponent(c);
+    }   
+
     public Dimension preferredLayoutSize(Container c)  {
-	Dimension result;
-	Insets i = frame.getInsets();
-	
-	result = new Dimension(frame.getRootPane().getPreferredSize());
-	result.width += i.left + i.right;
-	result.height += i.top + i.bottom;
-
-        if(getNorthPane() != null) {
-	    Dimension d = getNorthPane().getPreferredSize();
-	    result.width = Math.max(d.width, result.width);
-            result.height += d.height;
-	}
-
-        if(getSouthPane() != null) {
-	    Dimension d = getSouthPane().getPreferredSize();
-	    result.width = Math.max(d.width, result.width);
-            result.height += d.height;
-	}
-
-        if(getEastPane() != null) {
-	    Dimension d = getEastPane().getPreferredSize();
-            result.width += d.width;
-	    result.height = Math.max(d.height, result.height);
-	}
-
-        if(getWestPane() != null) {
-	    Dimension d = getWestPane().getPreferredSize();
-            result.width += d.width;
-	    result.height = Math.max(d.height, result.height);
-	}
-
-	return result;
+        return getHandler().preferredLayoutSize(c);
     }
     
     public Dimension minimumLayoutSize(Container c) {
-        // The minimum size of the internal frame only takes into account the
-        // title pane since you are allowed to resize the frames to the point
-        // where just the title pane is visible.
-        Dimension result = new Dimension();
-        if (getNorthPane() != null &&
-            getNorthPane() instanceof BasicInternalFrameTitlePane) {
-              result = new Dimension(getNorthPane().getMinimumSize());
-        }
-	Insets i = frame.getInsets();
-        result.width += i.left + i.right;
-	result.height += i.top + i.bottom;
-	
-	return result;
+        return getHandler().minimumLayoutSize(c);
     }
     
     public void layoutContainer(Container c) {
-        Insets i = frame.getInsets();
-        int cx, cy, cw, ch;
-        
-        cx = i.left;
-        cy = i.top;
-        cw = frame.getWidth() - i.left - i.right;
-        ch = frame.getHeight() - i.top - i.bottom;
-        
-        if(getNorthPane() != null) {
-            Dimension size = getNorthPane().getPreferredSize();
-            getNorthPane().setBounds(cx, cy, cw, size.height);
-            cy += size.height;
-            ch -= size.height;
-        }
-
-        if(getSouthPane() != null) {
-            Dimension size = getSouthPane().getPreferredSize();
-            getSouthPane().setBounds(cx, frame.getHeight() 
-                                                - i.bottom - size.height, 
-                                                cw, size.height);
-            ch -= size.height;
-        }
-
-        if(getWestPane() != null) {
-            Dimension size = getWestPane().getPreferredSize();
-            getWestPane().setBounds(cx, cy, size.width, ch);
-            cw -= size.width;
-            cx += size.width;           
-        }
-
-        if(getEastPane() != null) {
-            Dimension size = getEastPane().getPreferredSize();
-            getEastPane().setBounds(cw - size.width, cy, size.width, ch);
-            cw -= size.width;           
-        }
-        
-        if(frame.getRootPane() != null) {
-            frame.getRootPane().setBounds(cx, cy, cw, ch);
-        }
+        getHandler().layoutContainer(c);
     }
   }
 
@@ -606,7 +491,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
      */
     protected void closeFrame(JInternalFrame f) {
 	// Internal Frame Auditory Cue Activation
-	fireAudioAction("InternalFrame.closeSound");
+        BasicLookAndFeel.playSound(frame,"InternalFrame.closeSound");
 	// delegate to desktop manager
 	getDesktopManager().closeFrame(f);
     }
@@ -618,7 +503,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
      */
     protected void maximizeFrame(JInternalFrame f) {
 	// Internal Frame Auditory Cue Activation
-	fireAudioAction("InternalFrame.maximizeSound");
+        BasicLookAndFeel.playSound(frame,"InternalFrame.maximizeSound");
 	// delegate to desktop manager
 	getDesktopManager().maximizeFrame(f);
     }
@@ -633,7 +518,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	if ( ! f.isIcon() ) {
 	    // This method seems to regularly get called after an
 	    // internal frame is iconified. Don't play this sound then.
-	    fireAudioAction("InternalFrame.restoreDownSound");
+            BasicLookAndFeel.playSound(frame,"InternalFrame.restoreDownSound");
 	}
 	// delegate to desktop manager
 	getDesktopManager().minimizeFrame(f);
@@ -646,7 +531,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
      */
     protected void iconifyFrame(JInternalFrame f) {
 	// Internal Frame Auditory Cue Activation
-	fireAudioAction("InternalFrame.minimizeSound");
+        BasicLookAndFeel.playSound(frame, "InternalFrame.minimizeSound");
 	// delegate to desktop manager
 	getDesktopManager().iconifyFrame(f);
     }
@@ -661,7 +546,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	if ( ! f.isMaximum() ) {
 	    // This method seems to regularly get called after an
 	    // internal frame is maximized. Don't play this sound then.
-	    fireAudioAction("InternalFrame.restoreUpSound");
+            BasicLookAndFeel.playSound(frame, "InternalFrame.restoreUpSound");
 	}
 	// delegate to desktop manager
 	getDesktopManager().deiconifyFrame(f);
@@ -678,24 +563,6 @@ public class BasicInternalFrameUI extends InternalFrameUI
       */
     protected void deactivateFrame(JInternalFrame f) {
 	getDesktopManager().deactivateFrame(f);
-    }
-
-    /**
-     * Convenience method for firing off the auditory cue actions.
-     *
-     * @since 1.4
-     */
-    private void fireAudioAction (String actionName) {
-	ActionMap map = frame.getActionMap();
-	if (map != null) {
-	    Action audioAction = map.get(actionName);
-	    if (audioAction != null) {
-		// pass off firing the Action to a utility method
-		BasicLookAndFeel lf = (BasicLookAndFeel)
-		                       UIManager.getLookAndFeel();
-		lf.playSound(audioAction);
-	    }
-	}
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1116,10 +983,10 @@ public class BasicInternalFrameUI extends InternalFrameUI
                 Insets i = frame.getInsets();
                 Point ep = new Point(e.getX(), e.getY());
                 if (e.getSource() == getNorthPane()) {
-		    Point np = getNorthPane().getLocation();
-		    ep.x += np.x;
-		    ep.y += np.y;
-	        }
+                    Point np = getNorthPane().getLocation();
+                    ep.x += np.x;
+                    ep.y += np.y;
+                }
                 if(ep.x <= i.left) {
                     if(ep.y < resizeCornerSize + i.top)
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
@@ -1128,7 +995,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
                     else                
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
                 } else if(ep.x >= frame.getWidth() - i.right) {
-                    if(ep.y < resizeCornerSize + i.top)
+                    if(e.getY() < resizeCornerSize + i.top)
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
                     else if(ep.y > frame.getHeight() - resizeCornerSize - i.bottom)
 			frame.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
@@ -1161,95 +1028,296 @@ public class BasicInternalFrameUI extends InternalFrameUI
 	}
     };    /// End BorderListener Class
 
-    protected class ComponentHandler implements ComponentListener
-    {
-
-      /**
-       * Invoked when a JInternalFrame's parent's size changes.
-       */
+    protected class ComponentHandler implements ComponentListener {
+      // NOTE: This class exists only for backward compatability. All
+      // its functionality has been moved into Handler. If you need to add
+      // new functionality add it to the Handler, but make sure this      
+      // class calls into the Handler.
+      /** Invoked when a JInternalFrame's parent's size changes. */
       public void componentResized(ComponentEvent e) {
-
-
-	//
-	// Get the JInternalFrame's parent container size
-	//
-
-	Rectangle parentNewBounds = ((Component) e.getSource()).getBounds();
-
-	JInternalFrame.JDesktopIcon icon = null;
-
-	if (frame != null) {
-	  icon = frame.getDesktopIcon();
-	
-	  //
-	  // Resize the internal frame if it is maximized and relocate
-	  // the associated icon as well.
-	  //
-
-	  if ( frame.isMaximum() ) {
-	    frame.setBounds(0, 0, parentNewBounds.width, parentNewBounds.height);
-	  }
-	}
-
-	//
-	// Relocate the icon base on the new parent bounds.
-	//
-	    
-	if (icon != null) {
-	  Rectangle iconBounds = icon.getBounds();
-	  int y = iconBounds.y + (parentNewBounds.height - parentBounds.height);
-	  icon.setBounds(iconBounds.x,y,iconBounds.width,iconBounds.height);
-	}
-
-	//
-	// Update the new parent bounds for next resize.
-	//
-	
-	if ( !parentBounds.equals(parentNewBounds) ) {
-	  parentBounds = parentNewBounds;
-	}
-
-
-	  //
-	  // Validate the component tree for this container.
-	  //
-	    
-	if (frame != null) frame.validate();
+          getHandler().componentResized(e);
       }
 
-      /* Unused */
-      public void componentMoved(ComponentEvent e) {}
-      /* Unused */
-      public void componentShown(ComponentEvent e) {}
-      /* Unused */
-      public void componentHidden(ComponentEvent e) {}
+      public void componentMoved(ComponentEvent e) {
+          getHandler().componentMoved(e);
+      }
+      public void componentShown(ComponentEvent e) {
+          getHandler().componentShown(e);
+      }
+      public void componentHidden(ComponentEvent e) {
+          getHandler().componentHidden(e);
+      }
     }
     
-    protected ComponentListener createComponentListener()
-    {
-      return new ComponentHandler();
+    protected ComponentListener createComponentListener() {
+      return getHandler();
     }
 
 
-    private static boolean isDragging = false;
     protected class GlassPaneDispatcher implements MouseInputListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void mousePressed(MouseEvent e) {
+            getHandler().mousePressed(e);
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            getHandler().mouseEntered(e);
+        }
+
+        public void mouseMoved(MouseEvent e) {
+            getHandler().mouseMoved(e);
+        }
+
+        public void mouseExited(MouseEvent e) {
+            getHandler().mouseExited(e);
+        }
+
+        public void mouseClicked(MouseEvent e) {
+            getHandler().mouseClicked(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            getHandler().mouseReleased(e);
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            getHandler().mouseDragged(e);
+        }
+    }
+
+    protected MouseInputListener createGlassPaneDispatcher() {
+        return getHandler();
+    }
+
+    
+    protected class BasicInternalFrameListener implements InternalFrameListener
+    {
+      // NOTE: This class exists only for backward compatability. All
+      // its functionality has been moved into Handler. If you need to add
+      // new functionality add it to the Handler, but make sure this      
+      // class calls into the Handler.
+      public void internalFrameClosing(InternalFrameEvent e) {
+          getHandler().internalFrameClosing(e);
+      }
+
+      public void internalFrameClosed(InternalFrameEvent e) {
+          getHandler().internalFrameClosed(e);
+      }
+
+      public void internalFrameOpened(InternalFrameEvent e) {
+          getHandler().internalFrameOpened(e);
+      }
+
+      public void internalFrameIconified(InternalFrameEvent e) {
+          getHandler().internalFrameIconified(e);
+      }
+
+      public void internalFrameDeiconified(InternalFrameEvent e) {
+          getHandler().internalFrameDeiconified(e);
+      }
+
+      public void internalFrameActivated(InternalFrameEvent e) {
+          getHandler().internalFrameActivated(e);
+      }
+
+
+      public void internalFrameDeactivated(InternalFrameEvent e) {
+          getHandler().internalFrameDeactivated(e);
+      }
+    }
+    
+    private static boolean isDragging = false;
+    private class Handler implements ComponentListener, InternalFrameListener,
+            LayoutManager, MouseInputListener, PropertyChangeListener,
+            SwingConstants {
+
+        // ComponentHandler methods
+        /** Invoked when a JInternalFrame's parent's size changes. */
+        public void componentResized(ComponentEvent e) {
+            // Get the JInternalFrame's parent container size
+            Rectangle parentNewBounds = ((Component) e.getSource()).getBounds();
+            JInternalFrame.JDesktopIcon icon = null;
+
+            if (frame != null) {
+                icon = frame.getDesktopIcon();
+                // Resize the internal frame if it is maximized and relocate
+                // the associated icon as well.
+                if (frame.isMaximum()) {
+                    frame.setBounds(0, 0, parentNewBounds.width,
+                        parentNewBounds.height);
+                }
+            }
+
+            // Relocate the icon base on the new parent bounds.
+            if (icon != null) {
+                Rectangle iconBounds = icon.getBounds();
+                int y = iconBounds.y +
+                    (parentNewBounds.height - parentBounds.height);
+                icon.setBounds(iconBounds.x, y,
+                    iconBounds.width, iconBounds.height);
+            }
+
+            // Update the new parent bounds for next resize.
+            if (!parentBounds.equals(parentNewBounds)) {
+                parentBounds = parentNewBounds;
+            }
+
+            // Validate the component tree for this container.
+            if (frame != null) frame.validate();
+        }
+
+        public void componentMoved(ComponentEvent e) {}
+        public void componentShown(ComponentEvent e) {}
+        public void componentHidden(ComponentEvent e) {}
+
+
+        // InternalFrameListener
+        public void internalFrameClosed(InternalFrameEvent e) {
+            frame.removeInternalFrameListener(getHandler());
+        }
+
+        public void internalFrameActivated(InternalFrameEvent e) {
+            if (!isKeyBindingRegistered()){
+                setKeyBindingRegistered(true);
+                setupMenuOpenKey();
+                setupMenuCloseKey();
+            }
+            if (isKeyBindingRegistered())
+                setKeyBindingActive(true);
+        }
+
+        public void internalFrameDeactivated(InternalFrameEvent e) {
+            setKeyBindingActive(false);
+        }
+
+        public void internalFrameClosing(InternalFrameEvent e) { }
+        public void internalFrameOpened(InternalFrameEvent e) { }
+        public void internalFrameIconified(InternalFrameEvent e) { }
+        public void internalFrameDeiconified(InternalFrameEvent e) { }
+
+
+        // LayoutManager
+        public void addLayoutComponent(String name, Component c) {}
+        public void removeLayoutComponent(Component c) {}    
+        public Dimension preferredLayoutSize(Container c)  {
+            Dimension result;
+            Insets i = frame.getInsets();
+        
+            result = new Dimension(frame.getRootPane().getPreferredSize());
+            result.width += i.left + i.right;
+            result.height += i.top + i.bottom;
+
+            if(getNorthPane() != null) {
+                Dimension d = getNorthPane().getPreferredSize();
+                result.width = Math.max(d.width, result.width);
+                result.height += d.height;
+            }
+
+            if(getSouthPane() != null) {
+                Dimension d = getSouthPane().getPreferredSize();
+                result.width = Math.max(d.width, result.width);
+                result.height += d.height;
+            }
+
+            if(getEastPane() != null) {
+                Dimension d = getEastPane().getPreferredSize();
+                result.width += d.width;
+                result.height = Math.max(d.height, result.height);
+            }
+
+            if(getWestPane() != null) {
+                Dimension d = getWestPane().getPreferredSize();
+                result.width += d.width;
+                result.height = Math.max(d.height, result.height);
+            }
+            return result;
+        }
+    
+        public Dimension minimumLayoutSize(Container c) {
+            // The minimum size of the internal frame only takes into
+            // account the title pane since you are allowed to resize
+            // the frames to the point where just the title pane is visible.
+            Dimension result = new Dimension();
+            if (getNorthPane() != null &&
+                getNorthPane() instanceof BasicInternalFrameTitlePane) {
+                  result = new Dimension(getNorthPane().getMinimumSize());
+            }
+            Insets i = frame.getInsets();
+            result.width += i.left + i.right;
+            result.height += i.top + i.bottom;
+        
+            return result;
+        }
+    
+        public void layoutContainer(Container c) {
+            Insets i = frame.getInsets();
+            int cx, cy, cw, ch;
+            
+            cx = i.left;
+            cy = i.top;
+            cw = frame.getWidth() - i.left - i.right;
+            ch = frame.getHeight() - i.top - i.bottom;
+            
+            if(getNorthPane() != null) {
+                Dimension size = getNorthPane().getPreferredSize();
+                if (DefaultLookup.getBoolean(frame, BasicInternalFrameUI.this,
+                          "InternalFrame.layoutTitlePaneAtOrigin", false)) {
+                    cy = 0;
+		    ch += i.top;
+                    getNorthPane().setBounds(0, 0, frame.getWidth(),
+                                             size.height);
+                }
+                else {
+                    getNorthPane().setBounds(cx, cy, cw, size.height);
+                }
+                cy += size.height;
+                ch -= size.height;
+            }
+    
+            if(getSouthPane() != null) {
+                Dimension size = getSouthPane().getPreferredSize();
+                getSouthPane().setBounds(cx, frame.getHeight() 
+                                                    - i.bottom - size.height, 
+                                                    cw, size.height);
+                ch -= size.height;
+            }
+    
+            if(getWestPane() != null) {
+                Dimension size = getWestPane().getPreferredSize();
+                getWestPane().setBounds(cx, cy, size.width, ch);
+                cw -= size.width;
+                cx += size.width;           
+            }
+    
+            if(getEastPane() != null) {
+                Dimension size = getEastPane().getPreferredSize();
+                getEastPane().setBounds(cw - size.width, cy, size.width, ch);
+                cw -= size.width;           
+            }
+            
+            if(frame.getRootPane() != null) {
+                frame.getRootPane().setBounds(cx, cy, cw, ch);
+            }
+        }
+
+
+        // MouseInputListener
         private Component mouseEventTarget = null;
         private Component dragSource = null;
 
-      /**
-       * When inactive, mouse events are forwarded as appropriate either to 
-       * the UI to activate the frame or to the underlying child component.
-       */
-      public void mousePressed(MouseEvent e) {
-	// what is going on here is the GlassPane is up on the inactive
-	// internalframe and want's to "catch" the first mousePressed on
-	// the frame in order to give it to the BorderLister (and not the
-	// underlying component) and let it activate the frame
-	if (borderListener != null){
-	  borderListener.mousePressed(e);
-	} 
-       	forwardMouseEvent(e);
-      }
+        public void mousePressed(MouseEvent e) {
+            // what is going on here is the GlassPane is up on the inactive
+            // internalframe and want's to "catch" the first mousePressed on
+            // the frame in order to give it to the BorderLister (and not the
+            // underlying component) and let it activate the frame
+            if (borderListener != null){
+                borderListener.mousePressed(e);
+            } 
+            forwardMouseEvent(e);
+        }
 
         /** 
          * Forward the mouseEntered event to the underlying child container.
@@ -1258,41 +1326,45 @@ public class BasicInternalFrameUI extends InternalFrameUI
         public void mouseEntered(MouseEvent e) {
             forwardMouseEvent(e);
         }
-      /** 
-     * Forward the mouseMoved event to the underlying child container.
-     * @see #mousePressed
-     */
-      public void mouseMoved(MouseEvent e) {
-        forwardMouseEvent(e);
-      }
-      /** 
-     * Forward the mouseExited event to the underlying child container.
-     * @see #mousePressed
-     */
-      public void mouseExited(MouseEvent e) {
-        forwardMouseEvent(e);
-      }
-      /** 
-     * Ignore mouseClicked events.
-     * @see #mousePressed
-     */
-      public void mouseClicked(MouseEvent e) {
-      }
-      /** 
-     * Forward the mouseReleased event to the underlying child container.
-     * @see #mousePressed
-     */
+
+        /** 
+         * Forward the mouseMoved event to the underlying child container.
+         * @see #mousePressed
+         */
+
+        public void mouseMoved(MouseEvent e) {
+            forwardMouseEvent(e);
+        }
+
+        /** 
+         * Forward the mouseExited event to the underlying child container.
+         * @see #mousePressed
+         */
+        public void mouseExited(MouseEvent e) {
+            forwardMouseEvent(e);
+        }
+
+        /** 
+         * Ignore mouseClicked events.
+         * @see #mousePressed
+         */
+
+        public void mouseClicked(MouseEvent e) { }
+        /** 
+         * Forward the mouseReleased event to the underlying child container.
+         * @see #mousePressed
+         */
         public void mouseReleased(MouseEvent e) {
             forwardMouseEvent(e);
         }
 
-      /** 
-     * Forward the mouseDragged event to the underlying child container.
-     * @see #mousePressed
-     */
-      public void mouseDragged(MouseEvent e) {
-	forwardMouseEvent(e);
-      }
+        /** 
+         * Forward the mouseDragged event to the underlying child container.
+         * @see #mousePressed
+         */
+        public void mouseDragged(MouseEvent e) {
+            forwardMouseEvent(e);
+        }
 
         /**
          * Forward a mouse event to the current mouse target, setting it
@@ -1303,6 +1375,18 @@ public class BasicInternalFrameUI extends InternalFrameUI
             Component target =
                 findComponentAt(frame.getRootPane().getLayeredPane(), 
                     e.getX(), e.getY());
+
+            // Search hierarchy for target with mouse listeners.
+            while ((target != null)                                &&
+                   ((target.getMouseListeners().length == 0)       &&
+                    (target.getMouseMotionListeners().length == 0) &&
+                    (target.getMouseWheelListeners().length == 0))) {
+                target = target.getParent();
+            }
+            if (target == null) {
+                // No target found with mouse listeners.
+                return;
+            }
 
             int id = e.getID();
             switch(id) {
@@ -1355,10 +1439,14 @@ public class BasicInternalFrameUI extends InternalFrameUI
                     } else {
                         retargetMouseEvent(id, e, mouseEventTarget);
                     }
+                    break;
+                case MouseEvent.MOUSE_WHEEL:
+                    retargetMouseEvent(id, e, mouseEventTarget);
+                    break;
             }
         }
 
-    /*
+    /**
      * Find the lightweight child component which corresponds to the
      * specified location.  This is similar to the new 1.2 API in
      * Container, but we need to run on 1.1.  The other changes are
@@ -1394,7 +1482,7 @@ public class BasicInternalFrameUI extends InternalFrameUI
         return c;
       }
 
-        /* 
+        /**
          * Dispatch an event clone, retargeted for the specified target.
          */
         private void retargetMouseEvent(int id, MouseEvent e,
@@ -1419,44 +1507,70 @@ public class BasicInternalFrameUI extends InternalFrameUI
                 e.isPopupTrigger());
             target.dispatchEvent(retargeted);
         }
+
+
+        // PropertyChangeListener
+        public void propertyChange(PropertyChangeEvent evt) {
+            String prop = (String)evt.getPropertyName();
+            JInternalFrame f = (JInternalFrame)evt.getSource();
+            Object newValue = evt.getNewValue();
+            Object oldValue = evt.getOldValue();
+
+            if (JInternalFrame.IS_CLOSED_PROPERTY == prop) {
+                if (newValue == Boolean.TRUE) {
+                    if ((frame.getParent() != null) && componentListenerAdded) {
+                        frame.getParent().removeComponentListener(
+                                componentListener);
+                    }
+                    closeFrame(f);
+                }
+            } else if (JInternalFrame.IS_MAXIMUM_PROPERTY == prop) {
+                if(newValue == Boolean.TRUE) {
+                    maximizeFrame(f);
+                } else {
+                    minimizeFrame(f);
+                }
+            } else if(JInternalFrame.IS_ICON_PROPERTY == prop) {
+                if (newValue == Boolean.TRUE) {
+                    iconifyFrame(f);
+                } else {
+                    deiconifyFrame(f);
+                }
+            } else if (JInternalFrame.IS_SELECTED_PROPERTY == prop) {
+                Component glassPane = f.getGlassPane();
+                if (newValue == Boolean.TRUE && oldValue == Boolean.FALSE) {
+                    activateFrame(f);
+                    glassPane.setVisible(false);
+                } else if (newValue == Boolean.FALSE &&
+                           oldValue == Boolean.TRUE) {
+                    deactivateFrame(f);
+                    glassPane.setVisible(true);
+                }
+            } else if (prop == "ancestor") {
+                if (frame.getParent() != null) {
+                    parentBounds = f.getParent().getBounds();
+                } else {
+                    parentBounds = null;
+                }
+                if ((frame.getParent() != null) && !componentListenerAdded) {
+                    f.getParent().addComponentListener(componentListener);
+                    componentListenerAdded = true;
+                } else if ((newValue == null) && componentListenerAdded) {
+                    if (f.getParent() != null) {
+                        f.getParent().removeComponentListener(
+                                componentListener);
+                    }
+                    componentListenerAdded = false;
+                }
+            } else if (JInternalFrame.TITLE_PROPERTY == prop ||
+                    prop == "closable" || prop == "iconable" ||
+                    prop == "maximizable") {
+                Dimension dim = frame.getMinimumSize();
+                Dimension frame_dim = frame.getSize();
+                if (dim.width > frame_dim.width) {
+                    frame.setSize(dim.width, frame_dim.height);
+                }
+            }
+        }
     }
-
-    protected MouseInputListener createGlassPaneDispatcher(){
-	return new GlassPaneDispatcher();
-    }
-
-    
-    protected class BasicInternalFrameListener implements InternalFrameListener {
-      public void internalFrameClosing(InternalFrameEvent e) {
-      }
-
-      public void internalFrameClosed(InternalFrameEvent e) {
-	frame.removeInternalFrameListener(internalFrameListener);      
-      }
-
-      public void internalFrameOpened(InternalFrameEvent e) {
-      }
-
-      public void internalFrameIconified(InternalFrameEvent e) {
-      }
-
-      public void internalFrameDeiconified(InternalFrameEvent e) {
-      }
-
-      public void internalFrameActivated(InternalFrameEvent e) {
-	if (!isKeyBindingRegistered()){
-	  setKeyBindingRegistered(true);
-	  setupMenuOpenKey();
-	  setupMenuCloseKey();
-	}
-	if (isKeyBindingRegistered())
-	  setKeyBindingActive(true);
-      }
-
-
-      public void internalFrameDeactivated(InternalFrameEvent e) {
-	setKeyBindingActive(false);
-      }
-    }
-    
-}   /// End BasicInternalFrameUI Class
+}

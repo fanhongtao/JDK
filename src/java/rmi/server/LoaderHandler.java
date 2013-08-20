@@ -1,7 +1,7 @@
 /*
- * @(#)LoaderHandler.java	1.15 03/01/23
+ * @(#)LoaderHandler.java	1.18 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,12 +15,13 @@ import java.net.URL;
  * runtime in previous implementation versions.  It should never be accessed
  * by application code.
  *
- * @version 1.15, 01/23/03
+ * @version 1.18, 05/18/04
  * @author  Ann Wollrath
  * @since   JDK1.1
  *
  * @deprecated no replacement
  */
+@Deprecated
 public interface LoaderHandler {
 
     /** package of system <code>LoaderHandler</code> implementation. */
@@ -41,7 +42,8 @@ public interface LoaderHandler {
      * @since JDK1.1
      * @deprecated no replacement
      */
-    Class loadClass(String name)
+    @Deprecated
+    Class<?> loadClass(String name)
 	throws MalformedURLException, ClassNotFoundException;
 
     /**
@@ -59,7 +61,8 @@ public interface LoaderHandler {
      * @since JDK1.1
      * @deprecated no replacement
      */
-    Class loadClass(URL codebase, String name)
+    @Deprecated
+    Class<?> loadClass(URL codebase, String name)
 	throws MalformedURLException, ClassNotFoundException;
 
     /**
@@ -70,5 +73,6 @@ public interface LoaderHandler {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     Object getSecurityContext(ClassLoader loader);
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.45 08/05/13
+ * @(#)SubjectDomainCombiner.java	1.45 03/12/19
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,28 +21,31 @@ import java.lang.ClassLoader;
 import java.security.Security;
 import java.util.Set;
 import java.util.Iterator;
-import java.util.WeakHashMap;
-import java.lang.ref.WeakReference;
 
 /**
  * A <code>SubjectDomainCombiner</code> updates ProtectionDomains
  * with Principals from the <code>Subject</code> associated with this
  * <code>SubjectDomainCombiner</code>.
  *
- * @version 1.45, 05/13/08 
+ * @version 1.45, 12/19/03 
  */
 public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
     private Subject subject;
-    private WeakKeyValueMap cachedPDs = new WeakKeyValueMap(); 
+    private java.util.Map cachedPDs = new java.util.WeakHashMap();
     private Set principalSet;
     private Principal[] principals;
-    private static boolean checkedCacheProperty = false;
-    private static boolean allowCaching = true;
 
     private static final sun.security.util.Debug debug =
 	sun.security.util.Debug.getInstance("combiner",
 					"\t[SubjectDomainCombiner]");
+
+    // Note: check only at classloading time, not dynamically during combine()
+    private static final boolean useJavaxPolicy = compatPolicy();
+
+    // Relevant only when useJavaxPolicy is true
+    private static final boolean allowCaching =
+					(useJavaxPolicy && cachePolicy());
 
     /**
      * Associate the provided <code>Subject</code> with this
@@ -60,12 +63,6 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	    principalSet = subject.getPrincipals();
 	    principals = (Principal[])principalSet.toArray
 			(new Principal[principalSet.size()]);
-	}
-
-	// see if we allow caching of the permissions
-	if (!checkedCacheProperty) {
-	    allowCaching = cachePolicy();
-	    checkedCacheProperty = true;
 	}
     }
 
@@ -141,9 +138,6 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
      */
     public ProtectionDomain[] combine(ProtectionDomain[] currentDomains,
 				ProtectionDomain[] assignedDomains) {
-	if (currentDomains == null || currentDomains.length == 0)
-	    return optimize(assignedDomains, null);
-
 	if (debug != null) {
 	    if (subject == null) {
 		debug.println("null subject");
@@ -160,33 +154,37 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	    printInputDomains(currentDomains, assignedDomains);
 	}
 
-	// optimize the inputs
-	assignedDomains = optimize(assignedDomains, null);
-	currentDomains = optimize(currentDomains, assignedDomains);
+	if (currentDomains == null || currentDomains.length == 0) {
+	    // No need to optimize assignedDomains because it should
+	    // have been previously optimized (when it was set).
+
+	    // Note that we are returning a direct reference
+	    // to the input array - since ACC does not clone
+	    // the arrays when it calls combiner.combine,
+	    // multiple ACC instances may share the same
+	    // array instance in this case
+
+	    return assignedDomains;
+	}
+
+	// optimize currentDomains
+	//
+	// No need to optimize assignedDomains because it should
+        // have been previously optimized (when it was set).
+
+	currentDomains = optimize(currentDomains);
 	if (debug != null) {
 	    debug.println("after optimize");
 	    printInputDomains(currentDomains, assignedDomains);
 	}
 
-	if (currentDomains == null && assignedDomains == null)
+	if (currentDomains == null && assignedDomains == null) {
 	    return null;
+	}
 
 	// maintain backwards compatibility for people who provide
 	// their own javax.security.auth.Policy implementations
-	javax.security.auth.Policy javaxPolicy =
-	    (javax.security.auth.Policy)AccessController.doPrivileged
-	    (new PrivilegedAction() {
-	    public Object run() {
-		return javax.security.auth.Policy.getPolicy();
-	    }
-	});
-	if (!(javaxPolicy instanceof com.sun.security.auth.PolicyFile)) {
-	    if (debug != null) {
-		debug.println("Providing backwards compatibility for " +
-			"javax.security.auth.policy implementation: " +
-			javaxPolicy.toString());
-	    }
-	    // use the javax.security.auth.Policy implementation
+	if (useJavaxPolicy) {
 	    return combineJavaxPolicy(currentDomains, assignedDomains);
 	}
 	
@@ -197,12 +195,16 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	// that we will return
 	ProtectionDomain[] newDomains = new ProtectionDomain[cLen + aLen];
 
+	boolean allNew = true;
 	synchronized(cachedPDs) {
 	    if (!subject.isReadOnly() &&
 		!subject.getPrincipals().equals(principalSet)) {
 
 		// if the Subject was mutated, clear the PD cache
-		principalSet = new java.util.HashSet(subject.getPrincipals());
+		Set newSet = subject.getPrincipals();
+		synchronized(newSet) {
+		    principalSet = new java.util.HashSet(newSet);
+		}
 		principals = (Principal[])principalSet.toArray
 			(new Principal[principalSet.size()]);
 		cachedPDs.clear();
@@ -210,17 +212,22 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 		if (debug != null) {
 		    debug.println("Subject mutated - clearing cache");
 		}
-	    }
+	    } 
+
+	    ProtectionDomain subjectPd;
 	    for (int i = 0; i < cLen; i++) {
 		ProtectionDomain pd = currentDomains[i];
-		ProtectionDomain subjectPd =
-			(ProtectionDomain)cachedPDs.getValue(pd);
+
+		subjectPd = (ProtectionDomain) cachedPDs.get(pd);
+
 		if (subjectPd == null) {
 		    subjectPd = new ProtectionDomain(pd.getCodeSource(),
 						pd.getPermissions(), 
 						pd.getClassLoader(),
 						principals);
-		    cachedPDs.putValue(pd, subjectPd);
+		    cachedPDs.put(pd, subjectPd);
+		} else {
+		    allNew = false;
 		}
 		newDomains[i] = subjectPd;
 	    }
@@ -233,14 +240,18 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 				printDomain(newDomains[i]));
 	    }
 	}
-		
+
 	// now add on the assigned domains
 	if (aLen > 0) {
 	    System.arraycopy(assignedDomains, 0, newDomains, cLen, aLen);
+
+	    // optimize the result (cached PDs might exist in assignedDomains)
+	    if (!allNew) {
+		newDomains = optimize(newDomains);
+	    }
 	}
 
-	// optimize the result
-	newDomains = optimize(newDomains, null);
+	// if aLen == 0 || allNew, no need to further optimize newDomains
 	
 	if (debug != null) {
 	    if (newDomains == null || newDomains.length == 0) {
@@ -265,17 +276,20 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
     /**
      * Use the javax.security.auth.Policy implementation
      */
-    ProtectionDomain[] combineJavaxPolicy(ProtectionDomain[] currentDomains,
-				       ProtectionDomain[] assignedDomains) {
-	java.security.AccessController.doPrivileged
-	    (new PrivilegedAction() {
-		public Object run() {
-		    // Call refresh only caching is disallowed
-		    if (!allowCaching)
+    private ProtectionDomain[] combineJavaxPolicy(
+	ProtectionDomain[] currentDomains,
+	ProtectionDomain[] assignedDomains) {
+
+	if (!allowCaching) {
+	    java.security.AccessController.doPrivileged
+		(new PrivilegedAction() {
+		    public Object run() {
+			// Call refresh only caching is disallowed
 			javax.security.auth.Policy.getPolicy().refresh();
-		    return null;
-		}
-	    });
+			return null;
+		    }
+		});
+	}
 	
 	int cLen = (currentDomains == null ? 0 : currentDomains.length);
 	int aLen = (assignedDomains == null ? 0 : assignedDomains.length);
@@ -283,14 +297,16 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	// the ProtectionDomains for the new AccessControlContext
 	// that we will return
 	ProtectionDomain[] newDomains = new ProtectionDomain[cLen + aLen];
-	int newDomainIndex = 0;
 
 	synchronized(cachedPDs) {
 	    if (!subject.isReadOnly() &&
 		!subject.getPrincipals().equals(principalSet)) {
 
 		// if the Subject was mutated, clear the PD cache
-		principalSet = new java.util.HashSet(subject.getPrincipals());
+		Set newSet = subject.getPrincipals();
+		synchronized(newSet) {
+		    principalSet = new java.util.HashSet(newSet);
+		}
 		principals = (Principal[])principalSet.toArray
 			(new Principal[principalSet.size()]);
 		cachedPDs.clear();
@@ -299,10 +315,11 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 		    debug.println("Subject mutated - clearing cache");
 		}
 	    }
+
 	    for (int i = 0; i < cLen; i++) {
 		ProtectionDomain pd = currentDomains[i];
 		ProtectionDomain subjectPd =
-			(ProtectionDomain)cachedPDs.getValue(pd);
+				(ProtectionDomain)cachedPDs.get(pd);
 
 		if (subjectPd == null) {
 
@@ -314,26 +331,21 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
 		    // get the original perms
 		    Permissions perms = new Permissions();
-                    PermissionCollection coll = pd.getPermissions();
+		    PermissionCollection coll = pd.getPermissions();
 		    java.util.Enumeration e;
-                    if (coll != null) {
-                        synchronized (coll) {
-                                e = coll.elements(); 
-		                while (e.hasMoreElements()) {
-			                Permission newPerm = 
-                                                (Permission)e.nextElement();
-			                perms.add(newPerm);
-                                }
-                        }
+		    synchronized (coll) {
+			e = coll.elements();
+			while (e.hasMoreElements()) {
+			    Permission newPerm = (Permission)e.nextElement();
+			    perms.add(newPerm);
+			}
 		    }
 
 		    // get perms from the policy
-		    PermissionCollection newPerms = null;
 
-		    final java.security.CodeSource finalCs =
-			currentDomains[i].getCodeSource();
+		    final java.security.CodeSource finalCs = pd.getCodeSource();
 		    final Subject finalS = subject;
-		    newPerms = (PermissionCollection)
+		    PermissionCollection newPerms = (PermissionCollection)
 			java.security.AccessController.doPrivileged
 			(new PrivilegedAction() {
 			public Object run() {
@@ -345,20 +357,22 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 			
 		    // add the newly granted perms,
 		    // avoiding duplicates
-		    e = newPerms.elements();
-		    while (e.hasMoreElements()) {
-			Permission newPerm = (Permission)e.nextElement();
-			if (!perms.implies(newPerm)) {
-			    perms.add(newPerm);
-			    if (debug != null) 
-				debug.println ("Adding perm " + newPerm + "\n");
+		    synchronized (newPerms) {
+			e = newPerms.elements();
+			while (e.hasMoreElements()) {
+			    Permission newPerm = (Permission)e.nextElement();
+			    if (!perms.implies(newPerm)) {
+				perms.add(newPerm);
+				if (debug != null) 
+				    debug.println (
+					"Adding perm " + newPerm + "\n");
+			    }
 			}
 		    }
-                    subjectPd = new ProtectionDomain 
-                        (finalCs, perms, pd.getClassLoader(), principals); 
+		    subjectPd = new ProtectionDomain(finalCs, perms);
 
 		    if (allowCaching)
-			cachedPDs.putValue(pd, subjectPd);
+			cachedPDs.put(pd, subjectPd);
 		}
 		newDomains[i] = subjectPd;
 	    }
@@ -396,26 +410,14 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	}
     }
 	
-    /**
-     * Remove System Domains and duplicate domains.
-     *
-     * Also remove domains from currentDomains if they already
-     * exist in assignedDomains.  Optimization for bug 4308161.
-     * In this case, 'domains' will be currentDomains,
-     * and 'otherDomains' will be assignedDomains.
-     */
-    ProtectionDomain[] optimize(ProtectionDomain[] domains,
-			ProtectionDomain[] otherDomains) {
-	if (domains == null)
+    private static ProtectionDomain[] optimize(ProtectionDomain[] domains) {
+	if (domains == null || domains.length == 0)
 	    return null;
 
 	ProtectionDomain[] optimized = new ProtectionDomain[domains.length];
+	ProtectionDomain pd;
 	int num = 0;
 	for (int i = 0; i < domains.length; i++) {
-
-	    // skip System Domains
-	    if (domains[i] == null)
-		continue;
 
 	    // skip domains with AllPermission 
 	    // XXX
@@ -423,54 +425,31 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	    //	if (domains[i].implies(ALL_PERMISSION))
 	    //	continue;
 
-	    // remove duplicates
-	    boolean foundIt = false;
-	    for (int j = 0; j < num; j++) {
-		if (optimized[j] == domains[i]) {
-		    foundIt = true;
-		    break;
+	    // skip System Domains
+	    if ((pd = domains[i]) != null) {
+
+		// remove duplicates
+		boolean found = false;
+		for (int j = 0; j < num && !found; j++) {
+		    found = (optimized[j] == pd);
 		}
-	    }
-	    if (foundIt == false) {
-
-		if (otherDomains == null) {
-
-		    // keep the domain
-		    optimized[num++] = domains[i];
-
-		} else {
-
-		    // remove domain if it exists in otherDomains
-		    // in this case, domains == currentDomains,
-		    // otherDomains == assignedDomains
-
-		    boolean foundInOtherDomains = false;
-		    for (int j = 0; j < otherDomains.length; j++) {
-			if (otherDomains[j] == domains[i]) {
-			    foundInOtherDomains = true;
-			    break;
-			}
-		    }
-
-		    if (foundInOtherDomains == false) {
-			// keep the domain
-			optimized[num++] = domains[i];
-		    }
+		if (!found) {
+		    optimized[num++] = pd;
 		}
 	    }
 	}
 
 	// resize the array if necessary
-	if (num < domains.length) {
+	if (num > 0 && num < domains.length) {
 	    ProtectionDomain[] downSize = new ProtectionDomain[num];
 	    System.arraycopy(optimized, 0, downSize, 0, downSize.length);
 	    optimized = downSize;
 	}
 
-	return (optimized.length == 0 ? null : optimized);
+	return ((num == 0 || optimized.length == 0) ? null : optimized);
     }
 
-    private boolean cachePolicy() {
+    private static boolean cachePolicy() {
 	String s = (String)AccessController.doPrivileged
 	    (new PrivilegedAction() {
 	    public Object run() {
@@ -487,7 +466,31 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	return true;
     }
 
-    private void printInputDomains(ProtectionDomain[] currentDomains,
+    // maintain backwards compatibility for people who provide
+    // their own javax.security.auth.Policy implementations
+    private static boolean compatPolicy() {
+	javax.security.auth.Policy javaxPolicy =
+	    (javax.security.auth.Policy)AccessController.doPrivileged
+	    (new PrivilegedAction() {
+	    public Object run() {
+		return javax.security.auth.Policy.getPolicy();
+	    }
+	});
+
+	if (!(javaxPolicy instanceof com.sun.security.auth.PolicyFile)) {
+	    if (debug != null) {
+		debug.println("Providing backwards compatibility for " +
+			"javax.security.auth.policy implementation: " +
+			javaxPolicy.toString());
+	    }
+
+	    return true;
+	} else {
+	    return false;
+	}
+    }
+
+    private static void printInputDomains(ProtectionDomain[] currentDomains,
 				ProtectionDomain[] assignedDomains) {
 	if (currentDomains == null || currentDomains.length == 0) {
 	    debug.println("currentDomains null or 0 length");
@@ -519,7 +522,7 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	}
     }
 
-    private String printDomain(final ProtectionDomain pd) {
+    private static String printDomain(final ProtectionDomain pd) {
 	if (pd == null) {
 	    return "null";
 	}
@@ -528,41 +531,5 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 		return pd.toString();
 	    }
 	});
-    }
-
-    /**
-     * A HashMap that has weak keys and values.
-     *
-     * Key objects in this map are the "current" ProtectionDomain instances
-     * received via the combine method.  Each "current" PD is mapped to a
-     * new PD instance that holds both the contents of the "current" PD,
-     * as well as the principals from the Subject associated with this combiner.
-     *
-     * The newly created "principal-based" PD values must be stored as
-     * WeakReferences since they contain strong references to the
-     * corresponding key object (the "current" non-principal-based PD),
-     * which will prevent the key from being GC'd.  Specifically,
-     * a "principal-based" PD contains strong references to the CodeSource,
-     * signer certs, PermissionCollection and ClassLoader objects
-     * in the "current PD".
-     */
-    private static class WeakKeyValueMap extends WeakHashMap {
-
-       public Object getValue(Object key) {
-           WeakReference wr = (WeakReference)super.get(key);
-           if (wr != null) {
-               return wr.get();
-           }
-           return null;
-       }
-
-       public Object putValue(Object key, Object value) {
-           WeakReference wr = (WeakReference)super.put
-               (key, new WeakReference(value));
-           if (wr != null) {
-               return wr.get();
-           }
-           return null;
-       }
     }
 }

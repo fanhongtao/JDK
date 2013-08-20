@@ -1,7 +1,7 @@
 /*
- * @(#)Byte.java	1.30 03/01/23
+ * @(#)Byte.java	1.40 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,11 +22,11 @@ package java.lang;
  * useful when dealing with a <code>byte</code>.
  *
  * @author  Nakul Saraiya
- * @version 1.30, 01/23/03
+ * @version 1.40, 05/11/04
  * @see     java.lang.Number
  * @since   JDK1.1
  */
-public final class Byte extends Number implements Comparable {
+public final class Byte extends Number implements Comparable<Byte> {
 
     /**
      * A constant holding the minimum value a <code>byte</code> can
@@ -44,7 +44,7 @@ public final class Byte extends Number implements Comparable {
      * The <code>Class</code> instance representing the primitive type
      * <code>byte</code>.
      */
-    public static final Class	TYPE = Class.getPrimitiveClass("byte");
+    public static final Class<Byte>	TYPE = (Class<Byte>) Class.getPrimitiveClass("byte");
 
     /**
      * Returns a new <code>String</code> object representing the
@@ -56,6 +56,35 @@ public final class Byte extends Number implements Comparable {
      */
     public static String toString(byte b) {
 	return Integer.toString((int)b, 10);
+    }
+
+    private static class ByteCache {
+	private ByteCache(){}
+
+	static final Byte cache[] = new Byte[-(-128) + 127 + 1];
+
+	static {
+	    for(int i = 0; i < cache.length; i++)
+		cache[i] = new Byte((byte)(i - 128));
+	}
+    }
+
+    /**
+     * Returns a <tt>Byte</tt> instance representing the specified
+     * <tt>byte</tt> value.
+     * If a new <tt>Byte</tt> instance is not required, this method
+     * should generally be used in preference to the constructor
+     * {@link #Byte(byte)}, as this method is likely to yield
+     * significantly better space and time performance by caching
+     * frequently requested values.
+     *
+     * @param  b a byte value.
+     * @return a <tt>Byte</tt> instance representing <tt>b</tt>.
+     * @since  1.5
+     */
+    public static Byte valueOf(byte b) {
+	final int offset = 128;
+	return ByteCache.cache[(int)b + offset];
     }
 
     /**
@@ -72,7 +101,7 @@ public final class Byte extends Number implements Comparable {
      *                  <code>byte</code> representation to be parsed
      * @return 		the <code>byte</code> value represented by the 
      *                  argument in decimal
-     * @exception	NumberFormatException if the the string does not
+     * @exception	NumberFormatException if the string does not
      *			contain a parsable <code>byte</code>.
      */
     public static byte parseByte(String s) throws NumberFormatException {
@@ -266,7 +295,7 @@ public final class Byte extends Number implements Comparable {
      *
      * @serial
      */
-    private byte value;
+    private final byte value;
 
     /**
      * Constructs a newly allocated <code>Byte</code> object that
@@ -400,28 +429,12 @@ public final class Byte extends Number implements Comparable {
     }
 
     /**
-     * Compares this <code>Byte</code> object to another object.  If the
-     * object is a <code>Byte</code>, this function behaves like
-     * <code>compareTo(Byte)</code>.  Otherwise, it throws a
-     * <code>ClassCastException</code> (as <code>Byte</code> objects
-     * are only comparable to other <code>Byte</code> objects).
+     * The number of bits used to represent a <tt>byte</tt> value in two's
+     * complement binary form.
      *
-     * @param   o the <code>Object</code> to be compared.
-     * @return  the value <code>0</code> if the argument is a <code>Byte</code>
-     *		numerically equal to this <code>Byte</code>; a value less than
-     *		<code>0</code> if the argument is a <code>Byte</code> 
-     *		numerically greater than this <code>Byte</code>; and a 
-     *		value greater than <code>0</code> if the argument is a
-     *		 <code>Byte</code> numerically less than this 
-     *		<code>Byte</code>.
-     * @exception <code>ClassCastException</code> if the argument is not a
-     *		  <code><code>Byte</code></code>. 
-     * @see     java.lang.Comparable
-     * @since   1.2
+     * @since 1.5
      */
-    public int compareTo(Object o) {
-	return compareTo((Byte)o);
-    }
+    public static final int SIZE = 8;
 
     /** use serialVersionUID from JDK 1.1. for interoperability */
     private static final long serialVersionUID = -7183698231559129828L;

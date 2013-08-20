@@ -1,7 +1,7 @@
 /*
- * @(#)DelegationPermission.java	1.6 03/01/23
+ * @(#)DelegationPermission.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,6 +47,8 @@ import java.io.IOException;
 
 public final class DelegationPermission extends BasicPermission 
     implements java.io.Serializable {
+
+    private static final long serialVersionUID = 883133252142523922L;
 
     private transient String subordinate, service;
 
@@ -263,11 +265,13 @@ final class KrbDelegationPermissionCollection extends PermissionCollection
    		return false;
 
 	DelegationPermission np = (DelegationPermission) permission;
-	int len = perms.size();
-	for (int i = 0; i < len; i++) {
-	    DelegationPermission x = (DelegationPermission) perms.get(i);
-	    if (x.implies(np))
-		return true;
+	synchronized (this) {
+	    int len = perms.size();
+	    for (int i = 0; i < len; i++) {
+		DelegationPermission x = (DelegationPermission) perms.get(i);
+		if (x.implies(np))
+		    return true;
+	    }
 	}
 	return false;
 
@@ -293,7 +297,9 @@ final class KrbDelegationPermissionCollection extends PermissionCollection
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
-	perms.add(0, permission);
+	synchronized (this) {
+	    perms.add(0, permission);
+	}
     }
 
     /**
@@ -305,7 +311,9 @@ final class KrbDelegationPermissionCollection extends PermissionCollection
 
     public Enumeration elements() {
         // Convert Iterator into Enumeration
-	return Collections.enumeration(perms);
+	synchronized (this) {
+	    return Collections.enumeration(perms);
+	}
     }
 
     private static final long serialVersionUID = -3383936936589966948L;
@@ -333,7 +341,10 @@ final class KrbDelegationPermissionCollection extends PermissionCollection
 
 	// Write out Vector
 	Vector permissions = new Vector(perms.size());
-	permissions.addAll(perms);
+
+	synchronized (this) {
+	    permissions.addAll(perms);
+	}
 
         ObjectOutputStream.PutField pfields = out.putFields();
         pfields.put("permissions", permissions);

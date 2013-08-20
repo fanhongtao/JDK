@@ -1,7 +1,7 @@
 /*
- * @(#)VariableHeightLayoutCache.java	1.19 03/01/23
+ * @(#)VariableHeightLayoutCache.java	1.21 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.util.Vector;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 01/23/03
+ * @version 1.21 05/05/04
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -324,7 +324,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
      * @return an <code>Enumerator</code> that increments over the visible
      *     paths
      */
-    public Enumeration getVisiblePathsFrom(TreePath path) {
+    public Enumeration<TreePath> getVisiblePathsFrom(TreePath path) {
 	TreeStateNode       node = getNodeForPath(path, true, false);
 
 	if(node != null) {
@@ -1633,7 +1633,7 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
      * An enumerator to iterate through visible nodes.
      */
     private class VisibleTreeStateNodeEnumeration implements
-	             Enumeration {
+	             Enumeration<TreePath> {
 	/** Parent thats children are being enumerated. */
 	protected TreeStateNode       parent;
 	/** Index of next child. An index of -1 signifies parent should be
@@ -1663,11 +1663,11 @@ public class VariableHeightLayoutCache extends AbstractLayoutCache {
 	/**
 	 * @return next visible TreePath.
 	 */
-	public Object nextElement() {
+	public TreePath nextElement() {
 	    if(!hasMoreElements())
 		throw new NoSuchElementException("No more visible paths");
 
-	    Object                retObject;
+	    TreePath                retObject;
 
 	    if(nextIndex == -1) {
 		retObject = parent.getTreePath();

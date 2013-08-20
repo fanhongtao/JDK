@@ -1,24 +1,29 @@
+// $Id: StreamSource.java,v 1.6.12.3 2004/07/13 22:27:51 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)StreamSource.java	1.14 03/01/23
+ * @(#)StreamSource.java	1.16 04/07/13
  */
 package javax.xml.transform.stream;
 
-import javax.xml.transform.Source;
-
+import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.File;
 
+import javax.xml.transform.Source;
 
 /**
- * Acts as an holder for a transformation Source in the form
- * of a stream of XML markup.
+ * <p>Acts as an holder for a transformation Source in the form
+ * of a stream of XML markup.</p>
  *
+ * <p><em>Note:</em> Due to their internal use of either a {@link Reader} or {@link InputStream} instance,
+ * <code>StreamSource</code> instances may only be used once.</p>
+ *
+ * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @version $Revision: 1.6.12.3 $, $Date: 2004/07/13 22:27:51 $
  */
 public class StreamSource implements Source {
 
@@ -28,13 +33,19 @@ public class StreamSource implements Source {
      */
     public static final String FEATURE =
         "http://javax.xml.transform.stream.StreamSource/feature";
-
+    
     /**
-     * Zero-argument default constructor. If this constructor
-     * is used, and no other method is called, the transformer
-     * will assume an empty input tree, with a default root node.
-     */
-    public StreamSource() {}
+     * <p>Zero-argument default constructor.  If this constructor is used, and
+     * no Stream source is set using
+     * {@link #setInputStream(java.io.InputStream inputStream)} or
+     * {@link #setReader(java.io.Reader reader)}, then the
+     * <code>Transformer</code> will
+     * create an empty source {@link java.io.InputStream} using
+     * {@link java.io.InputStream#InputStream() new InputStream()}.</p>
+     * 
+     * @see javax.xml.transform.Transformer#transform(Source xmlSource, Result outputTarget)
+     */    
+    public StreamSource() { }
 
     /**
      * Construct a StreamSource from a byte stream.  Normally,
@@ -223,14 +234,14 @@ public class StreamSource implements Source {
      * @param f Must a non-null File reference.
      */
     public void setSystemId(File f) {
-	String fpath=f.getAbsolutePath();
-	if (File.separatorChar != '/') {
-	    fpath = fpath.replace(File.separatorChar, '/');
-	}
+        String fpath=f.getAbsolutePath();
+        if (File.separatorChar != '/') {
+            fpath = fpath.replace(File.separatorChar, '/');
+        }
         if( fpath.startsWith("/"))
-	  this.systemId= "file://" + fpath;
-	else
-	  this.systemId = "file:///" + fpath;
+          this.systemId= "file://" + fpath;
+        else
+          this.systemId = "file:///" + fpath;
     }
 
     //////////////////////////////////////////////////////////////////////

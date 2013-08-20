@@ -1,7 +1,7 @@
 /*
- * @(#)Struct.java	1.20 03/01/23
+ * @(#)Struct.java	1.22 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -70,7 +70,8 @@ public interface Struct {
    * @return an array containing the ordered attribute values
    * @exception SQLException if a database access error occurs
    */
-  Object[] getAttributes(java.util.Map map) throws SQLException;
+  Object[] getAttributes(java.util.Map<String,Class<?>> map)
+      throws SQLException;
 }
 
 

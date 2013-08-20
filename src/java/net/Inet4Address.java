@@ -1,7 +1,7 @@
 /*
- * @(#)Inet4Address.java	1.24 03/01/23
+ * @(#)Inet4Address.java	1.28 04/02/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,16 +20,16 @@ import sun.security.action.*;
  * and <a href="http://www.ietf.org/rfc/rfc2365.txt"><i>RFC&nbsp;2365:
  * Administratively Scoped IP Multicast</i></a>
  *
- * <h4> <A NAME="format">Textual representation of IP addresses<a> </h4>
+ * <h4> <A NAME="format">Textual representation of IP addresses</a> </h4>
  *
  * Textual representation of IPv4 address used as input to methods
  * takes one of the following forms:
  *
  * <blockquote><table cellpadding=0 cellspacing=0 summary="layout">
- * <tr><td><tt>d.d.d.d</tt><td></tr>
- * <tr><td><tt>d.d.d</tt><td></tr>
- * <tr><td><tt>d.d</td></tr>
- * <tr><td><tt>d</td></tr>
+ * <tr><td><tt>d.d.d.d</tt></td></tr>
+ * <tr><td><tt>d.d.d</tt></td></tr>
+ * <tr><td><tt>d.d</tt></td></tr>
+ * <tr><td><tt>d</tt></td></tr>
  * </table></blockquote>
  *
  * <p> When four parts are specified, each is interpreted as a byte of
@@ -346,59 +346,6 @@ class Inet4Address extends InetAddress {
     static String numericToTextFormat(byte[] src)
     {
 	return (src[0] & 0xff) + "." + (src[1] & 0xff) + "." + (src[2] & 0xff) + "." + (src[3] & 0xff);
-    }
-
-    /*
-     * Converts IPv4 address in its textual presentation form 
-     * into its numeric binary form.
-     * 
-     * @param src a String representing an IPv4 address in standard format
-     * @return a byte array representing the IPv4 numeric address
-     * @since 1.4
-     */
-    static byte[] textToNumericFormat(String src)
-    {
-	if (src.length() == 0) {
-	    return null;
-	}
-	
-	int octets;
-	char ch;
-	byte[] dst = new byte[INADDRSZ];
-        char[] srcb = src.toCharArray();
-	boolean saw_digit = false;
-
-	octets = 0;
-	int i = 0;
-	int cur = 0;
-	while (i < srcb.length) {
-	    ch = srcb[i++];
-	    if (Character.isDigit(ch)) {
-		// note that Java byte is signed, so need to convert to int
-		int sum = (dst[cur] & 0xff)*10
-		    + (Character.digit(ch, 10) & 0xff);
-		
-		if (sum > 255)
-		    return null;
-
-		dst[cur] = (byte)(sum & 0xff);
-		if (! saw_digit) {
-		    if (++octets > INADDRSZ)
-			return null;
-		    saw_digit = true;
-		}
-	    } else if (ch == '.' && saw_digit) {
-		if (octets == INADDRSZ)
-		    return null;
-		cur++;
-		dst[cur] = 0;
-		saw_digit = false;
-	    } else
-		return null;
-	}
-	if (octets < INADDRSZ)
-	    return null;
-	return dst;
     }
     
     /**

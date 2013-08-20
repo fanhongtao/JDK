@@ -1,7 +1,7 @@
 /*
- * @(#)XMLEncoder.java	1.27 05/04/29
+ * @(#)XMLEncoder.java	1.33 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -170,12 +170,17 @@ import java.lang.reflect.*;
  * sub-type of the array and its length respectively.
  * </ul>
  *
+ *<p>
+ * For more information you might also want to check out 
+ * <a
+ href="http://java.sun.com/products/jfc/tsc/articles/persistence4">Using XMLEncoder</a>,
+ * an article in <em>The Swing Connection.</em>
  * @see XMLDecoder
  * @see java.io.ObjectOutputStream
  *
  * @since 1.4
  *
- * @version 1.27 04/29/05
+ * @version 1.33 12/19/03
  * @author Philip Milne
  */
 public class XMLEncoder extends Encoder {
@@ -186,8 +191,8 @@ public class XMLEncoder extends Encoder {
     private Object owner;
     private int indentation = 0;
     private boolean internal = false;
-    private Map valueToExpression; 
-    private Map targetToStatementList; 
+    private Map valueToExpression;
+    private Map targetToStatementList;
     private boolean preambleWritten = false;
     private NameGenerator nameGenerator;
 
@@ -209,9 +214,9 @@ public class XMLEncoder extends Encoder {
      */
     public XMLEncoder(OutputStream out) {
         this.out = out;
-        valueToExpression = new IdentityHashMap(); 
-        targetToStatementList = new IdentityHashMap(); 
-        nameGenerator = new NameGenerator(); 
+        valueToExpression = new IdentityHashMap();
+        targetToStatementList = new IdentityHashMap();
+	nameGenerator = new NameGenerator();
     }
 
     /**
@@ -308,9 +313,8 @@ public class XMLEncoder extends Encoder {
      * Records the Statement so that the Encoder will
      * produce the actual output when the stream is flushed.
      * <P>
-     * This method should only be called within the context of
-     * initializing a persistence delegate or setting up an encoder to
-     * read from a resource bundle.
+     * This method should only be invoked within the context
+     * of initializing a persistence delegate.
      *
      * @param oldStm The statement that will be written
      *               to the stream.
@@ -334,7 +338,7 @@ public class XMLEncoder extends Encoder {
             statementList(oldStm.getTarget()).add(oldStm);
         }
         catch (Exception e) {
-            getExceptionListener().exceptionThrown(new Exception("XMLEncoder: discarding statement " + oldStm, e)); 
+            getExceptionListener().exceptionThrown(new Exception("XMLEncoder: discarding statement " + oldStm, e));
         }
         this.internal = internal;
     }
@@ -344,9 +348,13 @@ public class XMLEncoder extends Encoder {
      * Records the Expression so that the Encoder will
      * produce the actual output when the stream is flushed.
      * <P>
-     * This method should only be called within the context of
+     * This method should only be invoked within the context of
      * initializing a persistence delegate or setting up an encoder to
      * read from a resource bundle.
+     * <P>
+     * For more information about using resource bundles with the
+     * XMLEncoder, see 
+     * http://java.sun.com/products/jfc/tsc/articles/persistence4/#i18n
      *
      * @param oldExp The expression that will be written
      *               to the stream.
@@ -383,7 +391,7 @@ public class XMLEncoder extends Encoder {
 	Vector roots = statementList(this);
 	for(int i = 0; i < roots.size(); i++) {
 	    Statement s = (Statement)roots.get(i);
-	    if (s.getMethodName() == "writeObject") {
+	    if ("writeObject".equals(s.getMethodName())) {
 	        outputValue(s.getArguments()[0], this, true);
             }
 	    else {
@@ -398,15 +406,16 @@ public class XMLEncoder extends Encoder {
         catch (IOException e) {
 	    getExceptionListener().exceptionThrown(e);
 	}
-        clear();
+	clear();
     }
 
-    void clear() { 
-        super.clear();
-        nameGenerator.clear();
-        valueToExpression.clear();
-        targetToStatementList.clear();
+    void clear() {
+	super.clear();
+	nameGenerator.clear();
+	valueToExpression.clear();
+	targetToStatementList.clear();
     }
+	
 
     /**
      * This method calls <code>flush</code>, writes the closing
@@ -477,7 +486,7 @@ public class XMLEncoder extends Encoder {
                 out.write(' ');
             }
             out.write(exp.getBytes(encoding));
-            out.write(" \n".getBytes());
+            out.write(" \n".getBytes(encoding));
         }
         catch (IOException e) {
             getExceptionListener().exceptionThrown(e);
@@ -496,24 +505,36 @@ public class XMLEncoder extends Encoder {
         }
 
         ValueData d = getValueData(value);         
-        if (d.exp != null && d.exp.getTarget() instanceof Field && d.exp.getMethodName() == "get") {
-            Field f = (Field)d.exp.getTarget(); 
-            writeln("<object class=" + quote(f.getDeclaringClass().getName()) + " field=" + quote(f.getName()) + "/>");
-            return;
-        }        
-        
-        Class primitiveType = ReflectionUtils.primitiveTypeFor(value.getClass());
-        if (primitiveType != null && d.exp.getTarget() == value.getClass() && d.exp.getMethodName() == "new") {
-            String primitiveTypeName = primitiveType.getName();
-	    // Make sure that character types are quoted correctly.
-	    if (primitiveType == Character.TYPE) {
-		value = quoteCharacters(((Character)value).toString());
-	    }
-            writeln("<" + primitiveTypeName + ">" + value + "</" + primitiveTypeName + ">");
-            return;
-        }
+        if (d.exp != null) {
+	    Object target = d.exp.getTarget();
+	    String methodName = d.exp.getMethodName();
 
-        if (value instanceof String && d.exp == null) {
+	    if (target == null || methodName == null) {
+		throw new NullPointerException((target == null ? "target" : 
+						"methodName") + " should not be null");
+	    }
+
+	    if (target instanceof Field && methodName.equals("get")) {
+		Field f = (Field)target; 
+		writeln("<object class=" + quote(f.getDeclaringClass().getName()) + 
+			" field=" + quote(f.getName()) + "/>");
+		return;
+	    }
+        
+	    Class primitiveType = ReflectionUtils.primitiveTypeFor(value.getClass());
+	    if (primitiveType != null && target == value.getClass() && 
+		methodName.equals("new")) {
+		String primitiveTypeName = primitiveType.getName();
+		// Make sure that character types are quoted correctly.
+		if (primitiveType == Character.TYPE) {
+		    value = quoteCharacters(((Character)value).toString());
+		}
+		writeln("<" + primitiveTypeName + ">" + value + "</" + 
+			primitiveTypeName + ">");
+		return;
+	    }
+
+	} else if (value instanceof String) {
             writeln("<string>" + quoteCharacters((String)value) + "</string>");
             return;
         }
@@ -529,6 +550,12 @@ public class XMLEncoder extends Encoder {
     private void outputStatement(Statement exp, Object outer, boolean isArgument) {
         Object target = exp.getTarget();
         String methodName = exp.getMethodName();
+
+	if (target == null || methodName == null) {
+	    throw new NullPointerException((target == null ? "target" : 
+					    "methodName") + " should not be null");
+	}
+
         Object[] args = exp.getArguments();
         boolean expression = exp.getClass() == Expression.class;
         Object value = (expression) ? getValue((Expression)exp) : null;
@@ -538,7 +565,7 @@ public class XMLEncoder extends Encoder {
         ValueData d = getValueData(value);
         if (expression) {
             if (d.refs > 1) {
-                String instanceName = nameGenerator.instanceName(value); 
+                String instanceName = nameGenerator.instanceName(value);
                 d.name = instanceName;
                 attributes = attributes + " id=" + quote(instanceName);
             }
@@ -547,7 +574,7 @@ public class XMLEncoder extends Encoder {
         // Special cases for targets.
         if (target == outer) {
         }
-        else if (target == Array.class && methodName == "newInstance") {
+        else if (target == Array.class && methodName.equals("newInstance")) {
             tag = "array";
             attributes = attributes + " class=" + quote(((Class)args[0]).getName());
             attributes = attributes + " length=" + quote(args[1].toString());
@@ -565,18 +592,19 @@ public class XMLEncoder extends Encoder {
 
 
         // Special cases for methods.
-        if ((!expression && methodName == "set" && args.length == 2 && args[0] instanceof Integer) ||
-             (expression && methodName == "get" && args.length == 1 && args[0] instanceof Integer)) {
+        if ((!expression && methodName.equals("set") && args.length == 2 && 
+	     args[0] instanceof Integer) ||
+             (expression && methodName.equals("get") && args.length == 1 && 
+	      args[0] instanceof Integer)) {
             attributes = attributes + " index=" + quote(args[0].toString());
             args = (args.length == 1) ? new Object[]{} : new Object[]{args[1]};
-
         }
         else if ((!expression && methodName.startsWith("set") && args.length == 1) ||
-                  (expression && methodName.startsWith("get") && args.length == 0)) {
-            attributes = attributes + " property=" +  
-                quote(Introspector.decapitalize(methodName.substring(3))); 
+		 (expression && methodName.startsWith("get") && args.length == 0)) {
+	    attributes = attributes + " property=" + 
+		quote(Introspector.decapitalize(methodName.substring(3)));
         }
-        else if (methodName != "new" && methodName != "newInstance") {
+        else if (!methodName.equals("new") && !methodName.equals("newInstance")) {
             attributes = attributes + " method=" + quote(methodName);
         }
 

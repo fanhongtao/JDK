@@ -1,7 +1,7 @@
 /*
- * @(#)DSAParameterSpec.java	1.15 03/01/23
+ * @(#)DSAParameterSpec.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.math.BigInteger;
  * 
  * @author Jan Luehe
  *
- * @version 1.15, 01/23/03
+ * @version 1.16, 12/19/03
  *
  * @see AlgorithmParameterSpec
  *

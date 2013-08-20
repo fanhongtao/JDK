@@ -1,7 +1,7 @@
 /*
- * @(#)AttributedCharacterIterator.java	1.30 03/01/23
+ * @(#)AttributedCharacterIterator.java	1.32 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -180,7 +180,7 @@ public interface AttributedCharacterIterator extends CharacterIterator {
      * Returns the index of the first character of the run
      * with respect to the given attributes containing the current character.
      */
-    public int getRunStart(Set attributes);
+    public int getRunStart(Set<? extends Attribute> attributes);
 
     /**
      * Returns the index of the first character following the run
@@ -198,13 +198,13 @@ public interface AttributedCharacterIterator extends CharacterIterator {
      * Returns the index of the first character following the run
      * with respect to the given attributes containing the current character.
      */
-    public int getRunLimit(Set attributes);
+    public int getRunLimit(Set<? extends Attribute> attributes);
 
     /**
      * Returns a map with the attributes defined on the current
      * character.
      */
-    public Map getAttributes();
+    public Map<Attribute,Object> getAttributes();
 
     /**
      * Returns the value of the named attribute for the current character.
@@ -218,5 +218,5 @@ public interface AttributedCharacterIterator extends CharacterIterator {
      * iterator's text range. The set is empty if no
      * attributes are defined.
      */
-    public Set getAllAttributeKeys();
+    public Set<Attribute> getAllAttributeKeys();
 };

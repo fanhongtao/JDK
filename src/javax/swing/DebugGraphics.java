@@ -1,7 +1,7 @@
 /*
- * @(#)DebugGraphics.java	1.23 03/01/23
+ * @(#)DebugGraphics.java	1.25 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.text.AttributedCharacterIterator;
  * @see RepaintManager#currentManager
  * @see RepaintManager#setDoubleBufferingEnabled
  *
- * @version 1.23 01/23/03
+ * @version 1.25 12/19/03
  * @author Dave Karlton
  */
 public class DebugGraphics extends Graphics {
@@ -45,6 +45,10 @@ public class DebugGraphics extends Graphics {
     public static final int     BUFFERED_OPTION = 1 << 2;
     /** Don't debug graphics operations. */
     public static final int     NONE_OPTION = -1;
+
+    static {
+        JComponent.DEBUG_GRAPHICS_LOADED = true;
+    }
 
     /**
      * Constructs a new debug graphics context that supports slowed

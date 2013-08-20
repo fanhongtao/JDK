@@ -1,7 +1,7 @@
 /*
- * @(#)X509Certificate.java	1.35 03/01/23
+ * @(#)X509Certificate.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -80,7 +80,7 @@ import sun.security.x509.X509CertImpl;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.35
+ * @version 1.39
  *
  * @see Certificate
  * @see CertificateFactory
@@ -89,6 +89,8 @@ import sun.security.x509.X509CertImpl;
 
 public abstract class X509Certificate extends Certificate
 implements X509Extension {
+
+    private static final long serialVersionUID = -2491127588187038216L;
 
     private transient X500Principal subjectX500Principal, issuerX500Principal;
 
@@ -173,6 +175,12 @@ implements X509Extension {
     public abstract BigInteger getSerialNumber();
 
     /**
+     * <strong>Denigrated</strong>, replaced by {@linkplain
+     * #getIssuerX500Principal()}. This method returns the <code>issuer</code>
+     * as an implementation specific Principal object, which should not be
+     * relied upon by portable code.
+     *
+     * <p>
      * Gets the <code>issuer</code> (issuer distinguished name) value from 
      * the certificate. The issuer name identifies the entity that signed (and
      * issued) the certificate. 
@@ -211,8 +219,7 @@ implements X509Extension {
      * Returns the issuer (issuer distinguished name) value from the
      * certificate as an <code>X500Principal</code>. 
      * <p>
-     * It is recommended that subclasses override this method to provide 
-     * an efficient implementation.
+     * It is recommended that subclasses override this method.
      *
      * @return an <code>X500Principal</code> representing the issuer
      *		distinguished name
@@ -226,6 +233,12 @@ implements X509Extension {
     }
 
     /**
+     * <strong>Denigrated</strong>, replaced by {@linkplain
+     * #getSubjectX500Principal()}. This method returns the <code>subject</code>
+     * as an implementation specific Principal object, which should not be
+     * relied upon by portable code.
+     *
+     * <p>
      * Gets the <code>subject</code> (subject distinguished name) value 
      * from the certificate.  If the <code>subject</code> value is empty,
      * then the <code>getName()</code> method of the returned
@@ -249,8 +262,7 @@ implements X509Extension {
      * is empty, then the <code>getName()</code> method of the returned
      * <code>X500Principal</code> object returns an empty string ("").
      * <p>
-     * It is recommended that subclasses override this method to provide
-     * an efficient implementation.
+     * It is recommended that subclasses override this method.
      *
      * @return an <code>X500Principal</code> representing the subject
      *		distinguished name
@@ -467,7 +479,7 @@ implements X509Extension {
      * @throws CertificateParsingException if the extension cannot be decoded
      * @since 1.4
      */
-    public List getExtendedKeyUsage() throws CertificateParsingException {
+    public List<String> getExtendedKeyUsage() throws CertificateParsingException {
 	return X509CertImpl.getExtendedKeyUsage(this);
     }
 
@@ -565,7 +577,7 @@ implements X509Extension {
      * @throws CertificateParsingException if the extension cannot be decoded
      * @since 1.4
      */
-    public Collection getSubjectAlternativeNames()
+    public Collection<List<?>> getSubjectAlternativeNames()
 	throws CertificateParsingException {
 	return X509CertImpl.getSubjectAlternativeNames(this);
     }
@@ -607,7 +619,7 @@ implements X509Extension {
      * @throws CertificateParsingException if the extension cannot be decoded
      * @since 1.4
      */
-    public Collection getIssuerAlternativeNames()
+    public Collection<List<?>> getIssuerAlternativeNames()
 	throws CertificateParsingException {
 	return X509CertImpl.getIssuerAlternativeNames(this);
     }

@@ -1,14 +1,12 @@
 /*
- * @(#)InlineView.java	1.23 06/06/14
+ * @(#)InlineView.java	1.25 04/03/05
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
-import java.awt.Container;
-import java.awt.Shape;
-import java.awt.FontMetrics;
+import java.awt.*;
 import java.text.BreakIterator;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.*;
@@ -18,7 +16,7 @@ import javax.swing.text.*;
  * based upon css attributes.
  *
  * @author  Timothy Prinzing
- * @version 1.23 06/14/06
+ * @version 1.25 03/05/04
  */
 public class InlineView extends LabelView {
 
@@ -34,6 +32,40 @@ public class InlineView extends LabelView {
     }
 
     /**
+     * Gives notification that something was inserted into 
+     * the document in a location that this view is responsible for.
+     * If either parameter is <code>null</code>, behavior of this method is
+     * implementation dependent.
+     *  
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @since 1.5
+     * @see View#insertUpdate
+     */
+    public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	super.insertUpdate(e, a, f);
+        longestWordSpan = -1.0f;
+    }
+
+    /**
+     * Gives notification that something was removed from the document
+     * in a location that this view is responsible for.
+     * If either parameter is <code>null</code>, behavior of this method is
+     * implementation dependent. 
+     *
+     * @param e the change information from the associated document
+     * @param a the current allocation of the view
+     * @param f the factory to use to rebuild if the view has children
+     * @since 1.5
+     * @see View#removeUpdate
+     */
+    public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+        super.removeUpdate(e, a, f);
+        longestWordSpan = -1.0f;
+    }
+
+    /**
      * Gives notification from the document that attributes were changed
      * in a location that this view is responsible for.
      *
@@ -46,6 +78,7 @@ public class InlineView extends LabelView {
 	super.changedUpdate(e, a, f);
 	StyleSheet sheet = getStyleSheet();
 	attr = sheet.getViewAttributes(this);
+        longestWordSpan = -1.0f;
 	preferenceChanged(null, true, true);
     }
 
@@ -104,118 +137,90 @@ public class InlineView extends LabelView {
     }
 
     /**
+     * Tries to break this view on the given axis. Refer to
+     * {@link javax.swing.text.View#breakView} for a complete
+     * description of this method.
+     * <p>Behavior of this method is unspecified in case <code>axis</code>
+     * is neither <code>View.X_AXIS</code> nor <code>View.Y_AXIS</code>, and
+     * in case <code>offset</code>, <code>pos</code>, or <code>len</code>
+     * is null.
+     *   
+     * @param axis may be either <code>View.X_AXIS</code> or
+     *		<code>View.Y_AXIS</code>
+     * @param offset the location in the document model
+     *   that a broken fragment would occupy >= 0.  This
+     *   would be the starting offset of the fragment
+     *   returned
+     * @param pos the position along the axis that the
+     *  broken view would occupy >= 0.  This may be useful for
+     *  things like tab calculations
+     * @param len specifies the distance along the axis
+     *  where a potential break is desired >= 0
+     * @return the fragment of the view that represents the
+     *  given span.
+     * @since 1.5 
+     * @see javax.swing.text.View#breakView
+     */
+    public View breakView(int axis, int offset, float pos, float len) {
+        InlineView view = (InlineView)super.breakView(axis, offset, pos, len);
+        if (view != this) {
+            view.longestWordSpan = -1;
+        }
+        return view;
+    }
+
+    /**
      * Fetch the span of the longest word in the view.
      */
-   float getLongestWordSpan() {
-       if (longestWordSpan < 0.0f) {
-           longestWordSpan = calculateLongestWordSpan();
-       }
-       return longestWordSpan; 
-   }
-
-   float calculateLongestWordSpan() {
-       float rv = 0f;
-       Document doc = getDocument();
-       //AbstractDocument.MultiByteProperty
-       final Object MultiByteProperty = "multiByte";
-       if (doc != null && 
-             Boolean.TRUE.equals(doc.getProperty(MultiByteProperty))) {
-           rv = calculateLongestWordSpanUseBreakIterator();
-       } else {
-           rv = calculateLongestWordSpanUseWhitespace();
-       }
-       return rv;
-   }
-
-   float calculateLongestWordSpanUseBreakIterator() {
-       float span = 0;
-       Document doc = getDocument();
-       int p0 = getStartOffset();
-       int p1 = getEndOffset();
-       if (p1 > p0) {
-           try {
-               FontMetrics metrics = getFontMetrics();
-               Segment segment = new Segment();
-               doc.getText(p0, p1 - p0, segment);
-               Container c = getContainer();
-               BreakIterator line;
-               if (c != null) {
-                   line = BreakIterator.getLineInstance(c.getLocale());
-               } else {
-                   line = BreakIterator.getLineInstance();
-               }
-               line.setText(segment);
-               int start = line.first();
-               for (int end = line.next();
-                    end != BreakIterator.DONE;
-                    start = end, end = line.next()) {
-                   if (end > start) {
-                       span = Math.max(span,
-                           metrics.charsWidth(segment.array, start,
-                                              end - start)); 
-                   }
-               }
-           } catch (BadLocationException ble) {
-               // If the text can't be retrieved, it can't influence the size.
-           }
-       }
-       return span;
-   }
-
-   
-   float calculateLongestWordSpanUseWhitespace() {
-       float span = 0;
-       Document doc = getDocument();
-       int p0 = getStartOffset();
-       int p1 = getEndOffset();
-       if (p1 > p0) {
-           try {
-               Segment segment = new Segment();
-               doc.getText(p0, p1 - p0, segment);
-               final int CONTENT = 0;
-               final int SPACES = 1;
-               int state = CONTENT;
-               int start = segment.offset;
-               int end = start;
-               FontMetrics metrics = getFontMetrics();
-               final int lastIndex = segment.offset + segment.count - 1;
-               for (int i = segment.offset; i <= lastIndex; i++) {
-                   boolean updateSpan = false;
-                   if (Character.isWhitespace(segment.array[i])) {
-                       if (state == CONTENT) {
-                           //we got a word
-                           updateSpan = true;
-                           state = SPACES;
-                       }
-                   } else {
-                       if (state == SPACES) {
-                           //first non space
-                           start = i;
-                           end = start;
-                           state = CONTENT;
-                       } else {
-                           end = i;
-                       }
-                       //handle last word
-                       if (i == lastIndex) {
-                           updateSpan = true;
-                       }
-                   }
-                   if (updateSpan) {
-                       if (end > start) {
-                           span = Math.max(span,
-                               metrics.charsWidth(segment.array, start, 
-                                                  end - start + 1)); 
-                       }
-                   }
-
-               }
-           } catch (BadLocationException ble) {
-               // If the text can't be retrieved, it can't influence the size.
-           }
-       }
-       return span;
-   }
+    float getLongestWordSpan() {
+        if (longestWordSpan < 0.0f) {
+            longestWordSpan = calculateLongestWordSpan();
+        }
+        return longestWordSpan; 
+    }
+    
+    float calculateLongestWordSpan() {
+	// find the longest word
+	float span = 0;
+	try {
+	    Document doc = getDocument();
+	    int p0 = getStartOffset();
+	    int p1 = getEndOffset();
+	    if (p1 > p0) {
+		Segment segment = new Segment();
+		doc.getText(p0, p1 - p0, segment);
+		int word0 = p0;
+		int word1 = p0;
+                Container c = getContainer();
+                BreakIterator words;
+                if (c != null) {
+                    words = BreakIterator.getWordInstance(c.getLocale());
+                } else {
+                    words = BreakIterator.getWordInstance();
+                }
+		words.setText(segment);
+		int start = words.first();
+		for (int end = words.next(); end != BreakIterator.DONE;
+		     start = end, end = words.next()) {
+		    
+		    // update longest word boundary
+		    if ((end - start) > (word1 - word0)) {
+			word0 = start;
+			word1 = end;
+		    }
+		}
+		// calculate the minimum
+		if ((word1 - word0) > 0) {
+		    FontMetrics metrics = getFontMetrics();
+		    int offs = segment.offset + word0 - segment.getBeginIndex();
+		    span = metrics.charsWidth(segment.array, offs, word1 - word0);
+		}
+	    }
+	} catch (BadLocationException ble) {
+	    // If the text can't be retrieved, it can't influence the size.
+	}
+	return span;
+    }
     
     /**
      * Set the cached properties from the attributes.
@@ -242,6 +247,13 @@ public class InlineView extends LabelView {
 	} else {
 	    nowrap = false;
 	}
+
+	HTMLDocument doc = (HTMLDocument)getDocument();
+	// fetches background color from stylesheet if specified
+	Color bg = doc.getBackground(a);
+	if (bg != null) {
+	    setBackground(bg);
+	}
     }
 
 
@@ -253,5 +265,4 @@ public class InlineView extends LabelView {
     private boolean nowrap;
     private AttributeSet attr;
     private float longestWordSpan = -1.0f;
-
 }

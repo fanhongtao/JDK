@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationException.java	1.22 03/01/23
+ * @(#)ActivationException.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,14 +17,18 @@ package java.rmi.activation;
  * accessed via the {@link Throwable#getCause()} method, as well as
  * the aforementioned "legacy field."
  *
+ * <p>Invoking the method {@link Throwable#initCause(Throwable)} on an
+ * instance of <code>ActivationException</code> always throws {@link
+ * IllegalStateException}.
+ *
  * @author 	Ann Wollrath
- * @version	1.22, 01/23/03
+ * @version	1.24, 12/19/03
  * @since 	1.2
  */
 public class ActivationException extends Exception {
 
     /**
-     * Nested Exception to hold wrapped remote exceptions.
+     * The cause of the activation exception.
      *
      * <p>This field predates the general-purpose exception chaining facility.
      * The {@link Throwable#getCause()} method is now the preferred means of
@@ -38,19 +42,17 @@ public class ActivationException extends Exception {
     private static final long serialVersionUID = -4320118837291406071L;
 
     /**
-     * Constructs an <code>ActivationException</code> with no specified
-     * detail message.
-     * @since 1.2
+     * Constructs an <code>ActivationException</code>.
      */
     public ActivationException() {
         initCause(null);  // Disallow subsequent initCause
     }
 
     /**
-     * Constructs an <code>ActivationException</code> with detail
-     * message, <code>s</code>.
+     * Constructs an <code>ActivationException</code> with the specified
+     * detail message.
+     *
      * @param s the detail message
-     * @since 1.2
      */
     public ActivationException(String s) {
 	super(s);
@@ -58,25 +60,24 @@ public class ActivationException extends Exception {
     }
 
     /**
-     * Constructs an <code>ActivationException</code> with detail message,
-     * <code>s</code>, and detail exception <code>ex</code>.
+     * Constructs an <code>ActivationException</code> with the specified
+     * detail message and cause.  This constructor sets the {@link #detail}
+     * field to the specified <code>Throwable</code>.
      *
-     * @param s detail message
-     * @param ex detail exception
-     * @since 1.2
+     * @param s the detail message
+     * @param cause the cause
      */
-    public ActivationException(String s, Throwable ex) {
+    public ActivationException(String s, Throwable cause) {
 	super(s);
         initCause(null);  // Disallow subsequent initCause
-	detail = ex;
+	detail = cause;
     }
 
     /**
-     * Returns the detail message, including the message from the detail
-     * exception if there is one.
+     * Returns the detail message, including the message from the cause, if
+     * any, of this exception.
      *
-     * @return	the detail message, including detail exception message if any
-     * @since 1.2
+     * @return	the detail message
      */
     public String getMessage() {
 	if (detail == null) 
@@ -88,9 +89,10 @@ public class ActivationException extends Exception {
     }
 
     /**
-     * Returns the detail exception (the <i>cause</i>).
+     * Returns the cause of this exception.  This method returns the value
+     * of the {@link #detail} field.
      *
-     * @return  the detail exception, which may be <tt>null</tt>.
+     * @return  the cause, which may be <tt>null</tt>.
      * @since   1.4
      */
     public Throwable getCause() {

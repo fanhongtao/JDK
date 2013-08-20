@@ -1,7 +1,7 @@
 /*
- * @(#)InetAddress.java	1.102 07/09/06 
+ * @(#)InetAddress.java	1.109 04/04/19 
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,8 +14,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.security.AccessController;
 import java.io.ObjectStreamException;
+import java.io.IOException;
 import sun.security.action.*;
 import sun.net.InetAddressCachePolicy;
+import sun.net.util.IPAddressUtil;
 import sun.misc.Service;
 import sun.net.spi.nameservice.*;
 
@@ -133,7 +135,7 @@ import sun.net.spi.nameservice.*;
  * the number of seconds to cache the successful lookup.
  * <p>
  * A value of -1 indicates "cache forever".
- * </dt><p>
+ * </dd>
  * <p>
  * <dt><b>networkaddress.cache.negative.ttl</b> (default: 10)</dt>
  * <dd>Indicates the caching policy for un-successful name lookups
@@ -148,7 +150,7 @@ import sun.net.spi.nameservice.*;
  * </blockquote>
  *
  * @author  Chris Warth
- * @version 1.102, 09/06/07
+ * @version 1.109, 04/19/04
  * @see     java.net.InetAddress#getByAddress(byte[])
  * @see     java.net.InetAddress#getByAddress(java.lang.String, byte[])
  * @see     java.net.InetAddress#getAllByName(java.lang.String)
@@ -348,6 +350,72 @@ class InetAddress implements java.io.Serializable {
      */
     public boolean isMCOrgLocal() {
 	return false;
+    }
+
+
+    /**
+     * Test whether that address is reachable. Best effort is made by the
+     * implementation to try to reach the host, but firewalls and server
+     * configuration may block requests resulting in a unreachable status
+     * while some specific ports may be accessible.
+     * A typical implementation will use ICMP ECHO REQUESTs if the
+     * privilege can be obtained, otherwise it will try to establish
+     * a TCP connection on port 7 (Echo) of the destination host.
+     * <p>
+     * The timeout value, in milliseconds, indicates the maximum amount of time
+     * the try should take. If the operation times out before getting an
+     * answer, the host is deemed unreachable. A negative value will result
+     * in an IllegalArgumentException being thrown.
+     *
+     * @param	timeout	the time, in milliseconds, before the call aborts
+     * @return a <code>boolean</code> indicating if the address is reachable.
+     * @throws IOException if a network error occurs
+     * @throws  IllegalArgumentException if <code>timeout</code> is negative.
+     * @since 1.5
+     */
+    public boolean isReachable(int timeout) throws IOException {
+	return isReachable(null, 0 , timeout);
+    }
+
+    /**
+     * Test whether that address is reachable. Best effort is made by the
+     * implementation to try to reach the host, but firewalls and server
+     * configuration may block requests resulting in a unreachable status
+     * while some specific ports may be accessible.
+     * A typical implementation will use ICMP ECHO REQUESTs if the
+     * privilege can be obtained, otherwise it will try to establish
+     * a TCP connection on port 7 (Echo) of the destination host.
+     * <p>
+     * The <code>network interface</code> and <code>ttl</code> parameters
+     * let the caller specify which network interface the test will go through
+     * and the maximum number of hops the packets should go through.
+     * A negative value for the <code>ttl</code> will result in an
+     * IllegalArgumentException being thrown.
+     * <p>
+     * The timeout value, in milliseconds, indicates the maximum amount of time
+     * the try should take. If the operation times out before getting an
+     * answer, the host is deemed unreachable. A negative value will result
+     * in an IllegalArgumentException being thrown.
+     *
+     * @param	netif   the NetworkInterface through which the
+     *			  test will be done, or null for any interface
+     * @param	ttl	the maximum numbers of hops to try or 0 for the
+     *			default
+     * @param	timeout	the time, in milliseconds, before the call aborts
+     * @throws  IllegalArgumentException if either <code>timeout</code>
+     *				or <code>ttl</code> are negative.
+     * @return a <code>boolean</code>indicating if the address is reachable.
+     * @throws IOException if a network error occurs
+     * @since 1.5
+     */
+    public boolean isReachable(NetworkInterface netif, int ttl, 
+			       int timeout) throws IOException {
+	if (ttl < 0)
+	    throw new IllegalArgumentException("ttl can't be negative");
+	if (timeout < 0)
+	    throw new IllegalArgumentException("timeout can't be negative");
+
+	return impl.isReachable(this, timeout, netif, ttl);
     }
 
     /**
@@ -818,10 +886,7 @@ class InetAddress implements java.io.Serializable {
      * <p> The host name can either be a machine name, such as
      * "<code>java.sun.com</code>", or a textual representation of its IP
      * address.
-     *
-     * <p> For <code>host</code> specified in literal IPv6 address,
-     * either the form defined in RFC 2732 or the literal IPv6 address
-     * format defined in RFC 2373 is accepted.
+     * <p> No validity checking is done on the host name either.
      *
      * <p> If addr specifies an IPv4 address an instance of Inet4Address 
      * will be returned; otherwise, an instance of Inet6Address 
@@ -848,16 +913,17 @@ class InetAddress implements java.io.Serializable {
 		return new Inet4Address(host, addr);
 	    } else if (addr.length == Inet6Address.INADDRSZ) {
 		byte[] newAddr 
-		    = Inet6Address.convertFromIPv4MappedAddress(addr);
+		    = IPAddressUtil.convertFromIPv4MappedAddress(addr);
 		if (newAddr != null) {
 		    return new Inet4Address(host, newAddr);
 		} else {
-		    return new Inet6Address(host, addr);
+		    return new Inet6Address(host, addr); 
 		}
 	    } 
 	} 
 	throw new UnknownHostException("addr is of illegal length");
     }
+
 
     /**
      * Determines the IP address of a host, given the host's name.
@@ -869,7 +935,9 @@ class InetAddress implements java.io.Serializable {
      *
      * <p> For <code>host</code> specified in literal IPv6 address,
      * either the form defined in RFC 2732 or the literal IPv6 address
-     * format defined in RFC 2373 is accepted.
+     * format defined in RFC 2373 is accepted. IPv6 scoped addresses are also
+     * supported. See <a href="Inet6Address.html#scoped">here</a> for a description of IPv6
+     * scoped addresses.
      *
      * <p> If the host is <tt>null</tt> then an <tt>InetAddress</tt>
      * representing an address of the loopback interface is returned.
@@ -880,19 +948,14 @@ class InetAddress implements java.io.Serializable {
      * @param      host   the specified host, or <code>null</code>.
      * @return     an IP address for the given host name.
      * @exception  UnknownHostException  if no IP address for the
-     *               <code>host</code> could be found.
+     *               <code>host</code> could be found, or if a scope_id was specified
+     *		     for a global IPv6 address.
      * @exception  SecurityException if a security manager exists
      *             and its checkConnect method doesn't allow the operation
      */
     public static InetAddress getByName(String host)
 	throws UnknownHostException {
 	return InetAddress.getAllByName(host)[0];
-    }
-
-    // called from deployment cache manager
-    private static InetAddress getByName(String host, InetAddress reqAddr)
-        throws UnknownHostException {
-        return InetAddress.getAllByName(host, reqAddr)[0];
     }
 
     /**
@@ -904,10 +967,12 @@ class InetAddress implements java.io.Serializable {
      * address. If a literal IP address is supplied, only the
      * validity of the address format is checked.
      *
-     * <p> For <code>host</code> specified in literal IPv6 address,
+     * <p> For <code>host</code> specified in <i>literal IPv6 address</i>,
      * either the form defined in RFC 2732 or the literal IPv6 address
-     * format defined in RFC 2373 is accepted.
-     *
+     * format defined in RFC 2373 is accepted. A literal IPv6 address may
+     * also be qualified by appending a scoped zone identifier or scope_id.
+     * The syntax and usage of scope_ids is described 
+     * <a href="Inet6Address.html#scoped">here</a>.
      * <p> If the host is <tt>null</tt> then an <tt>InetAddress</tt>
      * representing an address of the loopback interface is returned.
      * See <a href="http://www.ietf.org/rfc/rfc3330.txt">RFC&nbsp;3330</a>
@@ -925,7 +990,8 @@ class InetAddress implements java.io.Serializable {
      * @return     an array of all the IP addresses for a given host name.
      * 
      * @exception  UnknownHostException  if no IP address for the
-     *               <code>host</code> could be found.
+     *               <code>host</code> could be found, or if a scope_id was specified
+     *		     for a global IPv6 address.
      * @exception  SecurityException  if a security manager exists and its  
      *               <code>checkConnect</code> method doesn't allow the operation.
      * 
@@ -933,11 +999,6 @@ class InetAddress implements java.io.Serializable {
      */
     public static InetAddress[] getAllByName(String host)
 	throws UnknownHostException {
-        return getAllByName(host, null);
-    }
-
-    private static InetAddress[] getAllByName(String host, InetAddress reqAddr)
-        throws UnknownHostException {
 
 	if (host == null || host.length() == 0) {
 	    InetAddress[] ret = new InetAddress[1];
@@ -961,11 +1022,21 @@ class InetAddress implements java.io.Serializable {
 	if (Character.digit(host.charAt(0), 16) != -1 
 	    || (host.charAt(0) == ':')) {
 	    byte[] addr = null;
+	    int numericZone = -1;
+	    String ifname = null;
 	    // see if it is IPv4 address
-	    addr = Inet4Address.textToNumericFormat(host);
+	    addr = IPAddressUtil.textToNumericFormatV4(host);
 	    if (addr == null) {
 		// see if it is IPv6 address
-		addr = Inet6Address.textToNumericFormat(host);
+		// Check if a numeric or string zone id is present
+		int pos;
+		if ((pos=host.indexOf ("%")) != -1) {
+		    numericZone = checkNumericZone (host);
+		    if (numericZone == -1) { /* remainder of string must be an ifname */
+			ifname = host.substring (pos+1);
+		    }
+		} 
+		addr = IPAddressUtil.textToNumericFormatV6(host);
 	    } else if (ipv6Expected) {
 		// Means an IPv4 litteral between brackets!
 		throw new UnknownHostException("["+host+"]");
@@ -975,7 +1046,11 @@ class InetAddress implements java.io.Serializable {
 		if (addr.length == Inet4Address.INADDRSZ) {
 		    ret[0] = new Inet4Address(null, addr);
 		} else {
-		    ret[0] = new Inet6Address(null, addr);
+		    if (ifname != null) {
+		    	ret[0] = new Inet6Address(null, addr, ifname);
+		    } else {
+		    	ret[0] = new Inet6Address(null, addr, numericZone);
+		    }
 		}
 		return ret;
 	    }
@@ -983,7 +1058,38 @@ class InetAddress implements java.io.Serializable {
 		// We were expecting an IPv6 Litteral, but got something else
 		throw new UnknownHostException("["+host+"]");
 	    }
-	return getAllByName0(host, reqAddr, true);
+	return getAllByName0(host);
+    }
+
+    /**
+     * check if the literal address string has %nn appended
+     * returns -1 if not, or the numeric value otherwise.
+     * 
+     * %nn may also be a string that represents the displayName of
+     * a currently available NetworkInterface. 
+     */
+    private static int checkNumericZone (String s) throws UnknownHostException {
+	int percent = s.indexOf ('%');
+	int slen = s.length();
+	int digit, zone=0;
+	if (percent == -1) {
+	    return -1;
+	}
+	for (int i=percent+1; i<slen; i++) {
+	    char c = s.charAt(i);
+	    if (c == ']') {
+		if (i == percent+1) {
+		    /* empty per-cent field */
+		    return -1;
+		}
+		break;
+	    }
+	    if ((digit = Character.digit (c, 10)) < 0) {
+		return -1;
+	    }
+	    zone = (zone * 10) + digit;
+	}
+	return zone;
     }
 
     private static InetAddress[] getAllByName0 (String host)
@@ -997,12 +1103,6 @@ class InetAddress implements java.io.Serializable {
      */
     static InetAddress[] getAllByName0 (String host, boolean check)
 	throws UnknownHostException  {
-        return getAllByName0 (host, null, check);
-    }
-
-    private static InetAddress[] getAllByName0 (String host, InetAddress reqAddr, boolean check)
-        throws UnknownHostException  {
-
 	/* If it gets here it is presumed to be a hostname */
 	/* Cache.get can return: null, unknownAddress, or InetAddress[] */
         Object obj = null;
@@ -1023,7 +1123,7 @@ class InetAddress implements java.io.Serializable {
 	/* If no entry in cache, then do the host lookup */
 	if (obj == null) {
 	    try {
-	        obj = getAddressFromNameService(host, reqAddr);
+	        obj = getAddressFromNameService(host);
 	    } catch (UnknownHostException uhe) {
 		throw new UnknownHostException(host + ": " + uhe.getMessage());
 	    }
@@ -1038,7 +1138,7 @@ class InetAddress implements java.io.Serializable {
 	return (InetAddress [])objcopy;
     }
 
-    private static Object getAddressFromNameService(String host, InetAddress reqAddr)
+    private static Object getAddressFromNameService(String host) 
 	throws UnknownHostException 
     {
 	Object obj = null;
@@ -1082,7 +1182,7 @@ class InetAddress implements java.io.Serializable {
 		    if (addr.length == Inet4Address.INADDRSZ) {
 			addr_array[i] = new Inet4Address(host, addr);
 		    } else {
-			addr_array[i] = new Inet6Address(host, addr);
+			addr_array[i] = new Inet6Address(host, addr, -1);
 		    }
 		}
 		obj = addr_array;
@@ -1092,27 +1192,6 @@ class InetAddress implements java.io.Serializable {
 		success = false;
 		throw uhe;
 	    } finally {
-                // More to do?
-                InetAddress[] addrs = (InetAddress[])obj;
-                if (reqAddr != null && addrs.length > 1 && !addrs[0].equals(reqAddr)) {
-                    // Find it?
-                    int i = 1;
-                    for (; i < addrs.length; i++) {
-                        if (addrs[i].equals(reqAddr)) {
-                            break;
-                        }
-                    }
-                    // Rotate
-                    if (i < addrs.length) {
-                        InetAddress tmp, tmp2 = reqAddr;
-                        for (int j = 0; j < i; j++) {
-                            tmp = addrs[j];
-                            addrs[j] = tmp2;
-                            tmp2 = tmp;
-                        }
-                        addrs[i] = tmp2;
-                    }
-                }
 		// Cache the address.
 		cacheAddress(host, obj, success);
 		// Delete the host from the lookupTable, and
@@ -1224,7 +1303,7 @@ class InetAddress implements java.io.Serializable {
 	    InetAddress[] localAddrs;
 	    try {
 		localAddrs =
-		    (InetAddress[]) InetAddress.getAddressFromNameService(local, null);
+		    (InetAddress[]) InetAddress.getAddressFromNameService(local);
 	    } catch (UnknownHostException uhe) {
 		throw new UnknownHostException(local + ": " + uhe.getMessage());
 	    }
@@ -1308,6 +1387,5 @@ class InetAddressImplFactory {
 	return (InetAddressImpl)o;
     }
 
-    private static native boolean isIPv6Supported();
+    static native boolean isIPv6Supported();
 }
-

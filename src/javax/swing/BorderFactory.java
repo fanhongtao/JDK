@@ -1,7 +1,7 @@
 /*
- * @(#)BorderFactory.java	1.27 03/01/23
+ * @(#)BorderFactory.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -20,7 +20,7 @@ import javax.swing.border.*;
  to Use Borders</a>,
  * a section in <em>The Java Tutorial</em>.
  *
- * @version 1.27 01/23/03
+ * @version 1.30 12/19/03
  * @author David Kloba
  */
 public class BorderFactory 
@@ -131,6 +131,9 @@ public class BorderFactory
      * Creates a beveled border of the specified type, using
      * the specified colors for the inner and outer highlight
      * and shadow areas. 
+     * <p>
+     * Note: The shadow inner and outer colors are
+     * switched for a lowered bevel border.
      * 
      * @param type  an integer specifying either 
      *		<code>BevelBorder.LOWERED</code> or
@@ -416,9 +419,9 @@ public class BorderFactory
      *			in pixels
      * @param left    an integer specifying the width of the left side,
      *			in pixels
-     * @param bottom  an integer specifying the width of the right side,
+     * @param bottom  an integer specifying the width of the bottom,
      *			in pixels
-     * @param right   an integer specifying the width of the bottom,
+     * @param right   an integer specifying the width of the right side,
      *			in pixels
      * @return the <code>Border</code> object
      */

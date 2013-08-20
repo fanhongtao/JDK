@@ -1,7 +1,7 @@
 /*
- * @(#)EventObject.java	1.11 03/01/23
+ * @(#)EventObject.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -33,6 +33,8 @@ package sunw.util;
  */
 
 public class EventObject extends java.util.EventObject {
+
+    private static final long serialVersionUID = 6723767567830330255L;
 
     public EventObject(Object source) {
 	super(source);

@@ -1,23 +1,20 @@
 /*
- * @(#)StyledParagraph.java	1.4 99/12/14
+ * @(#)StyledParagraph.java	1.8 03/08/18
  * (C) Copyright IBM Corp. 1999,  All rights reserved.
  */
 package java.awt.font;
 
-import java.text.AttributedCharacterIterator;
-import java.text.Annotation;
-
 import java.awt.Font;
 import java.awt.Toolkit;
-import sun.awt.font.Decoration;
-
+import java.awt.im.InputMethodHighlight;
+import java.text.Annotation;
+import java.text.AttributedCharacterIterator;
 import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Map;
-import java.text.AttributedCharacterIterator;
-
-import sun.awt.font.FontResolver;
-import java.awt.im.InputMethodHighlight;
+import sun.font.Decoration;
+import sun.font.FontResolver;
+import sun.text.CodePointIterator;
 
 /**
  * This class stores Font, GraphicAttribute, and Decoration intervals 
@@ -393,16 +390,11 @@ final class StyledParagraph {
     private void addFonts(char[] chars, Map attributes, int start, int limit) {
     
         FontResolver resolver = FontResolver.getInstance();
-        do {
-            int runStart = start;
-            int fontIndex = resolver.getFontIndex(chars[start]);
-            for (start++; start < limit; start++) {
-                if (resolver.getFontIndex(chars[start]) != fontIndex) {
-                    break;
-                }
-            }
+	CodePointIterator iter = CodePointIterator.create(chars, start, limit);
+	for (int runStart = iter.charIndex(); runStart < limit; runStart = iter.charIndex()) {
+	    int fontIndex = resolver.nextFontRunIndex(iter);
             addFont(resolver.getFont(fontIndex, attributes), runStart);
-        } while (start < limit);
+        }
     }
     
     /**

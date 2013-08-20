@@ -1,29 +1,31 @@
+// $Id: SAXSource.java,v 1.7.14.1.2.2 2004/07/13 22:27:50 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)SAXSource.java	1.13 03/01/23
+ * @(#)SAXSource.java	1.15 04/07/13
  */
 package javax.xml.transform.sax;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
-import java.lang.String;
-
-import java.io.OutputStream;
-import java.io.Writer;
-
-import org.xml.sax.XMLReader;
-import org.xml.sax.ext.DeclHandler;
-import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.InputSource;
-
+import org.xml.sax.XMLReader;
 
 /**
- * Acts as an holder for SAX-style Source.
+ * <p>Acts as an holder for SAX-style Source.</p>
+ * 
+ * <p>Note that XSLT requires namespace support. Attempting to transform an
+ * input source that is not
+ * generated with a namespace-aware parser may result in errors.
+ * Parsers can be made namespace aware by calling the
+ * {@link javax.xml.parsers.SAXParserFactory#setNamespaceAware(boolean awareness)} method.</p>
+ * 
+ * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @version $Revision: 1.7.14.1.2.2 $, $Date: 2004/07/13 22:27:50 $
  */
 public class SAXSource implements Source {
 
@@ -36,12 +38,16 @@ public class SAXSource implements Source {
         "http://javax.xml.transform.sax.SAXSource/feature";
 
     /**
-     * Zero-argument default constructor.  If this constructor
-     * is used, and no other method is called, the
-     * {@link javax.xml.transform.Transformer}
-     * assumes an empty input tree, with a default root node.
+     * <p>Zero-argument default constructor.  If this constructor is used, and
+     * no SAX source is set using
+     * {@link #setInputSource(InputSource inputSource)} , then the
+     * <code>Transformer</code> will
+     * create an empty source {@link org.xml.sax.InputSource} using
+     * {@link org.xml.sax.InputSource#InputSource() new InputSource()}.</p>
+     *
+     * @see javax.xml.transform.Transformer#transform(Source xmlSource, Result outputTarget)
      */
-    public SAXSource() {}
+    public SAXSource() { }
 
     /**
      * Create a <code>SAXSource</code>, using an {@link org.xml.sax.XMLReader}
@@ -135,26 +141,33 @@ public class SAXSource implements Source {
     }
 
     /**
-     * Get the base ID (URI or system ID) from where URIs
-     * will be resolved.
+     * <p>Get the base ID (URI or system ID) from where URIs
+     * will be resolved.</p>
      *
-     * @return Base URL for the Source, or null.
+     * @return Base URL for the <code>Source</code>, or <code>null</code>.
      */
     public String getSystemId() {
 
-        return (null != inputSource)
-               ? inputSource.getSystemId()
-               : null;
+        if (inputSource == null) {
+            return null;
+        } else {
+            return inputSource.getSystemId();
+        }
     }
 
-    /** The XMLReader to be used for the source tree input. May be null.        */
+    /**
+     * The XMLReader to be used for the source tree input. May be null.
+     */
     private XMLReader reader;
 
-    /** The SAX InputSource to be used for the source tree input.  Should not be null. */
+    /**
+     * <p>The SAX InputSource to be used for the source tree input.
+     * Should not be <code>null<code>.</p>
+     */
     private InputSource inputSource;
 
     /**
-     * Attempt to obtain a SAX InputSource object from a TrAX Source
+     * Attempt to obtain a SAX InputSource object from a Source
      * object.
      *
      * @param source Must be a non-null Source reference.

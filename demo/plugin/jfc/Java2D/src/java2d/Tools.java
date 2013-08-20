@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)Tools.java	1.40 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)Tools.java	1.36 03/01/23
+ * @(#)Tools.java	1.37 03/10/26
  */
 
 package java2d;
@@ -47,6 +48,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 import java.net.URL;
+import java.text.DecimalFormat;
 
 
 /**
@@ -58,21 +60,23 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
 
     private ImageIcon stopIcon, startIcon;
     private Font font = new Font("serif", Font.PLAIN, 10);
-    private Color roColor = new Color(204, 204, 255);
+    private Color roColor = new Color(187, 213, 238); 
     private Surface surface;
     private Thread thread;
     private JPanel toolbarPanel;
     private JPanel sliderPanel;
     private JLabel label;
     private ToggleIcon bumpyIcon, rolloverIcon;
+    
+    private DecimalFormat decimalFormat = new DecimalFormat("000"); 
 
     protected boolean focus;
 
-    public JButton toggleB;
+    public JToggleButton toggleB;
     public JButton printB;
     public JComboBox screenCombo;
-    public JButton renderB, aliasB;
-    public JButton textureB, compositeB;
+    public JToggleButton renderB, aliasB; 
+    public JToggleButton textureB, compositeB; 
     public JButton startStopB;
     public JButton cloneB;
     public boolean issueRepaint = true;
@@ -83,14 +87,13 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
 
     public Tools(Surface surface) {
         this.surface = surface;
-        setBackground(Color.gray);
         setLayout(new BorderLayout());
 
         stopIcon = new ImageIcon(DemoImages.getImage("stop.gif", this));
         startIcon = new ImageIcon(DemoImages.getImage("start.gif",this));
         bumpyIcon = new ToggleIcon(this, Color.lightGray);
         rolloverIcon = new ToggleIcon(this, roColor);
-        toggleB = new JButton(bumpyIcon);
+        toggleB = new JToggleButton(bumpyIcon);
         toggleB.addMouseListener(this);
         isExpanded = false;
         toggleB.addActionListener(this);
@@ -103,7 +106,7 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
 
 
         toolbar = new JToolBar();
-        toolbar.setPreferredSize(new Dimension(100, 26));
+        toolbar.setPreferredSize(new Dimension(112, 26));
         toolbar.setFloatable(false);
 
         String s = surface.AntiAlias == RenderingHints.VALUE_ANTIALIAS_ON 
@@ -120,11 +123,13 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
         s = surface.composite != null ? "On" : "Off";
         compositeB = addTool("C", "Composite " + s, this);
 
-        printB = addTool("print.gif", "Print the Surface", this);
+        Image printBImg = DemoImages.getImage("print.gif", this);
+        printB = addTool(printBImg, "Print the Surface", this);
 
         if (surface instanceof AnimatingSurface) {
-            startStopB = addTool("stop.gif", "Stop Animation", this);
-            toolbar.setPreferredSize(new Dimension(122, 26));
+            Image stopImg = DemoImages.getImage("stop.gif", this);
+            startStopB = addTool(stopImg, "Stop Animation", this);
+            toolbar.setPreferredSize(new Dimension(132, 26));
         }
 
         screenCombo = new JComboBox();
@@ -135,29 +140,23 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
         } 
         screenCombo.addActionListener(this);
         toolbarPanel = new JPanel(new FlowLayout(FlowLayout.CENTER,5,0));
-        toolbarPanel.setBackground(Color.gray);
         toolbarPanel.setLocation(0,6);
         toolbarPanel.setVisible(false);
         toolbarPanel.add(toolbar);
         toolbarPanel.add(screenCombo);
+        toolbarPanel.setBorder(new EtchedBorder());
         add(toolbarPanel);
 
-        setPreferredSize(new Dimension(200,6));
+        setPreferredSize(new Dimension(200,8));
 
         if (surface instanceof AnimatingSurface) {
-            sliderPanel = new JPanel(new GridLayout(0,2,5,5));
-            sliderPanel.setBackground(Color.gray);
-            label = new JLabel("sleep = 30 ms");
+            sliderPanel = new JPanel(new BorderLayout());
+            label = new JLabel(" Sleep = 030 ms");
             label.setForeground(Color.black);
-            sliderPanel.add(label);
+            sliderPanel.add(label, BorderLayout.WEST);
             slider = new JSlider(JSlider.HORIZONTAL, 0, 200, 30);
-            slider.setBackground(Color.gray);
             slider.addChangeListener(this);
-            TitledBorder tb = new TitledBorder(new EtchedBorder());
-            tb.setTitleFont(new Font("serif", Font.PLAIN, 8));
-            tb.setTitle("sleep = 30 ms");
-            EmptyBorder eb = new EmptyBorder(4,5,4,5);
-            slider.setBorder(new CompoundBorder(eb, new EtchedBorder()));
+            sliderPanel.setBorder(new EtchedBorder());
             sliderPanel.add(slider);
 
             addMouseListener(new MouseAdapter() {
@@ -180,30 +179,40 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
     }
 
 
-    public JButton addTool(String name, 
+    public JButton addTool(Image img,
                            String toolTip,
                            ActionListener al) {
         JButton b = null;
-        if (name.indexOf(".") == -1) {
-            b = (JButton) toolbar.add(new JButton(name));
-            if (toolTip.equals("Rendering Quality") ||
-                    toolTip.equals("Antialiasing On") ||
-                        toolTip.equals("Texture On")  ||
-                            toolTip.equals("Composite On")) {
-                b.setBackground(Color.green);
-                b.setSelected(true);
-            } else {
-                b.setBackground(Color.lightGray);
-                b.setSelected(false);
-            }
-            b.setPreferredSize(new Dimension(18, 22));
-            b.setMaximumSize(new Dimension(18, 22));
-            b.setMinimumSize(new Dimension(18, 22));
-        } else {
-            Image img = DemoImages.getImage(name, this);
-            b = (JButton) toolbar.add(new JButton(new ImageIcon(img)));
+        b = (JButton) toolbar.add(new JButton(new ImageIcon(img)));
+        b.setFocusPainted(false);
+        b.setSelected(true);
+        Dimension prefSize = new Dimension(21, 22);
+        b.setPreferredSize(prefSize);
+        b.setMaximumSize(prefSize);
+        b.setMinimumSize(prefSize);
+        b.setToolTipText(toolTip);
+        b.addActionListener(al);
+        return b;
+    }
+
+    public JToggleButton addTool(String name,
+                                 String toolTip,
+                                 ActionListener al) {
+        JToggleButton b = null;
+        b = (JToggleButton) toolbar.add(new JToggleButton(name));
+        b.setFocusPainted(false);
+        if (toolTip.equals("Rendering Quality") ||
+            toolTip.equals("Antialiasing On") ||
+            toolTip.equals("Texture On")  ||
+            toolTip.equals("Composite On")) {
             b.setSelected(true);
+        } else {
+            b.setSelected(false);
         }
+        Dimension prefSize = new Dimension(21, 22);
+        b.setPreferredSize(prefSize);
+        b.setMaximumSize(prefSize);
+        b.setMinimumSize(prefSize);
         b.setToolTipText(toolTip);
         b.addActionListener(al);
         return b;
@@ -298,7 +307,7 @@ public class Tools extends JPanel implements ActionListener, ChangeListener, Mou
 
     public void stateChanged(ChangeEvent e) {
         int value = slider.getValue();
-        label.setText("sleep = " + String.valueOf(value) + " ms");
+        label.setText(" Sleep = " + decimalFormat.format(value) + " ms");
         label.repaint();
         surface.setSleepAmount(value);
     }

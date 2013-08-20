@@ -1,7 +1,7 @@
 /*
- * @(#)AWTPermission.java	1.24 03/01/28
+ * @(#)AWTPermission.java	1.28 04/04/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -110,6 +110,32 @@ import java.security.BasicPermission;
  * disabling this warning banner may allow applets to trick the user
  * into entering such information.</td>
  * </tr>
+ *
+ * <tr>
+ *   <td>watchMousePointer</td>
+ *   <td>Getting the information about the mouse pointer position at any
+ * time</td>
+ *   <td>Constantly watching the mouse pointer,
+ * an applet can make guesses about what the user is doing, i.e. moving
+ * the mouse to the lower left corner of the screen most likely means that
+ * the user is about to launch an application. If a virtual keypad is used
+ * so that keyboard is emulated using the mouse, an applet may guess what
+ * is being typed.</td>
+ * </tr>
+ * 
+ * <tr>
+ *   <td>setWindowAlwaysOnTop</td>
+ *   <td>Setting always-on-top property of the window: {@link Window#setAlwaysOnTop}</td>
+ *   <td>The malicious window might make itself look and behave like a real full desktop, so that
+ * information entered by the unsuspecting user is captured and subsequently misused </td> 
+ * </tr>
+ *
+ * <tr>
+ *   <td>setAppletStub</td>
+ *   <td>Setting the stub which implements Applet container services</td>
+ *   <td>Malicious code could set an applet's stub and result in unexpected
+ * behavior or denial of service to an applet.</td>
+ * </tr>
  * </table>
  *
  * @see java.security.BasicPermission
@@ -118,7 +144,7 @@ import java.security.BasicPermission;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 	1.24, 01/28/03
+ * @version 	1.28, 04/21/04
  *
  * @author Marianne Mueller
  * @author Roland Schemers

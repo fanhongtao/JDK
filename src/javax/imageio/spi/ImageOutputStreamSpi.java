@@ -1,7 +1,7 @@
 /*
- * @(#)ImageOutputStreamSpi.java	1.17 03/01/23
+ * @(#)ImageOutputStreamSpi.java	1.19 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ public abstract class ImageOutputStreamSpi extends IIOServiceProvider {
      * A <code>Class</code> object indicating the legal object type
      * for use by the <code>createInputStreamInstance</code> method.
      */
-    protected Class outputClass;
+    protected Class<?> outputClass;
 
     /**
      * Constructs a blank <code>ImageOutputStreamSpi</code>.  It is up
@@ -70,7 +70,7 @@ public abstract class ImageOutputStreamSpi extends IIOServiceProvider {
     */
     public ImageOutputStreamSpi(String vendorName,
                                 String version,
-                                Class outputClass) {
+                                Class<?> outputClass) {
         super(vendorName, version);
         this.outputClass = outputClass;
     }
@@ -90,7 +90,7 @@ public abstract class ImageOutputStreamSpi extends IIOServiceProvider {
      *
      * @see #createOutputStreamInstance(Object, boolean, File)
      */
-    public Class getOutputClass() {
+    public Class<?> getOutputClass() {
         return outputClass;
     }
 

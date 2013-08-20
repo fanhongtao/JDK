@@ -1,7 +1,7 @@
 /*
- * @(#)IIOMetadataFormatImpl.java	1.25 03/01/23
+ * @(#)IIOMetadataFormatImpl.java	1.28 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -483,7 +483,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
                                 int dataType,
                                 boolean required,
                                 String defaultValue,
-                                List enumeratedValues) {
+                                List<String> enumeratedValues) {
         Element element = getElement(elementName);
         if (attrName == null) {
             throw new IllegalArgumentException("attrName == null!");
@@ -716,10 +716,11 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * @exception IllegalArgumentException if <code>elementName</code>
      * is <code>null</code>, or is not a legal element name for this format.
      */
-    protected void addObjectValue(String elementName,
-                                  Class classType,
-                                  boolean required,
-                                  Object defaultValue) {
+    protected <T> void addObjectValue(String elementName,
+				      Class<T> classType,
+				      boolean required,
+				      T defaultValue)
+    {
         Element element = getElement(elementName);
         ObjectValue obj = new ObjectValue();
         obj.valueType = VALUE_ARBITRARY;
@@ -760,11 +761,12 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * an instance of the class type denoted by <code>classType</code>
      * or is <code>null</code>.
      */
-    protected void addObjectValue(String elementName,
-                                  Class classType,
-                                  boolean required,
-                                  Object defaultValue,
-                                  List enumeratedValues) {
+    protected <T> void addObjectValue(String elementName,
+				      Class<T> classType,
+				      boolean required,
+				      T defaultValue,
+				      List<? extends T> enumeratedValues)
+    {
         Element element = getElement(elementName);
         if (enumeratedValues == null) {
             throw new IllegalArgumentException("enumeratedValues == null!");
@@ -822,13 +824,15 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * is <code>null</code>, or is not a legal element name for this
      * format.
      */
-    protected void addObjectValue(String elementName,
-                                  Class classType,
-                                  Object defaultValue,
-                                  Comparable minValue,
-                                  Comparable maxValue,
-                                  boolean minInclusive,
-                                  boolean maxInclusive) {
+    protected <T extends Object & Comparable<? super T>> void
+	addObjectValue(String elementName,
+		       Class<T> classType,
+		       T defaultValue,
+		       Comparable<? super T> minValue,
+		       Comparable<? super T> maxValue,
+		       boolean minInclusive,
+		       boolean maxInclusive)
+    {
         Element element = getElement(elementName);
         ObjectValue obj = new ObjectValue();
         obj.valueType = VALUE_RANGE;
@@ -867,7 +871,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * not a legal element name for this format.
      */
     protected void addObjectValue(String elementName,
-                                  Class classType,
+                                  Class<?> classType,
                                   int arrayMinLength,
                                   int arrayMaxLength) {
         Element element = getElement(elementName);
@@ -929,9 +933,36 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         if (locale == null) {
             locale = Locale.getDefault();
         }
+
+        /**
+         * If an applet supplies an implementation of IIOMetadataFormat and
+         * resource bundles, then the resource bundle will need to be
+         * accessed via the applet class loader. So first try the context
+         * class loader to locate the resource bundle.
+         * If that throws MissingResourceException, then try the
+         * system class loader.
+         */
+        ClassLoader loader = (ClassLoader)
+            java.security.AccessController.doPrivileged(
+                new java.security.PrivilegedAction() {
+                   public Object run() {
+                       return Thread.currentThread().getContextClassLoader();
+                   }
+            });
+
+        ResourceBundle bundle = null;
         try {
-            ResourceBundle bundle =
-                ResourceBundle.getBundle(resourceBaseName, locale);
+            bundle = ResourceBundle.getBundle(resourceBaseName,
+                                              locale, loader);
+        } catch (MissingResourceException mre) {
+            try {
+                bundle = ResourceBundle.getBundle(resourceBaseName, locale);
+            } catch (MissingResourceException mre1) {
+                return null;
+            }
+        }
+
+        try {
             return bundle.getString(key);
         } catch (MissingResourceException e) {
             return null;
@@ -1087,7 +1118,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * <code>Locale</code>, using the fallback mechanism described in
      * the comments for <code>ResourceBundle.getBundle</code>.  If a
      * <code>ResourceBundle</code> is found, the element name followed
-     * by a "/" character followed by the attribite name
+     * by a "/" character followed by the attribute name
      * (<code>elementName + "/" + attrName</code>) will be used as a
      * key to its <code>getString</code> method, and the result
      * returned.  If no <code>ResourceBundle</code> is found, or no
@@ -1147,7 +1178,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         return objv.valueType;
     }
 
-    public Class getObjectClass(String elementName) {
+    public Class<?> getObjectClass(String elementName) {
         ObjectValue objv = getObjectValue(elementName);
         return objv.classType;
     }
@@ -1167,7 +1198,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         return vlist.toArray(values);
     }
 
-    public Comparable getObjectMinValue(String elementName) {
+    public Comparable<?> getObjectMinValue(String elementName) {
         ObjectValue objv = getObjectValue(elementName);
         if ((objv.valueType & VALUE_RANGE) != VALUE_RANGE) {
             throw new IllegalArgumentException("Not a range!");
@@ -1175,7 +1206,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         return objv.minValue;
     }
 
-    public Comparable getObjectMaxValue(String elementName) {
+    public Comparable<?> getObjectMaxValue(String elementName) {
         ObjectValue objv = getObjectValue(elementName);
         if ((objv.valueType & VALUE_RANGE) != VALUE_RANGE) {
             throw new IllegalArgumentException("Not a range!");

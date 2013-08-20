@@ -1,7 +1,7 @@
 /*
- * @(#)HasControls.java	1.6 03/01/23
+ * @(#)HasControls.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,9 +16,9 @@ import javax.naming.NamingException;
   * of a search operation, the service provider would return a NamingEnumeration of
   * objects that are both SearchResult and implement HasControls.
   *<blockquote><pre>
-  *   NamingEnumeration enum = ectx.search((Name)name, filter, sctls);
-  *   while (enum.hasMore()) {
-  *	Object entry = enum.next();
+  *   NamingEnumeration elts = ectx.search((Name)name, filter, sctls);
+  *   while (elts.hasMore()) {
+  *	Object entry = elts.next();
   *
   *	// Get search result 
   *	SearchResult res = (SearchResult)entry;
@@ -35,7 +35,7 @@ import javax.naming.NamingException;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.6 03/01/23
+  * @version 1.8 03/12/19
   * @since 1.3
   *
   */

@@ -1,7 +1,7 @@
 /*
- * @(#)Key.java	1.52 03/01/23
+ * @(#)Key.java	1.54 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -62,16 +62,24 @@ package java.security;
  * representations of the underlying key material) through the use of a key
  * factory (see {@link KeyFactory}).
  *
+ * <p> A Key should use KeyRep as its serialized representation.
+ * Note that a serialized Key may contain sensitive information
+ * which should not be exposed in untrusted environments.  See the
+ * <a href="../../../guide/serialization/spec/security.html">
+ * Security Appendix</a>
+ * of the Serialization Specification for more information.
+ *
  * @see PublicKey
  * @see PrivateKey
  * @see KeyPair
  * @see KeyPairGenerator
  * @see KeyFactory
+ * @see KeyRep
  * @see java.security.spec.KeySpec
  * @see Identity
  * @see Signer
  *
- * @version 1.52 03/01/23
+ * @version 1.54 03/12/19
  * @author Benjamin Renaud
  */
 

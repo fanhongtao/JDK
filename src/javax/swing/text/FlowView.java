@@ -1,7 +1,7 @@
 /*
- * @(#)FlowView.java	1.35 03/03/14
+ * @(#)FlowView.java	1.43 04/06/24
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,11 +27,13 @@ import javax.swing.SizeRequirements;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.35 03/14/03
+ * @version 1.43 06/24/04
  * @see     View
  */
 public abstract class FlowView extends BoxView {
 
+    private final static FlowStrategy STRATEGY = new FlowStrategy();
+    
     /**
      * Constructs a FlowView for the given element.
      *
@@ -41,7 +43,7 @@ public abstract class FlowView extends BoxView {
     public FlowView(Element elem, int axis) {
 	super(elem, axis);
 	layoutSpan = Short.MAX_VALUE;
-	strategy = new FlowStrategy();
+	strategy = STRATEGY;
     }
 
     /**
@@ -216,7 +218,7 @@ public abstract class FlowView extends BoxView {
         // Don't include insets, Box.getXXXSpan will include them.
 	r.minimum = (int)min;
 	r.preferred = Math.max(r.minimum, (int) pref);
-	r.maximum = Short.MAX_VALUE;
+	r.maximum = Integer.MAX_VALUE;
 	r.alignment = 0.5f;
 	return r;
     }
@@ -263,6 +265,15 @@ public abstract class FlowView extends BoxView {
     public void changedUpdate(DocumentEvent changes, Shape a, ViewFactory f) {
 	layoutPool.changedUpdate(changes, a, f);
 	strategy.changedUpdate(this, changes, getInsideAllocation(a));
+    }
+
+    /** {@inheritDoc} */
+    public void setParent(View parent) {
+	super.setParent(parent);
+        if (parent == null 
+                && layoutPool != null ) {
+            layoutPool.setParent(null);
+        }
     }
 
     // --- variables -----------------------------------------------
@@ -323,8 +334,8 @@ public abstract class FlowView extends BoxView {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
 	    } else {
-                fv.layoutChanged(View.X_AXIS);
-                fv.layoutChanged(View.Y_AXIS);
+		fv.layoutChanged(View.X_AXIS);
+		fv.layoutChanged(View.Y_AXIS);
 	    }
 	}
 
@@ -343,8 +354,8 @@ public abstract class FlowView extends BoxView {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
 	    } else {
-                fv.layoutChanged(View.X_AXIS);
-                fv.layoutChanged(View.Y_AXIS);
+		fv.layoutChanged(View.X_AXIS);
+		fv.layoutChanged(View.Y_AXIS);
 	    }
 	}
 
@@ -365,8 +376,8 @@ public abstract class FlowView extends BoxView {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
 	    } else {
-                fv.layoutChanged(View.X_AXIS);
-                fv.layoutChanged(View.Y_AXIS);
+		fv.layoutChanged(View.X_AXIS);
+		fv.layoutChanged(View.Y_AXIS);
 	    }
 	}
 
@@ -448,9 +459,11 @@ public abstract class FlowView extends BoxView {
 	    
 	    final int flowAxis = fv.getFlowAxis();
 	    boolean forcedBreak = false;
-	    while (pos < end  && spanLeft > 0) {
+	    while (pos < end  && spanLeft >= 0) {
 		View v = createView(fv, pos, spanLeft, rowIndex);
-		if (v == null) {
+		if ((v == null) 
+                    || (spanLeft == 0 
+                        &&  v.getPreferredSpan(flowAxis) > 0)) {
 		    break;
 		}
 		
@@ -677,7 +690,7 @@ public abstract class FlowView extends BoxView {
 	    for (int i = 0; i < n; i++) {
 		View v = getView(i);
 		pref += v.getPreferredSpan(axis);
-		if (v.getBreakWeight(axis, 0, Short.MAX_VALUE) >= ForcedBreakWeight) {
+		if (v.getBreakWeight(axis, 0, Integer.MAX_VALUE) >= ForcedBreakWeight) {
 		    maxpref = Math.max(maxpref, pref);
 		    pref = 0;
 		}
@@ -705,7 +718,7 @@ public abstract class FlowView extends BoxView {
 	    int n = getViewCount();
 	    for (int i = 0; i < n; i++) {
 		View v = getView(i);
-		if (v.getBreakWeight(axis, 0, Short.MAX_VALUE) == BadBreakWeight) {
+		if (v.getBreakWeight(axis, 0, Integer.MAX_VALUE) == BadBreakWeight) {
 		    min += v.getPreferredSpan(axis);
 		    nowrap = true;
 		} else if (nowrap) {

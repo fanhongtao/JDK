@@ -1,7 +1,7 @@
 /*
- * @(#)Reader.java	1.24 03/01/23
+ * @(#)Reader.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,12 +26,12 @@ package java.io;
  * @see StringReader
  * @see Writer
  *
- * @version 	1.24, 03/01/23
+ * @version 	1.27, 03/12/19
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
 
-public abstract class Reader {
+public abstract class Reader implements Readable, Closeable {
 
     /**
      * The object used to synchronize operations on this stream.  For
@@ -61,6 +61,28 @@ public abstract class Reader {
 	    throw new NullPointerException();
 	}
 	this.lock = lock;
+    }
+
+    /**
+     * Attempts to read characters into the specified character buffer.
+     * The buffer is used as a repository of characters as-is: the only
+     * changes made are the results of a put operation. No flipping or
+     * rewinding of the buffer is performed.
+     *
+     * @param target the buffer to read characters into
+     * @return The number of characters added to the buffer, or 
+     *         -1 if this source of characters is at its end
+     * @throws IOException if an I/O error occurs
+     * @throws NullPointerException if target is null
+     * @throws ReadOnlyBufferException if target is a read only buffer
+     */
+    public int read(java.nio.CharBuffer target) throws IOException {
+        int len = target.remaining();
+        char[] cbuf = new char[len];
+        int n = read(cbuf, 0, len);
+        if (n > 0)
+            target.put(cbuf, 0, n);
+        return n;
     }
 
     /**

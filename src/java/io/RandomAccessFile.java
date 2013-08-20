@@ -1,7 +1,7 @@
 /*
- * @(#)RandomAccessFile.java	1.72 03/01/23
+ * @(#)RandomAccessFile.java	1.78 04/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,11 +35,11 @@ import sun.nio.ch.FileChannelImpl;
  * <code>IOException</code> may be thrown if the stream has been closed.
  *
  * @author  unascribed
- * @version 1.72, 01/23/03
+ * @version 1.78, 05/13/04
  * @since   JDK1.0
  */
 
-public class RandomAccessFile implements DataOutput, DataInput {
+public class RandomAccessFile implements DataOutput, DataInput, Closeable {
 
     private FileDescriptor fd;
     private FileChannel channel = null;
@@ -75,9 +75,13 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * @exception  IllegalArgumentException  if the mode argument is not equal
      *               to one of <tt>"r"</tt>, <tt>"rw"</tt>, <tt>"rws"</tt>, or
      *               <tt>"rwd"</tt>
-     * @exception  FileNotFoundException  if the file exists but is a directory
-     *                   rather than a regular file, or cannot be opened or
-     *                   created for any other reason
+     * @exception FileNotFoundException
+     *            if the mode is <tt>"r"</tt> but the given string does not
+     *            denote an existing regular file, or if the mode begins with
+     *            <tt>"rw"</tt> but the given string does not denote an
+     *            existing, writable regular file and a new regular file of
+     *            that name cannot be created, or if some other error occurs
+     *            while opening or creating the file
      * @exception  SecurityException         if a security manager exists and its
      *               <code>checkRead</code> method denies read access to the file
      *               or the mode is "rw" and the security manager's
@@ -153,9 +157,13 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * @exception  IllegalArgumentException  if the mode argument is not equal
      *               to one of <tt>"r"</tt>, <tt>"rw"</tt>, <tt>"rws"</tt>, or
      *               <tt>"rwd"</tt>
-     * @exception  FileNotFoundException  if the file exists but is a directory
-     *                   rather than a regular file, or cannot be opened or
-     *                   created for any other reason
+     * @exception FileNotFoundException
+     *            if the mode is <tt>"r"</tt> but the given file object does
+     *            not denote an existing regular file, or if the mode begins
+     *            with <tt>"rw"</tt> but the given file object does not denote
+     *            an existing, writable regular file and a new regular file of
+     *            that name cannot be created, or if some other error occurs
+     *            while opening or creating the file
      * @exception  SecurityException         if a security manager exists and its
      *               <code>checkRead</code> method denies read access to the file
      *               or the mode is "rw" and the security manager's
@@ -244,9 +252,9 @@ public class RandomAccessFile implements DataOutput, DataInput {
     }
 
     /**
-     * Opens a file and returns the file descriptor.  The file is 
-     * opened in read-write mode if writeable is true, else 
-     * the file is opened as read-only.
+     * Opens a file and returns the file descriptor.  The file is
+     * opened in read-write mode if the O_RDWR bit in <code>mode</code>
+     * is true, else the file is opened as read-only.
      * If the <code>name</code> refers to a directory, an IOException
      * is thrown.
      *
@@ -278,9 +286,9 @@ public class RandomAccessFile implements DataOutput, DataInput {
 
     /**
      * Reads a sub array as a sequence of bytes. 
-     * @param b the data to be written
-     * @param off the start offset in the data
-     * @param len the number of bytes that are written
+     * @param b the buffer into which the data is read.
+     * @param off the start offset of the data.
+     * @param len the number of bytes to read.
      * @exception IOException If an I/O error has occurred.
      */
     private native int readBytes(byte b[], int off, int len) throws IOException;
@@ -291,7 +299,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * is available. 
      * <p>
      * Although <code>RandomAccessFile</code> is not a subclass of 
-     * <code>InputStream</code>, this method behaves in the exactly the 
+     * <code>InputStream</code>, this method behaves in exactly the 
      * same way as the {@link InputStream#read(byte[], int, int)} method of 
      * <code>InputStream</code>.
      *
@@ -313,7 +321,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * of input is available. 
      * <p>
      * Although <code>RandomAccessFile</code> is not a subclass of 
-     * <code>InputStream</code>, this method behaves in the exactly the 
+     * <code>InputStream</code>, this method behaves in exactly the 
      * same way as the {@link InputStream#read(byte[])} method of 
      * <code>InputStream</code>.
      *
@@ -490,7 +498,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
      * <code>length</code> method is greater than the <code>newLength</code>
      * argument then the file will be truncated.  In this case, if the file
      * offset as returned by the <code>getFilePointer</code> method is greater
-     * then <code>newLength</code> then after this method returns the offset
+     * than <code>newLength</code> then after this method returns the offset
      * will be equal to <code>newLength</code>.
      *
      * <p> If the present length of the file as returned by the
@@ -840,14 +848,16 @@ public class RandomAccessFile implements DataOutput, DataInput {
 
     /**
      * Reads in a string from this file. The string has been encoded 
-     * using a modified UTF-8 format. 
+     * using a
+     * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
+     * format. 
      * <p>
      * The first two bytes are read, starting from the current file 
      * pointer, as if by 
      * <code>readUnsignedShort</code>. This value gives the number of 
      * following bytes that are in the encoded string, not
      * the length of the resulting string. The following bytes are then 
-     * interpreted as bytes encoding characters in the UTF-8 format 
+     * interpreted as bytes encoding characters in the modified UTF-8 format 
      * and are converted into characters. 
      * <p>
      * This method blocks until all the bytes are read, the end of the 
@@ -858,7 +868,7 @@ public class RandomAccessFile implements DataOutput, DataInput {
      *               reading all the bytes.
      * @exception  IOException             if an I/O error occurs.
      * @exception  UTFDataFormatException  if the bytes do not represent 
-     *               valid UTF-8 encoding of a Unicode string.
+     *               valid modified UTF-8 encoding of a Unicode string.
      * @see        java.io.RandomAccessFile#readUnsignedShort()
      */
     public final String readUTF() throws IOException {
@@ -1023,15 +1033,16 @@ public class RandomAccessFile implements DataOutput, DataInput {
     }
 
     /**
-     * Writes a string to the file using UTF-8 encoding in a 
-     * machine-independent manner. 
+     * Writes a string to the file using
+     * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
+     * encoding in a machine-independent manner. 
      * <p>
      * First, two bytes are written to the file, starting at the 
      * current file pointer, as if by the 
      * <code>writeShort</code> method giving the number of bytes to 
      * follow. This value is the number of bytes actually written out, 
      * not the length of the string. Following the length, each character 
-     * of the string is output, in sequence, using the UTF-8 encoding 
+     * of the string is output, in sequence, using the modified UTF-8 encoding 
      * for each character. 
      *
      * @param      str   a string to be written.

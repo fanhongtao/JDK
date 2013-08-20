@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListModel.java	1.32 03/01/23
+ * @(#)DefaultListModel.java	1.35 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.32 01/23/03
+ * @version 1.35 05/05/04
  * @author Hans Muller
  */
 public class DefaultListModel extends AbstractListModel
@@ -158,7 +158,7 @@ public class DefaultListModel extends AbstractListModel
      * @return  an enumeration of the components of this list
      * @see Vector#elements()
      */
-    public Enumeration elements() {
+    public Enumeration<?> elements() {
 	return delegate.elements();
     }
 
@@ -507,6 +507,9 @@ public class DefaultListModel extends AbstractListModel
      * @see	   #remove(int)
      */
     public void removeRange(int fromIndex, int toIndex) {
+	if (fromIndex > toIndex) {
+	    throw new IllegalArgumentException("fromIndex must be <= toIndex");
+	}
 	for(int i = toIndex; i >= fromIndex; i--) {
 	    delegate.removeElementAt(i);
 	}

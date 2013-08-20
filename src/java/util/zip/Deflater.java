@@ -1,7 +1,7 @@
 /*
- * @(#)Deflater.java	1.41 05/05/16
+ * @(#)Deflater.java	1.40 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util.zip;
  * This class provides support for general purpose compression using the
  * popular ZLIB compression library. The ZLIB compression library was
  * initially developed as part of the PNG graphics standard and is not
- * protected by patents. It is fully described in the specifications at
+ * protected by patents. It is fully described in the specifications at 
  * the <a href="package-summary.html#package_description">java.util.zip
  * package description</a>.
  *
@@ -41,9 +41,9 @@ package java.util.zip;
  * // Decode the bytes into a String
  * String outputString = new String(result, 0, resultLength, "UTF-8");
  * </pre></blockquote>
- *
+ * 
  * @see		Inflater
- * @version 	1.41, 05/16/05
+ * @version 	1.40, 12/19/03
  * @author 	David Connelly
  */
 public
@@ -102,7 +102,8 @@ class Deflater {
      * Loads the ZLIB library.
      */
     static {
-	/* zip library is loaded by java.lang.System */
+	java.security.AccessController.doPrivileged(
+		  new sun.security.action.LoadLibraryAction("zip"));
 	initIDs();
     }
 
@@ -120,7 +121,7 @@ class Deflater {
 	strm = init(level, DEFAULT_STRATEGY, nowrap);
     }
 
-    /**
+    /** 
      * Creates a new compressor using the specified compression level.
      * Compressed data will be generated in ZLIB format.
      * @param level the compression level (0-9)
@@ -304,32 +305,54 @@ class Deflater {
      * @return the ADLER-32 value of the uncompressed data
      */
     public synchronized int getAdler() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
+	ensureOpen();
 	return getAdler(strm);
     }
 
     /**
-     * Returns the total number of bytes input so far.
-     * @return the total number of bytes input so far
+     * Returns the total number of uncompressed bytes input so far.
+     *
+     * <p>Since the number of bytes may be greater than
+     * Integer.MAX_VALUE, the {@link #getBytesRead()} method is now
+     * the preferred means of obtaining this information.</p>
+     *
+     * @return the total number of uncompressed bytes input so far
      */
-    public synchronized int getTotalIn() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
-	return getTotalIn(strm);
+    public int getTotalIn() {
+	return (int) getBytesRead();
     }
 
     /**
-     * Returns the total number of bytes output so far.
-     * @return the total number of bytes output so far
+     * Returns the total number of uncompressed bytes input so far.</p>
+     *
+     * @return the total (non-negative) number of uncompressed bytes input so far
      */
-    public synchronized int getTotalOut() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
-	return getTotalOut(strm);
+    public synchronized long getBytesRead() {
+	ensureOpen();
+	return getBytesRead(strm);
+    }
+
+    /**
+     * Returns the total number of compressed bytes output so far.
+     *
+     * <p>Since the number of bytes may be greater than
+     * Integer.MAX_VALUE, the {@link #getBytesWritten()} method is now
+     * the preferred means of obtaining this information.</p>
+     *
+     * @return the total number of compressed bytes output so far
+     */
+    public int getTotalOut() {
+	return (int) getBytesWritten();
+    }
+
+    /**
+     * Returns the total number of compressed bytes output so far.</p>
+     *
+     * @return the total (non-negative) number of compressed bytes output so far
+     */
+    public synchronized long getBytesWritten() {
+	ensureOpen();
+	return getBytesWritten(strm);
     }
 
     /**
@@ -337,9 +360,7 @@ class Deflater {
      * Keeps current compression level and strategy settings.
      */
     public synchronized void reset() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
+	ensureOpen();
 	reset(strm);
 	finish = false;
 	finished = false;
@@ -357,7 +378,6 @@ class Deflater {
 	if (strm != 0) {
 	    end(strm);
 	    strm = 0;
-	    buf = null;
 	}
     }
 
@@ -368,14 +388,19 @@ class Deflater {
 	end();
     }
 
+    private void ensureOpen() {
+	if (strm == 0)
+	    throw new NullPointerException();
+    }
+
     private static native void initIDs();
     private native static long init(int level, int strategy, boolean nowrap);
     private native static void setDictionary(long strm, byte[] b, int off,
 					     int len);
     private native int deflateBytes(byte[] b, int off, int len);
     private native static int getAdler(long strm);
-    private native static int getTotalIn(long strm);
-    private native static int getTotalOut(long strm);
+    private native static long getBytesRead(long strm);
+    private native static long getBytesWritten(long strm);
     private native static void reset(long strm);
     private native static void end(long strm);
 }

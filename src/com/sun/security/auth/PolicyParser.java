@@ -1,7 +1,7 @@
 /*
- * @(#)PolicyParser.java	1.37 03/01/23
+ * @(#)PolicyParser.java	1.41 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,16 +55,16 @@ import sun.security.util.PropertyExpander;
  * The Policy object evaluates the global policy in light of who the
  * principal is and returns an appropriate Permissions object. 
  *
- * deprecated As of JDK&nbsp;1.4, replaced by
+ * @deprecated As of JDK&nbsp;1.4, replaced by
  *             {@link sun.security.provider.PolicyParser}.
  *             This class is entirely deprecated.
  * 
- * @version 1.37, 01/23/03
+ * @version 1.41, 05/18/04
  * @author Roland Schemers
  *
  * @since JDK1.2
  */
-
+@Deprecated
 class PolicyParser {
 
     private static final java.util.ResourceBundle rb =
@@ -244,7 +244,7 @@ class PolicyParser {
     {
 	PrintWriter out = new PrintWriter(new BufferedWriter(policy));
 
-	Enumeration enum = grantElements();
+	Enumeration enum_ = grantElements();
 
 	out.println("/* AUTOMATICALLY GENERATED ON "+
 		    (new java.util.Date()) + "*/");
@@ -258,8 +258,8 @@ class PolicyParser {
 	}
 
 	// write "grant" entries
-	while (enum.hasMoreElements()) {
-	    GrantEntry ge = (GrantEntry) enum.nextElement();
+	while (enum_.hasMoreElements()) {
+	    GrantEntry ge = (GrantEntry) enum_.nextElement();
 	    ge.write(out);
 	    out.println();
 	}
@@ -695,10 +695,10 @@ class PolicyParser {
 		}
 	    }
 	    out.println(" {");
-	    Enumeration enum = permissionEntries.elements();
-	    while (enum.hasMoreElements()) {
+	    Enumeration enum_ = permissionEntries.elements();
+	    while (enum_.hasMoreElements()) {
 		PermissionEntry pe =
-		    (PermissionEntry) enum.nextElement();
+		    (PermissionEntry) enum_.nextElement();
 		out.write("  ");
 		pe.write(out);
 	    }
@@ -911,14 +911,16 @@ class PolicyParser {
 
     static class ParsingException extends GeneralSecurityException {
 
-    /**
-     * Constructs a ParsingException with the specified
-     * detail message. A detail message is a String that describes
-     * this particular exception, which may, for example, specify which
-     * algorithm is not available.  
-     *
-     * @param msg the detail message.  
-     */
+	private static final long serialVersionUID = 8240970523155877400L;
+
+	/**
+	 * Constructs a ParsingException with the specified
+	 * detail message. A detail message is a String that describes
+	 * this particular exception, which may, for example, specify which
+	 * algorithm is not available.  
+	 *
+	 * @param msg the detail message.  
+	 */
 	public ParsingException(String msg) {
 	    super(msg);
 	}

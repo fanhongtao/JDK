@@ -1,7 +1,7 @@
 /*
- * @(#)MetalScrollBarUI.java	1.30 03/01/23
+ * @(#)MetalScrollBarUI.java	1.34 04/03/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -134,11 +134,9 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	if ( scrollbar.getOrientation() == JScrollBar.VERTICAL )
 	{
 	    if ( !isFreeStanding ) {
+                trackBounds.width += 2;
                 if ( !leftToRight ) {
-                    trackBounds.width += 1;
                     g.translate( -1, 0 );
-		} else {
-                    trackBounds.width += 2;
                 }
 	    }
 
@@ -164,11 +162,9 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	    }
 
 	    if ( !isFreeStanding ) {
+                trackBounds.width -= 2;
                 if ( !leftToRight ) {
-                    trackBounds.width -= 1;
                     g.translate( 1, 0 );
-		} else {
-                    trackBounds.width -= 2;
                 }
 	    }
 	}
@@ -212,6 +208,11 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	    return;
 	}
 
+        if (MetalLookAndFeel.usingOcean()) {
+            oceanPaintThumb(g, c, thumbBounds);
+            return;
+        }
+
         boolean leftToRight = MetalUtils.isLeftToRight(c);
 
         g.translate( thumbBounds.x, thumbBounds.y );
@@ -219,13 +220,10 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	if ( scrollbar.getOrientation() == JScrollBar.VERTICAL )
 	{
 	    if ( !isFreeStanding ) {
+                thumbBounds.width += 2;
                 if ( !leftToRight ) {
-                    thumbBounds.width += 1;
                     g.translate( -1, 0 );
-		} else {
-                    thumbBounds.width += 2;
                 }
-
 	    }
 
 	    g.setColor( thumbColor );
@@ -242,11 +240,9 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	    bumps.paintIcon( c, g, 3, 4 );
 
 	    if ( !isFreeStanding ) {
+                thumbBounds.width -= 2;
                 if ( !leftToRight ) {
-                    thumbBounds.width -= 1;
                     g.translate( 1, 0 );
-		} else {
-                    thumbBounds.width -= 2;
                 }
 	    }
 	}
@@ -273,6 +269,101 @@ public class MetalScrollBarUI extends BasicScrollBarUI
 	        thumbBounds.height -= 2;
 	    }
 	}
+
+        g.translate( -thumbBounds.x, -thumbBounds.y );
+    }
+
+    private void oceanPaintThumb(Graphics g, JComponent c,
+                                   Rectangle thumbBounds) {
+        boolean leftToRight = MetalUtils.isLeftToRight(c);
+
+        g.translate(thumbBounds.x, thumbBounds.y);
+
+        if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
+            if (!isFreeStanding) {
+                thumbBounds.width += 2;
+                if (!leftToRight) {
+                    g.translate(-1, 0);
+                }
+            }
+
+            if (thumbColor != null) {
+                g.setColor(thumbColor);
+                g.fillRect(0, 0, thumbBounds.width - 2,thumbBounds.height - 1);
+            }
+
+            g.setColor(thumbShadow);
+            g.drawRect(0, 0, thumbBounds.width - 2, thumbBounds.height - 1);
+
+            g.setColor(thumbHighlightColor);
+            g.drawLine(1, 1, thumbBounds.width - 3, 1);
+            g.drawLine(1, 1, 1, thumbBounds.height - 2);
+
+            MetalUtils.drawGradient(c, g, "ScrollBar.gradient", 2, 2,
+                                    thumbBounds.width - 4,
+                                    thumbBounds.height - 3, false);
+
+            int gripSize = thumbBounds.width - 8;
+            if (gripSize > 2 && thumbBounds.height >= 10) {
+                g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
+                int gripY = thumbBounds.height / 2 - 2;
+                for (int counter = 0; counter < 6; counter += 2) {
+                    g.fillRect(4, counter + gripY, gripSize, 1);
+                }
+
+                g.setColor(MetalLookAndFeel.getWhite());
+                gripY++;
+                for (int counter = 0; counter < 6; counter += 2) {
+                    g.fillRect(5, counter + gripY, gripSize, 1);
+                }
+            }
+            if (!isFreeStanding) {
+                thumbBounds.width -= 2;
+                if (!leftToRight) {
+                    g.translate(1, 0);
+                }
+            }
+        }
+        else { // HORIZONTAL
+            if (!isFreeStanding) {
+                thumbBounds.height += 2;
+            }
+
+            if (thumbColor != null) {
+                g.setColor(thumbColor);
+                g.fillRect(0, 0, thumbBounds.width - 1,thumbBounds.height - 2);
+            }
+
+            g.setColor(thumbShadow);
+            g.drawRect(0, 0, thumbBounds.width - 1, thumbBounds.height - 2);
+
+            g.setColor(thumbHighlightColor);
+            g.drawLine(1, 1, thumbBounds.width - 2, 1);
+            g.drawLine(1, 1, 1, thumbBounds.height - 3);
+
+            MetalUtils.drawGradient(c, g, "ScrollBar.gradient", 2, 2,
+                                    thumbBounds.width - 3,
+                                    thumbBounds.height - 4, true);
+
+            int gripSize = thumbBounds.height - 8;
+            if (gripSize > 2 && thumbBounds.width >= 10) {
+                g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
+                int gripX = thumbBounds.width / 2 - 2;
+                for (int counter = 0; counter < 6; counter += 2) {
+                    g.fillRect(gripX + counter, 4, 1, gripSize);
+                }
+
+                g.setColor(MetalLookAndFeel.getWhite());
+                gripX++;
+                for (int counter = 0; counter < 6; counter += 2) {
+                    g.fillRect(gripX + counter, 5, 1, gripSize);
+                }
+            }
+
+            if (!isFreeStanding) {
+                thumbBounds.height -= 2;
+            }
+        }
 
         g.translate( -thumbBounds.x, -thumbBounds.y );
     }

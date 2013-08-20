@@ -1,7 +1,7 @@
 /*
- * @(#)PrinterJob.java	1.34 03/01/23
+ * @(#)PrinterJob.java	1.36 04/01/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -406,6 +406,8 @@ public abstract class PrinterJob {
      * for attributes which specify media (by size), orientation, and
      * imageable area, and those are used to construct a new PageFormat
      * which is passed to the Printable object's print() method.
+     * See {@link Printable} for an explanation of the required
+     * behaviour of a Printable to ensure optimal printing via PrinterJob.
      * For clients of the Pageable interface, the PageFormat will always
      * be as supplied by that interface, on a per page basis.
      * <p>

@@ -1,7 +1,7 @@
 /*
- * @(#)BorderLayout.java	1.53 03/01/23
+ * @(#)BorderLayout.java	1.56 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -98,7 +98,7 @@ import java.util.Hashtable;
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 	1.53, 01/23/03
+ * @version 	1.56, 05/18/04
  * @author 	Arthur van Hoff
  * @see         java.awt.Container#add(String, Component)
  * @see         java.awt.ComponentOrientation
@@ -414,6 +414,7 @@ public class BorderLayout implements LayoutManager2,
     /**
      * @deprecated  replaced by <code>addLayoutComponent(Component, Object)</code>.
      */
+    @Deprecated
     public void addLayoutComponent(String name, Component comp) {
       synchronized (comp.getTreeLock()) {
 	/* Special case:  treat null the same as "Center". */
@@ -479,6 +480,123 @@ public class BorderLayout implements LayoutManager2,
 	    lastItem = null;
 	}
       }
+    }
+
+    /**
+     * Gets the component that was added using the given constraint
+     *
+     * @param   constraints  the desired constraint, one of <code>CENTER</code>,
+     *                       <code>NORTH</code>, <code>SOUTH</code>,
+     *                       <code>WEST</code>, <code>EAST</code>,
+     *                       <code>PAGE_START</code>, <code>PAGE_END</code>,
+     *                       <code>LINE_START</code>, <code>LINE_END</code>
+     * @return  the component at the given location, or </code>null</code> if
+     *          the location is empty
+     * @exception   IllegalArgumentException  if the constraint object is
+     *              not one of the nine specified constants
+     * @see     #addLayoutComponent(java.awt.Component, java.lang.Object)
+     * @since 1.5
+     */
+    public Component getLayoutComponent(Object constraints) {
+	if (CENTER.equals(constraints)) {
+	    return center;
+	} else if (NORTH.equals(constraints)) {
+	    return north;
+	} else if (SOUTH.equals(constraints)) {
+	    return south;
+	} else if (WEST.equals(constraints)) {
+	    return west;
+	} else if (EAST.equals(constraints)) {
+	    return east;
+	} else if (PAGE_START.equals(constraints)) {
+	    return firstLine;
+	} else if (PAGE_END.equals(constraints)) {
+	    return lastLine;
+	} else if (LINE_START.equals(constraints)) {
+	    return firstItem;
+	} else if (LINE_END.equals(constraints)) {
+	    return lastItem;
+	} else {
+	    throw new IllegalArgumentException("cannot get component: unknown constraint: " + constraints);
+	}
+    }
+
+
+    /**
+     * Gets the component that corresponds to the given constraint location
+     * based on the target Container's component orientation
+     *
+     * @param   constraints     the desired absolute position, one of <code>CENTER</code>,
+     *                          one of <code>NORTH</code>, <code>SOUTH</code>,
+     *                          <code>EAST</code>, <code>WEST</code>
+     * @param   target     the <code>Container</code> using this <code>BorderLayout</code>
+     * @return  the component at the given location, or </code>null</code> if
+     *          the location is empty
+     * @exception   IllegalArgumentException  if the constraint object is
+     *              not one of the five specified constants
+     * @exception   NullPointerException  if the target parameter is null
+     * @see     #addLayoutComponent(java.awt.Component, java.lang.Object)
+     * @since 1.5
+     */
+    public Component getLayoutComponent(Container target, Object constraints) {
+	boolean ltr = target.getComponentOrientation().isLeftToRight();
+        Component result = null;
+
+        if (NORTH.equals(constraints)) {
+            result = (firstLine != null) ? firstLine : north;
+        } else if (SOUTH.equals(constraints)) {
+            result = (lastLine != null) ? lastLine : south;
+        } else if (WEST.equals(constraints)) {
+            result = ltr ? firstItem : lastItem;
+            if (result == null) {
+		result = west;
+            }
+        } else if (EAST.equals(constraints)) {
+            result = ltr ? lastItem : firstItem;
+            if (result == null) {
+		result = east;
+            }
+        } else if (CENTER.equals(constraints)) {
+            result = center;
+	} else {
+	    throw new IllegalArgumentException("cannot get component: invalid constraint: " + constraints);
+        }
+
+        return result;
+    }
+
+
+    /**
+     * Gets the constraints for the specified component
+     *
+     * @param   comp the component to be queried
+     * @return  the constraint for the specified component,
+     *          or null if component is null or is not present
+     *          in this layout
+     * @see #addLayoutComponent(java.awt.Component, java.lang.Object)
+     * @since 1.5
+     */
+    public Object getConstraints(Component comp) {
+	if (comp == center) {
+	    return CENTER;
+	} else if (comp == north) {
+	    return NORTH;
+	} else if (comp == south) {
+	    return SOUTH;
+	} else if (comp == west) {
+	    return WEST;
+	} else if (comp == east) {
+	    return EAST;
+	} else if (comp == firstLine) {
+	    return PAGE_START;
+	} else if (comp == lastLine) {
+	    return PAGE_END;
+	} else if (comp == firstItem) {
+	    return LINE_START;
+	} else if (comp == lastItem) {
+	    return LINE_END;
+	}
+	return null;
     }
 
     /**

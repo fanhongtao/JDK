@@ -1,7 +1,7 @@
 /*
- * @(#)LineView.java	1.15 03/01/23
+ * @(#)LineView.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -20,7 +20,7 @@ import javax.swing.text.*;
  * Row of text.
  *
  * @author  Timothy Prinzing
- * @version 1.15 01/23/03
+ * @version 1.18 12/19/03
  */
 class LineView extends ParagraphView {
     /** Last place painted at. */
@@ -150,8 +150,9 @@ class LineView extends ParagraphView {
 	if ((d instanceof StyledDocument) && v != null) {
 	    // Assume f is fixed point.
 	    Font f = ((StyledDocument)d).getFont(v.getAttributes());
-	    FontMetrics fm = Toolkit.getDefaultToolkit().
-		                 getFontMetrics(f);
+            Container c = getContainer();
+	    FontMetrics fm = (c != null) ? c.getFontMetrics(f) :
+                Toolkit.getDefaultToolkit().getFontMetrics(f);
 	    int width = getCharactersPerTab() * fm.charWidth('W');
 	    int tb = (int)getTabBase();
 	    return (float)((((int)x - tb) / width + 1) * width + tb);

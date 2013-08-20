@@ -1,7 +1,7 @@
 /*
- * @(#)TreeSelectionListener.java	1.13 03/01/23
+ * @(#)TreeSelectionListener.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.util.EventListener;
  * @see javax.swing.tree.TreeSelectionModel
  * @see javax.swing.JTree
  *
- * @version 1.13 01/23/03
+ * @version 1.14 12/19/03
  * @author Scott Violet
  */
 public interface TreeSelectionListener extends EventListener

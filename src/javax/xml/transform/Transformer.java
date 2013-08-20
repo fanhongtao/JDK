@@ -1,15 +1,15 @@
+// $Id: Transformer.java,v 1.9.14.1.2.4 2004/06/28 18:45:41 ndw Exp $
+
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Transformer.java	1.25 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-/*
- * @(#)Transformer.java	1.14 03/01/23
- */
 package javax.xml.transform;
 
 import java.util.Properties;
-
 
 /**
  * An instance of this abstract class can transform a
@@ -27,21 +27,63 @@ import java.util.Properties;
  *
  * <p>A <code>Transformer</code> may be used multiple times.  Parameters and
  * output properties are preserved across transformations.</p>
+ * 
+ * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @version $Revision: 1.9.14.1.2.4 $, $Date: 2004/06/28 18:45:41 $
  */
 public abstract class Transformer {
 
     /**
      * Default constructor is protected on purpose.
      */
-    protected Transformer() {}
+    protected Transformer() { }
+    
+	/**
+	 * <p>Reset this <code>Transformer</code> to its original configuration.</p>
+	 * 
+	 * <p><code>Transformer</code> is reset to the same state as when it was created with
+	 * {@link TransformerFactory#newTransformer()},
+	 * {@link TransformerFactory#newTransformer(Source source)} or
+	 * {@link Templates#newTransformer()}.
+	 * <code>reset()</code> is designed to allow the reuse of existing <code>Transformer</code>s
+	 * thus saving resources associated with the creation of new <code>Transformer</code>s.</p>
+	 * 
+	 * <p>The reset <code>Transformer</code> is not guaranteed to have the same {@link URIResolver}
+	 * or {@link ErrorListener} <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.
+	 * It is guaranteed to have a functionally equal <code>URIResolver</code>
+	 * and <code>ErrorListener</code>.</p>
+	 * 
+	 * @since 1.5
+	 */
+	public void reset() {
+
+		// implementors should override this method
+		throw new UnsupportedOperationException(
+			"This Transformer, \"" + this.getClass().getName() + "\", does not support the reset functionality."
+			+ "  Specification \"" + this.getClass().getPackage().getSpecificationTitle() + "\""
+			+ " version \"" + this.getClass().getPackage().getSpecificationVersion() + "\""
+			);
+	}
 
     /**
-     * Process the source tree to the output result.
-     * @param xmlSource  The input for the source tree.
-     * @param outputTarget The output target.
+     * <p>Transform the XML <code>Source</code> to a <code>Result</code>.
+     * Specific transformation behavior is determined by the settings of the
+     * <code>TransformerFactory</code> in effect when the
+     * <code>Transformer</code> was instantiated and any modifications made to
+     * the <code>Transformer</code> instance.</p>
+     *
+     * <p>An empty <code>Source</code> is represented as an empty document
+     * as constructed by {@link javax.xml.parsers.DocumentBuilder#newDocument()}.
+     * The result of transforming an empty <code>Source</code> depends on
+     * the transformation behavior; it is not always an empty
+     * <code>Result</code>.</p>
+     *
+     * @param xmlSource The XML input to transform.
+     * @param outputTarget The <code>Result</code> of transforming the
+     *   <code>xmlSource</code>.
      *
      * @throws TransformerException If an unrecoverable error occurs
-     * during the course of the transformation.
+     *   during the course of the transformation.
      */
     public abstract void transform(Source xmlSource, Result outputTarget)
         throws TransformerException;
@@ -52,32 +94,59 @@ public abstract class Transformer {
      * <p>Pass a qualified name as a two-part string, the namespace URI
      * enclosed in curly braces ({}), followed by the local name. If the
      * name has a null URL, the String only contain the local name. An
-     * application can safely check for a non-null URI by testing to see if the first
-     * character of the name is a '{' character.</p>
+     * application can safely check for a non-null URI by testing to see if the
+     * first character of the name is a '{' character.</p>
      * <p>For example, if a URI and local name were obtained from an element
-     * defined with &lt;xyz:foo xmlns:xyz="http://xyz.foo.com/yada/baz.html"/&gt;,
-     * then the qualified name would be "{http://xyz.foo.com/yada/baz.html}foo". Note that
-     * no prefix is used.</p>
+     * defined with &lt;xyz:foo
+     * xmlns:xyz="http://xyz.foo.com/yada/baz.html"/&gt;,
+     * then the qualified name would be "{http://xyz.foo.com/yada/baz.html}foo".
+     * Note that no prefix is used.</p>
      *
-     * @param name The name of the parameter, which may begin with a namespace URI
-     * in curly braces ({}).
+     * @param name The name of the parameter, which may begin with a
+     * namespace URI in curly braces ({}).
      * @param value The value object.  This can be any valid Java object. It is
      * up to the processor to provide the proper object coersion or to simply
      * pass the object on for use in an extension.
+     *
+     * @throws NullPointerException If value is null.
      */
-    public abstract void setParameter(String name, Object value);
+     public abstract void setParameter(String name, Object value);
 
     /**
-     * Get a parameter that was explicitly set with setParameter
-     * or setParameters.
+     * Get a parameter that was explicitly set with setParameter.
      *
      * <p>This method does not return a default parameter value, which
      * cannot be determined until the node context is evaluated during
      * the transformation process.
      *
+     * @param name of <code>Object</code> to get
      * @return A parameter that has been set with setParameter.
      */
     public abstract Object getParameter(String name);
+    
+    /**
+     * <p>Set a list of parameters.</p>
+     * 
+     * <p>Note that the list of parameters is specified as a
+     * <code>Properties</code> <code>Object</code> which limits the parameter
+     * values to <code>String</code>s.  Multiple calls to
+     * {@link #setParameter(String name, Object value)} should be used when the
+     * desired values are non-<code>String</code> <code>Object</code>s.
+     * The parameter names should conform as specified in
+     * {@link #setParameter(String name, Object value)}.
+     * An <code>IllegalArgumentException</code> is thrown if any names do not
+     * conform.</p>
+     * 
+     * <p>New parameters in the list are added to any existing parameters.
+     * If the name of a new parameter is equal to the name of an existing
+     * parameter as determined by {@link java.lang.Object#equals(Object obj)},
+     *  the existing parameter is set to the new value.</p>
+     * 
+     * @param params Parameters to set.
+     * 
+     * @throws IllegalArgumentException If any parameter names do not conform
+     *   to the naming rules.
+     */
 
     /**
      * Clear all parameters set with setParameter.
@@ -89,7 +158,7 @@ public abstract class Transformer {
      * document().
      *
      * <p>If the resolver argument is null, the URIResolver value will
-     * be cleared, and the default behavior will be used.</p>
+     * be cleared and the transformer will no longer have a resolver.</p>
      *
      * @param resolver An object that implements the URIResolver interface,
      * or null.
@@ -98,7 +167,7 @@ public abstract class Transformer {
 
     /**
      * Get an object that will be used to resolve URIs used in
-     * document(), etc.
+     * document().
      *
      * @return An object that implements the URIResolver interface,
      * or null.
@@ -114,15 +183,18 @@ public abstract class Transformer {
      * previously set are removed, and the value will revert to the value
      * defined in the templates object.</p>
      *
-     * <p>Pass a qualified property key name as a two-part string, the namespace URI
-     * enclosed in curly braces ({}), followed by the local name. If the
+     * <p>Pass a qualified property key name as a two-part string, the namespace
+     * URI enclosed in curly braces ({}), followed by the local name. If the
      * name has a null URL, the String only contain the local name. An
-     * application can safely check for a non-null URI by testing to see if the first
-     * character of the name is a '{' character.</p>
+     * application can safely check for a non-null URI by testing to see if the
+     * first character of the name is a '{' character.</p>
      * <p>For example, if a URI and local name were obtained from an element
-     * defined with &lt;xyz:foo xmlns:xyz="http://xyz.foo.com/yada/baz.html"/&gt;,
-     * then the qualified name would be "{http://xyz.foo.com/yada/baz.html}foo". Note that
-     * no prefix is used.</p>
+     * defined with &lt;xyz:foo
+     * xmlns:xyz="http://xyz.foo.com/yada/baz.html"/&gt;,
+     * then the qualified name would be "{http://xyz.foo.com/yada/baz.html}foo".
+     * Note that no prefix is used.</p>
+     * An <code>IllegalArgumentException</code> is thrown  if any of the
+     * argument keys are not recognized and are not namespace qualified.
      *
      * @param oformat A set of output properties that will be
      * used to override any of the same properties in affect
@@ -131,18 +203,16 @@ public abstract class Transformer {
      * @see javax.xml.transform.OutputKeys
      * @see java.util.Properties
      *
-     * @throws IllegalArgumentException if any of the argument keys are not
-     * recognized and are not namespace qualified.
      */
-    public abstract void setOutputProperties(Properties oformat)
-        throws IllegalArgumentException;
+    public abstract void setOutputProperties(Properties oformat);
 
     /**
-     * Get a copy of the output properties for the transformation.
+     * <p>Get a copy of the output properties for the transformation.</p>
      *
      * <p>The properties returned should contain properties set by the user,
      * and properties set by the stylesheet, and these properties
-     * are "defaulted" by default properties specified by <a href="http://www.w3.org/TR/xslt#output">section 16 of the
+     * are "defaulted" by default properties specified by
+     * <a href="http://www.w3.org/TR/xslt#output">section 16 of the
      * XSL Transformations (XSLT) W3C Recommendation</a>.  The properties that
      * were specifically set by the user or the stylesheet should be in the base
      * Properties list, while the XSLT default properties that were not
@@ -156,17 +226,20 @@ public abstract class Transformer {
      * {@link #setOutputProperties}, or in the stylesheet.</p>
      *
      * <p>Note that mutation of the Properties object returned will not
-     * effect the properties that the transformation contains.</p>
+     * effect the properties that the transformer contains.</p>
      *
      * <p>If any of the argument keys are not recognized and are not
-     * namespace qualified, the property will be ignored.  In other words the
-     * behaviour is not orthogonal with setOutputProperties.</p>
+     * namespace qualified, the property will be ignored and not returned.
+     * In other words the behaviour is not orthogonal with
+     * {@link #setOutputProperties setOutputProperties}.</p>
      *
-     * @returns A copy of the set of output properties in effect
-     * for the next transformation.
+     * @return A copy of the set of output properties in effect for
+     *   the next transformation.
      *
      * @see javax.xml.transform.OutputKeys
      * @see java.util.Properties
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *   XSL Transformations (XSLT) Version 1.0</a>
      */
     public abstract Properties getOutputProperties();
 
@@ -177,15 +250,16 @@ public abstract class Transformer {
      * <p>Pass a qualified property name as a two-part string, the namespace URI
      * enclosed in curly braces ({}), followed by the local name. If the
      * name has a null URL, the String only contain the local name. An
-     * application can safely check for a non-null URI by testing to see if the first
-     * character of the name is a '{' character.</p>
+     * application can safely check for a non-null URI by testing to see if the
+     * first character of the name is a '{' character.</p>
      * <p>For example, if a URI and local name were obtained from an element
-     * defined with &lt;xyz:foo xmlns:xyz="http://xyz.foo.com/yada/baz.html"/&gt;,
-     * then the qualified name would be "{http://xyz.foo.com/yada/baz.html}foo". Note that
-     * no prefix is used.</p>
+     * defined with &lt;xyz:foo
+     * xmlns:xyz="http://xyz.foo.com/yada/baz.html"/&gt;,
+     * then the qualified name would be "{http://xyz.foo.com/yada/baz.html}foo".
+     * Note that no prefix is used.</p>
      *
-     * <p>The Properties object that was passed to {@link #setOutputProperties} won't
-     * be effected by calling this method.</p>
+     * <p>The Properties object that was passed to {@link #setOutputProperties}
+     * won't be effected by calling this method.</p>
      *
      * @param name A non-null String that specifies an output
      * property name, which may be namespace qualified.
@@ -201,7 +275,7 @@ public abstract class Transformer {
 
     /**
      * Get an output property that is in effect for the
-     * transformation.  The property specified may be a property
+     * transformer.  The property specified may be a property
      * that was set with setOutputProperty, or it may be a
      * property specified in the stylesheet.
      *
@@ -229,6 +303,7 @@ public abstract class Transformer {
 
     /**
      * Get the error event handler in effect for the transformation.
+     * Implementations must provide a default error listener.
      *
      * @return The current error handler, which should never be null.
      */

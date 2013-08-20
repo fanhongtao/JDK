@@ -1,7 +1,7 @@
 /*
- * @(#)MotifScrollPaneUI.java	1.17 03/01/23
+ * @(#)MotifScrollPaneUI.java	1.19 04/03/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,8 +34,8 @@ public class MotifScrollPaneUI extends BasicScrollPaneUI
     private final static Border vsbMarginBorderL = new EmptyBorder(0, 0, 0, 4);
     private final static Border hsbMarginBorder = new EmptyBorder(4, 0, 0, 0);
 
-    private Border vsbBorder;
-    private Border hsbBorder;
+    private CompoundBorder vsbBorder;
+    private CompoundBorder hsbBorder;
 
     private PropertyChangeListener propertyChangeHandler;
 
@@ -58,13 +58,16 @@ public class MotifScrollPaneUI extends BasicScrollPaneUI
 		  if (propertyName.equals("componentOrientation")) {
 			JScrollPane pane = (JScrollPane)e.getSource();
 			JScrollBar vsb = pane.getVerticalScrollBar();
-			if (vsb != null) {
+			if (vsb != null && vsbBorder != null &&
+			    vsb.getBorder() == vsbBorder) {
+			    // The Border on the verticall scrollbar matches
+			    // what we installed, reset it.
 			    if (MotifGraphicsUtils.isLeftToRight(pane)) {
-			        vsbBorder = new CompoundBorder(new EmptyBorder(0, 4, 0, -4),
-							vsb.getBorder());
+				vsbBorder = new CompoundBorder(vsbMarginBorderR,
+						vsbBorder.getInsideBorder());
 			    } else {
-			        vsbBorder = new CompoundBorder(new EmptyBorder(0, -4, 0, 4),
-							vsb.getBorder());
+				vsbBorder = new CompoundBorder(vsbMarginBorderL,
+						vsbBorder.getInsideBorder());
 			    }
 			    vsb.setBorder(vsbBorder);
 			}

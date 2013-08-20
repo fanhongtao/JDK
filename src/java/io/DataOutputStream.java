@@ -1,7 +1,7 @@
 /*
- * @(#)DataOutputStream.java	1.38 03/01/23
+ * @(#)DataOutputStream.java	1.43 04/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.io;
  * then use a data input stream to read the data back in. 
  *
  * @author  unascribed
- * @version 1.38, 01/23/03
+ * @version 1.43, 05/13/04
  * @see     java.io.DataInputStream
  * @since   JDK1.0
  */
@@ -24,6 +24,11 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * If this counter overflows, it will be wrapped to Integer.MAX_VALUE.
      */
     protected int written;
+
+    /**
+     * bytearr is initialized on demand by writeUTF
+     */
+    private byte[] bytearr = null; 
 
     /**
      * Creates a new data output stream to write data to the specified 
@@ -90,7 +95,7 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * Flushes this data output stream. This forces any buffered output 
      * bytes to be written out to the stream. 
      * <p>
-     * The <code>flush</code> method of <code>DataOuputStream</code> 
+     * The <code>flush</code> method of <code>DataOutputStream</code>
      * calls the <code>flush</code> method of its underlying output stream.
      *
      * @exception  IOException  if an I/O error occurs.
@@ -279,8 +284,9 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
 
     /**
-     * Writes a string to the underlying output stream using Java modified
-     * UTF-8 encoding in a machine-independent manner. 
+     * Writes a string to the underlying output stream using
+     * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
+     * encoding in a machine-independent manner. 
      * <p>
      * First, two bytes are written to the output stream as if by the 
      * <code>writeShort</code> method giving the number of bytes to 
@@ -301,7 +307,8 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
 
     /**
-     * Writes a string to the specified DataOutput using Java modified UTF-8
+     * Writes a string to the specified DataOutput using
+     * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
      * encoding in a machine-independent manner. 
      * <p>
      * First, two bytes are written to out as if by the <code>writeShort</code>
@@ -320,15 +327,13 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
      * @exception  IOException  if an I/O error occurs.
      */
     static int writeUTF(String str, DataOutput out) throws IOException {
-	int strlen = str.length();
+        int strlen = str.length();
 	int utflen = 0;
- 	char[] charr = new char[strlen];
 	int c, count = 0;
-
-	str.getChars(0, strlen, charr, 0);
  
+        /* use charAt instead of copying String to char array */
 	for (int i = 0; i < strlen; i++) {
-	    c = charr[i];
+            c = str.charAt(i);
 	    if ((c >= 0x0001) && (c <= 0x007F)) {
 		utflen++;
 	    } else if (c > 0x07FF) {
@@ -339,15 +344,34 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
 	}
 
 	if (utflen > 65535)
-	    throw new UTFDataFormatException();
+	    throw new UTFDataFormatException(
+                "encoded string too long: " + utflen + " bytes");
 
-	byte[] bytearr = new byte[utflen+2];
+        byte[] bytearr = null;
+        if (out instanceof DataOutputStream) {
+            DataOutputStream dos = (DataOutputStream)out;
+            if(dos.bytearr == null || (dos.bytearr.length < (utflen+2)))
+                dos.bytearr = new byte[(utflen*2) + 2];
+            bytearr = dos.bytearr;
+        } else {
+            bytearr = new byte[utflen+2];
+        }
+     
 	bytearr[count++] = (byte) ((utflen >>> 8) & 0xFF);
-	bytearr[count++] = (byte) ((utflen >>> 0) & 0xFF);
-	for (int i = 0; i < strlen; i++) {
-	    c = charr[i];
+	bytearr[count++] = (byte) ((utflen >>> 0) & 0xFF);  
+        
+        int i=0;
+        for (i=0; i<strlen; i++) {
+           c = str.charAt(i);
+           if (!((c >= 0x0001) && (c <= 0x007F))) break;
+           bytearr[count++] = (byte) c;
+        }
+	
+	for (;i < strlen; i++){
+            c = str.charAt(i);
 	    if ((c >= 0x0001) && (c <= 0x007F)) {
 		bytearr[count++] = (byte) c;
+               
 	    } else if (c > 0x07FF) {
 		bytearr[count++] = (byte) (0xE0 | ((c >> 12) & 0x0F));
 		bytearr[count++] = (byte) (0x80 | ((c >>  6) & 0x3F));
@@ -357,8 +381,8 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
 		bytearr[count++] = (byte) (0x80 | ((c >>  0) & 0x3F));
 	    }
 	}
-        out.write(bytearr);
-	return utflen + 2;
+        out.write(bytearr, 0, utflen+2);
+        return utflen + 2;
     }
 
     /**

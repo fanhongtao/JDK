@@ -1,7 +1,7 @@
 /*
- * @(#)IIOMetadataFormat.java	1.22 03/01/23
+ * @(#)IIOMetadataFormat.java	1.24 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -676,7 +676,7 @@ public interface IIOMetadataFormat {
      * contain an object value (<i>i.e.</i>, if
      * <code>getObjectValueType(elementName) == VALUE_NONE</code>).
      */
-    Class getObjectClass(String elementName);
+    Class<?> getObjectClass(String elementName);
 
     /**
      * Returns an <code>Object</code>s containing the default
@@ -744,7 +744,7 @@ public interface IIOMetadataFormat {
      * @exception IllegalArgumentException if the <code>Object</code>
      * is not defined as a range.
      */
-    Comparable getObjectMinValue(String elementName);
+    Comparable<?> getObjectMinValue(String elementName);
 
     /**
      * Returns the maximum legal value for the <code>Object</code>
@@ -767,7 +767,7 @@ public interface IIOMetadataFormat {
      * @exception IllegalArgumentException if the <code>Object</code>
      * is not defined as a range.
      */
-    Comparable getObjectMaxValue(String elementName);
+    Comparable<?> getObjectMaxValue(String elementName);
 
     /**
      * Returns the minimum number of array elements that may be used

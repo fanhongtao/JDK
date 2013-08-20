@@ -1,7 +1,7 @@
 /*
- * @(#)DomainCombiner.java	1.6 03/01/23
+ * @(#)DomainCombiner.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ package java.security;
  * 
  * @see AccessController
  * @see AccessControlContext
- * @version 1.6, 01/23/03
+ * @version 1.7, 12/19/03
  */
 public interface DomainCombiner {
 

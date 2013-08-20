@@ -1,7 +1,7 @@
 /*
- * @(#)JPasswordField.java	1.50 03/01/23
+ * @(#)JPasswordField.java	1.54 04/06/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -28,11 +28,6 @@ import java.io.IOException;
  * to make it easier to safely change the UI for the
  * <code>JTextField</code> without affecting password entries.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JPasswordField">JPasswordField</a>
- * key assignments.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -47,7 +42,7 @@ import java.io.IOException;
  * description: Allows the editing of a line of text but doesn't show the characters.
  *
  * @author  Timothy Prinzing
- * @version 1.50 01/23/03
+ * @version 1.54 06/02/04
  */
 public class JPasswordField extends JTextField {
 
@@ -185,7 +180,11 @@ public class JPasswordField extends JTextField {
      * the model, is not acceptable for a password field.
      */
     public void cut() {
-	UIManager.getLookAndFeel().provideErrorFeedback(this);
+        if (getClientProperty("JPasswordField.cutCopyAllowed") != Boolean.TRUE) {
+            UIManager.getLookAndFeel().provideErrorFeedback(this);
+        } else {
+            super.cut();
+        }
     }
 
     /**
@@ -197,7 +196,11 @@ public class JPasswordField extends JTextField {
      * the model, is not acceptable for a password field.
      */
     public void copy() {
-	UIManager.getLookAndFeel().provideErrorFeedback(this);
+        if (getClientProperty("JPasswordField.cutCopyAllowed") != Boolean.TRUE) {
+            UIManager.getLookAndFeel().provideErrorFeedback(this);
+        } else {
+            super.copy();
+        }
     }
 
     /**
@@ -211,6 +214,7 @@ public class JPasswordField extends JTextField {
      * replaced by <code>getPassword</code>.
      * @return the text
      */
+    @Deprecated
     public String getText() {
 	return super.getText();
     }
@@ -228,6 +232,7 @@ public class JPasswordField extends JTextField {
      * @return the text
      * @exception BadLocationException if the offset or length are invalid
      */
+    @Deprecated
     public String getText(int offs, int len) throws BadLocationException {
         return super.getText(offs, len);
     }

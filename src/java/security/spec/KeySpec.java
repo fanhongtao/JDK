@@ -1,7 +1,7 @@
 /*
- * @(#)KeySpec.java	1.16 03/01/23
+ * @(#)KeySpec.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.16, 01/23/03
+ * @version 1.17, 12/19/03
  *
  * @see java.security.Key
  * @see java.security.KeyFactory

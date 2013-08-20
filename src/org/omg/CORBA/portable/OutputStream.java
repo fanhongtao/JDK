@@ -1,7 +1,7 @@
 /*
- * @(#)OutputStream.java	1.32 03/01/23
+ * @(#)OutputStream.java	1.34 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.CORBA.portable;
@@ -218,6 +218,7 @@ public abstract class OutputStream extends java.io.OutputStream
      * @param value the value to be written.
      * @deprecated Deprecated by CORBA 2.2.
      */
+    @Deprecated
     public void write_Principal(Principal value) {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }

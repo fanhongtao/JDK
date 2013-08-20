@@ -1,7 +1,7 @@
 /*
- * @(#)KerberosPrincipal.java	1.15 03/01/23
+ * @(#)KerberosPrincipal.java	1.18 04/02/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -18,46 +18,48 @@ import sun.security.util.*;
  * This class encapsulates a Kerberos principal.
  *
  * @author Mayank Upadhyay
- * @version 1.15, 01/23/03
+ * @version 1.18, 02/03/04
  * @since 1.4
  */
 
 public final class KerberosPrincipal 
     implements java.security.Principal, java.io.Serializable {
 
+    private static final long serialVersionUID = -7374788026156829911L;
+
     //name types
     
     /**
-     * unknown name type
+     * unknown name type.
      */
 
     public static final int KRB_NT_UNKNOWN =   0;
     
     /**
-     * user principal name type
+     * user principal name type.
      */
 
     public static final int KRB_NT_PRINCIPAL = 1;
     
     /**
-     * service and other unique instance (krbtgt) name type
+     * service and other unique instance (krbtgt) name type.
      */
     public static final int KRB_NT_SRV_INST =  2;
     
     /**
-     * service with host name as instance (telnet, rcommands) name type
+     * service with host name as instance (telnet, rcommands) name type.
      */
 
     public static final int KRB_NT_SRV_HST =   3;
     
     /**
-     * service with host as remaining components name type
+     * service with host as remaining components name type.
      */
 
     public static final int KRB_NT_SRV_XHST =  4;
     
     /**
-     * unique ID name type
+     * unique ID name type.
      */
 
     public static final int KRB_NT_UID = 5;

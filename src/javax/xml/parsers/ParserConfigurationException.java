@@ -1,7 +1,8 @@
+// $Id: ParserConfigurationException.java,v 1.2 2003/12/06 00:21:41 jsuttor Exp $
 /*
- * @(#)ParserConfigurationException.java	1.7 03/01/23
- *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)ParserConfigurationException.java	1.12 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,8 +11,8 @@ package javax.xml.parsers;
 /**
  * Indicates a serious configuration error.
  *
- * @since JAXP 1.0
- * @version 1.0
+ * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @version $Revision: 1.2 $, $Date: 2003/12/06 00:21:41 $
  */
 
 public class ParserConfigurationException extends Exception {

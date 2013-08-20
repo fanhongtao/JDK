@@ -1,7 +1,7 @@
 /*
- * @(#)SolarisSystem.java	1.7 06/06/22
+ * @(#)SolarisSystem.java	1.7 03/12/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,6 +20,8 @@ public class SolarisSystem {
 
     private native void getSolarisInfo();
 
+    private static boolean loadedLibrary = false;
+
     protected String username;
     protected long uid;
     protected long gid;
@@ -30,7 +32,10 @@ public class SolarisSystem {
      * the native library to access the underlying system information.
      */
     public SolarisSystem() {
-	System.loadLibrary("jaas_unix");
+	if (loadedLibrary == false) {
+	    System.loadLibrary("jaas_unix");
+	    loadedLibrary = true;
+	}
 	getSolarisInfo();
     }
 

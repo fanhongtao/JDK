@@ -1,7 +1,7 @@
 /*
- * @(#)VetoableChangeSupport.java	1.41 03/01/23
+ * @(#)VetoableChangeSupport.java	1.44 04/03/04
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,12 +45,19 @@ public class VetoableChangeSupport implements java.io.Serializable {
     /**
      * Add a VetoableListener to the listener list.
      * The listener is registered for all properties.
+     * The same listener object may be added more than once, and will be called
+     * as many times as it is added.
+     * If <code>listener</code> is null, no exception is thrown and no action
+     * is taken.
      *
      * @param listener  The VetoableChangeListener to be added
      */
 
     public synchronized void addVetoableChangeListener(
 					VetoableChangeListener listener) {
+        if (listener == null) {
+            return;
+        }
         if (listener instanceof VetoableChangeListenerProxy) {
             VetoableChangeListenerProxy proxy =
                     (VetoableChangeListenerProxy)listener;
@@ -69,11 +76,18 @@ public class VetoableChangeSupport implements java.io.Serializable {
      * Remove a VetoableChangeListener from the listener list.
      * This removes a VetoableChangeListener that was registered
      * for all properties.
+     * If <code>listener</code> was added more than once to the same event
+     * source, it will be notified one less time after being removed.
+     * If <code>listener</code> is null, or was never added, no exception is
+     * thrown and no action is taken.
      *
      * @param listener  The VetoableChangeListener to be removed
      */
     public synchronized void removeVetoableChangeListener(
 					VetoableChangeListener listener) {
+        if (listener == null) {
+            return;
+        }
         if (listener instanceof VetoableChangeListenerProxy) {
             VetoableChangeListenerProxy proxy =
                     (VetoableChangeListenerProxy)listener;
@@ -128,6 +142,11 @@ public class VetoableChangeSupport implements java.io.Serializable {
      * Add a VetoableChangeListener for a specific property.  The listener
      * will be invoked only when a call on fireVetoableChange names that
      * specific property.
+     * The same listener object may be added more than once.  For each
+     * property,  the listener will be invoked the number of times it was added
+     * for that property.
+     * If <code>propertyName</code> or <code>listener</code> is null, no
+     * exception is thrown and no action is taken.
      *
      * @param propertyName  The name of the property to listen on.
      * @param listener  The VetoableChangeListener to be added
@@ -135,20 +154,30 @@ public class VetoableChangeSupport implements java.io.Serializable {
 
     public synchronized void addVetoableChangeListener(
 				String propertyName,
-				VetoableChangeListener listener) {
-	if (children == null) {
-	    children = new java.util.Hashtable();
-	}
-	VetoableChangeSupport child = (VetoableChangeSupport)children.get(propertyName);
-	if (child == null) {
-	    child = new VetoableChangeSupport(source);
-	    children.put(propertyName, child);
-	}
-	child.addVetoableChangeListener(listener);
+                VetoableChangeListener listener) {
+        if (listener == null || propertyName == null) {
+            return;
+        }
+        if (children == null) {
+            children = new java.util.Hashtable();
+        }
+        VetoableChangeSupport child = (VetoableChangeSupport)children.get(propertyName);
+        if (child == null) {
+            child = new VetoableChangeSupport(source);
+            children.put(propertyName, child);
+        }
+        child.addVetoableChangeListener(listener);
     }
 
     /**
      * Remove a VetoableChangeListener for a specific property.
+     * If <code>listener</code> was added more than once to the same event
+     * source for the specified property, it will be notified one less time
+     * after being removed.
+     * If <code>propertyName</code> is null, no exception is thrown and no
+     * action is taken.
+     * If <code>listener</code> is null, or was never added for the specified
+     * property, no exception is thrown and no action is taken.
      *
      * @param propertyName  The name of the property that was listened on.
      * @param listener  The VetoableChangeListener to be removed
@@ -156,30 +185,35 @@ public class VetoableChangeSupport implements java.io.Serializable {
 
     public synchronized void removeVetoableChangeListener(
 				String propertyName,
-				VetoableChangeListener listener) {
-	if (children == null) {
-	    return;
-	}
-	VetoableChangeSupport child = (VetoableChangeSupport)children.get(propertyName);
-	if (child == null) {
-	    return;
-	}
-	child.removeVetoableChangeListener(listener);
+                VetoableChangeListener listener) {
+        if (listener == null || propertyName == null) {
+            return;
+        }
+        if (children == null) {
+            return;
+        }
+        VetoableChangeSupport child = (VetoableChangeSupport)children.get(propertyName);
+        if (child == null) {
+            return;
+        }
+        child.removeVetoableChangeListener(listener);
     }
 
     /**
      * Returns an array of all the listeners which have been associated 
      * with the named property.
      *
+     * @param propertyName  The name of the property being listened to
      * @return all the <code>VetoableChangeListeners</code> associated with
-     *         the named property or an empty array if no listeners have 
-     *         been added.
+     *         the named property.  If no such listeners have been added,
+     *         or if <code>propertyName</code> is null, an empty array is
+     *         returned.
      */
     public synchronized VetoableChangeListener[] getVetoableChangeListeners(
             String propertyName) {
         List returnList = new ArrayList();
 
-        if (children != null) {
+        if (children != null && propertyName != null) {
             VetoableChangeSupport support =
                     (VetoableChangeSupport)children.get(propertyName);
             if (support != null) {
@@ -323,7 +357,9 @@ public class VetoableChangeSupport implements java.io.Serializable {
 
 
     /**
-     * Check if there are any listeners for a specific property.
+     * Check if there are any listeners for a specific property, including
+     * those registered on all properties.  If <code>propertyName</code>
+     * is null, only check for listeners registered on all properties.
      *
      * @param propertyName  the property name.
      * @return true if there are one or more listeners for the given property
@@ -333,7 +369,7 @@ public class VetoableChangeSupport implements java.io.Serializable {
 	    // there is a generic listener
 	    return true;
 	}
-	if (children != null) {
+	if (children != null && propertyName != null) {
 	    VetoableChangeSupport child = (VetoableChangeSupport)children.get(propertyName);
 	    if (child != null && child.listeners != null) {
 		return !child.listeners.isEmpty();

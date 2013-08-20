@@ -1,7 +1,7 @@
 /*
- * @(#)OutputStream.java	1.25 03/01/23
+ * @(#)OutputStream.java	1.29 04/04/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,10 +14,10 @@ package java.io;
  * <p>
  * Applications that need to define a subclass of 
  * <code>OutputStream</code> must always provide at least a method 
- * that writes one byte of output. 
+ * that writes one byte of output.
  *
  * @author  Arthur van Hoff
- * @version 1.25, 01/23/03
+ * @version 1.29, 04/21/04
  * @see     java.io.BufferedOutputStream
  * @see     java.io.ByteArrayOutputStream
  * @see     java.io.DataOutputStream
@@ -26,7 +26,7 @@ package java.io;
  * @see     java.io.OutputStream#write(int)
  * @since   JDK1.0
  */
-public abstract class OutputStream {
+public abstract class OutputStream implements Closeable, Flushable {
     /**
      * Writes the specified byte to this output stream. The general 
      * contract for <code>write</code> is that one byte is written 
@@ -107,6 +107,12 @@ public abstract class OutputStream {
      * written have been buffered by the implementation of the output 
      * stream, such bytes should immediately be written to their 
      * intended destination.
+     * <p>
+     * If the intended destination of this stream is an abstraction provided by
+     * the underlying operating system, for example a file, then flushing the
+     * stream guarantees only that bytes previously written to the stream are
+     * passed to the operating system for writing; it does not guarantee that
+     * they are actually written to a physical device such as a disk drive.
      * <p>
      * The <code>flush</code> method of <code>OutputStream</code> does nothing.
      *

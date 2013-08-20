@@ -1,7 +1,7 @@
 /*
- * @(#)PlainView.java	1.71 03/01/23
+ * @(#)PlainView.java	1.74 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -17,7 +17,7 @@ import javax.swing.event.*;
  * child element as a line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.71 01/23/03
+ * @version 1.74 04/15/04
  * @see     View
  */
 public class PlainView extends View implements TabExpander {
@@ -87,12 +87,12 @@ public class PlainView extends View implements TabExpander {
 	AttributeSet attr = elem.getAttributes();
 	if (Utilities.isComposedTextAttributeDefined(attr)) {
 	    g.setColor(unselected);
-	    x = Utilities.drawComposedText(attr, g, x, y, 
+	    x = Utilities.drawComposedText(this, attr, g, x, y, 
 					p0-elem.getStartOffset(), 
 					p1-elem.getStartOffset());
 	} else {
-	    if (sel0 == sel1) {
-		// no selection
+	    if (sel0 == sel1 || selected == unselected) {
+		// no selection, or it is invisible
 		x = drawUnselectedText(g, x, y, p0, p1);
 	    } else if ((p0 >= sel0 && p0 <= sel1) && (p1 >= sel0 && p1 <= sel1)) {
 		x = drawSelectedText(g, x, y, p0, p1);
@@ -134,7 +134,7 @@ public class PlainView extends View implements TabExpander {
         Document doc = getDocument();
         Segment s = SegmentCache.getSharedSegment();
         doc.getText(p0, p1 - p0, s);
-        int ret = Utilities.drawTabbedText(s, x, y, g, this, p0);
+        int ret = Utilities.drawTabbedText(this, s, x, y, g, this, p0);
         SegmentCache.releaseSharedSegment(s);
         return ret;
     }
@@ -159,7 +159,7 @@ public class PlainView extends View implements TabExpander {
         Document doc = getDocument();
         Segment s = SegmentCache.getSharedSegment();
         doc.getText(p0, p1 - p0, s);
-        int ret = Utilities.drawTabbedText(s, x, y, g, this, p0);
+        int ret = Utilities.drawTabbedText(this, s, x, y, g, this, p0);
         SegmentCache.releaseSharedSegment(s);
         return ret;
     }
@@ -235,13 +235,15 @@ public class PlainView extends View implements TabExpander {
         Rectangle alloc = (Rectangle) a;
         tabBase = alloc.x;
 	JTextComponent host = (JTextComponent) getContainer();
+        Highlighter h = host.getHighlighter();
         g.setFont(host.getFont());
         sel0 = host.getSelectionStart();
         sel1 = host.getSelectionEnd();
         unselected = (host.isEnabled()) ? 
             host.getForeground() : host.getDisabledTextColor();
 	Caret c = host.getCaret();
-        selected = c.isSelectionVisible() ? host.getSelectedTextColor() : unselected;
+        selected = c.isSelectionVisible() && h != null ?
+                       host.getSelectedTextColor() : unselected;
 	updateMetrics();
 
         // If the lines are clipped then we don't expend the effort to
@@ -267,7 +269,6 @@ public class PlainView extends View implements TabExpander {
 	int lineCount = map.getElementCount();
         int endLine = Math.min(lineCount, linesTotal - linesBelow);
 	lineCount--;
-	Highlighter h = host.getHighlighter();
 	LayeredHighlighter dh = (h instanceof LayeredHighlighter) ?
 	                   (LayeredHighlighter)h : null;
         for (int line = linesAbove; line < endLine; line++) {

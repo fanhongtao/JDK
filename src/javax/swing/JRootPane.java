@@ -1,7 +1,7 @@
 /*
- * @(#)JRootPane.java	1.83 03/01/23
+ * @(#)JRootPane.java	1.86 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -169,7 +169,7 @@ import javax.swing.border.*;
  * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.83 01/23/03
+ * @version 1.86 05/18/04
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -290,6 +290,7 @@ public class JRootPane extends JComponent implements Accessible {
      * @deprecated As of Java 2 platform v1.3.
      *  @see #defaultButton
      */ 
+    @Deprecated
     protected DefaultAction defaultPressAction;   
     /**
      * As of Java 2 platform v1.3 this unusable field is no longer used.
@@ -300,6 +301,7 @@ public class JRootPane extends JComponent implements Accessible {
      * @deprecated As of Java 2 platform v1.3.
      *  @see #defaultButton
      */ 
+    @Deprecated
     protected DefaultAction defaultReleaseAction;
 
     /** 
@@ -512,6 +514,7 @@ public class JRootPane extends JComponent implements Accessible {
      *  replaced by <code>setJMenuBar(JMenuBar menu)</code>.
      * @param menu the <code>JMenuBar</code> to add.
      */
+    @Deprecated
     public void setMenuBar(JMenuBar menu){
         if(menuBar != null && menuBar.getParent() == layeredPane)
             layeredPane.remove(menuBar);
@@ -533,6 +536,7 @@ public class JRootPane extends JComponent implements Accessible {
      *  replaced by <code>getJMenubar()</code>.
      * @return the <code>JMenuBar</code> used in the pane
      */
+    @Deprecated
     public JMenuBar getMenuBar() { return menuBar; }
 
     /** 
@@ -986,6 +990,46 @@ public class JRootPane extends JComponent implements Accessible {
         public AccessibleRole getAccessibleRole() {
             return AccessibleRole.ROOT_PANE;
         }
-    } // inner class AccessibleJRootPane
 
+        // TIGER - 4771367
+        /**
+         * Returns the number of accessible children of the object.
+         *
+         * @return the number of accessible children of the object.
+         */
+        public int getAccessibleChildrenCount() {
+            // The JRootPane has only one Accessible child,
+            // the content pane.
+            if (JRootPane.this.getContentPane() != null) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+
+        // TIGER - 4771367
+        /**
+         * Returns the specified Accessible child of the object.  The Accessible
+         * children of an Accessible object are zero-based, so the first child
+         * of an Accessible child is at index 0, the second child is at index 1,
+         * and so on.
+         *
+         * @param i zero-based index of child
+         * @return the Accessible child of the object
+         * @see #getAccessibleChildrenCount
+         */
+        public Accessible getAccessibleChild(int i) {
+            // The JRootPane has only one Accessible child,
+            // the content pane.
+            if (i != 0) {
+                return null;
+            }
+            Container c = JRootPane.this.getContentPane();
+            if (c instanceof Accessible) {
+                return (Accessible)c;
+            } else {
+                return null;
+            }
+        }
+    } // inner class AccessibleJRootPane
 }

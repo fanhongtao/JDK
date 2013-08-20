@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDirectoryModel.java	1.30 07/05/17
+ * @(#)BasicDirectoryModel.java	1.31 04/05/05
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,32 +45,16 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	   prop == JFileChooser.FILE_HIDING_CHANGED_PROPERTY ||
 	   prop == JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY) {
 	    validateFileCache();
-	} else if ("UI".equals(prop)) {
-	    Object old = e.getOldValue();
-	    if (old instanceof BasicFileChooserUI) {
-		BasicFileChooserUI ui = (BasicFileChooserUI) old;
-		BasicDirectoryModel model = ui.getModel();
-		if (model != null) {
-		    model.invalidateFileCache();
-		}
-	    }
-	} else if ("JFileChooserDialogIsClosingProperty".equals(prop)) {
-	    invalidateFileCache();
 	}
     }
 
     /**
-     * This method is used to interrupt file loading thread.
+     * Obsolete - not used.
      */
     public void invalidateFileCache() {
-	if (loadThread != null) {
-	    loadThread.interrupt();
-	    loadThread.cancelRunnables();
-	    loadThread = null;
-	}
     }
 
-    public Vector getDirectories() {
+    public Vector<File> getDirectories() {
 	synchronized(fileCache) {
 	    if (directories != null) {
 		return directories;
@@ -80,7 +64,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	}
     }
 
-    public Vector getFiles() {
+    public Vector<File> getFiles() {
 	synchronized(fileCache) {
 	    if (files != null) {
 		return files;
@@ -110,7 +94,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	}
 	if (loadThread != null) {
 	    loadThread.interrupt();
-	    loadThread.cancelRunnables();
+            loadThread.cancelRunnables();
 	}
 	fetchID++;
 	loadThread = new LoadFilesThread(currentDirectory, fetchID);
@@ -172,7 +156,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
     public void intervalRemoved(ListDataEvent e) {
     }
 
-    protected void sort(Vector v){
+    protected void sort(Vector<? extends File> v){
 	ShellFolder.sortFiles(v);
     }
 
@@ -210,7 +194,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 
 	    File[] list = fileSystem.getFiles(currentDirectory, filechooser.isFileHidingEnabled());
 
-	    Vector acceptsList = new Vector();
+	    Vector<File> acceptsList = new Vector<File>();
 
 	    if (isInterrupted()) {
 		return;
@@ -270,6 +254,9 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 		}
 		if (start >= 0 && end > start
 		    && newFileCache.subList(end, newSize).equals(fileCache.subList(start, oldSize))) {
+		    if(isInterrupted()) {
+		        return;
+		    }
 		    invokeLater(new DoChangeContents(newFileCache.subList(start, end), start, null, 0, fid));
 		    newFileCache = null;
 		}
@@ -286,16 +273,19 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 		}
 		if (start >= 0 && end > start
 		    && fileCache.subList(end, oldSize).equals(newFileCache.subList(start, newSize))) {
+		    if(isInterrupted()) {
+		        return;
+		    }
 		    invokeLater(new DoChangeContents(null, 0, new Vector(fileCache.subList(start, end)),
 						     start, fid));
 		    newFileCache = null;
 		}
 	    }
 	    if (newFileCache != null && !fileCache.equals(newFileCache)) {
+	        if (isInterrupted()) {
+		    cancelRunnables(runnables);
+	        }
 		invokeLater(new DoChangeContents(newFileCache, 0, fileCache, 0, fid));
-	    }
-	    if (isInterrupted()) {
-		cancelRunnables(runnables);
 	    }
 	}
 
@@ -306,10 +296,10 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	    }
 	}
 
-	private void cancelRunnables() {
-	    cancelRunnables(runnables);
+ 	public void cancelRunnables() {
+            cancelRunnables(runnables);
 	}
-    }
+   }
 
     class DoChangeContents implements Runnable {
 	private List addFiles;

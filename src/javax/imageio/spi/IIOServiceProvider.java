@@ -1,7 +1,7 @@
 /*
- * @(#)IIOServiceProvider.java	1.16 03/01/23
+ * @(#)IIOServiceProvider.java	1.18 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -91,7 +91,7 @@ public abstract class IIOServiceProvider implements RegisterableService {
      * @see ServiceRegistry#registerServiceProvider(Object provider)
      */
     public void onRegistration(ServiceRegistry registry,
-                               Class category) {}
+                               Class<?> category) {}
 
     /**
      * A callback that will be whenever the Spi class has been
@@ -104,7 +104,7 @@ public abstract class IIOServiceProvider implements RegisterableService {
      * @see ServiceRegistry#deregisterServiceProvider(Object provider)
      */
     public void onDeregistration(ServiceRegistry registry,
-                                 Class category) {}
+                                 Class<?> category) {}
 
     /**
      * Returns the name of the vendor responsible for creating this

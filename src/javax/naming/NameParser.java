@@ -1,7 +1,7 @@
 /*
- * @(#)NameParser.java	1.6 03/01/23
+ * @(#)NameParser.java	1.8 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.6 03/01/23
+  * @version 1.8 04/05/05
   *
   * @see CompoundName
   * @see Name
@@ -36,5 +36,5 @@ public interface NameParser {
           * 	syntax defined for the namespace.
           * @exception NamingException If a naming exception was encountered.
 	  */
-	Name parse(String name)	throws NamingException;
+	Name parse(String name) throws NamingException;
 }

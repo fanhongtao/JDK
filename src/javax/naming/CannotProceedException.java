@@ -1,7 +1,7 @@
 /*
- * @(#)CannotProceedException.java	1.8 03/01/23
+ * @(#)CannotProceedException.java	1.11 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.util.Hashtable;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 03/01/23
+  * @version 1.11 04/07/16
   * @since 1.3
   */
 
@@ -72,7 +72,7 @@ public class CannotProceedException extends NamingException {
      * @see #getEnvironment
      * @see #setEnvironment
      */
-    protected Hashtable environment = null;
+    protected Hashtable<?,?> environment = null;
 
     /**
      * Contains the name of the resolved object, relative
@@ -140,7 +140,7 @@ public class CannotProceedException extends NamingException {
      *		null means no environment was recorded for this exception.
      * @see #setEnvironment
      */
-    public Hashtable getEnvironment() {
+    public Hashtable<?,?> getEnvironment() {
 	return environment;
     }
 
@@ -152,7 +152,7 @@ public class CannotProceedException extends NamingException {
      * 		this exception.
      * @see #getEnvironment
      */
-    public void setEnvironment(Hashtable environment) {
+    public void setEnvironment(Hashtable<?,?> environment) {
 	this.environment = environment;	// %%% clone it??
     }
 

@@ -1,7 +1,7 @@
 /*
  * @(#)IIOMetadataNode.java	1.36 02/03/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,6 +18,9 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.TypeInfo;
+import org.w3c.dom.UserDataHandler;
+
 
 class IIODOMException extends DOMException {
 
@@ -156,6 +159,69 @@ class IIOAttr extends IIOMetadataNode implements Attr {
     public Element getOwnerElement() {
         return owner;
     }
+
+    public void setOwnerElement(Element owner) {
+        this.owner = owner;
+    }
+
+    // Start of dummy methods for DOM L3. PENDING: Please revisit
+    public boolean isId( ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public TypeInfo getSchemaTypeInfo() {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public Object setUserData(String key,
+                              Object data,
+                              UserDataHandler handler) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+
+    public Object getUserData ( String key ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public Object getFeature ( String feature, String version ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public boolean isEqualNode( Node node ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public boolean isSameNode( Node node ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public String lookupNamespaceURI( String prefix ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public boolean isDefaultNamespace(String namespaceURI) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public String lookupPrefix(String namespaceURI) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+
+    String textContent;
+    public String getTextContent() throws DOMException {
+        return textContent;
+    }
+    public void setTextContent(String textContent) throws DOMException{
+        this.textContent = textContent; //PENDING
+    }
+    public short compareDocumentPosition(Node other)
+                                         throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public String getBaseURI() {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    // End of dummy methods for DOM L3. PENDING: Please revisit
+
+
 }
 
 /**
@@ -677,7 +743,7 @@ public class IIOMetadataNode implements Element, NodeList {
     public void setAttribute(String name, String value) {
         // Note minor dependency on Crimson package
         // Steal the code if Crimson ever goes away
-        if (!org.apache.crimson.util.XmlNames.isName(name)) {
+        if (!com.sun.imageio.metadata.XmlNames.isName(name)) {
             throw new IIODOMException(DOMException.INVALID_CHARACTER_ERR,
                                       "Attribute name is illegal!");
         }
@@ -702,8 +768,9 @@ public class IIOMetadataNode implements Element, NodeList {
     private void removeAttribute(String name, boolean checkPresent) {
         int numAttributes = attributes.size();
         for (int i = 0; i < numAttributes; i++) {
-            Attr attr = (Attr)attributes.get(i);
+            IIOAttr attr = (IIOAttr)attributes.get(i);
             if (name.equals(attr.getName())) {
+                attr.setOwnerElement(null);
                 attributes.remove(i);
                 return;
             }
@@ -740,16 +807,34 @@ public class IIOMetadataNode implements Element, NodeList {
     }
 
     public Attr setAttributeNode(Attr newAttr) throws DOMException {
+        Element owner = newAttr.getOwnerElement();
+        if (owner != null) {
+            if (owner == this) {
+                return null;
+            } else {
+                throw new DOMException(DOMException.INUSE_ATTRIBUTE_ERR,
+                                       "Attribute is already in use");
+            }
+        }
+
         IIOAttr attr;
         if (newAttr instanceof IIOAttr) {
             attr = (IIOAttr)newAttr;
+            attr.setOwnerElement(this);
         } else {
-            attr = new IIOAttr(newAttr.getOwnerElement(),
+            attr = new IIOAttr(this,
                                newAttr.getName(),
                                newAttr.getValue());
         }
+
+        Attr oldAttr = getAttributeNode(attr.getName());
+        if (oldAttr != null) {
+            removeAttributeNode(oldAttr);
+        }
+
         attributes.add(attr);
-        return attr;
+
+        return oldAttr;
     }
     
     /**
@@ -847,4 +932,79 @@ public class IIOMetadataNode implements Element, NodeList {
     public void setUserObject(Object userObject) {
         this.userObject = userObject;
     }
+
+    // Start of dummy methods for DOM L3. PENDING: Please revisit
+    public void setIdAttribute(String name,
+                               boolean isId)
+                               throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public void setIdAttributeNS(String namespaceURI,
+                                 String localName,
+                                 boolean isId)
+                                 throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public void setIdAttributeNode(Attr idAttr,
+                                   boolean isId)
+                                   throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public TypeInfo getSchemaTypeInfo() {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public Object setUserData(String key,
+                              Object data,
+                              UserDataHandler handler) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+
+    public Object getUserData ( String key ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public Object getFeature ( String feature, String version ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public boolean isSameNode( Node node ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public boolean isEqualNode( Node node ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public String lookupNamespaceURI( String prefix ) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public boolean isDefaultNamespace(String namespaceURI) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+
+    public String lookupPrefix(String namespaceURI) {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    String textContent;
+    public String getTextContent() throws DOMException {
+        return textContent;
+    }
+    public void setTextContent(String textContent) throws DOMException{
+        this.textContent = textContent; //PENDING
+    }
+
+
+    public short compareDocumentPosition(Node other)
+                                         throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    public String getBaseURI() {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    }
+    //End of dummy methods for DOM L3. Please revisit
+
+
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicToggleButtonUI.java	1.56 03/01/23
+ * @(#)BasicToggleButtonUI.java	1.58 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -21,7 +21,7 @@ import javax.swing.text.View;
  * BasicToggleButton implementation
  * <p>
  *
- * @version 1.56 01/23/03
+ * @version 1.58 12/19/03
  * @author Jeff Dinkins
  */
 public class BasicToggleButtonUI extends BasicButtonUI {
@@ -79,15 +79,7 @@ public class BasicToggleButtonUI extends BasicButtonUI {
 
         if (model.isArmed() && model.isPressed() || model.isSelected()) {
             paintButtonPressed(g,b);
-	} else if (b.isOpaque()) {
-	    Insets insets = b.getInsets();
-	    Insets margin = b.getMargin();
-	    
-	    g.fillRect(insets.left - margin.left,
-		       insets.top - margin.top, 
-		       size.width - (insets.left-margin.left) - (insets.right - margin.right),
-		       size.height - (insets.top-margin.top) - (insets.bottom - margin.bottom));
-	}
+        }
 	
         // Paint the Icon
         if(b.getIcon() != null) { 

@@ -1,7 +1,7 @@
 /*
- * @(#)IdentityScope.java	1.49 03/01/23
+ * @(#)IdentityScope.java	1.54 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -36,7 +36,7 @@ import java.util.Properties;
  * @see Principal
  * @see Key
  *
- * @version 1.49 03/01/23
+ * @version 1.54 04/05/18
  * @author Benjamin Renaud
  *
  * @deprecated This class is no longer used. Its functionality has been
@@ -44,9 +44,11 @@ import java.util.Properties;
  * <code>java.security.cert</code> package, and
  * <code>java.security.Principal</code>.
  */
-
+@Deprecated
 public abstract 
 class IdentityScope extends Identity {
+
+    private static final long serialVersionUID = -2337346281189773310L;
 
     /* The system's scope */
     private static IdentityScope scope;
@@ -69,8 +71,8 @@ class IdentityScope extends Identity {
 	    try {
 		Class.forName(classname);
 	    } catch (ClassNotFoundException e) {
-		Security.error("unable to establish a system scope from " +
-			       classname);
+		//Security.error("unable to establish a system scope from " +
+		//	       classname);
 		e.printStackTrace();
 	    }
 	}
@@ -214,7 +216,7 @@ class IdentityScope extends Identity {
      * 
      * @return an enumeration of all identities in this identity scope.
      */
-    public abstract Enumeration identities();
+    public abstract Enumeration<Identity> identities();
 
     /**
      * Returns a string representation of this identity scope, including

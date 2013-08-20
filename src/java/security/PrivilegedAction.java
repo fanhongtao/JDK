@@ -1,7 +1,7 @@
 /*
- * @(#)PrivilegedAction.java	1.8 03/01/23
+ * @(#)PrivilegedAction.java	1.10 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.security;
  * @see PrivilegedExceptionAction
  */
 
-public interface PrivilegedAction {
+public interface PrivilegedAction<T> {
     /**
      * Performs the computation.  This method will be called by
      * <code>AccessController.doPrivileged</code> after enabling privileges.
@@ -34,5 +34,5 @@ public interface PrivilegedAction {
      * @see AccessController#doPrivileged(PrivilegedAction,
      *                                     AccessControlContext)
      */
-    Object run();
+    T run();
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)InflaterInputStream.java	1.32 03/01/23
+ * @(#)InflaterInputStream.java	1.37 04/06/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.EOFException;
  * decompression filters, such as GZIPInputStream.
  *
  * @see		Inflater
- * @version 	1.32, 01/23/03
+ * @version 	1.37, 06/11/04
  * @author 	David Connelly
  */
 public
@@ -142,7 +142,7 @@ class InflaterInputStream extends FilterInputStream {
     }
 
     /**
-     * Returns 0 after EOF has reached, otherwise always return 1.
+     * Returns 0 after EOF has been reached, otherwise always return 1.
      * <p>
      * Programs should not count on this method to return the actual number
      * of bytes that could be read without blocking.
@@ -192,7 +192,8 @@ class InflaterInputStream extends FilterInputStream {
     }
 
     /**
-     * Closes the input stream.
+     * Closes this input stream and releases any system resources associated
+     * with the stream.
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
@@ -215,5 +216,49 @@ class InflaterInputStream extends FilterInputStream {
 	    throw new EOFException("Unexpected end of ZLIB input stream");
 	}
 	inf.setInput(buf, 0, len);
+    }
+
+    /**
+     * Tests if this input stream supports the <code>mark</code> and
+     * <code>reset</code> methods. The <code>markSupported</code>
+     * method of <code>InflaterInputStream</code> returns
+     * <code>false</code>.
+     *
+     * @return  a <code>boolean</code> indicating if this stream type supports
+     *          the <code>mark</code> and <code>reset</code> methods.
+     * @see     java.io.InputStream#mark(int)
+     * @see     java.io.InputStream#reset()
+     */
+    public boolean markSupported() {
+        return false;
+    }
+ 
+    /**
+     * Marks the current position in this input stream.
+     *
+     * <p> The <code>mark</code> method of <code>InflaterInputStream</code>
+     * does nothing.
+     *
+     * @param   readlimit   the maximum limit of bytes that can be read before
+     *                      the mark position becomes invalid.
+     * @see     java.io.InputStream#reset()
+     */
+    public synchronized void mark(int readlimit) {
+    }
+ 
+    /**
+     * Repositions this stream to the position at the time the
+     * <code>mark</code> method was last called on this input stream.
+     *
+     * <p> The method <code>reset</code> for class
+     * <code>InflaterInputStream</code> does nothing except throw an
+     * <code>IOException</code>.
+     *
+     * @exception  IOException  if this method is invoked.
+     * @see     java.io.InputStream#mark(int)
+     * @see     java.io.IOException
+     */
+    public synchronized void reset() throws IOException {
+        throw new IOException("mark/reset not supported");
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)Collection.java	1.39 03/01/17
+ * @(#)Collection.java	1.49 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util;
  * The root interface in the <i>collection hierarchy</i>.  A collection
  * represents a group of objects, known as its <i>elements</i>.  Some
  * collections allow duplicate elements and others do not.  Some are ordered
- * and others unordered.  The SDK does not provide any <i>direct</i>
+ * and others unordered.  The JDK does not provide any <i>direct</i>
  * implementations of this interface: it provides implementations of more
  * specific subinterfaces like <tt>Set</tt> and <tt>List</tt>.  This interface
  * is typically used to pass collections around and manipulate them where
@@ -60,8 +60,26 @@ package java.util;
  * <a href="{@docRoot}/../guide/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * <p>Many methods in Collections Framework interfaces are defined in
+ * terms of the {@link Object#equals(Object) equals} method.  For example,
+ * the specification for the {@link #contains(Object) contains(Object o)}
+ * method says: "returns <tt>true</tt> if and only if this collection
+ * contains at least one element <tt>e</tt> such that
+ * <tt>(o==null ? e==null : o.equals(e))</tt>."  This specification should
+ * <i>not</i> be construed to imply that invoking <tt>Collection.contains</tt>
+ * with a non-null argument <tt>o</tt> will cause <tt>o.equals(e)</tt> to be
+ * invoked for any element <tt>e</tt>.  Implementations are free to implement
+ * optimizations whereby the <tt>equals</tt> invocation is avoided, for
+ * example, by first comparing the hash codes of the two elements.  (The
+ * {@link Object#hashCode()} specification guarantees that two objects with
+ * unequal hash codes cannot be equal.)  More generally, implementations of
+ * the various Collections Framework interfaces are free to take advantage of
+ * the specified behavior of underlying {@link Object} methods wherever the
+ * implementor deems it appropriate.
+ *
  * @author  Josh Bloch
- * @version 1.40, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.49, 06/28/04
  * @see	    Set
  * @see	    List
  * @see	    Map
@@ -78,7 +96,7 @@ package java.util;
  * @since 1.2
  */
 
-public interface Collection {
+public interface Collection<E> extends Iterable<E> {
     // Query Operations
 
     /**
@@ -121,7 +139,7 @@ public interface Collection {
      * 
      * @return an <tt>Iterator</tt> over the elements in this collection
      */
-    Iterator iterator();
+    Iterator<E> iterator();
 
     /**
      * Returns an array containing all of the elements in this collection.  If
@@ -185,8 +203,7 @@ public interface Collection {
      *         collection.
      * @throws NullPointerException if the specified array is <tt>null</tt>.
      */
-    
-    Object[] toArray(Object a[]);
+    <T> T[] toArray(T[] a);
 
     // Modification Operations
 
@@ -222,7 +239,7 @@ public interface Collection {
      * @throws IllegalArgumentException some aspect of this element prevents
      *         it from being added to this collection.
      */
-    boolean add(Object o);
+    boolean add(E o);
 
     /**
      * Removes a single instance of the specified element from this
@@ -266,7 +283,7 @@ public interface Collection {
      *         <tt>null</tt>.
      * @see    #contains(Object)
      */
-    boolean containsAll(Collection c);
+    boolean containsAll(Collection<?> c);
 
     /**
      * Adds all of the elements in the specified collection to this collection
@@ -292,7 +309,7 @@ public interface Collection {
      *	       collection.
      * @see #add(Object)
      */
-    boolean addAll(Collection c);
+    boolean addAll(Collection<? extends E> c);
 
     /**
      * 
@@ -318,7 +335,7 @@ public interface Collection {
      * @see #remove(Object)
      * @see #contains(Object)
      */
-    boolean removeAll(Collection c);
+    boolean removeAll(Collection<?> c);
 
     /**
      * Retains only the elements in this collection that are contained in the
@@ -343,7 +360,7 @@ public interface Collection {
      * @see #remove(Object)
      * @see #contains(Object)
      */
-    boolean retainAll(Collection c);
+    boolean retainAll(Collection<?> c);
 
     /**
      * Removes all of the elements from this collection (optional operation).

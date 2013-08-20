@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyChangeSupport.java	1.39 03/01/23
+ * @(#)PropertyChangeSupport.java	1.49 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import sun.awt.EventListenerAggregate;
 
 /**
  * This is a utility class that can be used by beans that support bound
@@ -27,8 +28,10 @@ import java.util.List;
  * non-serializable listeners will be skipped during serialization.
  *
  */
-
 public class PropertyChangeSupport implements java.io.Serializable {
+
+    // Manages the listener list.
+    private transient EventListenerAggregate listeners;
 
     /**
      * Constructs a <code>PropertyChangeSupport</code> object.
@@ -46,12 +49,19 @@ public class PropertyChangeSupport implements java.io.Serializable {
     /**
      * Add a PropertyChangeListener to the listener list.
      * The listener is registered for all properties.
+     * The same listener object may be added more than once, and will be called
+     * as many times as it is added.
+     * If <code>listener</code> is null, no exception is thrown and no action
+     * is taken.
      *
      * @param listener  The PropertyChangeListener to be added
      */
     public synchronized void addPropertyChangeListener(
 				PropertyChangeListener listener) {
-	
+	if (listener == null) {
+	    return;
+	}
+
 	if (listener instanceof PropertyChangeListenerProxy) {
 	    PropertyChangeListenerProxy proxy =
                    (PropertyChangeListenerProxy)listener;
@@ -60,9 +70,9 @@ public class PropertyChangeSupport implements java.io.Serializable {
                     (PropertyChangeListener)proxy.getListener());
 	} else {
 	    if (listeners == null) {
-		listeners = new java.util.Vector();
+		listeners = new EventListenerAggregate(PropertyChangeListener.class);
 	    }
-	    listeners.addElement(listener);
+	    listeners.add(listener);
 	}
     }
 
@@ -70,12 +80,19 @@ public class PropertyChangeSupport implements java.io.Serializable {
      * Remove a PropertyChangeListener from the listener list.
      * This removes a PropertyChangeListener that was registered
      * for all properties.
+     * If <code>listener</code> was added more than once to the same event
+     * source, it will be notified one less time after being removed.
+     * If <code>listener</code> is null, or was never added, no exception is
+     * thrown and no action is taken.
      *
      * @param listener  The PropertyChangeListener to be removed
      */
     public synchronized void removePropertyChangeListener(
 				PropertyChangeListener listener) {
-	
+	if (listener == null) {
+	    return;
+	}
+
 	if (listener instanceof PropertyChangeListenerProxy) {
 	    PropertyChangeListenerProxy proxy =
                     (PropertyChangeListenerProxy)listener;
@@ -86,7 +103,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
 	    if (listeners == null) {
 		return;
 	    }
-	    listeners.removeElement(listener);
+	    listeners.remove(listener);
 	}
     }
 
@@ -126,7 +143,7 @@ public class PropertyChangeSupport implements java.io.Serializable {
      
 	// Add all the PropertyChangeListeners 
 	if (listeners != null) {
-	    returnList.addAll(listeners);
+	    returnList.addAll(Arrays.asList(listeners.getListenersInternal()));
 	}
 	 
 	// Add all the PropertyChangeListenerProxys
@@ -153,58 +170,78 @@ public class PropertyChangeSupport implements java.io.Serializable {
      * Add a PropertyChangeListener for a specific property.  The listener
      * will be invoked only when a call on firePropertyChange names that
      * specific property.
+     * The same listener object may be added more than once.  For each
+     * property,  the listener will be invoked the number of times it was added
+     * for that property.
+     * If <code>propertyName</code> or <code>listener</code> is null, no
+     * exception is thrown and no action is taken.
      *
      * @param propertyName  The name of the property to listen on.
      * @param listener  The PropertyChangeListener to be added
      */
 
     public synchronized void addPropertyChangeListener(
-				String propertyName,
-				PropertyChangeListener listener) {
-	if (children == null) {
-	    children = new java.util.Hashtable();
-	}
-	PropertyChangeSupport child = (PropertyChangeSupport)children.get(propertyName);
-	if (child == null) {
-	    child = new PropertyChangeSupport(source);
-	    children.put(propertyName, child);
-	}
-	child.addPropertyChangeListener(listener);
+                String propertyName,
+                PropertyChangeListener listener) {
+        if (listener == null || propertyName == null) {
+            return;
+        }
+        if (children == null) {
+            children = new java.util.Hashtable();
+        }
+        PropertyChangeSupport child = (PropertyChangeSupport)children.get(propertyName);
+        if (child == null) {
+            child = new PropertyChangeSupport(source);
+            children.put(propertyName, child);
+        }
+        child.addPropertyChangeListener(listener);
     }
 
     /**
      * Remove a PropertyChangeListener for a specific property.
+     * If <code>listener</code> was added more than once to the same event
+     * source for the specified property, it will be notified one less time
+     * after being removed.
+     * If <code>propertyName</code> is null,  no exception is thrown and no
+     * action is taken.
+     * If <code>listener</code> is null, or was never added for the specified
+     * property, no exception is thrown and no action is taken.
      *
      * @param propertyName  The name of the property that was listened on.
      * @param listener  The PropertyChangeListener to be removed
      */
 
     public synchronized void removePropertyChangeListener(
-				String propertyName,
-				PropertyChangeListener listener) {
-	if (children == null) {
-	    return;
-	}
-	PropertyChangeSupport child = (PropertyChangeSupport)children.get(propertyName);
-	if (child == null) {
-	    return;
-	}
-	child.removePropertyChangeListener(listener);
+                String propertyName,
+                PropertyChangeListener listener) {
+        if (listener == null || propertyName == null) {
+            return;
+        }
+        if (children == null) {
+            return;
+        }
+        PropertyChangeSupport child = (PropertyChangeSupport)children.get(propertyName);
+        if (child == null) {
+            return;
+        }
+        child.removePropertyChangeListener(listener);
     }
 
     /**
      * Returns an array of all the listeners which have been associated 
      * with the named property.
      *
+     * @param propertyName  The name of the property being listened to
      * @return all of the <code>PropertyChangeListeners</code> associated with
-     *         the named property or an empty array if no listeners have 
-     *         been added
+     *         the named property.  If no such listeners have been added,
+     *         or if <code>propertyName</code> is null, an empty array is
+     *         returned.
      */
     public synchronized PropertyChangeListener[] getPropertyChangeListeners(
             String propertyName) {
         ArrayList returnList = new ArrayList();
 
-        if (children != null) {
+        if (children != null && propertyName != null) {
             PropertyChangeSupport support =
                     (PropertyChangeSupport)children.get(propertyName);
             if (support != null) {
@@ -227,35 +264,11 @@ public class PropertyChangeSupport implements java.io.Serializable {
      */
     public void firePropertyChange(String propertyName, 
 					Object oldValue, Object newValue) {
-
 	if (oldValue != null && newValue != null && oldValue.equals(newValue)) {
 	    return;
 	}
-
-	java.util.Vector targets = null;
-	PropertyChangeSupport child = null;
-	synchronized (this) {
-	    if (listeners != null) {
-	        targets = (java.util.Vector) listeners.clone();
-	    }
-	    if (children != null && propertyName != null) {
-		child = (PropertyChangeSupport)children.get(propertyName);
-	    }
-	}
-
-        PropertyChangeEvent evt = new PropertyChangeEvent(source,
-					    propertyName, oldValue, newValue);
-
-	if (targets != null) {
-	    for (int i = 0; i < targets.size(); i++) {
-	        PropertyChangeListener target = (PropertyChangeListener)targets.elementAt(i);
-	        target.propertyChange(evt);
-	    }
-	}
-
-	if (child != null) {
-	    child.firePropertyChange(evt);
-	}	
+	firePropertyChange(new PropertyChangeEvent(source, propertyName,
+						   oldValue, newValue));
     }
 
     /**
@@ -313,40 +326,110 @@ public class PropertyChangeSupport implements java.io.Serializable {
 	    return;
 	}
 
-	java.util.Vector targets = null;
-	PropertyChangeSupport child = null;
-	synchronized (this) {
-	    if (listeners != null) {
-	        targets = (java.util.Vector) listeners.clone();
-	    }
-	    if (children != null && propertyName != null) {
-		child = (PropertyChangeSupport)children.get(propertyName);
+	if (listeners != null) {
+	    Object[] list = listeners.getListenersInternal();
+	    for (int i = 0; i < list.length; i++) {
+		PropertyChangeListener target = (PropertyChangeListener)list[i];
+		target.propertyChange(evt);
 	    }
 	}
 
-	if (targets != null) {
-	    for (int i = 0; i < targets.size(); i++) {
-	        PropertyChangeListener target = (PropertyChangeListener)targets.elementAt(i);
-	        target.propertyChange(evt);
+	if (children != null && propertyName != null) {
+	    PropertyChangeSupport child = null;
+	    child = (PropertyChangeSupport)children.get(propertyName);
+	    if (child != null) {
+		child.firePropertyChange(evt);
 	    }
-	}
-	if (child != null) {
-	    child.firePropertyChange(evt);
 	}
     }
 
+    
     /**
-     * Check if there are any listeners for a specific property.
+     * Report a bound indexed property update to any registered
+     * listeners. 
+     * <p>
+     * No event is fired if old and new values are equal
+     * and non-null.
+     *
+     * @param propertyName The programmatic name of the property that
+     *                     was changed.
+     * @param index        index of the property element that was changed.
+     * @param oldValue     The old value of the property.
+     * @param newValue     The new value of the property.
+     * @since 1.5
+     */
+    public void fireIndexedPropertyChange(String propertyName, int index,
+					  Object oldValue, Object newValue) {
+	firePropertyChange(new IndexedPropertyChangeEvent
+	    (source, propertyName, oldValue, newValue, index));
+    }
+
+    /**
+     * Report an <code>int</code> bound indexed property update to any registered 
+     * listeners. 
+     * <p>
+     * No event is fired if old and new values are equal
+     * and non-null.
+     * <p>
+     * This is merely a convenience wrapper around the more general
+     * fireIndexedPropertyChange method which takes Object values.
+     *
+     * @param propertyName The programmatic name of the property that
+     *                     was changed.
+     * @param index        index of the property element that was changed.
+     * @param oldValue     The old value of the property.
+     * @param newValue     The new value of the property.
+     * @since 1.5
+     */
+    public void fireIndexedPropertyChange(String propertyName, int index,
+					  int oldValue, int newValue) {
+	if (oldValue == newValue) {
+	    return;
+	}
+	fireIndexedPropertyChange(propertyName, index, 
+				  new Integer(oldValue), 
+				  new Integer(newValue));
+    }
+
+    /**
+     * Report a <code>boolean</code> bound indexed property update to any 
+     * registered listeners. 
+     * <p>
+     * No event is fired if old and new values are equal and non-null.
+     * <p>
+     * This is merely a convenience wrapper around the more general
+     * fireIndexedPropertyChange method which takes Object values.
+     *
+     * @param propertyName The programmatic name of the property that
+     *                     was changed.
+     * @param index        index of the property element that was changed.
+     * @param oldValue     The old value of the property.
+     * @param newValue     The new value of the property.
+     * @since 1.5
+     */
+    public void fireIndexedPropertyChange(String propertyName, int index,
+					  boolean oldValue, boolean newValue) {
+	if (oldValue == newValue) {
+	    return;
+	}
+	fireIndexedPropertyChange(propertyName, index, Boolean.valueOf(oldValue), 
+				  Boolean.valueOf(newValue));
+    }
+
+    /**
+     * Check if there are any listeners for a specific property, including
+     * those registered on all properties.  If <code>propertyName</code>
+     * is null, only check for listeners registered on all properties.
      *
      * @param propertyName  the property name.
-     * @return true if there are ore or more listeners for the given property
+     * @return true if there are one or more listeners for the given property
      */
     public synchronized boolean hasListeners(String propertyName) {
 	if (listeners != null && !listeners.isEmpty()) {
 	    // there is a generic listener
 	    return true;
 	}
-	if (children != null) {
+	if (children != null && propertyName != null) {
 	    PropertyChangeSupport child = (PropertyChangeSupport)children.get(propertyName);
 	    if (child != null && child.listeners != null) {
 		return !child.listeners.isEmpty();
@@ -365,16 +448,11 @@ public class PropertyChangeSupport implements java.io.Serializable {
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
 
-	java.util.Vector v = null;
-	synchronized (this) {
-	    if (listeners != null) {
-	        v = (java.util.Vector) listeners.clone();
-            }
-	}
+	if (listeners != null) {
+	    Object[] list = listeners.getListenersCopy();
 
-	if (v != null) {
-	    for (int i = 0; i < v.size(); i++) {
-	        PropertyChangeListener l = (PropertyChangeListener)v.elementAt(i);
+	    for (int i = 0; i < list.length; i++) {
+	        PropertyChangeListener l = (PropertyChangeListener)list[i];
 	        if (l instanceof Serializable) {
 	            s.writeObject(l);
 	        }
@@ -389,16 +467,9 @@ public class PropertyChangeSupport implements java.io.Serializable {
       
         Object listenerOrNull;
         while (null != (listenerOrNull = s.readObject())) {
-	  addPropertyChangeListener((PropertyChangeListener)listenerOrNull);
+	    addPropertyChangeListener((PropertyChangeListener)listenerOrNull);
         }
     }
-
-    /**
-     * "listeners" lists all the generic listeners.
-     *
-     *  This is transient - its state is written in the writeObject method.
-     */
-    transient private java.util.Vector listeners;
 
     /** 
      * Hashtable for managing listeners for specific properties.

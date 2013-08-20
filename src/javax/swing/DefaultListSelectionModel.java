@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListSelectionModel.java	1.67 03/01/23
+ * @(#)DefaultListSelectionModel.java	1.75 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.67 01/23/03
+ * @version 1.75 05/05/04
  * @author Philip Milne
  * @author Hans Muller
  * @see ListSelectionModel
@@ -249,7 +249,7 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 
@@ -345,6 +345,12 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
      * include only the elements that have been selected or deselected since
      * the last change. Either way, the model continues to maintain the lead
      * and anchor variables internally. The default is true.
+     * <p>
+     * Note: It is possible for the lead or anchor to be changed without a
+     * change to the selection. Notification of these changes is often
+     * important, such as when the new lead or anchor needs to be updated in
+     * the view. Therefore, caution is urged when changing the default value.
+     *
      * @return 	the value of the <code>leadAnchorNotificationEnabled</code> flag
      * @see		#setLeadAnchorNotificationEnabled(boolean)
      */
@@ -413,7 +419,7 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 
     // implements javax.swing.ListSelectionModel
     public void clearSelection() {
-	removeSelectionInterval(minIndex, maxIndex);
+	removeSelectionIntervalImpl(minIndex, maxIndex, false);
     }
 
     // implements javax.swing.ListSelectionModel
@@ -442,7 +448,9 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
             return;
         }
 
-        if (getSelectionMode() != MULTIPLE_INTERVAL_SELECTION) {
+        // If we only allow a single selection, channel through
+        // setSelectionInterval() to enforce the rule.
+        if (getSelectionMode() == SINGLE_SELECTION) {
             setSelectionInterval(index0, index1);
             return;
         }
@@ -453,6 +461,17 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
         int clearMax = MIN;
 	int setMin = Math.min(index0, index1);
 	int setMax = Math.max(index0, index1);
+
+        // If we only allow a single interval and this would result
+        // in multiple intervals, then set the selection to be just
+        // the new range.
+        if (getSelectionMode() == SINGLE_INTERVAL_SELECTION &&
+                (setMax < minIndex - 1 || setMin > maxIndex + 1)) {
+
+            setSelectionInterval(index0, index1);
+            return;
+        }
+
         changeSelection(clearMin, clearMax, setMin, setMax);
     }
 
@@ -460,11 +479,21 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     // implements javax.swing.ListSelectionModel
     public void removeSelectionInterval(int index0, int index1)
     {
+        removeSelectionIntervalImpl(index0, index1, true);
+    }
+
+    // private implementation allowing the selection interval
+    // to be removed without affecting the lead and anchor
+    private void removeSelectionIntervalImpl(int index0, int index1,
+                                             boolean changeLeadAnchor) {
+
         if (index0 == -1 || index1 == -1) {
             return;
         }
 
-        updateLeadAnchorIndices(index0, index1);
+        if (changeLeadAnchor) {
+            updateLeadAnchorIndices(index0, index1);
+        }
 
 	int clearMin = Math.min(index0, index1);
 	int clearMax = Math.max(index0, index1); 
@@ -521,6 +550,19 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 	for(int i = insMinIndex; i <= insMaxIndex; i++) { 
 	    setState(i, setInsertedValues); 
 	}
+
+	int leadIndex = this.leadIndex;
+	if (leadIndex > index || (before && leadIndex == index)) {
+	    leadIndex = this.leadIndex + length;
+	}
+	int anchorIndex = this.anchorIndex;
+	if (anchorIndex > index || (before && anchorIndex == index)) {
+	    anchorIndex = this.anchorIndex + length;
+	}
+	if (leadIndex != this.leadIndex || anchorIndex != this.anchorIndex) {
+	    updateLeadAnchorIndices(anchorIndex, leadIndex);
+	}
+
         fireValueChanged();
     }
 
@@ -543,6 +585,29 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
 	for(int i = rmMinIndex; i <= maxIndex; i++) {
 	    setState(i, value.get(i + gapLength)); 
 	}
+
+	int leadIndex = this.leadIndex;
+        if (leadIndex == 0 && rmMinIndex == 0) {
+            // do nothing
+        } else if (leadIndex > rmMaxIndex) {
+	    leadIndex = this.leadIndex - gapLength;
+	} else if (leadIndex >= rmMinIndex) {
+            leadIndex = rmMinIndex - 1;
+        }
+
+	int anchorIndex = this.anchorIndex;
+        if (anchorIndex == 0 && rmMinIndex == 0) {
+            // do nothing
+        } else if (anchorIndex > rmMaxIndex) {
+            anchorIndex = this.anchorIndex - gapLength;
+        } else if (anchorIndex >= rmMinIndex) {
+            anchorIndex = rmMinIndex - 1;
+        }
+
+	if (leadIndex != this.leadIndex || anchorIndex != this.anchorIndex) {
+	    updateLeadAnchorIndices(anchorIndex, leadIndex);
+	}
+
         fireValueChanged();
     }
 
@@ -602,8 +667,46 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
      */   
     public void setAnchorSelectionIndex(int anchorIndex) { 
 	updateLeadAnchorIndices(anchorIndex, this.leadIndex); 
-        this.anchorIndex = anchorIndex;
 	fireValueChanged(); 
+    }
+
+    /**
+     * Set the lead selection index, leaving all selection values unchanged.
+     * If leadAnchorNotificationEnabled is true, send a notification covering
+     * the old and new lead cells.
+     *
+     * @param leadIndex the new lead selection index
+     *
+     * @see #setAnchorSelectionIndex
+     * @see #setLeadSelectionIndex
+     * @see #getLeadSelectionIndex
+     *
+     * @since 1.5
+     */
+    public void moveLeadSelectionIndex(int leadIndex) {
+        // disallow a -1 lead unless the anchor is already -1
+        if (leadIndex == -1) {
+            if (this.anchorIndex != -1) {
+                return;
+            }
+
+/* PENDING(shannonh) - The following check is nice, to be consistent with
+                       setLeadSelectionIndex. However, it is not absolutely
+                       necessary: One could work around it by setting the anchor
+                       to something valid, modifying the lead, and then moving
+                       the anchor back to -1. For this reason, there's no sense
+                       in adding it at this time, as that would require
+                       updating the spec and officially committing to it.
+
+        // otherwise, don't do anything if the anchor is -1
+        } else if (this.anchorIndex == -1) {
+            return;
+*/
+
+        }
+
+        updateLeadAnchorIndices(this.anchorIndex, leadIndex);
+        fireValueChanged();
     }
 
     /**
@@ -637,9 +740,18 @@ public class DefaultListSelectionModel implements ListSelectionModel, Cloneable,
     public void setLeadSelectionIndex(int leadIndex) { 
         int anchorIndex = this.anchorIndex;
 
-	if ((anchorIndex == -1) || (leadIndex == -1)) { 
-	    return; 
-	}
+        // only allow a -1 lead if the anchor is already -1
+        if (leadIndex == -1) {
+            if (anchorIndex == -1) {
+                updateLeadAnchorIndices(anchorIndex, leadIndex);
+                fireValueChanged();
+            }
+
+            return;
+        // otherwise, don't do anything if the anchor is -1
+        } else if (anchorIndex == -1) {
+            return;
+        }
 
 	if (this.leadIndex == -1) { 
 	    this.leadIndex = leadIndex; 

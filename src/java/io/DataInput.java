@@ -1,7 +1,7 @@
 /*
- * @(#)DataInput.java	1.20 03/01/23
+ * @(#)DataInput.java	1.23 04/06/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,9 @@ package java.io;
  * the Java primitive types. There is also
  * a
  * facility for reconstructing a <code>String</code>
- * from data in Java modified UTF-8 format.
+ * from data in
+ * <a href="#modified-utf-8">modified UTF-8</a>
+ * format.
  * <p>
  * It is generally true of all the reading
  * routines in this interface that if end of
@@ -28,8 +30,145 @@ package java.io;
  * may be thrown if the input stream has been
  * closed.
  *
+ * <h4><a name="modified-utf-8">Modified UTF-8</a></h4>
+ * <p>
+ * Implementations of the DataInput and DataOutput interfaces represent
+ * Unicode strings in a format that is a slight modification of UTF-8.
+ * (For information regarding the standard UTF-8 format, see section
+ * <i>3.9 Unicode Encoding Forms</i> of <i>The Unicode Standard, Version
+ * 4.0</i>).
+ * Note that in the following tables, the most significant bit appears in the
+ * far left-hand column.
+ * <p>
+ * All characters in the range <code>'&#92;u0001'</code> to
+ * <code>'&#92;u007F'</code> are represented by a single byte:
+ *
+ * <blockquote>
+ *   <table border="1" cellspacing="0" cellpadding="8" width="50%"
+ *          summary="Bit values and bytes">
+ *     <tr>
+ *       <td></td>
+ *       <th id="bit">Bit Values</th>
+ *     </tr>
+ *     <tr>
+ *       <th id="byte1">Byte 1</th>
+ *       <td>
+ *         <table border="1" cellspacing="0" width="100%">
+ *           <tr>
+ *             <td width="12%"><center>0</center>
+ *             <td colspan="7"><center>bits 6-0</center>
+ *           </tr>
+ *         </table>
+ *       </td>
+ *     </tr>
+ *   </table>
+ * </blockquote>
+ *
+ * <p>
+ * The null character <code>'&#92;u0000'</code> and characters in the
+ * range <code>'&#92;u0080'</code> to <code>'&#92;u07FF'</code> are
+ * represented by a pair of bytes:
+ *
+ * <blockquote>
+ *   <table border="1" cellspacing="0" cellpadding="8" width="50%"
+ *          summary="Bit values and bytes">
+ *     <tr>
+ *       <td></td>
+ *       <th id="bit">Bit Values</th>
+ *     </tr>
+ *     <tr>
+ *       <th id="byte1">Byte 1</th>
+ *       <td>
+ *         <table border="1" cellspacing="0" width="100%">
+ *           <tr>
+ *             <td width="12%"><center>1</center>
+ *             <td width="13%"><center>1</center>
+ *             <td width="12%"><center>0</center>
+ *             <td colspan="5"><center>bits 10-6</center>
+ *           </tr>
+ *         </table>
+ *       </td>
+ *     </tr>
+ *     <tr>
+ *       <th id="byte2">Byte 2</th>
+ *       <td>
+ *         <table border="1" cellspacing="0" width="100%">
+ *           <tr>
+ *             <td width="12%"><center>1</center>
+ *             <td width="13%"><center>0</center>
+ *             <td colspan="6"><center>bits 5-0</center>
+ *           </tr>
+ *         </table>
+ *       </td>
+ *     </tr>
+ *   </table>
+ *  </blockquote>
+ *
+ * <br>
+ * <code>char</code> values in the range <code>'&#92;u0800'</code> to
+ * <code>'&#92;uFFFF'</code> are represented by three bytes:
+ *
+ * <blockquote>
+ *   <table border="1" cellspacing="0" cellpadding="8" width="50%"
+ *          summary="Bit values and bytes">
+ *     <tr>
+ *       <td></td>
+ *       <th id="bit">Bit Values</th>
+ *     </tr>
+ *     <tr>
+ *       <th id="byte1">Byte 1</th>
+ *       <td>
+ *         <table border="1" cellspacing="0" width="100%">
+ *           <tr>
+ *             <td width="12%"><center>1</center>
+ *             <td width="13%"><center>1</center>
+ *             <td width="12%"><center>1</center>
+ *             <td width="13%"><center>0</center>
+ *             <td colspan="4"><center>bits 15-12</center>
+ *           </tr>
+ *         </table>
+ *       </td>
+ *     </tr>
+ *     <tr>
+ *       <th id="byte2">Byte 2</th>
+ *       <td>
+ *         <table border="1" cellspacing="0" width="100%">
+ *           <tr>
+ *             <td width="12%"><center>1</center>
+ *             <td width="13%"><center>0</center>
+ *             <td colspan="6"><center>bits 11-6</center>
+ *           </tr>
+ *         </table>
+ *       </td>
+ *     </tr>
+ *     <tr>
+ *       <th id="byte3">Byte 3</th>
+ *       <td>
+ *         <table border="1" cellspacing="0" width="100%">
+ *           <tr>
+ *             <td width="12%"><center>1</center>
+ *             <td width="13%"><center>0</center>
+ *             <td colspan="6"><center>bits 5-0</center>
+ *           </tr>
+ *         </table>
+ *       </td>
+ *     </tr>
+ *   </table>
+ *  </blockquote>
+ *
+ * <p>
+ * The differences between this format and the
+ * standard UTF-8 format are the following:
+ * <ul>
+ * <li>The null byte <code>'&#92;u0000'</code> is encoded in 2-byte format
+ *     rather than 1-byte, so that the encoded strings never have
+ *     embedded nulls.
+ * <li>Only the 1-byte, 2-byte, and 3-byte formats are used.
+ * <li><a href="../lang/Character.html#unicode">Supplementary characters</a>
+ *     are represented in the form of surrogate pairs.
+ * </ul>
  * @author  Frank Yellin
- * @version 1.20, 01/23/03
+ * @version 1.23, 06/03/04
  * @see     java.io.DataInputStream
  * @see     java.io.DataOutput
  * @since   JDK1.0
@@ -205,7 +344,7 @@ interface DataInput {
      * be the second byte. The value
      * returned
      * is:
-     * <p><pre><code>(short)((a &lt;&lt; 8) * | (b &amp; 0xff))
+     * <p><pre><code>(short)((a &lt;&lt; 8) | (b &amp; 0xff))
      * </code></pre>
      * This method
      * is suitable for reading the bytes written
@@ -403,10 +542,12 @@ interface DataInput {
     String readLine() throws IOException;
 
     /**
-     * Reads in a string that has been encoded using a modified UTF-8 format.
+     * Reads in a string that has been encoded using a
+     * <a href="#modified-utf-8">modified UTF-8</a>
+     * format.
      * The general contract of <code>readUTF</code>
      * is that it reads a representation of a Unicode
-     * character string encoded in Java modified
+     * character string encoded in modified
      * UTF-8 format; this string of characters
      * is then returned as a <code>String</code>.
      * <p>
@@ -483,7 +624,7 @@ interface DataInput {
      *               before reading all the bytes.
      * @exception  IOException             if an I/O error occurs.
      * @exception  UTFDataFormatException  if the bytes do not represent a
-     *               valid UTF-8 encoding of a string.
+     *               valid modified UTF-8 encoding of a string.
      */
     String readUTF() throws IOException;
 }

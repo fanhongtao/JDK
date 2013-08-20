@@ -1,5 +1,5 @@
 /*
- * @(#)PlainSocketImpl.java	1.63 04/01/13
+ * @(#)PlainSocketImpl.java	1.65 03/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import sun.net.ConnectionResetException;
  * Note this class should <b>NOT</b> be public.
  *
  * @author  Steven B. Byrne
- * @version 1.63, 01/13/04
+ * @version 1.65, 12/19/03
  */
 class PlainSocketImpl extends SocketImpl
 {
@@ -52,7 +52,29 @@ class PlainSocketImpl extends SocketImpl
     private int resetState;
     private Object resetLock = new Object();
 
+    /* second fd, used for ipv6 on windows only.
+     * fd1 is used for listeners and for client sockets at initialization
+     * until the socket is connected. Up to this point fd always refers
+     * to the ipv4 socket and fd1 to the ipv6 socket. After the socket
+     * becomes connected, fd always refers to the connected socket 
+     * (either v4 or v6) and fd1 is closed.
+     *
+     * For ServerSockets, fd always refers to the v4 listener and 
+     * fd1 the v6 listener.
+     */
+    private FileDescriptor fd1;
+    /*
+     * Needed for ipv6 on windows because we need to know
+     * if the socket is bound to ::0 or 0.0.0.0, when a caller
+     * asks for it. Otherwise we don't know which socket to ask.
+     */
+    private InetAddress anyLocalBoundAddr=null;
  
+    /* to prevent starvation when listening on two sockets, this is
+     * is used to hold the id of the last socket we accepted on.
+     */
+    private int lastfd = -1;
+
     /**
      * Load net library into runtime.
      */
@@ -69,6 +91,7 @@ class PlainSocketImpl extends SocketImpl
 
     /**
      * Constructs an instance with the given file descriptor.
+     * Note, this will not work with IPv6, since two fds are used.
      */
     PlainSocketImpl(FileDescriptor fd) {
 	this.fd = fd;
@@ -80,6 +103,7 @@ class PlainSocketImpl extends SocketImpl
      */
     protected synchronized void create(boolean stream) throws IOException {
 	fd = new FileDescriptor();
+	fd1 = new FileDescriptor();
 	socketCreate(stream);
 	if (socket != null)
 	    socket.setCreated();
@@ -258,17 +282,21 @@ class PlainSocketImpl extends SocketImpl
 	switch (opt) {
 	case TCP_NODELAY:
 	    ret = socketGetOption(opt, null);
-	    return (ret == -1) ? new Boolean(false): new Boolean(true);
+	    return Boolean.valueOf(ret != -1);
 	case SO_OOBINLINE:
 	    ret = socketGetOption(opt, null);
-	    return (ret == -1) ? new Boolean(false): new Boolean(true);
+	    return Boolean.valueOf(ret != -1);
 	case SO_LINGER:
 	    ret = socketGetOption(opt, null);
-	    return (ret == -1) ? new Boolean(false): (Object)(new Integer(ret));
+	    return (ret == -1) ? Boolean.FALSE: (Object)(new Integer(ret));
 	case SO_REUSEADDR:
 	    ret = socketGetOption(opt, null);
-	    return (ret == -1) ? new Boolean(false): new Boolean(true);
+	    return Boolean.valueOf(ret != -1);
 	case SO_BINDADDR:
+	    if (fd != null && fd1 != null ) {
+		/* must be unbound or else bound to anyLocal */
+		return anyLocalBoundAddr;
+	    }
 	    InetAddressContainer in = new InetAddressContainer();
 	    ret = socketGetOption(opt, in); 
 	    return in.addr;
@@ -285,7 +313,7 @@ class PlainSocketImpl extends SocketImpl
 	    }
 	case SO_KEEPALIVE:
 	    ret = socketGetOption(opt, null);
-  	    return (ret == -1) ? new Boolean(false): new Boolean(true);
+  	    return Boolean.valueOf(ret != -1);
 	// should never get here
 	default:
 	    return null;
@@ -333,6 +361,9 @@ class PlainSocketImpl extends SocketImpl
 	    socket.setBound();
 	if (serverSocket != null)
 	    serverSocket.setBound();
+	if (address.isAnyLocalAddress()) {
+	    anyLocalBoundAddr = address;
+	}
     }
 
     /**
@@ -436,11 +467,11 @@ class PlainSocketImpl extends SocketImpl
      */
     protected void close() throws IOException {
 	synchronized(fdLock) {
-	    if (fd != null) {
+	    if (fd != null || fd1 != null) {
 		if (fdUseCount == 0) {
-                    if (closePending) {
-                        return;
-                    }
+		    if (closePending) {
+			return;
+		    }
 		    closePending = true;
 		    /*
 		     * We close the FileDescriptor in two-steps - first the
@@ -456,6 +487,7 @@ class PlainSocketImpl extends SocketImpl
 		        socketClose();
 		    }
 		    fd = null;
+		    fd1 = null;
 		    return;
 		} else {
 		    /*
@@ -587,7 +619,7 @@ class PlainSocketImpl extends SocketImpl
 	 * close is in progress.
 	 */
 	synchronized (fdLock) {
-	    if (closePending || fd == null) {
+	    if (closePending || (fd == null && fd1 == null)) {
 		return true;
 	    } else {
 		return false;
@@ -636,6 +668,7 @@ class PlainSocketImpl extends SocketImpl
     private native void socketSetOption(int cmd, boolean on, Object value)
 	throws SocketException;
     private native int socketGetOption(int opt, Object iaContainerObj) throws SocketException;
+    private native int socketGetOption1(int opt, Object iaContainerObj, FileDescriptor fd) throws SocketException;
     private native void socketSendUrgentData(int data)
         throws IOException;
 

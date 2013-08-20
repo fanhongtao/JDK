@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextFieldUI.java	1.92 03/03/17
+ * @(#)BasicTextFieldUI.java	1.95 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -17,6 +17,7 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.plaf.*;
+import sun.swing.DefaultLookup;
 
 /**
  * Basis of a look and feel for a JTextField.
@@ -31,7 +32,7 @@ import javax.swing.plaf.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.92 03/17/03
+ * @version 1.95 12/19/03
  */
 public class BasicTextFieldUI extends BasicTextUI {
 
@@ -54,7 +55,7 @@ public class BasicTextFieldUI extends BasicTextUI {
 
     public void installUI(JComponent c) {
         super.installUI(c);
-	editableChanged(c, ((JTextComponent)c).isEditable());
+	updateBackground((JTextComponent)c);
     }
 
     /**
@@ -66,21 +67,35 @@ public class BasicTextFieldUI extends BasicTextUI {
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals("editable")) {
-	    JComponent source = (JComponent)evt.getSource();
-	    Color background = source.getBackground();
-	    boolean editable =  ((Boolean)evt.getNewValue()).booleanValue();
-	    editableChanged( source, editable);
-        }
+	if (evt.getPropertyName().equals("editable") ||
+	    evt.getPropertyName().equals("enabled")) {
+
+	    updateBackground((JTextComponent)evt.getSource());
+	}
     }
 
-    private void editableChanged(JComponent c, boolean editable) {
+    private void updateBackground(JTextComponent c) {
 	Color background = c.getBackground();
 	if (background instanceof UIResource) {
-	    if (editable == false) {
-		c.setBackground(UIManager.getColor("TextField.inactiveBackground"));
-	    } else {
-		c.setBackground(UIManager.getColor("TextField.background"));
+	    Color newColor = null;
+	    String prefix = getPropertyPrefix();
+	    if (!c.isEnabled()) {
+		newColor = DefaultLookup.getColor(c, this,
+						  prefix + ".disabledBackground",
+						  null);
+	    }
+	    if (newColor == null && !c.isEditable()) {
+		newColor = DefaultLookup.getColor(c, this,
+						  prefix + ".inactiveBackground",
+						  null);
+	    }
+	    if (newColor == null) {
+		newColor = DefaultLookup.getColor(c, this,
+						  prefix + ".background",
+						  null);
+	    }
+	    if (newColor != null && newColor != background) {
+		c.setBackground(newColor);
 	    }
 	}
     }

@@ -1,11 +1,14 @@
 /*
- * @(#)BasicScrollPaneUI.java	1.66 03/01/23
+ * @(#)BasicScrollPaneUI.java	1.70 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
+
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -30,7 +33,7 @@ import java.awt.Toolkit;
 /**
  * A default L&F implementation of ScrollPaneUI.
  *
- * @version 1.66 01/23/03
+ * @version 1.70 12/19/03
  * @author Hans Muller
  */
 public class BasicScrollPaneUI
@@ -53,12 +56,7 @@ public class BasicScrollPaneUI
      */
     private PropertyChangeListener hsbPropertyChangeListener;
 
-    /**
-     * The default implementation of createHSBPropertyChangeListener and
-     * createVSBPropertyChangeListener share the PropertyChangeListener, which
-     * is this ivar.
-     */
-    private PropertyChangeListener sbPropertyChangeListener;
+    private Handler handler;
 
     /**
      * State flag that shows whether setValue() was called from a user program
@@ -67,9 +65,24 @@ public class BasicScrollPaneUI
      */
     private boolean setValueCalled = false;
 
+
     public static ComponentUI createUI(JComponent x) {
 	return new BasicScrollPaneUI();
     }
+
+    static void loadActionMap(LazyActionMap map) {
+        map.put(new Actions(Actions.SCROLL_UP));
+	map.put(new Actions(Actions.SCROLL_DOWN));
+	map.put(new Actions(Actions.SCROLL_HOME));
+	map.put(new Actions(Actions.SCROLL_END));
+	map.put(new Actions(Actions.UNIT_SCROLL_UP));
+	map.put(new Actions(Actions.UNIT_SCROLL_DOWN));
+        map.put(new Actions(Actions.SCROLL_LEFT));
+        map.put(new Actions(Actions.SCROLL_RIGHT));
+        map.put(new Actions(Actions.UNIT_SCROLL_RIGHT));
+        map.put(new Actions(Actions.UNIT_SCROLL_LEFT));
+    }
+
 
 
     public void paint(Graphics g, JComponent c) {
@@ -78,24 +91,6 @@ public class BasicScrollPaneUI
 	    Rectangle r = scrollpane.getViewportBorderBounds();
 	    vpBorder.paintBorder(scrollpane, g, r.x, r.y, r.width, r.height);
 	}
-    }
-
-
-    /**
-     * @return null which indicates that the LayoutManager will compute the value
-     * @see JComponent#getPreferredSize
-     */
-    public Dimension getPreferredSize(JComponent c) {
-	return null;
-    }
-
-
-    /**
-     * @return the preferred size
-     * @see #getPreferredSize
-     */
-    public Dimension getMinimumSize(JComponent c) {
-	return getPreferredSize(c);
     }
 
 
@@ -120,6 +115,7 @@ public class BasicScrollPaneUI
 	    vpBorder = UIManager.getBorder("ScrollPane.viewportBorder");
 	    scrollpane.setViewportBorder(vpBorder);
         }
+        LookAndFeel.installProperty(scrollpane, "opaque", Boolean.TRUE);
     }
 
 
@@ -161,18 +157,20 @@ public class BasicScrollPaneUI
 
 	SwingUtilities.replaceUIInputMap(c, JComponent.
 			       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, inputMap);
-	ActionMap actionMap = getActionMap();
 
-	SwingUtilities.replaceUIActionMap(c, actionMap);
+        LazyActionMap.installLazyActionMap(c, BasicScrollPaneUI.class,
+                                           "ScrollPane.actionMap");
     }
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
-	    InputMap keyMap = (InputMap)UIManager.get("ScrollPane.ancestorInputMap");
+	    InputMap keyMap = (InputMap)DefaultLookup.get(scrollpane, this,
+                                        "ScrollPane.ancestorInputMap");
 	    InputMap rtlKeyMap;
 
 	    if (scrollpane.getComponentOrientation().isLeftToRight() ||
-		((rtlKeyMap = (InputMap)UIManager.get("ScrollPane.ancestorInputMap.RightToLeft")) == null)) {
+		    ((rtlKeyMap = (InputMap)DefaultLookup.get(scrollpane, this,
+                    "ScrollPane.ancestorInputMap.RightToLeft")) == null)) {
 		return keyMap;
 	    } else {
 		rtlKeyMap.setParent(keyMap);
@@ -180,54 +178,6 @@ public class BasicScrollPaneUI
 	    }
 	}
 	return null;
-    }
-
-    ActionMap getActionMap() {
-	ActionMap map = (ActionMap)UIManager.get("ScrollPane.actionMap");
-
-	if (map == null) {
-	    map = createActionMap();
-	    if (map != null) {
-		UIManager.getLookAndFeelDefaults().put("ScrollPane.actionMap",
-                                                       map);
-	    }
-	}
-	return map;
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-	map.put("scrollUp", new ScrollAction("scrollUp", SwingConstants.
-						 VERTICAL, -1, true));
-	map.put("scrollDown", new ScrollAction("scrollDown",
-				     SwingConstants.VERTICAL, 1, true));
-	map.put("scrollHome", new ScrollHomeAction("ScrollHome"));
-	map.put("scrollEnd", new ScrollEndAction("ScrollEnd"));
-	map.put("unitScrollUp", new ScrollAction
-	       ("UnitScrollUp", SwingConstants.VERTICAL, -1,false));
-	map.put("unitScrollDown", new ScrollAction
-	       ("UnitScrollDown", SwingConstants.VERTICAL, 1, false));
-
-	if (scrollpane.getComponentOrientation().isLeftToRight()) {
-	    map.put("scrollLeft", new ScrollAction("scrollLeft",
-				  SwingConstants.HORIZONTAL, -1, true));
-	    map.put("scrollRight", new ScrollAction("ScrollRight",
-					SwingConstants.HORIZONTAL, 1, true));
-	    map.put("unitScrollRight", new ScrollAction
-	       ("UnitScrollRight", SwingConstants.HORIZONTAL, 1, false));
-	    map.put("unitScrollLeft", new ScrollAction
-	       ("UnitScrollLeft", SwingConstants.HORIZONTAL, -1, false));
-	} else {
-	    map.put("scrollLeft", new ScrollAction("scrollLeft",
-				  SwingConstants.HORIZONTAL, 1, true));
-	    map.put("scrollRight", new ScrollAction("ScrollRight",
-					SwingConstants.HORIZONTAL, -1, true));
-	    map.put("unitScrollRight", new ScrollAction
-	       ("UnitScrollRight", SwingConstants.HORIZONTAL, -1, false));
-	    map.put("unitScrollLeft", new ScrollAction
-	       ("UnitScrollLeft", SwingConstants.HORIZONTAL, 1, false));
-	}
-	return map;
     }
 
     public void installUI(JComponent x) {
@@ -275,6 +225,7 @@ public class BasicScrollPaneUI
 	viewportChangeListener = null;
 	spPropertyChangeListener = null;
         mouseScrollListener = null;
+        handler = null;
     }
 
 
@@ -292,6 +243,12 @@ public class BasicScrollPaneUI
 	scrollpane = null;
     }
 
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
+    }
 
     protected void syncScrollPaneWithViewport()
     {
@@ -384,13 +341,19 @@ public class BasicScrollPaneUI
      */
     public class ViewportChangeHandler implements ChangeListener
     {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	public void stateChanged(ChangeEvent e) {
-	    syncScrollPaneWithViewport();
+            getHandler().stateChanged(e);
 	}
     }
 
     protected ChangeListener createViewportChangeListener() {
-	return new ViewportChangeHandler();
+	return getHandler();
     }
 
 
@@ -399,41 +362,15 @@ public class BasicScrollPaneUI
      */
     public class HSBChangeListener implements ChangeListener
     {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	public void stateChanged(ChangeEvent e)
 	{
-	    JViewport viewport = scrollpane.getViewport();
-	    if (viewport != null) {
-		BoundedRangeModel model = (BoundedRangeModel)(e.getSource());
-		Point p = viewport.getViewPosition();
-		int value = model.getValue();
-		if (scrollpane.getComponentOrientation().isLeftToRight()) {
-		    p.x = value;
-		} else {
-		    int max = viewport.getViewSize().width;
-		    int extent = viewport.getExtentSize().width;
-		    int oldX = p.x;
-
-		    /* Set new X coordinate based on "value".
-		     */
-		    p.x = max - extent - value;
-
-		    /* If setValue() was called before "extent" was fixed,
-		     * turn setValueCalled flag on.
-		     */
-		    if ((extent == 0) && (value != 0) && (oldX == max)) {
-			setValueCalled = true;
-		    } else {
-			/* When a pane without a horizontal scroll bar was
-			 * reduced and the bar appeared, the viewport should
-			 * show the right side of the view.
-			 */
-			if ((extent != 0) && (oldX < 0) && (p.x == 0)) {
-			    p.x += value;
-			}
-		    }
-		}
-		viewport.setViewPosition(p);
-	    }
+            getHandler().stateChanged(e);
 	}
     }
 
@@ -442,22 +379,11 @@ public class BasicScrollPaneUI
      * on the horizontal <code>JScrollBar</code>.
      */
     private PropertyChangeListener createHSBPropertyChangeListener() {
-        return getSBPropertyChangeListener();
-    }
-
-    /**
-     * Returns a shared <code>PropertyChangeListener</code> that will update
-     * the listeners installed on the scrollbars as the model changes.
-     */
-    private PropertyChangeListener getSBPropertyChangeListener() {
-        if (sbPropertyChangeListener == null) {
-            sbPropertyChangeListener = new ScrollBarPropertyChangeHandler();
-        }
-        return sbPropertyChangeListener;
+        return getHandler();
     }
 
     protected ChangeListener createHSBChangeListener() {
-	return new HSBChangeListener();
+	return getHandler();
     }
 
 
@@ -466,78 +392,29 @@ public class BasicScrollPaneUI
      */
     public class VSBChangeListener implements ChangeListener
     {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	public void stateChanged(ChangeEvent e)
 	{
-	    JViewport viewport = scrollpane.getViewport();
-	    if (viewport != null) {
-		BoundedRangeModel model = (BoundedRangeModel)(e.getSource());
-		Point p = viewport.getViewPosition();
-		p.y = model.getValue();
-		viewport.setViewPosition(p);
-	    }
+            getHandler().stateChanged(e);
 	}
     }
 
-
-    /**
-     * PropertyChangeListener for the ScrollBars.
-     */
-    private class ScrollBarPropertyChangeHandler implements
-                               PropertyChangeListener {
-        // Listens for changes in the model property and reinstalls the
-        // horizontal/vertical PropertyChangeListeners.
-        public void propertyChange(PropertyChangeEvent e) {
-            String propertyName = e.getPropertyName();
-            Object source = e.getSource();
-
-            if ("model".equals(propertyName)) {
-                JScrollBar sb = scrollpane.getVerticalScrollBar();
-                BoundedRangeModel oldModel = (BoundedRangeModel)e.
-                                     getOldValue();
-                ChangeListener cl = null;
-
-                if (source == sb) {
-                    cl = vsbChangeListener;
-                }
-                else if (source == scrollpane.getHorizontalScrollBar()) {
-                    sb = scrollpane.getHorizontalScrollBar();
-                    cl = hsbChangeListener;
-                }
-                if (cl != null) {
-                    if (oldModel != null) {
-                        oldModel.removeChangeListener(cl);
-                    }
-                    if (sb.getModel() != null) {
-                        sb.getModel().addChangeListener(cl);
-                    }
-                }
-            }
-            else if ("componentOrientation".equals(propertyName)) {
-                if (source == scrollpane.getHorizontalScrollBar()) {
-		    JScrollBar hsb = scrollpane.getHorizontalScrollBar();
- 		    JViewport viewport = scrollpane.getViewport();
-                    Point p = viewport.getViewPosition();
-                    if (scrollpane.getComponentOrientation().isLeftToRight()) {
-                        p.x = hsb.getValue();
-                    } else {
-                        p.x = viewport.getViewSize().width - viewport.getExtentSize().width - hsb.getValue();
-                    }
-                    viewport.setViewPosition(p);
-                }
-            }
-        }
-    }
 
     /**
      * Returns a <code>PropertyChangeListener</code> that will be installed
      * on the vertical <code>JScrollBar</code>.
      */
     private PropertyChangeListener createVSBPropertyChangeListener() {
-        return getSBPropertyChangeListener();
+        return getHandler();
     }
 
     protected ChangeListener createVSBChangeListener() {
-	return new VSBChangeListener();
+	return getHandler();
     }
 
     /**
@@ -555,6 +432,12 @@ public class BasicScrollPaneUI
      * @since 1.4
      */
     protected class MouseWheelHandler implements MouseWheelListener {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
         /**
          * Called when the mouse wheel is rotated while over a
          * JScrollPane.
@@ -563,27 +446,7 @@ public class BasicScrollPaneUI
          * @since 1.4
          */
         public void mouseWheelMoved(MouseWheelEvent e) {
-            if (scrollpane.isWheelScrollingEnabled() &&
-                e.getScrollAmount() != 0) {
-                JScrollBar toScroll = scrollpane.getVerticalScrollBar();
-                int direction = 0;
-                // find which scrollbar to scroll, or return if none
-                if (toScroll == null || !toScroll.isVisible()) { 
-                    toScroll = scrollpane.getHorizontalScrollBar();
-                    if (toScroll == null || !toScroll.isVisible()) { 
-                        return;
-                    }
-                }
-                direction = e.getWheelRotation() < 0 ? -1 : 1;
-                if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
-                    BasicScrollBarUI.scrollByUnits(toScroll, direction,
-                                                         e.getScrollAmount());
-                }
-                else if (e.getScrollType() ==
-                         MouseWheelEvent.WHEEL_BLOCK_SCROLL) {
-                    BasicScrollBarUI.scrollByBlock(toScroll, direction);
-                }
-            }
+            getHandler().mouseWheelMoved(e);
         }
     }
 
@@ -598,7 +461,7 @@ public class BasicScrollPaneUI
      * @since 1.4
      */
     protected MouseWheelListener createMouseWheelListener() {
-        return new MouseWheelHandler();
+        return getHandler();
     }
 
     protected void updateScrollBarDisplayPolicy(PropertyChangeEvent e) {
@@ -700,45 +563,15 @@ public class BasicScrollPaneUI
 
     public class PropertyChangeHandler implements PropertyChangeListener
     {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
         public void propertyChange(PropertyChangeEvent e)
         {
-            String propertyName = e.getPropertyName();
-
-	    if (propertyName.equals("verticalScrollBarDisplayPolicy")) {
-		updateScrollBarDisplayPolicy(e);
-	    }
-	    else if (propertyName.equals("horizontalScrollBarDisplayPolicy")) {
-		updateScrollBarDisplayPolicy(e);
-	    }
-	    else if (propertyName.equals("viewport")) {
-		updateViewport(e);
-	    }
-	    else if (propertyName.equals("rowHeader")) {
-		updateRowHeader(e);
-	    }
-	    else if (propertyName.equals("columnHeader")) {
-		updateColumnHeader(e);
-	    }
-	    else if (propertyName.equals("verticalScrollBar")) {
-		updateVerticalScrollBar(e);
-	    }
-	    else if (propertyName.equals("horizontalScrollBar")) {
-		updateHorizontalScrollBar(e);
-	    }
-	    else if (propertyName.equals("componentOrientation")) {
-		scrollpane.revalidate();
-		scrollpane.repaint();
-
-		InputMap inputMap = getInputMap(JComponent.
-					WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		SwingUtilities.replaceUIInputMap(scrollpane, JComponent.
-				WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, inputMap);
-
-		UIManager.getLookAndFeelDefaults().put("ScrollPane.actionMap",
-                                                       null);
-		ActionMap actionMap = getActionMap();
-		SwingUtilities.replaceUIActionMap(scrollpane, actionMap);
-	    }
+            getHandler().propertyChange(e);
 	}
     }
 
@@ -768,31 +601,100 @@ public class BasicScrollPaneUI
      * @see #installUI
      */
     protected PropertyChangeListener createPropertyChangeListener() {
-        return new PropertyChangeHandler();
+        return getHandler();
     }
 
 
-    /**
-     * Action to scroll left/right/up/down.
-     */
-    private static class ScrollAction extends AbstractAction {
-	/** Direction to scroll. */
-	protected int orientation;
-	/** 1 indicates scroll down, -1 up. */
-	protected int direction;
-	/** True indicates a block scroll, otherwise a unit scroll. */
-	private boolean block;
+    private static class Actions extends UIAction {
+        private static final String SCROLL_UP = "scrollUp";
+        private static final String SCROLL_DOWN = "scrollDown";
+        private static final String SCROLL_HOME = "scrollHome";
+        private static final String SCROLL_END = "scrollEnd";
+        private static final String UNIT_SCROLL_UP = "unitScrollUp";
+        private static final String UNIT_SCROLL_DOWN = "unitScrollDown";
+        private static final String SCROLL_LEFT = "scrollLeft";
+        private static final String SCROLL_RIGHT = "scrollRight";
+        private static final String UNIT_SCROLL_LEFT = "unitScrollLeft";
+        private static final String UNIT_SCROLL_RIGHT = "unitScrollRight";
 
-	protected ScrollAction(String name, int orientation, int direction,
-			       boolean block) {
-	    super(name);
-	    this.orientation = orientation;
-	    this.direction = direction;
-	    this.block = block;
-	}
 
-	public void actionPerformed(ActionEvent e) {
-	    JScrollPane scrollpane = (JScrollPane)e.getSource();
+        Actions(String key) {
+            super(key);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            JScrollPane scrollPane = (JScrollPane)e.getSource();
+            boolean ltr = scrollPane.getComponentOrientation().isLeftToRight();
+            String key = getName();
+
+            if (key == SCROLL_UP) {
+                scroll(scrollPane, SwingConstants.VERTICAL, -1, true);
+            }
+            else if (key == SCROLL_DOWN) {
+                scroll(scrollPane, SwingConstants.VERTICAL, 1, true);
+            }
+            else if (key == SCROLL_HOME) {
+                scrollHome(scrollPane);
+            }
+            else if (key == SCROLL_END) {
+                scrollEnd(scrollPane);
+            }
+            else if (key == UNIT_SCROLL_UP) {
+                scroll(scrollPane, SwingConstants.VERTICAL, -1, false);
+            }
+            else if (key == UNIT_SCROLL_DOWN) {
+                scroll(scrollPane, SwingConstants.VERTICAL, 1, false);
+            }
+            else if (key == SCROLL_LEFT) {
+                scroll(scrollPane, SwingConstants.HORIZONTAL, ltr ? -1 : 1,
+                       true);
+            }
+            else if (key == SCROLL_RIGHT) {
+                scroll(scrollPane, SwingConstants.HORIZONTAL, ltr ? 1 : -1,
+                       true);
+            }
+            else if (key == UNIT_SCROLL_LEFT) {
+                scroll(scrollPane, SwingConstants.HORIZONTAL, ltr ? -1 : 1,
+                       false);
+            }
+            else if (key == UNIT_SCROLL_RIGHT) {
+                scroll(scrollPane, SwingConstants.HORIZONTAL, ltr ? 1 : -1,
+                       false);
+            }
+        }
+
+        private void scrollEnd(JScrollPane scrollpane) {
+	    JViewport vp = scrollpane.getViewport();
+	    Component view;
+	    if (vp != null && (view = vp.getView()) != null) {
+		Rectangle visRect = vp.getViewRect();
+		Rectangle bounds = view.getBounds();
+		if (scrollpane.getComponentOrientation().isLeftToRight()) {
+		    vp.setViewPosition(new Point(bounds.width - visRect.width,
+					     bounds.height - visRect.height));
+		} else {
+		    vp.setViewPosition(new Point(0, 
+					     bounds.height - visRect.height));
+		}
+	    }
+        }
+
+        private void scrollHome(JScrollPane scrollpane) {
+	    JViewport vp = scrollpane.getViewport();
+	    Component view;
+	    if (vp != null && (view = vp.getView()) != null) {
+		if (scrollpane.getComponentOrientation().isLeftToRight()) {
+		    vp.setViewPosition(new Point(0, 0));
+		} else {
+		    Rectangle visRect = vp.getViewRect();
+		    Rectangle bounds = view.getBounds();
+		    vp.setViewPosition(new Point(bounds.width - visRect.width, 0));
+		}
+            }
+        }
+
+	private void scroll(JScrollPane scrollpane, int orientation,
+                            int direction, boolean block) {
 	    JViewport vp = scrollpane.getViewport();
 	    Component view;
 	    if (vp != null && (view = vp.getView()) != null) {
@@ -855,55 +757,191 @@ public class BasicScrollPaneUI
     }
 
 
-    /**
-     * Action to scroll to x,y location of 0,0.
-     */
-    private static class ScrollHomeAction extends AbstractAction {
-	protected ScrollHomeAction(String name) {
-	    super(name);
+    class Handler implements ChangeListener, PropertyChangeListener, MouseWheelListener {
+        //
+        // MouseWheelListener
+        //
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            if (scrollpane.isWheelScrollingEnabled() &&
+                e.getScrollAmount() != 0) {
+                JScrollBar toScroll = scrollpane.getVerticalScrollBar();
+                int direction = 0;
+                // find which scrollbar to scroll, or return if none
+                if (toScroll == null || !toScroll.isVisible()) { 
+                    toScroll = scrollpane.getHorizontalScrollBar();
+                    if (toScroll == null || !toScroll.isVisible()) { 
+                        return;
+                    }
+                }
+                direction = e.getWheelRotation() < 0 ? -1 : 1;
+                if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
+                    BasicScrollBarUI.scrollByUnits(toScroll, direction,
+                                                         e.getScrollAmount());
+                }
+                else if (e.getScrollType() ==
+                         MouseWheelEvent.WHEEL_BLOCK_SCROLL) {
+                    BasicScrollBarUI.scrollByBlock(toScroll, direction);
+                }
+            }
+        }
+
+
+        //
+        // ChangeListener: This is added to the vieport, and hsb/vsb models.
+        //
+	public void stateChanged(ChangeEvent e) {
+            JViewport viewport = scrollpane.getViewport();
+
+            if (viewport != null) {
+                if (e.getSource() == viewport) {
+                    viewportStateChanged(e);
+                }
+                else {
+                    JScrollBar hsb = scrollpane.getHorizontalScrollBar();
+                    if (hsb != null && e.getSource() == hsb.getModel()) {
+                        hsbStateChanged(viewport, e);
+                    }
+                    else {
+                        JScrollBar vsb = scrollpane.getVerticalScrollBar();
+                        if (vsb != null && e.getSource() == vsb.getModel()) {
+                            vsbStateChanged(viewport, e);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void vsbStateChanged(JViewport viewport, ChangeEvent e) {
+            BoundedRangeModel model = (BoundedRangeModel)(e.getSource());
+            Point p = viewport.getViewPosition();
+            p.y = model.getValue();
+            viewport.setViewPosition(p);
+        }
+
+        private void hsbStateChanged(JViewport viewport, ChangeEvent e) {
+            BoundedRangeModel model = (BoundedRangeModel)(e.getSource());
+            Point p = viewport.getViewPosition();
+            int value = model.getValue();
+            if (scrollpane.getComponentOrientation().isLeftToRight()) {
+                p.x = value;
+            } else {
+                int max = viewport.getViewSize().width;
+                int extent = viewport.getExtentSize().width;
+                int oldX = p.x;
+
+                /* Set new X coordinate based on "value".
+                 */
+                p.x = max - extent - value;
+
+                /* If setValue() was called before "extent" was fixed,
+                 * turn setValueCalled flag on.
+                 */
+                if ((extent == 0) && (value != 0) && (oldX == max)) {
+                    setValueCalled = true;
+                } else {
+                    /* When a pane without a horizontal scroll bar was
+                     * reduced and the bar appeared, the viewport should
+                     * show the right side of the view.
+                     */
+                    if ((extent != 0) && (oldX < 0) && (p.x == 0)) {
+                        p.x += value;
+                    }
+                }
+            }
+            viewport.setViewPosition(p);
+        }
+
+        private void viewportStateChanged(ChangeEvent e) {
+            syncScrollPaneWithViewport();
 	}
 
-	public void actionPerformed(ActionEvent e) {
-	    JScrollPane scrollpane = (JScrollPane)e.getSource();
-	    JViewport vp = scrollpane.getViewport();
-	    Component view;
-	    if (vp != null && (view = vp.getView()) != null) {
-		if (scrollpane.getComponentOrientation().isLeftToRight()) {
-		    vp.setViewPosition(new Point(0, 0));
-		} else {
-		    Rectangle visRect = vp.getViewRect();
-		    Rectangle bounds = view.getBounds();
-		    vp.setViewPosition(new Point(bounds.width - visRect.width, 0));
-		}
+
+        //
+        // PropertyChangeListener: This is installed on both the JScrollPane
+        // and the horizontal/vertical scrollbars.
+        //
+
+        // Listens for changes in the model property and reinstalls the
+        // horizontal/vertical PropertyChangeListeners.
+        public void propertyChange(PropertyChangeEvent e) {
+            if (e.getSource() == scrollpane) {
+                scrollPanePropertyChange(e);
+            }
+            else {
+                sbPropertyChange(e);
+            }
+        }
+
+        private void scrollPanePropertyChange(PropertyChangeEvent e) {
+            String propertyName = e.getPropertyName();
+
+	    if (propertyName == "verticalScrollBarDisplayPolicy") {
+		updateScrollBarDisplayPolicy(e);
 	    }
-	}
-    }
-
-
-    /**
-     * Action to scroll to last visible location.
-     */
-    private static class ScrollEndAction extends AbstractAction {
-	protected ScrollEndAction(String name) {
-	    super(name);
-	}
-
-	public void actionPerformed(ActionEvent e) {
-	    JScrollPane scrollpane = (JScrollPane)e.getSource();
-	    JViewport vp = scrollpane.getViewport();
-	    Component view;
-	    if (vp != null && (view = vp.getView()) != null) {
-		Rectangle visRect = vp.getViewRect();
-		Rectangle bounds = view.getBounds();
-		if (scrollpane.getComponentOrientation().isLeftToRight()) {
-		    vp.setViewPosition(new Point(bounds.width - visRect.width,
-					     bounds.height - visRect.height));
-		} else {
-		    vp.setViewPosition(new Point(0, 
-					     bounds.height - visRect.height));
-		}
+	    else if (propertyName == "horizontalScrollBarDisplayPolicy") {
+		updateScrollBarDisplayPolicy(e);
 	    }
-	}
+	    else if (propertyName == "viewport") {
+		updateViewport(e);
+	    }
+	    else if (propertyName == "rowHeader") {
+		updateRowHeader(e);
+	    }
+	    else if (propertyName == "columnHeader") {
+		updateColumnHeader(e);
+	    }
+	    else if (propertyName == "verticalScrollBar") {
+		updateVerticalScrollBar(e);
+	    }
+	    else if (propertyName == "horizontalScrollBar") {
+		updateHorizontalScrollBar(e);
+	    }
+	    else if (propertyName == "componentOrientation") {
+		scrollpane.revalidate();
+		scrollpane.repaint();
+	    }
+        }
+
+        // PropertyChangeListener for the horizontal and vertical scrollbars.
+        private void sbPropertyChange(PropertyChangeEvent e) {
+            String propertyName = e.getPropertyName();
+            Object source = e.getSource();
+
+            if ("model" == propertyName) {
+                JScrollBar sb = scrollpane.getVerticalScrollBar();
+                BoundedRangeModel oldModel = (BoundedRangeModel)e.
+                                     getOldValue();
+                ChangeListener cl = null;
+
+                if (source == sb) {
+                    cl = vsbChangeListener;
+                }
+                else if (source == scrollpane.getHorizontalScrollBar()) {
+                    sb = scrollpane.getHorizontalScrollBar();
+                    cl = hsbChangeListener;
+                }
+                if (cl != null) {
+                    if (oldModel != null) {
+                        oldModel.removeChangeListener(cl);
+                    }
+                    if (sb.getModel() != null) {
+                        sb.getModel().addChangeListener(cl);
+                    }
+                }
+            }
+            else if ("componentOrientation" == propertyName) {
+                if (source == scrollpane.getHorizontalScrollBar()) {
+		    JScrollBar hsb = scrollpane.getHorizontalScrollBar();
+ 		    JViewport viewport = scrollpane.getViewport();
+                    Point p = viewport.getViewPosition();
+                    if (scrollpane.getComponentOrientation().isLeftToRight()) {
+                        p.x = hsb.getValue();
+                    } else {
+                        p.x = viewport.getViewSize().width - viewport.getExtentSize().width - hsb.getValue();
+                    }
+                    viewport.setViewPosition(p);
+                }
+            }
+        }
     }
 }
-

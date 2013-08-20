@@ -1,7 +1,7 @@
 /*
- * @(#)PrintJobEvent.java	1.6 03/01/23
+ * @(#)PrintJobEvent.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,6 +18,8 @@ import javax.print.DocPrintJob;
  */
 
 public class PrintJobEvent extends PrintEvent {
+
+   private static final long serialVersionUID = -1711656903622072997L;
 
    private int reason;
    
@@ -70,6 +72,8 @@ public class PrintJobEvent extends PrintEvent {
      *
      * @param source  a <code>DocPrintJob</code> object
      * @param reason  an int specifying the reason.
+     * @throws IllegalArgumentException if <code>source</code> is
+     *         <code>null</code>.
      */
 
     public PrintJobEvent( DocPrintJob source, int reason) {

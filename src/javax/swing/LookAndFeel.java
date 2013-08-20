@@ -1,7 +1,7 @@
 /*
- * @(#)LookAndFeel.java	1.32 05/08/30
+ * @(#)LookAndFeel.java	1.36 04/05/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
  * Completely characterizes a look and feel from the point of view
  * of the pluggable look and feel components.  
  * 
- * @version 1.32 08/30/05
+ * @version 1.36 05/05/04
  * @author Tom Ball
  * @author Hans Muller
  */
@@ -118,6 +118,30 @@ public abstract class LookAndFeel
         if (c.getBorder() instanceof UIResource) {
             c.setBorder(null);
         }
+    }
+
+    /**
+     * Convenience method for installing a property with the specified name
+     * and value on a component if that property has not already been set
+     * by the client program.  This method is intended to be used by
+     * UI delegate instances that need to specify a default value for a
+     * property of primitive type (boolean, int, ..), but do not wish
+     * to override a value set by the client.  Since primitive property
+     * values cannot be wrapped with the UIResource marker, this method
+     * uses private state to determine whether the property has been set
+     * by the client.
+     * @throws IllegalArgumentException if the specified property is not
+     *         one which can be set using this method
+     * @throws ClassCastException may be thrown if the property value
+     *         specified does not match the property's type
+     * @throws NullPointerException may be thrown if c or propertyValue is null
+     * @param c the target component for installing the property
+     * @param propertyName String containing the name of the property to be set
+     * @param propertyValue Object containing the value of the property
+     */
+    public static void installProperty(JComponent c,
+				       String propertyName, Object propertyValue) {
+        c.setUIProperty(propertyName, propertyValue);
     }
 
     /**
@@ -222,7 +246,7 @@ public abstract class LookAndFeel
      * an ImageIcon UIResource for the specified <code>gifFile</code>
      * filename.
      */
-    public static Object makeIcon(final Class baseClass, final String gifFile) {
+    public static Object makeIcon(final Class<?> baseClass, final String gifFile) {
 	return new UIDefaults.LazyValue() {
 	    public Object createValue(UIDefaults table) {
 		/* Copy resource into a byte array.  This is
@@ -232,44 +256,47 @@ public abstract class LookAndFeel
 		 * Class.getResourceAsStream just returns raw
 		 * bytes, which we can convert to an image.
 		 */
-                final byte[][] buffer = new byte[1][];
-		SwingUtilities.doPrivileged(new Runnable() {
-		    public void run() {
+                byte[] buffer = (byte[])
+                    java.security.AccessController.doPrivileged(
+                        new java.security.PrivilegedAction() {
+		    public Object run() {
 			try {
 			    InputStream resource = 
 				baseClass.getResourceAsStream(gifFile);
 			    if (resource == null) {
-				return; 
+				return null; 
 			    }
 			    BufferedInputStream in = 
 				new BufferedInputStream(resource);
 			    ByteArrayOutputStream out = 
 				new ByteArrayOutputStream(1024);
-			    buffer[0] = new byte[1024];
+			    byte[] buffer = new byte[1024];
 			    int n;
-			    while ((n = in.read(buffer[0])) > 0) {
-				out.write(buffer[0], 0, n);
+			    while ((n = in.read(buffer)) > 0) {
+				out.write(buffer, 0, n);
 			    }
 			    in.close();
 			    out.flush();
-			    buffer[0] = out.toByteArray();
+			    return out.toByteArray();
 			} catch (IOException ioe) {
 			    System.err.println(ioe.toString());
-			    return;
 			}
+                        return null;
 		    }
 		});
 
-		if (buffer[0] == null) {
+		if (buffer == null) {
+		    System.err.println(baseClass.getName() + "/" + 
+				       gifFile + " not found.");
 		    return null;
 		}
-		if (buffer[0].length == 0) {
+		if (buffer.length == 0) {
 		    System.err.println("warning: " + gifFile + 
 				       " is zero-length");
 		    return null;
 		}
 
-                return new IconUIResource(new ImageIcon(buffer[0]));
+                return new IconUIResource(new ImageIcon(buffer));
 	    }
 	};
     }
@@ -281,9 +308,11 @@ public abstract class LookAndFeel
      * that wish different behavior should override this and provide 
      * the additional feedback.
      *
-     * @param component Component the error occured in, may be null 
+     * @param component the <code>Component</code> the error occurred in,
+     *                  may be <code>null</code>
      *			indicating the error condition is not directly 
-     *			associated with a <code>Component</code>.
+     *			associated with a <code>Component</code>
+     * @since 1.4
      */
     public void provideErrorFeedback(Component component) {
 	Toolkit toolkit = null;
@@ -317,6 +346,56 @@ public abstract class LookAndFeel
 	    return new FontUIResource((Font)value);
 	}
 	return value;
+    }
+
+    /**
+     * Returns an <code>Icon</code> with a disabled appearance.
+     * This method is used to generate a disabled <code>Icon</code> when
+     * one has not been specified.  For example, if you create a
+     * <code>JButton</code> and only specify an <code>Icon</code> via
+     * <code>setIcon</code> this method will be called to generate the
+     * disabled <code>Icon</code>. If null is passed as <code>icon</code>
+     * this method returns null. 
+     * <p>
+     * Some look and feels might not render the disabled Icon, in which
+     * case they will ignore this.
+     *
+     * @param component JComponent that will display the Icon, may be null
+     * @param icon Icon to generate disable icon from.
+     * @return Disabled icon, or null if a suitable Icon can not be
+     *         generated.
+     * @since 1.5
+     */
+    public Icon getDisabledIcon(JComponent component, Icon icon) {
+        if (icon instanceof ImageIcon) {
+            return new IconUIResource(new ImageIcon(GrayFilter.
+                   createDisabledImage(((ImageIcon)icon).getImage())));
+        }
+        return null;
+    }                       
+
+    /**
+     * Returns an <code>Icon</code> for use by disabled
+     * components that are also selected. This method is used to generate an
+     * <code>Icon</code> for components that are in both the disabled and
+     * selected states but do not have a specific <code>Icon</code> for this
+     * state.  For example, if you create a <code>JButton</code> and only
+     * specify an <code>Icon</code> via <code>setIcon</code> this method
+     * will be called to generate the disabled and selected
+     * <code>Icon</code>. If null is passed as <code>icon</code> this method
+     * returns null. 
+     * <p>
+     * Some look and feels might not render the disabled and selected Icon,
+     * in which case they will ignore this.
+     *
+     * @param component JComponent that will display the Icon, may be null
+     * @param icon Icon to generate disabled and selected icon from.
+     * @return Disabled and Selected icon, or null if a suitable Icon can not
+     *         be generated.
+     * @since 1.5
+     */
+    public Icon getDisabledSelectedIcon(JComponent component, Icon icon) {
+        return getDisabledIcon(component, icon);
     }
 
     /**

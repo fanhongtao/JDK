@@ -1,7 +1,7 @@
 /*
- * @(#)InputMethodEvent.java	1.20 03/01/23
+ * @(#)InputMethodEvent.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.text.CharacterIterator;
  * always precedes composed text.
  *
  * @author JavaSoft Asia/Pacific
- * @version 1.20 01/23/03
+ * @version 1.22 12/19/03
  * @since 1.2
  */
 
@@ -94,6 +94,10 @@ public class InputMethodEvent extends AWTEvent {
      * if this is an <code>INPUT_METHOD_TEXT_CHANGED</code> event,
      * the composed text within the <code>text</code> of the
      * preceding <code>INPUT_METHOD_TEXT_CHANGED</code> event otherwise.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source the object where the event originated
      * @param id the event type
@@ -113,13 +117,14 @@ public class InputMethodEvent extends AWTEvent {
      *      to be visible; <code>null</code> if there's no
      *      recommendation for a visible position within current
      *      composed text
-     * @exception IllegalArgumentException if <code>id</code> is not
+     * @throws IllegalArgumentException if <code>id</code> is not
      *      in the range
      *      <code>INPUT_METHOD_FIRST</code>..<code>INPUT_METHOD_LAST</code>;
      *      or if id is <code>CARET_POSITION_CHANGED</code> and
      *      <code>text</code> is not <code>null</code>;
      *      or if <code>committedCharacterCount</code> is not in the range
      *      <code>0</code>..<code>(text.getEndIndex() - text.getBeginIndex())</code>
+     * @throws IllegalArgumentException if <code>source</code> is null
      *
      * @since 1.4
      */
@@ -162,6 +167,10 @@ public class InputMethodEvent extends AWTEvent {
      * preceding <code>INPUT_METHOD_TEXT_CHANGED</code> event otherwise.
      * The time stamp for this event is initialized by invoking
      * {@link java.awt.EventQueue#getMostRecentEventTime()}.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source the object where the event originated
      * @param id the event type
@@ -180,13 +189,14 @@ public class InputMethodEvent extends AWTEvent {
      *      to be visible; <code>null</code> if there's no
      *      recommendation for a visible position within current
      *      composed text
-     * @exception IllegalArgumentException if <code>id</code> is not
+     * @throws IllegalArgumentException if <code>id</code> is not
      *      in the range
      *      <code>INPUT_METHOD_FIRST</code>..<code>INPUT_METHOD_LAST</code>;
      *      or if id is <code>CARET_POSITION_CHANGED</code> and
      *      <code>text</code> is not <code>null</code>;
      *      or if <code>committedCharacterCount</code> is not in the range
      *      <code>0</code>..<code>(text.getEndIndex() - text.getBeginIndex())</code>
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public InputMethodEvent(Component source, int id,
             AttributedCharacterIterator text, int committedCharacterCount,
@@ -211,6 +221,10 @@ public class InputMethodEvent extends AWTEvent {
      * <code>null</code>.
      * The time stamp for this event is initialized by invoking
      * {@link java.awt.EventQueue#getMostRecentEventTime()}.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source the object where the event originated
      * @param id the event type
@@ -221,9 +235,10 @@ public class InputMethodEvent extends AWTEvent {
      *      to be visible; <code>null</code> if there's no
      *      recommendation for a visible position within current
      *      composed text
-     * @exception IllegalArgumentException if <code>id</code> is not
+     * @throws IllegalArgumentException if <code>id</code> is not
      *      in the range
      *      <code>INPUT_METHOD_FIRST</code>..<code>INPUT_METHOD_LAST</code>
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public InputMethodEvent(Component source, int id, TextHitInfo caret,
             TextHitInfo visiblePosition) {

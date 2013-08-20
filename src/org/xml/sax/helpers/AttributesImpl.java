@@ -1,9 +1,8 @@
 // AttributesImpl.java - default implementation of Attributes.
-// Written by David Megginson, sax@megginson.com
+// http://www.saxproject.org
+// Written by David Megginson
 // NO WARRANTY!  This class is in the public domain.
-
-// $Id: AttributesImpl.java,v 1.2 2001/05/31 18:08:19 garyp Exp $
-
+// $Id: AttributesImpl.java,v 1.1.24.1 2004/05/01 08:34:45 jsuttor Exp $
 
 package org.xml.sax.helpers;
 
@@ -16,6 +15,8 @@ import org.xml.sax.Attributes;
  * <blockquote>
  * <em>This module, both source code and documentation, is in the
  * Public Domain, and comes with <strong>NO WARRANTY</strong>.</em>
+ * See <a href='http://www.saxproject.org'>http://www.saxproject.org</a>
+ * for further information.
  * </blockquote>
  *
  * <p>This class provides a default implementation of the SAX2
@@ -39,9 +40,8 @@ import org.xml.sax.Attributes;
  * implementation using a single array rather than a set of Vectors.</p>
  *
  * @since SAX 2.0
- * @author David Megginson, 
- *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0r2pre
+ * @author David Megginson
+ * @version 2.0.1 (sax2r2)
  */
 public class AttributesImpl implements Attributes
 {
@@ -320,12 +320,16 @@ public class AttributesImpl implements Attributes
     /**
      * Clear the attribute list for reuse.
      *
-     * <p>Note that no memory is actually freed by this call:
-     * the current arrays are kept so that they can be 
+     * <p>Note that little memory is freed by this call:
+     * the current array is kept so it can be 
      * reused.</p>
      */
     public void clear ()
     {
+	if (data != null) {
+	    for (int i = 0; i < (length * 5); i++)
+		data [i] = null;
+	}
 	length = 0;
     }
 
@@ -432,15 +436,16 @@ public class AttributesImpl implements Attributes
     public void removeAttribute (int index)
     {
 	if (index >= 0 && index < length) {
-	    data[index*5] = null;
-	    data[index*5+1] = null;
-	    data[index*5+2] = null;
-	    data[index*5+3] = null;
-	    data[index*5+4] = null;
 	    if (index < length - 1) {
 		System.arraycopy(data, (index+1)*5, data, index*5,
 				 (length-index-1)*5);
 	    }
+	    index = (length - 1) * 5;
+	    data [index++] = null;
+	    data [index++] = null;
+	    data [index++] = null;
+	    data [index++] = null;
+	    data [index] = null;
 	    length--;
 	} else {
 	    badIndex(index);

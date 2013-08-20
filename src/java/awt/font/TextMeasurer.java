@@ -1,7 +1,7 @@
 /*
- * @(#)TextMeasurer.java	1.37 03/01/23
+ * @(#)TextMeasurer.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,10 +35,10 @@ import java.awt.font.FontRenderContext;
 import java.util.Hashtable;
 import java.util.Map;
 
-import sun.awt.font.BidiUtils;
-import sun.awt.font.TextLineComponent;
-import sun.awt.font.TextLabelFactory;
-import sun.awt.font.FontResolver;
+import sun.font.BidiUtils;
+import sun.font.TextLineComponent;
+import sun.font.TextLabelFactory;
+import sun.font.FontResolver;
 
 /**
  * The <code>TextMeasurer</code> class provides the primitive operations 

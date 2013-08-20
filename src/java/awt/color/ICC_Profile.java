@@ -1,7 +1,7 @@
 /*
- * @(#)ICC_Profile.java	1.33 07/05/22
+ * @(#)ICC_Profile.java	1.34 04/05/10
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,9 +42,8 @@ import java.security.PrivilegedAction;
 /**
  * A representation of color profile data for device independent and
  * device dependent color spaces based on the International Color
- * Consortium Specification ICC.1:1998-09, File Format for Color Profiles,
- * September 1998, and the addendum ICC.1A:1999-04, April 1999, to that
- * specification (see <A href="http://www.color.org"> http://www.color.org</A>).
+ * Consortium Specification ICC.1:2001-12, File Format for Color Profiles,
+ * (see <A href="http://www.color.org"> http://www.color.org</A>).
  * <p>
  * An ICC_ColorSpace object can be constructed from an appropriate
  * ICC_Profile.
@@ -73,7 +72,8 @@ import java.security.PrivilegedAction;
 
 public class ICC_Profile implements Serializable {
 
-    static final long serialVersionUID = -3938515861990936766L;
+    private static final long serialVersionUID = -3938515861990936766L;
+
     transient long ID;
 
     private transient ProfileDeferralInfo deferralInfo;
@@ -298,6 +298,11 @@ public class ICC_Profile implements Serializable {
     public static final int icRelativeColorimetric    = 1;
 
     /**
+     * ICC Profile Rendering Intent: Media-RelativeColorimetric.
+     */
+    public static final int icMediaRelativeColorimetric = 1;
+
+    /**
      * ICC Profile Rendering Intent: Saturation.
      */
     public static final int icSaturation            = 2;
@@ -307,6 +312,10 @@ public class ICC_Profile implements Serializable {
      */
     public static final int icAbsoluteColorimetric    = 3;
 
+    /**
+     * ICC Profile Rendering Intent: ICC-AbsoluteColorimetric.
+     */
+    public static final int icICCAbsoluteColorimetric = 3;
 
 
     /**
@@ -333,6 +342,11 @@ public class ICC_Profile implements Serializable {
      * ICC Profile Tag Signature: 'bXYZ'.
      */
     public static final int icSigBlueColorantTag  = 0x6258595A;    /* 'bXYZ' */
+
+    /**
+     * ICC Profile Tag Signature: 'bXYZ'.
+     */
+    public static final int icSigBlueMatrixColumnTag = 0x6258595A; /* 'bXYZ' */
 
     /**
      * ICC Profile Tag Signature: 'bTRC'.
@@ -404,6 +418,11 @@ public class ICC_Profile implements Serializable {
      * ICC Profile Tag Signature: 'gXYZ'.
      */
     public static final int icSigGreenColorantTag = 0x6758595A;    /* 'gXYZ' */
+
+    /**
+     * ICC Profile Tag Signature: 'gXYZ'.
+     */
+    public static final int icSigGreenMatrixColumnTag = 0x6758595A;/* 'gXYZ' */
 
     /**
      * ICC Profile Tag Signature: 'gTRC'.
@@ -504,6 +523,11 @@ public class ICC_Profile implements Serializable {
     public static final int icSigRedColorantTag   = 0x7258595A;    /* 'rXYZ' */
 
     /**
+     * ICC Profile Tag Signature: 'rXYZ'.
+     */
+    public static final int icSigRedMatrixColumnTag = 0x7258595A;  /* 'rXYZ' */
+
+    /**
      * ICC Profile Tag Signature: 'rTRC'.
      */
     public static final int icSigRedTRCTag        = 0x72545243;    /* 'rTRC' */
@@ -542,6 +566,21 @@ public class ICC_Profile implements Serializable {
      * ICC Profile Tag Signature: 'chrm'.
      */
     public static final int icSigChromaticityTag  = 0x6368726d;    /* 'chrm' */
+
+    /**
+     * ICC Profile Tag Signature: 'chad'.
+     */
+    public static final int icSigChromaticAdaptationTag = 0x63686164;/* 'chad' */
+
+    /**
+     * ICC Profile Tag Signature: 'clro'.
+     */
+    public static final int icSigColorantOrderTag = 0x636C726F;    /* 'clro' */
+
+    /**
+     * ICC Profile Tag Signature: 'clrt'.
+     */
+    public static final int icSigColorantTableTag = 0x636C7274;    /* 'clrt' */
 
 
     /**
@@ -623,6 +662,11 @@ public class ICC_Profile implements Serializable {
      * ICC Profile Header Location: profile creator.
      */
     public static final int icHdrCreator      = 80; /* Profile creator */
+
+    /**
+     * ICC Profile Header Location: profile's ID.
+     */
+    public static final int icHdrProfileID = 84; /* Profile's ID */
 
 
     /**
@@ -752,96 +796,88 @@ public class ICC_Profile implements Serializable {
      * one of the predefined color space types.
      */
     public static ICC_Profile getInstance (int cspace) {
-        ICC_Profile thisProfile = null;
-        String fileName;
+	ICC_Profile thisProfile = null;
+	String fileName;
 
-        switch (cspace) {
-            case ColorSpace.CS_sRGB:
-	        synchronized(ICC_Profile.class) {
-                    if (sRGBprofile == null) {
-		        try {
-                    	    /*
-                    	     * Deferral is only used for standard profiles.
-                    	     * Enabling the appropriate access privileges is handled
-                    	     * at a lower level.
-                    	     */
-                    	    sRGBprofile = getDeferredInstance(
-                        	new ProfileDeferralInfo("sRGB.pf", ColorSpace.TYPE_RGB,
-                                                3, CLASS_DISPLAY)); 
-		        } catch (IOException e) {
-                           throw new IllegalArgumentException(
-                                 "Can't load standard profile: sRGB.pf");
-                        }
-		    }
-                    thisProfile = sRGBprofile;
-	         }
+	switch (cspace) {
+	case ColorSpace.CS_sRGB:
+	    if (sRGBprofile == null) {
+		try {
+		    /*
+		     * Deferral is only used for standard profiles.
+		     * Enabling the appropriate access privileges is handled
+		     * at a lower level.
+		     */
+		    sRGBprofile = getDeferredInstance(
+			new ProfileDeferralInfo("sRGB.pf", ColorSpace.TYPE_RGB,
+						3, CLASS_DISPLAY)); 
+		} catch (IOException e) {
+		    throw new IllegalArgumentException(
+                          "Can't load standard profile: sRGB.pf");
+		}
+	    }
+	    thisProfile = sRGBprofile;
 
-                break;
+	    break;
 
-            case ColorSpace.CS_CIEXYZ:
-	        synchronized(ICC_Profile.class) {
-                    if (XYZprofile == null) {
-                        XYZprofile = getStandardProfile("CIEXYZ.pf");
-                    }
-                    thisProfile = XYZprofile;
-                }
+	case ColorSpace.CS_CIEXYZ:
+	    if (XYZprofile == null) {
+		XYZprofile = getStandardProfile("CIEXYZ.pf");
+	    }
+	    thisProfile = XYZprofile;
 
-                break;
+	    break;
 
-            case ColorSpace.CS_PYCC:
-	        synchronized(ICC_Profile.class) {
-                    if (PYCCprofile == null) {
-                        PYCCprofile = getStandardProfile("PYCC.pf");
-                    }
-                    thisProfile = PYCCprofile;
-	        }
+	case ColorSpace.CS_PYCC:
+	    if (PYCCprofile == null) {
+		PYCCprofile = getStandardProfile("PYCC.pf");
+	    }
+	    thisProfile = PYCCprofile;
 
-                break;
+	    break;
 
-            case ColorSpace.CS_GRAY:
-	        synchronized(ICC_Profile.class) {
-                    if (GRAYprofile == null) {
-                        GRAYprofile = getStandardProfile("GRAY.pf");
-                    }
-                    thisProfile = GRAYprofile;
-	        }
+	case ColorSpace.CS_GRAY:
+	    if (GRAYprofile == null) {
+		GRAYprofile = getStandardProfile("GRAY.pf");
+	    }
+	    thisProfile = GRAYprofile;
 
-                break;
+	    break;
 
-            case ColorSpace.CS_LINEAR_RGB:
-	        synchronized(ICC_Profile.class) {
-                    if (LINEAR_RGBprofile == null) {
-                        LINEAR_RGBprofile = getStandardProfile("LINEAR_RGB.pf");
-                    }
-                    thisProfile = LINEAR_RGBprofile;
-	        }
+	case ColorSpace.CS_LINEAR_RGB:
+	    if (LINEAR_RGBprofile == null) {
+		LINEAR_RGBprofile = getStandardProfile("LINEAR_RGB.pf");
+	    }
+	    thisProfile = LINEAR_RGBprofile;
 
-                break;
+	    break;
 
-            default:
-                throw new IllegalArgumentException("Unknown color space");
-            }
+	default:
+	    throw new IllegalArgumentException("Unknown color space");
+	}
 
         return thisProfile;
     }
 
+    /* This asserts system privileges, so is used only for the
+     * standard profiles.
+     */
     private static ICC_Profile getStandardProfile(final String name) {
-          
-      return (ICC_Profile) AccessController.doPrivileged(
-          new PrivilegedAction() {
+        
+	return (ICC_Profile) AccessController.doPrivileged(
+	    new PrivilegedAction() {
                  public Object run() {
                      ICC_Profile p = null;
                      try {
                          p = getInstance (name);
                      } catch (IOException ex) {
                          throw new IllegalArgumentException(
-                             "Can't load standard profile: " + name);
+			       "Can't load standard profile: " + name);
                      }
                      return p;
                  }
              });
     }
-
 
     /**
      * Constructs an ICC_Profile corresponding to the data in a file.
@@ -864,7 +900,7 @@ public class ICC_Profile implements Serializable {
      * an I/O error occurs while reading the file.
      *   
      * @exception IllegalArgumentException If the file does not
-     * contain valid ICC Profile data.
+     * contain valid ICC Profile data. 
      *
      * @exception SecurityException If a security manager is installed
      * and it does not permit read access to the given file.
@@ -874,7 +910,7 @@ public class ICC_Profile implements Serializable {
     FileInputStream fis;
 
         SecurityManager security = System.getSecurityManager();
-        if (security != null) {
+	if (security != null) {
             security.checkRead(fileName);
         }
 
@@ -1708,48 +1744,56 @@ public class ICC_Profile implements Serializable {
         FileInputStream fis = null;
         String path, dir, fullPath;
 
-        File f = new File(fileName); /* try absolute file name */
+	    try {
+	        fis = new FileInputStream(fileName);  /* absolute file name */
+	    }
+	    catch (FileNotFoundException e) {
+	    }
 
-        if ((!f.isFile()) &&
+	    if ((fis == null) &&
 		((path = System.getProperty("java.iccprofile.path")) != null)){
                                     /* try relative to java.iccprofile.path */
 	        StringTokenizer st = 
 		    new StringTokenizer(path, File.pathSeparator);
-                while (st.hasMoreTokens() && (!f.isFile())) {
+		while (st.hasMoreTokens() && (fis == null)) {
 		    dir = st.nextToken();
+		    try {
 		        fullPath = dir + File.separatorChar + fileName;
-                    f = new File(fullPath);
+			fis = new FileInputStream(fullPath);
+		    }
+		    catch (FileNotFoundException e) {
+		    }
 		}
 	    }
 
-        if ((!f.isFile()) &&
+	    if ((fis == null) &&
 		((path = System.getProperty("java.class.path")) != null)) {
                                     /* try relative to java.class.path */
 	        StringTokenizer st =
 		    new StringTokenizer(path, File.pathSeparator);
-                while (st.hasMoreTokens() && (!f.isFile())) {
+		while (st.hasMoreTokens() && (fis == null)) {
 		    dir = st.nextToken();
+		    try {
 		        fullPath = dir + File.separatorChar + fileName;
-                    f = new File(fullPath);
+			fis = new FileInputStream(fullPath);
+		    }
+		    catch (FileNotFoundException e) {
+		    }
 		}
 	    }
 
-        if (!f.isFile()) { /* try the directory of built-in profiles */
+	    if (fis == null) {    /* try the directory of built-in profiles */
 	        dir = System.getProperty("java.home") +
 		    File.separatorChar + "lib" + File.separatorChar + "cmm";
 		fullPath = dir + File.separatorChar + fileName;
-                f = new File(fullPath);
+		try {
+		    fis = new FileInputStream(fullPath);
+		}
+		catch (FileNotFoundException e) {
+		}
 	    }
-
-        if (f.isFile()) {
-            try {
-                fis = new FileInputStream(f);
-            } catch (FileNotFoundException e) {
-            }
-        }
         return fis;
     }
-
 
 
     /* 

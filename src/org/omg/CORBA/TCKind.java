@@ -1,7 +1,7 @@
 /*
- * @(#)TCKind.java	1.26 03/01/23
+ * @(#)TCKind.java	1.28 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -530,6 +530,7 @@ public class TCKind {
     * @return  a new <code>TCKind</code> instance whose <code>value</code>
     * field matches the given <code>int</code>
     */
+    @Deprecated
     protected TCKind(int _value){
 	this._value = _value;
     }

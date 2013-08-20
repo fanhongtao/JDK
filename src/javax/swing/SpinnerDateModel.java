@@ -1,7 +1,7 @@
 /*
- * @(#)SpinnerDateModel.java	1.7 03/01/23
+ * @(#)SpinnerDateModel.java	1.11 04/05/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,6 +49,9 @@ import java.io.Serializable;
  *   <li><code>Calendar.SECOND</code>
  *   <li><code>Calendar.MILLISECOND</code>
  * </ul>
+ * However some UIs may set the calendarField before commiting the edit
+ * to spin the field under the cursor. If you only want one field to
+ * spin you can subclass and ignore the setCalendarField calls.
  * <p>
  * This model inherits a <code>ChangeListener</code>.  The
  * <code>ChangeListeners</code> are notified whenever the models
@@ -62,7 +65,7 @@ import java.io.Serializable;
  * @see SpinnerNumberModel
  * @see Calendar#add
  *
- * @version 1.7 01/23/03
+ * @version 1.11 05/12/04
  * @author Hans Muller
  * @since 1.4
  */
@@ -289,6 +292,10 @@ public class SpinnerDateModel extends AbstractSpinnerModel implements Serializab
      * The <code>nextValue</code> and <code>previousValue</code> methods
      * simply move the specified <code>Calendar</code> field forward or backward 
      * by one unit with the <code>Calendar.add</code> method.
+     * You should use this method with care as some UIs may set the
+     * calendarField before commiting the edit to spin the field under
+     * the cursor. If you only want one field to spin you can subclass
+     * and ignore the setCalendarField calls.
      * 
      * @param calendarField one of 
      *  <ul>

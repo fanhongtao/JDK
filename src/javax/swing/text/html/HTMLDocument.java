@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLDocument.java	1.154 03/03/17
+ * @(#)HTMLDocument.java	1.167 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -69,7 +69,7 @@ import java.text.Bidi;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.154 03/17/03
+ * @version 1.167 05/05/04
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**
@@ -251,6 +251,10 @@ public class HTMLDocument extends DefaultStyledDocument {
 	    ((MutableAttributeSet)attr).addAttributes(contentAttributeSet);
 	}
 
+	if (attr.isDefined(IMPLIED_CR)) {
+	    ((MutableAttributeSet)attr).removeAttribute(IMPLIED_CR);
+	}
+
 	super.insertUpdate(chng, attr);
     }
 
@@ -395,6 +399,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	BlockElement body = new BlockElement(html, a.copyAttributes());
 	a.removeAttributes(a);
 	a.addAttribute(StyleConstants.NameAttribute, HTML.Tag.P);
+        getStyleSheet().addCSSAttributeFromHTML(a, CSS.Attribute.MARGIN_TOP, "0");
 	BlockElement paragraph = new BlockElement(body, a.copyAttributes());
 	a.removeAttributes(a);
 	a.addAttribute(StyleConstants.NameAttribute, HTML.Tag.CONTENT);
@@ -1017,7 +1022,7 @@ public class HTMLDocument extends DefaultStyledDocument {
      * @since 1.3
      */
     public Element getElement(Element e, Object attribute, Object value) {
-	return getElement(e, attribute, value, false);
+	return getElement(e, attribute, value, true);
     }
 
     /**
@@ -1332,6 +1337,11 @@ public class HTMLDocument extends DefaultStyledDocument {
     boolean hasBaseTag() {
 	return hasBaseTag;
     }
+
+    String getBaseTarget() {
+	return baseTarget;
+    }
+
     /*
      * state defines whether the document is a frame document
      * or not.
@@ -1350,6 +1360,10 @@ public class HTMLDocument extends DefaultStyledDocument {
      * before building an element subtree to represent them.
      */
     static final String TokenThreshold = "token threshold";
+
+    private static final int MaxThreshold = 10000;
+    
+    private static final int StepThreshold = 5;
 
 
     /**
@@ -1378,6 +1392,11 @@ public class HTMLDocument extends DefaultStyledDocument {
     boolean hasBaseTag = false;
 
     /**
+     * BASE tag's TARGET attribute value
+     */
+    private String baseTarget = null;
+
+    /**
      * The parser that is used when inserting html into the existing
      * document.
      */
@@ -1394,6 +1413,7 @@ public class HTMLDocument extends DefaultStyledDocument {
     static String MAP_PROPERTY = "__MAP__";
 
     private static char[] NEWLINE;
+    private static final String IMPLIED_CR = "CR";
 
     /**
      * I18N property key.  
@@ -1540,7 +1560,10 @@ public class HTMLDocument extends DefaultStyledDocument {
 		Element elem = pos.current();
 		if (elem.getStartOffset() >= endOffset) {
 		    AttributeSet a = pos.current().getAttributes();
-		    if (a.isDefined(tag)) {
+
+		    if (a.isDefined(tag) ||
+                        a.getAttribute(StyleConstants.NameAttribute) == tag) {
+
 			// we found the next one
 			setEndOffset();
 			break;
@@ -1843,6 +1866,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	    tagMap.put(HTML.Tag.SCRIPT, ha);
 	    tagMap.put(HTML.Tag.SELECT, fa);
 	    tagMap.put(HTML.Tag.SMALL, ca);
+    	    tagMap.put(HTML.Tag.SPAN, ca);
 	    tagMap.put(HTML.Tag.STRIKE, conv);	    
 	    tagMap.put(HTML.Tag.S, ca);
 	    tagMap.put(HTML.Tag.STRONG, ca);
@@ -2005,6 +2029,7 @@ public class HTMLDocument extends DefaultStyledDocument {
                     SimpleAttributeSet sas = new SimpleAttributeSet();
                     sas.addAttribute(StyleConstants.NameAttribute,
                                          HTML.Tag.CONTENT);
+		    sas.addAttribute(IMPLIED_CR, Boolean.TRUE);
                     added = new Element[1];
                     added[0] = createLeafElement(pPath[pLength - 1],
                                                      sas, length, length + 1);
@@ -2192,6 +2217,12 @@ public class HTMLDocument extends DefaultStyledDocument {
 		sas.addAttribute(HTML.Attribute.COMMENT, new String(data));
 		addSpecialElement(HTML.Tag.COMMENT, sas);
 	    }
+
+            TagAction action = (TagAction)tagMap.get(HTML.Tag.COMMENT);
+            if (action != null) {
+                action.start(HTML.Tag.COMMENT, new SimpleAttributeSet());
+                action.end(HTML.Tag.COMMENT);
+            }
 	}
 
         /**
@@ -2803,6 +2834,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 		    } catch (MalformedURLException ex) {
 		    }
 		}
+		baseTarget = (String) attr.getAttribute(HTML.Attribute.TARGET);
 	    }
 	}
 
@@ -2851,34 +2883,34 @@ public class HTMLDocument extends DefaultStyledDocument {
  	 *   <th>Model Type
  	 * <tr>
  	 *   <td>input, type button
- 	 *   <td>DefaultButtonModel
+ 	 *   <td>{@link DefaultButtonModel}
  	 * <tr>
  	 *   <td>input, type checkbox
- 	 *   <td>JToggleButton.ToggleButtonModel
+ 	 *   <td>{@link javax.swing.JToggleButton.ToggleButtonModel}
  	 * <tr>
  	 *   <td>input, type image
- 	 *   <td>DefaultButtonModel
+ 	 *   <td>{@link DefaultButtonModel}
  	 * <tr>
  	 *   <td>input, type password
- 	 *   <td>PlainDocument
+ 	 *   <td>{@link PlainDocument}
  	 * <tr>
  	 *   <td>input, type radio
- 	 *   <td>JToggleButton.ToggleButtonModel
+ 	 *   <td>{@link javax.swing.JToggleButton.ToggleButtonModel}
  	 * <tr>
  	 *   <td>input, type reset
- 	 *   <td>DefaultButtonModel
+ 	 *   <td>{@link DefaultButtonModel}
  	 * <tr>
  	 *   <td>input, type submit
- 	 *   <td>DefaultButtonModel
+ 	 *   <td>{@link DefaultButtonModel}
  	 * <tr>
  	 *   <td>input, type text or type is null.
- 	 *   <td>PlainDocument
+ 	 *   <td>{@link PlainDocument}
  	 * <tr>
  	 *   <td>select
- 	 *   <td>OptionComboBoxModel or an OptionListBoxModel, with an item type of Option
+ 	 *   <td>{@link DefaultComboBoxModel} or an {@link DefaultListModel}, with an item type of Option
  	 * <tr>
  	 *   <td>textarea
- 	 *   <td>TextAreaDocument
+ 	 *   <td>{@link PlainDocument}
  	 * </table>
 	 *
 	 */
@@ -3125,7 +3157,10 @@ public class HTMLDocument extends DefaultStyledDocument {
             // (perhaps a table with a child pargraph), but the paragraph
             // is needed for proper positioning and display.
 	    if(!lastWasNewline) {
+                pushCharacterStyle();
+                charAttr.addAttribute(IMPLIED_CR, Boolean.TRUE);
 		addContent(NEWLINE, 0, 1, true);
+                popCharacterStyle();
 		lastWasNewline = true;
 	    }
 
@@ -3153,9 +3188,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	/**
 	 * Adds some text with the current character attributes.
 	 *
-         * @param data    text to be added
-         * @param offs    location to insert text in the Document
-         * @param length  length of new text
+	 * @param embedded the attributes of an embedded object.
 	 */
 	protected void addContent(char[] data, int offs, int length) {
 	    addContent(data, offs, length, true);
@@ -3164,14 +3197,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	/**
 	 * Adds some text with the current character attributes.
 	 *
-         * @param data    text to be added
-         * @param offs    location to insert text in the Document
-         * @param length  length of new text
-         * @param generateImpliedPIfNecessary 
-         *                If false, the text is added as is.
-         *                If true and the current Element is not 
-         *                a valid Element to contain textual content,
-         *                a paragraph will be created to contain the text.
+	 * @param embedded the attributes of an embedded object.
 	 */
 	protected void addContent(char[] data, int offs, int length,
 				  boolean generateImpliedPIfNecessary) {
@@ -3192,6 +3218,9 @@ public class HTMLDocument extends DefaultStyledDocument {
 	    parseBuffer.addElement(es);
 
 	    if (parseBuffer.size() > threshold) {
+                if ( threshold <= MaxThreshold ) {
+                    threshold *= StepThreshold;
+                }
 		try {
 		    flushBuffer(false);
 		} catch (BadLocationException ble) {
@@ -3556,7 +3585,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 	 */
 	Option option;
 
-	protected Vector parseBuffer = new Vector();    // Vector<ElementSpec>
+	protected Vector<ElementSpec> parseBuffer = new Vector();    // Vector<ElementSpec>
 	protected MutableAttributeSet charAttr = new TaggedAttributeSet();
 	Stack charAttrStack = new Stack();
 	Hashtable tagMap;

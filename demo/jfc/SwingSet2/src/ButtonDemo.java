@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)ButtonDemo.java	1.14 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)ButtonDemo.java	1.10 03/01/23
+ * @(#)ButtonDemo.java	1.14 04/07/26
  */
 
 
@@ -57,7 +58,7 @@ import java.net.*;
 /**
  * JButton, JRadioButton, JToggleButton, JCheckBox Demos
  *
- * @version 1.10 01/23/03
+ * @version 1.14 07/26/04
  * @author Jeff Dinkins
  */
 public class ButtonDemo extends DemoModule implements ChangeListener {
@@ -186,7 +187,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 
 	p1.add(Box.createVerticalGlue());
 
-	buttonPanel.add(Box.createRigidArea(HGAP10));
+	buttonPanel.add(Box.createHorizontalGlue());
 	currentControls = buttons;
 	buttonPanel.add(createControls());
     }
@@ -279,7 +280,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 	// verticaly glue fills out the rest of the box
 	p1.add(Box.createVerticalGlue());
 
-	radioButtonPanel.add(Box.createRigidArea(HGAP10));
+	radioButtonPanel.add(Box.createHorizontalGlue());
 	currentControls = radiobuttons;
 	radioButtonPanel.add(createControls());
     }
@@ -355,7 +356,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 	// verticaly glue fills out the rest of the box
 	p1.add(Box.createVerticalGlue());
 
-	checkboxPanel.add(Box.createRigidArea(HGAP10));
+	checkboxPanel.add(Box.createHorizontalGlue());
 	currentControls = checkboxes;
 	checkboxPanel.add(createControls());
     }
@@ -394,62 +395,68 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 	createListeners();
 
         // Display Options
-        JLabel l = new JLabel("Display Options:");
+        JLabel l = new JLabel(getString("ButtonDemo.controlpanel_label"));
         leftColumn.add(l);
 
-        JCheckBox bordered = new JCheckBox("Paint Border");
-        bordered.setToolTipText("Click here to turn border painting on or off.");
-        bordered.setMnemonic('b');
+        JCheckBox bordered = new JCheckBox(getString("ButtonDemo.paintborder"));
+        bordered.setActionCommand("PaintBorder"); 
+        bordered.setToolTipText(getString("ButtonDemo.paintborder_tooltip"));
+        bordered.setMnemonic(getMnemonic("ButtonDemo.paintborder_mnemonic"));
 	if (currentControls == buttons) {
 	        bordered.setSelected(true);
 	}
         bordered.addItemListener(buttonDisplayListener);
         leftColumn.add(bordered);
 
-        JCheckBox focused = new JCheckBox("Paint Focus");
-        focused.setToolTipText("Click here to turn focus painting on or off.");
-        focused.setMnemonic('f');
+        JCheckBox focused = new JCheckBox(getString("ButtonDemo.paintfocus"));
+        focused.setActionCommand("PaintFocus"); 
+        focused.setToolTipText(getString("ButtonDemo.paintfocus_tooltip"));
+        focused.setMnemonic(getMnemonic("ButtonDemo.paintfocus_mnemonic"));
         focused.setSelected(true);
         focused.addItemListener(buttonDisplayListener);
         leftColumn.add(focused);
 
-        JCheckBox enabled = new JCheckBox("Enabled");
-        enabled.setToolTipText("Click here to enable or disable the buttons.");
+        JCheckBox enabled = new JCheckBox(getString("ButtonDemo.enabled"));
+        enabled.setActionCommand("Enabled"); 
+        enabled.setToolTipText(getString("ButtonDemo.enabled_tooltip"));
         enabled.setSelected(true);
         enabled.addItemListener(buttonDisplayListener);
-        enabled.setMnemonic('e');
+        enabled.setMnemonic(getMnemonic("ButtonDemo.enabled_mnemonic"));
         leftColumn.add(enabled);
 
-        JCheckBox filled = new JCheckBox("Content Filled");
-        filled.setToolTipText("Click here to control the filling of the content area.");
+        JCheckBox filled = new JCheckBox(getString("ButtonDemo.contentfilled"));
+        filled.setActionCommand("ContentFilled"); 
+        filled.setToolTipText(getString("ButtonDemo.contentfilled_tooltip"));
         filled.setSelected(true);
         filled.addItemListener(buttonDisplayListener);
-        filled.setMnemonic('i');
+        filled.setMnemonic(getMnemonic("ButtonDemo.contentfilled_mnemonic"));
         leftColumn.add(filled);
 
         leftColumn.add(Box.createRigidArea(VGAP20));
 
-        l = new JLabel("Pad Amount:");
+        l = new JLabel(getString("ButtonDemo.padamount_label"));
         leftColumn.add(l);
         ButtonGroup group = new ButtonGroup();
-        JRadioButton defaultPad = new JRadioButton("Default");
-        defaultPad.setToolTipText("Uses the default padding between the border and label.");
-        defaultPad.setMnemonic('d');
+        JRadioButton defaultPad = new JRadioButton(getString("ButtonDemo.default"));
+        defaultPad.setToolTipText(getString("ButtonDemo.default_tooltip"));
+        defaultPad.setMnemonic(getMnemonic("ButtonDemo.default_mnemonic"));
         defaultPad.addItemListener(buttonPadListener);
         group.add(defaultPad);
         defaultPad.setSelected(true);
         leftColumn.add(defaultPad);
 
-        JRadioButton zeroPad = new JRadioButton("0");
-        zeroPad.setToolTipText("Uses no padding between the border and label.");
+        JRadioButton zeroPad = new JRadioButton(getString("ButtonDemo.zero"));
+        zeroPad.setActionCommand("ZeroPad"); 
+        zeroPad.setToolTipText(getString("ButtonDemo.zero_tooltip"));
         zeroPad.addItemListener(buttonPadListener);
-        zeroPad.setMnemonic('0');
+        zeroPad.setMnemonic(getMnemonic("ButtonDemo.zero_mnemonic"));
         group.add(zeroPad);
         leftColumn.add(zeroPad);
 
-        JRadioButton tenPad = new JRadioButton("10");
-        tenPad.setMnemonic('1');
-        tenPad.setToolTipText("Uses a 10 pixel pad between the border and label.");
+        JRadioButton tenPad = new JRadioButton(getString("ButtonDemo.ten"));
+        tenPad.setActionCommand("TenPad"); 
+        tenPad.setMnemonic(getMnemonic("ButtonDemo.ten_mnemonic"));
+        tenPad.setToolTipText(getString("ButtonDemo.ten_tooltip"));
         tenPad.addItemListener(buttonPadListener);
         group.add(tenPad);
         leftColumn.add(tenPad);
@@ -465,13 +472,14 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 		
 		public void itemStateChanged(ItemEvent e) {
 		    JCheckBox cb = (JCheckBox) e.getSource();
-		    if(cb.getText().equals("Enabled")) {
+		    String command = cb.getActionCommand();
+		    if(command == "Enabled") {
 			for(int i = 0; i < currentControls.size(); i++) {
 			    c = (Component) currentControls.elementAt(i);
 			    c.setEnabled(cb.isSelected());
 			    c.invalidate();
 			}
-		    } else if(cb.getText().equals("Paint Border")) {
+		    } else if(command == "PaintBorder") {
 			c = (Component) currentControls.elementAt(0);
 			if(c instanceof AbstractButton) {
 			    for(int i = 0; i < currentControls.size(); i++) {
@@ -480,7 +488,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 				b.invalidate();
 			    }
 			}
-		    } else if(cb.getText().equals("Paint Focus")) {
+		    } else if(command == "PaintFocus") {
 			c = (Component) currentControls.elementAt(0);
 			if(c instanceof AbstractButton) {
 			    for(int i = 0; i < currentControls.size(); i++) {
@@ -489,7 +497,7 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 				b.invalidate();
 			    }
 			}
-		    } else if(cb.getText().equals("Content Filled")) {
+		    } else if(command == "ContentFilled") {
 			c = (Component) currentControls.elementAt(0);
 			if(c instanceof AbstractButton) {
 			    for(int i = 0; i < currentControls.size(); i++) {
@@ -513,9 +521,10 @@ public class ButtonDemo extends DemoModule implements ChangeListener {
 		    // *** pad = 0
 		    int pad = -1;
 		    JRadioButton rb = (JRadioButton) e.getSource();
-		    if(rb.getText().equals("0") && rb.isSelected()) {
+		    String command = rb.getActionCommand();
+		    if(command == "ZeroPad" && rb.isSelected()) {
 			pad = 0;
-		    } else if(rb.getText().equals("10") && rb.isSelected()) {
+		    } else if(command == "TenPad" && rb.isSelected()) {
 			pad = 10;
 		    }
 		    

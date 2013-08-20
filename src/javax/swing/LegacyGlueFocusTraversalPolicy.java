@@ -1,7 +1,7 @@
 /*
- * @(#)LegacyGlueFocusTraversalPolicy.java	1.5 03/01/23
+ * @(#)LegacyGlueFocusTraversalPolicy.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -22,7 +22,7 @@ import java.io.*;
  * been hard coded, then that traversal is provided either by the custom
  * DefaultFocusManager, or by a wrapped FocusTraversalPolicy instance.
  *
- * @version 1.5, 01/23/03
+ * @version 1.6, 12/19/03
  * @author David Mendenhall
  */
 final class LegacyGlueFocusTraversalPolicy extends FocusTraversalPolicy

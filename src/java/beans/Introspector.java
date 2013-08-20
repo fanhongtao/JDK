@@ -1,7 +1,7 @@
 /*
- * @(#)Introspector.java	1.133 05/06/07
+ * @(#)Introspector.java	1.141 04/07/15
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,9 +23,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.EventListener;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.WeakHashMap;
-import sun.reflect.misc.ReflectUtil;
+import java.util.TreeMap;
 
 /**
  * The Introspector class provides a standard way for tools to learn about
@@ -148,10 +147,9 @@ public class Introspector {
      * @see #flushCaches
      * @see #flushFromCaches
      */
-    public static BeanInfo getBeanInfo(Class beanClass) throws IntrospectionException {	
-	if (!ReflectUtil.isPackageAccessible(beanClass)) {
-		return (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
-	}
+    public static BeanInfo getBeanInfo(Class<?> beanClass)
+	throws IntrospectionException
+    {
 	BeanInfo bi = (BeanInfo)beanInfoCache.get(beanClass);
 	if (bi == null) {
 	    bi = (new Introspector(beanClass, null, USE_ALL_BEANINFO)).getBeanInfo();
@@ -181,7 +179,7 @@ public class Introspector {
      * @exception IntrospectionException if an exception occurs during
      *              introspection.
      */
-    public static BeanInfo getBeanInfo(Class beanClass, int flags)
+    public static BeanInfo getBeanInfo(Class<?> beanClass, int flags)
 						throws IntrospectionException {
 	return getBeanInfo(beanClass, null, flags);
     }
@@ -201,7 +199,7 @@ public class Introspector {
      * @exception IntrospectionException if an exception occurs during
      *              introspection.
      */
-    public static BeanInfo getBeanInfo(Class beanClass,	Class stopClass)
+    public static BeanInfo getBeanInfo(Class<?> beanClass, Class<?> stopClass)
 						throws IntrospectionException {
 	return getBeanInfo(beanClass, stopClass, USE_ALL_BEANINFO);
     }
@@ -257,7 +255,9 @@ public class Introspector {
      *		finding BeanInfo classes.
      *
      * @return  The array of package names that will be searched in
-     *		order to find BeanInfo classes.
+     *		order to find BeanInfo classes. The default value
+     *          for this array is implementation-dependent; e.g. 
+     *          Sun implementation initially sets to {"sun.beans.infos"}.
      */
 
     public static synchronized String[] getBeanInfoSearchPath() {
@@ -321,7 +321,7 @@ public class Introspector {
      * @param clz  Class object to be flushed.
      * @throws NullPointerException If the Class object is null.
      */
-    public static void flushFromCaches(Class clz) {
+    public static void flushFromCaches(Class<?> clz) {
 	if (clz == null) {
 	    throw new NullPointerException();
 	}
@@ -828,12 +828,8 @@ public class Introspector {
 		Method read = result.getReadMethod();
 		    		    
 		if (read == null && write != null) {
-		    try {
-			read = findMethod(result.getClass0(), 
-					  "get" + result.capitalize(result.getName()), 0);
-		    } catch (Exception e) {
-			read = null;
-		    }
+		    read = findMethod(result.getClass0(), 
+				      "get" + result.capitalize(result.getName()), 0);
 		    if (read != null) {
 			try {
 			    result.setReadMethod(read);
@@ -843,13 +839,9 @@ public class Introspector {
 		    }
 		}
 		if (write == null && read != null) {
-		    try {
-			write = findMethod(result.getClass0(), 
-					   "set" + result.capitalize(result.getName()), 1,
-					   new Class[] { read.getReturnType() });
-		    } catch(Exception e) {
-			write = null;
-		    }
+		    write = findMethod(result.getClass0(), 
+				       "set" + result.capitalize(result.getName()), 1,
+				       new Class[] { read.getReturnType() });
 		    if (write != null) {
 			try {
 			    result.setWriteMethod(write);
@@ -1166,8 +1158,8 @@ public class Introspector {
 	// We have a collision on method names.  This is rare.
 
 	// Check if old and md have the same type.
-	Class[] p1 = md.getMethod().getParameterTypes(); 
-	Class[] p2 = old.getMethod().getParameterTypes();
+	String[] p1 = md.getParamNames();
+	String[] p2 = old.getParamNames();
 
 	boolean match = false;
 	if (p1.length == p2.length) {
@@ -1188,7 +1180,7 @@ public class Introspector {
 	// We have a collision on method names with different type signatures.
 	// This is very rare.
 
-	String longKey = makeQualifiedMethodName(md);
+	String longKey = makeQualifiedMethodName(name, p1);
 	old = (MethodDescriptor)methods.get(longKey);
 	if (old == null) {
 	    methods.put(longKey, md);
@@ -1201,19 +1193,16 @@ public class Introspector {
     /**
      * Creates a key for a method in a method cache.
      */
-    private String makeQualifiedMethodName(MethodDescriptor md) {
-	Method m = md.getMethod();
-	StringBuffer sb = new StringBuffer();
-	sb.append(m.getName());
-	sb.append("=");
-	Class params[] = m.getParameterTypes();
+    private static String makeQualifiedMethodName(String name, String[] params) {
+	StringBuffer sb = new StringBuffer(name);
+	sb.append('=');
 	for (int i = 0; i < params.length; i++) {
-	    sb.append(":");
-	    sb.append(params[i].getName());
+	    sb.append(':');
+	    sb.append(params[i]);
 	}
 	return sb.toString();
     }
-    
+
     private int getTargetDefaultEventIndex() {
 	return defaultEventIndex;
     }
@@ -1254,9 +1243,7 @@ public class Introspector {
 	// Looking up Class.getDeclaredMethods is relatively expensive,
 	// so we cache the results.
 	Method[] result = null;
-	if (!ReflectUtil.isPackageAccessible(clz)) { 
-		return new Method[0]; 
-	} 
+	
 	final Class fclz = clz;
 	Reference ref = (Reference)declaredMethodCache.get(fclz);
 	if (ref != null) {
@@ -1353,18 +1340,8 @@ public class Introspector {
     /**
      * Find a target methodName on a given class.
      */
-    static Method findMethod(Class cls, String methodName, int argCount)
-	throws IntrospectionException {
-	if (methodName == null) {
-	    return null;
-	}
-	Method m = findMethod(cls, methodName, argCount, null);
-	if (m != null) {
-	    return m;
-	}
-	// We failed to find a suitable method
-	throw new IntrospectionException("No method \"" + methodName + 
-					 "\" with " + argCount + " arg(s).");
+    static Method findMethod(Class cls, String methodName, int argCount) {
+	return findMethod(cls, methodName, argCount, null);
     }
 
     /**
@@ -1380,18 +1357,11 @@ public class Introspector {
      * @return the method or null if not found
      */
     static Method findMethod(Class cls, String methodName, int argCount, 
-                             Class args[]) throws IntrospectionException {
+                             Class args[]) {
         if (methodName == null) {
             return null;
         }
-	Method m = internalFindMethod(cls, methodName, argCount, args);
-	if (m != null) {
-	    return m;
-	}
-	// We failed to find a suitable method
-	throw new IntrospectionException("No method \"" + methodName + 
-                                          "\" with " + argCount + " arg(s) of matching types.");
-
+        return internalFindMethod(cls, methodName, argCount, args);
     }
 
     /**

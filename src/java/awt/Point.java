@@ -1,7 +1,7 @@
 /*
- * @(#)Point.java	1.37 03/01/23
+ * @(#)Point.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.awt.geom.Point2D;
  * A point representing a location in (x, y) coordinate space, specified
  * in integer precision.
  *
- * @version 	1.37, 01/23/03
+ * @version 	1.38, 12/19/03
  * @author 	Sami Shaio
  * @since       JDK1.0
  */

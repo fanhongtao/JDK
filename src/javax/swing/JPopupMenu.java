@@ -1,7 +1,7 @@
 /*
- * @(#)JPopupMenu.java	1.181 03/01/23
+ * @(#)JPopupMenu.java	1.191 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,7 @@ import java.util.Hashtable;
 import javax.accessibility.*;
 import javax.swing.plaf.PopupMenuUI;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicComboPopup;
 import javax.swing.event.*;
 
 import java.applet.Applet;
@@ -38,9 +39,6 @@ import java.applet.Applet;
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>
  * in <em>The Java Tutorial.</em>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JPopupMenu"><code>JPopupMenu</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -55,7 +53,7 @@ import java.applet.Applet;
  *   attribute: isContainer false
  * description: A small window that pops up and displays a series of choices.
  *
- * @version 1.181 01/23/03
+ * @version 1.191 @(#)JPopupMenu.java	1.191
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -164,7 +162,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         this.label = label;
         lightWeightPopup = getDefaultLightWeightPopupEnabled();
         setSelectionModel(new DefaultSingleSelectionModel());
-        addMouseListener(new MouseAdapter() {});
+        enableEvents(AWTEvent.MOUSE_EVENT_MASK);
 	setFocusTraversalKeysEnabled(false);
         updateUI();
     }
@@ -630,6 +628,39 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     }
 
     /**
+     * Adds a <code>MenuKeyListener</code> to the popup menu.
+     *
+     * @param l the <code>MenuKeyListener</code> to be added
+     * @since 1.5
+     */
+    public void addMenuKeyListener(MenuKeyListener l) {
+        listenerList.add(MenuKeyListener.class, l);
+    }
+
+    /**
+     * Removes a <code>MenuKeyListener</code> from the popup menu.
+     *
+     * @param l the <code>MenuKeyListener</code> to be removed
+     * @since 1.5
+     */
+    public void removeMenuKeyListener(MenuKeyListener l) {
+        listenerList.remove(MenuKeyListener.class, l);
+    }
+
+    /**
+     * Returns an array of all the <code>MenuKeyListener</code>s added
+     * to this JPopupMenu with addMenuKeyListener().
+     *
+     * @return all of the <code>MenuKeyListener</code>s added or an empty
+     *         array if no listeners have been added
+     * @since 1.5
+     */
+    public MenuKeyListener[] getMenuKeyListeners() {
+        return (MenuKeyListener[])listenerList.getListeners(
+                MenuKeyListener.class);
+    }
+
+    /**
      * Notifies <code>PopupMenuListener</code>s that this popup menu will 
      * become visible.
      */
@@ -757,6 +788,8 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             firePopupMenuWillBecomeVisible();
             popup = getPopup();
 	    firePropertyChange("visible", Boolean.FALSE, Boolean.TRUE);
+
+	   
 	} else if(popup != null) {
             firePopupMenuWillBecomeInvisible();
             popup.hide();
@@ -767,17 +800,6 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             if (isPopupMenu()) {
                 MenuSelectionManager.defaultManager().clearSelectedPath();
             }
-        }
-        if (accessibleContext != null) {
-	    if (b) {
-		accessibleContext.firePropertyChange(
-			AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-			null, AccessibleState.VISIBLE);
-	    } else {
-		accessibleContext.firePropertyChange(
-			AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-			AccessibleState.VISIBLE, null);
-	    }
         }
     }
 
@@ -835,7 +857,9 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * popup menu using x, y coordinates.
      *
      * @param x the x coordinate of the popup's new position
+     *          in the screen's coordinate space
      * @param y the y coordinate of the popup's new position
+     *          in the screen's coordinate space
      * @beaninfo
      * description: The location of the popup menu.
      */
@@ -952,6 +976,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * @return the <code>Component</code> at that index 
      * @deprecated replaced by <code>getComponent(int i)</code>
      */
+    @Deprecated
     public Component getComponentAtIndex(int i) {
         return getComponent(i);
     }
@@ -1167,8 +1192,19 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
      * Java Accessibility API appropriate to popup menu user-interface 
      * elements.
      */
-    protected class AccessibleJPopupMenu extends AccessibleJComponent {
-        /**
+    protected class AccessibleJPopupMenu extends AccessibleJComponent
+        implements PropertyChangeListener {
+
+	/**
+	 * AccessibleJPopupMenu constructor
+	 *
+	 * @since 1.5
+	 */
+	protected AccessibleJPopupMenu() {
+	    JPopupMenu.this.addPropertyChangeListener(this);
+	}
+
+	/**
          * Get the role of this object.
          *
          * @return an instance of AccessibleRole describing the role of 
@@ -1177,6 +1213,84 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         public AccessibleRole getAccessibleRole() {
             return AccessibleRole.POPUP_MENU;
         }
+
+	/**
+	 * This method gets called when a bound property is changed.
+	 * @param evt A <code>PropertyChangeEvent</code> object describing
+	 * the event source and the property that has changed. Must not be null.
+	 *
+	 * @throws NullPointerException if the parameter is null.
+	 * @since 1.5
+	 */ 
+	public void propertyChange(PropertyChangeEvent e) {
+	    String propertyName = e.getPropertyName();
+	    if (propertyName == "visible") {
+		if (e.getOldValue() == Boolean.FALSE &&
+		    e.getNewValue() == Boolean.TRUE) {
+		    handlePopupIsVisibleEvent(true);
+
+		} else if (e.getOldValue() == Boolean.TRUE &&
+			   e.getNewValue() == Boolean.FALSE) {
+		    handlePopupIsVisibleEvent(false);
+		}
+	    } 
+	}
+
+	/*
+	 * Handles popup "visible" PropertyChangeEvent
+	 */
+	private void handlePopupIsVisibleEvent(boolean visible) {
+	    if (visible) {
+		// notify listeners that the popup became visible
+		firePropertyChange(ACCESSIBLE_STATE_PROPERTY,
+				   null, AccessibleState.VISIBLE);
+		// notify listeners that a popup list item is selected
+		fireActiveDescendant();
+	    } else {
+		// notify listeners that the popup became hidden
+		firePropertyChange(ACCESSIBLE_STATE_PROPERTY,
+				   AccessibleState.VISIBLE, null);
+	    }
+	}
+
+	/*
+	 * Fires AccessibleActiveDescendant PropertyChangeEvent to notify listeners
+	 * on the popup menu invoker that a popup list item has been selected
+	 */
+	private void fireActiveDescendant() {
+	    if (JPopupMenu.this instanceof BasicComboPopup) {
+		// get the popup list
+		JList popupList = ((BasicComboPopup)JPopupMenu.this).getList();
+		if (popupList == null) {
+		    return;
+		}
+		
+		// get the first selected item
+		AccessibleContext ac = popupList.getAccessibleContext();
+		AccessibleSelection selection = ac.getAccessibleSelection();
+		if (selection == null) {
+		    return;
+		}
+		Accessible a = selection.getAccessibleSelection(0);
+		if (a == null) {
+		    return;
+		}
+		AccessibleContext selectedItem = a.getAccessibleContext();
+		
+		// fire the event with the popup invoker as the source.  
+		if (selectedItem != null && invoker != null) {
+		    AccessibleContext invokerContext = invoker.getAccessibleContext();
+		    if (invokerContext != null) {
+			// Check invokerContext because Component.getAccessibleContext 
+			// returns null. Classes that extend Component are responsible
+			// for returning a non-null AccessibleContext.
+			invokerContext.firePropertyChange(
+                            ACCESSIBLE_ACTIVE_DESCENDANT_PROPERTY,
+			    null, selectedItem);
+		    }
+		}
+	    }
+	}
     } // inner class AccessibleJPopupMenu
 
 
@@ -1238,11 +1352,95 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
     public void processMouseEvent(MouseEvent event,MenuElement path[],MenuSelectionManager manager) {}
 
     /**
-     * This method is required to conform to the
-     * <code>MenuElement</code> interface, but it not implemented.
-     * @see MenuElement#processKeyEvent(KeyEvent, MenuElement[], MenuSelectionManager)
+     * Processes a key event forwarded from the
+     * <code>MenuSelectionManager</code> and changes the menu selection,
+     * if necessary, by using <code>MenuSelectionManager</code>'s API.
+     * <p>
+     * Note: you do not have to forward the event to sub-components.
+     * This is done automatically by the <code>MenuSelectionManager</code>.
+     *
+     * @param e  a <code>KeyEvent</code>
+     * @param path the <code>MenuElement</code> path array
+     * @param manager   the <code>MenuSelectionManager</code>
      */
-    public void processKeyEvent(KeyEvent e,MenuElement path[],MenuSelectionManager manager) {
+    public void processKeyEvent(KeyEvent e, MenuElement path[],
+                                MenuSelectionManager manager) {
+        MenuKeyEvent mke = new MenuKeyEvent(e.getComponent(), e.getID(),
+					     e.getWhen(), e.getModifiers(),
+					     e.getKeyCode(), e.getKeyChar(),
+					     path, manager);
+        processMenuKeyEvent(mke);
+
+        if (mke.isConsumed())  {
+            e.consume();
+    }
+    }
+
+    /**
+     * Handles a keystroke in a menu.
+     *
+     * @param e  a <code>MenuKeyEvent</code> object
+     * @since 1.5
+     */
+    private void processMenuKeyEvent(MenuKeyEvent e) {
+        switch (e.getID()) {
+        case KeyEvent.KEY_PRESSED:
+            fireMenuKeyPressed(e); break;
+        case KeyEvent.KEY_RELEASED:
+            fireMenuKeyReleased(e); break;
+        case KeyEvent.KEY_TYPED:
+            fireMenuKeyTyped(e); break;
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for
+     * notification on this event type.
+     *
+     * @param event a <code>MenuKeyEvent</code>
+     * @see EventListenerList
+     */
+    private void fireMenuKeyPressed(MenuKeyEvent event) {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==MenuKeyListener.class) {
+                ((MenuKeyListener)listeners[i+1]).menuKeyPressed(event);
+            }
+        }
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for
+     * notification on this event type.
+     *
+     * @param event a <code>MenuKeyEvent</code>
+     * @see EventListenerList
+     */
+    private void fireMenuKeyReleased(MenuKeyEvent event) {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==MenuKeyListener.class) {
+                ((MenuKeyListener)listeners[i+1]).menuKeyReleased(event);
+            }
+        }
+    }
+
+    /**
+     * Notifies all listeners that have registered interest for
+     * notification on this event type.
+     *
+     * @param event a <code>MenuKeyEvent</code>
+     * @see EventListenerList
+     */
+    private void fireMenuKeyTyped(MenuKeyEvent event) {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==MenuKeyListener.class) {
+                ((MenuKeyListener)listeners[i+1]).menuKeyTyped(event);
+            }
+        }
     }
 
     /**

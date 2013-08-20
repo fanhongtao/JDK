@@ -1,13 +1,14 @@
 /*
- * @(#)PrinterMoreInfo.java	1.5 03/01/23
+ * @(#)PrinterMoreInfo.java	1.8 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
 import java.net.URI;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.URISyntax;
 import javax.print.attribute.PrintServiceAttribute;
 
@@ -36,6 +37,8 @@ import javax.print.attribute.PrintServiceAttribute;
  */
 public final class PrinterMoreInfo extends URISyntax
 	implements PrintServiceAttribute {
+
+    private static final long serialVersionUID = 4555850007675338574L;
 
     /**
      * Constructs a new printer more info attribute with the specified URI. 
@@ -82,7 +85,7 @@ public final class PrinterMoreInfo extends URISyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return PrinterMoreInfo.class;
     }
 

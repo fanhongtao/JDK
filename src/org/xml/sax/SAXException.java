@@ -1,6 +1,7 @@
 // SAX exception class.
+// http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
-// $Id: SAXException.java,v 1.1.2.1 2001/11/15 19:46:10 edwingo Exp $
+// $Id: SAXException.java,v 1.2.24.1.2.1 2004/06/08 22:44:56 rameshm Exp $
 
 package org.xml.sax;
 
@@ -10,6 +11,8 @@ package org.xml.sax;
  * <blockquote>
  * <em>This module, both source code and documentation, is in the
  * Public Domain, and comes with <strong>NO WARRANTY</strong>.</em>
+ * See <a href='http://www.saxproject.org'>http://www.saxproject.org</a>
+ * for further information.
  * </blockquote>
  *
  * <p>This class can contain basic error or warning information from
@@ -27,29 +30,27 @@ package org.xml.sax;
  * {@link org.xml.sax.SAXParseException SAXParseException} subclass.</p>
  *
  * @since SAX 1.0
- * @author David Megginson, 
- *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0r2pre w/ JAXP 1.1 signatures
+ * @author David Megginson
+ * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.SAXParseException
  */
 public class SAXException extends Exception {
 
 
-//     /**
-//      * Create a new SAXException.
-//      */
-//     public SAXException ()
-//     {
-// 	super();
-// 	this.exception = null;
-//     }
+    /**
+     * Create a new SAXException.
+     */
+    public SAXException ()
+    {
+	super();
+	this.exception = null;
+    }
     
     
     /**
      * Create a new SAXException.
      *
      * @param message The error or warning message.
-     * @see org.xml.sax.Parser#setLocale
      */
     public SAXException (String message) {
 	super(message);
@@ -81,7 +82,6 @@ public class SAXException extends Exception {
      *
      * @param message The detail message.
      * @param e The exception to be wrapped in a SAXException.
-     * @see org.xml.sax.Parser#setLocale
      */
     public SAXException (String message, Exception e)
     {
@@ -98,7 +98,6 @@ public class SAXException extends Exception {
      * the detail message from the embedded exception.</p>
      *
      * @return The error or warning message.
-     * @see org.xml.sax.Parser#setLocale
      */
     public String getMessage ()
     {
@@ -149,6 +148,8 @@ public class SAXException extends Exception {
      */    
     private Exception exception;
     
+    // Added serialVersionUID to preserve binary compatibility 
+    static final long serialVersionUID = 583241635256073760L;
 }
 
 // end of SAXException.java

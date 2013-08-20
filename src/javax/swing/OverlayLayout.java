@@ -1,7 +1,7 @@
 /*
- * @(#)OverlayLayout.java	1.25 03/01/23
+ * @(#)OverlayLayout.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -30,7 +30,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.25 01/23/03
+ * @version 1.27 12/19/03
  * @author   Timothy Prinzing
  */
 public class OverlayLayout implements LayoutManager2,Serializable {
@@ -135,13 +135,14 @@ public class OverlayLayout implements LayoutManager2,Serializable {
     }
 
     /**
-     * Returns the minimum dimensions needed to lay out the components
+     * Returns the maximum dimensions needed to lay out the components
      * contained in the specified target container.  Recomputes the
      * layout if it has been invalidated, and factors in the inset setting
-     * returned by getInset().
+     * returned by <code>getInset</code>.
      *
-     * @param target the component which needs to be laid out 
-     * @return a Dimension object containing the maximum dimensions
+     * @param target the component that needs to be laid out 
+     * @return a <code>Dimension</code> object containing the maximum
+     *         dimensions
      * @see #preferredLayoutSize
      */
     public Dimension maximumLayoutSize(Container target) {

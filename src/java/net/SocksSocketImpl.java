@@ -1,7 +1,7 @@
 /*
- * @(#)SocksSocketImpl.java	1.11 05/01/15
+ * @(#)SocksSocketImpl.java	1.17 04/04/29
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
@@ -9,11 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.prefs.Preferences;
+import sun.net.www.ParseUtil;
 /* import org.ietf.jgss.*; */
 
 /**
@@ -31,9 +30,22 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
     private InputStream cmdIn = null;
     private OutputStream cmdOut = null;
 
+    SocksSocketImpl() {
+	// Nothing needed
+    }
+
     SocksSocketImpl(String server, int port) {
 	this.server = server;
 	this.port = (port == -1 ? DEFAULT_PORT : port);
+    }
+
+    SocksSocketImpl(Proxy proxy) {
+	SocketAddress a = proxy.address();
+	if (a instanceof InetSocketAddress) {
+	    InetSocketAddress ad = (InetSocketAddress) a;
+	    server = ad.getHostName();
+	    port = ad.getPort();
+	}
     }
 
     void setV4() {
@@ -145,10 +157,18 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 		return false;
 	    out.write(1);
 	    out.write(userName.length());
-	    out.write(userName.getBytes());
+	    try {
+		out.write(userName.getBytes("ISO-8859-1"));
+	    } catch (java.io.UnsupportedEncodingException uee) {
+		assert false;
+	    }
 	    if (password != null) {
 		out.write(password.length());
-		out.write(password.getBytes());
+		try {
+		    out.write(password.getBytes("ISO-8859-1"));
+		} catch (java.io.UnsupportedEncodingException uee) {
+		    assert false;
+		}
 	    } else
 		out.write(0);
 	    out.flush();
@@ -223,9 +243,9 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 
     private void connectV4(InputStream in, OutputStream out,
 			   InetSocketAddress endpoint) throws IOException {
-    if (!(endpoint.getAddress() instanceof Inet4Address)) {
-        throw new SocketException("SOCKS V4 requires IPv4 only addresses");
-    }
+	if (!(endpoint.getAddress() instanceof Inet4Address)) {
+	    throw new SocketException("SOCKS V4 requires IPv4 only addresses");
+	}
 	out.write(PROTO_VERS4);
 	out.write(CONNECT);
 	out.write((endpoint.getPort() >> 8) & 0xff);
@@ -233,7 +253,11 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	out.write(endpoint.getAddress().getAddress());
 	String userName = (String) java.security.AccessController.doPrivileged(
                new sun.security.action.GetPropertyAction("user.name"));
-	out.write(userName.getBytes());
+	try {
+	    out.write(userName.getBytes("ISO-8859-1"));
+	} catch (java.io.UnsupportedEncodingException uee) {
+	    assert false;
+	}
 	out.write(0);
 	out.flush();
 	byte[] data = new byte[8];
@@ -295,18 +319,94 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 		security.checkConnect(epoint.getAddress().getHostAddress(),
 				      epoint.getPort());
 	}
+	if (server == null) {
+	    // This is the general case
+	    // server is not null only when the socket was created with a
+	    // specified proxy in which case it does bypass the ProxySelector
+	    ProxySelector sel = (ProxySelector) 
+		java.security.AccessController.doPrivileged( 
+		    new java.security.PrivilegedAction() {
+			public Object run() {
+			    return ProxySelector.getDefault();
+			}
+		    });
+	    if (sel == null) {
+		/*
+		 * No default proxySelector --> direct connection
+		 */
+		super.connect(epoint, timeout);
+		return;
+	    }
+	    URI uri = null;
+	    String host = epoint.getHostName();
+	    // IPv6 litteral?
+	    if (epoint.getAddress() instanceof Inet6Address &&
+		(!host.startsWith("[")) && (host.indexOf(":") >= 0)) {
+		host = "[" + host + "]";
+	    }
+	    try {
+		uri = new URI("socket://" + ParseUtil.encodePath(host) + ":"+ epoint.getPort());
+	    } catch (URISyntaxException e) {
+		// This shouldn't happen
+		assert false : e;
+	    }
+	    Proxy p = null;
+	    IOException savedExc = null;
+	    java.util.Iterator<Proxy> iProxy = null;
+	    iProxy = sel.select(uri).iterator();
+	    if (iProxy == null || !(iProxy.hasNext())) {
+		super.connect(epoint, timeout);
+		return;
+	    }
+	    while (iProxy.hasNext()) {
+		p = iProxy.next();
+		if (p == null || p == Proxy.NO_PROXY) {
+		    super.connect(epoint, timeout);
+		    return;
+		}
+		if (p.type() != Proxy.Type.SOCKS)
+		    throw new SocketException("Unknown proxy type : " + p.type());
+		if (!(p.address() instanceof InetSocketAddress))
+		    throw new SocketException("Unknow address type for proxy: " + p);
+		server = ((InetSocketAddress) p.address()).getHostName();
+		port = ((InetSocketAddress) p.address()).getPort();
+		
+		// Connects to the SOCKS server
+		try {
+		    privilegedConnect(server, port, timeout);
+		    // Worked, let's get outta here
+		    break;
+		} catch (IOException e) {
+		    // Ooops, let's notify the ProxySelector
+		    sel.connectFailed(uri,p.address(),e);
+		    server = null;
+		    port = -1;
+		    savedExc = e;
+		    // Will continue the while loop and try the next proxy
+		}
+	    }
 
-	// Connects to the SOCKS server
-	
-	try {
-	    privilegedConnect(server, port, timeout);
-	} catch (Exception e) {
-	    throw new SocketException(e.getMessage());
+	    /*
+	     * If server is still null at this point, none of the proxy
+	     * worked
+	     */
+	    if (server == null) {
+		throw new SocketException("Can't connect to SOCKS proxy:" 
+					  + savedExc.getMessage());
+	    }
+	} else {
+	    // Connects to the SOCKS server
+	    try {
+		privilegedConnect(server, port, timeout);
+	    } catch (IOException e) {
+		throw new SocketException(e.getMessage());
+	    }
 	}
+
 	// cmdIn & cmdOut were intialized during the privilegedConnect() call
 	BufferedOutputStream out = new BufferedOutputStream(cmdOut, 512);
 	InputStream in = cmdIn;
-	    
+
 	if (useV4) {
 	    // SOCKS Protocol version 4 doesn't know how to deal with 
 	    // DOMAIN type of addresses (unresolved addresses here)
@@ -324,7 +424,17 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	out.flush();
 	byte[] data = new byte[2];
 	int i = readSocksReply(in, data);
-	if (i != 2 || ((int)data[1]) == NO_METHODS)
+	if (i != 2 || ((int)data[0]) != PROTO_VERS) {
+	    // Maybe it's not a V5 sever after all
+	    // Let's try V4 before we give up
+	    // SOCKS Protocol version 4 doesn't know how to deal with 
+	    // DOMAIN type of addresses (unresolved addresses here)
+	    if (epoint.isUnresolved())
+		throw new UnknownHostException(epoint.toString());
+	    connectV4(in, out, epoint);
+	    return;
+	}
+	if (((int)data[1]) == NO_METHODS)
 	    throw new SocketException("SOCKS : No acceptable methods");
 	if (!authenticate(data[1], in, out)) {
 	    throw new SocketException("SOCKS : authentication failed");
@@ -336,7 +446,11 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	if (epoint.isUnresolved()) {
 	    out.write(DOMAIN_NAME);
 	    out.write(epoint.getHostName().length());
-	    out.write(epoint.getHostName().getBytes());
+	    try {
+		out.write(epoint.getHostName().getBytes("ISO-8859-1"));
+	    } catch (java.io.UnsupportedEncodingException uee) {
+		assert false;
+	    }
 	    out.write((epoint.getPort() >> 8) & 0xff);
 	    out.write((epoint.getPort() >> 0) & 0xff);
 	} else if (epoint.getAddress() instanceof Inet6Address) {
@@ -441,11 +555,10 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
     private void bindV4(InputStream in, OutputStream out,
 			InetAddress baddr,
 			int lport) throws IOException {
-      if (!(baddr instanceof Inet4Address)) {
-          throw new SocketException("SOCKS V4 requires IPv4 only addresses");
-      }
+	if (!(baddr instanceof Inet4Address)) {
+	    throw new SocketException("SOCKS V4 requires IPv4 only addresses");
+	}
 	super.bind(baddr, lport);
-	/* FIXME Test for IPV4/IPV6 */
 	byte[] addr1 = baddr.getAddress();
 	/* Test for AnyLocal */
 	InetAddress naddr = baddr;
@@ -460,7 +573,11 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	out.write(addr1);
 	String userName = (String) java.security.AccessController.doPrivileged(
                new sun.security.action.GetPropertyAction("user.name"));
-	out.write(userName.getBytes());
+	try {
+	    out.write(userName.getBytes("ISO-8859-1"));
+	} catch (java.io.UnsupportedEncodingException uee) {
+	    assert false;
+	}
 	out.write(0);
 	out.flush();
 	byte[] data = new byte[8];
@@ -497,39 +614,120 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
     }
 
     /**
-     * Binds this socket to the specified port number on the specified host. 
+     * Sends the Bind request to the SOCKS proxy. In the SOCKS protocol, bind
+     * means "accept incoming connection from", so the SocketAddress is the
+     * the one of the host we do accept connection from.
      *
-     * @param      baddr   the IP address of the remote host.
-     * @param      lport   the port number.
+     * @param      addr   the Socket address of the remote host.
      * @exception  IOException  if an I/O error occurs when binding this socket.
      */
-    protected synchronized void bind(InetAddress baddr, int lport) throws IOException {
+    protected synchronized void socksBind(InetSocketAddress saddr) throws IOException {
 	if (socket != null) {
 	    // this is a client socket, not a server socket, don't
 	    // call the SOCKS proxy for a bind!
-	    super.bind(baddr, lport);
 	    return;
 	}
 
 	// Connects to the SOCKS server
 	
-	try {
-	    AccessController.doPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws Exception {
-			cmdsock = new Socket(new PlainSocketImpl());
-			cmdsock.connect(new InetSocketAddress(server, port));
-			cmdIn = cmdsock.getInputStream();
-			cmdOut = cmdsock.getOutputStream();
-			return null;
-		    }
-		});
-	} catch (Exception e) {
-	    throw new SocketException(e.getMessage());
+	if (server == null) {
+	    // This is the general case
+	    // server is not null only when the socket was created with a
+	    // specified proxy in which case it does bypass the ProxySelector
+	    ProxySelector sel = (ProxySelector) 
+		java.security.AccessController.doPrivileged( 
+		    new java.security.PrivilegedAction() {
+			public Object run() {
+			    return ProxySelector.getDefault();
+			}
+		    });
+	    if (sel == null) {
+		/*
+		 * No default proxySelector --> direct connection
+		 */
+		return;
+	    }
+	    URI uri = null;
+	    String host = saddr.getHostName();
+	    // IPv6 litteral?
+	    if (saddr.getAddress() instanceof Inet6Address &&
+		(!host.startsWith("[")) && (host.indexOf(":") >= 0)) {
+		host = "[" + host + "]";
+	    }
+	    try {
+		uri = new URI("serversocket://" + ParseUtil.encodePath(host) + ":"+ saddr.getPort());
+	    } catch (URISyntaxException e) {
+		// This shouldn't happen
+		assert false : e;
+	    }
+	    Proxy p = null;
+	    Exception savedExc = null;
+	    java.util.Iterator<Proxy> iProxy = null;
+	    iProxy = sel.select(uri).iterator();
+	    if (iProxy == null || !(iProxy.hasNext())) {
+		return;
+	    }
+	    while (iProxy.hasNext()) {
+		p = iProxy.next();
+		if (p == null || p == Proxy.NO_PROXY) {
+		    return;
+		}
+		if (p.type() != Proxy.Type.SOCKS)
+		    throw new SocketException("Unknown proxy type : " + p.type());
+		if (!(p.address() instanceof InetSocketAddress))
+		    throw new SocketException("Unknow address type for proxy: " + p);
+		server = ((InetSocketAddress) p.address()).getHostName();
+		port = ((InetSocketAddress) p.address()).getPort();
+		
+		// Connects to the SOCKS server
+		try {
+		    AccessController.doPrivileged(new PrivilegedExceptionAction() {
+			    public Object run() throws Exception {
+				cmdsock = new Socket(new PlainSocketImpl());
+				cmdsock.connect(new InetSocketAddress(server, port));
+				cmdIn = cmdsock.getInputStream();
+				cmdOut = cmdsock.getOutputStream();
+				return null;
+			    }
+			});
+		} catch (Exception e) {
+		    // Ooops, let's notify the ProxySelector
+		    sel.connectFailed(uri,p.address(),new SocketException(e.getMessage()));
+		    server = null;
+		    port = -1;
+		    cmdsock = null;
+		    savedExc = e;
+		    // Will continue the while loop and try the next proxy
+		}
+	    }
+
+	    /*
+	     * If server is still null at this point, none of the proxy
+	     * worked
+	     */
+	    if (server == null || cmdsock == null) {
+		throw new SocketException("Can't connect to SOCKS proxy:" 
+					  + savedExc.getMessage());
+	    }
+	} else {
+	    try {
+		AccessController.doPrivileged(new PrivilegedExceptionAction() {
+			public Object run() throws Exception {
+			    cmdsock = new Socket(new PlainSocketImpl());
+			    cmdsock.connect(new InetSocketAddress(server, port));
+			    cmdIn = cmdsock.getInputStream();
+			    cmdOut = cmdsock.getOutputStream();
+			    return null;
+			}
+		    });
+	    } catch (Exception e) {
+		throw new SocketException(e.getMessage());
+	    }
 	}
 	BufferedOutputStream out = new BufferedOutputStream(cmdOut, 512);
 	InputStream in = cmdIn;
 	if (useV4) {
-	    bindV4(in, out, baddr, lport);
+	    bindV4(in, out, saddr.getAddress(), saddr.getPort());
 	    return;
 	}
 	out.write(PROTO_VERS);
@@ -539,36 +737,49 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 	out.flush();
 	byte[] data = new byte[2];
 	int i = readSocksReply(in, data);
-	if (i != 2 || ((int)data[1]) == NO_METHODS)
+	if (i != 2 || ((int)data[0]) != PROTO_VERS) {
+	    // Maybe it's not a V5 sever after all
+	    // Let's try V4 before we give up
+	    bindV4(in, out, saddr.getAddress(), saddr.getPort());
+	    return;
+	}
+	if (((int)data[1]) == NO_METHODS)
 	    throw new SocketException("SOCKS : No acceptable methods");
 	if (!authenticate(data[1], in, out)) {
 	    throw new SocketException("SOCKS : authentication failed");
 	}
-	// We're OK. Let's issue the BIND command after we've bound ourself localy
-	super.bind(baddr, lport);
+	// We're OK. Let's issue the BIND command.
 	out.write(PROTO_VERS);
 	out.write(BIND);
 	out.write(0);
-	InetAddress naddr = baddr;
-	if (naddr.isAnyLocalAddress())
-	    naddr = cmdsock.getLocalAddress();
-	byte[] addr1 = naddr.getAddress();
-	if (naddr.family == InetAddress.IPv4) {
+	int lport = saddr.getPort();
+	if (saddr.isUnresolved()) {
+	    out.write(DOMAIN_NAME);
+	    out.write(saddr.getHostName().length());
+	    try {
+		out.write(saddr.getHostName().getBytes("ISO-8859-1"));
+	    } catch (java.io.UnsupportedEncodingException uee) {
+		assert false;
+	    }
+	    out.write((lport >> 8) & 0xff);
+	    out.write((lport >> 0) & 0xff);
+	} else if (saddr.getAddress() instanceof Inet4Address) {
+	    byte[] addr1 = saddr.getAddress().getAddress();
 	    out.write(IPV4);
 	    out.write(addr1);
-	    out.write((super.getLocalPort() >> 8) & 0xff);
-	    out.write((super.getLocalPort() >> 0) & 0xff);
+	    out.write((lport >> 8) & 0xff);
+	    out.write((lport >> 0) & 0xff);
 	    out.flush();
-	} else if (naddr.family == InetAddress.IPv6) {
-	    /* Test for AnyLocal */
+	} else if (saddr.getAddress() instanceof Inet6Address) {
+	    byte[] addr1 = saddr.getAddress().getAddress();
 	    out.write(IPV6);
 	    out.write(addr1);
-	    out.write((super.getLocalPort() >> 8) & 0xff);
-	    out.write((super.getLocalPort() >> 0) & 0xff);
+	    out.write((lport >> 8) & 0xff);
+	    out.write((lport >> 0) & 0xff);
 	    out.flush();
 	} else {
 	    cmdsock.close();
-	    throw new SocketException("unsupported address type : " + naddr);
+	    throw new SocketException("unsupported address type : " + saddr);
 	}
 	data = new byte[4];
 	i = readSocksReply(in, data);
@@ -662,16 +873,22 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
     }
 
     /**
-     * Accepts a connection. 
+     * Accepts a connection from a specific host. 
      *
      * @param      s   the accepted connection.
+     * @param	   saddr the socket address of the host we do accept
+     *		     connection from
      * @exception  IOException  if an I/O error occurs when accepting the
      *               connection.
      */
-    protected void accept(SocketImpl s) throws IOException {
-	if (cmdsock == null)
-	    throw new SocketException("Socks channel closed");
+    protected void acceptFrom(SocketImpl s, InetSocketAddress saddr) throws IOException {
+	if (cmdsock == null) {
+	    // Not a Socks ServerSocket.
+	    return;
+	}
 	InputStream in = cmdIn;
+	// Sends the "SOCKS BIND" request.
+	socksBind(saddr);
 	in.read();
 	int i = in.read();
 	in.read();

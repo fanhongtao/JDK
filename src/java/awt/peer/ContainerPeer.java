@@ -1,7 +1,7 @@
 /*
- * @(#)ContainerPeer.java	1.15 03/01/23
+ * @(#)ContainerPeer.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt.peer;
@@ -24,6 +24,28 @@ public interface ContainerPeer extends ComponentPeer {
     boolean isPaintPending();
 
     /**
+     * Cancels a pending paint on the specified region of the
+     * Component.
+     */
+    void cancelPendingPaint(int x, int y, int w, int h);
+
+
+    /**
+     * Restacks native windows - children of this native window - according to Java container order
+     * @since 1.5
+     */
+    void restack();
+    
+    /**
+     * Indicates availabiltity of restacking operation in this container.
+     * @return Returns true if restack is supported, false otherwise
+     * @since 1.5
+     */
+    boolean isRestackSupported(); 
+    /**
+
+
+
      * DEPRECATED:  Replaced by getInsets().
      */
     Insets insets();

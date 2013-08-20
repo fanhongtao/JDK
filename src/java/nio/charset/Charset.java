@@ -1,7 +1,7 @@
 /*
- * @(#)Charset.java	1.40 05/01/15
+ * @(#)Charset.java	1.46 04/07/16
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,13 +27,15 @@ import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 import sun.nio.cs.StandardCharsets;
 import sun.nio.cs.ThreadLocalCoders;
+import sun.security.action.GetPropertyAction;
 
 
 /**
- * A named mapping between sequences of sixteen-bit Unicode characters and
- * sequences of bytes.  This class defines methods for creating decoders and
- * encoders and for retrieving the various names associated with a charset.
- * Instances of this class are immutable.
+ * A named mapping between sequences of sixteen-bit Unicode <a
+ * href="../../lang/Character.java#unicode">code units</a> and sequences of
+ * bytes.  This class defines methods for creating decoders and encoders and
+ * for retrieving the various names associated with a charset.  Instances of
+ * this class are immutable.
  *
  * <p> This class also defines static methods for testing whether a particular
  * charset is supported, for locating charset instances by name, and for
@@ -84,7 +86,7 @@ import sun.nio.cs.ThreadLocalCoders;
  * Registration Procedures</i></a>.
  *
  * <p> Every charset has a <i>canonical name</i> and may also have one or more
- * <i>aliases</i>.  The canonical name is returned by {@link #name name} method
+ * <i>aliases</i>.  The canonical name is returned by the {@link #name name} method
  * of this class.  Canonical names are, by convention, usually in upper case.
  * The aliases of a charset are returned by the {@link #aliases aliases}
  * method.
@@ -122,7 +124,8 @@ import sun.nio.cs.ThreadLocalCoders;
  *
  * <p> Every implementation of the Java platform is required to support the
  * following standard charsets.  Consult the release documentation for your
- * implementation to see if any other charsets are supported.
+ * implementation to see if any other charsets are supported.  The behavior
+ * of such optional charsets may differ between implementations.
  * 
  * <blockquote><table width="80%" summary="Description of standard charsets">
  * <tr><th><p align="left">Charset</p></th><th><p align="left">Description</p></th></tr>
@@ -147,19 +150,16 @@ import sun.nio.cs.ThreadLocalCoders;
  * <p> The <tt>UTF-8</tt> charset is specified by <a
  * href="http://ietf.org/rfc/rfc2279.txt"><i>RFC&nbsp;2279</i></a>; the
  * transformation format upon which it is based is specified in
- * Amendment&nbsp;2 of ISO&nbsp;10646-1 and is also described in
- * &#167;&nbsp;3.8 of <a
- * href="http://www.unicode.org/unicode/standard/standard.html"><i>The Unicode
- * Standard, Version&nbsp;3.0</i></a> (<a
- * href="http://www.unicode.org/unicode/uni2errata/UTF-8_Corrigendum.html">amended</a>).
+ * Amendment&nbsp;2 of ISO&nbsp;10646-1 and is also described in the <a
+ * href="http://www.unicode.org/unicode/standard/standard.html"><i>Unicode
+ * Standard</i></a>.
  *
  * <p> The <tt>UTF-16</tt> charsets are specified by <a
  * href="http://ietf.org/rfc/rfc2781.txt"><i>RFC&nbsp;2781</i></a>; the
  * transformation formats upon which they are based are specified in
- * Amendment&nbsp;1 of ISO&nbsp;10646-1 and are also described in
- * &#167;&nbsp;3.8 of <a
- * href="http://www.unicode.org/unicode/standard/standard.html"><i>The Unicode
- * Standard, Version&nbsp;3.0</i></a>.
+ * Amendment&nbsp;1 of ISO&nbsp;10646-1 and are also described in the <a
+ * href="http://www.unicode.org/unicode/standard/standard.html"><i>Unicode
+ * Standard</i></a>.
  *
  * <p> The <tt>UTF-16</tt> charsets use sixteen-bit quantities and are
  * therefore sensitive to byte order.  In these encodings the byte order of a
@@ -221,32 +221,42 @@ import sun.nio.cs.ThreadLocalCoders;
  * JIS&nbsp;X&nbsp;0201, JIS&nbsp;X&nbsp;0208, and JIS&nbsp;X&nbsp;0212
  * character sets.
  *
- * <p> The native coded character set of the Java programming language is that
- * of the first seventeen planes of the Unicode version&nbsp;3.0 character set;
- * that is, it consists in the <i>basic multilingual plane</i> (BMP) of Unicode
- * version&nbsp;1 plus the next sixteen planes of Unicode version&nbsp;3.  This
- * is because the language's internal representation of characters uses the
- * UTF-16 encoding, which encodes the BMP directly and uses <i>surrogate
- * pairs</i>, a simple escape mechanism, to encode the other planes.  Hence a
- * charset in the Java platform defines a mapping between sequences of
- * sixteen-bit values in UTF-16 and sequences of bytes. </p>
+ * <p> The native character encoding of the Java programming language is
+ * UTF-16.  A charset in the Java platform therefore defines a mapping between
+ * sequences of sixteen-bit UTF-16 code units and sequences of bytes. </p>
  *
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.40, 05/01/15
+ * @version 1.46, 04/07/16
  * @since 1.4
  *
  * @see CharsetDecoder
  * @see CharsetEncoder
  * @see java.nio.charset.spi.CharsetProvider
+ * @see java.lang.Character
  */
 
 public abstract class Charset
-    implements Comparable
+    implements Comparable<Charset>
 {
 
     /* -- Static methods -- */
+
+    private static String bugLevel = null;
+
+    static boolean atBugLevel(String bl) {		// package-private
+	if (bugLevel == null) {
+	    if (!sun.misc.VM.isBooted())
+		return false;
+	    java.security.PrivilegedAction pa =
+		new GetPropertyAction("sun.nio.cs.bugLevel");
+	    bugLevel = (String)AccessController.doPrivileged(pa);
+	    if (bugLevel == null)
+		bugLevel = "";
+	}
+	return (bugLevel != null) && bugLevel.equals(bl);
+    }
 
     /**
      * Checks that the given string is a legal charset name. </p>
@@ -259,6 +269,10 @@ public abstract class Charset
      */
     private static void checkName(String s) {
 	int n = s.length();
+	if (!atBugLevel("1.4")) {
+	    if (n == 0)
+		throw new IllegalCharsetNameException(s);
+	}
 	for (int i = 0; i < n; i++) {
 	    char c = s.charAt(i);
 	    if (c >= 'A' && c <= 'Z') continue;
@@ -275,15 +289,14 @@ public abstract class Charset
     /* The standard set of charsets */
     private static CharsetProvider standardProvider = new StandardCharsets();
 
-    // Cache of the most-recently-returned charsets, 
-    // along with the names that were used to find them 
+    // Cache of the most-recently-returned charset,
+    // along with the name that was used to find it
     //
-    private static volatile Object[] cache1 = null; // "Level 1" cache 
-    private static volatile Object[] cache2 = null; // "Level 2" cache 
+    private static volatile Object[] cache = null;
 
-    private static void cache(String charsetName, Charset cs) { 
-        cache2 = cache1; 
-        cache1 = new Object[] { charsetName, cs }; 
+    private static Charset cache(String charsetName, Charset cs) {
+	cache = new Object[] { charsetName, cs };
+	return cs;
     }
 
     // Creates an iterator that walks over the available providers, ignoring
@@ -374,73 +387,58 @@ public abstract class Charset
 	}
     }
 
-
     /* The extended set of charsets */
     private static Object extendedProviderLock = new Object();
     private static boolean extendedProviderProbed = false;
     private static CharsetProvider extendedProvider = null;
 
     private static void probeExtendedProvider() {
-      AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                  try {
-                      Class epc
-                          = Class.forName("sun.nio.cs.ext.ExtendedCharsets");
-                      extendedProvider = (CharsetProvider)epc.newInstance();
-                  } catch (ClassNotFoundException x) {
-                      // Extended charsets not available
-                      // (charsets.jar not present)
-                  } catch (InstantiationException x) {
-                      throw new Error(x);
-                  } catch (IllegalAccessException x) {
-                      throw new Error(x);
-                  }
-                  return null;
-              }
-          });
+	AccessController.doPrivileged(new PrivilegedAction() {
+		public Object run() {
+		    try {
+			Class epc
+			    = Class.forName("sun.nio.cs.ext.ExtendedCharsets");
+			extendedProvider = (CharsetProvider)epc.newInstance();
+		    } catch (ClassNotFoundException x) {
+			// Extended charsets not available
+			// (charsets.jar not present)
+		    } catch (InstantiationException x) {
+			throw new Error(x);
+		    } catch (IllegalAccessException x) {
+			throw new Error(x);
+		    }
+		    return null;
+		}
+	    });
     }
 
     private static Charset lookupExtendedCharset(String charsetName) {
-      CharsetProvider ecp = null;
-      synchronized (extendedProviderLock) {
-          if (!extendedProviderProbed) {
-              probeExtendedProvider();
-              extendedProviderProbed = true;
-          }
-          ecp = extendedProvider;
-      }
-      return (ecp != null) ? ecp.charsetForName(charsetName) : null;
+	CharsetProvider ecp = null;
+	synchronized (extendedProviderLock) {
+	    if (!extendedProviderProbed) {
+		probeExtendedProvider();
+		extendedProviderProbed = true;
+	    }
+	    ecp = extendedProvider;
+	}
+	return (ecp != null) ? ecp.charsetForName(charsetName) : null;
     }
 
     private static Charset lookup(String charsetName) {
 	if (charsetName == null)
 	    throw new IllegalArgumentException("Null charset name");
-
-        Object[] a; 
-        if ((a = cache1) != null && charsetName.equals(a[0])) 
-            return (Charset)a[1]; 
-        // We expect most programs to use one Charset repeatedly. 
-        // We convey a hint to this effect to the VM by putting the 
-        // level 1 cache miss code in a separate method. 
-        return lookup2(charsetName); 
-    } 
- 
-    private static Charset lookup2(String charsetName) { 
-        Object[] a; 
-        if ((a = cache2) != null && charsetName.equals(a[0])) { 
-            cache2 = cache1; 
-            cache1 = a; 
-            return (Charset)a[1]; 
-        } 
- 
-        Charset cs; 
-        if ((cs = standardProvider.charsetForName(charsetName)) != null || 
-            (cs = lookupExtendedCharset(charsetName))           != null || 
-            (cs = lookupViaProviders(charsetName))              != null) { 
-            cache(charsetName, cs); 
-            return cs; 
-        }
-
+	Object[] ca = cache;
+	if ((ca != null) && ca[0].equals(charsetName))
+	    return (Charset)ca[1];
+	Charset cs = standardProvider.charsetForName(charsetName);
+	if (cs != null)
+	    return cache(charsetName, cs);
+	cs = lookupExtendedCharset(charsetName);
+	if (cs != null)
+	    return cache(charsetName, cs);
+	cs = lookupViaProviders(charsetName);
+	if (cs != null)
+	    return cache(charsetName, cs);
 	/* Only need to check the name if we didn't find a charset for it */
 	checkName(charsetName);
 	return null;
@@ -523,7 +521,7 @@ public abstract class Charset
      * @return An immutable, case-insensitive map from canonical charset names
      *         to charset objects
      */
-    public static SortedMap availableCharsets() {
+    public static SortedMap<String,Charset> availableCharsets() {
 	return (SortedMap)AccessController
 	    .doPrivileged(new PrivilegedAction() {
 		public Object run() {
@@ -536,6 +534,34 @@ public abstract class Charset
 		    return Collections.unmodifiableSortedMap(m);
 		}
 	    });
+    }
+
+    private static Charset defaultCharset;
+
+    /**
+     * Returns the default charset of this Java virtual machine.
+     *
+     * <p> The default charset is determined during virtual-machine startup and
+     * typically depends upon the locale and charset of the underlying
+     * operating system.
+     *
+     * @return  A charset object for the default charset
+     *
+     * @since 1.5
+     */
+    public static Charset defaultCharset() {
+	synchronized (Charset.class) {
+	    if (defaultCharset == null) {
+		java.security.PrivilegedAction pa =
+		    new GetPropertyAction("file.encoding");
+		String csn = (String)AccessController.doPrivileged(pa);
+		Charset cs = lookup(csn);
+		if (cs != null)
+		    return cs;
+		return forName("UTF-8");
+	    }
+	    return defaultCharset;
+	}
     }
 
 
@@ -581,7 +607,7 @@ public abstract class Charset
      *
      * @return  An immutable set of this charset's aliases
      */
-    public final Set aliases() {
+    public final Set<String> aliases() {
 	if (aliasSet != null)
 	    return aliasSet;
 	int n = aliases.length;
@@ -784,19 +810,19 @@ public abstract class Charset
     }
 
     /**
-     * Compares this charset to another object.
+     * Compares this charset to another.
      *
      * <p> Charsets are ordered by their canonical names, without regard to
      * case. </p>
      *
-     * @param  ob
-     *         The object to which this object is to be compared
+     * @param  that
+     *         The charset to which this charset is to be compared
      *
      * @return A negative integer, zero, or a positive integer as this charset
-     *         is less than, equal to, or greater than the specified object
+     *         is less than, equal to, or greater than the specified charset
      */
-    public final int compareTo(Object ob) {
-	return (name().compareToIgnoreCase(((Charset)ob).name()));
+    public final int compareTo(Charset that) {
+	return (name().compareToIgnoreCase(that.name()));
     }
 
     /**

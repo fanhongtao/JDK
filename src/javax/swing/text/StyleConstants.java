@@ -1,7 +1,7 @@
 /*
- * @(#)StyleConstants.java	1.34 03/01/23
+ * @(#)StyleConstants.java	1.36 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import javax.swing.Icon;
  * <p>
  * 
  * @author  Timothy Prinzing
- * @version 1.34 01/23/03
+ * @version 1.36 12/19/03
  */
 public class StyleConstants {
 
@@ -74,67 +74,81 @@ public class StyleConstants {
      * Bidirectional level of a character as assigned by the Unicode bidi
      * algorithm.  
      */
-    public static final Object BidiLevel = CharacterConstants.BidiLevel;
+    public static final Object BidiLevel = new CharacterConstants("bidiLevel");
 
     /**
      * Name of the font family.
      */
-    public static final Object FontFamily = CharacterConstants.Family;
+    public static final Object FontFamily = new FontConstants("family");
  
+    /**
+     * Name of the font family.
+     *
+     * @since 1.5
+     */
+    public static final Object Family = FontFamily;
+
     /**
      * Name of the font size.
      */
-    public static final Object FontSize = CharacterConstants.Size;
+    public static final Object FontSize = new FontConstants("size");
+
+    /**
+     * Name of the font size.
+     *
+     * @since 1.5
+     */
+    public static final Object Size = FontSize;
 
     /**
      * Name of the bold attribute.
      */
-    public static final Object Bold = CharacterConstants.Bold;
+    public static final Object Bold = new FontConstants("bold");
 
     /**
      * Name of the italic attribute.
      */
-    public static final Object Italic = CharacterConstants.Italic;
+    public static final Object Italic = new FontConstants("italic");
 
     /**
      * Name of the underline attribute.
      */
-    public static final Object Underline = CharacterConstants.Underline;
+    public static final Object Underline = new CharacterConstants("underline");
 
     /**
      * Name of the Strikethrough attribute.
      */
-    public static final Object StrikeThrough = CharacterConstants.StrikeThrough;
+    public static final Object StrikeThrough = new CharacterConstants("strikethrough");
 
     /**
      * Name of the Superscript attribute.
      */
-    public static final Object Superscript = CharacterConstants.Superscript;
+    public static final Object Superscript = new CharacterConstants("superscript");
 
     /**
      * Name of the Subscript attribute.
      */
-    public static final Object Subscript = CharacterConstants.Subscript;
+    public static final Object Subscript = new CharacterConstants("subscript");
 
     /**
      * Name of the foreground color attribute.
      */
-    public static final Object Foreground = CharacterConstants.Foreground;
+    public static final Object Foreground = new ColorConstants("foreground");
 
     /**
      * Name of the background color attribute.
      */
-    public static final Object Background = CharacterConstants.Background;
+    public static final Object Background = new ColorConstants("background");
 
     /**
      * Name of the component attribute.
      */
-    public static final Object ComponentAttribute = CharacterConstants.ComponentAttribute;
+    public static final Object ComponentAttribute = new CharacterConstants("component");
 
     /**
      * Name of the icon attribute.
      */
-    public static final Object IconAttribute = CharacterConstants.IconAttribute;
+    public static final Object IconAttribute = new CharacterConstants("icon");
 
     /**
      * Name of the input method composed text attribute. The value of
@@ -150,40 +164,40 @@ public class StyleConstants {
      * is Float and specifies the size of the space
      * in points.
      */
-    public static final Object FirstLineIndent = ParagraphConstants.FirstLineIndent;
+    public static final Object FirstLineIndent = new ParagraphConstants("FirstLineIndent");
 
     /**
      * The amount to indent the left side
      * of the paragraph.
      * Type is float and specifies the size in points.
      */
-    public static final Object LeftIndent = ParagraphConstants.LeftIndent;
+    public static final Object LeftIndent = new ParagraphConstants("LeftIndent");
 
     /**
      * The amount to indent the right side
      * of the paragraph.
      * Type is float and specifies the size in points.
      */
-    public static final Object RightIndent = ParagraphConstants.RightIndent;
+    public static final Object RightIndent = new ParagraphConstants("RightIndent");
 
     /**
      * The amount of space between lines
      * of the paragraph.
      * Type is float and specifies the size as a factor of the line height
      */
-    public static final Object LineSpacing = ParagraphConstants.LineSpacing;
+    public static final Object LineSpacing = new ParagraphConstants("LineSpacing");
 
     /**
      * The amount of space above the paragraph.
      * Type is float and specifies the size in points.
      */
-    public static final Object SpaceAbove = ParagraphConstants.SpaceAbove;
+    public static final Object SpaceAbove = new ParagraphConstants("SpaceAbove");
 
     /**
      * The amount of space below the paragraph.
      * Type is float and specifies the size in points.
      */
-    public static final Object SpaceBelow = ParagraphConstants.SpaceBelow;
+    public static final Object SpaceBelow = new ParagraphConstants("SpaceBelow");
 
     /**
      * Alignment for the paragraph.  The type is
@@ -196,18 +210,18 @@ public class StyleConstants {
      * </ul>
      *
      */
-    public static final Object Alignment = ParagraphConstants.Alignment;
+    public static final Object Alignment = new ParagraphConstants("Alignment");
 
     /**
      * TabSet for the paragraph, type is a TabSet containing
      * TabStops.
      */
-    public static final Object TabSet = ParagraphConstants.TabSet;
+    public static final Object TabSet = new ParagraphConstants("TabSet");
 
     /**
      * Orientation for a paragraph.
      */
-    public static final Object Orientation = ParagraphConstants.Orientation;
+    public static final Object Orientation = new ParagraphConstants("Orientation");
     /**
      * A possible value for paragraph alignment.  This
      * specifies that the text is aligned to the left 
@@ -773,73 +787,6 @@ public class StyleConstants {
     public static class ParagraphConstants extends StyleConstants
         implements AttributeSet.ParagraphAttribute {
 
-        /**
-         * The amount of space to indent the first
-         * line of the paragraph.  This value may be negative
-         * to offset in the reverse direction.  The type
-         * is Float and specifies the size of the space
-         * in points.
-         */
-        public static final Object FirstLineIndent = new ParagraphConstants("FirstLineIndent");
-
-        /**
-         * The amount to indent the left side
-         * of the paragraph.
-         * Type is float and specifies the size in points.
-         */
-        public static final Object LeftIndent = new ParagraphConstants("LeftIndent");
-
-        /**
-         * The amount to indent the right side
-         * of the paragraph.
-         * Type is float and specifies the size in points.
-         */
-        public static final Object RightIndent = new ParagraphConstants("RightIndent");
-
-        /**
-         * The amount of space between lines
-         * of the paragraph.
-	 * Type is float and specifies the size as a factor of the line height
-         */
-        public static final Object LineSpacing = new ParagraphConstants("LineSpacing");
-
-        /**
-         * The amount of space above the paragraph.
-         * Type is float and specifies the size in points.
-         */
-        public static final Object SpaceAbove = new ParagraphConstants("SpaceAbove");
-
-        /**
-         * The amount of space below the paragraph.
-         * Type is float and specifies the size in points.
-         */
-        public static final Object SpaceBelow = new ParagraphConstants("SpaceBelow");
-
-        /**
-         * Alignment for the paragraph.  The type is
-         * Integer.  Valid values are:
-         * <ul>
-         * <li>ALIGN_LEFT
-         * <li>ALIGN_RIGHT
-         * <li>ALIGN_CENTER
-         * <li>ALIGN_JUSTIFED
-         * </ul>
-         *
-         */
-        public static final Object Alignment = new ParagraphConstants("Alignment");
-
-        /**
-         * TabSet for the paragraph.
-         */
-        public static final Object TabSet = new ParagraphConstants("TabSet");
-
-        /**
-         * Orientation for the paragraph.
-         */
-        public static final Object Orientation = new ParagraphConstants("Orientation");
-
-        // --- privates ---------------------------------------------
-
         private ParagraphConstants(String representation) {
             super(representation);
         }
@@ -852,74 +799,6 @@ public class StyleConstants {
      */
     public static class CharacterConstants extends StyleConstants 
         implements AttributeSet.CharacterAttribute {
-
-        /**
-         * Name of the underline attribute.
-         */
-        public static final Object Underline = new CharacterConstants("underline");
-
-        /**
-         * Name of the strikethrough attribute.
-         */
-        public static final Object StrikeThrough = new CharacterConstants("strikethrough");
-
-        /**
-         * Name of the superscript attribute.
-         */
-        public static final Object Superscript = new CharacterConstants("superscript");
-
-        /**
-         * Name of the subscript attribute.
-         */
-        public static final Object Subscript = new CharacterConstants("subscript");
-
-        /**
-         * Name of the component attribute.
-         */
-        public static final Object ComponentAttribute = new CharacterConstants("component");
-
-        /**
-         * Name of the icon attribute.
-         */
-        public static final Object IconAttribute = new CharacterConstants("icon");
-
-	/**
-	 * Bidirectional level of a character as assigned by the Unicode bidi
-         * algorithm.
-	 */
-	public static final Object BidiLevel = new CharacterConstants("bidiLevel");
-
-        /**
-         * Name of the font family.
-         */
-        public static final Object Family = FontConstants.Family;
- 
-        /**
-         * Name of the font size.
-         */
-        public static final Object Size = FontConstants.Size;
-
-        /**
-         * Name of the bold attribute.
-         */ 
-        public static final Object Bold = FontConstants.Bold;
-
-        /**
-         * Name of the italic attribute.
-         */
-        public static final Object Italic = FontConstants.Italic;
-
-        /**
-         * Name of the foreground color attribute.
-         */
-        public static final Object Foreground = ColorConstants.Foreground;
-
-        /**
-         * Name of the background color attribute.
-         */
-        public static final Object Background = ColorConstants.Background;
-
-        // --- privates ---------------------------------------------
 
         private CharacterConstants(String representation) {
 	    super(representation);
@@ -934,19 +813,6 @@ public class StyleConstants {
     public static class ColorConstants extends StyleConstants
         implements AttributeSet.ColorAttribute,  AttributeSet.CharacterAttribute {
 
-        /**
-         * Name of the foreground color attribute.
-         */
-        public static final Object Foreground = new ColorConstants("foreground");
-
-        /**
-         * Name of the background color attribute.
-         */
-        public static final Object Background = new ColorConstants("background");
-
-
-        // --- privates ---------------------------------------------
-
         private ColorConstants(String representation) {
             super(representation);
         }
@@ -959,28 +825,6 @@ public class StyleConstants {
      */
     public static class FontConstants extends StyleConstants
         implements AttributeSet.FontAttribute, AttributeSet.CharacterAttribute {
-
-        /**
-         * Name of the font family.
-         */
-        public static final Object Family = new FontConstants("family");
- 
-        /**
-         * Name of the font size.
-         */
-        public static final Object Size = new FontConstants("size");
-
-        /**
-         * Name of the bold attribute.
-         */ 
-        public static final Object Bold = new FontConstants("bold");
-
-        /**
-         * Name of the italic attribute.
-         */
-        public static final Object Italic = new FontConstants("italic");
-
-        // --- privates ---------------------------------------------
 
         private FontConstants(String representation) {
             super(representation);

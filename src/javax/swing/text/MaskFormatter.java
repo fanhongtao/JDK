@@ -1,7 +1,7 @@
 /*
- * @(#)MaskFormatter.java	1.8 03/01/23
+ * @(#)MaskFormatter.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -130,7 +130,7 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.8 01/23/03
+ * @version 1.12 12/19/03
  * @since 1.4
  */
 public class MaskFormatter extends DefaultFormatter {
@@ -341,12 +341,14 @@ public class MaskFormatter extends DefaultFormatter {
      * the String <code>value</code>. This strips the literal characters as
      * necessary and invokes supers <code>stringToValue</code>, so that if
      * you have specified a value class (<code>setValueClass</code>) an
-     * instance of it will be created. This will thrown a
+     * instance of it will be created. This will throw a
      * <code>ParseException</code> if the value does not match the current
-     * mask.
+     * mask.  Refer to {@link #setValueContainsLiteralCharacters} for details
+     * on how literals are treated.
      *
      * @throws ParseException if there is an error in the conversion
      * @param value String to convert
+     * @see #setValueContainsLiteralCharacters
      * @return Object representation of text
      */
     public Object stringToValue(String value) throws ParseException {
@@ -355,10 +357,13 @@ public class MaskFormatter extends DefaultFormatter {
 
     /**
      * Returns a String representation of the Object <code>value</code>
-     * based on the mask.
+     * based on the mask.  Refer to
+     * {@link #setValueContainsLiteralCharacters} for details
+     * on how literals are treated.
      *
      * @throws ParseException if there is an error in the conversion
      * @param value Value to convert
+     * @see #setValueContainsLiteralCharacters
      * @return String representation of value
      */
     public String valueToString(Object value) throws ParseException {
@@ -730,6 +735,10 @@ public class MaskFormatter extends DefaultFormatter {
                 else if (isLiteral(rh.offset + counter)) {
                     if (replace != null) {
                         replace.append(getLiteral(rh.offset + counter));
+                        if (textIndex < tl) {
+                            max = Math.min(max + 1, getMaxLength() -
+                                           rh.offset);
+                        }
                     }
                     else if (textIndex > 0) {
                         replace = new StringBuffer(max);
@@ -748,7 +757,7 @@ public class MaskFormatter extends DefaultFormatter {
                         rh.offset++;
                         rh.length--;
                         counter--;
-                        max--;
+			max--;
                     }
                 }
                 else if (textIndex >= tl) {

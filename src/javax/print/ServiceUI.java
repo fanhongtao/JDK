@@ -1,5 +1,5 @@
 /*
- * @(#)ServiceUI.java	1.11 04/01/13
+ * @(#)ServiceUI.java	1.12 04/01/06
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -96,16 +96,19 @@ public class ServiceUI {
      * If the user cancels the dialog, the returned attributes will not reflect
      * any changes made by the user.
      *
-     * A typical basic usage of this method may be :
+     * A typical basic usage of this method may be : 
      * <pre>
      * PrintService[] services = PrintServiceLookup.lookupPrintServices(
      *                            DocFlavor.INPUT_STREAM.JPEG, null);
-     * AttributeSet attributes = new PrintRequestHashAttributeSet();
-     * PrintService service =  ServiceUI.printDialog(null, 50, 50,
-     *                                               services, null,
+     * PrintRequestAttributeSet attributes = new HashPrintRequestAttributeSet();
+     * if (services.length > 0) {
+     *    PrintService service =  ServiceUI.printDialog(null, 50, 50,
+     *                                               services, services[0],
+     *                                               null,
      *                                               attributes);
-     * if (service != null) {
-     *  ... print ...
+     *    if (service != null) {
+     *     ... print ...
+     *    }
      * }
      * </pre>
      * <p>
@@ -161,11 +164,11 @@ public class ServiceUI {
         } else {
             defaultIndex = 0;
         }
-		
+
 	boolean newFrame = false;
 	Window owner = 
 	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
-       	    getActiveWindow();
+	    getActiveWindow();
 
 	if (!(owner instanceof Dialog || owner instanceof Frame)) {
 	    owner = new Frame();
@@ -174,19 +177,17 @@ public class ServiceUI {
 
 	ServiceDialog dialog;
 	if (owner instanceof Frame) {
-	    dialog = new ServiceDialog(gc, x, y,
-         	                       services, defaultIndex,
-				       flavor, attributes,
+	    dialog = new ServiceDialog(gc, x, y, 
+				       services, defaultIndex,
+				       flavor, attributes, 
 				       (Frame)owner);
 	} else {
-            dialog = new ServiceDialog(gc, x, y,
-		                       services, defaultIndex,
-				       flavor, attributes,
+	    dialog = new ServiceDialog(gc, x, y, 
+				       services, defaultIndex,
+				       flavor, attributes, 
 				       (Dialog)owner);
 	}
-
         dialog.show();
-		
 
         if (dialog.getStatus() == ServiceDialog.APPROVE) {
             PrintRequestAttributeSet newas = dialog.getAttributes();
@@ -216,9 +217,9 @@ public class ServiceUI {
                 }
             }
         }
-
-        if (newFrame) {
-   	    owner.dispose();
+	      
+	if (newFrame) {
+	    owner.dispose();
 	}
 
 	return dialog.getPrintService();
@@ -261,6 +262,8 @@ public class ServiceUI {
 
             attributes.addAll(newas.values());
         }
+
+	dialog.getOwner().dispose();
     }
     */
 

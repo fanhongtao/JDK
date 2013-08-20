@@ -1,7 +1,7 @@
 /*
- * @(#)JFormattedTextField.java	1.17 03/01/23
+ * @(#)JFormattedTextField.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -152,7 +152,7 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 01/23/03
+ * @version 1.22 12/19/03
  * @since 1.4
  */
 public class JFormattedTextField extends JTextField {
@@ -396,7 +396,7 @@ public class JFormattedTextField extends JTextField {
 
         factory = tf;
         firePropertyChange("formatterFactory", oldFactory, tf);
-        setValue(getValue(), true);
+        setValue(getValue(), true, false);
     }
 
     /**
@@ -477,7 +477,7 @@ public class JFormattedTextField extends JTextField {
         if (value != null && getFormatterFactory() == null) {
             setFormatterFactory(getDefaultFormatterFactory(value));
         }
-        setValue(value, true);
+        setValue(value, true, true);
     }
 
     /**
@@ -505,7 +505,7 @@ public class JFormattedTextField extends JTextField {
         AbstractFormatter format = getFormatter();
 
         if (format != null) {
-            setValue(format.stringToValue(getText()), false);
+            setValue(format.stringToValue(getText()), false, true);
         }
     }
 
@@ -611,7 +611,7 @@ public class JFormattedTextField extends JTextField {
         }
         else if (!isEdited()) {
             // reformat
-            setValue(getValue(), true);
+            setValue(getValue(), true, true);
         }
     }
 
@@ -627,17 +627,17 @@ public class JFormattedTextField extends JTextField {
                     JFormattedTextField.this.commitEdit();
                     // Give it a chance to reformat.
                     JFormattedTextField.this.setValue(
-		        JFormattedTextField.this.getValue(), true);
+		        JFormattedTextField.this.getValue(), true, true);
                 } catch (ParseException pe) {
                     if (fb == JFormattedTextField.this.COMMIT_OR_REVERT) {
                         JFormattedTextField.this.setValue(
-			    JFormattedTextField.this.getValue(), true);
+			    JFormattedTextField.this.getValue(), true, true);
                     }
                 }
             }
             else if (fb == JFormattedTextField.REVERT) {
                 JFormattedTextField.this.setValue(
-		    JFormattedTextField.this.getValue(), true);
+		    JFormattedTextField.this.getValue(), true, true);
             }
 	}
     }
@@ -744,12 +744,12 @@ public class JFormattedTextField extends JTextField {
     }
 
     /**
-     * Does the setting of the value and firing the event. If
-     * <code>createFormat</code> is true, this will also obtain
-     * a new <code>AbstractFormatter</code> from the current
-     * factory.
+     * Does the setting of the value. If <code>createFormat</code> is true,
+     * this will also obtain a new <code>AbstractFormatter</code> from the
+     * current factory. The property change event will be fired if
+     * <code>firePC</code> is true.
      */
-    private void setValue(Object value, boolean createFormat) {
+    private void setValue(Object value, boolean createFormat, boolean firePC) {
         Object oldValue = this.value;
 
         this.value = value;
@@ -773,7 +773,9 @@ public class JFormattedTextField extends JTextField {
 
         setEdited(false);
 
-        firePropertyChange("value", oldValue, value);
+	if (firePC) {
+	    firePropertyChange("value", oldValue, value);
+	}
     }
 
     /**
@@ -812,8 +814,10 @@ public class JFormattedTextField extends JTextField {
         }
         if (type instanceof Number) {
             AbstractFormatter displayFormatter = new NumberFormatter();
+	    ((NumberFormatter)displayFormatter).setValueClass(type.getClass());
             AbstractFormatter editFormatter = new NumberFormatter(
                                   new DecimalFormat("#.#"));
+	    ((NumberFormatter)editFormatter).setValueClass(type.getClass());
 
             return new DefaultFormatterFactory(displayFormatter,
                                                displayFormatter,editFormatter);
@@ -1087,6 +1091,7 @@ public class JFormattedTextField extends JTextField {
                 try {
                     ((JFormattedTextField)target).commitEdit();
                 } catch (ParseException pe) {
+		    ((JFormattedTextField)target).invalidEdit();
                     // value not commited, don't notify ActionListeners
                     return;
                 }
@@ -1098,6 +1103,10 @@ public class JFormattedTextField extends JTextField {
         public boolean isEnabled() {
             JTextComponent target = getFocusedComponent();
             if (target instanceof JFormattedTextField) {
+		JFormattedTextField ftf = (JFormattedTextField)target;
+		if (!ftf.isEdited()) {
+		    return false;
+		}
                 return true;
             }
             return super.isEnabled();
@@ -1127,7 +1136,14 @@ public class JFormattedTextField extends JTextField {
 
         public boolean isEnabled() {
             JTextComponent target = getFocusedComponent();
-            return (target instanceof JFormattedTextField);
+            if (target instanceof JFormattedTextField) {
+		JFormattedTextField ftf = (JFormattedTextField)target;
+		if (!ftf.isEdited()) {
+		    return false;
+		}
+                return true;
+            }
+            return super.isEnabled();
         }
     }
 

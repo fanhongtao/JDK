@@ -1,7 +1,7 @@
 /*
- * @(#)BasicHTML.java	1.17 03/01/23
+ * @(#)BasicHTML.java	1.22 04/07/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -14,6 +14,8 @@ import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.text.html.*;
 
+import com.sun.java.swing.SwingUtilities2;
+
 /**
  * Support for providing html views for the swing components.
  * This translates a simple html string to a javax.swing.text.View
@@ -21,7 +23,7 @@ import javax.swing.text.html.*;
  * layout semantics.
  *
  * @author  Timothy Prinzing
- * @version 1.17 01/23/03
+ * @version 1.22 07/23/04
  */
 public class BasicHTML {
 
@@ -75,12 +77,24 @@ public class BasicHTML {
      */
     public static void updateRenderer(JComponent c, String text) {
 	View value = null;
-	String key = null;
-	if (BasicHTML.isHTMLString(text)) {
+        View oldValue = (View)c.getClientProperty(BasicHTML.propertyKey);
+        Boolean htmlDisabled = (Boolean) c.getClientProperty(htmlDisable);
+	if (htmlDisabled != Boolean.TRUE && BasicHTML.isHTMLString(text)) {
 	    value = BasicHTML.createHTMLView(c, text);
 	}
+        if (value != oldValue && oldValue != null) {
+            for (int i = 0; i < oldValue.getViewCount(); i++) {
+                oldValue.getView(i).setParent(null);
+            }
+        }
 	c.putClientProperty(BasicHTML.propertyKey, value);
     }
+
+    /**
+     * If this client property of a JComponent is set to Boolean.TRUE
+     * the component's 'text' property is never treated as HTML.
+     */
+    private static final String htmlDisable = "html.disable";
 
     /**
      * Key to use for the html renderer when stored as a 
@@ -224,48 +238,8 @@ public class BasicHTML {
          * a custom font or color.
          */
 	private void setFontAndColor(Font font, Color fg) {
-            StringBuffer rule = null;
-
-            if (font != null) {
-                rule = new StringBuffer("body { font-family: ");
-                rule.append(font.getFamily());
-                rule.append(";");
-                rule.append(" font-size: ");
-                rule.append(font.getSize());
-                rule.append("pt");
-                if (font.isBold()) {
-                    rule.append("; font-weight: 700");
-                }
-                if (font.isItalic()) {
-                    rule.append("; font-style: italic");
-                }
-            }
-            if (fg != null) {
-                if (rule == null) {
-                    rule = new StringBuffer("body { color: #");
-                }
-                else {
-                    rule.append("; color: #");
-                }
-                if (fg.getRed() < 16) {
-                    rule.append('0');
-                }
-                rule.append(Integer.toHexString(fg.getRed()));
-                if (fg.getGreen() < 16) {
-                    rule.append('0');
-                }
-                rule.append(Integer.toHexString(fg.getGreen()));
-                if (fg.getBlue() < 16) {
-                    rule.append('0');
-                }
-                rule.append(Integer.toHexString(fg.getBlue()));
-            }
-            if (rule != null) {
-                rule.append(" }");
-                try {
-                    getStyleSheet().addRule(rule.toString());
-                } catch (RuntimeException re) {}
-            }
+            getStyleSheet().addRule(com.sun.java.swing.SwingUtilities2.
+                                    displayPropertiesToCSS(font,fg));
 	}
     }
 

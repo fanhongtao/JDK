@@ -1,11 +1,12 @@
 /*
- * @(#)MultipleDocumentHandling.java	1.6 03/01/23
+ * @(#)MultipleDocumentHandling.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.EnumSyntax;
 import javax.print.attribute.PrintRequestAttribute;
 import javax.print.attribute.PrintJobAttribute;
@@ -149,6 +150,8 @@ import javax.print.attribute.PrintJobAttribute;
 public class MultipleDocumentHandling extends EnumSyntax
     implements PrintRequestAttribute, PrintJobAttribute	{
 
+    private static final long serialVersionUID = 8098326460746413466L;
+
 
     /**
      * Single document -- see above for <A HREF="#sdfi">further 
@@ -227,7 +230,7 @@ public class MultipleDocumentHandling extends EnumSyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return MultipleDocumentHandling.class;
     }
 

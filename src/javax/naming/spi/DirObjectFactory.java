@@ -1,7 +1,7 @@
 /*
- * @(#)DirObjectFactory.java	1.8 03/01/23
+ * @(#)DirObjectFactory.java	1.11 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import javax.naming.directory.Attributes;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 03/01/23
+  * @version 1.11 04/07/16
   *
   * @see NamingManager#getObjectInstance
   * @see DirectoryManager#getObjectInstance
@@ -109,6 +109,7 @@ public interface DirObjectFactory extends ObjectFactory {
  * @see NamingManager#getURLContext
  */
     public Object getObjectInstance(Object obj, Name name, Context nameCtx,
-				    Hashtable environment, Attributes attrs) 
+				    Hashtable<?,?> environment,
+				    Attributes attrs) 
 	throws Exception;
 }

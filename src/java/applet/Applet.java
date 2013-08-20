@@ -1,5 +1,5 @@
 /*
- * @(#)Applet.java	1.74 04/08/16
+ * @(#)Applet.java	1.77 04/06/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import javax.accessibility.*;
  *
  * @author      Arthur van Hoff
  * @author      Chris Warth
- * @version     1.74, 08/16/04
+ * @version     1.77, 06/22/04
  * @since       JDK1.0
  */
 public class Applet extends Panel {
@@ -88,13 +88,13 @@ public class Applet extends Panel {
      * @exception SecurityException if the caller cannot set the stub
      */
     public final void setStub(AppletStub stub) {
-        if (this.stub != null) {
-            SecurityManager s = System.getSecurityManager();
-            if (s != null) {
-                s.checkPermission(new AWTPermission("setAppletStub"));
+	if (this.stub != null) {
+	    SecurityManager s = System.getSecurityManager();
+	    if (s != null) {
+	        s.checkPermission(new AWTPermission("setAppletStub"));
 	    }
-        }
-        this.stub = (AppletStub)stub;
+	}
+	this.stub = (AppletStub)stub;
     }
 
     /**
@@ -432,12 +432,21 @@ public class Applet extends Panel {
      * resume animation, and the <code>stop</code> method to suspend the
      * animation.
      * <p>
+     * Note: some methods, such as <code>getLocationOnScreen</code>, can only
+     * provide meaningful results if the applet is showing.  Because
+     * <code>isShowing</code> returns <code>false</code> when the applet's
+     * <code>start</code> is first called, methods requiring
+     * <code>isShowing</code> to return <code>true</code> should be called from
+     * a <code>ComponentListener</code>.
+     * <p>
      * The implementation of this method provided by the
      * <code>Applet</code> class does nothing.
      *
      * @see     java.applet.Applet#destroy()
      * @see     java.applet.Applet#init()
      * @see     java.applet.Applet#stop()
+     * @see     java.awt.Component#isShowing()
+     * @see     java.awt.event.ComponentListener#componentShown(java.awt.event.ComponentEvent)
      */
     public void start() {
     }
@@ -514,6 +523,8 @@ public class Applet extends Panel {
      * Java Accessibility API appropriate to applet user-interface elements.
      */
     protected class AccessibleApplet extends AccessibleAWTPanel {
+
+        private static final long serialVersionUID = 8127374778187708896L;
 
         /**
          * Get the role of this object.

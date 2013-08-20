@@ -1,7 +1,7 @@
 /*
- * @(#)MutableTreeNode.java	1.10 03/01/23
+ * @(#)MutableTreeNode.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package javax.swing.tree;
  * @see DefaultMutableTreeNode
  * @see javax.swing.JTree
  *
- * @version 1.10 01/23/03
+ * @version 1.11 12/19/03
  * @author Rob Davis
  * @author Scott Violet
  */

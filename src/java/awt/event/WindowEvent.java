@@ -1,7 +1,7 @@
 /*
- * @(#)WindowEvent.java	1.30 03/01/23
+ * @(#)WindowEvent.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import sun.awt.SunToolkit;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.30, 01/23/03
+ * @version 1.34, 12/19/03
  *
  * @see WindowAdapter
  * @see WindowListener
@@ -157,6 +157,10 @@ public class WindowEvent extends ComponentEvent {
 
     /**
      * Constructs a <code>WindowEvent</code> object.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source	the <code>Window</code> object
      *                    that originated the event
@@ -166,6 +170,7 @@ public class WindowEvent extends ComponentEvent {
      * @param oldState  previous state of the window for window state
      *                      change event
      * @param newState  new state of the window for window state change event
+     * @throws IllegalArgumentException if <code>source</code> is null
      * @since 1.4
      */
     public WindowEvent(Window source, int id, Window opposite,
@@ -192,7 +197,9 @@ public class WindowEvent extends ComponentEvent {
      * Java application in a different VM, or with no other
      * <code>Window</code>, then the opposite Window is <code>null</code>.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source     the <code>Window</code> object that
      *                   originated the event
@@ -206,6 +213,7 @@ public class WindowEvent extends ComponentEvent {
      *                   will always be <code>null</code>
      * @param opposite   the other <code>Window</code> involved in the
      *                   focus or activation change, or <code>null</code>
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public WindowEvent(Window source, int id, Window opposite) {
         this(source, id, opposite, 0, 0);
@@ -214,6 +222,10 @@ public class WindowEvent extends ComponentEvent {
     /**
      * Constructs a <code>WindowEvent</code> object with the specified
      * previous and new window states.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      * 
      * @param source	the <code>Window</code> object
      *                  that originated the event
@@ -224,6 +236,7 @@ public class WindowEvent extends ComponentEvent {
      *                  states are meaningless for other event types.
      * @param oldState	an integer representing the previous window state
      * @param newState	an integer representing the new window state
+     * @throws IllegalArgumentException if <code>source</code> is null
      * @since 1.4
      */
     public WindowEvent(Window source, int id, int oldState, int newState) {
@@ -233,10 +246,13 @@ public class WindowEvent extends ComponentEvent {
     /**
      * Constructs a <code>WindowEvent</code> object.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source the <code>Window</code> object that originated the event
      * @param id     an integer indicating the type of event
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public WindowEvent(Window source, int id) {
         this(source, id, null, 0, 0);
@@ -363,7 +379,9 @@ public class WindowEvent extends ComponentEvent {
           default:
               typeStr = "unknown type";
         }
-	return typeStr + ",opposite=" + getOppositeWindow()
+	typeStr += ",opposite=" + getOppositeWindow()
 	    + ",oldState=" + oldState + ",newState=" + newState;
+
+        return typeStr;
     }
 }

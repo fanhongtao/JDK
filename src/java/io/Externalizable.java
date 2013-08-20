@@ -1,7 +1,7 @@
 /*
- * @(#)Externalizable.java	1.17 03/01/23
+ * @(#)Externalizable.java	1.19 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.io.ObjectInput;
  * interface are implemented by a class to give the class complete
  * control over the format and contents of the stream for an object
  * and its supertypes. These methods must explicitly
- * coordinate with the supertype to save its state. These methods supercede
+ * coordinate with the supertype to save its state. These methods supersede
  * customized implementations of writeObject and readObject methods.<br>
  *
  * Object Serialization uses the Serializable and Externalizable
@@ -38,7 +38,7 @@ import java.io.ObjectInput;
  * interface.<br>
  *
  * @author  unascribed
- * @version 1.17, 01/23/03
+ * @version 1.19, 01/12/04
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput

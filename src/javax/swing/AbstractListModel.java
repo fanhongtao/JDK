@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractListModel.java	1.31 03/01/23
+ * @(#)AbstractListModel.java	1.34 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.31 01/23/03
+ * @version 1.34 05/05/04
  * @author Hans Muller
  */
 public abstract class AbstractListModel implements ListModel, Serializable
@@ -136,14 +136,15 @@ public abstract class AbstractListModel implements ListModel, Serializable
     /**
      * <code>AbstractListModel</code> subclasses must call this method
      * <b>after</b> one or more elements are removed from the model. 
-     * The new elements
-     * are specified by a closed interval index0, index1, i.e. the
-     * range that includes both index0 and index1.  Note that
-     * index0 need not be less than or equal to index1.
+     * <code>index0</code> and <code>index1</code> are the end points
+     * of the interval that's been removed.  Note that <code>index0</code>
+     * need not be less than or equal to <code>index1</code>.
      * 
-     * @param source the ListModel that changed, typically "this"
-     * @param index0 one end of the new interval
-     * @param index1 the other end of the new interval
+     * @param source the <code>ListModel</code> that changed, typically "this"
+     * @param index0 one end of the removed interval,
+     *               including <code>index0</code>
+     * @param index1 the other end of the removed interval,
+     *               including <code>index1</code>
      * @see EventListenerList
      * @see DefaultListModel
      */
@@ -197,7 +198,7 @@ public abstract class AbstractListModel implements ListModel, Serializable
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
 	return listenerList.getListeners(listenerType); 
     }
 }

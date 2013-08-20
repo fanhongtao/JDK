@@ -1,7 +1,7 @@
 /*
- * @(#)ImageIcon.java	1.50 03/01/23
+ * @(#)ImageIcon.java	1.53 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -21,7 +21,7 @@ import javax.accessibility.*;
 
 /**
  * An implementation of the Icon interface that paints Icons
- * from Images. Images that are created from a URL or filename
+ * from Images. Images that are created from a URL, filename or byte array
  * are preloaded using MediaTracker to monitor the loaded state
  * of the image.
  *
@@ -40,7 +40,7 @@ import javax.accessibility.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  * 
- * @version 1.50 01/23/03
+ * @version 1.53 12/19/03
  * @author Jeff Dinkins
  * @author Lynn Monsanto
  */
@@ -168,12 +168,13 @@ public class ImageIcon implements Icon, Serializable, Accessible {
     /**
      * Creates an ImageIcon from an array of bytes which were
      * read from an image file containing a supported image format,
-     * such as GIF or JPEG.  Normally this array is created
+     * such as GIF, JPEG, or (as of 1.3) PNG. 
+     * Normally this array is created
      * by reading an image using Class.getResourceAsStream(), but
      * the byte array may also be statically stored in a class.
      *
      * @param  imageData an array of pixels in an image format supported
-     *         by the AWT Toolkit, such as GIF or JPEG.
+     *         by the AWT Toolkit, such as GIF, JPEG, or (as of 1.3) PNG
      * @param  description a brief textual description of the image
      * @see    java.awt.Toolkit#createImage
      */
@@ -189,14 +190,15 @@ public class ImageIcon implements Icon, Serializable, Accessible {
     /**
      * Creates an ImageIcon from an array of bytes which were
      * read from an image file containing a supported image format,
-     * such as GIF or JPEG.  Normally this array is created
+     * such as GIF, JPEG, or (as of 1.3) PNG. 
+     * Normally this array is created
      * by reading an image using Class.getResourceAsStream(), but
      * the byte array may also be statically stored in a class.
      * If the resulting image has a "comment" property that is a string,
      * then the string is used as the description of this icon.
      *
      * @param  imageData an array of pixels in an image format supported by
-     *                   the AWT Toolkit, such as GIF or JPEG
+     *             the AWT Toolkit, such as GIF, JPEG, or (as of 1.3) PNG
      * @see    java.awt.Toolkit#createImage
      * @see #getDescription
      * @see java.awt.Image#getProperty
@@ -394,6 +396,7 @@ public class ImageIcon implements Icon, Serializable, Accessible {
 	    Toolkit tk = Toolkit.getDefaultToolkit();
 	    ColorModel cm = ColorModel.getRGBdefault();
 	    image = tk.createImage(new MemoryImageSource(w, h, cm, pixels, 0, w));
+	    loadImage(image);
         } 
     }
 

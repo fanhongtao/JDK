@@ -1,11 +1,13 @@
 /*
- * @(#)IdentityHashMap.java	1.12 03/01/23
+ * @(#)IdentityHashMap.java	1.22 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
+
+import java.io.*;
 
 /**
  * This class implements the <tt>Map</tt> interface with a hash table, using
@@ -54,7 +56,7 @@ package java.util;
  * Increasing the number of buckets ("rehashing") may be fairly expensive, so
  * it pays to create identity hash maps with a sufficiently large expected
  * maximum size.  On the other hand, iteration over collection views requires
- * time proportional to the the number of buckets in the hash table, so it
+ * time proportional to the number of buckets in the hash table, so it
  * pays not to set the expected maximum size too high if you are especially
  * concerned with iteration performance or memory usage.
  *
@@ -84,7 +86,7 @@ package java.util;
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness: <i>fail-fast iterators should be used only
  * to detect bugs.</i>
@@ -94,9 +96,9 @@ package java.util;
  * alternates holding keys and values.  (This has better locality for large
  * tables than does using separate arrays.)  For many JRE implementations
  * and operation mixes, this class will yield better performance than
- * {@link HashMap} (which uses <i>chaining</i> rather than linear-probing). 
+ * {@link HashMap} (which uses <i>chaining</i> rather than linear-probing).
  *
- * <p>This class is a member of the 
+ * <p>This class is a member of the
  * <a href="{@docRoot}/../guide/collections/index.html">
  * Java Collections Framework</a>.
  *
@@ -110,8 +112,9 @@ package java.util;
  * @since   1.4
  */
 
-public class IdentityHashMap extends AbstractMap implements Map,
-                               java.io.Serializable, Cloneable
+public class IdentityHashMap<K,V>
+    extends AbstractMap<K,V>
+    implements Map<K,V>, java.io.Serializable, Cloneable
 {
     /**
      * The initial capacity used by the no-args constructor.
@@ -247,7 +250,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
      * @param m the map whose mappings are to be placed into this map.
      * @throws NullPointerException if the specified map is null.
      */
-    public IdentityHashMap(Map m) {
+    public IdentityHashMap(Map<? extends K, ? extends V> m) {
         // Allow for a bit of growth
         this((int) ((1 + m.size()) * 1.1));
         putAll(m);
@@ -303,17 +306,17 @@ public class IdentityHashMap extends AbstractMap implements Map,
      *          <tt>null</tt> if the map contains no mapping for this key.
      * @see #put(Object, Object)
      */
-    public Object get(Object key) {
+    public V get(Object key) {
         Object k = maskNull(key);
-        Object[] tab = table;
+	Object[] tab = table;
         int len = tab.length;
         int i = hash(k, len);
         while (true) {
-            Object item = tab[i];
-            if (item == k) 
-                return tab[i + 1];
+	    Object item = tab[i];
+            if (item == k)
+                return (V) tab[i + 1];
             if (item == null)
-                return item;
+                return null;
             i = nextKeyIndex(i, len);
         }
     }
@@ -321,10 +324,10 @@ public class IdentityHashMap extends AbstractMap implements Map,
     /**
      * Tests whether the specified object reference is a key in this identity
      * hash map.
-     * 
+     *
      * @param   key   possible key.
      * @return  <code>true</code> if the specified object reference is a key
-     *          in this map. 
+     *          in this map.
      * @see     #containsValue(Object)
      */
     public boolean containsKey(Object key) {
@@ -334,7 +337,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
         int i = hash(k, len);
         while (true) {
             Object item = tab[i];
-            if (item == k) 
+            if (item == k)
                 return true;
             if (item == null)
                 return false;
@@ -359,10 +362,10 @@ public class IdentityHashMap extends AbstractMap implements Map,
 
         return false;
     }
- 
+
     /**
      * Tests if the specified key-value mapping is in the map.
-     * 
+     *
      * @param   key   possible key.
      * @param   value possible value.
      * @return  <code>true</code> if and only if the specified key-value
@@ -375,7 +378,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
         int i = hash(k, len);
         while (true) {
             Object item = tab[i];
-            if (item == k) 
+            if (item == k)
                 return tab[i + 1] == value;
             if (item == null)
                 return false;
@@ -398,7 +401,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
      * @see     #get(Object)
      * @see     #containsKey(Object)
      */
-    public Object put(Object key, Object value) {
+    public V put(K key, V value) {
         Object k = maskNull(key);
         Object[] tab = table;
         int len = tab.length;
@@ -407,7 +410,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
         Object item;
         while ( (item = tab[i]) != null) {
             if (item == k) {
-                Object oldValue = tab[i + 1];
+		V oldValue = (V) tab[i + 1];
                 tab[i + 1] = value;
                 return oldValue;
             }
@@ -429,9 +432,9 @@ public class IdentityHashMap extends AbstractMap implements Map,
      */
     private void resize(int newCapacity) {
         // assert (newCapacity & -newCapacity) == newCapacity; // power of 2
-        int newLength = newCapacity * 2; 
+        int newLength = newCapacity * 2;
 
-        Object[] oldTable = table;
+	Object[] oldTable = table;
         int oldLength = oldTable.length;
         if (oldLength == 2*MAXIMUM_CAPACITY) { // can't expand any further
             if (threshold == MAXIMUM_CAPACITY-1)
@@ -442,7 +445,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
         if (oldLength >= newLength)
             return;
 
-        Object[] newTable = new Object[newLength];
+	Object[] newTable = new Object[newLength];
         threshold = newLength / 3;
 
         for (int j = 0; j < oldLength; j += 2) {
@@ -452,7 +455,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
                 oldTable[j] = null;
                 oldTable[j+1] = null;
                 int i = hash(key, newLength);
-                while (newTable[i] != null) 
+                while (newTable[i] != null)
                     i = nextKeyIndex(i, newLength);
                 newTable[i] = key;
                 newTable[i + 1] = value;
@@ -469,17 +472,15 @@ public class IdentityHashMap extends AbstractMap implements Map,
      * @param t mappings to be stored in this map.
      * @throws NullPointerException if the specified map is null.
      */
-    public void putAll(Map t) {
+    public void putAll(Map<? extends K, ? extends V> t) {
         int n = t.size();
         if (n == 0)
             return;
         if (n > threshold) // conservatively pre-expand
             resize(capacity(n));
 
-	for (Iterator it = t.entrySet().iterator(); it.hasNext(); ) {
-	    Entry e = (Entry) it.next();
+	for (Entry<? extends K, ? extends V> e : t.entrySet())
             put(e.getKey(), e.getValue());
-        }
     }
 
     /**
@@ -491,7 +492,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
      *	       also indicate that the map previously associated <tt>null</tt>
      *	       with the specified key.)
      */
-    public Object remove(Object key) {
+    public V remove(Object key) {
         Object k = maskNull(key);
         Object[] tab = table;
         int len = tab.length;
@@ -500,10 +501,10 @@ public class IdentityHashMap extends AbstractMap implements Map,
         while (true) {
             Object item = tab[i];
             if (item == k) {
-                modCount++;   
+                modCount++;
                 size--;
-                Object oldValue = tab[i + 1];
-                tab[i + 1] = null; 
+                V oldValue = (V) tab[i + 1];
+                tab[i + 1] = null;
                 tab[i] = null;
                 closeDeletion(i);
                 return oldValue;
@@ -517,7 +518,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
 
     /**
      * Removes the specified key-value mapping from the map if it is present.
-     * 
+     *
      * @param   key   possible key.
      * @param   value possible value.
      * @return  <code>true</code> if and only if the specified key-value
@@ -534,14 +535,14 @@ public class IdentityHashMap extends AbstractMap implements Map,
             if (item == k) {
                 if (tab[i + 1] != value)
                     return false;
-                modCount++;   
+                modCount++;
                 size--;
                 tab[i] = null;
-                tab[i + 1] = null; 
+                tab[i + 1] = null;
                 closeDeletion(i);
                 return true;
             }
-            if (item == null) 
+            if (item == null)
                 return false;
             i = nextKeyIndex(i, len);
         }
@@ -549,7 +550,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
 
     /**
      * Rehash all possibly-colliding entries following a
-     * deletion. This preserves the linear-probe 
+     * deletion. This preserves the linear-probe
      * collision properties required by get, put, etc.
      *
      * @param d the index of a newly empty deleted slot
@@ -589,7 +590,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
     public void clear() {
         modCount++;
         Object[] tab = table;
-        for (int i = 0; i < tab.length; i++) 
+        for (int i = 0; i < tab.length; i++)
             tab[i] = null;
         size = 0;
     }
@@ -633,12 +634,12 @@ public class IdentityHashMap extends AbstractMap implements Map,
             return false;  // o is not a Map
         }
     }
-  
+
     /**
      * Returns the hash code value for this map.  The hash code of a map
      * is defined to be the sum of the hashcode of each entry in the map's
      * entrySet view.  This ensures that <tt>t1.equals(t2)</tt> implies
-     * that <tt>t1.hashCode()==t2.hashCode()</tt> for any two 
+     * that <tt>t1.hashCode()==t2.hashCode()</tt> for any two
      * <tt>IdentityHashMap</tt> instances <tt>t1</tt> and <tt>t2</tt>, as
      * required by the general contract of {@link Object#hashCode()}.
      *
@@ -661,7 +662,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
             Object key = tab[i];
             if (key != null) {
                 Object k = unmaskNull(key);
-                result += System.identityHashCode(k) ^ 
+                result += System.identityHashCode(k) ^
                           System.identityHashCode(tab[i + 1]);
             }
         }
@@ -675,22 +676,22 @@ public class IdentityHashMap extends AbstractMap implements Map,
      * @return a shallow copy of this map.
      */
     public Object clone() {
-        try { 
-            IdentityHashMap t = (IdentityHashMap)super.clone();
+        try {
+            IdentityHashMap<K,V> t = (IdentityHashMap<K,V>) super.clone();
             t.entrySet = null;
-            t.table = (Object[])(table.clone());
+            t.table = (Object[])table.clone();
             return t;
-        } catch (CloneNotSupportedException e) { 
+        } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
     }
 
-    private abstract class IdentityHashMapIterator implements Iterator {
-        int index = (size != 0 ? 0 : table.length); // current slot. 
+    private abstract class IdentityHashMapIterator<T> implements Iterator<T> {
+        int index = (size != 0 ? 0 : table.length); // current slot.
         int expectedModCount = modCount; // to support fast-fail
         int lastReturnedIndex = -1;      // to allow remove()
-        boolean indexValid; // To avoid unecessary next computation
-        Object[] traversalTable = table; // reference to main table or copy
+        boolean indexValid; // To avoid unnecessary next computation
+	Object[] traversalTable = table; // reference to main table or copy
 
         public boolean hasNext() {
             Object[] tab = traversalTable;
@@ -709,21 +710,21 @@ public class IdentityHashMap extends AbstractMap implements Map,
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
             if (!indexValid && !hasNext())
-                throw new NoSuchElementException();    
+                throw new NoSuchElementException();
 
             indexValid = false;
             lastReturnedIndex = index;
             index += 2;
             return lastReturnedIndex;
         }
-            
+
         public void remove() {
             if (lastReturnedIndex == -1)
                 throw new IllegalStateException();
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
 
-            expectedModCount = ++modCount; 
+            expectedModCount = ++modCount;
             int deletedSlot = lastReturnedIndex;
             lastReturnedIndex = -1;
             size--;
@@ -743,11 +744,11 @@ public class IdentityHashMap extends AbstractMap implements Map,
             // even in these rare cases, this is not very expensive in
             // time or space.
 
-            Object[] tab = traversalTable; 
+            Object[] tab = traversalTable;
             int len = tab.length;
-            
+
             int d = deletedSlot;
-            Object key = tab[d];
+            K key = (K) tab[d];
             tab[d] = null;        // vacate the slot
             tab[d + 1] = null;
 
@@ -778,7 +779,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
                         traversalTable == IdentityHashMap.this.table) {
                         int remaining = len - deletedSlot;
                         Object[] newTable = new Object[remaining];
-                        System.arraycopy(tab, deletedSlot, 
+                        System.arraycopy(tab, deletedSlot,
                                          newTable, 0, remaining);
                         traversalTable = newTable;
                         index = 0;
@@ -793,16 +794,16 @@ public class IdentityHashMap extends AbstractMap implements Map,
             }
         }
     }
-  
-    private class KeyIterator extends IdentityHashMapIterator {
-        public Object next() {
-            return unmaskNull(traversalTable[nextIndex()]);
+
+    private class KeyIterator extends IdentityHashMapIterator<K> {
+        public K next() {
+            return (K) unmaskNull(traversalTable[nextIndex()]);
         }
     }
 
-    private class ValueIterator extends IdentityHashMapIterator {
-        public Object next() {
-            return traversalTable[nextIndex() + 1];
+    private class ValueIterator extends IdentityHashMapIterator<V> {
+        public V next() {
+            return (V) traversalTable[nextIndex() + 1];
         }
     }
 
@@ -810,43 +811,47 @@ public class IdentityHashMap extends AbstractMap implements Map,
      * Since we don't use Entry objects, we use the Iterator
      * itself as an entry.
      */
-    private class EntryIterator extends IdentityHashMapIterator 
-                                implements Map.Entry
+    private class EntryIterator
+	extends IdentityHashMapIterator<Map.Entry<K,V>>
+	implements Map.Entry<K,V>
     {
-        public Object next() {
-            nextIndex(); 
+        public Map.Entry<K,V> next() {
+            nextIndex();
             return this;
         }
 
-        public Object getKey() {
-            // Provide a better exception than out of bounds index
-            if (lastReturnedIndex < 0)
-                throw new IllegalStateException("Entry was removed");
-                
-            return unmaskNull(traversalTable[lastReturnedIndex]);
-        }
-
-        public Object getValue() {
+        public K getKey() {
             // Provide a better exception than out of bounds index
             if (lastReturnedIndex < 0)
                 throw new IllegalStateException("Entry was removed");
 
-            return traversalTable[lastReturnedIndex+1];
+            return (K) unmaskNull(traversalTable[lastReturnedIndex]);
         }
 
-        public Object setValue(Object value) {
-            // It would be mean-spirited to proceed here if remove() called 
+        public V getValue() {
+            // Provide a better exception than out of bounds index
             if (lastReturnedIndex < 0)
                 throw new IllegalStateException("Entry was removed");
-            Object oldValue = traversalTable[lastReturnedIndex+1];
+
+            return (V) traversalTable[lastReturnedIndex+1];
+        }
+
+        public V setValue(V value) {
+            // It would be mean-spirited to proceed here if remove() called
+            if (lastReturnedIndex < 0)
+                throw new IllegalStateException("Entry was removed");
+	    V oldValue = (V) traversalTable[lastReturnedIndex+1];
             traversalTable[lastReturnedIndex+1] = value;
             // if shadowing, force into main table
             if (traversalTable != IdentityHashMap.this.table)
-                put(traversalTable[lastReturnedIndex], value);
+                put((K) traversalTable[lastReturnedIndex], value);
             return oldValue;
         }
 
         public boolean equals(Object o) {
+            if (lastReturnedIndex < 0)
+                return super.equals(o);
+
             if (!(o instanceof Map.Entry))
                 return false;
             Map.Entry e = (Map.Entry)o;
@@ -855,11 +860,17 @@ public class IdentityHashMap extends AbstractMap implements Map,
         }
 
         public int hashCode() {
+            if (lastReturnedIndex < 0)
+                return super.hashCode();
+
             return System.identityHashCode(getKey()) ^
                    System.identityHashCode(getValue());
         }
 
         public String toString() {
+            if (lastReturnedIndex < 0)
+                return super.toString();
+
             return getKey() + "=" + getValue();
         }
     }
@@ -872,7 +883,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
      * so there's no reason to create more than one.
      */
 
-    private transient Set entrySet = null;
+    private transient Set<Map.Entry<K,V>> entrySet = null;
 
     /**
      * Returns an identity-based set view of the keys contained in this map.
@@ -912,16 +923,16 @@ public class IdentityHashMap extends AbstractMap implements Map,
      * @see Object#equals(Object)
      * @see System#identityHashCode(Object)
      */
-    public Set keySet() {
-        Set ks = keySet;
+    public Set<K> keySet() {
+        Set<K> ks = keySet;
         if (ks != null)
             return ks;
         else
             return keySet = new KeySet();
     }
 
-    private class KeySet extends AbstractSet {
-        public Iterator iterator() {
+    private class KeySet extends AbstractSet<K> {
+        public Iterator<K> iterator() {
             return new KeyIterator();
         }
         public int size() {
@@ -940,10 +951,10 @@ public class IdentityHashMap extends AbstractMap implements Map,
          * the former contains an optimization that results in incorrect
          * behavior when c is a smaller "normal" (non-identity-based) Set.
          */
-        public boolean removeAll(Collection c) {
+        public boolean removeAll(Collection<?> c) {
             boolean modified = false;
             for (Iterator i = iterator(); i.hasNext(); ) {
-                if(c.contains(i.next())) {
+                if (c.contains(i.next())) {
                     i.remove();
                     modified = true;
                 }
@@ -955,8 +966,8 @@ public class IdentityHashMap extends AbstractMap implements Map,
         }
         public int hashCode() {
             int result = 0;
-            for (Iterator i = iterator(); i.hasNext(); )
-                result += System.identityHashCode(i.next());
+            for (K key : this)
+                result += System.identityHashCode(key);
             return result;
         }
     }
@@ -982,16 +993,16 @@ public class IdentityHashMap extends AbstractMap implements Map,
      *
      * @return a collection view of the values contained in this map.
      */
-    public Collection values() {
-        Collection vs = values;
+    public Collection<V> values() {
+        Collection<V> vs = values;
         if (vs != null)
             return vs;
-        else 
+        else
             return values = new Values();
     }
 
-    private class Values extends AbstractCollection {
-        public Iterator iterator() {
+    private class Values extends AbstractCollection<V> {
+        public Iterator<V> iterator() {
             return new ValueIterator();
         }
         public int size() {
@@ -1051,16 +1062,16 @@ public class IdentityHashMap extends AbstractMap implements Map,
      *
      * @return a set view of the identity-mappings contained in this map.
      */
-    public Set entrySet() {
-        Set es = entrySet;
-        if (es != null) 
+    public Set<Map.Entry<K,V>> entrySet() {
+        Set<Map.Entry<K,V>> es = entrySet;
+        if (es != null)
             return es;
         else
             return entrySet = new EntrySet();
     }
 
-    private class EntrySet extends AbstractSet {
-        public Iterator iterator() {
+    private class EntrySet extends AbstractSet<Map.Entry<K,V>> {
+        public Iterator<Map.Entry<K,V>> iterator() {
             return new EntryIterator();
         }
         public boolean contains(Object o) {
@@ -1086,7 +1097,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
          * the former contains an optimization that results in incorrect
          * behavior when c is a smaller "normal" (non-identity-based) Set.
          */
-        public boolean removeAll(Collection c) {
+        public boolean removeAll(Collection<?> c) {
             boolean modified = false;
             for (Iterator i = iterator(); i.hasNext(); ) {
                 if(c.contains(i.next())) {
@@ -1098,20 +1109,18 @@ public class IdentityHashMap extends AbstractMap implements Map,
         }
 
         public Object[] toArray() {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
-                c.add(new AbstractMap.SimpleEntry((Map.Entry) i.next()));
+            List<Map.Entry<K,V>> c = new ArrayList<Map.Entry<K,V>>(size());
+            for (Map.Entry<K,V> e : this)
+                c.add(new AbstractMap.SimpleEntry<K,V>(e));
             return c.toArray();
         }
-        public Object[] toArray(Object a[]) {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
-                c.add(new AbstractMap.SimpleEntry((Map.Entry) i.next()));
-            return c.toArray(a);
+        public <T> T[] toArray(T[] a) {
+	    return (T[])toArray(); // !!!!
         }
-
     }
 
+
+    private static final long serialVersionUID = 8188218128353913216L;
 
     /**
      * Save the state of the <tt>IdentityHashMap</tt> instance to a stream
@@ -1150,7 +1159,7 @@ public class IdentityHashMap extends AbstractMap implements Map,
         throws java.io.IOException, ClassNotFoundException  {
         // Read in any hidden stuff
         s.defaultReadObject();
-    
+
         // Read in size (number of Mappings)
         int size = s.readInt();
 
@@ -1159,9 +1168,31 @@ public class IdentityHashMap extends AbstractMap implements Map,
 
         // Read the keys and values, and put the mappings in the table
         for (int i=0; i<size; i++) {
-            Object key = s.readObject();
-            Object value = s.readObject();
-            put(key, value);
+            K key = (K) s.readObject();
+            V value = (V) s.readObject();
+            putForCreate(key, value);
         }
+    }
+
+    /**
+     * The put method for readObject.  It does not resize the table,
+     * update modcount, etc.
+     */
+    private void putForCreate(K key, V value)
+        throws IOException
+    {
+        K k = (K)maskNull(key);
+        Object[] tab = table;
+        int len = tab.length;
+        int i = hash(k, len);
+
+        Object item;
+        while ( (item = tab[i]) != null) {
+            if (item == k)
+                throw new java.io.StreamCorruptedException();
+            i = nextKeyIndex(i, len);
+        }
+        tab[i] = k;
+        tab[i + 1] = value;
     }
 }

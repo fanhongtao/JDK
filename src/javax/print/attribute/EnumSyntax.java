@@ -1,7 +1,7 @@
 /*
- * @(#)EnumSyntax.java	1.3 03/01/23
+ * @(#)EnumSyntax.java	1.5 04/01/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -90,6 +90,8 @@ import java.io.Serializable;
  * @author  Alan Kaminsky
  */
 public abstract class EnumSyntax implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = -2739521845085831642L; 
 
     /**
      * This enumeration value's integer value.

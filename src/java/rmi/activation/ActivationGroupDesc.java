@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationGroupDesc.java	1.26 03/01/23
+ * @(#)ActivationGroupDesc.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,13 +37,14 @@ import java.util.Properties;
  * <li> the group's initialization data (in a
  * <code>java.rmi.MarshalledObject</code>)</ul><p>
  *
- * @version	1.26, 01/23/03
+ * @version	1.28, 12/19/03
  * @author	Ann Wollrath
  * @since	1.2
  * @see		ActivationGroup
  * @see		ActivationGroupID
  */
 public final class ActivationGroupDesc implements java.io.Serializable {
+
     /**
      * @serial The group's fully package qualified class name.
      */
@@ -188,6 +189,8 @@ public final class ActivationGroupDesc implements java.io.Serializable {
     public static class CommandEnvironment
 	implements java.io.Serializable
     {
+	private static final long serialVersionUID = 6165754737887770191L;
+
 	/**
 	 * @serial
 	 */

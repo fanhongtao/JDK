@@ -1,27 +1,19 @@
 /*
- * @(#)SocketSecurityException.java	1.11 03/01/23
+ * @(#)SocketSecurityException.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.server;
 
 /**
- * A <code>SocketSecurityException</code> is thrown during remote object
- * export if the code exporting the remote object (either by construction
- * or by explicit call to the <code>exportObject</code> method of
- * <code>UnicastRemoteObject</code> or
- * <code>java.rmi.activation.Activatable</code>) does not have permission
- * to create a <code>java.net.ServerSocket</code> on the port number
- * specified during remote object export.
+ * An obsolete subclass of {@link ExportException}.
  *
- * @version 1.11, 01/23/03
+ * @version 1.13, 12/19/03
  * @author  Ann Wollrath
  * @since   JDK1.1
- * @see     java.rmi.server.UnicastRemoteObject
- * @see     java.rmi.activation.Activatable
- */
+ **/
 public class SocketSecurityException extends ExportException {
 
     /* indicate compatibility with JDK 1.1.x version of class */

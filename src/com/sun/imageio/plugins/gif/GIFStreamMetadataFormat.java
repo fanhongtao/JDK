@@ -1,7 +1,7 @@
 /*
- * @(#)GIFStreamMetadataFormat.java	1.5 03/01/23
+ * @(#)GIFStreamMetadataFormat.java	1.7 04/03/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.metadata.IIOMetadataFormat;
 import javax.imageio.metadata.IIOMetadataFormatImpl;
 
-class GIFStreamMetadataFormat extends IIOMetadataFormatImpl {
+public class GIFStreamMetadataFormat extends IIOMetadataFormatImpl {
 
     private static IIOMetadataFormat instance = null;
 

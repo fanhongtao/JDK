@@ -1,7 +1,7 @@
 /*
- * @(#)JarVerifier.java	1.34 05/08/30
+ * @(#)JarVerifier.java	1.35 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,6 +11,7 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 import java.security.*;
+import java.security.cert.CertificateException;
 
 import sun.security.util.ManifestDigester;
 import sun.security.util.ManifestEntryVerifier;
@@ -19,7 +20,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.34 05/08/30
+ * @version 	1.35 03/12/19
  * @author	Roland Schemers
  */
 class JarVerifier {
@@ -27,13 +28,13 @@ class JarVerifier {
     /* Are we debugging ? */
     static final Debug debug = Debug.getInstance("jar");
 
-    /* a table mapping names to identities for entries that have
+    /* a table mapping names to code signers, for jar entries that have
        had their actual hashes verified */
-    private Hashtable verifiedCerts;
+    private Hashtable verifiedSigners;
 
-    /* a table mapping names to Certs for entries that have
+    /* a table mapping names to code signers, for jar entries that have
        passed the .SF/.DSA -> MANIFEST check */
-    private Hashtable sigFileCerts;
+    private Hashtable sigFileSigners;
 
     /* a hash table to hold .SF bytes */
     private Hashtable sigFileData;
@@ -42,8 +43,8 @@ class JarVerifier {
      *  until we parsed the .SF file */
     private ArrayList pendingBlocks;
 
-    /* cache of Certificate[] objects */
-    private ArrayList certCache;
+    /* cache of CodeSigner objects */
+    private ArrayList signerCache;
 
     /* Are we parsing a block? */
     private boolean parsingBlockOrSF = false;
@@ -53,6 +54,9 @@ class JarVerifier {
 
     /* Are there are files to verify? */
     private boolean anyToVerify = true;
+
+    /* The manifest file */
+    private Manifest manifest;
 
     /* The output stream to use when keeping track of files we are interested
        in */
@@ -66,13 +70,14 @@ class JarVerifier {
 
     /**
      */
-    public JarVerifier(byte rawBytes[]) {
+    public JarVerifier(Manifest manifest, byte rawBytes[]) {
 	manifestRawBytes = rawBytes;
-	sigFileCerts = new Hashtable();
-	verifiedCerts = new Hashtable();
+	sigFileSigners = new Hashtable();
+	verifiedSigners = new Hashtable();
 	sigFileData = new Hashtable(11);
 	pendingBlocks = new ArrayList();
 	baos = new ByteArrayOutputStream();
+	this.manifest = manifest;
     }
 
     /**
@@ -112,8 +117,7 @@ class JarVerifier {
 		    return;
 		}
 
-		if (uname.endsWith(".DSA") || uname.endsWith(".RSA") ||
-		    uname.endsWith(".SF")) {
+		if (SignatureFileVerifier.isBlockOrSF(uname)) {
 		    /* We parse only DSA or RSA PKCS7 blocks. */
 		    parsingBlockOrSF = true;
 		    baos.reset();
@@ -143,7 +147,7 @@ class JarVerifier {
 	    name = name.substring(1);
 
 	// only set the jev object for entries that have a signature
-	if (sigFileCerts.get(name) != null) {
+	if (sigFileSigners.get(name) != null) {
 	    mev.setEntry(name, je);
 	    return;
 	}
@@ -199,8 +203,8 @@ class JarVerifier {
     {
 	if (!parsingBlockOrSF) {
 	    JarEntry je = mev.getEntry();
-	    if ((je != null) && (je.certs == null)) {
-		je.certs = mev.verify(verifiedCerts, sigFileCerts);
+	    if ((je != null) && (je.signers == null)) {
+		je.signers = mev.verify(verifiedSigners, sigFileSigners);
 	    }
 	} else {
 
@@ -232,7 +236,7 @@ class JarVerifier {
 			    }
 
 			    sfv.setSignatureFile(bytes);
-			    sfv.process(sigFileCerts);
+			    sfv.process(sigFileSigners);
 			}
 		    }
 		    return;
@@ -242,8 +246,8 @@ class JarVerifier {
 
 		String key = uname.substring(0, uname.lastIndexOf("."));
 
-		if (certCache == null)
-		    certCache = new ArrayList();
+		if (signerCache == null)
+		    signerCache = new ArrayList();
 
 		if (manDig == null) {
 		    synchronized(manifestRawBytes) {
@@ -255,7 +259,7 @@ class JarVerifier {
 		}
 
 		SignatureFileVerifier sfv =
-		  new SignatureFileVerifier(certCache,
+		  new SignatureFileVerifier(signerCache,
 					    manDig, uname, baos.toByteArray());
 
 		if (sfv.needSignatureFileBytes()) {
@@ -275,7 +279,7 @@ class JarVerifier {
 			sfv.setSignatureFile(bytes);
 		    }
 		}
-		sfv.process(sigFileCerts);
+		sfv.process(sigFileSigners);
 
 	    } catch (sun.security.pkcs.ParsingException pe) {
 		if (debug != null) debug.println("processEntry caught: "+pe);
@@ -289,19 +293,46 @@ class JarVerifier {
 	    } catch (NoSuchAlgorithmException nsae) {
 		if (debug != null) debug.println("processEntry caught: "+nsae);
 		// ignore and treat as unsigned
+	    } catch (CertificateException ce) {
+		if (debug != null) debug.println("processEntry caught: "+ce);
+		// ignore and treat as unsigned
 	    }
 	}
     }
 
     /**
-     * return an array of java.security.cert.Certificate objects for
-     * the given file in the jar. this array is not cloned.
-     *
+     * Return an array of java.security.cert.Certificate objects for
+     * the given file in the jar. 
      */
     public java.security.cert.Certificate[] getCerts(String name)
     {
-	return (java.security.cert.Certificate[])verifiedCerts.get(name);
+	CodeSigner[] signers = getCodeSigners(name);
+	// Extract the certs in each code signer's cert chain
+	if (signers != null) {
+	    ArrayList certChains = new ArrayList();
+	    for (int i = 0; i < signers.length; i++) {
+		certChains.addAll(
+		    signers[i].getSignerCertPath().getCertificates());
+	    }
+
+	    // Convert into a Certificate[]
+	    return (java.security.cert.Certificate[])
+		certChains.toArray(
+		    new java.security.cert.Certificate[certChains.size()]);
+	}
+	return null;
     }
+
+    /**
+     * return an array of CodeSigner objects for
+     * the given file in the jar. this array is not cloned.
+     *
+     */
+    public CodeSigner[] getCodeSigners(String name)
+    {
+	return (CodeSigner[])verifiedSigners.get(name);
+    }
+
 
     /**
      * returns true if there no files to verify.
@@ -322,11 +353,11 @@ class JarVerifier {
     void doneWithMeta()
     {
 	parsingMeta = false;
-	anyToVerify = !sigFileCerts.isEmpty();
+	anyToVerify = !sigFileSigners.isEmpty();
 	baos = null;
 	sigFileData = null;
 	pendingBlocks = null;
-	certCache = null;
+	signerCache = null;
 	manDig = null;
     }
 

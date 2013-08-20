@@ -1,7 +1,7 @@
 /*
- * @(#)Ref.java	1.25 03/01/23
+ * @(#)Ref.java	1.27 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ public interface Ref {
      * @since 1.4
      * @see #setObject
      */
-    Object getObject(java.util.Map map) throws SQLException;
+    Object getObject(java.util.Map<String,Class<?>> map) throws SQLException;
 
 
     /**

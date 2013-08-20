@@ -1,7 +1,7 @@
 /*
- * @(#)SocketOutputStream.java	1.28 03/01/23
+ * @(#)SocketOutputStream.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.nio.channels.FileChannel;
  * SocketOutputStream. Note that this class should <b>NOT</b> be
  * public.
  *
- * @version     1.28, 01/23/03
+ * @version     1.30, 12/19/03
  * @author 	Jonathan Payne
  * @author	Arthur van Hoff
  */
@@ -80,7 +80,7 @@ class SocketOutputStream extends FileOutputStream
      */
     private void socketWrite(byte b[], int off, int len) throws IOException {
 
-	if (len <= 0 || off < 0 | off + len > b.length) {
+	if (len <= 0 || off < 0 || off + len > b.length) {
 	    if (len == 0) {
 		return;
 	    }

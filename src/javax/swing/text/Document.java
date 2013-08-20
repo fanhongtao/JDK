@@ -1,7 +1,7 @@
 /*
- * @(#)Document.java	1.40 03/01/23
+ * @(#)Document.java	1.43 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -90,7 +90,7 @@ import javax.swing.event.*;
  * of the event.  Further, order of delivery is not guaranteed.
  * <p>
  * Notification is provided as two separate events, 
- * <a href="../event/DocumentEvent.html">DocumentEvent<a>, and
+ * <a href="../event/DocumentEvent.html">DocumentEvent</a>, and
  * <a href="../event/UndoableEditEvent.html">UndoableEditEvent</a>.
  * If a mutation is made to a <code>Document</code> through its api, 
  * a <code>DocumentEvent</code> will be sent to all of the registered 
@@ -154,7 +154,7 @@ import javax.swing.event.*;
  * The Element Interface</a>.
  *
  * @author  Timothy Prinzing
- * @version 1.40 01/23/03
+ * @version 1.43 12/19/03
  *
  * @see javax.swing.event.DocumentEvent
  * @see javax.swing.event.DocumentListener
@@ -430,14 +430,14 @@ public interface Document {
     public Element getDefaultRootElement();
 
     /**
-     * This allows the model to be safely rendered in the presence
-     * of currency, if the model supports being updated asynchronously.
+     * Allows the model to be safely rendered in the presence
+     * of concurrency, if the model supports being updated asynchronously.
      * The given runnable will be executed in a way that allows it
      * to safely read the model with no changes while the runnable
      * is being executed.  The runnable itself may <em>not</em>
      * make any mutations.  
      *
-     * @param r a Runnable used to render the model
+     * @param r a <code>Runnable</code> used to render the model
      */
     public void render(Runnable r);
 

@@ -1,7 +1,7 @@
 /*
- * @(#)JOptionPane.java	1.81 03/01/23
+ * @(#)JOptionPane.java	1.91 04/03/04
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,6 +20,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.awt.event.WindowListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ComponentAdapter;
@@ -28,6 +29,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Vector;
 import javax.swing.plaf.OptionPaneUI;
 import javax.swing.event.InternalFrameEvent;
@@ -265,10 +270,6 @@ import javax.accessibility.*;
  *     return CLOSED_OPTION;
  * </pre>
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JOptionPane"><code>JOptionPane</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -284,7 +285,7 @@ import javax.accessibility.*;
  *      attribute: isContainer true
  *    description: A component which implements standard dialog box controls.
  *
- * @version 1.81 01/23/03
+ * @version 1.91 03/04/04
  * @author James Gosling
  * @author Scott Violet
  */
@@ -427,6 +428,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @param message the <code>Object</code> to display
      * @param initialSelectionValue the value used to initialize the input
      *                 field
+     * @since 1.4
      */
     public static String showInputDialog(Object message, Object initialSelectionValue) {
         return showInputDialog(null, message, initialSelectionValue);
@@ -464,6 +466,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @param message the <code>Object</code> to display
      * @param initialSelectionValue the value used to initialize the input
      *                 field
+     * @since 1.4
      */
     public static String showInputDialog(Component parentComponent, Object message, 
 					 Object initialSelectionValue) {
@@ -901,6 +904,12 @@ public class JOptionPane extends JComponent implements Accessible
         } else {
             dialog = new JDialog((Dialog)window, title, true);
         }
+        dialog.setComponentOrientation(this.getComponentOrientation());
+ 	if (window instanceof SwingUtilities.SharedOwnerFrame) {
+	    WindowListener ownerShutdownListener =
+		(WindowListener)SwingUtilities.getSharedOwnerFrameShutdownListener();
+ 	    dialog.addWindowListener(ownerShutdownListener);
+ 	}
         Container             contentPane = dialog.getContentPane();
 
         contentPane.setLayout(new BorderLayout());
@@ -916,7 +925,7 @@ public class JOptionPane extends JComponent implements Accessible
         }
         dialog.pack();
         dialog.setLocationRelativeTo(parentComponent);
-        dialog.addWindowListener(new WindowAdapter() {
+        WindowAdapter adapter = new WindowAdapter() {
             private boolean gotFocus = false;
             public void windowClosing(WindowEvent we) {
                 setValue(null);
@@ -928,7 +937,9 @@ public class JOptionPane extends JComponent implements Accessible
                     gotFocus = true;
                 }
             }
-        });
+        };
+        dialog.addWindowListener(adapter);
+        dialog.addWindowFocusListener(adapter);
 	dialog.addComponentListener(new ComponentAdapter() {
             public void componentShown(ComponentEvent ce) {
 	        // reset value to ensure closing works properly
@@ -1123,7 +1134,7 @@ public class JOptionPane extends JComponent implements Accessible
      * @param optionType an integer designating the options available
      *		on the dialog:
      *          <code>YES_NO_OPTION</code>, or
-     *		<code>YES_NO_CANCEL_OPTION</code.
+     *		<code>YES_NO_CANCEL_OPTION</code>.
      * @param messageType an integer designating the kind of message this is, 
      *		primarily used to determine the icon from the pluggable
      *		Look and Feel: <code>ERROR_MESSAGE</code>,
@@ -1193,26 +1204,59 @@ public class JOptionPane extends JComponent implements Accessible
                                        String title, int optionType,
                                        int messageType, Icon icon,
                                        Object[] options, Object initialValue) {
-        JOptionPane             pane = new JOptionPane(message, messageType,
-                                                       optionType, icon,
-                                                       options, initialValue);
+        JOptionPane pane = new JOptionPane(message, messageType,
+                optionType, icon, options, initialValue);
+        pane.putClientProperty(PopupFactory.forceHeavyWeightPopupKey,
+                Boolean.TRUE);
         Component fo = KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                       getFocusOwner();
+                getFocusOwner();
 
         pane.setInitialValue(initialValue);
 
-        JInternalFrame   dialog = pane.createInternalFrame(parentComponent, title);
+        JInternalFrame dialog =
+            pane.createInternalFrame(parentComponent, title);
         pane.selectInitialValue();
-	dialog.setVisible(true);
-        dialog.startModal();
+        dialog.setVisible(true);
 
-	if (parentComponent instanceof JInternalFrame) {
-	  try {
-	    ((JInternalFrame)parentComponent).setSelected(true);
-	  } catch (java.beans.PropertyVetoException e) {}
+	/* Since all input will be blocked until this dialog is dismissed,
+	 * make sure its parent containers are visible first (this component
+	 * is tested below).  This is necessary for JApplets, because
+	 * because an applet normally isn't made visible until after its
+	 * start() method returns -- if this method is called from start(),
+	 * the applet will appear to hang while an invisible modal frame
+	 * waits for input.
+	 */
+	if (dialog.isVisible() && !dialog.isShowing()) {
+	    Container parent = dialog.getParent();
+	    while (parent != null) {
+		if (parent.isVisible() == false) {
+		    parent.setVisible(true);
+		}
+		parent = parent.getParent();
+	    }
 	}
 
-        Object        selectedValue = pane.getValue();
+        // Use reflection to get Container.startLWModal.
+        try {
+            Object obj;
+            obj = AccessController.doPrivileged(new ModalPrivilegedAction(
+                    Container.class, "startLWModal"));
+            if (obj != null) {
+                ((Method)obj).invoke(dialog, null);
+            }
+        } catch (IllegalAccessException ex) {
+        } catch (IllegalArgumentException ex) {
+        } catch (InvocationTargetException ex) {
+        }
+
+        if (parentComponent instanceof JInternalFrame) {
+            try {
+                ((JInternalFrame)parentComponent).setSelected(true);
+            } catch (java.beans.PropertyVetoException e) {
+            }
+        }
+
+        Object selectedValue = pane.getValue();
 
         if (fo != null && fo.isShowing()) {
             fo.requestFocus();
@@ -1301,29 +1345,62 @@ public class JOptionPane extends JComponent implements Accessible
      *		canceled the input
      */
     public static Object showInternalInputDialog(Component parentComponent,
-                      Object message, String title, int messageType, Icon icon,
-                      Object[] selectionValues, Object initialSelectionValue) {
-        JOptionPane             pane = new JOptionPane(message, messageType,
-                                                       OK_CANCEL_OPTION, icon,
-                                                       null, null);
+            Object message, String title, int messageType, Icon icon,
+            Object[] selectionValues, Object initialSelectionValue) {
+        JOptionPane pane = new JOptionPane(message, messageType,
+                OK_CANCEL_OPTION, icon, null, null);
+        pane.putClientProperty(PopupFactory.forceHeavyWeightPopupKey,
+                Boolean.TRUE);
         Component fo = KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                       getFocusOwner();
+                getFocusOwner();
 
         pane.setWantsInput(true);
         pane.setSelectionValues(selectionValues);
         pane.setInitialSelectionValue(initialSelectionValue);
 
-        JInternalFrame   dialog = pane.createInternalFrame(parentComponent, title);
+        JInternalFrame dialog =
+            pane.createInternalFrame(parentComponent, title);
 
         pane.selectInitialValue();
-	dialog.setVisible(true);
-        dialog.startModal();
+        dialog.setVisible(true);
 
-	if (parentComponent instanceof JInternalFrame) {
-	  try {
-	    ((JInternalFrame)parentComponent).setSelected(true);
-	  } catch (java.beans.PropertyVetoException e) {}
+	/* Since all input will be blocked until this dialog is dismissed,
+	 * make sure its parent containers are visible first (this component
+	 * is tested below).  This is necessary for JApplets, because
+	 * because an applet normally isn't made visible until after its
+	 * start() method returns -- if this method is called from start(),
+	 * the applet will appear to hang while an invisible modal frame
+	 * waits for input.
+	 */
+	if (dialog.isVisible() && !dialog.isShowing()) {
+	    Container parent = dialog.getParent();
+	    while (parent != null) {
+		if (parent.isVisible() == false) {
+		    parent.setVisible(true);
+		}
+		parent = parent.getParent();
+	    }
 	}
+
+        // Use reflection to get Container.startLWModal.
+        try {
+            Object obj;
+            obj = AccessController.doPrivileged(new ModalPrivilegedAction(
+                    Container.class, "startLWModal"));
+            if (obj != null) {
+                ((Method)obj).invoke(dialog, null);
+            }
+        } catch (IllegalAccessException ex) {
+        } catch (IllegalArgumentException ex) {
+        } catch (InvocationTargetException ex) {
+        }
+
+        if (parentComponent instanceof JInternalFrame) {
+            try {
+                ((JInternalFrame)parentComponent).setSelected(true);
+            } catch (java.beans.PropertyVetoException e) {
+            }
+        }
 
         if (fo != null && fo.isShowing()) {
             fo.requestFocus();
@@ -1358,18 +1435,20 @@ public class JOptionPane extends JComponent implements Accessible
      */
     public JInternalFrame createInternalFrame(Component parentComponent,
                                  String title) {
-        Container parent = JOptionPane.getDesktopPaneForComponent(parentComponent);
+        Container parent =
+                JOptionPane.getDesktopPaneForComponent(parentComponent);
 
         if (parent == null && (parentComponent == null || 
-                               (parent = parentComponent.getParent()) == null)) {
-            throw new RuntimeException("JOptionPane: parentComponent does not have a valid parent");
+                (parent = parentComponent.getParent()) == null)) {
+            throw new RuntimeException("JOptionPane: parentComponent does " +
+                    "not have a valid parent");
         }
 
         // Option dialogs should be closable only
         final JInternalFrame  iFrame = new JInternalFrame(title, false, true,
                                                            false, false);
 
-	iFrame.putClientProperty( "JInternalFrame.frameType", "optionDialog" ); //jcs
+        iFrame.putClientProperty("JInternalFrame.frameType", "optionDialog");
         iFrame.putClientProperty("JInternalFrame.messageType", 
                                  new Integer(getMessageType()));
 
@@ -1385,14 +1464,30 @@ public class JOptionPane extends JComponent implements Accessible
                 // Let the defaultCloseOperation handle the closing
                 // if the user closed the iframe without selecting a button
                 // (newValue = null in that case).  Otherwise, close the dialog.
-                if (iFrame.isVisible() && event.getSource() == JOptionPane.this &&
-                    event.getPropertyName().equals(VALUE_PROPERTY)) {
-                    try {
-                        iFrame.setClosed(true);
-                    } catch (java.beans.PropertyVetoException e) {}
+                if (iFrame.isVisible() &&
+                        event.getSource() == JOptionPane.this &&
+                        event.getPropertyName().equals(VALUE_PROPERTY)) {
+                // Use reflection to get Container.stopLWModal().
+                try {
+                    Object obj;
+                    obj = AccessController.doPrivileged(
+                        new ModalPrivilegedAction(
+                            Container.class, "stopLWModal"));
+                    if (obj != null) {
+                        ((Method)obj).invoke(iFrame, null);
+                    }
+                } catch (IllegalAccessException ex) {
+                } catch (IllegalArgumentException ex) {
+                } catch (InvocationTargetException ex) {
+                }
 
-                    iFrame.setVisible(false);
-                    iFrame.stopModal();
+                try {
+                    iFrame.setClosed(true);
+                } 
+                catch (java.beans.PropertyVetoException e) {
+                }
+
+                iFrame.setVisible(false);
                 }
             }
         });
@@ -1402,9 +1497,9 @@ public class JOptionPane extends JComponent implements Accessible
         } else {
             parent.add(iFrame, BorderLayout.CENTER);
         }
-        Dimension            iFrameSize = iFrame.getPreferredSize();
-        Dimension            rootSize = parent.getSize();
-	Dimension            parentSize = parentComponent.getSize();
+        Dimension iFrameSize = iFrame.getPreferredSize();
+        Dimension rootSize = parent.getSize();
+	Dimension parentSize = parentComponent.getSize();
 
        	iFrame.setBounds((rootSize.width - iFrameSize.width) / 2,
                          (rootSize.height - iFrameSize.height) / 2,
@@ -2342,6 +2437,31 @@ public class JOptionPane extends JComponent implements Accessible
         ",messageType=" + messageTypeString +
         ",optionType=" + optionTypeString +
         ",wantsInput=" + wantsInputString;
+    }
+
+    /**
+     * Retrieves a method from the provided class and makes it accessible.
+     */
+    private static class ModalPrivilegedAction implements PrivilegedAction {
+        private Class clazz;
+        private String methodName;
+
+        public ModalPrivilegedAction(Class clazz, String methodName) {
+            this.clazz = clazz;
+            this.methodName = methodName;
+        }
+
+        public Object run() {
+            Method method = null;
+            try {
+                method = clazz.getDeclaredMethod(methodName, null);
+            } catch (NoSuchMethodException ex) {
+            }
+            if (method != null) {
+                method.setAccessible(true);
+            }
+            return method;
+        }
     }
 
 

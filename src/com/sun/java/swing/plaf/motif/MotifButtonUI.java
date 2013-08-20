@@ -1,7 +1,7 @@
 /*
- * @(#)MotifButtonUI.java	1.24 03/01/23
+ * @(#)MotifButtonUI.java	1.26 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -24,7 +24,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.24 01/23/03
+ * @version 1.26 12/19/03
  * @author Rich Schiavi
  */
 public class MotifButtonUI extends BasicButtonUI {
@@ -58,7 +58,7 @@ public class MotifButtonUI extends BasicButtonUI {
 	    selectColor = UIManager.getColor(getPropertyPrefix() + "select");
 	    defaults_initialized = true;
 	}
-	b.setOpaque(false);
+        LookAndFeel.installProperty(b, "opaque", Boolean.FALSE);
     }
 
     protected void uninstallDefaults(AbstractButton b) {

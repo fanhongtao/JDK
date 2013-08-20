@@ -1,7 +1,7 @@
 /*
- * @(#)Policy.java	1.89 03/01/23
+ * @(#)Policy.java	1.94 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,11 +64,11 @@ import sun.security.util.SecurityConstants;
  * the desired Policy implementation class.
  * The Java security properties file is located in the file named
  * &lt;JAVA_HOME&gt;/lib/security/java.security, where &lt;JAVA_HOME&gt;
- * refers to the directory where the SDK was installed.
+ * refers to the directory where the JDK was installed.
  *
  * @author Roland Schemers
  * @author Gary Ellison
- * @version 1.89, 01/23/03
+ * @version 1.94, 06/28/04
  * @see java.security.CodeSource
  * @see java.security.PermissionCollection
  * @see java.security.SecureClassLoader
@@ -196,7 +196,7 @@ public abstract class Policy {
      * <code>SecurityPermission("setPolicy")</code>
      * permission to ensure it's ok to set the Policy.
      *
-     * @param policy the new system Policy object.
+     * @param p the new system Policy object.
      *
      * @throws SecurityException
      *        if a security manager exists and its
@@ -207,15 +207,17 @@ public abstract class Policy {
      * @see #getPolicy()
      *
      */
-    public static void setPolicy(Policy policy)
+    public static void setPolicy(Policy p)
     {
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) sm.checkPermission(
 				 new SecurityPermission("setPolicy"));
-	if (policy != null) {
-	    initPolicy(policy);
+	if (p != null) {
+	    initPolicy(p);
 	}
-	Policy.policy = policy;
+	synchronized (Policy.class) {
+	    Policy.policy = p;
+	}
     }
 
     /**
@@ -261,13 +263,13 @@ public abstract class Policy {
 	PermissionCollection policyPerms = null;
 	synchronized (p) {
 	   if (p.pdMapping == null) {
-		    p.pdMapping = new WeakHashMap();
+	       p.pdMapping = new WeakHashMap();
 	   }
 	}
 
 	if (policyDomain.getCodeSource() != null) {
 	    if (Policy.isSet()) {
-		    policyPerms = policy.getPermissions(policyDomain);
+		policyPerms = policy.getPermissions(policyDomain);
 	    }
 
 	    if (policyPerms == null) { // assume it has all
@@ -275,9 +277,9 @@ public abstract class Policy {
 		policyPerms.add(SecurityConstants.ALL_PERMISSION);
 	    }
 
-	    synchronized (p) {
-		    // cache of pd to permissions
-		    p.pdMapping.put(policyDomain, policyPerms);
+	    synchronized (p.pdMapping) {
+		// cache of pd to permissions
+		p.pdMapping.put(policyDomain, policyPerms);
 	    }
 	}
 	return;
@@ -334,8 +336,10 @@ public abstract class Policy {
 
 	if (pc != null) {
 	    Permissions perms = new Permissions();
-	    for (Enumeration e = pc.elements() ; e.hasMoreElements() ;) {
-		perms.add((Permission)e.nextElement());
+	    synchronized (pc) {
+		for (Enumeration e = pc.elements() ; e.hasMoreElements() ;) {
+		    perms.add((Permission)e.nextElement());
+		}
 	    }
 	    return perms;
 	}
@@ -355,9 +359,11 @@ public abstract class Policy {
     private void addStaticPerms(PermissionCollection perms,
 				PermissionCollection statics) {
 	if (statics != null) {
-	    Enumeration e = statics.elements();
-	    while (e.hasMoreElements()) {
-		perms.add((Permission)e.nextElement());
+	    synchronized (statics) {
+		Enumeration e = statics.elements();
+		while (e.hasMoreElements()) {
+		    perms.add((Permission)e.nextElement());
+		}
 	    }
 	}
     }
@@ -378,16 +384,13 @@ public abstract class Policy {
      */
     public boolean implies(ProtectionDomain domain, Permission permission) {
 	PermissionCollection pc;
-	WeakHashMap policyCache;
 
 	if (pdMapping == null) {
 	    initPolicy(this);
 	}
 
-	policyCache = pdMapping;
-
-	synchronized (policyCache) {
-	    pc = (PermissionCollection)policyCache.get(domain);
+	synchronized (pdMapping) {
+	    pc = (PermissionCollection)pdMapping.get(domain);
 	}
 
 	if (pc != null) {
@@ -399,9 +402,9 @@ public abstract class Policy {
 	    return false;
 	}
 
-	synchronized (policyCache) {
+	synchronized (pdMapping) {
 	    // cache it 
-	    policyCache.put(domain, pc);
+	    pdMapping.put(domain, pc);
 	}
 	
 	return pc.implies(permission);

@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystem.java	1.11 03/01/23
+ * @(#)FileSystem.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -209,7 +209,7 @@ abstract class FileSystem {
     static boolean useCanonPrefixCache = true;
 
     private static boolean getBooleanProperty(String prop, boolean defaultVal) {
-        String val = System.getProperty("sun.io.useCanonCaches");
+        String val = System.getProperty(prop);
         if (val == null) return defaultVal;
         if (val.equalsIgnoreCase("true")) {
             return true;

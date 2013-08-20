@@ -1,7 +1,7 @@
 /*
- * @(#)BevelBorder.java	1.18 03/01/23
+ * @(#)BevelBorder.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
@@ -14,7 +14,7 @@ import java.awt.Component;
 
 
 /**
- * A class which implements a simple 2 line bevel border.
+ * A class which implements a simple two-line bevel border.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -25,7 +25,7 @@ import java.awt.Component;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.18 01/23/03
+ * @version 1.20 12/19/03
  * @author David Kloba
  */
 public class BevelBorder extends AbstractBorder
@@ -63,8 +63,12 @@ public class BevelBorder extends AbstractBorder
     }
 
     /**
-     * Creates a bevel border with the specified type, highlight
+     * Creates a bevel border with the specified type, highlight and
      * shadow colors.
+     * <p>
+     * Note: The shadow inner and outer colors are
+     * switched for a lowered bevel border.
+     *
      * @param bevelType the type of bevel for the border
      * @param highlightOuterColor the color to use for the bevel outer highlight
      * @param highlightInnerColor the color to use for the bevel inner highlight

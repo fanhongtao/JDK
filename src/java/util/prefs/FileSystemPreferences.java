@@ -1,7 +1,7 @@
 /*
- * @(#)FileSystemPreferences.java	1.17 03/01/23
+ * @(#)FileSystemPreferences.java	1.20 04/02/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.security.PrivilegedActionException;
  * (The file lock is obtained only for sync(), flush() and removeNode().)
  *
  * @author  Josh Bloch
- * @version 1.17, 01/23/03
+ * @version 1.20, 02/16/04
  * @see     Preferences
  * @since   1.4
  */
@@ -163,7 +163,7 @@ class FileSystemPreferences extends AbstractPreferences {
                     if (!systemRootDir.exists()) {
                         if (systemRootDir.mkdirs()) {
                             getLogger().info(
-                                "Created system preferences directory"
+                                "Created system preferences directory "
                                 + "in java.home.");
                             try {
                                 chmod(systemRootDir.getCanonicalPath(),
@@ -465,7 +465,7 @@ class FileSystemPreferences extends AbstractPreferences {
 
     /**
      * Special constructor for roots (both user and system).  This constructor
-     * will only be called twice, by the static intializer.
+     * will only be called twice, by the static initializer.
      */
     private FileSystemPreferences(boolean user) {
         super(null, "");
@@ -916,7 +916,7 @@ class FileSystemPreferences extends AbstractPreferences {
     private void checkLockFile0ErrorCode (int errorCode) 
                                                       throws SecurityException {
         if (errorCode == EACCES)
-            throw new SecurityException("Could not lock" + 
+            throw new SecurityException("Could not lock " + 
             (isUserNode()? "User prefs." : "System prefs.") +
              "Lock file access denied.");
         if (errorCode != EAGAIN)

@@ -1,11 +1,14 @@
 /*
- * @(#)PrintStream.java	1.25 03/01/23
+ * @(#)PrintStream.java	1.32 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
+
+import java.util.Formatter;
+import java.util.Locale;
 
 
 /**
@@ -26,16 +29,19 @@ package java.io;
  * PrintWriter}</code> class should be used in situations that require writing
  * characters rather than bytes.
  *
- * @version    1.25, 03/01/23
+ * @version    1.32, 04/07/16
  * @author     Frank Yellin
  * @author     Mark Reinhold
  * @since      JDK1.0
  */
 
-public class PrintStream extends FilterOutputStream {
+public class PrintStream extends FilterOutputStream
+    implements Appendable, Closeable
+{
 
     private boolean autoFlush = false;
     private boolean trouble = false;
+    private Formatter formatter;
 
     /**
      * Track both the text- and character-output streams, so that their buffers
@@ -115,6 +121,150 @@ public class PrintStream extends FilterOutputStream {
     {
 	this(autoFlush, out);
 	init(new OutputStreamWriter(this, encoding));
+    }
+
+    /**
+     * Creates a new print stream, without automatic line flushing, with the
+     * specified file name.  This convenience constructor creates
+     * the necessary intermediate {@link java.io.OutputStreamWriter
+     * OutputStreamWriter}, which will encode characters using the
+     * {@linkplain java.nio.charset.Charset#defaultCharset default charset}
+     * for this instance of the Java virtual machine.
+     *
+     * @param  fileName
+     *         The name of the file to use as the destination of this print
+     *         stream.  If the file exists, then it will be truncated to
+     *         zero size; otherwise, a new file will be created.  The output
+     *         will be written to the file and is buffered.
+     *
+     * @throws  FileNotFoundException
+     *          If the given file object does not denote an existing, writable
+     *          regular file and a new regular file of that name cannot be
+     *          created, or if some other error occurs while opening or
+     *          creating the file
+     *
+     * @throws  SecurityException
+     *          If a security manager is present and {@link
+     *          SecurityManager#checkWrite checkWrite(fileName)} denies write
+     *          access to the file
+     *
+     * @since  1.5
+     */
+    public PrintStream(String fileName) throws FileNotFoundException {
+	this(false, new FileOutputStream(fileName));
+	init(new OutputStreamWriter(this));
+    }
+
+    /**
+     * Creates a new print stream, without automatic line flushing, with the
+     * specified file name and charset.  This convenience constructor creates
+     * the necessary intermediate {@link java.io.OutputStreamWriter
+     * OutputStreamWriter}, which will encode characters using the provided
+     * charset.
+     *
+     * @param  fileName
+     *         The name of the file to use as the destination of this print
+     *         stream.  If the file exists, then it will be truncated to
+     *         zero size; otherwise, a new file will be created.  The output
+     *         will be written to the file and is buffered.
+     *
+     * @param  csn
+     *         The name of a supported {@linkplain java.nio.charset.Charset
+     *         charset}
+     *
+     * @throws  FileNotFoundException
+     *          If the given file object does not denote an existing, writable
+     *          regular file and a new regular file of that name cannot be
+     *          created, or if some other error occurs while opening or
+     *          creating the file
+     *
+     * @throws  SecurityException
+     *          If a security manager is present and {@link
+     *          SecurityManager#checkWrite checkWrite(fileName)} denies write
+     *          access to the file
+     *
+     * @throws  UnsupportedEncodingException
+     *          If the named charset is not supported
+     *
+     * @since  1.5
+     */
+    public PrintStream(String fileName, String csn)
+	throws FileNotFoundException, UnsupportedEncodingException
+    {
+	this(false, new FileOutputStream(fileName));
+	init(new OutputStreamWriter(this, csn));
+    }
+
+    /**
+     * Creates a new print stream, without automatic line flushing, with the
+     * specified file.  This convenience constructor creates the necessary
+     * intermediate {@link java.io.OutputStreamWriter OutputStreamWriter},
+     * which will encode characters using the {@linkplain
+     * java.nio.charset.Charset#defaultCharset default charset} for this
+     * instance of the Java virtual machine.
+     *
+     * @param  file
+     *         The file to use as the destination of this print stream.  If the
+     *         file exists, then it will be truncated to zero size; otherwise,
+     *         a new file will be created.  The output will be written to the
+     *         file and is buffered.
+     *
+     * @throws  FileNotFoundException
+     *          If the given file object does not denote an existing, writable
+     *          regular file and a new regular file of that name cannot be
+     *          created, or if some other error occurs while opening or
+     *          creating the file
+     *
+     * @throws  SecurityException
+     *          If a security manager is present and {@link
+     *          SecurityManager#checkWrite checkWrite(file.getPath())}
+     *          denies write access to the file
+     *
+     * @since  1.5
+     */
+    public PrintStream(File file) throws FileNotFoundException {
+	this(false, new FileOutputStream(file));
+	init(new OutputStreamWriter(this));
+    }
+
+    /**
+     * Creates a new print stream, without automatic line flushing, with the
+     * specified file and charset.  This convenience constructor creates
+     * the necessary intermediate {@link java.io.OutputStreamWriter
+     * OutputStreamWriter}, which will encode characters using the provided
+     * charset.
+     *
+     * @param  file
+     *         The file to use as the destination of this print stream.  If the
+     *         file exists, then it will be truncated to zero size; otherwise,
+     *         a new file will be created.  The output will be written to the
+     *         file and is buffered.
+     *
+     * @param  csn
+     *         The name of a supported {@linkplain java.nio.charset.Charset
+     *         charset}
+     *
+     * @throws  FileNotFoundException
+     *          If the given file object does not denote an existing, writable
+     *          regular file and a new regular file of that name cannot be
+     *          created, or if some other error occurs while opening or
+     *          creating the file
+     *
+     * @throws  SecurityException
+     *          If a security manager is presentand {@link
+     *          SecurityManager#checkWrite checkWrite(file.getPath())}
+     *          denies write access to the file
+     *
+     * @throws  UnsupportedEncodingException
+     *          If the named charset is not supported
+     *
+     * @since  1.5
+     */
+    public PrintStream(File file, String csn)
+	throws FileNotFoundException, UnsupportedEncodingException
+    {
+	this(false, new FileOutputStream(file));
+	init(new OutputStreamWriter(this, csn));
     }
 
     /** Check to make sure that the stream has not been closed */
@@ -198,6 +348,10 @@ public class PrintStream extends FilterOutputStream {
      */
     protected void setError() {
 	trouble = true;
+	try {
+	    throw new IOException();
+	} catch (IOException x) {
+	}
     }
 
 
@@ -425,7 +579,7 @@ public class PrintStream extends FilterOutputStream {
      * <code>{@link #write(int)}</code> method.
      *
      * @param      s   The array of chars to be printed
-     * 
+     *
      * @throws  NullPointerException  If <code>s</code> is <code>null</code>
      */
     public void print(char s[]) {
@@ -599,6 +753,306 @@ public class PrintStream extends FilterOutputStream {
 	    print(x);
 	    newLine();
 	}
+    }
+
+    /**
+     * A convenience method to write a formatted string to this output stream
+     * using the specified format string and arguments.
+     *
+     * <p> An invocation of this method of the form <tt>out.printf(format,
+     * args)</tt> behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.format(format, args) </pre>
+     *
+     * @param  format
+     *         A format string as described in <a
+     *         href="../util//Formatter.html#syntax">Format string syntax</a>
+     *
+     * @param  args
+     *         Arguments referenced by the format specifiers in the format
+     *         string.  If there are more arguments than format specifiers, the
+     *         extra arguments are ignored.  The number of arguments is
+     *         variable and may be zero.  The maximum number of arguments is
+     *         limited by the maximum dimension of a Java array as defined by
+     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
+     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <tt>null</tt> argument depends on the <a
+     *         href="../util/Formatter.html#syntax">conversion</a>.
+     *
+     * @throws  IllegalFormatException
+     *          If a format string contains an illegal syntax, a format
+     *          specifier that is incompatible with the given arguments,
+     *          insufficient arguments given the format string, or other
+     *          illegal conditions.  For specification of all possible
+     *          formatting errors, see the <a
+     *          href="../util/Formatter.html#detail">Details</a> section of the
+     *          formatter class specification.
+     *
+     * @throws  NullPointerException
+     *          If the <tt>format</tt> is <tt>null</tt>
+     *
+     * @return  This output stream
+     *
+     * @since  1.5
+     */
+    public PrintStream printf(String format, Object ... args) {
+	return format(format, args);
+    }
+
+    /**
+     * A convenience method to write a formatted string to this output stream
+     * using the specified format string and arguments.
+     *
+     * <p> An invocation of this method of the form <tt>out.printf(l, format,
+     * args)</tt> behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.format(l, format, args) </pre>
+     *
+     * @param  l
+     *         The {@linkplain java.util.Locale locale} to apply during
+     *         formatting.  If <tt>l</tt> is <tt>null</tt> then no localization
+     *         is applied.
+     *
+     * @param  format
+     *         A format string as described in <a
+     *         href="../util/Formatter.html#syntax">Format string syntax</a>
+     *
+     * @param  args
+     *         Arguments referenced by the format specifiers in the format
+     *         string.  If there are more arguments than format specifiers, the
+     *         extra arguments are ignored.  The number of arguments is
+     *         variable and may be zero.  The maximum number of arguments is
+     *         limited by the maximum dimension of a Java array as defined by
+     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
+     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <tt>null</tt> argument depends on the <a
+     *         href="../util/Formatter.html#syntax">conversion</a>.
+     *
+     * @throws  IllegalFormatException
+     *          If a format string contains an illegal syntax, a format
+     *          specifier that is incompatible with the given arguments,
+     *          insufficient arguments given the format string, or other
+     *          illegal conditions.  For specification of all possible
+     *          formatting errors, see the <a
+     *          href="../util/Formatter.html#detail">Details</a> section of the
+     *          formatter class specification.
+     *
+     * @throws  NullPointerException
+     *          If the <tt>format</tt> is <tt>null</tt>
+     *
+     * @return  This output stream
+     *
+     * @since  1.5
+     */
+    public PrintStream printf(Locale l, String format, Object ... args) {
+	return format(l, format, args);
+    }
+
+    /**
+     * Writes a formatted string to this output stream using the specified
+     * format string and arguments.
+     *
+     * <p> The locale always used is the one returned by {@link
+     * java.util.Locale#getDefault() Locale.getDefault()}, regardless of any
+     * previous invocations of other formatting methods on this object.
+     *
+     * @param  format
+     *         A format string as described in <a
+     *         href="../util/Formatter.html#syntax">Format string syntax</a>
+     *
+     * @param  args
+     *         Arguments referenced by the format specifiers in the format
+     *         string.  If there are more arguments than format specifiers, the
+     *         extra arguments are ignored.  The number of arguments is
+     *         variable and may be zero.  The maximum number of arguments is
+     *         limited by the maximum dimension of a Java array as defined by
+     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
+     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <tt>null</tt> argument depends on the <a
+     *         href="../util/Formatter.html#syntax">conversion</a>.
+     *
+     * @throws  IllegalFormatException
+     *          If a format string contains an illegal syntax, a format
+     *          specifier that is incompatible with the given arguments,
+     *          insufficient arguments given the format string, or other
+     *          illegal conditions.  For specification of all possible
+     *          formatting errors, see the <a
+     *          href="../util/Formatter.html#detail">Details</a> section of the
+     *          formatter class specification.
+     *
+     * @throws  NullPointerException
+     *          If the <tt>format</tt> is <tt>null</tt>
+     *
+     * @return  This output stream
+     *
+     * @since  1.5
+     */
+    public PrintStream format(String format, Object ... args) {
+	try {
+	    synchronized (this) {
+		ensureOpen();
+		if ((formatter == null)
+		    || (formatter.locale() != Locale.getDefault()))
+		    formatter = new Formatter((Appendable) this);
+		formatter.format(Locale.getDefault(), format, args);
+	    }
+	} catch (InterruptedIOException x) {
+	    Thread.currentThread().interrupt();
+	} catch (IOException x) {
+	    trouble = true;
+	}
+	return this;
+    }
+
+    /**
+     * Writes a formatted string to this output stream using the specified
+     * format string and arguments.
+     *
+     * @param  l
+     *         The {@linkplain java.util.Locale locale} to apply during
+     *         formatting.  If <tt>l</tt> is <tt>null</tt> then no localization
+     *         is applied.
+     *
+     * @param  format
+     *         A format string as described in <a
+     *         href="../util/Formatter.html#syntax">Format string syntax</a>
+     *
+     * @param  args
+     *         Arguments referenced by the format specifiers in the format
+     *         string.  If there are more arguments than format specifiers, the
+     *         extra arguments are ignored.  The number of arguments is
+     *         variable and may be zero.  The maximum number of arguments is
+     *         limited by the maximum dimension of a Java array as defined by
+     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
+     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <tt>null</tt> argument depends on the <a
+     *         href="../util/Formatter.html#syntax">conversion</a>.
+     *
+     * @throws  IllegalFormatException
+     *          If a format string contains an illegal syntax, a format
+     *          specifier that is incompatible with the given arguments,
+     *          insufficient arguments given the format string, or other
+     *          illegal conditions.  For specification of all possible
+     *          formatting errors, see the <a
+     *          href="../util/Formatter.html#detail">Details</a> section of the
+     *          formatter class specification.
+     *
+     * @throws  NullPointerException
+     *          If the <tt>format</tt> is <tt>null</tt>
+     *
+     * @return  This output stream
+     *
+     * @since  1.5
+     */
+    public PrintStream format(Locale l, String format, Object ... args) {
+	try {
+	    synchronized (this) {
+		ensureOpen();
+		if ((formatter == null)
+		    || (formatter.locale() != l))
+		    formatter = new Formatter(this, l);
+		formatter.format(l, format, args);
+	    }
+	} catch (InterruptedIOException x) {
+	    Thread.currentThread().interrupt();
+	} catch (IOException x) {
+	    trouble = true;
+	}
+	return this;
+    }
+
+    /**
+     * Appends the specified character sequence to this output stream.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(csq)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.print(csq.toString()) </pre>
+     *
+     * <p> Depending on the specification of <tt>toString</tt> for the
+     * character sequence <tt>csq</tt>, the entire sequence may not be
+     * appended.  appended.  For instance, invoking then <tt>toString</tt>
+     * method of a character buffer will return a subsequence whose content
+     * depends upon the buffer's position and limit.
+     *
+     * @param  csq
+     *         The character sequence to append.  If <tt>csq</tt> is
+     *         <tt>null</tt>, then the four characters <tt>"null"</tt> are
+     *         appended to this output stream.
+     *
+     * @return  This character stream
+     *
+     * @since  1.5
+     */
+    public PrintStream append(CharSequence csq) {
+	if (csq == null)
+	    print("null");
+	else
+	    print(csq.toString());
+    	return this;
+    }
+
+    /**
+     * Appends a subsequence of the specified character sequence to this output
+     * stream. 
+     * 
+     * <p> An invocation of this method of the form <tt>out.append(csq, start,
+     * end)</tt> when <tt>csq</tt> is not <tt>null</tt>, behaves in
+     * exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.print(csq.subSequence(start, end).toString()) </pre>
+     *
+     * @param  csq
+     *         The character sequence from which a subsequence will be
+     *         appended.  If <tt>csq</tt> is <tt>null</tt>, then characters
+     *         will be appended as if <tt>csq</tt> contained the four
+     *         characters <tt>"null"</tt>.
+     *
+     * @param  start
+     *         The index of the first character in the subsequence
+     *
+     * @param  end
+     *         The index of the character following the last character in the
+     *         subsequence
+     *
+     * @return  This character stream
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If <tt>start</tt> or <tt>end</tt> are negative, <tt>start</tt>
+     *          is greater than <tt>end</tt>, or <tt>end</tt> is greater than
+     *          <tt>csq.length()</tt>
+     *
+     * @since  1.5
+     */
+    public PrintStream append(CharSequence csq, int start, int end) {
+	CharSequence cs = (csq == null ? "null" : csq);
+	write(cs.subSequence(start, end).toString());
+    	return this;
+    }
+    
+    /**
+     * Appends the specified character to this output stream.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(c)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.print(c) </pre>
+     *
+     * @param  c
+     *         The 16-bit character to append
+     *
+     * @return  This output stream
+     *
+     * @since 1.5
+     */
+    public PrintStream append(char c) {
+	print(c);
+	return this;
     }
 
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)PlainDatagramSocketImpl.java	1.37 03/01/23
+ * @(#)PlainDatagramSocketImpl.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,6 +36,25 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
     private boolean loopbackMode = true;
     private int ttl = -1;
 
+    /* Used for IPv6 on Windows only */
+    private FileDescriptor fd1;
+    private int fduse=-1; /* saved between peek() and receive() calls */
+
+    /* saved between successive calls to receive, if data is detected
+     * on both sockets at same time. To ensure that one socket is not
+     * starved, they rotate using this field
+     */
+    private int lastfd=-1; 
+
+    /*
+     * Needed for ipv6 on windows because we need to know
+     * if the socket was bound to ::0 or 0.0.0.0, when a caller
+     * asks for it. In this case, both sockets are used, but we
+     * don't know whether the caller requested ::0 or 0.0.0.0
+     * and need to remember it here.
+     */
+    private InetAddress anyLocalBoundAddr=null;
+
     /**
      * Load net library into runtime.
      */
@@ -50,13 +69,23 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      */
     protected synchronized void create() throws SocketException {
 	fd = new FileDescriptor();
+	fd1 = new FileDescriptor();
 	datagramSocketCreate();
     }
 
     /**
      * Binds a datagram socket to a local port.
      */
-    protected synchronized native void bind(int lport, InetAddress laddr)
+    protected synchronized void bind(int lport, InetAddress laddr) 
+        throws SocketException {
+	
+	bind0(lport, laddr);
+	if (laddr.isAnyLocalAddress()) {
+	    anyLocalBoundAddr = laddr;
+	}
+    }
+
+    protected synchronized native void bind0(int lport, InetAddress laddr)
         throws SocketException;
 
     /**
@@ -85,7 +114,7 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      * not connected already.
      */
     protected void disconnect() {
-	disconnect0();
+	disconnect0(connectedAddress.family);
 	connected = false;
 	connectedAddress = null;
 	connectedPort = -1;
@@ -101,7 +130,16 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      * Receive the datagram packet.
      * @param Packet Received.
      */
-    protected synchronized native void receive(DatagramPacket p)
+    protected synchronized void receive(DatagramPacket p) 
+        throws IOException {
+	try {
+	    receive0(p);
+	} finally {
+	    fduse = -1;
+	}
+    }
+
+    protected synchronized native void receive0(DatagramPacket p)
         throws IOException;
 
     /**
@@ -183,9 +221,10 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      * Close the socket.
      */
     protected void close() {
-	if (fd != null) {
+	if (fd != null || fd1 != null) {
 	    datagramSocketClose();
 	    fd = null;
+	    fd1 = null;
 	}
     }
 
@@ -199,7 +238,7 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      */
 
      public void setOption(int optID, Object o) throws SocketException {
-         if (fd == null) {
+         if (fd == null && fd1 == null) {
             throw new SocketException("Socket Closed");
          }
 	 switch (optID) {
@@ -265,7 +304,7 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
      */
 
     public Object getOption(int optID) throws SocketException {
-        if (fd == null) {
+        if (fd == null && fd1 == null) {
             throw new SocketException("Socket Closed");
         }
 
@@ -284,6 +323,10 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
 		break;
 
 	    case SO_BINDADDR:
+		if (fd != null && fd1 != null) {
+		    return anyLocalBoundAddr;	
+		}
+		/* fall through */
 	    case IP_MULTICAST_IF:
 	    case IP_MULTICAST_IF2:
 	    case SO_RCVBUF:
@@ -308,7 +351,7 @@ class PlainDatagramSocketImpl extends DatagramSocketImpl
     private native Object socketGetOption(int opt) throws SocketException;
 
     private native void connect0(InetAddress address, int port) throws SocketException;
-    private native void disconnect0();
+    private native void disconnect0(int family);
 
     /**
      * Perform class load-time initializations.

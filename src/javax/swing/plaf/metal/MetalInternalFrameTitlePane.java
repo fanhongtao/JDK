@@ -1,12 +1,13 @@
 /*
- * @(#)MetalInternalFrameTitlePane.java	1.51 03/01/23
+ * @(#)MetalInternalFrameTitlePane.java	1.57 04/03/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -20,7 +21,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 /**
  * Class that manages a JLF title bar
- * @version 1.51 01/23/03
+ * @version 1.57 03/17/04
  * @author Steve Wilson
  * @author Brian Beck
  * @since 1.3
@@ -61,11 +62,13 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         = new MetalBumps( 0, 0,
                           MetalLookAndFeel.getPrimaryControlHighlight(),
                           MetalLookAndFeel.getPrimaryControlDarkShadow(),
+          (UIManager.get("InternalFrame.activeTitleGradient") != null) ? null :
                           MetalLookAndFeel.getPrimaryControl() );
     MetalBumps inactiveBumps 
         = new MetalBumps( 0, 0,
                           MetalLookAndFeel.getControlHighlight(),
                           MetalLookAndFeel.getControlDarkShadow(),
+        (UIManager.get("InternalFrame.inactiveTitleGradient") != null) ? null :
                           MetalLookAndFeel.getControl() );
     MetalBumps paletteBumps;
 
@@ -95,6 +98,9 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         paletteCloseIcon = UIManager.getIcon("InternalFrame.paletteCloseIcon");
         wasClosable = frame.isClosable();
         selectedForegroundKey = selectedBackgroundKey = null;
+        if (MetalLookAndFeel.usingOcean()) {
+            setOpaque(true);
+        }
     }
     
     protected void uninstallDefaults() {
@@ -110,23 +116,22 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         Boolean paintActive = frame.isSelected() ? Boolean.TRUE:Boolean.FALSE;
         iconButton.putClientProperty("paintActive", paintActive);
         iconButton.setBorder(handyEmptyBorder);
-        iconButton.getAccessibleContext().setAccessibleName(
-            UIManager.getString(
-                "InternalFrameTitlePane.iconifyButtonAccessibleName"));
     
         maxButton.putClientProperty("paintActive", paintActive);
         maxButton.setBorder(handyEmptyBorder);
-        maxButton.getAccessibleContext().setAccessibleName(
-            UIManager.getString("InternalFrameTitlePane.maximizeButtonAccessibleName"));
         
         closeButton.putClientProperty("paintActive", paintActive);
         closeButton.setBorder(handyEmptyBorder);
-        closeButton.getAccessibleContext().setAccessibleName(
-            UIManager.getString("InternalFrameTitlePane.closeButtonAccessibleName"));
 
         // The palette close icon isn't opaque while the regular close icon is.
         // This makes sure palette close buttons have the right background.
         closeButton.setBackground(MetalLookAndFeel.getPrimaryControlShadow());
+
+        if (MetalLookAndFeel.usingOcean()) {
+            iconButton.setContentAreaFilled(false);
+            maxButton.setContentAreaFilled(false);
+            closeButton.setContentAreaFilled(false);
+        }
     }
 
     /**
@@ -204,14 +209,15 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
                 width += 16 + (frame.isMaximizable() ? 2 :
                     (frame.isClosable() ? 10 : 4));
             }
-            FontMetrics fm = getFontMetrics(getFont());
+            FontMetrics fm = frame.getFontMetrics(getFont());
             String frameTitle = frame.getTitle();
-            int title_w = frameTitle != null ? fm.stringWidth(frameTitle) : 0;
+            int title_w = frameTitle != null ? SwingUtilities2.stringWidth(
+                               frame, fm, frameTitle) : 0;
             int title_length = frameTitle != null ? frameTitle.length() : 0;
 
             if (title_length > 2) {
-                int subtitle_w =
-                    fm.stringWidth(frame.getTitle().substring(0, 2) + "...");
+                int subtitle_w = SwingUtilities2.stringWidth(frame, fm,
+                                     frame.getTitle().substring(0, 2) + "...");
                 width += (title_w < subtitle_w) ? title_w : subtitle_w;
             }
             else {
@@ -331,8 +337,14 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         Color shadow = null;
 
         MetalBumps bumps;
+        String gradientKey;
 
         if (isSelected) {
+            if (!MetalLookAndFeel.usingOcean()) {
+                closeButton.setContentAreaFilled(true);
+                maxButton.setContentAreaFilled(true);
+                iconButton.setContentAreaFilled(true);
+            }
             if (selectedBackgroundKey != null) {
                 background = UIManager.getColor(selectedBackgroundKey);
             }
@@ -352,17 +364,28 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
                 foreground = MetalLookAndFeel.getWindowTitleForeground();
             }
             activeBumps.setBumpColors(activeBumpsHighlight, activeBumpsShadow,
-                                      background);
+                        UIManager.get("InternalFrame.activeTitleGradient") !=
+                                      null ? null : background);
             bumps = activeBumps;
+            gradientKey = "InternalFrame.activeTitleGradient";
         } else {
+            if (!MetalLookAndFeel.usingOcean()) {
+                closeButton.setContentAreaFilled(false);
+                maxButton.setContentAreaFilled(false);
+                iconButton.setContentAreaFilled(false);
+            }
             background = MetalLookAndFeel.getWindowTitleInactiveBackground();
             foreground = MetalLookAndFeel.getWindowTitleInactiveForeground();
             shadow = MetalLookAndFeel.getControlDarkShadow();
             bumps = inactiveBumps;
+            gradientKey = "InternalFrame.inactiveTitleGradient";
         }
 
-        g.setColor(background);
-        g.fillRect(0, 0, width, height);
+        if (!MetalUtils.drawGradient(this, g, gradientKey, 0, 0, width,
+                                     height, true)) {
+            g.setColor(background);
+            g.fillRect(0, 0, width, height);
+        }
 
         g.setColor( shadow );
         g.drawLine ( 0, height - 1, width, height -1);
@@ -386,7 +409,7 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
         if(frameTitle != null) {
             Font f = getFont();
             g.setFont(f);
-            FontMetrics fm = g.getFontMetrics();
+            FontMetrics fm = SwingUtilities2.getFontMetrics(frame, g, f);
             int fHeight = fm.getHeight();
 
             g.setColor(foreground);
@@ -408,11 +431,11 @@ public class MetalInternalFrameTitlePane  extends BasicInternalFrameTitlePane {
             } else {
               titleW = xOffset - rect.x - rect.width - 4;
               frameTitle = getTitle(frameTitle, fm, titleW);
-              xOffset -= SwingUtilities.computeStringWidth(fm, frameTitle);
+              xOffset -= SwingUtilities2.stringWidth(frame, fm, frameTitle);
             }
 
-            titleLength = SwingUtilities.computeStringWidth(fm, frameTitle);
-            g.drawString( frameTitle, xOffset, yOffset );
+            titleLength = SwingUtilities2.stringWidth(frame, fm, frameTitle);
+            SwingUtilities2.drawString(frame, g, frameTitle, xOffset, yOffset);
             xOffset += leftToRight ? titleLength + 5  : -5;
         }
   

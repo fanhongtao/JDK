@@ -1,7 +1,7 @@
 /*
- * @(#)JSlider.java	1.99 03/01/23
+ * @(#)JSlider.java	1.105 04/05/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,9 +32,6 @@ import java.beans.*;
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/slider.html">How to Use Sliders</a>,
  * a section in <em>The Java Tutorial.</em>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JSlider"><code>JSlider</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -49,7 +46,7 @@ import java.beans.*;
  *      attribute: isContainer false
  *    description: A component that supports selecting a integer value from a range.
  * 
- * @version 1.99 01/23/03
+ * @version 1.105 05/12/04
  * @author David Kloba
  */
 public class JSlider extends JComponent implements SwingConstants, Accessible {
@@ -697,6 +694,7 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
             class LabelUIResource extends JLabel implements UIResource {
                 public LabelUIResource( String text, int alignment ) {
                     super( text, alignment );
+                    setName("Slider.label");
                 }
             }
 
@@ -1181,13 +1179,12 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
          * @return True if the value was set.
          */
         public boolean setCurrentAccessibleValue(Number n) {
-            if (n instanceof Integer) {
-                setValue(n.intValue());
-                return true;
-            }
-            else {
-                return false;
-            }
+	    // TIGER - 4422535 
+            if (n == null) {
+		return false;
+	    }
+	    setValue(n.intValue());
+	    return true;
         }
 
         /**
@@ -1205,7 +1202,9 @@ public class JSlider extends JComponent implements SwingConstants, Accessible {
          * @return The maximum value of this object.
          */
         public Number getMaximumAccessibleValue() {
-            return new Integer(getMaximum());
+	    // TIGER - 4422362
+	    BoundedRangeModel model = JSlider.this.getModel();
+            return new Integer(model.getMaximum() - model.getExtent());
         }
     } // AccessibleJSlider
 }

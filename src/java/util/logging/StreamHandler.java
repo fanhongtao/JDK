@@ -1,7 +1,7 @@
 /*
- * @(#)StreamHandler.java	1.13 03/01/27
+ * @(#)StreamHandler.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.io.*;
  *	  the default platform encoding).
  * </ul>
  *
- * @version 1.13, 01/27/03
+ * @version 1.18, 12/19/03
  * @since 1.4
  */
 
@@ -52,7 +52,7 @@ public class StreamHandler extends Handler {
     // javadoc.
     private void configure() {
         LogManager manager = LogManager.getLogManager();
-	String cname = StreamHandler.class.getName();
+	String cname = getClass().getName();
 
 	setLevel(manager.getLevelProperty(cname +".level", Level.INFO));
 	setFilter(manager.getFilterProperty(cname +".filter", null));
@@ -167,7 +167,8 @@ public class StreamHandler extends Handler {
      * <tt>OutputStream</tt>, the <tt>Formatter</tt>'s "head" string is 
      * written to the stream before the <tt>LogRecord</tt> is written.
      *
-     * @param  record  description of the log event
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     public synchronized void publish(LogRecord record) {
 	if (!isLoggable(record)) {
@@ -202,14 +203,14 @@ public class StreamHandler extends Handler {
      * <p>
      * This method checks if the <tt>LogRecord</tt> has an appropriate level and 
      * whether it satisfies any <tt>Filter</tt>.  It will also return false if
-     * no output stream has been assigned yet.
+     * no output stream has been assigned yet or the LogRecord is Null.
      * <p>
      * @param record  a <tt>LogRecord</tt>
      * @return true if the <tt>LogRecord</tt> would be logged.
      *
      */
     public boolean isLoggable(LogRecord record) {
-	if (writer == null) {
+	if (writer == null || record == null) {
 	    return false;
 	}
 	return super.isLoggable(record);

@@ -1,7 +1,7 @@
 /*
- * @(#)Method.java	1.36 03/01/23
+ * @(#)Method.java	1.50 04/06/22
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,16 @@ package java.lang.reflect;
 
 import sun.reflect.MethodAccessor;
 import sun.reflect.Reflection;
+import sun.reflect.generics.repository.MethodRepository;
+import sun.reflect.generics.factory.CoreReflectionFactory;
+import sun.reflect.generics.factory.GenericsFactory;
+import sun.reflect.generics.scope.MethodScope;
+import sun.reflect.annotation.AnnotationType;
+import sun.reflect.annotation.AnnotationParser;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.AnnotationFormatError;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * A <code>Method</code> provides information about, and access to, a single method
@@ -16,7 +26,7 @@ import sun.reflect.Reflection;
  * or an instance method (including an abstract method).
  *
  * <p>A <code>Method</code> permits widening conversions to occur when matching the
- * actual parameters to invokewith the underlying method's formal
+ * actual parameters to invoke with the underlying method's formal
  * parameters, but it throws an <code>IllegalArgumentException</code> if a
  * narrowing conversion would occur.
  *
@@ -31,7 +41,9 @@ import sun.reflect.Reflection;
  * @author Nakul Saraiya
  */
 public final
-class Method extends AccessibleObject implements Member {
+    class Method extends AccessibleObject implements GenericDeclaration, 
+						     Member {
+
 
     private Class		clazz;
     private int			slot;
@@ -42,6 +54,13 @@ class Method extends AccessibleObject implements Member {
     private Class[]		parameterTypes;
     private Class[]		exceptionTypes;
     private int			modifiers;
+    // Generics and annotations support
+    private transient String              signature;
+    // generic info repository; lazily initialized
+    private transient MethodRepository genericInfo;
+    private byte[]              annotations;
+    private byte[]              parameterAnnotations;
+    private byte[]              annotationDefault;
     private volatile MethodAccessor methodAccessor;
     // For sharing of MethodAccessors. This branching structure is
     // currently only two levels deep (i.e., one root Method and
@@ -51,6 +70,27 @@ class Method extends AccessibleObject implements Member {
     // More complicated security check cache needed here than for
     // Class.newInstance() and Constructor.newInstance()
     private volatile Class      securityCheckTargetClassCache;
+
+    // Generics infrastructure
+
+    private String getGenericSignature() {return signature;}
+
+    // Accessor for factory
+    private GenericsFactory getFactory() {
+	// create scope and factory
+	return CoreReflectionFactory.make(this, MethodScope.make(this)); 
+    }
+
+    // Accessor for generic info repository
+    private MethodRepository getGenericInfo() {
+	// lazily initialize repository if necessary
+	if (genericInfo == null) {
+	    // create and cache generic info repository
+	    genericInfo = MethodRepository.make(getGenericSignature(), 
+						getFactory());
+	}
+	return genericInfo; //return cached repository
+    }
 
     /**
      * Package-private constructor used by ReflectAccess to enable
@@ -63,7 +103,11 @@ class Method extends AccessibleObject implements Member {
            Class returnType,
            Class[] checkedExceptions,
            int modifiers,
-           int slot)
+           int slot,
+           String signature,
+           byte[] annotations,
+           byte[] parameterAnnotations,
+           byte[] annotationDefault)
     {
         this.clazz = declaringClass;
         this.name = name;
@@ -72,6 +116,10 @@ class Method extends AccessibleObject implements Member {
         this.exceptionTypes = checkedExceptions;
         this.modifiers = modifiers;
         this.slot = slot;
+        this.signature = signature;
+        this.annotations = annotations;
+        this.parameterAnnotations = parameterAnnotations;
+        this.annotationDefault = annotationDefault;
     }
 
     /**
@@ -88,7 +136,8 @@ class Method extends AccessibleObject implements Member {
         // objects be fabricated for each reflective call on Class
         // objects.)
         Method res = new Method(clazz, name, parameterTypes, returnType,
-                                exceptionTypes, modifiers, slot);
+                                exceptionTypes, modifiers, slot, signature,
+                                annotations, parameterAnnotations, annotationDefault);
         res.root = this;
         // Might as well eagerly propagate this if already present
         res.methodAccessor = methodAccessor;
@@ -99,7 +148,7 @@ class Method extends AccessibleObject implements Member {
      * Returns the <code>Class</code> object representing the class or interface
      * that declares the method represented by this <code>Method</code> object.
      */
-    public Class getDeclaringClass() {
+    public Class<?> getDeclaringClass() {
 	return clazz;
     }
 
@@ -123,14 +172,66 @@ class Method extends AccessibleObject implements Member {
     }
 
     /**
+     * Returns an array of <tt>TypeVariable</tt> objects that represent the
+     * type variables declared by the generic declaration represented by this
+     * <tt>GenericDeclaration</tt> object, in declaration order.  Returns an
+     * array of length 0 if the underlying generic declaration declares no type
+     * variables.
+     *
+     * @return an array of <tt>TypeVariable</tt> objects that represent
+     *     the type variables declared by this generic declaration
+     * @throws GenericSignatureFormatError if the generic
+     *     signature of this generic declaration does not conform to
+     *     the format specified in the Java Virtual Machine Specification,
+     *     3rd edition
+     * @since 1.5
+     */
+    public TypeVariable<Method>[] getTypeParameters() {
+	if (getGenericSignature() != null)
+	    return (TypeVariable<Method>[])getGenericInfo().getTypeParameters();
+	else
+	    return (TypeVariable<Method>[])new TypeVariable[0];
+    }
+
+    /**
      * Returns a <code>Class</code> object that represents the formal return type
      * of the method represented by this <code>Method</code> object.
      * 
      * @return the return type for the method this object represents
      */
-    public Class getReturnType() {
+    public Class<?> getReturnType() {
 	return returnType;
     }
+
+    /**
+     * Returns a <tt>Type</tt> object that represents the formal return 
+     * type of the method represented by this <tt>Method</tt> object.
+     * 
+     * <p>If the return type is a parameterized type,
+     * the <tt>Type</tt> object returned must accurately reflect
+     * the actual type parameters used in the source code.
+     * 
+     * <p>If the return type is a type variable or a parameterized type, it
+     * is created. Otherwise, it is resolved.
+     *
+     * @return  a <tt>Type</tt> object that represents the formal return 
+     *     type of the underlying  method
+     * @throws GenericSignatureFormatError
+     *     if the generic method signature does not conform to the format
+     *     specified in the Java Virtual Machine Specification, 3rd edition
+     * @throws TypeNotPresentException if the underlying method's
+     *     return type refers to a non-existent type declaration
+     * @throws MalformedParameterizedTypeException if the
+     *     underlying method's return typed refers to a parameterized
+     *     type that cannot be instantiated for any reason
+     * @since 1.5
+     */
+    public Type getGenericReturnType() {
+      if (getGenericSignature() != null) {
+	return getGenericInfo().getReturnType();
+      } else { return getReturnType();}
+    }
+
 
     /**
      * Returns an array of <code>Class</code> objects that represent the formal
@@ -141,9 +242,43 @@ class Method extends AccessibleObject implements Member {
      * @return the parameter types for the method this object
      * represents
      */
-    public Class[] getParameterTypes() {
-	return copy(parameterTypes);
+    public Class<?>[] getParameterTypes() {
+	return (Class<?>[]) parameterTypes.clone();
     }
+
+    /**
+     * Returns an array of <tt>Type</tt> objects that represent the formal
+     * parameter types, in declaration order, of the method represented by
+     * this <tt>Method</tt> object. Returns an array of length 0 if the
+     * underlying method takes no parameters.
+     * 
+     * <p>If a formal parameter type is a parameterized type,
+     * the <tt>Type</tt> object returned for it must accurately reflect
+     * the actual type parameters used in the source code.
+     *
+     * <p>If a formal parameter type is a type variable or a parameterized 
+     * type, it is created. Otherwise, it is resolved.
+     *
+     * @return an array of Types that represent the formal
+     *     parameter types of the underlying method, in declaration order
+     * @throws GenericSignatureFormatError
+     *     if the generic method signature does not conform to the format
+     *     specified in the Java Virtual Machine Specification, 3rd edition
+     * @throws TypeNotPresentException if any of the parameter
+     *     types of the underlying method refers to a non-existent type
+     *     declaration
+     * @throws MalformedParameterizedTypeException if any of
+     *     the underlying method's parameter types refer to a parameterized
+     *     type that cannot be instantiated for any reason
+     * @since 1.5
+     */
+    public Type[] getGenericParameterTypes() {
+	if (getGenericSignature() != null)
+	    return getGenericInfo().getParameterTypes();
+	else
+	    return getParameterTypes();
+    }
+
 
     /**
      * Returns an array of <code>Class</code> objects that represent 
@@ -155,9 +290,43 @@ class Method extends AccessibleObject implements Member {
      * @return the exception types declared as being thrown by the
      * method this object represents
      */
-    public Class[] getExceptionTypes() {
-	return copy(exceptionTypes);
+    public Class<?>[] getExceptionTypes() {
+	return (Class<?>[]) exceptionTypes.clone();
     }
+
+    /**
+     * Returns an array of <tt>Type</tt> objects that represent the 
+     * exceptions declared to be thrown by this <tt>Method</tt> object. 
+     * Returns an array of length 0 if the underlying method declares
+     * no exceptions in its <tt>throws</tt> clause.  
+     * 
+     * <p>If an exception type is a parameterized type, the <tt>Type</tt>
+     * object returned for it must accurately reflect the actual type
+     * parameters used in the source code.
+     *
+     * <p>If an exception type is a type variable or a parameterized 
+     * type, it is created. Otherwise, it is resolved.
+     *
+     * @return an array of Types that represent the exception types
+     *     thrown by the underlying method
+     * @throws GenericSignatureFormatError
+     *     if the generic method signature does not conform to the format
+     *     specified in the Java Virtual Machine Specification, 3rd edition
+     * @throws TypeNotPresentException if the underlying method's
+     *     <tt>throws</tt> clause refers to a non-existent type declaration
+     * @throws MalformedParameterizedTypeException if
+     *     the underlying method's <tt>throws</tt> clause refers to a
+     *     parameterized type that cannot be instantiated for any reason
+     * @since 1.5
+     */
+      public Type[] getGenericExceptionTypes() {
+	  Type[] result;
+	  if (getGenericSignature() != null &&
+	      ((result = getGenericInfo().getExceptionTypes()).length > 0))
+	      return result;
+	  else
+	      return getExceptionTypes();
+      }
 
     /**
      * Compares this <code>Method</code> against the specified object.  Returns
@@ -170,6 +339,8 @@ class Method extends AccessibleObject implements Member {
 	    Method other = (Method)obj;
 	    if ((getDeclaringClass() == other.getDeclaringClass())
 		&& (getName() == other.getName())) {
+		if (!returnType.equals(other.getReturnType()))
+		    return false;
 		/* Avoid unnecessary cloning */
 		Class[] params1 = parameterTypes;
 		Class[] params2 = other.parameterTypes;
@@ -249,6 +420,93 @@ class Method extends AccessibleObject implements Member {
     }
 
     /**
+     * Returns a string describing this <code>Method</code>, including
+     * type parameters.  The string is formatted as the method access
+     * modifiers, if any, followed by an angle-bracketed
+     * comma-separated list of the method's type parameters, if any,
+     * followed by the method's generic return type, followed by a
+     * space, followed by the class declaring the method, followed by
+     * a period, followed by the method name, followed by a
+     * parenthesized, comma-separated list of the method's generic
+     * formal parameter types. A space is used to separate access
+     * modifiers from one another and from the type parameters or
+     * return type.  If there are no type parameters, the type
+     * parameter list is elided; if the type parameter list is
+     * present, a space separates the list from the class name.  If
+     * the method is declared to throw exceptions, the parameter list
+     * is followed by a space, followed by the word throws followed by
+     * a comma-separated list of the generic thrown exception types.
+     * If there are no type parameters, the type parameter list is
+     * elided.
+     *
+     * <p>The access modifiers are placed in canonical order as
+     * specified by "The Java Language Specification".  This is
+     * <tt>public</tt>, <tt>protected</tt> or <tt>private</tt> first,
+     * and then other modifiers in the following order:
+     * <tt>abstract</tt>, <tt>static</tt>, <tt>final</tt>,
+     * <tt>synchronized</tt> <tt>native</tt>.
+     *
+     * @return a string describing this <code>Method</code>,
+     * include type parameters
+     *
+     * @since 1.5
+     */
+    public String toGenericString() {
+	try {
+	    StringBuilder sb = new StringBuilder();
+	    int mod = getModifiers();
+	    if (mod != 0) {
+		sb.append(Modifier.toString(mod) + " ");
+	    }
+	    Type[] typeparms = getTypeParameters();
+	    if (typeparms.length > 0) {
+		boolean first = true;
+		sb.append("<");
+		for(Type typeparm: typeparms) {
+		    if (!first)
+			sb.append(",");
+		    if (typeparm instanceof Class)
+			sb.append(((Class)typeparm).getName());
+		    else
+			sb.append(typeparm.toString());
+		    first = false;
+		}
+		sb.append("> ");
+	    }
+
+	    Type genRetType = getGenericReturnType();
+	    sb.append( ((genRetType instanceof Class)?
+			Field.getTypeName((Class)genRetType):genRetType.toString())  + " ");
+
+	    sb.append(Field.getTypeName(getDeclaringClass()) + ".");
+	    sb.append(getName() + "(");
+	    Type[] params = getGenericParameterTypes();
+	    for (int j = 0; j < params.length; j++) {
+		sb.append((params[j] instanceof Class)?
+			  Field.getTypeName((Class)params[j]):
+			  (params[j].toString()) );
+		if (j < (params.length - 1))
+		    sb.append(",");
+	    }
+	    sb.append(")");
+	    Type[] exceptions = getGenericExceptionTypes();
+	    if (exceptions.length > 0) {
+		sb.append(" throws ");
+		for (int k = 0; k < exceptions.length; k++) {
+		    sb.append((exceptions[k] instanceof Class)?
+			      ((Class)exceptions[k]).getName():
+			      exceptions[k].toString());
+		    if (k < (exceptions.length - 1))
+			sb.append(",");
+		}
+	    }
+	    return sb.toString();
+	} catch (Exception e) {
+	    return "<" + e + ">";
+	}
+    }
+
+    /**
      * Invokes the underlying method represented by this <code>Method</code> 
      * object, on the specified object with the specified parameters.
      * Individual parameters are automatically unwrapped to match
@@ -272,7 +530,10 @@ class Method extends AccessibleObject implements Member {
      *
      * <p>If the method completes normally, the value it returns is
      * returned to the caller of invoke; if the value has a primitive
-     * type, it is first appropriately wrapped in an object. If the
+     * type, it is first appropriately wrapped in an object. However,
+     * if the value has the type of an array of a primitive type, the
+     * elements of the array are <i>not</i> wrapped in objects; in
+     * other words, an array of primitive type is returned.  If the
      * underlying method return type is void, the invocation returns
      * null.
      *
@@ -302,7 +563,7 @@ class Method extends AccessibleObject implements Member {
      * @exception ExceptionInInitializerError if the initialization
      * provoked by this method fails.
      */
-    public Object invoke(Object obj, Object[] args)
+    public Object invoke(Object obj, Object... args)
 	throws IllegalAccessException, IllegalArgumentException,
            InvocationTargetException
     {
@@ -322,6 +583,43 @@ class Method extends AccessibleObject implements Member {
         }
         if (methodAccessor == null) acquireMethodAccessor();
         return methodAccessor.invoke(obj, args);
+    }
+
+    /**
+     * Returns <tt>true</tt> if this method is a bridge
+     * method; returns <tt>false</tt> otherwise.
+     *
+     * @return true if and only if this method is a bridge
+     * method as defined by the Java Language Specification.
+     * @since 1.5
+     */
+    public boolean isBridge() {
+        return (getModifiers() & Modifier.BRIDGE) != 0;
+    }
+
+    /**
+     * Returns <tt>true</tt> if this method was declared to take
+     * a variable number of arguments; returns <tt>false</tt>
+     * otherwise.
+     *
+     * @return <tt>true</tt> if an only if this method was declared to
+     * take a variable number of arguments.
+     * @since 1.5
+     */
+    public boolean isVarArgs() {
+        return (getModifiers() & Modifier.VARARGS) != 0;
+    }
+
+    /**
+     * Returns <tt>true</tt> if this method is a synthetic
+     * method; returns <tt>false</tt> otherwise.
+     *
+     * @return true if and only if this method is a synthetic
+     * method as defined by the Java Language Specification.
+     * @since 1.5
+     */
+    public boolean isSynthetic() {
+        return Modifier.isSynthetic(getModifiers());
     }
 
     // NOTE that there is no synchronization used here. It is correct
@@ -358,16 +656,89 @@ class Method extends AccessibleObject implements Member {
         }
     }
 
-    /*
-     * Avoid clone()
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        if (annotationClass == null)
+            throw new NullPointerException();
+
+        return (T) declaredAnnotations().get(annotationClass);
+    }
+
+    private static final Annotation[] EMPTY_ANNOTATION_ARRAY=new Annotation[0];
+
+    public Annotation[] getDeclaredAnnotations()  {
+        return declaredAnnotations().values().toArray(EMPTY_ANNOTATION_ARRAY);
+    }
+
+    private transient Map<Class, Annotation> declaredAnnotations;
+
+    private synchronized  Map<Class, Annotation> declaredAnnotations() {
+        if (declaredAnnotations == null) {
+            declaredAnnotations = AnnotationParser.parseAnnotations(
+                annotations, sun.misc.SharedSecrets.getJavaLangAccess().
+                getConstantPool(getDeclaringClass()),
+                getDeclaringClass());
+        }
+        return declaredAnnotations;
+    }
+
+    /**
+     * Returns the default value for the annotation member represented by
+     * this <tt>Method</tt> instance.  If the member is of a primitive type,
+     * an instance of the corresponding wrapper type is returned. Returns
+     * null if no default is associated with the member, or if the method
+     * instance does not represent a declared member of an annotation type.
+     *
+     * @return the default value for the annotation member represented
+     *     by this <tt>Method</tt> instance.
+     * @throws TypeNotPresentException if the annotation is of type
+     *     {@link Class} and no definition can be found for the
+     *     default class value.
+     * @since  1.5
      */
-    static Class[] copy(Class[] in) {
-	int l = in.length;
-	if (l == 0)
-	    return in;
-	Class[] out = new Class[l];
-	for (int i = 0; i < l; i++)
-	    out[i] = in[i];
-	return out;
+    public Object getDefaultValue() {
+        if  (annotationDefault == null)
+            return null;
+        Class memberType = AnnotationType.invocationHandlerReturnType(
+            getReturnType());
+        Object result = AnnotationParser.parseMemberValue(
+            memberType, ByteBuffer.wrap(annotationDefault),
+            sun.misc.SharedSecrets.getJavaLangAccess().
+                getConstantPool(getDeclaringClass()),
+            getDeclaringClass());
+        if (result instanceof sun.reflect.annotation.ExceptionProxy)
+            throw new AnnotationFormatError("Invalid default: " + this);
+        return result;
+    }
+
+    /**
+     * Returns an array of arrays that represent the annotations on the formal
+     * parameters, in declaration order, of the method represented by
+     * this <tt>Method</tt> object. (Returns an array of length zero if the
+     * underlying method is parameterless.  If the method has one or more
+     * parameters, a nested array of length zero is returned for each parameter
+     * with no annotations.) The annotation objects contained in the returned
+     * arrays are serializable.  The caller of this method is free to modify
+     * the returned arrays; it will have no effect on the arrays returned to
+     * other callers.
+     *
+     * @return an array of arrays that represent the annotations on the formal
+     *    parameters, in declaration order, of the method represented by this
+     *    Method object
+     * @since 1.5
+     */
+    public Annotation[][] getParameterAnnotations() {
+        int numParameters = parameterTypes.length;
+        if (parameterAnnotations == null)
+            return new Annotation[numParameters][0];
+
+        Annotation[][] result = AnnotationParser.parseParameterAnnotations(
+            parameterAnnotations,
+            sun.misc.SharedSecrets.getJavaLangAccess().
+                getConstantPool(getDeclaringClass()),
+            getDeclaringClass());
+        if (result.length != numParameters)
+            throw new java.lang.annotation.AnnotationFormatError(
+                "Parameter annotations don't match number of parameters");
+        return result;
     }
 }

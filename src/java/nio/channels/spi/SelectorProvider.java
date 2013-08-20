@@ -1,7 +1,7 @@
 /*
- * @(#)SelectorProvider.java	1.20 03/01/23
+ * @(#)SelectorProvider.java	1.26 04/06/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,10 +35,11 @@ import sun.security.action.GetPropertyAction;
  * DatagramChannel}, {@link java.nio.channels.Pipe#open Pipe}, {@link
  * java.nio.channels.Selector#open Selector}, {@link
  * java.nio.channels.ServerSocketChannel#open ServerSocketChannel}, and {@link
- * java.nio.channels.SocketChannel#open SocketChannel} classes.  A program may
- * make use of a provider other than the default provider by instantiating that
- * provider and then directly invoking the <tt>open</tt> methods defined in
- * this class.
+ * java.nio.channels.SocketChannel#open SocketChannel} classes.  It is also
+ * used by the {@link java.lang.System#inheritedChannel System.inheritedChannel()}
+ * method. A program may make use of a provider other than the default provider
+ * by instantiating that provider and then directly invoking the <tt>open</tt>
+ * methods defined in this class.
  *
  * <p> All of the methods in this class are safe for use by multiple concurrent
  * threads.  </p>
@@ -46,7 +47,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.20, 03/01/23
+ * @version 1.26, 04/06/15
  * @since 1.4
  */
 
@@ -199,5 +200,67 @@ public abstract class SelectorProvider {
      */
     public abstract SocketChannel openSocketChannel()
 	throws IOException;
+
+    /**
+     * Returns the channel inherited from the entity that created this
+     * Java virtual machine.
+     *
+     * <p> On many operating systems a process, such as a Java virtual
+     * machine, can be started in a manner that allows the process to
+     * inherit a channel from the entity that created the process. The
+     * manner in which this is done is system dependent, as are the
+     * possible entities to which the channel may be connected. For example,
+     * on UNIX systems, the Internet services daemon (<i>inetd</i>) is used to 
+     * start programs to service requests when a request arrives on an 
+     * associated network port. In this example, the process that is started, 
+     * inherits a channel representing a network socket. 
+     *
+     * <p> In cases where the inherited channel represents a network socket
+     * then the {@link java.nio.channels.Channel Channel} type returned 
+     * by this method is determined as follows:
+     *     
+     * <ul>
+     *
+     *  <li><p> If the inherited channel represents a stream-oriented connected
+     *  socket then a {@link java.nio.channels.SocketChannel SocketChannel} is
+     *  returned. The socket channel is, at least initially, in blocking
+     *  mode, bound to a socket address, and connected to a peer.
+     *  </p></li>
+     *
+     *  <li><p> If the inherited channel represents a stream-oriented listening
+     *  socket then a {@link java.nio.channels.ServerSocketChannel 
+     *  ServerSocketChannel} is returned. The server-socket channel is, at 
+     *  least initially, in blocking mode, and bound to a socket address.
+     *  </p></li>     
+     *
+     *  <li><p> If the inherited channel is a datagram-oriented socket 
+     *  then a {@link java.nio.channels.DatagramChannel DatagramChannel} is    
+     *  returned. The datagram channel is, at least initially, in blocking
+     *  mode, and bound to a socket address. 
+     *  </p></li>
+     * 
+     * </ul>
+     *
+     * <p> In addition to the network-oriented channels described, this method
+     * may return other kinds of channels in the future.
+     *
+     * <p> The first invocation of this method creates the channel that is 
+     * returned. Subsequent invocations of this method return the same 
+     * channel. </p>
+     *
+     * @return  The inherited channel, if any, otherwise <tt>null</tt>.
+     * 
+     * @throws  IOException
+     *		If an I/O error occurs
+     *
+     * @throws	SecurityException
+     *	 	If a security manager has been installed and it denies
+     *		{@link RuntimePermission}<tt>("inheritedChannel")</tt>
+     *
+     * @since 1.5
+     */
+   public Channel inheritedChannel() throws IOException {
+	return null;
+   }
 
 }

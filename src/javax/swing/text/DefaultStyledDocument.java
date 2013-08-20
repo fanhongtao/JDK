@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultStyledDocument.java	1.121 03/01/23
+ * @(#)DefaultStyledDocument.java	1.124 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -47,7 +47,7 @@ import javax.swing.SwingUtilities;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.121 01/23/03
+ * @version 1.124 05/05/04
  * @see     Document
  * @see     AbstractDocument
  */
@@ -253,7 +253,7 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
      *
      * @return all the style names
      */
-    public Enumeration getStyleNames() {
+    public Enumeration<?> getStyleNames() {
 	return ((StyleContext) getAttributeContext()).getStyleNames();
     }
 
@@ -334,6 +334,9 @@ public class DefaultStyledDocument extends AbstractDocument implements StyledDoc
      *  before setting the new attributes
      */
     public void setCharacterAttributes(int offset, int length, AttributeSet s, boolean replace) {
+        if (length == 0) {
+            return;
+        }
 	try {
 	    writeLock();
 	    DefaultDocumentEvent changes = 

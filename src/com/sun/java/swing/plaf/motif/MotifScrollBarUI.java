@@ -1,7 +1,7 @@
 /*
- * @(#)MotifScrollBarUI.java	1.12 03/01/23
+ * @(#)MotifScrollBarUI.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
@@ -11,7 +11,6 @@ import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -30,7 +29,7 @@ import java.awt.Color;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.12 01/23/03
+ * @version 1.14 12/19/03
  * @author Rich Schiavi
  * @author Hans Muller
  */

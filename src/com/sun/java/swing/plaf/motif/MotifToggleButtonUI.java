@@ -1,7 +1,7 @@
 /*
- * @(#)MotifToggleButtonUI.java	1.19 03/01/23
+ * @(#)MotifToggleButtonUI.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -26,7 +26,7 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.19 01/23/03
+ * @version 1.21 12/19/03
  * @author Rich Schiavi
  */
 public class MotifToggleButtonUI extends BasicToggleButtonUI 
@@ -53,7 +53,7 @@ public class MotifToggleButtonUI extends BasicToggleButtonUI
 	    selectColor = UIManager.getColor(getPropertyPrefix() + "select");
 	    defaults_initialized = true;
 	}
-	b.setOpaque(false);
+        LookAndFeel.installProperty(b, "opaque", Boolean.FALSE);
     }
 
     protected void uninstallDefaults(AbstractButton b) {

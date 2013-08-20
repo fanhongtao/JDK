@@ -1,7 +1,7 @@
 /*
- * @(#)PrinterURI.java	1.3 03/01/23
+ * @(#)PrinterURI.java	1.6 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -9,6 +9,7 @@ package javax.print.attribute.standard;
 import java.net.URI;
 import java.util.Locale;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.URISyntax;
 import javax.print.attribute.PrintServiceAttribute;
 
@@ -29,6 +30,8 @@ import javax.print.attribute.PrintServiceAttribute;
 
 public final class PrinterURI extends URISyntax
 	implements PrintServiceAttribute {
+
+    private static final long serialVersionUID = 7923912792485606497L;
 
     /**
      * Constructs a new PrinterURI attribute with the specified URI. 
@@ -75,7 +78,7 @@ public final class PrinterURI extends URISyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return PrinterURI.class;
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)JCheckBox.java	1.70 03/01/23
+ * @(#)JCheckBox.java	1.73 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -26,10 +26,6 @@ import java.io.IOException;
  * in <em>The Java Tutorial</em>
  * for examples and information on using check boxes.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JCheckBox"><code>JCheckBox</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -45,7 +41,7 @@ import java.io.IOException;
  *   attribute: isContainer false
  * description: A component which can be selected or deselected.
  *
- * @version 1.70 01/23/03
+ * @version 1.73 12/19/03
  * @author Jeff Dinkins
  */
 public class JCheckBox extends JToggleButton implements Accessible {
@@ -145,7 +141,7 @@ public class JCheckBox extends JToggleButton implements Accessible {
      */
     public JCheckBox (String text, Icon icon, boolean selected) {
         super(text, icon, selected);
-        setBorderPainted(false);
+        setUIProperty("borderPainted", Boolean.FALSE);
         setHorizontalAlignment(LEADING);
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)AncestorNotifier.java	1.16 03/01/23
+ * @(#)AncestorNotifier.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.Serializable;
 
 
 /**
- * @version 1.16 01/23/03
+ * @version 1.19 12/19/03
  * @author Dave Moore
  */
 
@@ -133,11 +133,12 @@ class AncestorNotifier implements ComponentListener, PropertyChangeListener, Ser
 		    jAncestor.addPropertyChangeListener(this);
 		}
 	    }
-	    if (!a.isVisible() || a.getParent() == null) {
+	    if (!a.isVisible() || a.getParent() == null || a instanceof Window) {
 		firstInvisibleAncestor = a;
 	    }
 	}
-	if (firstInvisibleAncestor instanceof Window) {
+	if (firstInvisibleAncestor instanceof Window &&
+	    firstInvisibleAncestor.isVisible()) {
 	    firstInvisibleAncestor = null;
 	}
     }
@@ -150,7 +151,7 @@ class AncestorNotifier implements ComponentListener, PropertyChangeListener, Ser
 		JComponent jAncestor = (JComponent)a;
 		jAncestor.removePropertyChangeListener(this);
 	    }
-	    if (a == firstInvisibleAncestor) {
+	    if (a == firstInvisibleAncestor || a instanceof Window) {
 		break;
 	    }
 	}
@@ -181,7 +182,9 @@ class AncestorNotifier implements ComponentListener, PropertyChangeListener, Ser
 	Component ancestor = e.getComponent();
 	boolean needsNotify = firstInvisibleAncestor == null;
 
-	removeListeners(ancestor.getParent());
+	if ( !(ancestor instanceof Window) ) {
+	    removeListeners(ancestor.getParent());
+	}
 	firstInvisibleAncestor = ancestor;
 	if (needsNotify) {
 	    fireAncestorRemoved(root, AncestorEvent.ANCESTOR_REMOVED,

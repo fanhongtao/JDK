@@ -1,7 +1,7 @@
 /*
- * @(#)DynStruct.java	1.11 03/01/23
+ * @(#)DynStruct.java	1.14 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,8 +11,9 @@ package org.omg.CORBA;
 /**
  * The representation of a <code>DynAny</code> object that is associated
  *  with an IDL struct.
+ * @deprecated Use the new <a href="../DynamicAny/DynStruct.html">DynStruct</a> instead
  */
-
+@Deprecated
 public interface DynStruct extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**

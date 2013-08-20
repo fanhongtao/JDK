@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateParsingException.java	1.9 03/01/23
+ * @(#)CertificateParsingException.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,9 +13,11 @@ package java.security.cert;
  * are found in the Certificate.
  *
  * @author Hemma Prafullchandra
- * 1.9
+ * 1.12
  */
 public class CertificateParsingException extends CertificateException {
+
+    private static final long serialVersionUID = -7989222416793322029L;
 
     /**
      * Constructs a CertificateParsingException with no detail message. A
@@ -35,5 +37,36 @@ public class CertificateParsingException extends CertificateException {
      */
     public CertificateParsingException(String message) {
         super(message);
+    }
+
+    /**
+     * Creates a <code>CertificateParsingException</code> with the specified
+     * detail message and cause.
+     *
+     * @param message the detail message (which is saved for later retrieval
+     *        by the {@link #getMessage()} method).
+     * @param cause the cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A <tt>null</tt> value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     * @since 1.5
+     */
+    public CertificateParsingException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * Creates a <code>CertificateParsingException</code> with the
+     * specified cause and a detail message of
+     * <tt>(cause==null ? null : cause.toString())</tt>
+     * (which typically contains the class and detail message of
+     * <tt>cause</tt>).
+     *
+     * @param cause the cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A <tt>null</tt> value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     * @since 1.5
+     */
+    public CertificateParsingException(Throwable cause) {
+        super(cause);
     }
 }

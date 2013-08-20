@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)Font2DTest.java	1.25 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)Font2DTest.java	1.20 03/01/23
+ * @(#)Font2DTest.java	1.25 04/07/26
  */
 
 import java.awt.BorderLayout;
@@ -307,12 +308,14 @@ public final class Font2DTest extends JPanel implements ActionListener, ItemList
         JPanel dialogBottomPanel = new JPanel();
         LabelV2 message1 = new LabelV2( "Enter text below and then press update" );
         LabelV2 message2 = new LabelV2( "(Unicode char can be denoted by \\uXXXX)" );
+        LabelV2 message3 = new LabelV2( "(Supplementary chars can be denoted by \\UXXXXXX)" );
         userTextArea = new JTextArea( "Java2D!" );
         ButtonV2 bUpdate = new ButtonV2( "Update", this );
         userTextArea.setFont( new Font( "dialog", Font.PLAIN, 12 ));
-        dialogTopPanel.setLayout( new GridLayout( 2, 1 ));
-        dialogTopPanel.add( "North", message1 );
-        dialogTopPanel.add( "South", message2 );
+        dialogTopPanel.setLayout( new GridLayout( 3, 1 ));
+        dialogTopPanel.add( message1 );
+        dialogTopPanel.add( message2 );
+        dialogTopPanel.add( message3 );
         dialogBottomPanel.add( bUpdate );
         //ABP
         JScrollPane userTextAreaSP = new JScrollPane(userTextArea);
@@ -455,6 +458,7 @@ public final class Font2DTest extends JPanel implements ActionListener, ItemList
 
     /// Converts user text into arrays of String, delimited at newline character
     /// Also replaces any valid escape sequence with appropriate unicode character
+    /// Support \\UXXXXXX notation for surrogates
     private String[] parseUserText( String orig ) {
         int length = orig.length();
         StringTokenizer perLine = new StringTokenizer( orig, "\n" );
@@ -462,27 +466,41 @@ public final class Font2DTest extends JPanel implements ActionListener, ItemList
         int lineNumber = 0;
 
         while ( perLine.hasMoreElements() ) {
+            StringBuffer converted = new StringBuffer();
             String oneLine = perLine.nextToken();
             int lineLength = oneLine.length();
             int prevEscapeEnd = 0;
-            int nextEscape = oneLine.indexOf( "\\u" );
-            StringBuffer converted = new StringBuffer();
+            int nextEscape = -1;
+            do {
+                int nextBMPEscape = oneLine.indexOf( "\\u", prevEscapeEnd );
+                int nextSupEscape = oneLine.indexOf( "\\U", prevEscapeEnd );
+                nextEscape = (nextBMPEscape < 0)
+                    ? ((nextSupEscape < 0)
+                       ? -1
+                       : nextSupEscape)
+                    : ((nextSupEscape < 0)
+                       ? nextBMPEscape
+                       : Math.min(nextBMPEscape, nextSupEscape));
 
-            while ( nextEscape != -1 ) {
-                if ( prevEscapeEnd < nextEscape )
-                  converted.append( oneLine.substring( prevEscapeEnd, nextEscape ));
-                prevEscapeEnd = nextEscape + 6;
-                try {
-                    String hex = oneLine.substring( nextEscape + 2, nextEscape + 6 );
-                    converted.append( (char) Integer.parseInt( hex, 16 ));
+                if ( nextEscape != -1 ) {
+                    if ( prevEscapeEnd < nextEscape )
+                        converted.append( oneLine.substring( prevEscapeEnd, nextEscape ));
+                    
+                    prevEscapeEnd = nextEscape + (nextEscape == nextBMPEscape ? 6 : 8);
+                    try {
+                        String hex = oneLine.substring( nextEscape + 2, prevEscapeEnd );
+                        if (nextEscape == nextBMPEscape) {
+                            converted.append( (char) Integer.parseInt( hex, 16 ));
+                        } else {
+                            converted.append( new String( Character.toChars( Integer.parseInt( hex, 16 ))));
+                        }
+                    }
+                    catch ( Exception e ) {
+                        int copyLimit = Math.min(lineLength, prevEscapeEnd);
+                        converted.append( oneLine.substring( nextEscape, copyLimit ));
+                    }
                 }
-                catch ( Exception e ) {
-                    int copyLimit =
-                      ( nextEscape + 6 < lineLength ) ? ( nextEscape + 6 ) : lineLength;
-                    converted.append( oneLine.substring( nextEscape, copyLimit ));
-                }
-                nextEscape = oneLine.indexOf( "\\u", prevEscapeEnd );
-            }
+            } while (nextEscape != -1);
             if ( prevEscapeEnd < lineLength )
               converted.append( oneLine.substring( prevEscapeEnd, lineLength ));
             textLines[ lineNumber++ ] = converted.toString();
@@ -639,9 +657,9 @@ public final class Font2DTest extends JPanel implements ActionListener, ItemList
               throw new Exception( "Not a Font2DTest options file" );
 
             /// Parse all options
-            boolean displayGridOpt = new Boolean( perLine.nextToken() ).booleanValue();
-            boolean force16ColsOpt = new Boolean( perLine.nextToken() ).booleanValue();
-            boolean showFontInfoOpt = new Boolean( perLine.nextToken() ).booleanValue();
+            boolean displayGridOpt = Boolean.parseBoolean( perLine.nextToken() );
+            boolean force16ColsOpt = Boolean.parseBoolean( perLine.nextToken() );
+            boolean showFontInfoOpt = Boolean.parseBoolean( perLine.nextToken() );
             String rangeNameOpt = perLine.nextToken();
             int rangeStartOpt = Integer.parseInt( perLine.nextToken() );
             int rangeEndOpt = Integer.parseInt( perLine.nextToken() );
@@ -652,8 +670,8 @@ public final class Font2DTest extends JPanel implements ActionListener, ItemList
             int g2TransformOpt = Integer.parseInt( perLine.nextToken() );
             int textToUseOpt = Integer.parseInt( perLine.nextToken() );
             int drawMethodOpt = Integer.parseInt( perLine.nextToken() );
-            boolean useAntialiasOpt = new Boolean( perLine.nextToken() ).booleanValue();
-            boolean useFractionalOpt = new Boolean( perLine.nextToken() ).booleanValue();
+            boolean useAntialiasOpt = Boolean.parseBoolean( perLine.nextToken() );
+            boolean useFractionalOpt = Boolean.parseBoolean( perLine.nextToken() );
             String userTextOpt[] = { "Java2D!" }, dialogEntry = "Java2D!";	   
             if (textToUseOpt == fp.USER_TEXT )  {
                 int numLines = perLine.countTokens(), lineNumber = 0;

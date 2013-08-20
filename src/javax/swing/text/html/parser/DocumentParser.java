@@ -1,7 +1,7 @@
 /*
- * @(#)DocumentParser.java	1.24 03/01/23
+ * @(#)DocumentParser.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,8 +15,6 @@ import javax.swing.text.ChangedCharSetException;
 import java.util.*;
 import java.io.*;
 import java.net.*;
-
-import sun.io.*;
 
 /**
  * A Parser for HTML Documents (actually, you can specify a DTD, but
@@ -82,7 +80,7 @@ import sun.io.*;
  * \n, \r or \r\n, which ever is encountered the most in parsing the
  * stream.
  *
- * @version 	1.24 01/23/03
+ * @version 	1.28 12/19/03
  * @author      Sunita Mani
  */
 public class DocumentParser extends javax.swing.text.html.parser.Parser {
@@ -91,6 +89,7 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
     private int intitle;
     private int inhead;
     private int instyle;
+    private int inscript;
     private boolean seentitle;
     private HTMLEditorKit.ParserCallback callback = null;
     private boolean ignoreCharSet = false;
@@ -123,6 +122,8 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
 	    intitle++;
 	} else if (elem == dtd.style) {
 	    instyle++;
+	} else if (elem == dtd.script) {
+            inscript++;
 	}	
 	if (debugFlag) {
 	    if (tag.fictional()) {
@@ -166,7 +167,10 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
 		String content = (String)atts.getAttribute(HTML.Attribute.CONTENT);
 		if (content != null) {
 		    if ("content-type".equalsIgnoreCase((String)atts.getAttribute(HTML.Attribute.HTTPEQUIV))) {
-			throw new ChangedCharSetException(content, false);
+			if (!content.equalsIgnoreCase("text/html") && 
+				!content.equalsIgnoreCase("text/plain")) {
+			    throw new ChangedCharSetException(content, false);
+			}
 		    } else if ("charset" .equalsIgnoreCase((String)atts.getAttribute(HTML.Attribute.HTTPEQUIV))) {
 			throw new ChangedCharSetException(content, true);
 		    }
@@ -210,6 +214,8 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
             inhead--;
 	} else if (elem == dtd.style) {
             instyle--;
+	} else if (elem == dtd.script) {
+            inscript--;
 	}
 	if (debugFlag) {
 	    debug("End Tag: " + tag.getHTMLTag() + " pos: " + getCurrentPos());
@@ -223,6 +229,10 @@ public class DocumentParser extends javax.swing.text.html.parser.Parser {
      */
     protected void handleText(char data[]) {
 	if (data != null) {
+	    if (inscript != 0) {
+		callback.handleComment(data, getBlockStartPosition());
+		return;
+	    }
 	    if (inbody != 0 || ((instyle != 0) ||
 				((intitle != 0) && !seentitle))) {
 		if (debugFlag) {

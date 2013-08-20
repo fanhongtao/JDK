@@ -1,7 +1,7 @@
 /*
- * @(#)Currency.java	1.4 03/01/23
+ * @(#)Currency.java	1.8 04/03/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,23 +25,24 @@ import sun.text.resources.LocaleData;
  * no public constructor. You obtain a <code>Currency</code> instance using
  * the <code>getInstance</code> methods.
  *
- * @version 1.4, 01/23/03
  * @since 1.4
  */
 public final class Currency implements Serializable {
+
+    private static final long serialVersionUID = -158308464356906721L;
     
     /**
      * ISO 4217 currency code for this currency.
      *
      * @serial
      */
-    private String currencyCode;
+    private final String currencyCode;
     
     /**
      * Default fraction digits for this currency.
      * Set from currency data tables.
      */
-    transient private int defaultFractionDigits;
+    transient private final int defaultFractionDigits;
 
 
     // class data: instance map

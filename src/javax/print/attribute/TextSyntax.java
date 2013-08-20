@@ -1,7 +1,7 @@
 /*
- * @(#)TextSyntax.java	1.5 03/01/23
+ * @(#)TextSyntax.java	1.7 04/01/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,6 +24,7 @@ import java.util.Locale;
  */
 public abstract class TextSyntax implements Serializable, Cloneable {
 
+    private static final long serialVersionUID = -8130648736378144102L;
 
     /**
      * String value of this text attribute.

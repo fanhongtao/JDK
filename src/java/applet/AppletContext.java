@@ -1,7 +1,7 @@
 /*
- * @(#)AppletContext.java	1.29 03/01/23
+ * @(#)AppletContext.java	1.31 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * information about its environment.
  *
  * @author 	Arthur van Hoff
- * @version     1.29, 01/23/03
+ * @version     1.31, 05/05/04
  * @since       JDK1.0
  */
 public interface AppletContext {
@@ -71,7 +71,7 @@ public interface AppletContext {
      * @return  an enumeration of all applets in the document represented by
      *          this applet context.
      */
-    Enumeration getApplets();
+    Enumeration<Applet> getApplets();
 
     /**
      * Replaces the Web page currently being viewed with the given URL.
@@ -171,5 +171,5 @@ public interface AppletContext {
      *          context.
      * @since JDK1.4
      */
-    public Iterator getStreamKeys();
+    public Iterator<String> getStreamKeys();
 }

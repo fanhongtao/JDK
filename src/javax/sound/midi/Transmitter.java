@@ -1,7 +1,7 @@
 /*
- * @(#)Transmitter.java	1.20 03/01/23
+ * @(#)Transmitter.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package javax.sound.midi;
  *
  * @see Receiver
  *
- * @version 1.20, 03/01/23
+ * @version 1.22, 03/12/19
  * @author Kara Kytle
  */
 public interface Transmitter {
@@ -40,8 +40,20 @@ public interface Transmitter {
     /**
      * Indicates that the application has finished using the transmitter, and
      * that limited resources it requires may be released or made available.
-     * Invoking methods on a receiver which has been closed may cause an 
-     * <code>IllegalArgumentException</code> or other exception to be thrown.
+     *
+     * <p>If the creation of this <code>Transmitter</code> resulted in
+     * implicitly opening the underlying device, the device is
+     * implicitly closed by this method. This is true unless the device is
+     * kept open by other <code>Receiver</code> or <code>Transmitter</code>
+     * instances that opened the device implicitly, and unless the device
+     * has been opened explicitly. If the device this
+     * <code>Transmitter</code> is retrieved from is closed explicitly
+     * by calling {@link MidiDevice#close MidiDevice.close}, the
+     * <code>Transmitter</code> is closed, too.  For a detailed
+     * description of open/close behaviour see the class description
+     * of {@link javax.sound.midi.MidiDevice MidiDevice}.
+     *
+     * @see javax.sound.midi.MidiSystem#getTransmitter
      */
     public void close();
 }

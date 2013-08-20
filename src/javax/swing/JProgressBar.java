@@ -1,7 +1,7 @@
 /*
- * @(#)JProgressBar.java	1.91 03/01/23
+ * @(#)JProgressBar.java	1.93 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -94,7 +94,7 @@ import javax.swing.plaf.ProgressBarUI;
  *      attribute: isContainer false
  *    description: A component that displays an integer value.
  *
- * @version 1.91 01/23/03
+ * @version 1.93 12/19/03
  * @author Michael C. Albers
  * @author Kathy Walrath
  */
@@ -1036,12 +1036,12 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
          * @return <code>true</code> if the value was set
          */
         public boolean setCurrentAccessibleValue(Number n) {
-            if (n instanceof Integer) {
-                setValue(n.intValue());
-                return true;
-            } else {
-                return false;
-            }
+	    // TIGER- 4422535 
+	    if (n == null) {
+		return false;
+	    }
+	    setValue(n.intValue());
+	    return true;
         }
 
         /**
@@ -1059,7 +1059,8 @@ public class JProgressBar extends JComponent implements SwingConstants, Accessib
          * @return the maximum value of this object
          */
         public Number getMaximumAccessibleValue() {
-            return new Integer(getMaximum());
+	    // TIGER - 4422362
+            return new Integer(model.getMaximum() - model.getExtent());
         }
 
     } // AccessibleJProgressBar

@@ -1,7 +1,7 @@
 /*
- * @(#)PrincipalHolder.java	1.25 03/01/23
+ * @(#)PrincipalHolder.java	1.27 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import org.omg.CORBA.portable.OutputStream;
  * @since       JDK1.2
  * @deprecated Deprecated by CORBA 2.2.
  */
-
+@Deprecated
 public final class PrincipalHolder implements Streamable {
     /**
      * The <code>Principal</code> value held by this <code>PrincipalHolder</code>

@@ -1,7 +1,7 @@
 /*
- * @(#)VMID.java	1.18 03/01/23
+ * @(#)VMID.java	1.20 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.security.*;
  * machines.  VMIDs are used by the distributed garbage collector
  * to identify client VMs.
  *
- * @version	1.18, 01/23/03
+ * @version	1.20, 05/18/04
  * @author	Ann Wollrath
  * @author	Peter Jones
  */
@@ -58,6 +58,7 @@ public final class VMID implements java.io.Serializable {
      * @return true if host address can be determined, false otherwise
      * @deprecated
      */
+    @Deprecated
     public static boolean isUnique() {
 	return true;
     }

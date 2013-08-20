@@ -1,7 +1,7 @@
 /*
- * @(#)MotifFileChooserUI.java	1.47 08/05/13
+ * @(#)MotifFileChooserUI.java	1.42 04/03/11
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.47 05/13/08
+ * @version 1.42 03/11/04
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -55,6 +55,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
     private static final Insets buttonMargin = new Insets(3, 3, 3, 3);
 
     private JPanel directoryPanel = new JPanel();
+    private JPanel bottomPanel;
 
     protected JButton approveButton;
 
@@ -72,7 +73,6 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
     private String filterLabelText = null;
     private int filterLabelMnemonic = 0;
-
 
     private String fileNameString(File file) {
         if (file == null) {
@@ -103,7 +103,6 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
         }
         return buf.toString();
     }
-
 
     public MotifFileChooserUI(JFileChooser filechooser) {
 	super(filechooser);
@@ -136,7 +135,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
     }
 
     public void rescanCurrentDirectory(JFileChooser fc) {
-	// PENDING(jeff)
+        getModel().validateFileCache();
     }
 
     public PropertyChangeListener createPropertyChangeListener(JFileChooser fc) {
@@ -148,29 +147,22 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 		    if(f != null) {
 			setFileName(getFileChooser().getName(f));
 		    }
-                }
-                    else if (prop.equals(JFileChooser.SELECTED_FILES_CHANGED_PROPERTY)) {
-                      File[] files = (File[]) e.getNewValue();
-                      JFileChooser fc = getFileChooser();
-                      if (files != null && files.length > 0 && (files.length > 1 || fc.isDirectorySelectionEnabled() || !files[0].isDirectory())) {
-                          setFileName(fileNameString(files));
-                      }
+        } 
+        else if (prop.equals(JFileChooser.SELECTED_FILES_CHANGED_PROPERTY)) {
+            File[] files = (File[]) e.getNewValue();
+            JFileChooser fc = getFileChooser();
+            if (files != null && files.length > 0 && (files.length > 1 || fc.isDirectorySelectionEnabled() || !files[0].isDirectory())) {
+               setFileName(fileNameString(files)); 
+            }
 		} else if(prop.equals(JFileChooser.DIRECTORY_CHANGED_PROPERTY)) {
 		    directoryList.clearSelection();
-		    directoryList.getSelectionModel().removeSelectionInterval(0,0);
-
 		    fileList.clearSelection();
-		    fileList.getSelectionModel().removeSelectionInterval(0,0);
-
 		    File currentDirectory = getFileChooser().getCurrentDirectory();
 		    if(currentDirectory != null) {
 			try {
 			    setDirectoryName(((File)e.getNewValue()).getCanonicalPath());
 			} catch (IOException ioe) {
 			    setDirectoryName(((File)e.getNewValue()).getAbsolutePath());
-			}
-			if ((getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) && !getFileChooser().isMultiSelectionEnabled()) {
-			    setFileName(getDirectoryName());
 			}
 		    }
 		} else if(prop.equals(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY)) {
@@ -203,7 +195,9 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 			   prop == JFileChooser.DIALOG_TYPE_CHANGED_PROPERTY) {
 		    approveButton.setText(getApproveButtonText(getFileChooser()));
 		    approveButton.setToolTipText(getApproveButtonToolTipText(getFileChooser()));
-		} else if (prop.equals("componentOrientation")) {
+		} else if (prop.equals(JFileChooser.CONTROL_BUTTONS_ARE_SHOWN_CHANGED_PROPERTY)) {
+                    doControlButtonsChanged(e);
+                } else if (prop.equals("componentOrientation")) {
 		    ComponentOrientation o = (ComponentOrientation)e.getNewValue();
 		    JFileChooser cc = (JFileChooser)e.getSource();
 		    if (o != (ComponentOrientation)e.getOldValue()) {
@@ -226,9 +220,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
     }
 
     public void uninstallUI(JComponent c) {
-	c.removePropertyChangeListener(filterComboBoxModel);
-	approveButton.removeActionListener(getApproveSelectionAction());
-	filenameTextField.removeActionListener(getApproveSelectionAction());
+	getFileChooser().removeAll();
 	super.uninstallUI(c);
     }
 
@@ -329,7 +321,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	align(l);
 	rightPanel.add(l);
 	sp = createFilesList();
-	l.setLabelFor(sp.getViewport().getView());
+	l.setLabelFor(sp);
 	rightPanel.add(sp);
 
 	centerPanel.add(leftPanel);
@@ -372,7 +364,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	filenameTextField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 	interior.add(filenameTextField);
 
-	JPanel bottomPanel = new JPanel(new BorderLayout(0, 4));
+	bottomPanel = getBottomPanel();
 	bottomPanel.add(new JSeparator(), BorderLayout.NORTH);
 
 	// Add buttons
@@ -434,12 +426,28 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	buttonPanel.add(Box.createGlue());
 
 	bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
-	fc.add(bottomPanel, BorderLayout.SOUTH);
+	if (fc.getControlButtonsAreShown()) {
+           fc.add(bottomPanel, BorderLayout.SOUTH);
+        }
+    }
+
+    protected JPanel getBottomPanel() {
+        if (bottomPanel == null) {
+            bottomPanel = new JPanel(new BorderLayout(0, 4));
+        }
+        return bottomPanel;
+    }
+
+    private void doControlButtonsChanged(PropertyChangeEvent e) {
+        if (getFileChooser().getControlButtonsAreShown()) {
+            getFileChooser().add(bottomPanel,BorderLayout.SOUTH);
+        } else {
+            getFileChooser().remove(getBottomPanel());
+        }
     }
 
     public void uninstallComponents(JFileChooser fc) {
 	fc.removeAll();
-	directoryPanel = null;
     }
 
     protected void installStrings(JFileChooser fc) {
@@ -483,7 +491,6 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	}
 	
 	fileList.setModel(new MotifFileListModel());
-	fileList.getSelectionModel().removeSelectionInterval(0, 0);
 	fileList.setCellRenderer(new FileCellRenderer());
 	fileList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 	fileList.addMouseListener(createDoubleClickListener(getFileChooser(), fileList));
@@ -501,7 +508,6 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
 	directoryList.setCellRenderer(new DirectoryCellRenderer());
 	directoryList.setModel(new MotifDirectoryListModel());
-	directoryList.getSelectionModel().removeSelectionInterval(0, 0);
 	directoryList.addMouseListener(createDoubleClickListener(getFileChooser(), directoryList));
 	directoryList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 
@@ -571,12 +577,11 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	}
 
 	public void intervalAdded(ListDataEvent e) {
-	    fireIntervalAdded(e.getSource(), e.getIndex0(), e.getIndex1());
+            fireIntervalAdded(this, e.getIndex0(), e.getIndex1());
 	}
 
-	// PENDING(jeff) - implement
 	public void intervalRemoved(ListDataEvent e) {
-	    fireIntervalRemoved(e.getSource(), e.getIndex0(), e.getIndex1());
+            fireIntervalRemoved(this, e.getIndex0(), e.getIndex1());
 	}
 
 	// PENDING(jeff) - this is inefficient - should sent out
@@ -616,12 +621,11 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	}
 
 	public void intervalAdded(ListDataEvent e) {
-	    fireIntervalAdded(e.getSource(), e.getIndex0(), e.getIndex1());
+            fireIntervalAdded(this, e.getIndex0(), e.getIndex1());
 	}
 
-	// PENDING(jeff) - implement
 	public void intervalRemoved(ListDataEvent e) {
-	    fireIntervalRemoved(e.getSource(), e.getIndex0(), e.getIndex1());
+            fireIntervalRemoved(this, e.getIndex0(), e.getIndex1());
 	}
 
 	// PENDING(jeff) - this is inefficient - should sent out

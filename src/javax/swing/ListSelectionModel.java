@@ -1,7 +1,7 @@
 /*
- * @(#)ListSelectionModel.java	1.20 03/01/23
+ * @(#)ListSelectionModel.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * a closed interval, i.e. the interval includes both index0 and
  * index1.
  * 
- * @version 1.20 01/23/03
+ * @version 1.21 12/19/03
  * @author Hans Muller
  * @author Philip Milne
  * @see DefaultListSelectionModel

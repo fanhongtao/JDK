@@ -1,7 +1,7 @@
 /*
- * @(#)Severity.java	1.7 03/01/23
+ * @(#)Severity.java	1.10 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -45,6 +45,8 @@ import javax.print.attribute.Attribute;
  * @author  Alan Kaminsky
  */
 public final class Severity extends EnumSyntax implements Attribute {
+
+    private static final long serialVersionUID = 8781881462717925380L;
 
     /**
      * Indicates that the {@link PrinterStateReason PrinterStateReason} is a 
@@ -119,7 +121,7 @@ public final class Severity extends EnumSyntax implements Attribute {
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return Severity.class;
     }
 

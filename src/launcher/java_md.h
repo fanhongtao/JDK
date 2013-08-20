@@ -1,11 +1,9 @@
 /*
- * @(#)java_md.h	1.12 04/04/24
+ * @(#)java_md.h	1.14 03/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-
-/* Backported from Tiger (1.5) java_md.h	1.14 03/12/19 */
 
 #ifndef JAVA_MD_H
 #define JAVA_MD_H
@@ -25,7 +23,7 @@
 #ifdef JAVA_ARGS
 /*
  * ApplicationHome is prepended to each of these entries; the resulting
- * strings are concatenated (separated by PATH_SEPARATOR) and used as the
+ * strings are concatenated (seperated by PATH_SEPARATOR) and used as the
  * value of -cp option to the launcher.
  */
 #ifndef APP_CLASSPATH

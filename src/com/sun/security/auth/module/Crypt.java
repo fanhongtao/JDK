@@ -1,7 +1,7 @@
 /*
- * @(#)Crypt.java	1.5 03/01/23
+ * @(#)Crypt.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -373,9 +373,14 @@ class Crypt {
 	}
 
 	Crypt c = new Crypt();
-	byte result[] = c.crypt(arg[0].getBytes(), arg[1].getBytes());
-	for (int i=0; i<result.length; i++) {
-	    System.out.println(" "+i+" "+(char)result[i]);
+	try {
+	    byte result[] = c.crypt
+	        (arg[0].getBytes("ISO-8859-1"), arg[1].getBytes("ISO-8859-1"));
+	    for (int i=0; i<result.length; i++) {
+	        System.out.println(" "+i+" "+(char)result[i]);
+	    }
+	} catch (java.io.UnsupportedEncodingException uee) {
+	    // cannot happen
 	}
     }
 }

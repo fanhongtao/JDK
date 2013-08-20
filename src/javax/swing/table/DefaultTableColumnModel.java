@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableColumnModel.java	1.45 03/01/23
+ * @(#)DefaultTableColumnModel.java	1.48 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.45 01/23/03
+ * @version 1.48 05/05/04
  * @author Alan Chung
  * @author Philip Milne
  * @see JTable
@@ -42,7 +42,7 @@ public class DefaultTableColumnModel implements TableColumnModel,
 //
 
     /** Array of TableColumn objects in this model */
-    protected Vector tableColumns;
+    protected Vector<TableColumn> tableColumns;
 
     /** Model for keeping track of column selections */
     protected ListSelectionModel selectionModel;
@@ -72,9 +72,8 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	super();
 
 	// Initialize local ivars to default
-	tableColumns = new Vector();
+	tableColumns = new Vector<TableColumn>();
 	setSelectionModel(createSelectionModel()); 
-	getSelectionModel().setAnchorSelectionIndex(0); 
 	setColumnMargin(1); 
 	invalidateWidthCache(); 
 	setColumnSelectionAllowed(false);
@@ -104,6 +103,8 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	aColumn.addPropertyChangeListener(this);
 	invalidateWidthCache();
 
+        checkLeadAnchor();
+
 	// Post columnAdded event notification
 	fireColumnAdded(new TableColumnModelEvent(this, 0,
 						  getColumnCount() - 1));
@@ -129,6 +130,8 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	    if (selectionModel != null) {
 		selectionModel.removeIndexInterval(columnIndex,columnIndex);
 	    }
+
+            checkLeadAnchor();
 
 	    column.removePropertyChangeListener(this);
 	    tableColumns.removeElementAt(columnIndex);
@@ -227,7 +230,7 @@ public class DefaultTableColumnModel implements TableColumnModel,
      * Returns an <code>Enumeration</code> of all the columns in the model.
      * @return an <code>Enumeration</code> of the columns in the model
      */
-    public Enumeration getColumns() {
+    public Enumeration<TableColumn> getColumns() {
 	return tableColumns.elements();
     }
 
@@ -364,10 +367,9 @@ public class DefaultTableColumnModel implements TableColumnModel,
 	    }
 
 	    selectionModel= newModel;
+            newModel.addListSelectionListener(this);
 
-	    if (newModel != null) {
-		newModel.addListSelectionListener(this);
-	    }
+            checkLeadAnchor();
 	}
     }
 
@@ -381,6 +383,34 @@ public class DefaultTableColumnModel implements TableColumnModel,
      */
     public ListSelectionModel getSelectionModel() {
 	return selectionModel;
+    }
+
+    /**
+     * Initialize the lead and anchor of the selection model
+     * based on what the column model contains.
+     */
+    private void checkLeadAnchor() {
+        int lead = selectionModel.getLeadSelectionIndex();
+        int count = tableColumns.size();
+        if (count == 0) {
+            if (lead != -1) {
+                // no columns left, set the lead and anchor to -1
+                selectionModel.setValueIsAdjusting(true);
+                selectionModel.setAnchorSelectionIndex(-1);
+                selectionModel.setLeadSelectionIndex(-1);
+                selectionModel.setValueIsAdjusting(false);
+            }
+        } else {
+            if (lead == -1) {
+                // set the lead and anchor to the first column
+                // (without changing the selection)
+                if (selectionModel.isSelectedIndex(0)) {
+                    selectionModel.addSelectionInterval(0, 0);
+                } else {
+                    selectionModel.removeSelectionInterval(0, 0);
+                }
+            }
+        }
     }
 
     // implements javax.swing.table.TableColumnModel
@@ -652,7 +682,7 @@ public class DefaultTableColumnModel implements TableColumnModel,
      * @see #getColumnModelListeners
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 

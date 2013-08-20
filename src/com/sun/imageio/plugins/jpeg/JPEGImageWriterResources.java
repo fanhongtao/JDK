@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageWriterResources.java	1.6 05/08/30
+ * @(#)JPEGImageWriterResources.java	1.5 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,11 +11,7 @@ import java.util.ListResourceBundle;
 
 public class JPEGImageWriterResources extends ListResourceBundle {
 
-    public JPEGImageWriterResources() {}
-
-    protected Object[][] getContents() {
-        return new Object[][] {
-
+    static final Object[][] contents = {
         {Integer.toString(JPEGImageWriter.WARNING_DEST_IGNORED),
          "Only Rasters or band subsets may be written with a destination type. " 
          + "Destination type ignored."},
@@ -58,7 +54,13 @@ public class JPEGImageWriterResources extends ListResourceBundle {
          "RGB thumbnail can't be written as indexed.  Written as RGB"},
         {Integer.toString(JPEGImageWriter.WARNING_NO_GRAY_THUMB_AS_INDEXED),
        "Grayscale thumbnail can't be written as indexed.  Written as JPEG"},
+    };
 
-       };
+    public JPEGImageWriterResources() {}
+         
+    public Object[][] getContents() {
+        return contents;
     }
+
+
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)Observable.java	1.35 03/01/23
+ * @(#)Observable.java	1.38 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package java.util;
  * to their <code>update</code> method. 
  * <p>
  * The order in which notifications will be delivered is unspecified.  
- * The default implementation provided in the Observerable class will 
+ * The default implementation provided in the Observable class will
  * notify Observers in the order in which they registered interest, but 
  * subclasses may change this order, use no guaranteed order, deliver 
  * notifications on separate threads, or may guarantee that their
@@ -35,7 +35,7 @@ package java.util;
  * <tt>equals</tt> method returns true for them.
  *
  * @author  Chris Warth
- * @version 1.35, 01/23/03
+ * @version 1.38, 01/12/04
  * @see     java.util.Observable#notifyObservers()
  * @see     java.util.Observable#notifyObservers(java.lang.Object)
  * @see     java.util.Observer
@@ -71,7 +71,7 @@ public class Observable {
 
     /**
      * Deletes an observer from the set of observers of this object. 
-     *
+     * Passing <CODE>null</CODE> to this method will have no effect.
      * @param   o   the observer to be deleted.
      */
     public synchronized void deleteObserver(Observer o) {

@@ -1,7 +1,7 @@
 /*
- * @(#)InvocationEvent.java	1.16 05/04/29
+ * @(#)InvocationEvent.java	1.18 04/02/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,7 +9,6 @@ package java.awt.event;
 
 import java.awt.ActiveEvent;
 import java.awt.AWTEvent;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * An event which executes the <code>run()</code> method on a <code>Runnable
@@ -25,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @author	Fred Ecks
  * @author	David Mendenhall
- * @version	1.16, 04/29/05
+ * @version	1.18, 02/05/04
  *
  * @see		java.awt.ActiveEvent
  * @see		java.awt.EventQueue#invokeLater
@@ -63,8 +62,8 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
     protected Object notifier;
 
     /**
-     * Set to true if dispatch() catches Exception and stores it in the
-     * exception instance variable. If false, Exceptions are propagated up
+     * Set to true if dispatch() catches Throwable and stores it in the
+     * exception instance variable. If false, Throwables are propagated up
      * to the EventDispatchThread's dispatch loop.
      */
     protected boolean catchExceptions;
@@ -100,10 +99,19 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * Constructs an <code>InvocationEvent</code> with the specified
      * source which will execute the runnable's <code>run</code>
      * method when dispatched.
+     * <p>This is a convenience constructor.  An invocation of the form
+     * <tt>InvocationEvent(source, runnable)</tt>
+     * behaves in exactly the same way as the invocation of
+     * <tt>{@link #InvocationEvent(Object, Runnable, Object, boolean) InvocationEvent}(source, runnable, null, false)</tt>.
+     * <p> This method throws an <code>IllegalArgumentException</code>
+     * if <code>source</code> is <code>null</code>.
      *
      * @param source	the <code>Object</code> that originated the event
      * @param runnable	the <code>Runnable</code> whose <code>run</code>
      *                  method will be executed
+     * @throws IllegalArgumentException if <code>source</code> is null
+     *
+     * @see     #InvocationEvent(Object, Runnable, Object, boolean)
      */
     public InvocationEvent(Object source, Runnable runnable) {
         this(source, runnable, null, false);
@@ -115,6 +123,12 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * method when dispatched.  If notifier is non-<code>null</code>,
      * <code>notifyAll()</code> will be called on it
      * immediately after <code>run</code> returns.
+     * <p>An invocation of the form <tt>InvocationEvent(source,
+     * runnable, notifier, catchThrowables)</tt>
+     * behaves in exactly the same way as the invocation of
+     * <tt>{@link #InvocationEvent(Object, int, Runnable, Object, boolean) InvocationEvent}(source, InvocationEvent.INVOCATION_DEFAULT, runnable, notifier, catchThrowables)</tt>.
+     * <p>This method throws an <code>IllegalArgumentException</code>
+     * if <code>source</code> is <code>null</code>.
      *
      * @param source		the <code>Object</code> that originated
      *                          the event
@@ -124,16 +138,19 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * @param notifier		the Object whose <code>notifyAll</code>
      *                          method will be called after
      *                          <code>Runnable.run</code> has returned
-     * @param catchExceptions	specifies whether <code>dispatch</code>
-     *                          should catch Exception when executing
+     * @param catchThrowables	specifies whether <code>dispatch</code>
+     *                          should catch Throwable when executing
      *                          the <code>Runnable</code>'s <code>run</code>
      *                          method, or should instead propagate those
-     *                          Exceptions to the EventDispatchThread's
+     *                          Throwables to the EventDispatchThread's
      *                          dispatch loop
+     * @throws IllegalArgumentException if <code>source</code> is null
+     *
+     * @see     #InvocationEvent(Object, int, Runnable, Object, boolean)
      */
     public InvocationEvent(Object source, Runnable runnable, Object notifier,
-                           boolean catchExceptions) {
-	this(source, INVOCATION_DEFAULT, runnable, notifier, catchExceptions);
+                           boolean catchThrowables) {
+	this(source, INVOCATION_DEFAULT, runnable, notifier, catchThrowables);
     }
 
     /**
@@ -143,7 +160,9 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * <code>notifyAll</code> will be called on it 
      * immediately after <code>run</code> returns.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source		the <code>Object</code> that originated
      *                          the event
@@ -153,19 +172,20 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * @param notifier		the <code>Object whose <code>notifyAll</code>
      *                          method will be called after
      *                          <code>Runnable.run</code> has returned
-     * @param catchExceptions	specifies whether <code>dispatch</code>
-     *                          should catch Exception when executing the
+     * @param catchThrowables	specifies whether <code>dispatch</code>
+     *                          should catch Throwable when executing the
      *                          <code>Runnable</code>'s <code>run</code>
      *                          method, or should instead propagate those
-     *                          Exceptions to the EventDispatchThread's
+     *                          Throwables to the EventDispatchThread's
      *                          dispatch loop
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     protected InvocationEvent(Object source, int id, Runnable runnable, 
-                              Object notifier, boolean catchExceptions) {
+                              Object notifier, boolean catchThrowables) {
         super(source, id);
 	this.runnable = runnable;
 	this.notifier = notifier;
-	this.catchExceptions = catchExceptions;
+	this.catchExceptions = catchThrowables;
         this.when = System.currentTimeMillis();
     }
 
@@ -216,7 +236,7 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      *		Throwable was thrown or if this InvocationEvent does not
      *		catch Throwables
      */
-    private Throwable getThrowableObject() {
+    public Throwable getThrowable() {
 	return (catchExceptions) ? throwable : null;
     }
 

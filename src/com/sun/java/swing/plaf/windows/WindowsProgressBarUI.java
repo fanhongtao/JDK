@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsProgressBarUI.java	1.21 03/04/22
+ * @(#)WindowsProgressBarUI.java	1.24 04/04/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 04/22/03
+ * @version 1.24 04/16/04
  * @author Michael C. Albers
  */
 public class WindowsProgressBarUI extends BasicProgressBarUI
@@ -40,7 +40,7 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 	super.installDefaults();
 
 	if (XPStyle.getXP() != null) {
-	    progressBar.setOpaque(false);
+	    LookAndFeel.installProperty(progressBar, "opaque", Boolean.FALSE);
 	    progressBar.setBorder(null);
 	}
     }
@@ -67,6 +67,7 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    boolean vertical = (progressBar.getOrientation() == JProgressBar.VERTICAL);
+	    boolean isLeftToRight = WindowsGraphicsUtils.isLeftToRight(c);
 	    int barRectWidth = progressBar.getWidth();
 	    int barRectHeight = progressBar.getHeight()-1;
 	    // amount of progress to draw
@@ -84,8 +85,15 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 		g2.setStroke(new BasicStroke((float)(vertical ? barRectWidth : barRectHeight),
 					     BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
 		if (!vertical) {
-		    g2.drawLine(2,              barRectHeight / 2 + 1,
-				amountFull - 2, barRectHeight / 2 + 1);
+		    if (isLeftToRight) {
+			g2.drawLine(2,              barRectHeight / 2 + 1,
+				    amountFull - 2, barRectHeight / 2 + 1);
+		    } else {
+			g2.drawLine(2 + barRectWidth,
+				    barRectHeight / 2 + 1,
+				    2 + barRectWidth - (amountFull - 2),
+				    barRectHeight / 2 + 1);
+		    }
 		    paintString(g, 0, 0, barRectWidth, barRectHeight, amountFull, null);
 		} else {
 		    g2.drawLine(barRectWidth/2 + 1, barRectHeight + 1,
@@ -118,9 +126,15 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 				       3, barRectHeight - i * (chunkSize + spaceSize) - chunkSize - 2,
 				       thickness, chunkSize, 0);
 		    } else {
-			skin.paintSkin(g,
-				       4 + i * (chunkSize + spaceSize), 2,
-				       chunkSize, thickness, 0);
+			if (isLeftToRight) {
+			    skin.paintSkin(g,
+					   4 + i * (chunkSize + spaceSize), 2,
+					   chunkSize, thickness, 0);
+			} else {
+			    skin.paintSkin(g,
+					   barRectWidth - (2 + (i+1) * (chunkSize + spaceSize)), 2,
+					   chunkSize, thickness, 0);
+			}
 		    }
 		}
 	    }

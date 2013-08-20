@@ -1,7 +1,7 @@
 /*
- * @(#)Graphics2D.java	1.78 03/01/23
+ * @(#)Graphics2D.java	1.81 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -383,7 +383,7 @@ import java.util.Map;
  * </pre>
  * </ol>
  *
- * @version 	1.78, 01/23/03
+ * @version 	1.81, 05/05/04
  * @author Jim Graham
  * @see java.awt.RenderingHints
  */
@@ -517,13 +517,14 @@ public abstract class Graphics2D extends Graphics {
      * <code>Transform</code>, and <code>Composite</code> attributes. 
      * Note that no rendering is done if the specified transform is 
      * noninvertible.
-     * @param img the <code>Image</code> to be rendered
+     * @param img the specified image to be rendered. 
+     *            This method does nothing if <code>img</code> is null.
      * @param xform the transformation from image space into user space
      * @param obs the {@link ImageObserver}
      * to be notified as more of the <code>Image</code>
      * is converted
      * @return <code>true</code> if the <code>Image</code> is 
-     * fully loaded and completely rendered; 
+     * fully loaded and completely rendered, or if it's null;
      * <code>false</code> if the <code>Image</code> is still being loaded.
      * @see #transform
      * @see #setTransform
@@ -547,7 +548,8 @@ public abstract class Graphics2D extends Graphics {
      * drawImage(img1, new AffineTransform(1f,0f,0f,1f,x,y), null);
      * </pre>
      * @param op the filter to be applied to the image before rendering
-     * @param img the <code>BufferedImage</code> to be rendered
+     * @param img the specified <code>BufferedImage</code> to be rendered. 
+     *            This method does nothing if <code>img</code> is null.
      * @param x the x coordinate of the location in user space where
      * the upper left corner of the image is rendered
      * @param y the y coordinate of the location in user space where
@@ -576,7 +578,8 @@ public abstract class Graphics2D extends Graphics {
      * <code>Transform</code>, and <code>Composite</code> attributes. Note
      * that no rendering is done if the specified transform is
      * noninvertible.
-     * @param img the image to be rendered
+     * @param img the image to be rendered. This method does
+     *            nothing if <code>img</code> is null.
      * @param xform the transformation from image space into user space
      * @see #transform
      * @see #setTransform
@@ -608,7 +611,8 @@ public abstract class Graphics2D extends Graphics {
      * obtained directly from the <code>RenderableImage</code>
      * and rendered using 
      *{@link #drawRenderedImage(RenderedImage, AffineTransform) drawRenderedImage}.
-     * @param img the image to be rendered
+     * @param img the image to be rendered. This method does
+     *            nothing if <code>img</code> is null.
      * @param xform the transformation from image space into user space
      * @see #transform
      * @see #setTransform
@@ -907,7 +911,7 @@ public abstract class Graphics2D extends Graphics {
      * @see #getRenderingHints
      * @see RenderingHints
      */
-    public abstract void setRenderingHints(Map hints);
+    public abstract void setRenderingHints(Map<?,?> hints);
 
     /**
      * Sets the values of an arbitrary number of preferences for the
@@ -923,7 +927,7 @@ public abstract class Graphics2D extends Graphics {
      * @param hints the rendering hints to be set
      * @see RenderingHints
      */
-    public abstract void addRenderingHints(Map hints);
+    public abstract void addRenderingHints(Map<?,?> hints);
 
     /**
      * Gets the preferences for the rendering algorithms.  Hint categories

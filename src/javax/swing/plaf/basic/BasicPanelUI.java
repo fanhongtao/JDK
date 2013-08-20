@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPanelUI.java	1.8 03/01/23
+ * @(#)BasicPanelUI.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.awt.event.*;
 /**
  * BasicPanel implementation
  *
- * @version 1.8 01/23/03
+ * @version 1.11 12/19/03
  * @author Steve Wilson
  */
 public class BasicPanelUI extends PanelUI {
@@ -40,8 +40,9 @@ public class BasicPanelUI extends PanelUI {
     }
 
     public void uninstallUI(JComponent c) {
+        JPanel p = (JPanel)c;
+        uninstallDefaults(p);
         super.uninstallUI(c);
-
     }
 
     protected void installDefaults(JPanel p) {
@@ -50,6 +51,7 @@ public class BasicPanelUI extends PanelUI {
 					 "Panel.foreground",
 					 "Panel.font");
         LookAndFeel.installBorder(p,"Panel.border");
+        LookAndFeel.installProperty(p, "opaque", Boolean.TRUE);
     }
 
     protected void uninstallDefaults(JPanel p) {

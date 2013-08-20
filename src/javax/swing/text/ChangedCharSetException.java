@@ -1,7 +1,7 @@
 /*
- * @(#)ChangedCharSetException.java	1.7 03/01/23
+ * @(#)ChangedCharSetException.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -13,7 +13,7 @@ import java.io.IOException;
  * thrown when the charset is changed.
  *
  * @author Sunita Mani
- * 1.7, 01/23/03
+ * 1.8, 12/19/03
  */
 public class ChangedCharSetException extends IOException {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Color.java	1.72 03/01/23
+ * @(#)Color.java	1.75 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.color.ColorSpace;
 
 /**
- * The <code>Color</code> class is used encapsulate colors in the default
+ * The <code>Color</code> class is used to encapsulate colors in the default
  * sRGB color space or colors in arbitrary color spaces identified by a
  * {@link ColorSpace}.  Every color has an implicit alpha value of 1.0 or
  * an explicit one provided in the constructor.  The alpha value
@@ -328,6 +328,10 @@ public class Color implements Paint, java.io.Serializable {
      * on finding the best match given the color space 
      * available for a given output device.  
      * Alpha is defaulted to 255.
+     *
+     * @throws IllegalArgumentException if <code>r</code>, <code>g</code>
+     *        or <code>b</code> are outside of the range
+     *        0 to 255, inclusive
      * @param r the red component
      * @param g the green component
      * @param b the blue component
@@ -343,6 +347,10 @@ public class Color implements Paint, java.io.Serializable {
     /**
      * Creates an sRGB color with the specified red, green, blue, and alpha
      * values in the range (0 - 255).
+     *
+     * @throws IllegalArgumentException if <code>r</code>, <code>g</code>,
+     *        <code>b</code> or <code>a</code> are outside of the range
+     *        0 to 255, inclusive
      * @param r the red component
      * @param g the green component
      * @param b the blue component
@@ -368,6 +376,7 @@ public class Color implements Paint, java.io.Serializable {
      * used in rendering depends on finding the best match given the
      * color space available for a particular output device.  Alpha is
      * defaulted to 255.
+     *
      * @param rgb the combined RGB components
      * @see java.awt.image.ColorModel#getRGBdefault
      * @see #getRed
@@ -385,9 +394,10 @@ public class Color implements Paint, java.io.Serializable {
      * the green component in bits 8-15, and the blue component in bits 0-7.
      * If the <code>hasalpha</code> argument is <code>false</code>, alpha
      * is defaulted to 255.
+     *
      * @param rgba the combined RGBA components
      * @param hasalpha <code>true</code> if the alpha bits are valid;
-     * <code>false</code> otherwise
+     *        <code>false</code> otherwise
      * @see java.awt.image.ColorModel#getRGBdefault
      * @see #getRed
      * @see #getGreen
@@ -409,6 +419,10 @@ public class Color implements Paint, java.io.Serializable {
      * actual color used in rendering depends on finding the best
      * match given the color space available for a particular output
      * device.
+     *
+     * @throws IllegalArgumentException if <code>r</code>, <code>g</code>
+     *        or <code>b</code> are outside of the range
+     *        0.0 to 1.0, inclusive
      * @param r the red component
      * @param g the green component
      * @param b the blue component
@@ -433,6 +447,9 @@ public class Color implements Paint, java.io.Serializable {
      * alpha values in the range (0.0 - 1.0).  The actual color
      * used in rendering depends on finding the best match given the
      * color space available for a particular output device.
+     * @throws IllegalArgumentException if <code>r</code>, <code>g</code>
+     *        <code>b</code> or <code>a</code> are outside of the range
+     *        0.0 to 1.0, inclusive
      * @param r the red component
      * @param g the green component
      * @param b the blue component

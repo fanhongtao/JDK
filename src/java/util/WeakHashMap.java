@@ -1,7 +1,7 @@
 /*
- * @(#)WeakHashMap.java	1.24 03/01/23
+ * @(#)WeakHashMap.java	1.30 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -72,7 +72,7 @@ import java.lang.ref.ReferenceQueue;
  * key via the <tt>WeakHashMap</tt> itself; that is, a value object may
  * strongly refer to some other key object whose associated value object, in
  * turn, strongly refers to the key of the first value object.  One way
- * to deal with this is to wrap values themselves within 
+ * to deal with this is to wrap values themselves within
  * <tt>WeakReferences</tt> before
  * inserting, as in: <tt>m.put(key, new WeakReference(value))</tt>,
  * and then unwrapping upon each <tt>get</tt>.
@@ -89,16 +89,16 @@ import java.lang.ref.ReferenceQueue;
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:  <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i>
  *
- * <p>This class is a member of the 
+ * <p>This class is a member of the
  * <a href="{@docRoot}/../guide/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @version	1.24, 01/23/03
+ * @version	1.30, 02/19/04
  * @author      Doug Lea
  * @author      Josh Bloch
  * @author	Mark Reinhold
@@ -106,7 +106,9 @@ import java.lang.ref.ReferenceQueue;
  * @see		java.util.HashMap
  * @see		java.lang.ref.WeakReference
  */
-public class WeakHashMap extends AbstractMap implements Map {
+public class WeakHashMap<K,V>
+    extends AbstractMap<K,V>
+    implements Map<K,V> {
 
     /**
      * The default initial capacity -- MUST be a power of two.
@@ -134,12 +136,12 @@ public class WeakHashMap extends AbstractMap implements Map {
      * The number of key-value mappings contained in this weak hash map.
      */
     private int size;
-  
+
     /**
      * The next size value at which to resize (capacity * load factor).
      */
     private int threshold;
-  
+
     /**
      * The load factor for the hash table.
      */
@@ -148,7 +150,7 @@ public class WeakHashMap extends AbstractMap implements Map {
     /**
      * Reference queue for cleared WeakEntries
      */
-    private final ReferenceQueue queue = new ReferenceQueue();
+    private final ReferenceQueue<K> queue = new ReferenceQueue<K>();
 
     /**
      * The number of times this HashMap has been structurally modified
@@ -179,7 +181,7 @@ public class WeakHashMap extends AbstractMap implements Map {
             throw new IllegalArgumentException("Illegal Load factor: "+
                                                loadFactor);
         int capacity = 1;
-        while (capacity < initialCapacity) 
+        while (capacity < initialCapacity)
             capacity <<= 1;
         table = new Entry[capacity];
         this.loadFactor = loadFactor;
@@ -206,10 +208,10 @@ public class WeakHashMap extends AbstractMap implements Map {
         threshold = (int)(DEFAULT_INITIAL_CAPACITY);
         table = new Entry[DEFAULT_INITIAL_CAPACITY];
     }
-  
+
     /**
      * Constructs a new <tt>WeakHashMap</tt> with the same mappings as the
-     * specified <tt>Map</tt>.  The <tt>WeakHashMap</tt> is created with 
+     * specified <tt>Map</tt>.  The <tt>WeakHashMap</tt> is created with
      * default load factor, which is <tt>0.75</tt> and an initial capacity
      * sufficient to hold the mappings in the specified <tt>Map</tt>.
      *
@@ -217,7 +219,7 @@ public class WeakHashMap extends AbstractMap implements Map {
      * @throws  NullPointerException if the specified map is null.
      * @since	1.3
      */
-    public WeakHashMap(Map t) {
+    public WeakHashMap(Map<? extends K, ? extends V> t) {
         this(Math.max((int) (t.size() / DEFAULT_LOAD_FACTOR) + 1, 16),
              DEFAULT_LOAD_FACTOR);
         putAll(t);
@@ -240,8 +242,8 @@ public class WeakHashMap extends AbstractMap implements Map {
     /**
      * Return internal representation of null key back to caller as null
      */
-    private static Object unmaskNull(Object key) {
-        return (key == NULL_KEY ? null : key);
+    private static <K> K unmaskNull(Object key) {
+        return (K) (key == NULL_KEY ? null : key);
     }
 
     /**
@@ -253,7 +255,7 @@ public class WeakHashMap extends AbstractMap implements Map {
     }
 
     /**
-     * Return index for hash code h. 
+     * Return index for hash code h.
      */
     static int indexFor(int h, int length) {
         return h & (length-1);
@@ -263,16 +265,15 @@ public class WeakHashMap extends AbstractMap implements Map {
      * Expunge stale entries from the table.
      */
     private void expungeStaleEntries() {
-        Object r;
-        while ( (r = queue.poll()) != null) {
-            Entry e = (Entry)r;
+	Entry<K,V> e;
+        while ( (e = (Entry<K,V>) queue.poll()) != null) {
             int h = e.hash;
             int i = indexFor(h, table.length);
 
-            Entry prev = table[i];
-            Entry p = prev;
+            Entry<K,V> prev = table[i];
+            Entry<K,V> p = prev;
             while (p != null) {
-                Entry next = p.next;
+                Entry<K,V> next = p.next;
                 if (p == e) {
                     if (prev == e)
                         table[i] = next;
@@ -296,7 +297,7 @@ public class WeakHashMap extends AbstractMap implements Map {
         expungeStaleEntries();
         return table;
     }
- 
+
     /**
      * Returns the number of key-value mappings in this map.
      * This result is a snapshot, and may not reflect unprocessed
@@ -309,7 +310,7 @@ public class WeakHashMap extends AbstractMap implements Map {
         expungeStaleEntries();
         return size;
     }
-  
+
     /**
      * Returns <tt>true</tt> if this map contains no key-value mappings.
      * This result is a snapshot, and may not reflect unprocessed
@@ -334,12 +335,12 @@ public class WeakHashMap extends AbstractMap implements Map {
      *          <tt>null</tt> if the map contains no mapping for this key.
      * @see #put(Object, Object)
      */
-    public Object get(Object key) {
+    public V get(Object key) {
         Object k = maskNull(key);
         int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int index = indexFor(h, tab.length);
-        Entry e = tab[index]; 
+        Entry<K,V> e = tab[index];
         while (e != null) {
             if (e.hash == h && eq(k, e.get()))
                 return e.value;
@@ -347,7 +348,7 @@ public class WeakHashMap extends AbstractMap implements Map {
         }
         return null;
     }
-  
+
     /**
      * Returns <tt>true</tt> if this map contains a mapping for the
      * specified key.
@@ -364,12 +365,12 @@ public class WeakHashMap extends AbstractMap implements Map {
      * Returns the entry associated with the specified key in the HashMap.
      * Returns null if the HashMap contains no mapping for this key.
      */
-    Entry getEntry(Object key) {
+    Entry<K,V> getEntry(Object key) {
         Object k = maskNull(key);
         int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int index = indexFor(h, tab.length);
-        Entry e = tab[index]; 
+        Entry<K,V> e = tab[index];
         while (e != null && !(e.hash == h && eq(k, e.get())))
             e = e.next;
         return e;
@@ -387,15 +388,15 @@ public class WeakHashMap extends AbstractMap implements Map {
      *	       also indicate that the HashMap previously associated
      *	       <tt>null</tt> with the specified key.
      */
-    public Object put(Object key, Object value) {
-        Object k = maskNull(key);
+    public V put(K key, V value) {
+        K k = (K) maskNull(key);
         int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int i = indexFor(h, tab.length);
 
-        for (Entry e = tab[i]; e != null; e = e.next) {
+        for (Entry<K,V> e = tab[i]; e != null; e = e.next) {
             if (h == e.hash && eq(k, e.get())) {
-                Object oldValue = e.value;
+                V oldValue = e.value;
                 if (value != oldValue)
                     e.value = value;
                 return oldValue;
@@ -403,19 +404,20 @@ public class WeakHashMap extends AbstractMap implements Map {
         }
 
         modCount++;
-        tab[i] = new Entry(k, value, queue, h, tab[i]);
-        if (++size >= threshold) 
+	Entry<K,V> e = tab[i];
+        tab[i] = new Entry<K,V>(k, value, queue, h, e);
+        if (++size >= threshold)
             resize(tab.length * 2);
         return null;
     }
-  
+
     /**
      * Rehashes the contents of this map into a new array with a
      * larger capacity.  This method is called automatically when the
      * number of keys in this map reaches its threshold.
      *
      * If current capacity is MAXIMUM_CAPACITY, this method does not
-     * resize the map, but but sets threshold to Integer.MAX_VALUE.
+     * resize the map, but sets threshold to Integer.MAX_VALUE.
      * This has the effect of preventing future calls.
      *
      * @param newCapacity the new capacity, MUST be a power of two;
@@ -452,17 +454,17 @@ public class WeakHashMap extends AbstractMap implements Map {
     /** Transfer all entries from src to dest tables */
     private void transfer(Entry[] src, Entry[] dest) {
         for (int j = 0; j < src.length; ++j) {
-            Entry e = src[j];
+            Entry<K,V> e = src[j];
             src[j] = null;
             while (e != null) {
-                Entry next = e.next;
+                Entry<K,V> next = e.next;
                 Object key = e.get();
                 if (key == null) {
                     e.next = null;  // Help GC
                     e.value = null; //  "   "
                     size--;
                 } else {
-                    int i = indexFor(e.hash, dest.length);  
+                    int i = indexFor(e.hash, dest.length);
                     e.next = dest[i];
                     dest[i] = e;
                 }
@@ -479,7 +481,7 @@ public class WeakHashMap extends AbstractMap implements Map {
      * @param m mappings to be stored in this map.
      * @throws  NullPointerException if the specified map is null.
      */
-    public void putAll(Map m) {
+    public void putAll(Map<? extends K, ? extends V> m) {
         int numKeysToBeAdded = m.size();
         if (numKeysToBeAdded == 0)
             return;
@@ -504,12 +506,12 @@ public class WeakHashMap extends AbstractMap implements Map {
                 resize(newCapacity);
         }
 
-        for (Iterator i = m.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry e = (Map.Entry) i.next();
+        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> i = m.entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<? extends K, ? extends V> e = i.next();
             put(e.getKey(), e.getValue());
         }
     }
-  
+
     /**
      * Removes the mapping for this key from this map if present.
      *
@@ -519,20 +521,20 @@ public class WeakHashMap extends AbstractMap implements Map {
      *	       also indicate that the map previously associated <tt>null</tt>
      *	       with the specified key.
      */
-    public Object remove(Object key) {
+    public V remove(Object key) {
         Object k = maskNull(key);
         int h = HashMap.hash(k);
         Entry[] tab = getTable();
         int i = indexFor(h, tab.length);
-        Entry prev = tab[i];
-        Entry e = prev;
+        Entry<K,V> prev = tab[i];
+        Entry<K,V> e = prev;
 
         while (e != null) {
-            Entry next = e.next;
+            Entry<K,V> next = e.next;
             if (h == e.hash && eq(k, e.get())) {
                 modCount++;
                 size--;
-                if (prev == e) 
+                if (prev == e)
                     tab[i] = next;
                 else
                     prev.next = next;
@@ -548,7 +550,7 @@ public class WeakHashMap extends AbstractMap implements Map {
 
 
     /** Special version of remove needed by Entry set */
-    Entry removeMapping(Object o) {
+    Entry<K,V> removeMapping(Object o) {
         if (!(o instanceof Map.Entry))
             return null;
         Entry[] tab = getTable();
@@ -556,15 +558,15 @@ public class WeakHashMap extends AbstractMap implements Map {
         Object k = maskNull(entry.getKey());
         int h = HashMap.hash(k);
         int i = indexFor(h, tab.length);
-        Entry prev = tab[i];
-        Entry e = prev;
+        Entry<K,V> prev = tab[i];
+        Entry<K,V> e = prev;
 
         while (e != null) {
-            Entry next = e.next;
+            Entry<K,V> next = e.next;
             if (h == e.hash && e.equals(entry)) {
                 modCount++;
                 size--;
-                if (prev == e) 
+                if (prev == e)
                     tab[i] = next;
                 else
                     prev.next = next;
@@ -573,7 +575,7 @@ public class WeakHashMap extends AbstractMap implements Map {
             prev = e;
             e = next;
         }
-   
+
         return null;
     }
 
@@ -587,8 +589,8 @@ public class WeakHashMap extends AbstractMap implements Map {
             ;
 
         modCount++;
-        Entry tab[] = table;
-        for (int i = 0; i < tab.length; ++i) 
+        Entry[] tab = table;
+        for (int i = 0; i < tab.length; ++i)
             tab[i] = null;
         size = 0;
 
@@ -608,10 +610,10 @@ public class WeakHashMap extends AbstractMap implements Map {
      *         specified value.
      */
     public boolean containsValue(Object value) {
-	if (value==null) 
+	if (value==null)
             return containsNullValue();
 
-	Entry tab[] = getTable();
+	Entry[] tab = getTable();
         for (int i = tab.length ; i-- > 0 ;)
             for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (value.equals(e.value))
@@ -623,7 +625,7 @@ public class WeakHashMap extends AbstractMap implements Map {
      * Special-case code for containsValue with null argument
      */
     private boolean containsNullValue() {
-	Entry tab[] = getTable();
+	Entry[] tab = getTable();
         for (int i = tab.length ; i-- > 0 ;)
             for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (e.value==null)
@@ -633,38 +635,39 @@ public class WeakHashMap extends AbstractMap implements Map {
 
     /**
      * The entries in this hash table extend WeakReference, using its main ref
-     * field as the key. 
-     */ 
-    private static class Entry extends WeakReference implements Map.Entry {
-        private Object value;
+     * field as the key.
+     */
+    private static class Entry<K,V> extends WeakReference<K> implements Map.Entry<K,V> {
+        private V value;
         private final int hash;
-        private Entry next;
+        private Entry<K,V> next;
 
         /**
          * Create new entry.
          */
-        Entry(Object key, Object value, ReferenceQueue queue,
-              int hash, Entry next) { 
-            super(key, queue); 
+        Entry(K key, V value,
+	      ReferenceQueue<K> queue,
+              int hash, Entry<K,V> next) {
+            super(key, queue);
             this.value = value;
             this.hash  = hash;
             this.next  = next;
         }
 
-        public Object getKey() {
-            return unmaskNull(get());
+        public K getKey() {
+            return WeakHashMap.<K>unmaskNull(get());
         }
 
-        public Object getValue() {
+        public V getValue() {
             return value;
         }
-    
-        public Object setValue(Object newValue) {
-            Object oldValue = value;
+
+        public V setValue(V newValue) {
+	    V oldValue = value;
             value = newValue;
             return oldValue;
         }
-    
+
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -674,41 +677,41 @@ public class WeakHashMap extends AbstractMap implements Map {
             if (k1 == k2 || (k1 != null && k1.equals(k2))) {
                 Object v1 = getValue();
                 Object v2 = e.getValue();
-                if (v1 == v2 || (v1 != null && v1.equals(v2))) 
+                if (v1 == v2 || (v1 != null && v1.equals(v2)))
                     return true;
             }
             return false;
         }
-    
+
         public int hashCode() {
             Object k = getKey();
             Object v = getValue();
             return  ((k==null ? 0 : k.hashCode()) ^
                      (v==null ? 0 : v.hashCode()));
         }
-    
+
         public String toString() {
             return getKey() + "=" + getValue();
         }
     }
 
-    private abstract class HashIterator implements Iterator {
-        int index; 
-        Entry entry = null;
-        Entry lastReturned = null;
+    private abstract class HashIterator<T> implements Iterator<T> {
+        int index;
+        Entry<K,V> entry = null;
+        Entry<K,V> lastReturned = null;
         int expectedModCount = modCount;
 
-        /** 
+        /**
          * Strong reference needed to avoid disappearance of key
          * between hasNext and next
          */
-        Object nextKey = null; 
+        Object nextKey = null;
 
-        /** 
+        /**
          * Strong reference needed to avoid disappearance of key
          * between nextEntry() and any use of the entry
          */
-        Object currentKey = null;
+	Object currentKey = null;
 
         HashIterator() {
             index = (size() != 0 ? table.length : 0);
@@ -718,7 +721,7 @@ public class WeakHashMap extends AbstractMap implements Map {
             Entry[] t = table;
 
             while (nextKey == null) {
-                Entry e = entry;
+                Entry<K,V> e = entry;
                 int i = index;
                 while (e == null && i > 0)
                     e = t[--i];
@@ -736,7 +739,7 @@ public class WeakHashMap extends AbstractMap implements Map {
         }
 
         /** The common parts of next() across different types of iterators */
-        protected Entry nextEntry() {
+        protected Entry<K,V> nextEntry() {
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
             if (nextKey == null && !hasNext())
@@ -754,7 +757,7 @@ public class WeakHashMap extends AbstractMap implements Map {
                 throw new IllegalStateException();
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
-      
+
             WeakHashMap.this.remove(currentKey);
             expectedModCount = modCount;
             lastReturned = null;
@@ -763,27 +766,27 @@ public class WeakHashMap extends AbstractMap implements Map {
 
     }
 
-    private class ValueIterator extends HashIterator {
-        public Object next() {
+    private class ValueIterator extends HashIterator<V> {
+        public V next() {
             return nextEntry().value;
         }
     }
 
-    private class KeyIterator extends HashIterator {
-        public Object next() {
+    private class KeyIterator extends HashIterator<K> {
+        public K next() {
             return nextEntry().getKey();
         }
     }
 
-    private class EntryIterator extends HashIterator {
-        public Object next() {
+    private class EntryIterator extends HashIterator<Map.Entry<K,V>> {
+        public Map.Entry<K,V> next() {
             return nextEntry();
         }
     }
 
     // Views
 
-    private transient Set entrySet = null;
+    private transient Set<Map.Entry<K,V>> entrySet = null;
 
     /**
      * Returns a set view of the keys contained in this map.  The set is
@@ -796,13 +799,13 @@ public class WeakHashMap extends AbstractMap implements Map {
      *
      * @return a set view of the keys contained in this map.
      */
-    public Set keySet() {
-        Set ks = keySet;
+    public Set<K> keySet() {
+        Set<K> ks = keySet;
         return (ks != null ? ks : (keySet = new KeySet()));
     }
 
-    private class KeySet extends AbstractSet {
-        public Iterator iterator() {
+    private class KeySet extends AbstractSet<K> {
+        public Iterator<K> iterator() {
             return new KeyIterator();
         }
 
@@ -828,15 +831,15 @@ public class WeakHashMap extends AbstractMap implements Map {
         }
 
         public Object[] toArray() {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
+            Collection<K> c = new ArrayList<K>(size());
+            for (Iterator<K> i = iterator(); i.hasNext(); )
                 c.add(i.next());
             return c.toArray();
         }
 
-        public Object[] toArray(Object a[]) {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
+        public <T> T[] toArray(T[] a) {
+            Collection<K> c = new ArrayList<K>(size());
+            for (Iterator<K> i = iterator(); i.hasNext(); )
                 c.add(i.next());
             return c.toArray(a);
         }
@@ -853,13 +856,13 @@ public class WeakHashMap extends AbstractMap implements Map {
      *
      * @return a collection view of the values contained in this map.
      */
-    public Collection values() {
-        Collection vs = values;
+    public Collection<V> values() {
+        Collection<V> vs = values;
         return (vs != null ?  vs : (values = new Values()));
     }
 
-    private class Values extends AbstractCollection {
-        public Iterator iterator() {
+    private class Values extends AbstractCollection<V> {
+        public Iterator<V> iterator() {
             return new ValueIterator();
         }
 
@@ -876,15 +879,15 @@ public class WeakHashMap extends AbstractMap implements Map {
         }
 
         public Object[] toArray() {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
+            Collection<V> c = new ArrayList<V>(size());
+            for (Iterator<V> i = iterator(); i.hasNext(); )
                 c.add(i.next());
             return c.toArray();
         }
 
-        public Object[] toArray(Object a[]) {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
+        public <T> T[] toArray(T[] a) {
+            Collection<V> c = new ArrayList<V>(size());
+            for (Iterator<V> i = iterator(); i.hasNext(); )
                 c.add(i.next());
             return c.toArray(a);
         }
@@ -903,13 +906,13 @@ public class WeakHashMap extends AbstractMap implements Map {
      * @return a collection view of the mappings contained in this map.
      * @see Map.Entry
      */
-    public Set entrySet() {
-        Set es = entrySet;
+    public Set<Map.Entry<K,V>> entrySet() {
+        Set<Map.Entry<K,V>> es = entrySet;
         return (es != null ? es : (entrySet = new EntrySet()));
     }
 
-    private class EntrySet extends AbstractSet {
-        public Iterator iterator() {
+    private class EntrySet extends AbstractSet<Map.Entry<K,V>> {
+        public Iterator<Map.Entry<K,V>> iterator() {
             return new EntryIterator();
         }
 
@@ -935,16 +938,16 @@ public class WeakHashMap extends AbstractMap implements Map {
         }
 
         public Object[] toArray() {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
-                c.add(new AbstractMap.SimpleEntry((Map.Entry) i.next()));
+            Collection<Map.Entry<K,V>> c = new ArrayList<Map.Entry<K,V>>(size());
+            for (Iterator<Map.Entry<K,V>> i = iterator(); i.hasNext(); )
+                c.add(new AbstractMap.SimpleEntry<K,V>(i.next()));
             return c.toArray();
         }
 
-        public Object[] toArray(Object a[]) {
-            Collection c = new ArrayList(size());
-            for (Iterator i = iterator(); i.hasNext(); )
-                c.add(new AbstractMap.SimpleEntry((Map.Entry) i.next()));
+        public <T> T[] toArray(T[] a) {
+            Collection<Map.Entry<K,V>> c = new ArrayList<Map.Entry<K,V>>(size());
+            for (Iterator<Map.Entry<K,V>> i = iterator(); i.hasNext(); )
+                c.add(new AbstractMap.SimpleEntry<K,V>(i.next()));
             return c.toArray(a);
         }
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)EllipseIterator.java	1.10 03/01/23
+ * @(#)EllipseIterator.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,26 +59,22 @@ class EllipseIterator implements PathIterator {
 	index++;
     }
 
-    private static final double angle = Math.PI / 4.0;
-    private static final double a = 1.0 - Math.cos(angle);
-    private static final double b = Math.tan(angle);
-    private static final double c = Math.sqrt(1.0 + b * b) - 1 + a;
-    private static final double cv = 4.0 / 3.0 * a * b / c;
+    // ArcIterator.btan(Math.PI/2)
+    public static final double CtrlVal = 0.5522847498307933;
 
+    /*
+     * ctrlpts contains the control points for a set of 4 cubic
+     * bezier curves that approximate a circle of radius 0.5
+     * centered at 0.5, 0.5
+     */
+    private static final double pcv = 0.5 + CtrlVal * 0.5;
+    private static final double ncv = 0.5 - CtrlVal * 0.5;
     private static double ctrlpts[][] = {
-	{  1.0,   cv,   cv,  1.0,  0.0,  1.0 },
-	{  -cv,  1.0, -1.0,   cv, -1.0,  0.0 },
-	{ -1.0,  -cv,  -cv, -1.0,  0.0, -1.0 },
-	{   cv, -1.0,  1.0,  -cv,  1.0,  0.0 }
+	{  1.0,  pcv,  pcv,  1.0,  0.5,  1.0 },
+	{  ncv,  1.0,  0.0,  pcv,  0.0,  0.5 },
+	{  0.0,  ncv,  ncv,  0.0,  0.5,  0.0 },
+	{  pcv,  0.0,  1.0,  ncv,  1.0,  0.5 }
     };
-
-    static {
-	for (int i = 0; i < 4; i++) {
-	    for (int j = 0; j < 6; j++) {
-		ctrlpts[i][j] = (ctrlpts[i][j] * 0.5) + 0.5;
-	    }
-	}
-    }
 
     /**
      * Returns the coordinates and type of the current path segment in

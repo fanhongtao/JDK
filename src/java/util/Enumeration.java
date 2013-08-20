@@ -1,7 +1,7 @@
 /*
- * @(#)Enumeration.java	1.20 03/01/23
+ * @(#)Enumeration.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,10 +40,10 @@ package java.util;
  * @see     java.util.Vector#elements()
  *
  * @author  Lee Boynton
- * @version 1.20, 01/23/03
+ * @version 1.22, 12/19/03
  * @since   JDK1.0
  */
-public interface Enumeration {
+public interface Enumeration<E> {
     /**
      * Tests if this enumeration contains more elements.
      *
@@ -60,5 +60,5 @@ public interface Enumeration {
      * @return     the next element of this enumeration.
      * @exception  NoSuchElementException  if no more elements exist.
      */
-    Object nextElement();
+    E nextElement();
 }

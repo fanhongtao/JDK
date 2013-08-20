@@ -1,7 +1,7 @@
 /*
- * @(#)FixedHeightLayoutCache.java	1.22 03/01/23
+ * @(#)FixedHeightLayoutCache.java	1.24 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.util.Stack;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.22 01/23/03
+ * @version 1.24 05/05/04
  * @author Scott Violet
  */
 
@@ -253,7 +253,7 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
      * starting at the passed in location. The ordering of the enumeration
      * is based on how the paths are displayed.
      */
-    public Enumeration getVisiblePathsFrom(TreePath path) {
+    public Enumeration<TreePath> getVisiblePathsFrom(TreePath path) {
 	if(path == null)
 	    return null;
 
@@ -1458,7 +1458,9 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
      */
     // This is very similiar to
     // VariableHeightTreeState.VisibleTreeStateNodeEnumeration
-    private class VisibleFHTreeStateNodeEnumeration implements Enumeration {
+    private class VisibleFHTreeStateNodeEnumeration
+	implements Enumeration<TreePath>
+    {
 	/** Parent thats children are being enumerated. */
 	protected FHTreeStateNode     parent;
 	/** Index of next child. An index of -1 signifies parent should be
@@ -1489,11 +1491,11 @@ public class FixedHeightLayoutCache extends AbstractLayoutCache {
 	/**
 	 * @return next visible TreePath.
 	 */
-	public Object nextElement() {
+	public TreePath nextElement() {
 	    if(!hasMoreElements())
 		throw new NoSuchElementException("No more visible paths");
 
-	    Object                retObject;
+	    TreePath                retObject;
 
 	    if(nextIndex == -1)
 		retObject = parent.getTreePath();

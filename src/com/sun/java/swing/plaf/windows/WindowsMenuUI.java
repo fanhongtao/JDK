@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsMenuUI.java	1.20 03/05/06
+ * @(#)WindowsMenuUI.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,6 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicMenuUI;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 import javax.swing.event.MouseInputListener;
 import javax.swing.*;
 
@@ -28,10 +27,16 @@ import javax.swing.*;
  */
 public class WindowsMenuUI extends BasicMenuUI {
 
-    private boolean isMouseOver = false;
-
     public static ComponentUI createUI(JComponent x) {
 	return new WindowsMenuUI();
+    }
+
+    protected void installDefaults() {
+	super.installDefaults();
+
+	if (!WindowsLookAndFeel.isClassicWindows()) {
+	    menuItem.setRolloverEnabled(true);
+	}
     }
 
     /**
@@ -40,7 +45,7 @@ public class WindowsMenuUI extends BasicMenuUI {
      */
     protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
 	JMenu menu = (JMenu)menuItem;
-	ButtonModel model = menuItem.getModel();
+	ButtonModel model = menu.getModel();
 
 	// Use superclass method for the old Windows LAF,
         // for submenus, and for XP toplevel if selected or pressed
@@ -48,23 +53,23 @@ public class WindowsMenuUI extends BasicMenuUI {
 	    !menu.isTopLevelMenu() ||
 	    (XPStyle.getXP() != null && (model.isArmed() || model.isSelected()))) {
 
-	    super.paintBackground(g, menuItem, bgColor);
+	    super.paintBackground(g, menu, bgColor);
 	    return;
 	}
 
 	Color oldColor = g.getColor();
-        int menuWidth = menuItem.getWidth();
-        int menuHeight = menuItem.getHeight();
+        int menuWidth = menu.getWidth();
+        int menuHeight = menu.getHeight();
 
 	UIDefaults table = UIManager.getLookAndFeelDefaults();
 	Color highlight = table.getColor("controlLtHighlight");
 	Color shadow = table.getColor("controlShadow");
 
-	g.setColor(menuItem.getBackground());
+	g.setColor(menu.getBackground());
 	g.fillRect(0,0, menuWidth, menuHeight);
 
-        if(menuItem.isOpaque()) {
-            if (model.isArmed()|| (menuItem instanceof JMenu && model.isSelected())) {
+        if (menu.isOpaque()) {
+            if (model.isArmed() || model.isSelected()) {
 		// Draw a lowered bevel border
 		g.setColor(shadow);
 		g.drawLine(0,0, menuWidth - 1,0);
@@ -73,8 +78,17 @@ public class WindowsMenuUI extends BasicMenuUI {
 		g.setColor(highlight);
 		g.drawLine(menuWidth - 1,0, menuWidth - 1,menuHeight - 2);
 		g.drawLine(0,menuHeight - 2, menuWidth - 1,menuHeight - 2);
-            } else {
-		if (isMouseOver() && model.isEnabled()) {
+            } else if (model.isRollover() && model.isEnabled()) {
+		// Only paint rollover if no other menu on menubar is selected
+		boolean otherMenuSelected = false;
+		MenuElement[] menus = ((JMenuBar)menu.getParent()).getSubElements();
+		for (int i = 0; i < menus.length; i++) {
+		    if (((JMenuItem)menus[i]).isSelected()) {
+			otherMenuSelected = true;
+			break;
+		    }
+		}
+		if (!otherMenuSelected) {
 		    if (XPStyle.getXP() != null) {
 			g.setColor(selectionBackground); // Uses protected field.
 			g.fillRect(0, 0, menuWidth, menuHeight);
@@ -88,9 +102,6 @@ public class WindowsMenuUI extends BasicMenuUI {
 			g.drawLine(menuWidth - 1,0, menuWidth - 1,menuHeight - 2);
 			g.drawLine(0,menuHeight - 2, menuWidth - 1,menuHeight - 2);
 		    }
-		} else {
-		    g.setColor(menuItem.getBackground());
-		    g.fillRect(0,0, menuWidth, menuHeight);
 		}
             }
         }
@@ -106,52 +117,36 @@ public class WindowsMenuUI extends BasicMenuUI {
      * @param text String to render
      * @since 1.4
      */
-    protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
-	// Note: This method is almost identical to the same method in WindowsMenuItemUI
+    protected void paintText(Graphics g, JMenuItem menuItem,
+                             Rectangle textRect, String text) {
+
 	JMenu menu = (JMenu)menuItem;
 	ButtonModel model = menuItem.getModel();
+        Color oldColor = g.getColor();
 
-	if(!model.isEnabled()) {
-	    // *** paint the text disabled
-	    WindowsGraphicsUtils.paintText(g, menuItem, textRect, text, 0);
-	} else {
-	    FontMetrics fm = g.getFontMetrics();
-	    int mnemonicIndex = menuItem.getDisplayedMnemonicIndex();
-	    // W2K Feature: Check to see if the Underscore should be rendered.
-	    if (WindowsLookAndFeel.isMnemonicHidden()) {
-		mnemonicIndex = -1;
+	// Only paint rollover if no other menu on menubar is selected
+	boolean paintRollover = model.isRollover();
+	if (paintRollover && menu.isTopLevelMenu()) {
+	    MenuElement[] menus = ((JMenuBar)menu.getParent()).getSubElements();
+	    for (int i = 0; i < menus.length; i++) {
+		if (((JMenuItem)menus[i]).isSelected()) {
+		    paintRollover = false;
+		    break;
+		}
 	    }
-
-	    Color oldColor = g.getColor();
-
-	    // For Win95, the selected text color is the selection forground color
-	    if ((model.isSelected() && (WindowsLookAndFeel.isClassicWindows() ||
-					!menu.isTopLevelMenu())) ||
-		(XPStyle.getXP() != null && (isMouseOver() ||
-					     model.isArmed() ||
-					     model.isSelected()))) {
-		g.setColor(selectionForeground); // Uses protected field.
-            }
- 	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
-                                          mnemonicIndex, 
-					  textRect.x,
-					  textRect.y + fm.getAscent());
-	    g.setColor(oldColor);
 	}
-    }
 
-    /**
-     * Set the temporary flag to indicate if the mouse has entered the menu.
-     */
-    private void setMouseOver(boolean over) {
-	isMouseOver = over;
-    }
+	if ((model.isSelected() && (WindowsLookAndFeel.isClassicWindows() ||
+				    !menu.isTopLevelMenu())) ||
+	    (XPStyle.getXP() != null && (paintRollover ||
+					 model.isArmed() ||
+					 model.isSelected()))) {
+	    g.setColor(selectionForeground); // Uses protected field.
+	}
 
-    /**
-     * Get the temporary flag to indicate if the mouse has entered the menu.
-     */
-    private boolean isMouseOver() {
-	return isMouseOver;
+        WindowsGraphicsUtils.paintText(g, menuItem, textRect, text, 0);
+ 
+        g.setColor(oldColor);
     }
 
     protected MouseInputListener createMouseInputListener(JComponent c) {
@@ -166,16 +161,22 @@ public class WindowsMenuUI extends BasicMenuUI {
     protected class WindowsMouseInputHandler extends BasicMenuUI.MouseInputHandler {
 	public void mouseEntered(MouseEvent evt) {
 	    super.mouseEntered(evt);
-	    if (!WindowsLookAndFeel.isClassicWindows()) {
-		setMouseOver(true);
+
+	    JMenu menu = (JMenu)evt.getSource();
+	    ButtonModel model = menu.getModel();
+	    if (menu.isRolloverEnabled()) {
+		model.setRollover(true);
 		menuItem.repaint();
 	    }
 	}
 
 	public void mouseExited(MouseEvent evt) {
 	    super.mouseExited(evt);
-	    if (!WindowsLookAndFeel.isClassicWindows()) {
-		setMouseOver(false);
+
+	    JMenu menu = (JMenu)evt.getSource();
+	    ButtonModel model = menu.getModel();
+	    if (menu.isRolloverEnabled()) {
+		model.setRollover(false);
 		menuItem.repaint();
 	    }
 	}

@@ -1,7 +1,7 @@
 /*
- * @(#)PrivateCredentialPermission.java	1.27 03/01/27
+ * @(#)PrivateCredentialPermission.java	1.31 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,61 +82,55 @@ import sun.security.util.ResourcesMgr;
  * "a.b.Principal" with the name, "duke", and "c.d.Principal", with the name,
  * "dukette".
  *
- * @version 1.27, 01/27/03
+ * @version 1.31, 12/19/03
  */
 public final class PrivateCredentialPermission extends Permission {
 
     private static final long serialVersionUID = 5284372143517237068L;
 
+    private static final CredOwner[] EMPTY_PRINCIPALS = new CredOwner[0];
+
     /**
      * @serial
      */
     private String credentialClass;
+
     /**
      * @serial The Principals associated with this permission.
      *		The set contains elements of type,
      *		<code>PrivateCredentialPermission.CredOwner</code>.
      */
-    private Set principals;
+    private Set principals;  // ignored - kept around for compatibility
+    private transient CredOwner[] credOwners;
+
     /**
      * @serial
      */
     private boolean testing = false;
 
     /**
-     * Convenience function to create a PrivateCredentialPermission
-     * from a Credential class String and a Set of Permissions.
-     */
-    static String buildTarget(String credentialClass, Set principals) {
-	if (credentialClass == null ||
-	    principals == null ||
-	    principals.size() == 0)
-	    throw new IllegalArgumentException
-		(ResourcesMgr.getString("invalid null input(s)"));
-
-	String name = credentialClass;
-
-	Iterator i = principals.iterator();
-	while (i.hasNext()) {
-	    Principal p = (Principal)i.next();
-	    name += " " + p.getClass().getName() + " \"" + p.getName() + "\"";
-	}
-	return name;
-    }
-
-    Set getPrincipalSet() {
-	return principals;
-    }
-
-    /**
      * Create a new <code>PrivateCredentialPermission</code>
-     * with the specified <code>credentialClass</code>
-     * and an empty set of Principals.
+     * with the specified <code>credentialClass</code> and Principals.
      */
     PrivateCredentialPermission(String credentialClass, Set principals) {
 	super(credentialClass);
 	this.credentialClass = credentialClass;
-	this.principals = principals;
+
+	synchronized(principals) {
+	    if (principals.size() == 0) {
+		this.credOwners = EMPTY_PRINCIPALS;
+	    } else {
+		this.credOwners = new CredOwner[principals.size()];
+		int index = 0;
+		Iterator i = principals.iterator();
+		while (i.hasNext()) {
+		    Principal p = (Principal)i.next();
+		    this.credOwners[index++] = new CredOwner
+						(p.getClass().getName(),
+						p.getName());
+		}
+	    }
+	}
     }
 
     /**
@@ -196,20 +190,14 @@ public final class PrivateCredentialPermission extends Permission {
      */
     public String[][] getPrincipals() {
 
-	if (principals == null) {
-	    // this should never happen
+	if (credOwners == null || credOwners.length == 0) {
 	    return new String[0][0];
 	}
 
-	String[][] pArray = new String[principals.size()][2];
-	Iterator pIterator = principals.iterator();
-
-	int i = 0;
-	while (pIterator.hasNext()) {
-	    CredOwner co = (CredOwner)pIterator.next();
-	    pArray[i][0] = co.principalClass;
-	    pArray[i][1] = co.principalName;
-	    i++;
+	String[][] pArray = new String[credOwners.length][2];
+	for (int i = 0; i < credOwners.length; i++) {
+	    pArray[i][0] = credOwners[i].principalClass;
+	    pArray[i][1] = credOwners[i].principalName;
 	}
 	return pArray;
     }
@@ -246,10 +234,10 @@ public final class PrivateCredentialPermission extends Permission {
 
 	PrivateCredentialPermission that = (PrivateCredentialPermission)p;
 
-	if (!impliesCredentialClass(credentialClass, that.getCredentialClass()))
+	if (!impliesCredentialClass(credentialClass, that.credentialClass))
 	    return false;
 
-	return impliesPrincipalSet(principals, that.getPrincipalSet());
+	return impliesPrincipalSet(credOwners, that.credOwners);
     }
 
     /**
@@ -287,7 +275,7 @@ public final class PrivateCredentialPermission extends Permission {
      * @return a hash code value for this object.
      */
     public int hashCode() {
-        return this.getCredentialClass().hashCode();
+        return this.credentialClass.hashCode();
     }
 
     /**
@@ -317,7 +305,12 @@ public final class PrivateCredentialPermission extends Permission {
     }
 
     private void init(String name) {
-	principals = new HashSet();
+
+	if (name == null || name.trim().length() == 0) {
+	    throw new IllegalArgumentException("invalid empty name");
+	}
+
+	ArrayList pList = new ArrayList();
 	StringTokenizer tokenizer = new StringTokenizer(name, " ", true);
 	String principalClass = null;
 	String principalName = null;
@@ -414,9 +407,11 @@ public final class PrivateCredentialPermission extends Permission {
 	    if (testing)
 		System.out.println("\tprincipalName = '" + principalName + "'");
 
-	    CredOwner co = new CredOwner(principalClass, principalName);
-	    principals.add(co);
+	    pList.add(new CredOwner(principalClass, principalName));
 	}
+
+	this.credOwners = new CredOwner[pList.size()];
+	pList.toArray((CredOwner[])this.credOwners);
     }
 
     private boolean impliesCredentialClass(String thisC, String thatC) {
@@ -446,46 +441,29 @@ public final class PrivateCredentialPermission extends Permission {
 	return thisC.equals(thatC);
     }
 
-    private boolean impliesPrincipalSet(Set thisP, Set thatP) {
+    private boolean impliesPrincipalSet(CredOwner[] thisP, CredOwner[] thatP) {
 
 	// this should never happen
 	if (thisP == null || thatP == null)
 	    return false;
 
-	if (testing) {
-	    Iterator i = thisP.iterator();
-	    for (int j = 0; j < thisP.size(); j++) {
-		CredOwner co = (CredOwner)i.next();
-		System.out.println("this permission set [" + j + "]= " +
-				co.toString());
-	    }
-	}
-
-	if (thatP.size() == 0)
+	if (thatP.length == 0)
 	    return true;
 
-	if (thisP.size() == 0)
+	if (thisP.length == 0)
 	    return false;
 
-	// make sure thatP "contains all" of the principals in thisP
-	//
-	// XXX	we can not simply call containsAll on the sets
-	//	because we're not doing an "equals" --
-	//	we're doing an "implies"
-	Iterator thisI = thisP.iterator();
-	while (thisI.hasNext()) {
-	    CredOwner thisOwner = (CredOwner)thisI.next();
-	    Iterator thatI = thatP.iterator();
+	for (int i = 0; i < thisP.length; i++) {
 	    boolean foundMatch = false;
-	    while (thatI.hasNext()) {
-		CredOwner thatOwner = (CredOwner)thatI.next();
-		if (thisOwner.implies(thatOwner)) {
+	    for (int j = 0; j < thatP.length; j++) {
+		if (thisP[i].implies(thatP[j])) {
 		    foundMatch = true;
 		    break;
 		}
 	    }
-	    if (!foundMatch)
+	    if (!foundMatch) {
 		return false;
+	    }
 	}
 	return true;
     }
@@ -505,7 +483,7 @@ public final class PrivateCredentialPermission extends Permission {
 
 	    // name only has a credential class specified
 	    credentialClass = getName();
-	    principals = new HashSet();
+	    credOwners = EMPTY_PRINCIPALS;
 
         } else {
 

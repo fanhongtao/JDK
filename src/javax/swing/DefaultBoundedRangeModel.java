@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultBoundedRangeModel.java	1.43 03/01/23
+ * @(#)DefaultBoundedRangeModel.java	1.46 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.43 01/23/03
+ * @version 1.46 05/05/04
  * @author David Kloba
  * @author Hans Muller
  * @see BoundedRangeModel
@@ -142,8 +142,10 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      * @see BoundedRangeModel#setValue
      */
     public void setValue(int n) {
+        n = Math.min(n, Integer.MAX_VALUE - extent);
+
         int newValue = Math.max(n, min);
-        if(newValue + extent > max) {
+        if (newValue + extent > max) {
             newValue = max - extent; 
         }
         setRangeProperties(newValue, extent, min, max, isAdjusting);
@@ -399,7 +401,7 @@ public class DefaultBoundedRangeModel implements BoundedRangeModel, Serializable
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 }

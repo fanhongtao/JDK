@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateNotYetValidException.java	1.8 03/01/23
+ * @(#)CertificateNotYetValidException.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,9 +14,11 @@ package java.security.cert;
  * validity period.
  *
  * @author Hemma Prafullchandra
- * 1.8
+ * 1.10
  */
 public class CertificateNotYetValidException extends CertificateException {
+
+    static final long serialVersionUID = 4355919900041064702L;
 
     /**
      * Constructs a CertificateNotYetValidException with no detail message. A

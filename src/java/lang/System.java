@@ -1,10 +1,9 @@
 /*
- * @(#)System.java	1.131 03/01/29
+ * @(#)System.java	1.149 04/06/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-
 package java.lang;
 
 import java.io.*;
@@ -14,22 +13,25 @@ import java.util.StringTokenizer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.AllPermission;
+import java.nio.channels.Channel;
+import java.nio.channels.spi.SelectorProvider;
 import sun.net.InetAddressCachePolicy;
 import sun.reflect.Reflection;
 import sun.security.util.SecurityConstants;
+import sun.reflect.annotation.AnnotationType;
 
 /**
  * The <code>System</code> class contains several useful class fields
  * and methods. It cannot be instantiated.
- * <p>
- * Among the facilities provided by the <code>System</code> class
- * are standard input, standard output, and error output streams;
- * access to externally defined "properties"; a means of
- * loading files and libraries; and a utility method for quickly
- * copying a portion of an array.
  *
- * @author  Arthur van Hoff
- * @version 1.131, 01/29/03
+ * <p>Among the facilities provided by the <code>System</code> class
+ * are standard input, standard output, and error output streams;
+ * access to externally defined properties and environment
+ * variables; a means of loading files and libraries; and a utility
+ * method for quickly copying a portion of an array.
+ *
+ * @author  unascribed
+ * @version 1.149, 06/02/04
  * @since   JDK1.0
  */
 public final class System {
@@ -170,6 +172,36 @@ public final class System {
 	setErr0(err);
     }
 
+
+    /** 
+     * Returns the channel inherited from the entity that created this
+     * Java virtual machine.
+     *
+     * <p> This method returns the channel obtained by invoking the
+     * {@link java.nio.channels.spi.SelectorProvider#inheritedChannel
+     * inheritedChannel} method of the system-wide default
+     * {@link java.nio.channels.spi.SelectorProvider} object. </p>
+     *
+     * <p> In addition to the network-oriented channels described in
+     * {@link java.nio.channels.spi.SelectorProvider#inheritedChannel
+     * inheritedChannel}, this method may return other kinds of
+     * channels in the future.
+     *
+     * @return	The inherited channel, if any, otherwise <tt>null</tt>.
+     *
+     * @throws	IOException
+     *		If an I/O error occurs
+     *
+     * @throws	SecurityException
+     *		If a security manager is present and it does not
+     *		permit access to the channel.
+     *
+     * @since 1.5
+     */
+    public static Channel inheritedChannel() throws IOException {
+        return SelectorProvider.provider().inheritedChannel();
+    }
+
     private static void checkIO() {
         if (security != null)
 	    security.checkPermission(new RuntimePermission("setIO"));
@@ -272,6 +304,33 @@ public final class System {
      * @see     java.util.Date
      */
     public static native long currentTimeMillis();
+
+    /**
+     * Returns the current value of the most precise available system
+     * timer, in nanoseconds.
+     *
+     * <p>This method can only be used to measure elapsed time and is
+     * not related to any other notion of system or wall-clock time.
+     * The value returned represents nanoseconds since some fixed but
+     * arbitrary time (perhaps in the future, so values may be
+     * negative).  This method provides nanosecond precision, but not
+     * necessarily nanosecond accuracy. No guarantees are made about
+     * how frequently values change. Differences in successive calls
+     * that span greater than approximately 292 years (2<sup>63</sup>
+     * nanoseconds) will not accurately compute elapsed time due to
+     * numerical overflow.
+     *
+     * <p> For example, to measure how long some code takes to execute:
+     * <pre>
+     *   long startTime = System.nanoTime();
+     *   // ... the code being measured ...
+     *   long estimatedTime = System.nanoTime() - startTime;
+     * </pre>
+     * 
+     * @return The current value of the system timer, in nanoseconds.
+     * @since 1.5
+     */
+    public static native long nanoTime();
 
     /**
      * Copies an array from the specified source array, beginning at the
@@ -563,12 +622,7 @@ public final class System {
      * @see        java.lang.System#getProperties()
      */
     public static String getProperty(String key) {
-	if (key == null) {
-	    throw new NullPointerException("key can't be null");
-	}
-	if (key.equals("")) {
-	    throw new IllegalArgumentException("key can't be empty");
-	}
+	checkKey(key);
 	if (security != null) {
 	    security.checkPropertyAccess(key);
 	}
@@ -602,12 +656,7 @@ public final class System {
      * @see        java.lang.System#getProperties()
      */
     public static String getProperty(String key, String def) {
-	if (key == null) {
-	    throw new NullPointerException("key can't be null");
-	}
-	if (key.equals("")) {
-	    throw new IllegalArgumentException("key can't be empty");
-	}
+	checkKey(key);
 	if (security != null) {
 	    security.checkPropertyAccess(key);
 	}
@@ -633,8 +682,8 @@ public final class System {
      * @exception  SecurityException  if a security manager exists and its
      *             <code>checkPermission</code> method doesn't allow
      *             setting of the specified property.
-     * @exception  NullPointerException if <code>key</code> is
-     *             <code>null</code>.
+     * @exception  NullPointerException if <code>key</code> or 
+     *             <code>value</code> is <code>null</code>.
      * @exception  IllegalArgumentException if <code>key</code> is empty.
      * @see        #getProperty
      * @see        java.lang.System#getProperty(java.lang.String)
@@ -644,12 +693,7 @@ public final class System {
      * @since      1.2
      */
     public static String setProperty(String key, String value) {
-	if (key == null) {
-	    throw new NullPointerException("key can't be null");
-	}
-	if (key.equals("")) {
-	    throw new IllegalArgumentException("key can't be empty");
-	}
+	checkKey(key);
 	if (security != null)
 	    security.checkPermission(new PropertyPermission(key,
 		SecurityConstants.PROPERTY_WRITE_ACTION));
@@ -657,38 +701,147 @@ public final class System {
     }
 
     /**
-     * Gets an environment variable. An environment variable is a
-     * system-dependent external variable that has a string value.
+     * Removes the system property indicated by the specified key. 
+     * <p>
+     * First, if a security manager exists, its 
+     * <code>SecurityManager.checkPermission</code> method
+     * is called with a <code>PropertyPermission(key, "write")</code>
+     * permission. This may result in a SecurityException being thrown.
+     * If no exception is thrown, the specified property is removed.
+     * <p>
      *
-     * @deprecated The preferred way to extract system-dependent information
-     *             is the system properties of the
-     *             <code>java.lang.System.getProperty</code> methods and the
-     *             corresponding <code>get</code><em>TypeName</em> methods of
-     *             the <code>Boolean</code>, <code>Integer</code>, and
-     *             <code>Long</code> primitive types.  For example:
-     * <blockquote><pre>
-     *     String classPath = System.getProperty("java.class.path",".");
-     * <br>
-     *     if (Boolean.getBoolean("myapp.exper.mode"))
-     *         enableExpertCommands();
-     * </pre></blockquote>
+     * @param      key   the name of the system property to be removed. 
+     * @return     the previous string value of the system property,
+     *             or <code>null</code> if there was no property with that key.
      *
-     * @param  name of the environment variable
-     * @return the value of the variable, or <code>null</code> if the variable
-     *           is not defined.
-     * @see    java.lang.Boolean#getBoolean(java.lang.String)
-     * @see    java.lang.Integer#getInteger(java.lang.String)
-     * @see    java.lang.Integer#getInteger(java.lang.String, int)
-     * @see    java.lang.Integer#getInteger(java.lang.String, java.lang.Integer)
-     * @see    java.lang.Long#getLong(java.lang.String)
-     * @see    java.lang.Long#getLong(java.lang.String, long)
-     * @see    java.lang.Long#getLong(java.lang.String, java.lang.Long)
-     * @see    java.lang.System#getProperties()
-     * @see    java.lang.System#getProperty(java.lang.String)
-     * @see    java.lang.System#getProperty(java.lang.String, java.lang.String)
+     * @exception  SecurityException  if a security manager exists and its  
+     *             <code>checkPropertyAccess</code> method doesn't allow
+     *              access to the specified system property.
+     * @exception  NullPointerException if <code>key</code> is
+     *             <code>null</code>.
+     * @exception  IllegalArgumentException if <code>key</code> is empty.
+     * @see        #getProperty
+     * @see        #setProperty
+     * @see        java.util.Properties
+     * @see        java.lang.SecurityException
+     * @see        java.lang.SecurityManager#checkPropertiesAccess()
+     * @since 1.5
+     */
+    public static String clearProperty(String key) {
+        checkKey(key);
+        if (security != null)
+            security.checkPermission(new PropertyPermission(key, "write"));
+        return (String) props.remove(key);
+    }
+
+    private static void checkKey(String key) {
+        if (key == null) {
+            throw new NullPointerException("key can't be null");
+        }
+        if (key.equals("")) {
+            throw new IllegalArgumentException("key can't be empty");
+        }
+    }
+
+    /**
+     * Gets the value of the specified environment variable. An
+     * environment variable is a system-dependent external named
+     * value.
+     *
+     * <p>If a security manager exists, its
+     * {@link SecurityManager#checkPermission checkPermission}
+     * method is called with a
+     * <code>{@link RuntimePermission}("getenv."+name)</code>
+     * permission.  This may result in a {@link SecurityException}
+     * being thrown.  If no exception is thrown the value of the
+     * variable <code>name</code> is returned.
+     *
+     * <p><a name="EnvironmentVSSystemProperties"><i>System
+     * properties</i> and <i>environment variables</i> are both
+     * conceptually mappings between names and values.  Both
+     * mechanisms can be used to pass user-defined information to a
+     * Java process.  Environment variables have a more global effect,
+     * because they are visible to all descendants of the process
+     * which defines them, not just the immediate Java subprocess.
+     * They can have subtly different semantics, such as case
+     * insensitivity, on different operating systems.  For these
+     * reasons, environment variables are more likely to have
+     * unintended side effects.  It is best to use system properties
+     * where possible.  Environment variables should be used when a
+     * global effect is desired, or when an external system interface
+     * requires an environment variable (such as <code>PATH</code>).
+     *
+     * <p>On UNIX systems the alphabetic case of <code>name</code> is
+     * typically significant, while on Microsoft Windows systems it is
+     * typically not.  For example, the expression
+     * <code>System.getenv("FOO").equals(System.getenv("foo"))</code>
+     * is likely to be true on Microsoft Windows.
+     *
+     * @param  name the name of the environment variable
+     * @return the string value of the variable, or <code>null</code>
+     *         if the variable is not defined in the system environment
+     * @throws NullPointerException if <code>name</code> is <code>null</code>
+     * @throws SecurityException
+     *         if a security manager exists and its
+     *         {@link SecurityManager#checkPermission checkPermission}
+     *         method doesn't allow access to the environment variable
+     *         <code>name</code>
+     * @see    #getenv()
+     * @see    ProcessBuilder#environment()
      */
     public static String getenv(String name) {
-	throw new Error("getenv no longer supported, use properties and -D instead: " + name);
+	if (security != null)
+	    security.checkPermission(new RuntimePermission("getenv."+name));
+
+	return ProcessEnvironment.getenv(name);
+    }
+
+    
+    /**
+     * Returns an unmodifiable string map view of the current system environment.
+     * The environment is a system-dependent mapping from names to
+     * values which is passed from parent to child processes.
+     *
+     * <p>If the system does not support environment variables, an
+     * empty map is returned.
+     *
+     * <p>The returned map will never contain null keys or values.
+     * Attempting to query the presence of a null key or value will
+     * throw a {@link NullPointerException}.  Attempting to query
+     * the presence of a key or value which is not of type
+     * {@link String} will throw a {@link ClassCastException}.
+     *
+     * <p>The returned map and its collection views may not obey the
+     * general contract of the {@link Object#equals} and
+     * {@link Object#hashCode} methods.
+     *
+     * <p>The returned map is typically case-sensitive on all platforms.
+     *
+     * <p>If a security manager exists, its
+     * {@link SecurityManager#checkPermission checkPermission}
+     * method is called with a
+     * <code>{@link RuntimePermission}("getenv.*")</code>
+     * permission.  This may result in a {@link SecurityException} being
+     * thrown.
+     *
+     * <p>When passing information to a Java subprocess,
+     * <a href=#EnvironmentVSSystemProperties>system properties</a>
+     * are generally preferred over environment variables.
+     *
+     * @return the environment as a map of variable names to values
+     * @throws SecurityException
+     *         if a security manager exists and its
+     *         {@link SecurityManager#checkPermission checkPermission}
+     *         method doesn't allow access to the process environment
+     * @see    #getenv(String)
+     * @see    ProcessBuilder#environment()
+     * @since  1.5
+     */
+    public static java.util.Map<String,String> getenv() {
+	if (security != null)
+	    security.checkPermission(new RuntimePermission("getenv.*"));
+
+	return ProcessEnvironment.getenv();
     }
 
     /**
@@ -784,6 +937,7 @@ public final class System {
      * @see     java.lang.SecurityManager#checkExit(int)
      * @since   JDK1.1
      */
+    @Deprecated
     public static void runFinalizersOnExit(boolean value) {
 	Runtime.getRuntime().runFinalizersOnExit(value);
     }
@@ -804,6 +958,8 @@ public final class System {
      *             <code>checkLink</code> method doesn't allow
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the file does not exist.
+     * @exception  NullPointerException if <code>filename</code> is
+     *             <code>null</code>
      * @see        java.lang.Runtime#load(java.lang.String)
      * @see        java.lang.SecurityManager#checkLink(java.lang.String)
      */
@@ -827,6 +983,8 @@ public final class System {
      *             <code>checkLink</code> method doesn't allow
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the library does not exist.
+     * @exception  NullPointerException if <code>libname</code> is
+     *             <code>null</code>
      * @see        java.lang.Runtime#loadLibrary(java.lang.String)
      * @see        java.lang.SecurityManager#checkLink(java.lang.String)
      */
@@ -840,6 +998,8 @@ public final class System {
      *
      * @param      libname the name of the library.
      * @return     a platform-dependent native library name.
+     * @exception  NullPointerException if <code>libname</code> is
+     *             <code>null</code>
      * @see        java.lang.System#loadLibrary(java.lang.String)
      * @see        java.lang.ClassLoader#findLibrary(java.lang.String)
      * @since      1.2
@@ -895,10 +1055,34 @@ public final class System {
 	// as an initializer only if it is called before sun.misc.VM.booted().
  	sun.misc.VM.maxDirectMemory();
 
+	// Set a boolean to determine whether ClassLoader.loadClass accepts
+	// array syntax.  This value is controlled by the system property
+	// "sun.lang.ClassLoader.allowArraySyntax".  This method acts as
+	// an initializer only if it is called before sun.misc.VM.booted().
+	sun.misc.VM.allowArraySyntax();
+
 	// Subsystems that are invoked during initialization can invoke
 	// sun.misc.VM.isBooted() in order to avoid doing things that should
 	// wait until the application class loader has been set up.
 	sun.misc.VM.booted();
+
+        // The main thread is not added to its thread group in the same
+        // way as other threads; we must do it ourselves here.
+        Thread current = Thread.currentThread();
+        current.getThreadGroup().add(current);
+
+        // Allow privileged classes outside of java.lang
+        sun.misc.SharedSecrets.setJavaLangAccess(new sun.misc.JavaLangAccess(){
+            public sun.reflect.ConstantPool getConstantPool(Class klass) {
+                return klass.getConstantPool();
+            }
+            public void setAnnotationType(Class klass, AnnotationType type) {
+                klass.setAnnotationType(type);
+            }
+            public AnnotationType getAnnotationType(Class klass) {
+                return klass.getAnnotationType();
+            }
+        });
     }
 
     /* returns the class of the caller. */

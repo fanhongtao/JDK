@@ -1,7 +1,7 @@
 /*
- * @(#)StackTraceElement.java	1.7 03/01/23
+ * @(#)StackTraceElement.java	1.10 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.lang;
  * Throwable#getStackTrace()}.  Each element represents a single stack frame.
  * All stack frames except for the one at the top of the stack represent
  * a method invocation.  The frame at the top of the stack represents the 
- * the execution point at which the stack trace was generated.  Typically,
+ * execution point at which the stack trace was generated.  Typically,
  * this is the point at which the throwable corresponding to the stack trace
  * was created.
  *
@@ -20,17 +20,44 @@ package java.lang;
  * @author Josh Bloch
  */
 public final class StackTraceElement implements java.io.Serializable {
-    // Initialized by VM
+    // Normally initialized by VM (public constructor added in 1.5)
     private String declaringClass;
     private String methodName;
     private String fileName;
     private int    lineNumber;
 
     /**
-     * Prevent inappropriate instantiation.  Only the VM creates these.
-     * It creates them "magically" without invoking this constructor.
+     * Creates a stack trace element representing the specified execution
+     * point.
+     *
+     * @param declaringClass the fully qualified name of the class containing
+     *        the execution point represented by the stack trace element
+     * @param methodName the name of the method containing the execution point
+     *        represented by the stack trace element
+     * @param fileName the name of the file containing the execution point
+     *         represented by the stack trace element, or <tt>null</tt> if
+     *         this information is unavailable
+     * @param lineNumber the line number of the source line containing the
+     *         execution point represented by this stack trace element, or
+     *         a negative number if this information is unavailable. A value
+     *         of -2 indicates that the method containing the execution point
+     *         is a native method
+     * @throws NullPointerException if <tt>declaringClass</tt> or
+     *         <tt>methodName</tt> is null
+     * @since 1.5
      */
-    private StackTraceElement() { /* assert false; */ }
+    public StackTraceElement(String declaringClass, String methodName,
+                             String fileName, int lineNumber) {
+        if (declaringClass == null)
+            throw new NullPointerException("Declaring class is null");
+        if (methodName == null)
+            throw new NullPointerException("Method name is null");
+ 
+        this.declaringClass = declaringClass;
+        this.methodName     = methodName;
+        this.fileName       = fileName;
+        this.lineNumber     = lineNumber;
+    }
 
     /**
      * Returns the name of the source file containing the execution point

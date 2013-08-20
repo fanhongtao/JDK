@@ -1,7 +1,7 @@
 /*
- * @(#)Compiler.java	1.18 03/01/23
+ * @(#)Compiler.java	1.20 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ package java.lang;
  * If no compiler is available, these methods do nothing.
  *
  * @author  Frank Yellin
- * @version 1.18, 01/23/03
+ * @version 1.20, 05/05/04
  * @see     java.lang.System#getProperty(java.lang.String)
  * @see     java.lang.System#getProperty(java.lang.String, java.lang.String)
  * @see     java.lang.System#loadLibrary(java.lang.String)
@@ -79,7 +79,7 @@ public final class Compiler  {
      * @exception NullPointerException if <code>clazz</code> is 
      *          <code>null</code>.
      */
-    public static native boolean compileClass(Class clazz);
+    public static native boolean compileClass(Class<?> clazz);
 
     /**
      * Compiles all classes whose name matches the specified string.

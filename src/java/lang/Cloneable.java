@@ -1,7 +1,7 @@
 /*
- * @(#)Cloneable.java	1.14 03/01/23
+ * @(#)Cloneable.java	1.16 04/01/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,13 +22,13 @@ package java.lang;
  * See {@link java.lang.Object#clone()} for details on overriding this
  * method.
  * <p>
- * Note that this interface does <i>not</t> contain the <tt>clone</tt> method.
+ * Note that this interface does <i>not</i> contain the <tt>clone</tt> method.
  * Therefore, it is not possible to clone an object merely by virtue of the
  * fact that it implements this interface.  Even if the clone method is invoked
  * reflectively, there is no guarantee that it will succeed.
  *
  * @author  unascribed
- * @version 1.14, 01/23/03
+ * @version 1.16, 01/17/04
  * @see     java.lang.CloneNotSupportedException
  * @see     java.lang.Object#clone()
  * @since   JDK1.0

@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyChangeEvent.java	1.32 03/01/23
+ * @(#)PropertyChangeEvent.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

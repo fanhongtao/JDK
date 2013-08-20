@@ -1,7 +1,7 @@
 /*
- * @(#)DatagramSocketImpl.java	1.30 03/01/23
+ * @(#)DatagramSocketImpl.java	1.32 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -126,6 +126,7 @@ public abstract class DatagramSocketImpl implements SocketOptions {
      * the time-to-live option.
      * @see #getTTL()
      */
+    @Deprecated
     protected abstract void setTTL(byte ttl) throws IOException;
 
     /**
@@ -137,6 +138,7 @@ public abstract class DatagramSocketImpl implements SocketOptions {
      * @return a byte representing the TTL value
      * @see #setTTL(byte)
      */
+    @Deprecated
     protected abstract byte getTTL() throws IOException;
 
     /**

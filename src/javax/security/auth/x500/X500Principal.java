@@ -1,7 +1,7 @@
 /*
- * @(#)X500Principal.java	1.19 03/01/23
+ * @(#)X500Principal.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,12 +21,12 @@ import sun.security.util.*;
  * of the distinguished name, or by using the ASN.1 DER encoded byte
  * representation of the distinguished name.  The current specification
  * for the string representation of a distinguished name is defined in
- * <a href="http://www.ietf.org/rfc/rfc2253.html">RFC 2253</a>.
+ * <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>.
  * This class, however, accepts string formats from both RFC 2253 and
- * <a href="http://www.ietf.org/rfc/rfc1779.html">RFC 1779</a>,
+ * <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a>,
  * and also recognizes attribute type keywords whose OIDs
  * (Object Identifiers) are defined in
- * <a href="http://www.ietf.org/rfc/rfc2459.html">RFC 2459</a>.
+ * <a href="http://www.ietf.org/rfc/rfc2459.txt">RFC 2459</a>.
  *
  * <p> The string representation for this <code>X500Principal</code>
  * can be obtained by calling the <code>getName</code> methods.
@@ -36,7 +36,7 @@ import sun.security.util.*;
  * <code>X509Certificate</code> return X500Principals representing the
  * issuer and subject fields of the certificate.
  *
- * @version 1.19, 01/23/03
+ * @version 1.21, 12/19/03
  * @see java.security.cert.X509Certificate
  * @since 1.4
  */

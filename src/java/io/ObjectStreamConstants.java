@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamConstants.java	1.31 03/01/23
+ * @(#)ObjectStreamConstants.java	1.34 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.io;
  * Constants written into the Object Serialization Stream. 
  *
  * @author  unascribed
- * @version 1.31, 01/23/03
+ * @version 1.34, 01/12/04
  * @since JDK 1.1
  */
 public interface ObjectStreamConstants {
@@ -106,10 +106,15 @@ public interface ObjectStreamConstants {
      */
     final static byte TC_PROXYCLASSDESC =	(byte)0x7D;
 
+    /**
+     * new Enum constant.
+     */
+    final static byte TC_ENUM =		(byte)0x7E;
+
     /** 
      * Last tag value.
      */
-    final static byte TC_MAX = 		(byte)0x7D;
+    final static byte TC_MAX = 		(byte)0x7E;
 
     /**
      * First wire handle to be assigned. 
@@ -127,7 +132,7 @@ public interface ObjectStreamConstants {
     final static byte SC_WRITE_METHOD = 0x01;
 
     /**
-     * Bit mask for ObejctStreamClass flag. Indicates Externalizable data 
+     * Bit mask for ObjectStreamClass flag. Indicates Externalizable data 
      * written in Block Data mode.
      * Added for PROTOCOL_VERSION_2.
      *
@@ -145,6 +150,11 @@ public interface ObjectStreamConstants {
      * Bit mask for ObjectStreamClass flag. Indicates class is Externalizable.
      */
     final static byte SC_EXTERNALIZABLE = 0x04;
+
+    /**
+     * Bit mask for ObjectStreamClass flag. Indicates class is an enum type.
+     */
+    final static byte SC_ENUM = 0x10;
 
     
     /* *******************************************************************/

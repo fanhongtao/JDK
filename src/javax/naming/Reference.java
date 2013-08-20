@@ -1,7 +1,7 @@
 /*
- * @(#)Reference.java	1.7 03/01/23
+ * @(#)Reference.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.util.Enumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 03/01/23
+  * @version 1.9 04/05/05
   *
   * @see RefAddr
   * @see StringRefAddr
@@ -76,7 +76,7 @@ public class Reference implements Cloneable, java.io.Serializable {
      * Initialized by constructor.
      * @serial
      */
-    protected Vector addrs = null;
+    protected Vector<RefAddr> addrs = null;
 
     /**
      * Contains the name of the factory class for creating
@@ -237,7 +237,7 @@ public class Reference implements Cloneable, java.io.Serializable {
       *         If this reference has zero addresses, an enumeration with
       *		zero elements is returned.
       */
-    public Enumeration getAll() {
+    public Enumeration<RefAddr> getAll() {
 	return addrs.elements();
     }
 
@@ -364,7 +364,7 @@ public class Reference implements Cloneable, java.io.Serializable {
      */
     public Object clone() {
 	Reference r = new Reference(className, classFactory, classFactoryLocation);
-	Enumeration a = getAll();
+	Enumeration<RefAddr> a = getAll();
 	r.addrs = new Vector();
 
 	while (a.hasMoreElements())

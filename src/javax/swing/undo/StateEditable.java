@@ -1,7 +1,7 @@
 /*
- * @(#)StateEditable.java	1.10 03/01/23
+ * @(#)StateEditable.java	1.12 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,11 +26,11 @@ public interface StateEditable {
      * Upon receiving this message the receiver should place any relevant
      * state into <EM>state</EM>.
      */
-    public void storeState(Hashtable state);
+    public void storeState(Hashtable<Object,Object> state);
 
     /**
      * Upon receiving this message the receiver should extract any relevant
      * state out of <EM>state</EM>.
      */
-    public void restoreState(Hashtable state);
+    public void restoreState(Hashtable<?,?> state);
 } // End of interface StateEditable

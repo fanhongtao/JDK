@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsConfiguration.java	1.35 03/01/23
+ * @(#)GraphicsConfiguration.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,7 +82,7 @@ import java.awt.image.VolatileImage;
  * capabilities and checking if the GraphicsConfiguration
  * implements the interface for that capability.
  *
- * @version 1.35, 01/23/03
+ * @version 1.38, 12/19/03
  */
 
 
@@ -142,6 +142,28 @@ public abstract class GraphicsConfiguration {
     public abstract VolatileImage createCompatibleVolatileImage(int width, 
 								int height);
 
+    /**
+     * Returns a {@link VolatileImage} with a data layout and color model
+     * compatible with this <code>GraphicsConfiguration</code>.  
+     * The returned <code>VolatileImage</code>
+     * may have data that is stored optimally for the underlying graphics
+     * device and may therefore benefit from platform-specific rendering
+     * acceleration.
+     * @param width the width of the returned <code>VolatileImage</code>
+     * @param height the height of the returned <code>VolatileImage</code>
+     * @param transparency the specified transparency mode
+     * @return a <code>VolatileImage</code> whose data layout and color
+     * model is compatible with this <code>GraphicsConfiguration</code>.
+     * @throws IllegalArgumentException if the transparency is not a valid value
+     * @see Transparency#OPAQUE
+     * @see Transparency#BITMASK
+     * @see Transparency#TRANSLUCENT
+     * @see Component#createVolatileImage(int, int)
+     * @since 1.5
+     */
+    public abstract VolatileImage
+        createCompatibleVolatileImage(int width, int height, int transparency);
+
     /** 
      * Returns a {@link VolatileImage} with a data layout and color model 
      * compatible with this <code>GraphicsConfiguration</code>, using 
@@ -166,6 +188,36 @@ public abstract class GraphicsConfiguration {
     }
 
     /**
+     * Returns a {@link VolatileImage} with a data layout and color model
+     * compatible with this <code>GraphicsConfiguration</code>, using
+     * the specified image capabilities and transparency value.
+     * The returned <code>VolatileImage</code> has
+     * a layout and color model that is closest to this native device
+     * configuration and can therefore be optimally blitted to this
+     * device.
+     * @param width the width of the returned <code>VolatileImage</code>
+     * @param height the height of the returned <code>VolatileImage</code>
+     * @param caps the image capabilities
+     * @param transparency the specified transparency mode
+     * @return a <code>VolatileImage</code> whose data layout and color
+     * model is compatible with this <code>GraphicsConfiguration</code>.
+     * @see Transparency#OPAQUE
+     * @see Transparency#BITMASK
+     * @see Transparency#TRANSLUCENT
+     * @throws IllegalArgumentException if the transparency is not a valid value
+     * @exception AWTException if the supplied image capabilities could not
+     * be met by this graphics configuration
+     * @see Component#createVolatileImage(int, int)
+     * @since 1.5
+     */
+    public VolatileImage createCompatibleVolatileImage(int width, int height,
+	ImageCapabilities caps, int transparency) throws AWTException
+    {
+        // REMIND : check caps
+        return createCompatibleVolatileImage(width, height, transparency);
+    }
+
+    /**
      * Returns a <code>BufferedImage</code> that supports the specified
      * transparency and has a data layout and color model
      * compatible with this <code>GraphicsConfiguration</code>.  This
@@ -179,6 +231,7 @@ public abstract class GraphicsConfiguration {
      * @return a <code>BufferedImage</code> whose data layout and color  
      * model is compatible with this <code>GraphicsConfiguration</code>
      * and also supports the specified transparency.
+     * @throws IllegalArgumentException if the transparency is not a valid value
      * @see Transparency#OPAQUE
      * @see Transparency#BITMASK
      * @see Transparency#TRANSLUCENT
@@ -201,7 +254,11 @@ public abstract class GraphicsConfiguration {
      * @param transparency the specified transparency mode
      * @return a <code>ColorModel</code> object that is associated with
      * this <code>GraphicsConfiguration</code> and supports the 
-     * specified transparency.
+     * specified transparency or null if the transparency is not a valid
+     * value.
+     * @see Transparency#OPAQUE
+     * @see Transparency#BITMASK
+     * @see Transparency#TRANSLUCENT
      */
     public abstract ColorModel getColorModel(int transparency);
 

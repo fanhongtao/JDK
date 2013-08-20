@@ -1,12 +1,15 @@
 /*
- * @(#)BasicLabelUI.java	1.78 06/08/08
+ * @(#)BasicLabelUI.java	1.84 03/12/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
+import com.sun.java.swing.SwingUtilities2;
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.text.View;
@@ -30,19 +33,17 @@ import java.beans.PropertyChangeListener;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.78 08/08/06
+ * @version 1.84 12/19/03
  * @author Hans Muller
  */
 public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 {
-    /**
-     * The default <code>BasicLabelUI</code> instance. This field might
-     * not be used. To change the default instance use a subclass which
-     * overrides the <code>createUI</code> method, and place that class
-     * name in defaults table under the key "LabelUI".
-     */
     protected static BasicLabelUI labelUI = new BasicLabelUI();
-    private final static BasicLabelUI SAFE_BASIC_LABEL_UI = new BasicLabelUI();
+
+    static void loadActionMap(LazyActionMap map) {
+        map.put(new Actions(Actions.PRESS));
+	map.put(new Actions(Actions.RELEASE));
+    }
 
     /**
      * Forwards the call to SwingUtilities.layoutCompoundLabel().
@@ -85,7 +86,7 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     {
         int mnemIndex = l.getDisplayedMnemonicIndex();
         g.setColor(l.getForeground());
-        BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, mnemIndex,
+        SwingUtilities2.drawStringUnderlineCharAt(l, g, s, mnemIndex,
                                                      textX, textY);
     }
 
@@ -102,10 +103,10 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
         int accChar = l.getDisplayedMnemonicIndex();
         Color background = l.getBackground();
         g.setColor(background.brighter());
-        BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, accChar,
+        SwingUtilities2.drawStringUnderlineCharAt(l, g, s, accChar,
                                                    textX + 1, textY + 1);
         g.setColor(background.darker());
-        BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, accChar,
+        SwingUtilities2.drawStringUnderlineCharAt(l, g, s, accChar,
                                                    textX, textY);
     }
 
@@ -141,7 +142,7 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
             return;
         }
 
-        FontMetrics fm = g.getFontMetrics();
+        FontMetrics fm = SwingUtilities2.getFontMetrics(label, g);
         Insets insets = c.getInsets(paintViewInsets);
 
         paintViewR.x = insets.left;
@@ -210,7 +211,7 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
                                  icon.getIconHeight() + dy);
         }
         else {
-            FontMetrics fm = label.getToolkit().getFontMetrics(font);
+            FontMetrics fm = label.getFontMetrics(font);
 
             iconR.x = iconR.y = iconR.width = iconR.height = 0;
             textR.x = textR.y = textR.width = textR.height = 0;
@@ -272,41 +273,9 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
         uninstallKeyboardActions((JLabel)c);
     }
 
-  // below is my overly aggressive version of this (It subtlely breaks UI switching)
-  // I don't have time to fix this properly now, but I'll come back to it for a future release
-/*    private Color defaultForeground = null;
-    private Color defaultBackground = null;
-    private Font defaultFont = null;
-
-    protected void installDefaults(JLabel c){
-
-	if (defaultForeground == null) {
-		defaultForeground = UIManager.getColor("Label.foreground");
-		defaultBackground = UIManager.getColor("Label.background");
-		defaultFont = UIManager.getFont("Label.font");
-	}
-
-	Color currentForeground = c.getForeground();
-	Color currentBackground = c.getBackground();
-	Font currentFont = c.getFont();
-
-	if (currentForeground == null || currentForeground instanceof UIResource) {
-	      c.setForeground(defaultForeground);
-	}
-
-	if (currentBackground == null || currentBackground instanceof UIResource) {
-              c.setBackground(defaultBackground);
-	}
-
-	if (currentFont == null || currentFont instanceof UIResource) {
-	      c.setFont(defaultFont);
-	}
-    }*/
-
-
-  /* old version - simple, but slow... */
      protected void installDefaults(JLabel c){
          LookAndFeel.installColorsAndFont(c, "Label.background", "Label.foreground", "Label.font");
+         LookAndFeel.installProperty(c, "opaque", Boolean.FALSE);
       }
 
     protected void installListeners(JLabel c){
@@ -315,21 +284,15 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 
     protected void installComponents(JLabel c){
 	BasicHTML.updateRenderer(c, c.getText());
+        c.setInheritsPopupMenu(true);
     }
 
     protected void installKeyboardActions(JLabel l) {
         int dka = l.getDisplayedMnemonic();
         Component lf = l.getLabelFor();
         if ((dka != 0) && (lf != null)) {
-	    ActionMap map = SwingUtilities.getUIActionMap(l);
-	    if (map == null) {
-		map = createActionMap();
-		if (map != null) {
-		    SwingUtilities.replaceUIActionMap(l, map);
-		    UIManager.getLookAndFeelDefaults().put("Label.actionMap",
-                                                           map);
-		}
-	    }
+            LazyActionMap.installLazyActionMap(l, BasicLabelUI.class,
+                                               "Label.actionMap");
 	    InputMap inputMap = SwingUtilities.getUIInputMap
 		            (l, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	    if (inputMap == null) {
@@ -348,13 +311,6 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 		inputMap.clear();
 	    }
 	}
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-	map.put("press", new PressAction());
-	map.put("release", new ReleaseAction());
-	return map;
     }
 
     protected void uninstallDefaults(JLabel c){
@@ -376,17 +332,12 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     }
 
     public static ComponentUI createUI(JComponent c) {
-        if (System.getSecurityManager() != null) {
-            return SAFE_BASIC_LABEL_UI;
-        } else {
-            return labelUI;
-        }
+        return labelUI;
     }
 
     public void propertyChange(PropertyChangeEvent e) {
 	String name = e.getPropertyName();
-	if (name.equals("text") || "font".equals(name) ||
-            "foreground".equals(name)) {
+	if (name == "text" || "font" == name || "foreground" == name) {
 	    // remove the old html view client property if one
 	    // existed, and install a new one if the text installed
 	    // into the JLabel is html source.
@@ -394,8 +345,7 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 	    String text = lbl.getText();
 	    BasicHTML.updateRenderer(lbl, text);
 	}
-        else if (name.equals("labelFor") ||
-		 name.equals("displayedMnemonic")) {
+        else if (name == "labelFor" || name == "displayedMnemonic") {
             installKeyboardActions((JLabel) e.getSource());
         }
     }
@@ -404,12 +354,26 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     // focusTraversable by registering a WHEN_FOCUSED action for the
     // release of the accelerator.  Then give it focus so it can 
     // prevent unwanted keyTyped events from getting to other components.
-    static class PressAction extends AbstractAction {
-        PressAction() {
+    private static class Actions extends UIAction {
+        private static final String PRESS = "press";
+        private static final String RELEASE = "release";
+
+        Actions(String key) {
+            super(key);
         }
 
         public void actionPerformed(ActionEvent e) {
-	   JLabel label = (JLabel)e.getSource();
+            JLabel label = (JLabel)e.getSource();
+            String key = getName();
+            if (key == PRESS) {
+                doPress(label);
+            }
+            else if (key == RELEASE) {
+                doRelease(label);
+            }
+        }
+
+        private void doPress(JLabel label) {
 	   Component labelFor = label.getLabelFor();
 	   if(labelFor != null && labelFor.isEnabled()) {
 	      InputMap inputMap = SwingUtilities.getUIInputMap(label, JComponent.WHEN_FOCUSED);
@@ -418,25 +382,15 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 		 SwingUtilities.replaceUIInputMap(label, JComponent.WHEN_FOCUSED, inputMap);
 	      }
 	      int dka = label.getDisplayedMnemonic();
-	      inputMap.put(KeyStroke.getKeyStroke(dka, ActionEvent.ALT_MASK, true), "release");
+	      inputMap.put(KeyStroke.getKeyStroke(dka, ActionEvent.ALT_MASK, true), RELEASE);
               // Need this if the accelerator is released before the ALT key
-	      inputMap.put(KeyStroke.getKeyStroke(0, ActionEvent.ALT_MASK, true), "release");
+	      inputMap.put(KeyStroke.getKeyStroke(0, ActionEvent.ALT_MASK, true), RELEASE);
 	      Component owner = label.getLabelFor();
 	      label.requestFocus();
 	   }
         }
 
-    }
-
-    // On the release of the accelerator, remove the keyboard action
-    // that allows the label to take focus and then give focus to the
-    // labelFor component.
-    static class ReleaseAction extends AbstractAction {
-        ReleaseAction() {
-        }
-        
-        public void actionPerformed(ActionEvent e) {
-	   JLabel label = (JLabel)e.getSource();
+        private void doRelease(JLabel label) {
 	   Component labelFor = label.getLabelFor();
 	   if(labelFor != null && labelFor.isEnabled()) {
 	      InputMap inputMap = SwingUtilities.getUIInputMap(label, JComponent.WHEN_FOCUSED);
@@ -445,7 +399,13 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 	         inputMap.remove(KeyStroke.getKeyStroke (label.getDisplayedMnemonic(), ActionEvent.ALT_MASK, true));
 	         inputMap.remove(KeyStroke.getKeyStroke(0, ActionEvent.ALT_MASK, true));
 	      }
-              label.getLabelFor().requestFocus();
+	      if (labelFor instanceof Container &&
+		  ((Container)labelFor).isFocusCycleRoot()) {
+		  labelFor.requestFocus();
+	      }
+	      else {
+		  BasicLookAndFeel.compositeRequestFocus(labelFor);
+	      }
 	   }
         }
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryHandler.java	1.18 03/01/23
+ * @(#)MemoryHandler.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,6 +34,7 @@ package java.util.logging;
  * By default each <tt>MemoryHandler</tt> is initialized using the following
  * LogManager configuration properties.  If properties are not defined
  * (or have invalid values) then the specified default values are used.
+ * If no default value is defined then a RuntimeException is thrown.
  * <ul>
  * <li>   java.util.logging.MemoryHandler.level 
  *	  specifies the level for the <tt>Handler</tt>
@@ -50,7 +51,7 @@ package java.util.logging;
  *	  (no default).
  * </ul>
  *
- * @version 1.18, 01/23/03
+ * @version 1.24, 12/19/03
  * @since 1.4
  */
 
@@ -67,7 +68,7 @@ public class MemoryHandler extends Handler {
     // javadoc.
     private void configure() {
         LogManager manager = LogManager.getLogManager();
-	String cname = MemoryHandler.class.getName();
+	String cname = getClass().getName();
 
 	pushLevel = manager.getLevelProperty(cname +".push", Level.SEVERE);
 	size = manager.getIntProperty(cname + ".size", DEFAULT_SIZE);
@@ -95,9 +96,7 @@ public class MemoryHandler extends Handler {
 	    Class clz = ClassLoader.getSystemClassLoader().loadClass(name);
 	    target = (Handler) clz.newInstance();
 	} catch (Exception ex) {
-	    System.err.println("MemoryHandler can't load handler \"" + name + "\"");
-	    System.err.println("" + ex);
-	    throw new RuntimeException("Can't load " + name);
+	    throw new RuntimeException("MemoryHandler can't load handler \"" + name + "\"" , ex);
 	}
 	init();
     }
@@ -150,7 +149,8 @@ public class MemoryHandler extends Handler {
      * is called to write all buffered records to the target output
      * <tt>Handler</tt>.
      * 
-     * @param  record  description of the log event
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     public synchronized void publish(LogRecord record) {
 	if (!isLoggable(record)) {
@@ -240,7 +240,7 @@ public class MemoryHandler extends Handler {
      * This method checks if the <tt>LogRecord</tt> has an appropriate level and 
      * whether it satisfies any <tt>Filter</tt>.  However it does <b>not</b>
      * check whether the <tt>LogRecord</tt> would result in a "push" of the
-     * buffer contents.
+     * buffer contents. It will return false if the <tt>LogRecord</tt> is Null.
      * <p>
      * @param record  a <tt>LogRecord</tt>
      * @return true if the <tt>LogRecord</tt> would be logged.

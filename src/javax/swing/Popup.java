@@ -1,13 +1,14 @@
 /*
- * @(#)Popup.java	1.14 03/01/23
+ * @(#)Popup.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing;
 
 import java.awt.*;
+import sun.awt.ModalExclude;
 
 /**
  * Popups are used to display a <code>Component</code> to the user, typically
@@ -32,7 +33,7 @@ import java.awt.*;
  *
  * @see PopupFactory
  *
- * @version 1.14 01/23/03
+ * @version 1.17 12/19/03
  * @since 1.4
  */
 public class Popup {
@@ -132,7 +133,11 @@ public class Popup {
             component.setLocation(ownerX, ownerY);
             component.getContentPane().add(contents, BorderLayout.CENTER);
             contents.invalidate();
-            pack();
+            if(component.isVisible()) {
+                // Do not call pack() if window is not visible to
+                // avoid early native peer creation
+                pack();
+            }
         }
     }
 
@@ -196,7 +201,7 @@ public class Popup {
     /**
      * Component used to house window.
      */
-    static class HeavyWeightWindow extends JWindow {
+    static class HeavyWeightWindow extends JWindow implements ModalExclude {
         HeavyWeightWindow(Window parent) {
             super(parent);
             setFocusableWindowState(false);
@@ -208,8 +213,8 @@ public class Popup {
         }
 
 	public void show() {
-	    super.show();
 	    this.pack();
+	    super.show();
 	}
     }
 

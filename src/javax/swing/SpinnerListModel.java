@@ -1,7 +1,7 @@
 /*
- * @(#)SpinnerListModel.java	1.9 03/01/23
+ * @(#)SpinnerListModel.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.io.Serializable;
  * @see SpinnerNumberModel
  * @see SpinnerDateModel
  * 
- * @version 1.9 01/23/03
+ * @version 1.11 05/05/04
  * @author Hans Muller
  * @since 1.4
  */
@@ -57,7 +57,7 @@ public class SpinnerListModel extends AbstractSpinnerModel implements Serializab
      * @throws IllegalArugmentException if <code>values</code> is
      *    <code>null</code> or zero size
      */
-    public SpinnerListModel(List values) {
+    public SpinnerListModel(List<?> values) {
         if (values == null || values.size() == 0) {
             throw new IllegalArgumentException("SpinnerListModel(List) expects non-null non-empty List");
         }
@@ -102,7 +102,7 @@ public class SpinnerListModel extends AbstractSpinnerModel implements Serializab
      * @return the value of the <code>list</code> property
      * @see #setList
      */
-    public List getList() {
+    public List<?> getList() {
 	return list;
     }
 
@@ -120,7 +120,7 @@ public class SpinnerListModel extends AbstractSpinnerModel implements Serializab
      *    <code>null</code> or zero length
      * @see #getList
      */
-    public void setList(List list) {
+    public void setList(List<?> list) {
 	if ((list == null) || (list.size() == 0)) {
 	    throw new IllegalArgumentException("invalid list");
 	}

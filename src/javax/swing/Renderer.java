@@ -1,7 +1,7 @@
 /*
- * @(#)Renderer.java	1.11 03/01/23
+ * @(#)Renderer.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.awt.Component;
  * Defines the requirements for an object responsible for
  * "rendering" (displaying) a value.
  *
- * @version 1.11 01/23/03
+ * @version 1.12 12/19/03
  * @author Arnaud Weber
  */
 public interface Renderer {

@@ -1,7 +1,7 @@
 /*
- * @(#)Synthesizer.java	1.26 03/01/23
+ * @(#)Synthesizer.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ import javax.sound.sampled.Control;
  * @see Transmitter
  * @see MidiDevice
  *
- * @version 1.26, 03/01/23
+ * @version 1.27, 03/12/19
  * @author Kara Kytle
  */
 public interface Synthesizer extends MidiDevice {

@@ -1,12 +1,10 @@
 /*
- * @(#)PersistenceDelegate.java	1.7 03/01/23
+ * @(#)PersistenceDelegate.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
-
-import java.io.*;
 
 /**
  * The PersistenceDelegate class takes the responsibility
@@ -66,7 +64,7 @@ import java.io.*;
  *
  * @since 1.4
  *
- * @version 1.7 01/23/03
+ * @version 1.11 05/05/04
  * @author Philip Milne
  */
 
@@ -93,7 +91,6 @@ public abstract class PersistenceDelegate {
      * @return An expression whose value is <code>oldInstance</code>.
      */
     public void writeObject(Object oldInstance, Encoder out) {
-        // System.out.println("PersistenceDelegate::writeObject " + NameGenerator.instanceName(oldInstance));
         Object newInstance = out.get(oldInstance);
         if (!mutatesTo(oldInstance, newInstance)) {
             out.remove(oldInstance);
@@ -124,7 +121,7 @@ public abstract class PersistenceDelegate {
      *         created by applying a series of mutations to <code>oldInstance</code>.
      */
     protected boolean mutatesTo(Object oldInstance, Object newInstance) {
-        return (newInstance != null &&
+        return (newInstance != null && oldInstance != null &&
                 oldInstance.getClass() == newInstance.getClass());
     }
 
@@ -184,57 +181,12 @@ public abstract class PersistenceDelegate {
      * @param newInstance The instance that is to be modified.
      * @param out The stream to which any initialization statements should be written.
      */
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
-        // System.out.println("initialize: " + NameGenerator.instanceName(oldInstance));
+    protected void initialize(Class<?> type,
+			      Object oldInstance, Object newInstance,
+			      Encoder out)
+    {
         Class superType = type.getSuperclass();
         PersistenceDelegate info = out.getPersistenceDelegate(superType);
         info.initialize(superType, oldInstance, newInstance, out);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

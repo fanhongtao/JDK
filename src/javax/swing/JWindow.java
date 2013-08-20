@@ -1,7 +1,7 @@
 /*
- * @(#)JWindow.java	1.53 03/01/23
+ * @(#)JWindow.java	1.60 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -25,22 +25,20 @@ import javax.accessibility.*;
  * The <code>JWindow</code> component contains a <code>JRootPane</code>
  * as its only child.  The <code>contentPane</code> should be the parent
  * of any children of the <code>JWindow</code>.
- * From the older <code>java.awt.Window</code> object you would normally do
- * something like this:
+ * As a conveniance <code>add</code> and its variants, <code>remove</code> and
+ * <code>setLayout</code> have been overridden to forward to the
+ * <code>contentPane</code> as necessary. This means you can write:
  * <pre>
  *       window.add(child);
  * </pre>
- * However, using <code>JWindow</code> you would code:
- * <pre>
- *       window.getContentPane().add(child);
- * </pre>
- * The same is true of setting <code>LayoutManager</code>s, removing components,
- * listing children, etc. All these methods should normally be sent to
- * the <code>contentPane</code> instead of the <code>JWindow</code> itself.
+ * And the child will be added to the contentPane.
  * The <code>contentPane</code> will always be non-<code>null</code>.
  * Attempting to set it to <code>null</code> will cause the <code>JWindow</code>
  * to throw an exception. The default <code>contentPane</code> will have a
  * <code>BorderLayout</code> manager set on it. 
+ * Refer to {@link javax.swing.RootPaneContainer}
+ * for details on adding, removing and setting the <code>LayoutManager</code>
+ * of a <code>JWindow</code>.
  * <p>
  * Please see the {@link JRootPane} documentation for a complete description of
  * the <code>contentPane</code>, <code>glassPane</code>, and
@@ -49,10 +47,6 @@ import javax.accessibility.*;
  * In a multi-screen environment, you can create a <code>JWindow</code>
  * on a different screen device.  See {@link java.awt.Window} for more
  * information.
- * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JWindow"><code>JWindow</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -70,7 +64,7 @@ import javax.accessibility.*;
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which has no system border or controls.
  *
- * @version 1.53 01/23/03
+ * @version 1.60 12/19/03
  * @author David Kloba
  */
 public class JWindow extends Window implements Accessible, RootPaneContainer 
@@ -88,10 +82,12 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
 
     /**
      * If true then calls to <code>add</code> and <code>setLayout</code>
-     * will cause an exception to be thrown.
+     * will be forwarded to the <code>contentPane</code>. This is initially
+     * false, but is set to true when the <code>JWindow</code> is constructed.
      *
      * @see #isRootPaneCheckingEnabled
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean rootPaneCheckingEnabled = false;
 
@@ -158,6 +154,11 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
      */
     public JWindow(Frame owner) {
         super(owner == null? SwingUtilities.getSharedOwnerFrame() : owner);
+	if (owner == null) {
+	    WindowListener ownerShutdownListener =
+		(WindowListener)SwingUtilities.getSharedOwnerFrameShutdownListener();
+ 	    addWindowListener(ownerShutdownListener);
+	}
         windowInit();
     }
 
@@ -180,6 +181,11 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
     public JWindow(Window owner) {
         super(owner == null ? (Window)SwingUtilities.getSharedOwnerFrame() :
               owner);
+	if (owner == null) {
+	    WindowListener ownerShutdownListener =
+		(WindowListener)SwingUtilities.getSharedOwnerFrameShutdownListener();
+ 	    addWindowListener(ownerShutdownListener);
+	}
         windowInit();
     }
 
@@ -213,6 +219,11 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
     public JWindow(Window owner, GraphicsConfiguration gc) {
         super(owner == null ? (Window)SwingUtilities.getSharedOwnerFrame() :
               owner, gc);
+	if (owner == null) {
+	    WindowListener ownerShutdownListener =
+		(WindowListener)SwingUtilities.getSharedOwnerFrameShutdownListener();
+ 	    addWindowListener(ownerShutdownListener);
+	}
         windowInit();
     }
 
@@ -223,6 +234,7 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
         setLocale( JComponent.getDefaultLocale() );
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
+        sun.awt.SunToolkit.checkAndSetPolicy(this, true);
     }
 
     /**
@@ -230,19 +242,26 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
      * <code>rootPane</code>.
      */
     protected JRootPane createRootPane() {
-        return new JRootPane();
+        JRootPane rp = new JRootPane();
+        // NOTE: this uses setOpaque vs LookAndFeel.installProperty as there
+        // is NO reason for the RootPane not to be opaque. For painting to
+        // work the contentPane must be opaque, therefor the RootPane can
+        // also be opaque.
+        rp.setOpaque(true);
+        return rp;
     }
  
     /**
      * Returns whether calls to <code>add</code> and 
-     * <code>setLayout</code> will cause an exception to be thrown. 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
      *
      * @return true if <code>add</code> and <code>setLayout</code> 
-     *         are checked
+     *         are fowarded; false otherwise
      *
      * @see #addImpl
      * @see #setLayout
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean isRootPaneCheckingEnabled() {
         return rootPaneCheckingEnabled;
@@ -260,18 +279,20 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
     }
 
     /**
-     * Determines whether calls to <code>add</code> and 
-     * <code>setLayout</code> will cause an exception to be thrown. 
+     * Sets whether calls to <code>add</code> and 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
      * 
-     * @param enabled  a boolean value, true if checking is to be
-     *        enabled, which cause the exceptions to be thrown
+     * @param enabled  true if <code>add</code> and <code>setLayout</code>
+     *        are forwarded, false if they should operate directly on the
+     *        <code>JWindow</code>.
      *
      * @see #addImpl
      * @see #setLayout
      * @see #isRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      * @beaninfo
      *      hidden: true
-     * description: Whether the add and setLayout methods throw exceptions when invoked.
+     * description: Whether the add and setLayout methods are forwarded
      */
     protected void setRootPaneCheckingEnabled(boolean enabled) {
         rootPaneCheckingEnabled = enabled;
@@ -279,45 +300,28 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
 
 
     /**
-     * Creates a string with a message that can be used for a
-     * runtime exception.  The message will look like:
-     * <pre>
-     * "Do not use JWindow.add() use JWindow.getContentPane().add() instead"
-     * </pre>
-     *
-     * @param op  a <code>String</code> indicating the attempted operation;
-     *		in the example above, the operation string is "add"
-     * @return a string containing the message to be used for the exception
-     */
-    private Error createRootPaneException(String op) {
-        String type = getClass().getName();
-        return new Error(
-            "Do not use " + type + "." + op + "() use " 
-                          + type + ".getContentPane()." + op + "() instead");
-    }
-
-
-    /**
-     * By default, children may not be added directly to a this component,
-     * they must be added to its <code>contentPane</code> instead.  For example:
-     * <pre>
-     * thisComponent.getContentPane().add(child)
-     * </pre>
-     * An attempt to add to directly to this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * Adds the specified child <code>Component</code>.
+     * This method is overridden to conditionally forwad calls to the
+     * <code>contentPane</code>.
+     * By default, children are added to the <code>contentPane</code> instead
+     * of the frame, refer to {@link javax.swing.RootPaneContainer} for
+     * details.
      * 
-     * @param comp  the component to be enhanced
-     * @param constraints  the constraints to be enforced on the component
-     * @param index the index of the component
-     *
+     * @param comp the component to be enhanced
+     * @param constraints the constraints to be respected
+     * @param index the index
+     * @exception IllegalArgumentException if <code>index</code> is invalid
+     * @exception IllegalArgumentException if adding the container's parent
+     *			to itself
+     * @exception IllegalArgumentException if adding a window to a container
+     * 
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with <code>rootPaneChecking</code> true
+     * @see javax.swing.RootPaneContainer
      */
     protected void addImpl(Component comp, Object constraints, int index) 
     {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("add");
+            getContentPane().add(comp, constraints, index);
         }
         else {
             super.addImpl(comp, constraints, index);
@@ -325,39 +329,40 @@ public class JWindow extends Window implements Accessible, RootPaneContainer
     }
 
     /** 
-     * Removes the specified component from this container.
+     * Removes the specified component from the container. If
+     * <code>comp</code> is not the <code>rootPane</code>, this will forward
+     * the call to the <code>contentPane</code>. This will do nothing if
+     * <code>comp</code> is not a child of the <code>JWindow</code> or
+     * <code>contentPane</code>.
+     *
      * @param comp the component to be removed
+     * @throws NullPointerException if <code>comp</code> is null
      * @see #add
+     * @see javax.swing.RootPaneContainer
      */
     public void remove(Component comp) {
 	if (comp == rootPane) {
 	    super.remove(comp);
 	} else {
-	    // Client mistake, but we need to handle it to avoid a
-	    // common object leak in client applications.
 	    getContentPane().remove(comp);
 	}
     }
 
 
     /**
-     * By default the layout of this component may not be set,
-     * the layout of its contentPane should be set instead.  
-     * For example:
-     * <pre>
-     * thisComponent.getContentPane().setLayout(new GridLayout(1, 2))
-     * </pre>
-     * An attempt to set the layout of this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
-     * 
-     * @param manager the layout manager for the window
+     * Sets the <code>LayoutManager</code>.
+     * Overridden to conditionally forward the call to the
+     * <code>contentPane</code>.
+     * Refer to {@link javax.swing.RootPaneContainer} for
+     * more information.
+     *
+     * @param manager the <code>LayoutManager</code>
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with <code>rootPaneChecking</code> true
+     * @see javax.swing.RootPaneContainer
      */
     public void setLayout(LayoutManager manager) {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("setLayout");
+            getContentPane().setLayout(manager);
         }
         else {
             super.setLayout(manager);

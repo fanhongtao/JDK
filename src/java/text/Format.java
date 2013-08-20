@@ -1,7 +1,7 @@
 /*
- * @(#)Format.java	1.32 03/01/23
+ * @(#)Format.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -110,7 +110,7 @@ import java.io.Serializable;
  * @see          java.text.NumberFormat
  * @see          java.text.DateFormat
  * @see          java.text.MessageFormat
- * @version      1.32, 01/23/03
+ * @version      1.34, 12/19/03
  * @author       Mark Davis
  */
 public abstract class Format implements Serializable, Cloneable {
@@ -321,6 +321,10 @@ public abstract class Format implements Serializable, Cloneable {
      * @since 1.4
      */
     public static class Field extends AttributedCharacterIterator.Attribute {
+
+        // Proclaim serial compatibility with 1.4 FCS
+        private static final long serialVersionUID = 276966692217360283L;
+
         /**
          * Creates a Field with the specified name.
          *

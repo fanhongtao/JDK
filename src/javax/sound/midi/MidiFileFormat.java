@@ -1,7 +1,7 @@
 /*
- * @(#)MidiFileFormat.java	1.15 03/01/23
+ * @(#)MidiFileFormat.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,16 +9,67 @@ package javax.sound.midi;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * A <code>MidiFileFormat</code> object encapsulates a MIDI file's
  * type, as well as its length and timing information.
  *
+ * <p>A <code>MidiFileFormat</code> object can
+ * include a set of properties. A property is a pair of key and value:
+ * the key is of type <code>String</code>, the associated property
+ * value is an arbitrary object.
+ * Properties specify additional informational
+ * meta data (like a author, or copyright).
+ * Properties are optional information, and file reader and file
+ * writer implementations are not required to provide or
+ * recognize properties.
+ *
+ * <p>The following table lists some common properties that should
+ * be used in implementations:
+ *
+ * <table border=1>
+ *  <tr>
+ *   <th>Property key</th>
+ *   <th>Value type</th>
+ *   <th>Description</th>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;author&quot;</td>
+ *   <td>{@link java.lang.String String}</td>
+ *   <td>name of the author of this file</td>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;title&quot;</td>
+ *   <td>{@link java.lang.String String}</td>
+ *   <td>title of this file</td>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;copyright&quot;</td>
+ *   <td>{@link java.lang.String String}</td>
+ *   <td>copyright message</td>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;date&quot;</td>
+ *   <td>{@link java.util.Date Date}</td>
+ *   <td>date of the recording or release</td>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;comment&quot;</td>
+ *   <td>{@link java.lang.String String}</td>
+ *   <td>an arbitrary text</td>
+ *  </tr>
+ * </table>
+ *
  * @see MidiSystem#getMidiFileFormat(java.io.File)
  * @see Sequencer#setSequence(java.io.InputStream stream)
  *
- * @version 1.15, 03/01/23
+ * @version 1.17, 03/12/19
  * @author Kara Kytle
+ * @author Florian Bomers
  */
 
 public class MidiFileFormat {
@@ -64,6 +115,10 @@ public class MidiFileFormat {
     protected long microsecondLength;
 
 
+    /** The set of properties */
+    private HashMap<String, Object> properties;
+
+
     /**
      * Constructs a <code>MidiFileFormat</code>.
      *
@@ -86,7 +141,39 @@ public class MidiFileFormat {
 	this.resolution = resolution;
 	this.byteLength = bytes;
 	this.microsecondLength = microseconds;
+	this.properties = null;
     }
+
+
+    /**
+     * Construct a <code>MidiFileFormat</code> with a set of properties.
+     *
+     * @param type         the MIDI file type (0, 1, or 2)
+     * @param divisionType the timing division type
+     *      (PPQ or one of the SMPTE types)
+     * @param resolution   the timing resolution
+     * @param bytes the length of the MIDI file in bytes,
+     *      or UNKNOWN_LENGTH if not known
+     * @param microseconds the duration of the file in microseconds,
+     *      or UNKNOWN_LENGTH if not known
+     * @param properties  a <code>Map&lt;String,Object&gt;</code> object
+     *        with properties
+     *
+     * @see #UNKNOWN_LENGTH
+     * @see Sequence#PPQ
+     * @see Sequence#SMPTE_24
+     * @see Sequence#SMPTE_25
+     * @see Sequence#SMPTE_30DROP
+     * @see Sequence#SMPTE_30
+     * @since 1.5
+     */
+    public MidiFileFormat(int type, float divisionType,
+			  int resolution, int bytes,
+			  long microseconds, Map<String, Object> properties) {
+	this(type, divisionType, resolution, bytes, microseconds);
+	this.properties = new HashMap<String, Object>(properties);
+    }
+
 
 
     /**
@@ -148,6 +235,53 @@ public class MidiFileFormat {
     public long getMicrosecondLength() {
 	return microsecondLength;
     }
-}
 
+    /**
+     * Obtain an unmodifiable map of properties.
+     * The concept of properties is further explained in
+     * the {@link MidiFileFormat class description}.
+     *
+     * @return a <code>Map&lt;String,Object&gt;</code> object containing
+     *         all properties. If no properties are recognized, an empty map is
+     *         returned.
+     *
+     * @see #getProperty(String)
+     * @since 1.5
+     */
+    public Map<String,Object> properties() {
+ 	Map<String,Object> ret;
+	if (properties == null) {
+	    ret = new HashMap<String,Object>(0);
+	} else {
+	    ret = (Map<String,Object>) (properties.clone());
+	}
+	return (Map<String,Object>) Collections.unmodifiableMap(ret);
+    }
+
+
+    /**
+     * Obtain the property value specified by the key.
+     * The concept of properties is further explained in
+     * the {@link MidiFileFormat class description}.
+     *
+     * <p>If the specified property is not defined for a
+     * particular file format, this method returns
+     * <code>null</code>.
+     *
+     * @param key the key of the desired property
+     * @return the value of the property with the specified key,
+     *         or <code>null</code> if the property does not exist.
+     *
+     * @see #properties
+     * @since 1.5
+     */
+    public Object getProperty(String key) {
+	if (properties == null) {
+	    return null;
+	}
+	return properties.get(key);
+    }
+
+
+}
 

@@ -1,7 +1,7 @@
 /*
- * @(#)SocketImpl.java	1.39 03/01/23
+ * @(#)SocketImpl.java	1.42 04/03/25
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.FileDescriptor;
  * described, without attempting to go through a firewall or proxy. 
  *
  * @author  unascribed
- * @version 1.39, 01/23/03
+ * @version 1.42, 03/25/04
  * @since   JDK1.0
  */
 public abstract class SocketImpl implements SocketOptions {
@@ -95,9 +95,9 @@ public abstract class SocketImpl implements SocketOptions {
     protected abstract void connect(SocketAddress address, int timeout) throws IOException;
 
     /**
-     * Binds this socket to the specified port number on the specified host. 
+     * Binds this socket to the specified local IP address and port number.
      *
-     * @param      host   the IP address of the remote host.
+     * @param      host   an IP address that belongs to a local interface.
      * @param      port   the port number.
      * @exception  IOException  if an I/O error occurs when binding this socket.
      */
@@ -290,5 +290,50 @@ public abstract class SocketImpl implements SocketOptions {
     	port = 0;
     	localport = 0;
     	close();
+    }
+
+    /**
+     * Sets performance preferences for this socket.
+     *
+     * <p> Sockets use the TCP/IP protocol by default.  Some implementations
+     * may offer alternative protocols which have different performance
+     * characteristics than TCP/IP.  This method allows the application to
+     * express its own preferences as to how these tradeoffs should be made
+     * when the implementation chooses from the available protocols.
+     *
+     * <p> Performance preferences are described by three integers
+     * whose values indicate the relative importance of short connection time,
+     * low latency, and high bandwidth.  The absolute values of the integers
+     * are irrelevant; in order to choose a protocol the values are simply
+     * compared, with larger values indicating stronger preferences. Negative
+     * values represent a lower priority than positive values. If the
+     * application prefers short connection time over both low latency and high
+     * bandwidth, for example, then it could invoke this method with the values
+     * <tt>(1, 0, 0)</tt>.  If the application prefers high bandwidth above low
+     * latency, and low latency above short connection time, then it could
+     * invoke this method with the values <tt>(0, 1, 2)</tt>.
+     *
+     * By default, this method does nothing, unless it is overridden in a
+     * a sub-class.
+     *
+     * @param  connectionTime
+     *         An <tt>int</tt> expressing the relative importance of a short
+     *         connection time
+     *
+     * @param  latency
+     *         An <tt>int</tt> expressing the relative importance of low
+     *         latency
+     *
+     * @param  bandwidth
+     *         An <tt>int</tt> expressing the relative importance of high
+     *         bandwidth
+     *  
+     * @since 1.5
+     */
+    protected void setPerformancePreferences(int connectionTime,
+                                          int latency,
+                                          int bandwidth)
+    {
+	/* Not implemented yet */
     }
 }

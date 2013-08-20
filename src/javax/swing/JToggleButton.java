@@ -1,7 +1,7 @@
 /*
- * @(#)JToggleButton.java	1.57 03/01/23
+ * @(#)JToggleButton.java	1.59 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -27,10 +27,6 @@ import java.io.IOException;
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttons, Check Boxes, and Radio Buttons</a>,
  * a section in <em>The Java Tutorial</em>.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JToggleButton"><code>JToggleButton</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -46,7 +42,7 @@ import java.io.IOException;
  * 
  * @see JRadioButton
  * @see JCheckBox
- * @version 1.57 01/23/03
+ * @version 1.59 12/19/03
  * @author Jeff Dinkins
  */
 public class JToggleButton extends AbstractButton implements Accessible {

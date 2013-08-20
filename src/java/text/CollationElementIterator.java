@@ -1,7 +1,7 @@
 /*
- * @(#)CollationElementIterator.java	1.45 03/01/27
+ * @(#)CollationElementIterator.java	1.48 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -176,12 +176,16 @@ public final class CollationElementIterator
                 expIndex = 0;
             }
         } else if (swapOrder != 0) {
+            if (Character.isSupplementaryCodePoint(swapOrder)) {
+                char[] chars = Character.toChars(swapOrder);
+                swapOrder = chars[1];
+                return chars[0] << 16;
+            }
             int order = swapOrder << 16;
             swapOrder = 0;
             return order;
         }
-
-        char ch  = text.next();
+        int ch  = text.next();
 
         // are we at the end of Normalizer's text?
         if (ch == Normalizer.DONE) {
@@ -203,9 +207,9 @@ public final class CollationElementIterator
         }
 
         if (ordering.isSEAsianSwapping()) {
-            char consonant;
+            int consonant;
             if (isThaiPreVowel(ch)) {
-                consonant = text.next();
+	        consonant = text.next();
                 if (isThaiBaseConsonant(consonant)) {
                     buffer = makeReorderedBuffer(consonant, value, buffer, true);
                     value = buffer[0];
@@ -215,7 +219,7 @@ public final class CollationElementIterator
                 }
             }
             if (isLaoPreVowel(ch)) {
-                consonant = text.next();
+	        consonant = text.next();
                 if (isLaoBaseConsonant(consonant)) {
                     buffer = makeReorderedBuffer(consonant, value, buffer, true);
                     value = buffer[0];
@@ -264,11 +268,16 @@ public final class CollationElementIterator
                 expIndex = 0;
             }
         } else if (swapOrder != 0) {
-              int order = swapOrder << 16;
+            if (Character.isSupplementaryCodePoint(swapOrder)) {
+                char[] chars = Character.toChars(swapOrder);
+                swapOrder = chars[1];
+                return chars[0] << 16;
+            }
+            int order = swapOrder << 16;
             swapOrder = 0;
             return order;
         }
-        char ch = text.previous();
+        int ch = text.previous();
         if (ch == Normalizer.DONE) {
             return NULLORDER;
         }
@@ -288,8 +297,8 @@ public final class CollationElementIterator
         }
 
         if (ordering.isSEAsianSwapping()) {
-            char vowel;
-            if (isThaiBaseConsonant(ch)) {
+            int vowel;
+            if (isThaiBaseConsonant(ch)) { 
                 vowel = text.previous();
                 if (isThaiPreVowel(vowel)) {
                     buffer = makeReorderedBuffer(vowel, value, buffer, false);
@@ -300,7 +309,7 @@ public final class CollationElementIterator
                 }
             }
             if (isLaoBaseConsonant(ch)) {
-                vowel = text.previous();
+	        vowel = text.previous();
                 if (isLaoPreVowel(vowel)) {
                     buffer = makeReorderedBuffer(vowel, value, buffer, false);
                     expIndex = buffer.length - 1;
@@ -376,7 +385,7 @@ public final class CollationElementIterator
      *
      * @param newOffset The new character offset into the original text.
      * @since 1.2
-     */
+     */  
     public void setOffset(int newOffset)
     {
         if (text != null) {
@@ -384,7 +393,8 @@ public final class CollationElementIterator
                 || newOffset >= text.getEndIndex()) {
                     text.setIndexOnly(newOffset);
             } else {
-                char c = text.setIndex(newOffset);
+                int c = text.setIndex(newOffset);
+
                 // if the desired character isn't used in a contracting character
                 // sequence, bypass all the backing-up logic-- we're sitting on
                 // the right character already
@@ -392,7 +402,7 @@ public final class CollationElementIterator
                     // walk backwards through the string until we see a character
                     // that DOESN'T participate in a contracting character sequence
                     while (ordering.usedInContractSeq(c)) {
-                        c = text.previous();
+		        c = text.previous();
                     }
                     // now walk forward using this object's next() method until
                     // we pass the starting point and set our current position
@@ -499,30 +509,30 @@ public final class CollationElementIterator
      * Determine if a character is a Thai vowel (which sorts after
      * its base consonant).
      */
-    private final static boolean isThaiPreVowel(char ch) {
-        return (ch >= '\u0e40') && (ch <= '\u0e44');
+    private final static boolean isThaiPreVowel(int ch) {
+        return (ch >= 0x0e40) && (ch <= 0x0e44);
     }
 
     /**
      * Determine if a character is a Thai base consonant
      */
-    private final static boolean isThaiBaseConsonant(char ch) {
-        return (ch >= '\u0e01') && (ch <= '\u0e2e');
+    private final static boolean isThaiBaseConsonant(int ch) {
+        return (ch >= 0x0e01) && (ch <= 0x0e2e);
     }
 
     /**
      * Determine if a character is a Lao vowel (which sorts after
      * its base consonant).
      */
-    private final static boolean isLaoPreVowel(char ch) {
-        return (ch >= '\u0ec0') && (ch <= '\u0ec4');
+    private final static boolean isLaoPreVowel(int ch) {
+        return (ch >= 0x0ec0) && (ch <= 0x0ec4);
     }
 
     /**
      * Determine if a character is a Lao base consonant
      */
-    private final static boolean isLaoBaseConsonant(char ch) {
-        return (ch >= '\u0e81') && (ch <= '\u0eae');
+    private final static boolean isLaoBaseConsonant(int ch) {
+        return (ch >= 0x0e81) && (ch <= 0x0eae);
     }
 
     /**
@@ -535,7 +545,7 @@ public final class CollationElementIterator
      * method as lastValue, and lastExpansion is null.  If it has an
      * expansion it is passed in lastExpansion, and colLastValue is ignored.
      */
-    private int[] makeReorderedBuffer(char colFirst,
+    private int[] makeReorderedBuffer(int colFirst,
                                       int lastValue,
                                       int[] lastExpansion,
                                       boolean forward) {
@@ -605,7 +615,7 @@ public final class CollationElementIterator
      * @return the next contracting character's ordering.  Returns NULLORDER
      * if the end of string is reached.
      */
-    private int nextContractChar(char ch)
+    private int nextContractChar(int ch)
     {
         // First get the ordering of this single character,
         // which is always the first element in the list
@@ -628,14 +638,18 @@ public final class CollationElementIterator
         // iterator is using) and store it in "fragment".
         tempText.previous();
         key.setLength(0);
-        char c = tempText.next();
+        int c = tempText.next();  
         while (maxLength > 0 && c != Normalizer.DONE) {
-            key.append(c);
-            --maxLength;
+            if (Character.isSupplementaryCodePoint(c)) {
+                key.append(Character.toChars(c));
+                maxLength -= 2;
+            } else {
+                key.append((char)c);
+                --maxLength;
+            }
             c = tempText.next();
         }
         String fragment = key.toString();
-
         // now that we have that fragment, iterate through this list looking for the
         // longest sequence that matches the characters in the actual text.  (maxLength
         // is used here to keep track of the length of the longest sequence)
@@ -660,8 +674,8 @@ public final class CollationElementIterator
         // sequence, we're already seeked to the right position and order already contains
         // the correct collation-element value for the single character)
         while (maxLength > 1) {
-            text.next();
-            --maxLength;
+            c = text.next();
+            maxLength -= Character.charCount(c);
         }
         return order;
     }
@@ -673,7 +687,7 @@ public final class CollationElementIterator
      * @return the next contracting character's ordering.  Returns NULLORDER
      * if the end of string is reached.
      */
-    private int prevContractChar(char ch)
+    private int prevContractChar(int ch)
     {
         // This function is identical to nextContractChar(), except that we've
         // switched things so that the next() and previous() calls on the Normalizer
@@ -692,10 +706,15 @@ public final class CollationElementIterator
 
         tempText.next();
         key.setLength(0);
-        char c = tempText.previous();
+        int c = tempText.previous();
         while (maxLength > 0 && c != Normalizer.DONE) {
-            key.append(c);
-            --maxLength;
+            if (Character.isSupplementaryCodePoint(c)) {
+                key.append(Character.toChars(c));
+                maxLength -= 2;
+            } else {
+                key.append((char)c);
+                --maxLength;
+            }
             c = tempText.previous();
         }
         String fragment = key.toString();
@@ -714,8 +733,8 @@ public final class CollationElementIterator
         }
 
         while (maxLength > 1) {
-            text.previous();
-            --maxLength;
+            c = text.previous();
+            maxLength -= Character.charCount(c);
         }
         return order;
     }

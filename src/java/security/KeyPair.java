@@ -1,7 +1,7 @@
 /*
- * @(#)KeyPair.java	1.13 03/01/23
+ * @(#)KeyPair.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,11 +17,13 @@ import java.util.*;
  * @see PublicKey
  * @see PrivateKey
  *
- * @version 1.13 03/01/23
+ * @version 1.15 03/12/19
  * @author Benjamin Renaud
  */
 
 public final class KeyPair implements java.io.Serializable {
+
+    private static final long serialVersionUID = -7565189502268009837L;
 
     private PrivateKey privateKey;
     private PublicKey publicKey;

@@ -1,7 +1,7 @@
 /*
- * @(#)NamingEnumeration.java	1.6 03/01/23
+ * @(#)NamingEnumeration.java	1.8 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +51,7 @@ import java.util.Enumeration;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.6 03/01/23
+  * @version 1.8 04/05/05
   *
   * @see Context#list
   * @see Context#listBindings
@@ -61,7 +61,7 @@ import java.util.Enumeration;
   * @see javax.naming.directory.Attribute#getAll
   * @since 1.3
   */
-public interface NamingEnumeration extends Enumeration {
+public interface NamingEnumeration<T> extends Enumeration<T> {
     /**
       * Retrieves the next element in the enumeration.
       * This method allows naming exceptions encountered while
@@ -85,7 +85,7 @@ public interface NamingEnumeration extends Enumeration {
       * @exception java.util.NoSuchElementException If attempting to get the next element when none is available.
       * @see java.util.Enumeration#nextElement
       */
-    public Object next() throws NamingException;
+    public T next() throws NamingException;
 
     /**
       * Determines whether there are any more elements in the enumeration.

@@ -1,7 +1,7 @@
 /*
- * @(#)UnsupportedCallbackException.java	1.9 03/01/23
+ * @(#)UnsupportedCallbackException.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,9 +11,11 @@ package javax.security.auth.callback;
  * Signals that a <code>CallbackHandler</code> does not
  * recognize a particular <code>Callback</code>.
  *
- * @version 1.9, 01/23/03
+ * @version 1.11, 12/19/03
  */
 public class UnsupportedCallbackException extends Exception {
+
+    private static final long serialVersionUID = -6873556327655666839L;
 
     /**
      * @serial

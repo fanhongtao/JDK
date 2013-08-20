@@ -1,7 +1,7 @@
 /*
- * @(#)Rectangle.java	1.65 03/01/23
+ * @(#)Rectangle.java	1.70 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
  * <code>intersects</code>, <code>intersection</code>, and 
  * <code>union</code>. 
  *
- * @version 	1.65, 01/23/03
+ * @version 	1.70, 05/18/04
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -312,6 +312,7 @@ public class Rectangle extends Rectangle2D
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setBounds(int, int, int, int)</code>.
      */
+    @Deprecated
     public void reshape(int x, int y, int width, int height) {
 	this.x = x;
 	this.y = y;
@@ -373,6 +374,7 @@ public class Rectangle extends Rectangle2D
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setLocation(int, int)</code>.
      */
+    @Deprecated
     public void move(int x, int y) {
 	this.x = x;
 	this.y = y;
@@ -451,6 +453,7 @@ public class Rectangle extends Rectangle2D
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setSize(int, int)</code>.
      */
+    @Deprecated
     public void resize(int width, int height) {
 	this.width = width;
 	this.height = height;
@@ -489,11 +492,12 @@ public class Rectangle extends Rectangle2D
     /**
      * Checks whether or not this <code>Rectangle</code> entirely contains 
      * the specified <code>Rectangle</code>.
+     *
      * @param     r   the specified <code>Rectangle</code>
      * @return    <code>true</code> if the <code>Rectangle</code> 
      *            is contained entirely inside this <code>Rectangle</code>; 
-     *            <code>false</code> otherwise.
-     * @since     JDK1.1
+     *            <code>false</code> otherwise
+     * @since     JDK1.2
      */
     public boolean contains(Rectangle r) {
 	return contains(r.x, r.y, r.width, r.height);
@@ -564,6 +568,7 @@ public class Rectangle extends Rectangle2D
      * @deprecated As of JDK version 1.1,
      * replaced by <code>contains(int, int)</code>.
      */
+    @Deprecated
     public boolean inside(int X, int Y) {
 	int w = this.width;
 	int h = this.height;

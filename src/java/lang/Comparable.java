@@ -1,7 +1,7 @@
 /*
- * @(#)Comparable.java	1.20 03/01/23
+ * @(#)Comparable.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -68,7 +68,7 @@ package java.lang;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.20, 01/23/03
+ * @version 1.22, 12/19/03
  * @see java.util.Comparator
  * @see java.util.Collections#sort(java.util.List)
  * @see java.util.Arrays#sort(Object[])
@@ -79,7 +79,7 @@ package java.lang;
  * @since 1.2
  */
 
-public interface Comparable {
+public interface Comparable<T> {
     /**
      * Compares this object with the specified object for order.  Returns a
      * negative integer, zero, or a positive integer as this object is less
@@ -118,5 +118,5 @@ public interface Comparable {
      * @throws ClassCastException if the specified object's type prevents it
      *         from being compared to this Object.
      */
-    public int compareTo(Object o);
+    public int compareTo(T o);
 }

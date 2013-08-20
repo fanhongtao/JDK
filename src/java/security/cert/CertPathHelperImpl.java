@@ -1,7 +1,7 @@
 /*
- * @(#)CertPathHelperImpl.java	1.2 03/01/23
+ * @(#)CertPathHelperImpl.java	1.4 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,12 +13,14 @@ import javax.security.auth.x500.X500Principal;
 
 import sun.security.provider.certpath.CertPathHelper;
 
+import sun.security.x509.GeneralNameInterface;
+
 /**
  * Helper class that allows the Sun CertPath provider to access
  * implementation dependent APIs in CertPath framework.
  *
  * @author Andreas Sterbenz
- * @version 1.2, 01/23/03
+ * @version 1.4, 12/19/03
  */
 class CertPathHelperImpl extends CertPathHelper {
     
@@ -58,7 +60,8 @@ class CertPathHelperImpl extends CertPathHelper {
 	return anchor.getCA();
     }
     
-    protected void implSetPathToNames(X509CertSelector sel, Set names) {
+    protected void implSetPathToNames(X509CertSelector sel, 
+	    Set<GeneralNameInterface> names) {
 	sel.setPathToNamesInternal(names);
     }
 
@@ -66,7 +69,7 @@ class CertPathHelperImpl extends CertPathHelper {
 	sel.addIssuer(name);
     }
 
-    protected Collection implGetIssuers(X509CRLSelector sel) {
+    protected Collection<X500Principal> implGetIssuers(X509CRLSelector sel) {
 	return sel.getIssuers();
     }
     

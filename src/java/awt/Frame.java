@@ -1,5 +1,5 @@
 /*
- * @(#)Frame.java	1.141 04/05/06
+ * @(#)Frame.java	1.147 04/05/18
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import sun.awt.AppContext;
+import sun.awt.SunToolkit;
 import java.lang.ref.WeakReference;
 import javax.accessibility.*;
 
@@ -90,7 +91,10 @@ import javax.accessibility.*;
  * <code>WindowEvent</code>s:
  * <ul>
  * <li><code>WINDOW_OPENED</code>
- * <li><code>WINDOW_CLOSING</code>
+ * <li><code>WINDOW_CLOSING</code>:
+ *     <br>If the program doesn't
+ *     explicitly hide or dispose the window while processing
+ *     this event, the window close operation is canceled.
  * <li><code>WINDOW_CLOSED</code>
  * <li><code>WINDOW_ICONIFIED</code>
  * <li><code>WINDOW_DEICONIFIED</code>
@@ -101,7 +105,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.141, 05/06/04
+ * @version 	1.147, 05/18/04
  * @author 	Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
@@ -116,72 +120,86 @@ public class Frame extends Window implements MenuContainer {
    /**
     * @deprecated   replaced by <code>Cursor.DEFAULT_CURSOR</code>.
     */
+    @Deprecated
     public static final int	DEFAULT_CURSOR   		= Cursor.DEFAULT_CURSOR;
 
 
    /**
     * @deprecated   replaced by <code>Cursor.CROSSHAIR_CURSOR</code>.
     */
+    @Deprecated
     public static final int	CROSSHAIR_CURSOR 		= Cursor.CROSSHAIR_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.TEXT_CURSOR</code>.
     */
+    @Deprecated
     public static final int	TEXT_CURSOR 	 		= Cursor.TEXT_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.WAIT_CURSOR</code>.
     */
+    @Deprecated
     public static final int	WAIT_CURSOR	 		= Cursor.WAIT_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.SW_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	SW_RESIZE_CURSOR	 	= Cursor.SW_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.SE_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	SE_RESIZE_CURSOR	 	= Cursor.SE_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.NW_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	NW_RESIZE_CURSOR		= Cursor.NW_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.NE_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	NE_RESIZE_CURSOR	 	= Cursor.NE_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.N_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	N_RESIZE_CURSOR 		= Cursor.N_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.S_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	S_RESIZE_CURSOR 		= Cursor.S_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.W_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	W_RESIZE_CURSOR	 		= Cursor.W_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.E_RESIZE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	E_RESIZE_CURSOR			= Cursor.E_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.HAND_CURSOR</code>.
     */
+    @Deprecated
     public static final int	HAND_CURSOR			= Cursor.HAND_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.MOVE_CURSOR</code>.
     */
+    @Deprecated
     public static final int	MOVE_CURSOR			= Cursor.MOVE_CURSOR;	
 
 
@@ -431,20 +449,21 @@ public class Frame extends Window implements MenuContainer {
         this.title = title;
         weakThis = new WeakReference(this);
         addToFrameList();
-        setFocusTraversalPolicy(KeyboardFocusManager.
-                                getCurrentKeyboardFocusManager().
-                                getDefaultFocusTraversalPolicy()
-                                );
+        SunToolkit.checkAndSetPolicy(this, false);
     }
     
     /**
-     * We have to remove the (hard) reference to weakThis in the
-     * Vector, otherwise the WeakReference instance will never get
-     * garbage collected.
+     * Disposes of the input methods and context, and removes 
+     * this Frame from the AppContext.  Subclasses that override 
+     * this method should call super.finalize().  
      */
     protected void finalize() throws Throwable {
+        // We have to remove the (hard) reference to weakThis in the
+        // AppContext's Frame list Vector, otherwise the WeakReference 
+        // instance that points to this Frame will never get garbage 
+        // collected.
         removeFromFrameList();
-	super.finalize();
+        super.finalize();
     }
 
     /**
@@ -506,6 +525,7 @@ public class Frame extends Window implements MenuContainer {
         if (title == null) {
             title = "";
         }
+
 
         synchronized(this) {
             this.title = title;
@@ -683,31 +703,30 @@ public class Frame extends Window implements MenuContainer {
      * @since   1.4
      */
     public synchronized void setExtendedState(int state) {
-	if ( !isFrameStateSupported( state ) ) {
-	    return;
-	}
+        if ( !isFrameStateSupported( state ) ) {
+            return;
+        }    
         this.state = state;
         FramePeer peer = (FramePeer)this.peer;
         if (peer != null) {
             peer.setState(state);
         }
     }
-
     private boolean isFrameStateSupported(int state) {
-	if( !getToolkit().isFrameStateSupported( state ) ) {
-	    // * Toolkit.isFrameStateSupported returns always false
-	    // on compound state even if all parts are supported;
-	    // * if part of state is not supported, state is not supported;
-	    // * MAXIMIZED_BOTH is not a compound state.
-	    if( ((state & ICONIFIED) != 0) &&
-		!getToolkit().isFrameStateSupported( ICONIFIED )) {
-		return false;
-	    }else {
-		state &= ~ICONIFIED;
-	    }
-	    return getToolkit().isFrameStateSupported( state );
-	}
-	return true;
+        if( !getToolkit().isFrameStateSupported( state ) ) {
+            // * Toolkit.isFrameStateSupported returns always false 
+            // on compound state even if all parts are supported;
+            // * if part of state is not supported, state is not supported;
+            // * MAXIMIZED_BOTH is not a compound state.
+            if( ((state & ICONIFIED) != 0) &&
+                !getToolkit().isFrameStateSupported( ICONIFIED )) {
+                return false;
+            }else {
+                state &= ~ICONIFIED;
+            }
+            return getToolkit().isFrameStateSupported( state );
+        }    
+        return true;
     }
 
     /**
@@ -936,6 +955,7 @@ public class Frame extends Window implements MenuContainer {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Component.setCursor(Cursor)</code>.
      */
+    @Deprecated
     public void setCursor(int cursorType) {
 	if (cursorType < DEFAULT_CURSOR || cursorType > MOVE_CURSOR) {
 	    throw new IllegalArgumentException("illegal cursor type");
@@ -947,6 +967,7 @@ public class Frame extends Window implements MenuContainer {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Component.getCursor()</code>.
      */
+    @Deprecated
     public int getCursorType() {
 	return (getCursor().getType());
     }
@@ -1136,7 +1157,12 @@ public class Frame extends Window implements MenuContainer {
      * <code>Frame</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to frame user-interface elements.
      */
-    protected class AccessibleAWTFrame extends AccessibleAWTWindow {
+    protected class AccessibleAWTFrame extends AccessibleAWTWindow
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = -6172960752956030250L;
 
         /**
          * Get the role of this object.
@@ -1169,4 +1195,5 @@ public class Frame extends Window implements MenuContainer {
 
 
     } // inner class AccessibleAWTFrame
+
 }

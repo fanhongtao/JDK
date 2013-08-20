@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleAction.java	1.14 03/01/23
+ * @(#)AccessibleAction.java	1.17 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,36 @@ package javax.accessibility;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleAction
  *
- * @version     1.3 02/04/98 11:12:57
+ * @version     1.17 04/15/04
  * @author	Peter Korn
  * @author      Hans Muller
  * @author      Willie Walker
+ * @author      Lynn Monsanto
  */
 public interface AccessibleAction {
+
+    /**
+     * An action which causes a tree node to
+     * collapse if expanded and expand if collapsed.
+     * @since 1.5
+     */
+    public static final String TOGGLE_EXPAND =
+        new String ("toggle expand"); 
+
+    /**
+     * An action which increments a value.
+     * @since 1.5
+     */
+    public static final String INCREMENT =
+        new String ("increment"); 
+
+
+    /**
+     * An action which decrements a value.
+     * @since 1.5
+     */
+    public static final String DECREMENT =
+        new String ("decrement"); 
 
     /**
      * Returns the number of accessible actions available in this object

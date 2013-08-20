@@ -1,7 +1,7 @@
 /*
- * @(#)NodeChangeEvent.java	1.4 03/01/23
+ * @(#)NodeChangeEvent.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -80,5 +80,9 @@ public class NodeChangeEvent extends java.util.EventObject {
                                                throws NotSerializableException {
          throw new NotSerializableException("Not serializable.");
      }
+
+    // Defined so that this class isn't flagged as a potential problem when
+    // searches for missing serialVersionUID fields are done.
+    private static final long serialVersionUID = 8068949086596572957L;
 }
 

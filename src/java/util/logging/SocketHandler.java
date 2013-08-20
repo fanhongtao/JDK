@@ -1,7 +1,7 @@
 /*
- * @(#)SocketHandler.java	1.13 03/01/23
+ * @(#)SocketHandler.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ import java.net.*;
  * The output IO stream is buffered, but is flushed after each
  * <tt>LogRecord</tt> is written.
  *
- * @version 1.13, 01/23/03
+ * @version 1.18, 12/19/03
  * @since 1.4
  */
 
@@ -58,7 +58,7 @@ public class SocketHandler extends StreamHandler {
     // javadoc.
     private void configure() {
         LogManager manager = LogManager.getLogManager();
-	String cname = SocketHandler.class.getName();
+	String cname = getClass().getName();
 
 	setLevel(manager.getLevelProperty(cname +".level", Level.ALL));
 	setFilter(manager.getFilterProperty(cname +".filter", null));
@@ -105,7 +105,8 @@ public class SocketHandler extends StreamHandler {
      *
      * The <tt>SocketHandler</tt> is configured based on <tt>LogManager</tt> 
      * properties (or their default values) except that the given target host
-     * and port arguments are used.
+     * and port arguments are used. If the host argument is empty, but not
+     * null String then the localhost is used.
      *
      * @param host target host.
      * @param port target port.
@@ -160,7 +161,8 @@ public class SocketHandler extends StreamHandler {
     /**
      * Format and publish a <tt>LogRecord</tt>.
      *
-     * @param  record  description of the log event
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     public synchronized void publish(LogRecord record) {
 	if (!isLoggable(record)) {

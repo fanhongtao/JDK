@@ -1,7 +1,7 @@
 /*
- * @(#)Action.java	1.26 03/01/23
+ * @(#)Action.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -61,21 +61,22 @@ import java.beans.*;
  * components are connected to it.
  * <p>
  * This interface can be added to an existing class or used to create an
- * adapter (typically, by subclassing <code>AbstractActio</code>).
+ * adapter (typically, by subclassing <code>AbstractAction</code>).
  * The <code>Action</code> object
- * can then be added to multiple action-aware containers and connected to
- * Action-capable components. The GUI controls can then be activated or
+ * can then be added to multiple <code>Action</code>-aware containers
+ * and connected to <code>Action</code>-capable
+ * components. The GUI controls can then be activated or
  * deactivated all at once by invoking the <code>Action</code> object's
  * <code>setEnabled</code> method.
  * <p>
  * Note that <code>Action</code> implementations tend to be more expensive
  * in terms of storage than a typical <code>ActionListener</code>,
  * which does not offer the benefits of centralized control of
- * functionality and broadcast of property changes.  For th is reason,
+ * functionality and broadcast of property changes.  For this reason,
  * you should take care to only use <code>Action</code>s where their benefits
- * are desired, and use simple <code>ActionListeners</code> elsewhere.
+ * are desired, and use simple <code>ActionListener</code>s elsewhere.
  *
- * @version 1.26 01/23/03
+ * @version 1.30 12/19/03
  * @author Georges Saab
  * @see AbstractAction
  */
@@ -90,28 +91,28 @@ public interface Action extends ActionListener {
      */
     public static final String DEFAULT = "Default";
     /** 
-     * The key used for storing the name for the action,
-     * used for a menu or button.
+     * The key used for storing the <code>String</code> name
+     * for the action, used for a menu or button.
      */
     public static final String NAME = "Name";
     /**
-     * The key used for storing a short description for the action,
-     * used for tooltip text.
+     * The key used for storing a short <code>String</code>
+     * description for the action, used for tooltip text.
      */
     public static final String SHORT_DESCRIPTION = "ShortDescription";
     /**
-     * The key used for storing a longer description for the action,
-     * could be used for context-sensitive help.
+     * The key used for storing a longer <code>String</code>
+     * description for the action, could be used for context-sensitive help.
      */
     public static final String LONG_DESCRIPTION = "LongDescription";
     /**
-     * The key used for storing a small icon for the action,
-     * used for toolbar buttons.
+     * The key used for storing a small <code>Icon</code>, such
+     * as <code>ImageIcon</code>, for the action, used for toolbar buttons.  
      */
     public static final String SMALL_ICON = "SmallIcon";
 
     /**
-     * The key used to determine the command string for the
+     * The key used to determine the command <code>String</code> for the
      * <code>ActionEvent</code> that will be created when an
      * <code>Action</code> is going to be notified as the result of
      * residing in a <code>Keymap</code> associated with a
@@ -128,8 +129,8 @@ public interface Action extends ActionListener {
     public static final String ACCELERATOR_KEY="AcceleratorKey";
     
     /**
-     * The key used for storing an int key code to be used as the mnemonic
-     * for the action.
+     * The key used for storing a <code>KeyEvent</code> to be used as
+     * the mnemonic for the action.
      *
      * @since 1.3
      */

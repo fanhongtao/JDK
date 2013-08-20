@@ -1,7 +1,7 @@
 /*
- * @(#)CertPath.java	1.6 03/01/23
+ * @(#)CertPath.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -83,11 +83,13 @@ import java.util.List;
  * @see CertificateFactory
  * @see CertPathBuilder
  *
- * @version 1.6 01/23/03
+ * @version 1.9 12/19/03
  * @author	Yassir Elley
  * @since	1.4
  */
 public abstract class CertPath implements Serializable {
+
+    private static final long serialVersionUID = 6068470306649138683L;
    
     private String type;        // the type of certificates in this chain
 
@@ -126,7 +128,7 @@ public abstract class CertPath implements Serializable {
      * @return an <code>Iterator</code> over the names of the supported
      *         encodings (as Strings)
      */
-    public abstract Iterator getEncodings();
+    public abstract Iterator<String> getEncodings();
 
     /**
      * Compares this certification path for equality with the specified
@@ -238,7 +240,7 @@ public abstract class CertPath implements Serializable {
      * @return an immutable <code>List</code> of <code>Certificate</code>s
      *         (may be empty, but not null)
      */
-    public abstract List getCertificates();
+    public abstract List<? extends Certificate> getCertificates();
 
     /**
      * Replaces the <code>CertPath</code> to be serialized with a 
@@ -265,6 +267,9 @@ public abstract class CertPath implements Serializable {
      * Alternate <code>CertPath</code> class for serialization.
      */
     protected static class CertPathRep implements Serializable {
+
+	private static final long serialVersionUID = 3015633072427920915L;
+
         /** The Certificate type */
         private String type;
         /** The encoded form of the cert path */

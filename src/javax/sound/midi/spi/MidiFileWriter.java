@@ -1,7 +1,7 @@
 /*
- * @(#)MidiFileWriter.java	1.16 03/01/23
+ * @(#)MidiFileWriter.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.sound.midi.MidiFileFormat;
  * a <code>{@link Sequence}</code> object.
  *
  * @author Kara Kytle
- * @version 1.16, 03/01/23
+ * @version 1.17, 03/12/19
  * @since 1.3
  */
 public abstract class MidiFileWriter {

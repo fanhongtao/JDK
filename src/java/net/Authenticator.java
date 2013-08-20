@@ -1,7 +1,7 @@
 /*
- * @(#)Authenticator.java	1.27 03/01/23
+ * @(#)Authenticator.java	1.32 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,13 +12,19 @@ package java.net;
  * authentication for a network connection.  Usually, it will do this
  * by prompting the user for information.
  * <p>
- * Applications use this class by creating a subclass, and registering
- * an instance of that subclass with the system with setDefault().
- * When authentication is required, the system will invoke a method
- * on the subclass (like getPasswordAuthentication).  The subclass's
- * method can query about the authentication being requested with a
- * number of inherited methods (getRequestingXXX()), and form an
- * appropriate message for the user.
+ * Applications use this class by overriding {@link 
+ * #getPasswordAuthentication()} in a sub-class. This method will
+ * typically use the various getXXX() accessor methods to get information
+ * about the entity requesting authentication. It must then acquire a 
+ * username and password either by interacting with the user or through
+ * some other non-interactive means. The credentials are then returned
+ * as a {@link PasswordAuthentication} return value.
+ * <p>
+ * An instance of this concrete sub-class is then registered
+ * with the system by calling {@link #setDefault(Authenticator)}.
+ * When authentication is required, the system will invoke one of the
+ * requestPasswordAuthentication() methods which in turn will call the
+ * getPasswordAuthentication() method of the registered object. 
  * <p>
  * All methods that request authentication have a default implementation
  * that fails.
@@ -27,7 +33,7 @@ package java.net;
  * @see java.net.Authenticator#getPasswordAuthentication()
  *
  * @author  Bill Foote
- * @version 1.27, 01/23/03
+ * @version 1.32, 06/28/04
  * @since   1.2
  */
 
@@ -45,6 +51,24 @@ class Authenticator {
     private String requestingProtocol;
     private String requestingPrompt;
     private String requestingScheme;
+    private URL requestingURL;
+    private RequestorType requestingAuthType;
+
+    /**
+     * The type of the entity requesting authentication.
+     *
+     * @since 1.5
+     */
+    public enum RequestorType {
+	/**
+	 * Entity requesting authentication is a HTTP proxy server.
+	 */
+	PROXY,
+	/**
+	 * Entity requesting authentication is a HTTP origin server.
+	 */
+	SERVER
+    }
 
     private void reset() {
 	requestingHost = null;
@@ -53,6 +77,8 @@ class Authenticator {
 	requestingProtocol = null;
 	requestingPrompt = null;
 	requestingScheme = null;
+	requestingURL = null;
+	requestingAuthType = RequestorType.SERVER;
     }
 
 
@@ -208,6 +234,75 @@ class Authenticator {
     }
 
     /**
+     * Ask the authenticator that has been registered with the system
+     * for a password.
+     * <p>
+     * First, if there is a security manager, its <code>checkPermission</code> 
+     * method is called with a 
+     * <code>NetPermission("requestPasswordAuthentication")</code> permission.
+     * This may result in a java.lang.SecurityException. 
+     *
+     * @param host The hostname of the site requesting authentication.
+     * @param addr The InetAddress of the site requesting authorization,
+     *             or null if not known.
+     * @param port the port for the requested connection
+     * @param protocol The protocol that's requesting the connection
+     *          ({@link java.net.Authenticator#getRequestingProtocol()})
+     * @param prompt A prompt string for the user
+     * @param scheme The authentication scheme
+     * @param url The requesting URL that caused the authentication
+     * @param reqType The type (server or proxy) of the entity requesting
+     *		    authentication.
+     *
+     * @return The username/password, or null if one can't be gotten.
+     *
+     * @throws SecurityException
+     *        if a security manager exists and its 
+     *        <code>checkPermission</code> method doesn't allow 
+     *        the password authentication request.
+     *
+     * @see SecurityManager#checkPermission
+     * @see java.net.NetPermission
+     *
+     * @since 1.5
+     */
+    public static PasswordAuthentication requestPasswordAuthentication(
+				    String host,
+				    InetAddress addr,
+				    int port,
+				    String protocol,
+				    String prompt,
+				    String scheme,
+				    URL url,
+				    RequestorType reqType) {
+
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    NetPermission requestPermission
+		= new NetPermission("requestPasswordAuthentication");
+	    sm.checkPermission(requestPermission);
+	}
+
+	Authenticator a = theAuthenticator;
+	if (a == null) {
+	    return null;
+	} else {
+	    synchronized(a) {
+		a.reset();
+		a.requestingHost = host;
+		a.requestingSite = addr;
+		a.requestingPort = port;
+		a.requestingProtocol = protocol;
+		a.requestingPrompt = prompt;
+		a.requestingScheme = scheme;
+		a.requestingURL = url;
+		a.requestingAuthType = reqType;
+		return a.getPasswordAuthentication();
+	    }
+	}
+    }
+
+    /**
      * Gets the <code>hostname</code> of the
      * site or proxy requesting authentication, or <code>null</code>
      * if not available.
@@ -243,7 +338,7 @@ class Authenticator {
 
     /**
      * Give the protocol that's requesting the connection.  Often this
-     * will be based on a URL, but in a future SDK it could be, for
+     * will be based on a URL, but in a future JDK it could be, for
      * example, "SOCKS" for a password-protected SOCKS5 firewall.
      *
      * @return the protcol, optionally followed by "/version", where
@@ -286,6 +381,30 @@ class Authenticator {
 	return null;
     }
 
+    /**
+     * Returns the URL that resulted in this
+     * request for authentication.
+     *
+     * @since 1.5
+     *
+     * @return the requesting URL
+     *	      
+     */
+    protected URL getRequestingURL () {
+	return requestingURL;
+    }
+
+    /**
+     * Returns whether the requestor is a Proxy or a Server.
+     *
+     * @since 1.5
+     *
+     * @return the authentication type of the requestor
+     *	      
+     */
+    protected RequestorType getRequestorType () {
+	return requestingAuthType;
+    }
 }
 
 

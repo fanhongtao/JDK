@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleStateSet.java	1.16 03/01/27
+ * @(#)AccessibleStateSet.java	1.18 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ public class AccessibleStateSet {
      * @see #toArray
      * @see #clear
      */
-    protected Vector states = null;
+    protected Vector<AccessibleState> states = null;
 
     /**
      * Creates a new empty state set.

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeModel.java	1.53 03/01/23
+ * @(#)DefaultTreeModel.java	1.55 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.53 01/23/03
+ * @version 1.55 05/05/04
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -623,7 +623,7 @@ public class DefaultTreeModel implements Serializable, TreeModel {
      * 
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 

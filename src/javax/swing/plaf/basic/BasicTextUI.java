@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextUI.java	1.86 03/02/18
+ * @(#)BasicTextUI.java	1.103 04/05/26
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -22,6 +22,9 @@ import javax.swing.text.*;
 import javax.swing.event.*;
 import javax.swing.border.Border;
 import javax.swing.plaf.UIResource;
+import sun.awt.AppContext;
+import sun.swing.DefaultLookup;
+import com.sun.java.swing.SwingUtilities2;
 
 /**
  * <p>
@@ -85,7 +88,7 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.86 02/18/03
+ * @version 1.103 05/26/04
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -161,7 +164,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	    Keymap parent = JTextComponent.getKeymap(JTextComponent.DEFAULT_KEYMAP);
 	    map = JTextComponent.addKeymap(nm, parent);
 	    String prefix = getPropertyPrefix();
-	    Object o = UIManager.get(prefix + ".keyBindings");
+	    Object o = DefaultLookup.get(editor, this,
+                prefix + ".keyBindings");
 	    if ((o != null) && (o instanceof JTextComponent.KeyBinding[])) {
 		JTextComponent.KeyBinding[] bindings = (JTextComponent.KeyBinding[]) o;
 		JTextComponent.loadKeymap(map, bindings, getComponent().getActions());
@@ -206,10 +210,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     protected void installDefaults() 
     {
-
-	editor.addMouseListener(defaultDragRecognizer);
-	editor.addMouseMotionListener(defaultDragRecognizer);
-	
         String prefix = getPropertyPrefix();
         Font f = editor.getFont();
         if ((f == null) || (f instanceof UIResource)) {
@@ -255,17 +255,21 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         if (margin == null || margin instanceof UIResource) {
             editor.setMargin(UIManager.getInsets(prefix + ".margin"));
         }
+    }
+
+    private void installDefaults2() {
+	editor.addMouseListener(defaultDragRecognizer);
+	editor.addMouseMotionListener(defaultDragRecognizer);
+	
+        String prefix = getPropertyPrefix();
 
         Caret caret = editor.getCaret();
         if (caret == null || caret instanceof UIResource) {
             caret = createCaret();
             editor.setCaret(caret);
         
-            Object o = UIManager.get(prefix + ".caretBlinkRate");
-            if ((o != null) && (o instanceof Integer)) {
-                Integer rate = (Integer) o;
-                caret.setBlinkRate(rate.intValue());
-            }
+            int rate = DefaultLookup.getInt(getComponent(), this, prefix + ".caretBlinkRate", 500);
+            caret.setBlinkRate(rate);
         }
 
         Highlighter highlighter = editor.getHighlighter();
@@ -376,8 +380,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     InputMap getInputMap() {
 	InputMap map = new InputMapUIResource();
+
 	InputMap shared = 
-	    (InputMap)UIManager.get(getPropertyPrefix() + ".focusInputMap");
+	    (InputMap)DefaultLookup.get(editor, this,
+            getPropertyPrefix() + ".focusInputMap");
 	if (shared != null) {
 	    map.setParent(shared);
 	}
@@ -454,11 +460,11 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 		    add(KeyStroke.
 			getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK));
 	    }
-	    editor.setFocusTraversalKeys(KeyboardFocusManager.
-					 FORWARD_TRAVERSAL_KEYS, 
+            LookAndFeel.installProperty(editor,
+                                        "focusTraversalKeysForward",
 					 forwardTraversalKeys);
-	    editor.setFocusTraversalKeys(KeyboardFocusManager.
-					 BACKWARD_TRAVERSAL_KEYS, 
+            LookAndFeel.installProperty(editor,
+                                        "focusTraversalKeysBackward",
 					 backwardTraversalKeys);
 	}
 
@@ -589,7 +595,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      * @param v the root view
      */
     protected final void setView(View v) {
-	editor.removeAll();
         rootView.setView(v);
         painted = false;
         editor.revalidate();
@@ -633,8 +638,10 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
 	// paint the view hierarchy
 	Rectangle alloc = getVisibleEditorRect();
-	rootView.paint(g, alloc);
-	    
+        if (alloc != null) {
+            rootView.paint(g, alloc);
+        }
+        
 	// paint the caret
 	if (caret != null) {
 	    caret.paint(g);
@@ -672,12 +679,13 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
             // install defaults
             installDefaults();
+            installDefaults2();
 
             // common case is background painted... this can
             // easily be changed by subclasses or from outside
             // of the component.
-            editor.setOpaque(true);
-            editor.setAutoscrolls(true);
+            LookAndFeel.installProperty(editor, "opaque", Boolean.TRUE);
+            LookAndFeel.installProperty(editor, "autoscrolls", Boolean.TRUE);
 
             // attach to the model and editor
             editor.addPropertyChangeListener(updateHandler);
@@ -733,6 +741,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         // controller part
         uninstallKeyboardActions();
         uninstallListeners();
+
+        editor = null;
     }
 
     /**
@@ -762,6 +772,17 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     public final void paint(Graphics g, JComponent c) {
 	if ((rootView.getViewCount() > 0) && (rootView.getView(0) != null)) {
+            Graphics2D g2d = SwingUtilities2.getGraphics2D(g);
+            boolean frcStored = false;
+            if (g2d != null) {
+                FontRenderContext deviceFRC = g2d.getFontRenderContext();
+                FontRenderContext frc = SwingUtilities2.getFontRenderContext(c);
+                if (!SwingUtilities2.
+                    isFontRenderContextCompatible(deviceFRC,frc)) {
+                    AppContext.getAppContext().put(SwingUtilities2.FRC_KEY,frc);
+                    frcStored = true;
+                }
+            }
 	    Document doc = editor.getDocument();
 	    if (doc instanceof AbstractDocument) {
 		((AbstractDocument)doc).readLock();
@@ -772,6 +793,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 		if (doc instanceof AbstractDocument) {
 		    ((AbstractDocument)doc).readUnlock();
 		}
+                if (frcStored) {
+                    AppContext.getAppContext().remove(SwingUtilities2.FRC_KEY);
+                }
 	    }
 	}
     }
@@ -1024,7 +1048,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	try {
 	    if (painted) {
 		Rectangle alloc = getVisibleEditorRect();
-		rootView.setSize(alloc.width, alloc.height);
+                if (alloc != null) {
+                    rootView.setSize(alloc.width, alloc.height);
+                }
 		return rootView.getNextVisualPositionFrom(pos, b, alloc, direction,
 							  biasRet);
 	    }
@@ -1061,23 +1087,25 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 			    Position.Bias p0Bias, Position.Bias p1Bias) {
         if (painted) {
             Rectangle alloc = getVisibleEditorRect();
-	    Document doc = t.getDocument();
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
-            try {
-		rootView.setSize(alloc.width, alloc.height);
-		Shape toDamage = rootView.modelToView(p0, p0Bias,
-                                                      p1, p1Bias, alloc);
-		Rectangle rect = (toDamage instanceof Rectangle) ?
-		                 (Rectangle)toDamage : toDamage.getBounds();
-		editor.repaint(rect.x, rect.y, rect.width, rect.height);
-            } catch (BadLocationException e) {
-	    } finally {
-		if (doc instanceof AbstractDocument) {
-		    ((AbstractDocument)doc).readUnlock();
-		}
-	    }
+            if (alloc != null) {
+                Document doc = t.getDocument();
+                if (doc instanceof AbstractDocument) {
+                    ((AbstractDocument)doc).readLock();
+                }
+                try {
+                    rootView.setSize(alloc.width, alloc.height);
+                    Shape toDamage = rootView.modelToView(p0, p0Bias,
+                            p1, p1Bias, alloc);
+                    Rectangle rect = (toDamage instanceof Rectangle) ?
+                            (Rectangle)toDamage : toDamage.getBounds();
+                    editor.repaint(rect.x, rect.y, rect.width, rect.height);
+                } catch (BadLocationException e) {
+                } finally {
+                    if (doc instanceof AbstractDocument) {
+                        ((AbstractDocument)doc).readUnlock();
+                    }
+                }
+            }
         }
     }
 
@@ -1131,14 +1159,16 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         String tt = null;
         Rectangle alloc = getVisibleEditorRect();
 
-        if (doc instanceof AbstractDocument) {
-            ((AbstractDocument)doc).readLock();
-        }
-        try {
-            tt = rootView.getToolTipText(pt.x, pt.y, alloc);
-        } finally {
+        if (alloc != null) {
             if (doc instanceof AbstractDocument) {
-                ((AbstractDocument)doc).readUnlock();
+                ((AbstractDocument)doc).readLock();
+            }
+            try {
+                tt = rootView.getToolTipText(pt.x, pt.y, alloc);
+            } finally {
+                if (doc instanceof AbstractDocument) {
+                    ((AbstractDocument)doc).readUnlock();
+                }
             }
         }
         return tt;
@@ -1204,15 +1234,17 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         }
 
         void setView(View v) {
-            if (view != null) {
+            View oldView = view;
+            view = null;
+            if (oldView != null) {
                 // get rid of back reference so that the old
                 // hierarchy can be garbage collected.
-                view.setParent(null);
+                oldView.setParent(null);
+            }
+            if (v != null) {
+                v.setParent(this);
             }
             view = v;
-            if (view != null) {
-                view.setParent(this);
-            }
         }
 
 	/**
@@ -1661,26 +1693,28 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
             if ((oldValue instanceof Document) || (newValue instanceof Document)) {
                 if (oldValue != null) {
                     ((Document)oldValue).removeDocumentListener(this);
+		    i18nView = false;
                 }
                 if (newValue != null) {
                     ((Document)newValue).addDocumentListener(this);
-		    if ("document".equals(propertyName)) {
-			BasicTextUI.this.propertyChange(evt);
-			modelChanged();
-			return;
-		    }
+                    if ("document" == propertyName) {
+                        setView(null);
+                        BasicTextUI.this.propertyChange(evt);
+                        modelChanged();
+                        return;
+                    }
                 }
                 modelChanged();
             }
-	    if (JTextComponent.FOCUS_ACCELERATOR_KEY.equals(propertyName)) {
+	    if ("focusAccelerator" == propertyName) {
 		updateFocusAcceleratorBinding(true);
-            } else if ("componentOrientation".equals(propertyName)) {
+            } else if ("componentOrientation" == propertyName) {
                 // Changes in ComponentOrientation require the views to be
                 // rebuilt.
                 modelChanged();
-            } else if ("font".equals(propertyName)) {
+            } else if ("font" == propertyName) {
                 modelChanged();
-            } else if ("transferHandler".equals(propertyName)) {
+            } else if ("transferHandler" == propertyName) {
 		DropTarget dropTarget = editor.getDropTarget();
 		if (dropTarget instanceof UIResource) {
                     if (defaultDropTargetListener == null) {
@@ -1692,7 +1726,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 			// should not happen... swing drop target is multicast
 		    }
 		}
-	    } 
+	    } else if ("editable" == propertyName) {
+                modelChanged();
+	    }
             BasicTextUI.this.propertyChange(evt);
         }
 
@@ -2018,7 +2054,9 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	    Caret caret = c.getCaret();
 	    dot = caret.getDot();
 	    mark = caret.getMark();
-	    visible = caret.isVisible();
+	    visible = caret instanceof DefaultCaret ?
+                          ((DefaultCaret)caret).isActive() :
+                          caret.isVisible();
 	    caret.setVisible(true);
 	}
 
@@ -2223,15 +2261,13 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 	 *  editable, COPY_OR_MOVE is returned, otherwise just COPY is allowed.
 	 */
         public int getSourceActions(JComponent c) {
-	    int actions = NONE;
-	    if (! (c instanceof JPasswordField)) {
-		if (((JTextComponent)c).isEditable()) {
-		    actions = COPY_OR_MOVE;
-		} else {
-		    actions = COPY;
-		}
-	    }
-	    return actions;
+            if (c instanceof JPasswordField &&
+                c.getClientProperty("JPasswordField.cutCopyAllowed") !=
+                Boolean.TRUE) {
+                return NONE;
+            }
+
+            return ((JTextComponent)c).isEditable() ? COPY_OR_MOVE : COPY;
 	}
 
 	/**

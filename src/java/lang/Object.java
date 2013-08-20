@@ -1,7 +1,7 @@
 /*
- * @(#)Object.java	1.61 03/01/23
+ * @(#)Object.java	1.68 04/04/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.lang;
  * including arrays, implement the methods of this class. 
  *
  * @author  unascribed
- * @version 1.61, 01/23/03
+ * @version 1.68, 04/08/04
  * @see     java.lang.Class
  * @since   JDK1.0
  */
@@ -29,10 +29,13 @@ public class Object {
      * object is the object that is locked by <tt>static synchronized</tt> 
      * methods of the represented class.
      *
-     * @return  the object of type <code>Class</code> that represents the
-     *          runtime class of the object.
+     * @return The <code>java.lang.Class</code> object that represents
+     *         the runtime class of the object.  The result is of type
+     *         {@code Class<? extends X>} where X is the
+     *	       erasure of the static type of the expression on which
+     *	       <code>getClass</code> is called.
      */
-    public final native Class getClass();
+    public final native Class<? extends Object> getClass();
 
     /**
      * Returns a hash code value for the object. This method is 
@@ -301,6 +304,24 @@ public class Object {
      * thread <tt>T</tt> is exactly as it was when the <tt>wait</tt> method 
      * was invoked. 
      * <p>
+     * A thread can also wake up without being notified, interrupted, or
+     * timing out, a so-called <i>spurious wakeup</i>.  While this will rarely
+     * occur in practice, applications must guard against it by testing for
+     * the condition that should have caused the thread to be awakened, and
+     * continuing to wait if the condition is not satisfied.  In other words,
+     * waits should always occur in loops, like this one:
+     * <pre>
+     *     synchronized (obj) {
+     *         while (&lt;condition does not hold&gt;)
+     *             obj.wait(timeout);
+     *         ... // Perform action appropriate to condition
+     *     }
+     * </pre>
+     * (For more information on this topic, see Section 3.2.3 in Doug Lea's
+     * "Concurrent Programming in Java (Second Edition)" (Addison-Wesley,
+     * 2000), or Item 50 in Joshua Bloch's "Effective Java Programming
+     * Language Guide" (Addison-Wesley, 2001).
+     * <p>
      * If the current thread is 
      * {@link java.lang.Thread#interrupt() interrupted} by another thread 
      * while it is waiting, then an <tt>InterruptedException</tt> is thrown. 
@@ -322,9 +343,11 @@ public class Object {
      *		     negative.
      * @exception  IllegalMonitorStateException  if the current thread is not
      *               the owner of the object's monitor.
-     * @exception  InterruptedException if another thread has interrupted
-     *             the current thread.  The <i>interrupted status</i> of the
-     *             current thread is cleared when this exception is thrown.
+     * @exception  InterruptedException if another thread interrupted the
+     *             current thread before or while the current thread
+     *             was waiting for a notification.  The <i>interrupted
+     *             status</i> of the current thread is cleared when
+     *             this exception is thrown.
      * @see        java.lang.Object#notify()
      * @see        java.lang.Object#notifyAll()
      */
@@ -364,6 +387,15 @@ public class Object {
      * The thread then waits until it can re-obtain ownership of the 
      * monitor and resumes execution.
      * <p>
+     * As in the one argument version, interrupts and spurious wakeups are
+     * possible, and this method should always be used in a loop:
+     * <pre>
+     *     synchronized (obj) {
+     *         while (&lt;condition does not hold&gt;)
+     *             obj.wait(timeout, nanos);
+     *         ... // Perform action appropriate to condition
+     *     }
+     * </pre>
      * This method should only be called by a thread that is the owner 
      * of this object's monitor. See the <code>notify</code> method for a 
      * description of the ways in which a thread can become the owner of 
@@ -377,9 +409,11 @@ public class Object {
      *			    not in the range 0-999999.
      * @exception  IllegalMonitorStateException  if the current thread is not
      *               the owner of this object's monitor.
-     * @exception  InterruptedException if another thread has interrupted
-     *             the current thread.  The <i>interrupted status</i> of the
-     *             current thread is cleared when this exception is thrown.
+     * @exception  InterruptedException if another thread interrupted the
+     *             current thread before or while the current thread
+     *             was waiting for a notification.  The <i>interrupted
+     *             status</i> of the current thread is cleared when
+     *             this exception is thrown.
      */
     public final void wait(long timeout, int nanos) throws InterruptedException {
         if (timeout < 0) {
@@ -412,6 +446,15 @@ public class Object {
      * <code>notifyAll</code> method. The thread then waits until it can 
      * re-obtain ownership of the monitor and resumes execution. 
      * <p>
+     * As in the one argument version, interrupts and spurious wakeups are
+     * possible, and this method should always be used in a loop:
+     * <pre>
+     *     synchronized (obj) {
+     *         while (&lt;condition does not hold&gt;)
+     *             obj.wait();
+     *         ... // Perform action appropriate to condition
+     *     }
+     * </pre>
      * This method should only be called by a thread that is the owner 
      * of this object's monitor. See the <code>notify</code> method for a 
      * description of the ways in which a thread can become the owner of 
@@ -419,9 +462,11 @@ public class Object {
      *
      * @exception  IllegalMonitorStateException  if the current thread is not
      *               the owner of the object's monitor.
-     * @exception  InterruptedException if another thread has interrupted
-     *             the current thread.  The <i>interrupted status</i> of the
-     *             current thread is cleared when this exception is thrown.
+     * @exception  InterruptedException if another thread interrupted the
+     *             current thread before or while the current thread
+     *             was waiting for a notification.  The <i>interrupted
+     *             status</i> of the current thread is cleared when
+     *             this exception is thrown.
      * @see        java.lang.Object#notify()
      * @see        java.lang.Object#notifyAll()
      */

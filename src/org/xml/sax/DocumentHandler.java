@@ -1,6 +1,7 @@
 // SAX document handler.
+// http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
-// $Id: DocumentHandler.java,v 1.1 2001/05/20 03:12:56 curcuru Exp $
+// $Id: DocumentHandler.java,v 1.1.24.1 2004/05/01 08:34:39 jsuttor Exp $
 
 package org.xml.sax;
 
@@ -10,6 +11,8 @@ package org.xml.sax;
  * <blockquote>
  * <em>This module, both source code and documentation, is in the
  * Public Domain, and comes with <strong>NO WARRANTY</strong>.</em>
+ * See <a href='http://www.saxproject.org'>http://www.saxproject.org</a>
+ * for further information.
  * </blockquote>
  *
  * <p>This was the main event-handling interface for SAX1; in
@@ -35,9 +38,8 @@ package org.xml.sax;
  *             {@link org.xml.sax.ContentHandler ContentHandler}
  *             interface, which includes Namespace support.
  * @since SAX 1.0
- * @author David Megginson, 
- *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0r2pre
+ * @author David Megginson
+ * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.Parser#setDocumentHandler
  * @see org.xml.sax.Locator
  * @see org.xml.sax.HandlerBase

@@ -1,7 +1,7 @@
 /*
- * @(#)Formatter.java	1.13 03/01/23
+ * @(#)Formatter.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.util.logging;
  * and tail strings around a set of formatted records. The getHeader
  * and getTail methods can be used to obtain these strings.
  *
- * @version 1.13, 01/23/03
+ * @version 1.16, 12/19/03
  * @since 1.4
  */
 
@@ -51,7 +51,7 @@ public abstract class Formatter {
      * This base class returns an empty string, but this may be
      * overriden by subclasses.
      * 
-     * @param   h  The target handler.
+     * @param   h  The target handler (can be null)
      * @return  header string
      */
     public String getHead(Handler h) {
@@ -64,7 +64,7 @@ public abstract class Formatter {
      * This base class returns an empty string, but this may be
      * overriden by subclasses.
      * 
-     * @param   h  The target handler.
+     * @param   h  The target handler (can be null)
      * @return  tail string
      */
     public String getTail(Handler h) {
@@ -121,7 +121,12 @@ public abstract class Formatter {
 		return format;
 	    }
 	    // Is is a java.text style format?
-	    if (format.indexOf("{0") >= 0) {
+            // Ideally we could match with
+            // Pattern.compile("\\{\\d").matcher(format).find())
+            // However the cost is 14% higher, so we cheaply check for
+            // 1 of the first 4 parameters
+            if (format.indexOf("{0") >= 0 || format.indexOf("{1") >=0 ||
+                        format.indexOf("{2") >=0|| format.indexOf("{3") >=0) {
 	        return java.text.MessageFormat.format(format, parameters);
 	    }
 	    return format;

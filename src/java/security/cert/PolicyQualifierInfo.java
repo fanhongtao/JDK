@@ -1,7 +1,7 @@
 /*
- * @(#)PolicyQualifierInfo.java	1.9 03/01/23
+ * @(#)PolicyQualifierInfo.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -62,10 +62,10 @@ import sun.security.util.DerValue;
  *
  * @author 	seth proctor
  * @author 	Sean Mullan
- * @version 	1.9 01/23/03
+ * @version 	1.11 12/19/03
  * @since 	1.4
  */
-public final class PolicyQualifierInfo {
+public class PolicyQualifierInfo {
 
     private byte [] mEncoded;
     private String mId;
@@ -105,7 +105,7 @@ public final class PolicyQualifierInfo {
      *
      * @return the OID (never <code>null</code>)
      */
-    public String getPolicyQualifierId() {
+    public final String getPolicyQualifierId() {
 	return mId;
     }
 	
@@ -117,7 +117,7 @@ public final class PolicyQualifierInfo {
      * Note that a copy is returned, so the data is cloned each time 
      * this method is called.
      */
-    public byte[] getEncoded() {
+    public final byte[] getEncoded() {
 	return (byte[]) mEncoded.clone();
     }
 	
@@ -129,7 +129,7 @@ public final class PolicyQualifierInfo {
      * field. Note that a copy is returned, so the data is cloned each 
      * time this method is called.
      */
-    public byte[] getPolicyQualifier() {
+    public final byte[] getPolicyQualifier() {
 	return (mData == null ? null : (byte[]) mData.clone());
     }
 

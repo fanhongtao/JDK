@@ -1,7 +1,7 @@
 /*
- * @(#)Writer.java	1.21 03/01/23
+ * @(#)Writer.java	1.26 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,12 +25,12 @@ package java.io;
  * @see   StringWriter
  * @see Reader
  *
- * @version 	1.21, 03/01/23
+ * @version 	1.26, 04/07/16
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
 
-public abstract class Writer {
+public abstract class Writer implements Appendable, Closeable, Flushable {
 
     /**
      * Temporary buffer used to hold writes of strings and single characters
@@ -97,7 +97,7 @@ public abstract class Writer {
      * Write an array of characters.
      *
      * @param  cbuf  Array of characters to be written
-     * 
+     *
      * @exception  IOException  If an I/O error occurs
      */
     public void write(char cbuf[]) throws IOException {
@@ -152,11 +152,118 @@ public abstract class Writer {
     }
 
     /**
+     * Appends the specified character sequence to this writer.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(csq)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.write(csq.toString()) </pre>
+     *
+     * <p> Depending on the specification of <tt>toString</tt> for the
+     * character sequence <tt>csq</tt>, the entire sequence may not be
+     * appended. For instance, invoking the <tt>toString</tt> method of a
+     * character buffer will return a subsequence whose content depends upon
+     * the buffer's position and limit.
+     *
+     * @param  csq
+     *         The character sequence to append.  If <tt>csq</tt> is
+     *         <tt>null</tt>, then the four characters <tt>"null"</tt> are
+     *         appended to this writer.
+     *
+     * @return  This writer
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @since  1.5
+     */
+    public Writer append(CharSequence csq) throws IOException {
+	if (csq == null)
+	    write("null");
+	else
+	    write(csq.toString());
+    	return this;
+    }
+
+    /**
+     * Appends a subsequence of the specified character sequence to this writer.
+     * <tt>Appendable</tt>.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(csq, start,
+     * end)</tt> when <tt>csq</tt> is not <tt>null</tt> behaves in exactly the
+     * same way as the invocation
+     *
+     * <pre>
+     *     out.write(csq.subSequence(start, end).toString()) </pre>
+     *
+     * @param  csq
+     *         The character sequence from which a subsequence will be
+     *         appended.  If <tt>csq</tt> is <tt>null</tt>, then characters
+     *         will be appended as if <tt>csq</tt> contained the four
+     *         characters <tt>"null"</tt>.
+     *
+     * @param  start
+     *         The index of the first character in the subsequence
+     *
+     * @param  end
+     *         The index of the character following the last character in the
+     *         subsequence
+     *
+     * @return  This writer
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If <tt>start</tt> or <tt>end</tt> are negative, <tt>start</tt>
+     *          is greater than <tt>end</tt>, or <tt>end</tt> is greater than
+     *          <tt>csq.length()</tt>
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @since  1.5
+     */
+    public Writer append(CharSequence csq, int start, int end) throws IOException {
+	CharSequence cs = (csq == null ? "null" : csq);
+	write(cs.subSequence(start, end).toString());
+ 	return this; 
+    }
+
+    /**
+     * Appends the specified character to this writer.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(c)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.write(c) </pre>
+     *
+     * @param  c
+     *         The 16-bit character to append
+     *
+     * @return  This writer
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @since 1.5
+     */
+    public Writer append(char c) throws IOException {
+	write(c);
+	return this;
+    }
+
+    /**
      * Flush the stream.  If the stream has saved any characters from the
      * various write() methods in a buffer, write them immediately to their
      * intended destination.  Then, if that destination is another character or
      * byte stream, flush it.  Thus one flush() invocation will flush all the
      * buffers in a chain of Writers and OutputStreams.
+     * <p>
+     * If the intended destination of this stream is an abstraction provided by
+     * the underlying operating system, for example a file, then flushing the
+     * stream guarantees only that bytes previously written to the stream are
+     * passed to the operating system for writing; it does not guarantee that
+     * they are actually written to a physical device such as a disk drive.
      *
      * @exception  IOException  If an I/O error occurs
      */

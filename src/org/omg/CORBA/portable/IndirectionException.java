@@ -1,7 +1,7 @@
 /*
- * @(#)IndirectionException.java	1.12 03/01/23
+ * @(#)IndirectionException.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -28,7 +28,7 @@ import org.omg.CORBA.SystemException;
  * for an object with the stream offset specified by the indirection 
  * tag. The stream offset is returned in the exception's offset field.
  * @see org.omg.CORBA_2_3.portable.InputStream
- * @see org.omg.CORBA_2_3.portable.OuputStream
+ * @see org.omg.CORBA_2_3.portable.OutputStream
  */
 public class IndirectionException extends SystemException {
 

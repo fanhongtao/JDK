@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLWriter.java	1.32 03/01/23
+ * @(#)HTMLWriter.java	1.36 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -413,6 +413,9 @@ public class HTMLWriter extends AbstractWriter {
 	}
 	else if (name == HTML.Tag.HEAD) {
 	    wroteHead = true;
+            incrIndent();
+            writeStyles(((HTMLDocument)getDocument()).getStyleSheet());
+            decrIndent();
 	}
 	HTMLDocument document = null;
 	if (name == HTML.Tag.BODY
@@ -565,20 +568,22 @@ public class HTMLWriter extends AbstractWriter {
 	if (synthesizedElement(elem)) {
 	    return;
 	}
-	if (matchNameAttribute(elem.getAttributes(), HTML.Tag.PRE)) {
-	    inPre = false;
-	}
 
 	// write out end tags for item on stack
 	closeOutUnwantedEmbeddedTags(elem.getAttributes());
 	if (inContent) { 
-	    if (!newlineOutputed) {
+	    if (!newlineOutputed && !inPre) {
 		writeLineSeparator();
 	    }
 	    newlineOutputed = false;
 	    inContent = false;
 	}
-	indent();
+	if (!inPre) {
+	    indent();
+	}
+	if (matchNameAttribute(elem.getAttributes(), HTML.Tag.PRE)) {
+	    inPre = false;
+	}
         write('<');
         write('/');
         write(elem.getName());
@@ -1030,31 +1035,31 @@ public class HTMLWriter extends AbstractWriter {
 		    CSS.FontWeight weightValue = (CSS.FontWeight) 
 			from.getAttribute(CSS.Attribute.FONT_WEIGHT);
 		    if ((weightValue != null) && (weightValue.getValue() > 400)) {
-			to.addAttribute(HTML.Tag.B, SimpleAttributeSet.EMPTY);
+			addAttribute(to, HTML.Tag.B, SimpleAttributeSet.EMPTY);
 		    }
 		} else if (key == CSS.Attribute.FONT_STYLE) {
 		    String s = from.getAttribute(key).toString();
 		    if (s.indexOf("italic") >= 0) {
-			to.addAttribute(HTML.Tag.I, SimpleAttributeSet.EMPTY);
+			addAttribute(to, HTML.Tag.I, SimpleAttributeSet.EMPTY);
 		    }
 		} else if (key == CSS.Attribute.TEXT_DECORATION) {
 		    String decor = from.getAttribute(key).toString();
 		    if (decor.indexOf("underline") >= 0) {
-			to.addAttribute(HTML.Tag.U, SimpleAttributeSet.EMPTY);
+			addAttribute(to, HTML.Tag.U, SimpleAttributeSet.EMPTY);
 		    }
 		    if (decor.indexOf("line-through") >= 0) {
-			to.addAttribute(HTML.Tag.STRIKE, SimpleAttributeSet.EMPTY);
+			addAttribute(to, HTML.Tag.STRIKE, SimpleAttributeSet.EMPTY);
 		    }
 		} else if (key == CSS.Attribute.VERTICAL_ALIGN) {
 		    String vAlign = from.getAttribute(key).toString();
 		    if (vAlign.indexOf("sup") >= 0) {
-			to.addAttribute(HTML.Tag.SUP, SimpleAttributeSet.EMPTY);
+			addAttribute(to, HTML.Tag.SUP, SimpleAttributeSet.EMPTY);
 		    }
 		    if (vAlign.indexOf("sub") >= 0) {
-			to.addAttribute(HTML.Tag.SUB, SimpleAttributeSet.EMPTY);
+			addAttribute(to, HTML.Tag.SUB, SimpleAttributeSet.EMPTY);
 		    }
 		} else if (key == CSS.Attribute.TEXT_ALIGN) {
-		    to.addAttribute(HTML.Attribute.ALIGN, 
+		    addAttribute(to, HTML.Attribute.ALIGN, 
 				    from.getAttribute(key).toString());
 		} else {
 		    // default is to store in a HTML style attribute
@@ -1064,11 +1069,31 @@ public class HTMLWriter extends AbstractWriter {
 		    value = value + key + ": " + from.getAttribute(key);
 		}
 	    } else {
-		to.addAttribute(key, from.getAttribute(key));
+		Object attr = from.getAttribute(key);
+		if (attr instanceof AttributeSet) {
+		    attr = ((AttributeSet)attr).copyAttributes();
+		} 
+		addAttribute(to, key, attr);
 	    }
 	}
 	if (value.length() > 0) {
 	    to.addAttribute(HTML.Attribute.STYLE, value);
+	}
+    }
+
+    /**
+     * Add an attribute only if it doesn't exist so that we don't
+     * loose information replacing it with SimpleAttributeSet.EMPTY
+     */
+    private static void addAttribute(MutableAttributeSet to, Object key, Object value) {
+	Object attr = to.getAttribute(key);
+	if (attr == null || attr == SimpleAttributeSet.EMPTY) {
+            to.addAttribute(key, value);
+	} else {
+	    if (attr instanceof MutableAttributeSet &&
+		value instanceof AttributeSet) {
+		((MutableAttributeSet)attr).addAttributes((AttributeSet)value);
+	    }
 	}
     }
 

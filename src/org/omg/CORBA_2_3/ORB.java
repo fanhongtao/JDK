@@ -1,7 +1,7 @@
 /*
  * @(#)ORB.java	1.11 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -22,8 +22,7 @@ package org.omg.CORBA_2_3;
 public abstract class ORB extends org.omg.CORBA.ORB {
 
 /**
- * @see <a href="package-summary.html#unimpl"><code>CORBA_2_3</code> package
- *      comments for unimplemented features</a>
+ * 
  */
     public org.omg.CORBA.portable.ValueFactory register_value_factory(String id,
 								     org.omg.CORBA.portable.ValueFactory factory)
@@ -33,8 +32,7 @@ public abstract class ORB extends org.omg.CORBA.ORB {
  
 
 /**
- * @see <a href="package-summary.html#unimpl"><code>CORBA_2_3</code> package
- *      comments for unimplemented features</a>
+ * 
  */
     public void unregister_value_factory(String id)
     {
@@ -43,8 +41,7 @@ public abstract class ORB extends org.omg.CORBA.ORB {
 
 
 /**
- * @see <a href="package-summary.html#unimpl"><code>CORBA_2_3</code> package
- *      comments for unimplemented features</a>
+ * 
  */
     public org.omg.CORBA.portable.ValueFactory lookup_value_factory(String id)
     {
@@ -57,7 +54,7 @@ public abstract class ORB extends org.omg.CORBA.ORB {
  *      comments for unimplemented features</a>
  */
     // always return a ValueDef or throw BAD_PARAM if
-     // repid does not represent a valuetype
+     // <em>repid</em> does not represent a valuetype
      public org.omg.CORBA.Object get_value_def(String repid)
                                throws org.omg.CORBA.BAD_PARAM {
        throw new org.omg.CORBA.NO_IMPLEMENT();

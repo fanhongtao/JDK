@@ -1,7 +1,7 @@
 /*
- * @(#)TextComponent.java	1.74 03/01/23
+ * @(#)TextComponent.java	1.83 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -16,6 +16,7 @@ import sun.awt.InputMethodSupport;
 import java.text.BreakIterator;
 import javax.swing.text.AttributeSet;
 import javax.accessibility.*;
+import java.awt.im.InputMethodRequests;
 
 
 /**
@@ -34,7 +35,7 @@ import javax.accessibility.*;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.74, 01/23/03
+ * @version	1.83, 05/05/04
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -156,6 +157,14 @@ public class TextComponent extends Component implements Accessible {
         return (eventMask & AWTEvent.INPUT_METHODS_ENABLED_MASK) != 0;
     }
 
+    public InputMethodRequests getInputMethodRequests() {
+        TextComponentPeer peer = (TextComponentPeer)this.peer;
+        if (peer != null) return peer.getInputMethodRequests();
+        else return null;
+    }
+
+
+
     /**
      * Makes this Component displayable by connecting it to a
      * native screen resource.
@@ -204,6 +213,9 @@ public class TextComponent extends Component implements Accessible {
 
     /**
      * Returns the text that is presented by this text component.
+     * By default, this is an empty string.
+     *
+     * @return the value of this <code>TextComponent</code>
      * @see     java.awt.TextComponent#setText
      */
     public synchronized String getText() {
@@ -395,9 +407,9 @@ public class TextComponent extends Component implements Accessible {
      * start position, it is reset to the start position.
      * 
      * @param        selectionStart the zero-based index of the first 
-                       character to be selected  
+                       character (<code>char</code> value) to be selected  
      * @param        selectionEnd the zero-based end position of the 
-                       text to be selected; the character at 
+                       text to be selected; the character (<code>char</code> value) at 
                        <code>selectionEnd</code> is not selected 
      * @see          java.awt.TextComponent#setSelectionStart
      * @see          java.awt.TextComponent#setSelectionEnd
@@ -443,23 +455,19 @@ public class TextComponent extends Component implements Accessible {
     }
 
     /**
-     * Sets the position of the text insertion caret for 
-     * this text component.
-     * The caret position is constrained to be at or before
-     * the current selection end.  If the caller 
-     * supplies a value for <code>position</code> that is 
-     * greater than the end of the component's text, 
-     * the caret position is set to the end
-     * of the component's text. 
-     * This happens silently and without failure.  
-     * The caret position also cannot be set to less than zero, 
-     * the beginning of the component's text.  If the caller supplies 
-     * a value for <code>position</code> that is less than zero, 
-     * an <code>IllegalArgumentException</code> is thrown.  
+     * Sets the position of the text insertion caret.
+     * The caret position is constrained to be between 0
+     * and the last character of the text, inclusive.
+     * If the passed-in value is greater than this range,
+     * the value is set to the last character (or 0 if
+     * the <code>TextComponent</code> contains no text)
+     * and no error is returned.  If the passed-in value is
+     * less than 0, an <code>IllegalArgumentException</code>
+     * is thrown.
      * 
      * @param        position the position of the text insertion caret
-     * @exception    IllegalArgumentException if the value supplied
-     *                   for <code>position</code> is less than zero
+     * @exception    IllegalArgumentException if <code>position</code>
+     *               is less than zero
      * @since        JDK1.1
      */
     public synchronized void setCaretPosition(int position) {
@@ -476,14 +484,19 @@ public class TextComponent extends Component implements Accessible {
 	if (peer != null) {
 	    peer.setCaretPosition(position);
 	} else {
-	    throw new IllegalComponentStateException("Cannot set caret position until after the peer has been created");
+	    select(position, position);
 	}
     }
 
     /**
-     * Gets the position of the text insertion caret for 
-     * this text component.
+     * Returns the position of the text insertion caret.
+     * The caret position is constrained to be between 0
+     * and the last character of the text, inclusive.
+     * If the text or caret have not been set, the default
+     * caret position is 0.
+     *
      * @return       the position of the text insertion caret
+     * @see #setCaretPosition(int)
      * @since        JDK1.1
      */
     public synchronized int getCaretPosition() {
@@ -492,7 +505,9 @@ public class TextComponent extends Component implements Accessible {
 
 	if (peer != null) {
 	    position = peer.getCaretPosition();
-	} 
+	} else {
+	    position = selectionStart;
+	}
 	return position;
     }
 
@@ -584,7 +599,7 @@ public class TextComponent extends Component implements Accessible {
      * @see #getTextListeners
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
 	EventListener l = null; 
 	if  (listenerType == TextListener.class) { 
 	    l = textListener;
@@ -831,7 +846,12 @@ public class TextComponent extends Component implements Accessible {
      * elements.
      */
     protected class AccessibleAWTTextComponent extends AccessibleAWTComponent 
-    implements AccessibleText, TextListener {
+        implements AccessibleText, TextListener
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 3631432373506317811L;
 
         /**
          * Constructs an AccessibleAWTTextComponent.  Adds a listener to track
@@ -991,7 +1011,12 @@ public class TextComponent extends Component implements Accessible {
          * @return the text, null if no selection
          */
         public String getSelectedText() {
-            return TextComponent.this.getSelectedText();
+            String selText = TextComponent.this.getSelectedText();
+            // Fix for 4256662
+            if (selText == null || selText.equals("")) {
+                return null;
+            }
+            return selText;
         }
 
         /**
@@ -1029,6 +1054,37 @@ public class TextComponent extends Component implements Accessible {
             }
         }
 
+        private static final boolean NEXT = true;
+        private static final boolean PREVIOUS = false;
+
+        /**
+         * Needed to unify forward and backward searching.
+         * The method assumes that s is the text assigned to words.
+         */
+        private int findWordLimit(int index, BreakIterator words, boolean direction,
+                                         String s) {
+            // Fix for 4256660 and 4256661.
+            // Words iterator is different from character and sentence iterators
+            // in that end of one word is not necessarily start of another word.
+            // Please see java.text.BreakIterator JavaDoc. The code below is
+            // based on nextWordStartAfter example from BreakIterator.java.
+            int last = (direction == NEXT) ? words.following(index)
+                                           : words.preceding(index);
+            int current = (direction == NEXT) ? words.next()
+                                              : words.previous();
+            while (current != BreakIterator.DONE) {
+                for (int p = Math.min(last, current); p < Math.max(last, current); p++) {
+                    if (Character.isLetter(s.charAt(p))) {
+                        return last;
+                    }
+                }
+                last = current;
+                current = (direction == NEXT) ? words.next()
+                                              : words.previous();
+            }
+            return BreakIterator.DONE;
+        }
+
         /**
          * Returns the String after a given index.
          *
@@ -1052,7 +1108,7 @@ public class TextComponent extends Component implements Accessible {
                     String s = TextComponent.this.getText();
                     BreakIterator words = BreakIterator.getWordInstance();
                     words.setText(s);
-                    int start = words.following(index);
+                    int start = findWordLimit(index, words, NEXT, s);
                     if (start == BreakIterator.DONE || start >= s.length()) {
                         return null;
                     }
@@ -1105,9 +1161,11 @@ public class TextComponent extends Component implements Accessible {
                     String s = TextComponent.this.getText();
                     BreakIterator words = BreakIterator.getWordInstance();
                     words.setText(s);
-                    int end = words.following(index);
-                    end = words.previous();
-                    int start = words.previous();
+                    int end = findWordLimit(index, words, PREVIOUS, s);
+                    if (end == BreakIterator.DONE) {
+                        return null;
+                    }
+                    int start = words.preceding(end);
                     if (start == BreakIterator.DONE) {
                         return null;
                     }

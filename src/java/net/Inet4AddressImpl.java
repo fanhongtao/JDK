@@ -1,10 +1,11 @@
 /*
- * @(#)Inet4AddressImpl.java	1.2 03/01/23
+ * @(#)Inet4AddressImpl.java	1.4 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
+import java.io.IOException;
 
 /*
  * Package private implementation of InetAddressImpl for IPv4.
@@ -16,6 +17,7 @@ class Inet4AddressImpl implements InetAddressImpl {
     public native byte[][]
         lookupAllHostAddr(String hostname) throws UnknownHostException;
     public native String getHostByAddr(byte[] addr) throws UnknownHostException;
+    private native boolean isReachable0(byte[] addr, int timeout, byte[] ifaddr, int ttl) throws IOException;
 
     public synchronized InetAddress anyLocalAddress() {
         if (anyLocalAddress == null) {
@@ -33,6 +35,22 @@ class Inet4AddressImpl implements InetAddressImpl {
         return loopbackAddress;
     }
 
+  public boolean isReachable(InetAddress addr, int timeout, NetworkInterface netif, int ttl) throws IOException {
+      byte[] ifaddr = null;
+      if (netif != null) {
+	  /*
+	   * Let's make sure we use an address of the proper family
+	   */
+	  java.util.Enumeration it = netif.getInetAddresses();
+	  InetAddress inetaddr = null;
+	  while (!(inetaddr instanceof Inet4Address) &&
+		 it.hasMoreElements())
+	      inetaddr = (InetAddress) it.nextElement();
+	  if (inetaddr instanceof Inet4Address)
+	      ifaddr = inetaddr.getAddress();
+      }
+      return isReachable0(addr.getAddress(), timeout, ifaddr, ttl);
+  }
     private InetAddress      anyLocalAddress;
     private InetAddress      loopbackAddress;
 }

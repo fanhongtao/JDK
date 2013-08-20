@@ -1,7 +1,7 @@
 /*
- * @(#)MotifDesktopPaneUI.java	1.23 03/01/23
+ * @(#)MotifDesktopPaneUI.java	1.25 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 01/23/03
+ * @version 1.25 12/19/03
  * @author David Kloba
  */
 public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneUI
@@ -42,7 +42,8 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
     }
 
     protected void installDesktopManager() {
-	if(desktop.getDesktopManager() == null) {
+	desktopManager = desktop.getDesktopManager();
+	if(desktopManager == null) {
 	    desktopManager = new MotifDesktopManager();
 	    desktop.setDesktopManager(desktopManager);
             ((MotifDesktopManager)desktopManager).adjustIcons(desktop);
@@ -64,7 +65,7 @@ public class MotifDesktopPaneUI extends javax.swing.plaf.basic.BasicDesktopPaneU
 ////////////////////////////////////////////////////////////////////////////////////
 ///  MotifDesktopManager class
 ////////////////////////////////////////////////////////////////////////////////////
-    private class MotifDesktopManager extends DefaultDesktopManager implements Serializable {
+    private class MotifDesktopManager extends DefaultDesktopManager implements Serializable, UIResource {
         JComponent dragPane;
         boolean usingDragPane = false;
         private transient JLayeredPane layeredPaneForDragPane;

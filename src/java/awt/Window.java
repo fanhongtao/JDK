@@ -1,13 +1,14 @@
 /*
- * @(#)Window.java	1.184 03/01/28
+ * @(#)Window.java	1.208 04/06/28
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
 import java.applet.Applet;
 import java.awt.peer.WindowPeer;
+import java.awt.peer.ComponentPeer;
 import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.util.Vector;
@@ -28,6 +29,7 @@ import java.security.PrivilegedAction;
 import javax.accessibility.*;
 import java.beans.PropertyChangeListener;
 import sun.security.action.GetPropertyAction;
+import sun.security.util.SecurityConstants;
 import sun.awt.DebugHelper;
 
 /**
@@ -79,10 +81,30 @@ import sun.awt.DebugHelper;
  * </pre>
  *
  * <p>
+ * Note: the location and size of top-level windows (including
+ * <code>Window</code>s, <code>Frame</code>s, and <code>Dialog</code>s)
+ * are under the control of the desktop's window management system.
+ * Calls to <code>setLocation</code>, <code>setSize</code>, and
+ * <code>setBounds</code> are requests (not directives) which are
+ * forwarded to the window management system.  Every effort will be
+ * made to honor such requests.  However, in some cases the window
+ * management system may ignore such requests, or modify the requested
+ * geometry in order to place and size the <code>Window</code> in a way
+ * that more closely matches the desktop settings.
+ *
+ * Due to the asynchronous nature of native event handling, the results
+ * returned by <code>getBounds</code>, <code>getLocation</code>,
+ * <code>getLocationOnScreen</code>, and <code>getSize</code> might not 
+ * reflect the actual geometry of the Window on screen until the last
+ * request has been processed.  During the processing of subsequent
+ * requests these values might change accordingly while the window
+ * management system fulfills the requests.
+ *
+ * <p>
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.184, 01/28/03
+ * @version 	1.208, 06/28/04
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -125,6 +147,15 @@ public class Window extends Container implements Accessible {
      * @see #show
      */
     int state;
+
+    /**
+     * A boolean value representing Window always-on-top state
+     * @since 1.5
+     * @serial
+     * @see #setAlwaysOnTop
+     * @see #isAlwaysOnTop
+     */
+    private boolean alwaysOnTop;
 
     /**
      * A vector containing all the windows this
@@ -172,20 +203,21 @@ public class Window extends Container implements Accessible {
 
     private static final DebugHelper dbg = DebugHelper.create(Window.class);
 
+    private static final boolean locationByPlatformProp;
+
     static {
         /* ensure that the necessary native libraries are loaded */
 	Toolkit.loadLibraries();
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
- systemSyncLWRequests = ((Boolean)AccessController.doPrivileged(
-     new PrivilegedAction() {
-                    public Object run() {
-                        return new Boolean("true".equals(System.
-                                                         getProperty("java.awt.syncLWRequests",
-                                                                     "false")));
-                    }
-                })).booleanValue();
+        
+        String s = (String) java.security.AccessController.doPrivileged(
+            new GetPropertyAction("java.awt.syncLWRequests"));
+        systemSyncLWRequests = (s != null && s.equals("true"));
+        s = (String) java.security.AccessController.doPrivileged(
+            new GetPropertyAction("java.awt.Window.locationByPlatform"));
+        locationByPlatformProp = (s != null && s.equals("true"));
     }
 
     /**
@@ -246,7 +278,11 @@ public class Window extends Container implements Accessible {
         Insets screenInsets = getToolkit().getScreenInsets(graphicsConfig);          
         int x = getX() + screenBounds.x + screenInsets.left;
         int y = getY() + screenBounds.y + screenInsets.top;
-        setLocation(x, y);
+        if (x != this.x || y != this.y) {
+            setLocation(x, y);
+            /* reset after setLocation */
+            setLocationByPlatform(locationByPlatformProp);
+        }
     }
     
     /**
@@ -376,11 +412,15 @@ public class Window extends Container implements Accessible {
     }
 
     /**
-     * Disposes of the input methods and context, and removes the WeakReference
-     * which formerly pointed to this Window from the parent's owned Window
-     * list.
+     * Disposes of the input methods and context, and removes 
+     * this Window from the GUI hierarchy.  Subclasses that override
+     * this method should call super.finalize().
      */
     protected void finalize() throws Throwable {
+        // We have to remove the (hard) reference to weakThis in the
+        // parent's ownedWindowList, otherwise the WeakReference
+        // instance that points to this Window will never get garbage
+        // collected.
 	if (parent != null) {
 	    ((Window)parent).removeOwnedWindow(weakThis);
 	}
@@ -435,7 +475,10 @@ public class Window extends Container implements Accessible {
 	if (peer == null) {
 	    addNotify();
 	}
-	setSize(getPreferredSize());
+        Dimension newSize = getPreferredSize();
+        if (peer != null) {
+            setClientSize(newSize.width, newSize.height);
+        }
 
         if(beforeFirstShow) {
             isPacked = true;
@@ -443,17 +486,20 @@ public class Window extends Container implements Accessible {
 
 	validate();
     }
+    
+    
+    void setClientSize(int w, int h) {
+    	synchronized (getTreeLock()) {
+    	    setBoundsOp(ComponentPeer.SET_CLIENT_SIZE);
+    	    setBounds(x, y, w, h);
+    	}
+    }
 
     /**
-     * Makes the Window visible. If the Window and/or its owner
-     * are not yet displayable, both are made displayable.  The 
-     * Window will be validated prior to being made visible.  
-     * If the Window is already visible, this will bring the Window 
-     * to the front.
-     * @see       Component#isDisplayable
-     * @see       #toFront
-     * @see       Component#setVisible
+     * @deprecated As of JDK 5, replaced by
+     * {@link Component#setVisible(boolean) Component.setVisible(boolean)}.
      */
+    @Deprecated
     public void show() {
 	if (peer == null) {
 	    addNotify();
@@ -462,9 +508,10 @@ public class Window extends Container implements Accessible {
 
 	if (visible) {
 	    toFront();
-	} else {
+	} else {	    
             beforeFirstShow = false;
 	    super.show();
+            locationByPlatform = false;
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
                 Window child = (Window) (((WeakReference)
                     (ownedWindowList.elementAt(i))).get());
@@ -473,7 +520,6 @@ public class Window extends Container implements Accessible {
                             child.showWithParent = false;
                         }       // endif
             }   // endfor
-
 	}
         
         // If first time shown, generate WindowOpened event
@@ -493,13 +539,10 @@ public class Window extends Container implements Accessible {
     }
 
     /**
-     * Hide this Window, its subcomponents, and all of its owned children. 
-     * The Window and its subcomponents can be made visible again
-     * with a call to <code>show</code>. 
-     * </p>
-     * @see #show
-     * @see #dispose
+     * @deprecated As of JDK 5, replaced by
+     * {@link Component#setVisible(boolean) Component.setVisible(boolean)}.
      */
+    @Deprecated
     public void hide() {
         synchronized(ownedWindowList) {
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
@@ -517,6 +560,7 @@ public class Window extends Container implements Accessible {
     final void clearMostRecentFocusOwnerOnHide() {
         /* do nothing */
     }
+
     /**
      * Releases all of the native screen resources used by this
      * <code>Window</code>, its subcomponents, and all of its owned
@@ -541,18 +585,38 @@ public class Window extends Container implements Accessible {
      * @see #show
      */
     public void dispose() {
+        doDispose();
+    }
+
+    /*
+     * Fix for 4872170.
+     * If dispose() is called on parent then its children have to be disposed as well
+     * as reported in javadoc. So we need to implement this functionality even if a
+     * child overrides dispose() in a wrong way without calling super.dispose().
+     */
+    void disposeImpl() {
+        dispose();
+        if (getPeer() != null) {
+            doDispose();
+        }
+    }
+
+    void doDispose() {
     class DisposeAction implements Runnable {
         public void run() {
+	    Object[] ownedWindowArray;
             synchronized(ownedWindowList) {
-                for (int i = 0; i < ownedWindowList.size(); i++) {
-                    Window child = (Window) (((WeakReference)
-                                   (ownedWindowList.elementAt(i))).get());
-                    if (child != null) {
-                        child.dispose();
-                    }
-                }
-            }
-            setVisible(false);
+		ownedWindowArray = new Object[ownedWindowList.size()];
+		ownedWindowList.copyInto(ownedWindowArray);
+	    }
+	    for (int i = 0; i < ownedWindowArray.length; i++) {
+		Window child = (Window) (((WeakReference)
+			       (ownedWindowArray[i])).get());
+		if (child != null) {
+		    child.disposeImpl();
+		}
+	    }
+            hide();
             beforeFirstShow = true;
             removeNotify();
             synchronized (inputContextLock) {
@@ -564,8 +628,7 @@ public class Window extends Container implements Accessible {
             clearCurrentFocusCycleRootOnHide();
         }
     }
-
-	DisposeAction action = new DisposeAction();
+        DisposeAction action = new DisposeAction();
 	if (EventQueue.isDispatchThread()) {
 	    action.run();
 	}
@@ -585,7 +648,7 @@ public class Window extends Container implements Accessible {
 	// Execute outside the Runnable because postWindowEvent is
 	// synchronized on (this). We don't need to synchronize the call
 	// on the EventQueue anyways.
-	postWindowEvent(WindowEvent.WINDOW_CLOSED);
+        postWindowEvent(WindowEvent.WINDOW_CLOSED);
     }
 
     /*
@@ -733,7 +796,6 @@ public class Window extends Container implements Accessible {
      * @see       java.util.Locale
      * @since     JDK1.1
      */
-
     public Locale getLocale() {
       if (this.locale == null) {
 	return Locale.getDefault();
@@ -747,7 +809,6 @@ public class Window extends Container implements Accessible {
      * @see Component#getInputContext
      * @since 1.2
      */
-
     public InputContext getInputContext() {
         if (inputContext == null) {
             synchronized (inputContextLock) {
@@ -1007,7 +1068,7 @@ public class Window extends Container implements Accessible {
      * @see #getWindowListeners
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
 	EventListener l = null; 
         if (listenerType == WindowFocusListener.class) {
             l = windowFocusListener;
@@ -1018,7 +1079,7 @@ public class Window extends Container implements Accessible {
         } else {
             return super.getListeners(listenerType);
         }
-        return (EventListener[])AWTEventMulticaster.getListeners(l, listenerType);
+        return AWTEventMulticaster.getListeners(l, listenerType);
     }
 
     // REMIND: remove when filtering is handled at lower level
@@ -1228,6 +1289,96 @@ public class Window extends Container implements Accessible {
     }
   
     /**
+     * Changes the always-on-top window state.  An always-on-top window 
+     * is a window that stays above all other windows except maybe
+     * other always-on-top windows. If there are several always-on-top
+     * windows the order in which they stay relative to each other is
+     * not specified and is platform dependent.
+     * <p> 
+     * If some other window already is always-on-top then the
+     * relative order between these windows is unspecified (depends on
+     * platform).  No window can be brought to be over always-on-top
+     * window except maybe another always-on-top window.
+     * <p> 
+     * All owned windows of an always-on-top window automatically
+     * become always-on-top windows. If a window ceases to be
+     * always-on-top its owned windows cease to be always-on-top.
+     * <p> When an always-on-top window is sent {@link #toBack toBack} 
+     * its always-on-top state is set to <code>false</code>.
+     * <p> 
+     * This method makes the window always-on-top if
+     * <code>alwaysOnTop</code> is <code>true</code>. If the window is
+     * visible, this includes bringing window <code>toFront</code>, then 
+     * "sticking" it to the top-most position.  If the window is not 
+     * visible it does nothing other than setting the always-on-top 
+     * property. If later the window is shown, it will be always-on-top.  
+     * If the Window is already always-on-top, this call does nothing.
+     * <p> 
+     * If <code>alwaysOnTop</code> is <code>false</code> this
+     * method changes the state from always-on-top to normal. The window
+     * remains top-most but its z-order can be changed in the normal way
+     * as for any other window. Does nothing if this Window is not
+     * always-on-top. Has no effect on relative z-order of windows if
+     * there are no other always-on-top windows.
+     * <p> 
+     * <b>Note</b>: some platforms might not support always-on-top
+     * windows. There is no public API to detect if the platform
+     * supports always-on-top at runtime.
+     * <p>
+     * If a SecurityManager is installed, the calling thread must be
+     * granted the AWTPermission "setWindowAlwaysOnTop" in
+     * order to set the value of this property. If this
+     * permission is not granted, this method will throw a
+     * SecurityException, and the current value of the property will
+     * be left unchanged.    
+     *
+     * @param alwaysOnTop new value of always-on-top state of the
+     *                    window
+     * @throws SecurityException if the calling thread does not have permission
+     *         to set the value of always-on-top property
+     * @see #isAlwaysOnTop
+     * @see #toFront
+     * @see #toBack
+     * @see AWTPermission
+     * @since 1.5
+     */
+    public final void setAlwaysOnTop(boolean alwaysOnTop) 
+      throws SecurityException
+    {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkPermission(SecurityConstants.SET_WINDOW_ALWAYS_ON_TOP_PERMISSION);
+        }
+
+        boolean oldAlwaysOnTop;
+        synchronized(this) {
+            oldAlwaysOnTop = this.alwaysOnTop;
+            this.alwaysOnTop = alwaysOnTop;
+        }
+        if (oldAlwaysOnTop != alwaysOnTop ) {
+            WindowPeer peer = (WindowPeer)this.peer;
+            synchronized(getTreeLock()) {
+                if (peer != null) {
+                    peer.updateAlwaysOnTop();
+                }
+            }
+            firePropertyChange("alwaysOnTop", oldAlwaysOnTop, alwaysOnTop);
+        }        
+    }
+
+    /**
+     * Returns whether this window is an always-on-top window.
+     * @return <code>true</code>, if the window is in always-on-top state, 
+     *         <code>false</code> otherwise
+     * @see #setAlwaysOnTop
+     * @since 1.5
+     */
+    public final boolean isAlwaysOnTop() {
+        return alwaysOnTop;
+    }
+
+
+    /**
      * Returns the child Component of this Window that has focus if this Window
      * is focused; returns null otherwise.
      *
@@ -1337,7 +1488,7 @@ public class Window extends Container implements Accessible {
      *         KeyboardFocusManager.DOWN_CYCLE_TRAVERSAL_KEYS
      * @since 1.4
      */
-    public Set getFocusTraversalKeys(int id) {
+    public Set<AWTKeyStroke> getFocusTraversalKeys(int id) {
 	if (id < 0 || id >= KeyboardFocusManager.TRAVERSAL_KEY_LENGTH) {
 	    throw new IllegalArgumentException("invalid focus traversal key identifier");
 	}
@@ -1484,6 +1635,13 @@ public class Window extends Container implements Accessible {
      * which will be used as a floating palette or toolbar, and thus should be
      * a non-focusable Window.
      *
+     * Setting the focusability state on a visible <code>Window</code>
+     * can have a delayed effect on some platforms &#151; the actual
+     * change may happen only when the <code>Window</code> becomes
+     * hidden and then visible again.  To ensure consistent behavior 
+     * across platforms, set the <code>Window</code>'s focusable state 
+     * when the <code>WIndow</code> is invisible and then show it.
+     *
      * @param focusableWindowState whether this Window can be the focused
      *        Window
      * @see #isFocusableWindow
@@ -1539,6 +1697,7 @@ public class Window extends Container implements Accessible {
      *        </li>
      *    <li>this Window's focusable Window state ("focusableWindowState")
      *        </li>
+     *    <li>this Window's always-on-top state("alwaysOnTop")</li>
      * </ul>
      * Note that if this Window is inheriting a bound property, then no
      * event will be fired in response to a change in the inherited property.
@@ -1577,6 +1736,7 @@ public class Window extends Container implements Accessible {
      *        </li>
      *    <li>this Window's focusable Window state ("focusableWindowState")
      *        </li>
+     *    <li>this Window's always-on-top state("alwaysOnTop")</li>
      * </ul>
      * Note that if this Window is inheriting a bound property, then no
      * event will be fired in response to a change in the inherited property.
@@ -1610,6 +1770,7 @@ public class Window extends Container implements Accessible {
      * @deprecated As of JDK version 1.1
      * replaced by <code>dispatchEvent(AWTEvent)</code>.
      */
+    @Deprecated
     public boolean postEvent(Event e) {
         if (handleEvent(e)) {
             e.consume();
@@ -1627,30 +1788,19 @@ public class Window extends Container implements Accessible {
     }
 
     /**
-     * Applies the ResourceBundle's ComponentOrientation
-     * to this Window and all components contained within it.
-     *
-     * @see ComponentOrientation
-     * @since 1.2
-     *
      * @deprecated As of J2SE 1.4, replaced by
      * {@link Component#applyComponentOrientation Component.applyComponentOrientation}.
      */
+    @Deprecated
     public void applyResourceBundle(ResourceBundle rb) {
         applyComponentOrientation(ComponentOrientation.getOrientation(rb));
     }
     
     /**
-     * Loads the ResourceBundle with the given name using the default locale
-     * and applies its ComponentOrientation
-     * to this Window and all components contained within it.
-     *
-     * @see ComponentOrientation
-     * @since 1.2
-     *
      * @deprecated As of J2SE 1.4, replaced by
      * {@link Component#applyComponentOrientation Component.applyComponentOrientation}.
      */
+    @Deprecated
     public void applyResourceBundle(String rbName) {
         applyResourceBundle(ResourceBundle.getBundle(rbName));
     }
@@ -1767,21 +1917,8 @@ public class Window extends Container implements Accessible {
       throws ClassNotFoundException, IOException, HeadlessException
     {
       GraphicsEnvironment.checkHeadless();
-      setWarningString(); 
-      inputContextLock = new Object(); 
-           
-      // Deserialized Windows are not yet visible.
-      visible = false;
-      weakThis = new WeakReference(this); 
-      ObjectInputStream.GetField f = s.readFields();
-       
-      syncLWRequests = f.get("syncLWRequests", systemSyncLWRequests);
-      state = f.get("state", 0);
-      focusableWindowState = f.get("focusableWindowState", true);  
-      windowSerializedDataVersion = f.get("windowSerializedDataVersion", 1);
-      // Note: 1.4 (or later) doesn't use focusMgr
-      focusMgr = (FocusManager)f.get("focusMgr", null);
-      ownedWindowList = new Vector();
+      s.defaultReadObject();
+
       if (windowSerializedDataVersion < 2) {
 	  // Translate old-style focus tracking to new model. For 1.4 and
 	  // later releases, we'll rely on the Window's initial focusable
@@ -1797,7 +1934,13 @@ public class Window extends Container implements Accessible {
 	  // However, the default value is insufficient, so we need to set
 	  // it explicitly for object data streams prior to 1.4.
         focusableWindowState = true;
-      }       
+      }
+  
+      // 1.4 doesn't use this field, so just null it out.
+      focusMgr = null;
+  
+      ownedWindowList = new Vector();
+
       Object keyOrNull;
       while(null != (keyOrNull = s.readObject())) {
 	  String key = ((String)keyOrNull).intern();
@@ -1827,6 +1970,12 @@ public class Window extends Container implements Accessible {
 	  // 1.1 serialized form
 	  // ownedWindowList will be updated by Frame.readObject
       }
+
+      setWarningString();
+      inputContextLock = new Object();
+
+      // Deserialized Windows are not yet visible.
+      visible = false;
     }
 
     /*
@@ -1855,7 +2004,12 @@ public class Window extends Container implements Accessible {
      * <code>Window</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to window user-interface elements.
      */
-    protected class AccessibleAWTWindow extends AccessibleAWTContainer {
+    protected class AccessibleAWTWindow extends AccessibleAWTContainer
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 4215068635060671780L;
 
         /**
          * Get the role of this object.
@@ -1965,45 +2119,32 @@ public class Window extends Container implements Accessible {
                         (screenSize.height - paneSize.height) / 2);
         } else {
             Dimension invokerSize = c.getSize();
-            Point invokerScreenLocation;
-
-            // If this method is called directly after a call to
-            // setLocation() on the "root", getLocationOnScreen()
-            // may return stale results (Bug#4181562), so we walk
-            // up the tree to calculate the position instead
-            // (unless "root" is an applet, where we cannot walk
-            // all the way up to a toplevel window)
-            //
-            if (root instanceof Applet) {
-                invokerScreenLocation = c.getLocationOnScreen();
-            } else {
-                invokerScreenLocation = new Point(0,0);
-                Component tc = c;
-                while (tc != null) {
-                    Point tcl = tc.getLocation();
-                    invokerScreenLocation.x += tcl.x;
-                    invokerScreenLocation.y += tcl.y;
-                    if (tc == root) {
-                        break;
-                    }
-                    tc = tc.getParent();  
-                }              
-            }                
-
+            Point invokerScreenLocation = c.getLocationOnScreen();
 
             Rectangle  windowBounds = getBounds();
             int        dx = invokerScreenLocation.x+((invokerSize.width-windowBounds.width)>>1);
             int        dy = invokerScreenLocation.y+((invokerSize.height - windowBounds.height)>>1);
-            Dimension  ss = getToolkit().getScreenSize();
+            Rectangle ss = root.getGraphicsConfiguration().getBounds();
 
+            // Adjust for bottom edge being offscreen
             if (dy+windowBounds.height>ss.height) {
                 dy = ss.height-windowBounds.height;
-                dx = invokerScreenLocation.x<(ss.width>>1) ? invokerScreenLocation.x+invokerSize.width :
-                    invokerScreenLocation.x-windowBounds.width;
+                if (invokerScreenLocation.x - ss.x + invokerSize.width / 2 <
+                    ss.width / 2) {
+                    dx = invokerScreenLocation.x+invokerSize.width;
+                }
+                else {
+                    dx = invokerScreenLocation.x-windowBounds.width;
+                }
             }
-            if (dx+windowBounds.width>ss.width) dx = ss.width-windowBounds.width;
-            if (dx<0) dx = 0;
-            if (dy<0) dy = 0;
+
+            // Avoid being placed off the edge of the screen
+            if (dx+windowBounds.width > ss.x + ss.width) {
+                dx = ss.x + ss.width - windowBounds.width;
+            }
+            if (dx < ss.x) dx = 0;
+            if (dy < ss.y) dy = 0;
+
             setLocation(dx, dy);
         }
     }
@@ -2091,6 +2232,107 @@ public class Window extends Container implements Accessible {
             temporaryLostComponent = null;
         }
         return previousComp;
+    }
+
+    /**
+     * Checks whether this window can contain focus owner.
+     * Verifies that it is focusable and as container it can container focus owner.
+     * @since 1.5
+     */
+    boolean canContainFocusOwner(Component focusOwnerCandidate) {
+        return super.canContainFocusOwner(focusOwnerCandidate) && isFocusableWindow();
+    }
+
+    private boolean locationByPlatform = locationByPlatformProp;
+
+    
+    /**
+     * Sets whether this Window should appear at the default location for the
+     * native windowing system or at the current location (returned by
+     * <code>getLocation</code>) the next time the Window is made visible.
+     * This behavior resembles a native window shown without programmatically
+     * setting its location.  Most windowing systems cascade windows if their
+     * locations are not explicitly set. The actual location is determined once the
+     * window is shown on the screen.
+     * <p>
+     * This behavior can also be enabled by setting the System Property
+     * "java.awt.Window.locationByPlatform" to "true", though calls to this method
+     * take precedence.
+     * <p>
+     * Calls to <code>setVisible</code>, <code>setLocation</code> and
+     * <code>setBounds</code> after calling <code>setLocationByPlatform</code> clear
+     * this property of the Window.
+     * <p>
+     * For example, after the following code is executed:
+     * <pre><blockquote>
+     * setLocationByPlatform(true);
+     * setVisible(true);
+     * boolean flag = isLocationByPlatform();
+     * </blockquote></pre>
+     * The window will be shown at platform's default location and
+     * <code>flag</code> will be <code>false</code>.
+     * <p>
+     * In the following sample:
+     * <pre><blockquote>
+     * setLocationByPlatform(true);
+     * setLocation(10, 10);
+     * boolean flag = isLocationByPlatform();
+     * setVisible(true);
+     * </blockquote></pre>
+     * The window will be shown at (10, 10) and <code>flag</code> will be
+     * <code>false</code>.
+     *
+     * @param locationByPlatform <code>true</code> if this Window should appear
+     *        at the default location, <code>false</code> if at the current location
+     * @throws <code>IllegalComponentStateException</code> if the window
+     *         is showing on screen and locationByPlatform is <code>true</code>.
+     * @see #setLocation
+     * @see #isShowing
+     * @see #setVisible
+     * @see #isLocationByPlatform
+     * @see java.lang.System#getProperty(String)
+     * @since 1.5
+     */
+    public void setLocationByPlatform(boolean locationByPlatform) {
+        synchronized (getTreeLock()) {
+            if (locationByPlatform && isShowing()) {
+                throw new IllegalComponentStateException("The window is showing on screen.");
+            }
+            this.locationByPlatform = locationByPlatform;
+        }
+    }
+    
+    /**
+     * Returns <code>true</code> if this Window will appear at the default location
+     * for the native windowing system the next time this Window is made visible.
+     * This method always returns <code>false</code> if the Window is showing on the
+     * screen.
+     *
+     * @return whether this Window will appear at the default location
+     * @see #setLocationByPlatform
+     * @see #isShowing
+     * @since 1.5
+     */
+    public boolean isLocationByPlatform() {
+        synchronized (getTreeLock()) {
+            return locationByPlatform;
+        }
+    }
+    
+    /**
+     * @since 1.5
+     * @see #setLocationByPlatform
+     * @see #isLocationByPlatform
+     */
+    public void setBounds(int x, int y, int width, int height) {
+        synchronized (getTreeLock()) {
+            if (getBoundsOp() == ComponentPeer.SET_LOCATION ||
+                getBoundsOp() == ComponentPeer.SET_BOUNDS) 
+            {
+                locationByPlatform = false;
+            }
+            super.setBounds(x, y, width, height);
+        }
     }
 } // class Window
 

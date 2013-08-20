@@ -1,7 +1,7 @@
 /*
- * @(#)InvalidKeyException.java	1.13 03/01/23
+ * @(#)InvalidKeyException.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,11 +12,13 @@ package java.security;
  * This is the exception for invalid Keys (invalid encoding, wrong
  * length, uninitialized, etc).
  *
- * @version 1.13, 01/23/03
+ * @version 1.16, 12/19/03
  * @author Benjamin Renaud 
  */
 
 public class InvalidKeyException extends KeyException {
+
+    private static final long serialVersionUID = 5698479920593359816L;
 
     /**
      * Constructs an InvalidKeyException with no detail message. A
@@ -36,5 +38,35 @@ public class InvalidKeyException extends KeyException {
      */
     public InvalidKeyException(String msg) {
 	super(msg);
+    }
+
+    /**
+     * Creates a <code>InvalidKeyException</code> with the specified
+     * detail message and cause.
+     *
+     * @param message the detail message (which is saved for later retrieval
+     *        by the {@link #getMessage()} method).
+     * @param cause the cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A <tt>null</tt> value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     * @since 1.5
+     */
+    public InvalidKeyException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * Creates a <code>InvalidKeyException</code> with the specified cause
+     * and a detail message of <tt>(cause==null ? null : cause.toString())</tt>
+     * (which typically contains the class and detail message of
+     * <tt>cause</tt>).
+     *
+     * @param cause the cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A <tt>null</tt> value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     * @since 1.5
+     */
+    public InvalidKeyException(Throwable cause) {
+        super(cause);
     }
 }

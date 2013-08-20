@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsDesktopManager.java	1.15 03/01/23
+ * @(#)WindowsDesktopManager.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,11 +30,11 @@ import java.util.Vector;
  * and another window is selected, that new window will be maximized.
  *
  * @see javax.swing.DefaultDesktopManager
- * @version 1.15 01/23/03
+ * @version 1.18 12/19/03
  * @author Thomas Ball
  */
 public class WindowsDesktopManager extends DefaultDesktopManager 
-        implements java.io.Serializable {
+        implements java.io.Serializable, javax.swing.plaf.UIResource {
 
     /* The frame which is currently selected/activated.
      * We store this value to enforce MDI's single-selection model.
@@ -52,8 +52,21 @@ public class WindowsDesktopManager extends DefaultDesktopManager
                 if (currentFrame.isMaximum() &&
 		    (f.getClientProperty("JInternalFrame.frameType") !=
 		    "optionDialog") ) {
-                    currentFrame.setMaximum(false);
-                    f.setMaximum(true);
+                    //Special case.  If key binding was used to select next
+                    //frame instead of minimizing the icon via the minimize
+                    //icon.
+                    if (!currentFrame.isIcon()) {
+                        currentFrame.setMaximum(false);
+                    }
+                    if (f.isMaximizable()) {
+                        if (!f.isMaximum()) {
+                            f.setMaximum(true);
+                        } else if (f.isMaximum() && f.isIcon()) {
+                            f.setIcon(false);
+                        } else {
+                            f.setMaximum(false);
+                        }
+                    }
                 }
                 if (currentFrame.isSelected()) {
                     currentFrame.setSelected(false);

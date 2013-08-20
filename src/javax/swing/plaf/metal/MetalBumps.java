@@ -1,7 +1,7 @@
 /*
- * @(#)MetalBumps.java	1.23 03/01/23
+ * @(#)MetalBumps.java	1.25 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,13 +16,15 @@ import java.util.*;
 /**
  * Implements the bumps used throughout the Metal Look and Feel.
  * 
- * @version 1.23 01/23/03
+ * @version 1.25 12/19/03
  * @author Tom Santos
  * @author Steve Wilson
  */
 
 
 class MetalBumps implements Icon {
+
+    static final Color ALPHA = new Color(0, 0, 0, 0);
 
     protected int xBumps;
     protected int yBumps;
@@ -43,6 +45,11 @@ class MetalBumps implements Icon {
              MetalLookAndFeel.getPrimaryControlShadow());
     }
 
+    /**
+     * Creates MetalBumps of the specified size with the specified colors.
+     * If <code>newBackColor</code> is null, the background will be
+     * transparent.
+     */
     public MetalBumps( int width, int height,
 		       Color newTopColor, Color newShadowColor, Color newBackColor ) {
         setBumpArea( width, height );
@@ -86,7 +93,12 @@ class MetalBumps implements Icon {
     public void setBumpColors( Color newTopColor, Color newShadowColor, Color newBackColor ) {
         topColor = newTopColor;
 	shadowColor = newShadowColor;
-	backColor = newBackColor;
+        if (newBackColor == null) {
+            backColor = ALPHA;
+        }
+        else {
+            backColor = newBackColor;
+        }
     }
 
     public void paintIcon( Component c, Graphics g, int x, int y ) {
@@ -209,13 +221,16 @@ class BumpBuffer {
      */
     private void createImage() {
         if (gc != null) {
-            image = gc.createCompatibleImage(IMAGE_SIZE, IMAGE_SIZE);
+            image = gc.createCompatibleImage(IMAGE_SIZE, IMAGE_SIZE,
+                       (backColor != MetalBumps.ALPHA) ? Transparency.OPAQUE :
+                       Transparency.BITMASK);
         }
         else {
             int cmap[] = { backColor.getRGB(), topColor.getRGB(),
                            shadowColor.getRGB() };
-            IndexColorModel icm = new IndexColorModel(8, 3, cmap, 0, false, -1,
-                                                      DataBuffer.TYPE_BYTE);
+            IndexColorModel icm = new IndexColorModel(8, 3, cmap, 0, false,
+                      (backColor == MetalBumps.ALPHA) ? 0 : -1,
+                      DataBuffer.TYPE_BYTE);
             image = new BufferedImage(IMAGE_SIZE, IMAGE_SIZE,
                                       BufferedImage.TYPE_BYTE_INDEXED, icm);
         }

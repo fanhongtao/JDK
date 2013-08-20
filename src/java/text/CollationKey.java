@@ -1,7 +1,7 @@
 /*
- * @(#)CollationKey.java	1.16 03/01/23
+ * @(#)CollationKey.java	1.18 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -76,11 +76,11 @@ package java.text;
  *
  * @see          Collator
  * @see          RuleBasedCollator
- * @version      1.16, 01/23/03
+ * @version      1.18, 05/05/04
  * @author       Helena Shih
  */
 
-public final class CollationKey implements Comparable {
+public final class CollationKey implements Comparable<CollationKey> {
     /**
      * Compare this CollationKey to the target CollationKey. The collation rules of the
      * Collator object which created these keys are applied. <strong>Note:</strong>
@@ -99,24 +99,6 @@ public final class CollationKey implements Comparable {
         else if (result >= Collator.GREATER)
             return Collator.GREATER;
         return Collator.EQUAL;
-    }
-
-    /**
-     * Compares this CollationKey with the specified Object for order.  Returns
-     * a negative integer, zero, or a positive integer as this CollationKey
-     * is less than, equal to, or greater than the given Object.
-     * 
-     * @param   o the Object to be compared.
-     * @return  a negative integer, zero, or a positive integer as this
-     *		Collation Key is less than, equal to, or greater than the given
-     *		Object. 
-     * @exception ClassCastException the specified Object is not a
-     *		  CollationKey.
-     * @see   Comparable
-     * @since 1.2
-     */
-    public int compareTo(Object o) {
- 	return compareTo((CollationKey)o);
     }
 
     /**

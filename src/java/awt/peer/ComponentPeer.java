@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentPeer.java	1.41 03/01/23
+ * @(#)ComponentPeer.java	1.48 04/06/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,6 +25,13 @@ import java.awt.dnd.peer.DropTargetPeer;
  * instances.
  */
 public interface ComponentPeer {
+    public static final int SET_LOCATION = 1,
+        SET_SIZE = 2,
+        SET_BOUNDS = 3,
+        SET_CLIENT_SIZE = 4,
+        RESET_OPERATION = 5,
+        NO_EMBEDDED_CHECK = (1 << 14),
+        DEFAULT_OPERATION = SET_BOUNDS;
     boolean isObscured();
     boolean canDetermineObscurity();
     void    	    	setVisible(boolean b);
@@ -32,7 +39,7 @@ public interface ComponentPeer {
     void		paint(Graphics g);
     void		repaint(long tm, int x, int y, int width, int height);
     void		print(Graphics g);
-    void		setBounds(int x, int y, int width, int height);
+    void		setBounds(int x, int y, int width, int height, int op);
     void                handleEvent(AWTEvent e);
     void                coalescePaintEvent(PaintEvent e);
     Point		getLocationOnScreen();
@@ -60,11 +67,34 @@ public interface ComponentPeer {
     int			checkImage(Image img, int w, int h, ImageObserver o);
     GraphicsConfiguration getGraphicsConfiguration();
     boolean     handlesWheelScrolling();
-    void createBuffers(int numBuffers, BufferCapabilities caps)
-        throws AWTException;
+    void createBuffers(int numBuffers, BufferCapabilities caps) throws AWTException;
     Image getBackBuffer();
     void flip(BufferCapabilities.FlipContents flipAction);
     void destroyBuffers();
+
+    /**
+     * Reparents this peer to the new parent referenced by <code>newContainer</code> peer
+     * Implementation depends on toolkit and container.
+     * @param newContainer peer of the new parent container
+     * @since 1.5
+     */
+    void reparent(ContainerPeer newContainer);    
+    /**
+     * Returns whether this peer supports reparenting to another parent withour destroying the peer
+     * @return true if appropriate reparent is supported, false otherwise
+     * @since 1.5
+     */
+    boolean isReparentSupported();
+
+    /**
+     * Used by lightweight implementations to tell a ComponentPeer to layout
+     * its sub-elements.  For instance, a lightweight Checkbox needs to layout
+     * the box, as well as the text label.
+     */
+    void        layout();
+
+
+        Rectangle getBounds();
 
     /**
      * DEPRECATED:  Replaced by getPreferredSize().
@@ -100,5 +130,4 @@ public interface ComponentPeer {
      * DEPRECATED:  Replaced by setBounds(int, int, int, int).
      */
     void		reshape(int x, int y, int width, int height);
-
 }

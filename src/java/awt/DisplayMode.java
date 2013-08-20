@@ -1,7 +1,7 @@
 /*
- * @(#)DisplayMode.java	1.5 03/01/23
+ * @(#)DisplayMode.java	1.8 04/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -88,10 +88,24 @@ public final class DisplayMode {
      * @return whether the two display modes are equal
      */
     public boolean equals(DisplayMode dm) {
+	if (dm == null) {
+	    return false;
+	}
         return (getHeight() == dm.getHeight()
             && getWidth() == dm.getWidth()
             && getBitDepth() == dm.getBitDepth()
             && getRefreshRate() == dm.getRefreshRate());
+    }
+    
+    /**
+     * @return whether the two display modes are equal
+     */
+    public boolean equals(Object dm) {
+	if (dm instanceof DisplayMode) {
+	    return equals((DisplayMode)dm);
+	} else {
+	    return false;
+	}
     }
     
     /**

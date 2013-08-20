@@ -1,7 +1,7 @@
 /*
- * @(#)UndoManager.java	1.33 03/01/23
+ * @(#)UndoManager.java	1.35 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import java.util.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author Ray Ryan
- * @version 1.33, 01/23/03
+ * @version 1.35, 12/19/03
  */ 
 public class UndoManager extends CompoundEdit implements UndoableEditListener {
     int indexOfNextAdd;
@@ -79,7 +79,7 @@ public class UndoManager extends CompoundEdit implements UndoableEditListener {
      * centered on indexOfNextAdd.  
      */
     protected void trimForLimit() {
-        if (limit > 0) {
+        if (limit >= 0) {
             int size = edits.size();
 //          System.out.print("limit: " + limit +
 //                           " size: " + size +

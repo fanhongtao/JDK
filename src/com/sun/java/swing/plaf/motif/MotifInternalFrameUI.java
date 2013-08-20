@@ -1,7 +1,7 @@
 /*
- * @(#)MotifInternalFrameUI.java	1.22 03/01/23
+ * @(#)MotifInternalFrameUI.java	1.26 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import javax.swing.plaf.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.22 01/23/03
+ * @version 1.26 05/18/04
  * @author Tom Ball
  */
 public class MotifInternalFrameUI extends BasicInternalFrameUI {
@@ -47,6 +47,7 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke closeMenuKey;
 
 
@@ -202,6 +203,4 @@ public class MotifInternalFrameUI extends BasicInternalFrameUI {
         shadow = color.darker().darker();
         titlePane.setColors(color, highlight, shadow);
     }
-
-
 }

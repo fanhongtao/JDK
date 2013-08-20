@@ -1,7 +1,7 @@
 /*
- * @(#)List.java	1.39 03/01/23
+ * @(#)List.java	1.44 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -72,7 +72,8 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.39, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.44, 12/19/03
  * @see Collection
  * @see Set
  * @see ArrayList
@@ -86,7 +87,7 @@ package java.util;
  * @since 1.2
  */
 
-public interface List extends Collection {
+public interface List<E> extends Collection<E> {
     // Query Operations
 
     /**
@@ -126,7 +127,7 @@ public interface List extends Collection {
      *
      * @return an iterator over the elements in this list in proper sequence.
      */
-    Iterator iterator();
+    Iterator<E> iterator();
 
     /**
      * Returns an array containing all of the elements in this list in proper
@@ -155,7 +156,7 @@ public interface List extends Collection {
      * 		  this list.
      * @throws NullPointerException if the specified array is <tt>null</tt>.
      */
-    Object[] toArray(Object a[]);
+    <T> T[] toArray(T[] a);
 
 
     // Modification Operations
@@ -184,7 +185,7 @@ public interface List extends Collection {
      * @throws IllegalArgumentException if some aspect of this element
      *            prevents it from being added to this list.
      */
-    boolean add(Object o);
+    boolean add(E o);
 
     /**
      * Removes the first occurrence in this list of the specified element 
@@ -225,7 +226,7 @@ public interface List extends Collection {
      *         <tt>null</tt>.
      * @see #contains(Object)
      */
-    boolean containsAll(Collection c);
+    boolean containsAll(Collection<?> c);
 
     /**
      * Appends all of the elements in the specified collection to the end of
@@ -250,7 +251,7 @@ public interface List extends Collection {
      *         list.
      * @see #add(Object)
      */
-    boolean addAll(Collection c);
+    boolean addAll(Collection<? extends E> c);
 
     /**
      * Inserts all of the elements in the specified collection into this
@@ -282,7 +283,7 @@ public interface List extends Collection {
      * @throws IndexOutOfBoundsException if the index is out of range (index
      *		  &lt; 0 || index &gt; size()).
      */
-    boolean addAll(int index, Collection c);
+    boolean addAll(int index, Collection<? extends E> c);
 
     /**
      * Removes from this list all the elements that are contained in the
@@ -305,7 +306,7 @@ public interface List extends Collection {
      * @see #remove(Object)
      * @see #contains(Object)
      */
-    boolean removeAll(Collection c);
+    boolean removeAll(Collection<?> c);
 
     /**
      * Retains only the elements in this list that are contained in the
@@ -330,7 +331,7 @@ public interface List extends Collection {
      * @see #remove(Object)
      * @see #contains(Object)
      */
-    boolean retainAll(Collection c);
+    boolean retainAll(Collection<?> c);
 
     /**
      * Removes all of the elements from this list (optional operation).  This
@@ -396,7 +397,7 @@ public interface List extends Collection {
      * @throws IndexOutOfBoundsException if the index is out of range (index
      * 		  &lt; 0 || index &gt;= size()).
      */
-    Object get(int index);
+    E get(int index);
 
     /**
      * Replaces the element at the specified position in this list with the
@@ -417,7 +418,7 @@ public interface List extends Collection {
      * @throws    IndexOutOfBoundsException if the index is out of range
      *		  (index &lt; 0 || index &gt;= size()).
      */
-    Object set(int index, Object element);
+    E set(int index, E element);
 
     /**
      * Inserts the specified element at the specified position in this list
@@ -439,7 +440,7 @@ public interface List extends Collection {
      * @throws    IndexOutOfBoundsException if the index is out of range
      *		  (index &lt; 0 || index &gt; size()).
      */
-    void add(int index, Object element);
+    void add(int index, E element);
 
     /**
      * Removes the element at the specified position in this list (optional
@@ -455,7 +456,7 @@ public interface List extends Collection {
      * @throws IndexOutOfBoundsException if the index is out of range (index
      *            &lt; 0 || index &gt;= size()).
      */
-    Object remove(int index);
+    E remove(int index);
 
 
     // Search Operations
@@ -504,7 +505,7 @@ public interface List extends Collection {
      * @return a list iterator of the elements in this list (in proper
      * 	       sequence).
      */
-    ListIterator listIterator();
+    ListIterator<E> listIterator();
 
     /**
      * Returns a list iterator of the elements in this list (in proper
@@ -521,7 +522,7 @@ public interface List extends Collection {
      * @throws IndexOutOfBoundsException if the index is out of range (index
      *         &lt; 0 || index &gt; size()).
      */
-    ListIterator listIterator(int index);
+    ListIterator<E> listIterator(int index);
 
     // View
 
@@ -559,5 +560,5 @@ public interface List extends Collection {
      * @throws IndexOutOfBoundsException for an illegal endpoint index value
      *     (fromIndex &lt; 0 || toIndex &gt; size || fromIndex &gt; toIndex).
      */
-    List subList(int fromIndex, int toIndex);
+    List<E> subList(int fromIndex, int toIndex);
 }

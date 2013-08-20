@@ -1,7 +1,7 @@
 /*
- * @(#)ListResourceBundle.java	1.26 05/08/30
+ * @(#)ListResourceBundle.java	1.26 04/05/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,37 +51,39 @@ package java.util;
  * <pre>
  * 
  * public class MyResources extends ListResourceBundle {
- *     protected Object[][] getContents() {
- *         return new Object[][] = { 
- *         // LOCALIZE THIS
- *             {"s1", "The disk \"{1}\" contains {0}."},  // MessageFormat pattern
- *             {"s2", "1"},                               // location of {0} in pattern
- *             {"s3", "My Disk"},                         // sample disk name
- *             {"s4", "no files"},                        // first ChoiceFormat choice
- *             {"s5", "one file"},                        // second ChoiceFormat choice
- *             {"s6", "{0,number} files"},                // third ChoiceFormat choice
- *             {"s7", "3 Mar 96"},                        // sample date
- *             {"s8", new Dimension(1,5)}                 // real object, not just string
- *         // END OF MATERIAL TO LOCALIZE
- *         };
+ *     public Object[][] getContents() {
+ *         return contents;
  *     }
+ *     static final Object[][] contents = {
+ *     // LOCALIZE THIS
+ *         {"s1", "The disk \"{1}\" contains {0}."},  // MessageFormat pattern
+ *         {"s2", "1"},                               // location of {0} in pattern
+ *         {"s3", "My Disk"},                         // sample disk name
+ *         {"s4", "no files"},                        // first ChoiceFormat choice
+ *         {"s5", "one file"},                        // second ChoiceFormat choice
+ *         {"s6", "{0,number} files"},                // third ChoiceFormat choice
+ *         {"s7", "3 Mar 96"},                        // sample date
+ *         {"s8", new Dimension(1,5)}                 // real object, not just string
+ *     // END OF MATERIAL TO LOCALIZE
+ *     };
  * }
  *
  * public class MyResources_fr extends ListResourceBundle {
- *     protected Object[][] getContents() {
- *         return new Object[][] = { 
- *         // LOCALIZE THIS
- *             {"s1", "Le disque \"{1}\" {0}."},          // MessageFormat pattern
- *             {"s2", "1"},                               // location of {0} in pattern
- *             {"s3", "Mon disque"},                      // sample disk name
- *             {"s4", "ne contient pas de fichiers"},     // first ChoiceFormat choice
- *             {"s5", "contient un fichier"},             // second ChoiceFormat choice
- *             {"s6", "contient {0,number} fichiers"},    // third ChoiceFormat choice
- *             {"s7", "3 mars 1996"},                     // sample date
- *             {"s8", new Dimension(1,3)}                 // real object, not just string
- *         // END OF MATERIAL TO LOCALIZE
- *         };
+ *     public Object[][] getContents() {
+ *         return contents;
  *     }
+ *     static final Object[][] contents = {
+ *     // LOCALIZE THIS
+ *         {"s1", "Le disque \"{1}\" {0}."},          // MessageFormat pattern
+ *         {"s2", "1"},                               // location of {0} in pattern
+ *         {"s3", "Mon disque"},                      // sample disk name
+ *         {"s4", "ne contient pas de fichiers"},     // first ChoiceFormat choice
+ *         {"s5", "contient un fichier"},             // second ChoiceFormat choice
+ *         {"s6", "contient {0,number} fichiers"},    // third ChoiceFormat choice
+ *         {"s7", "3 mars 1996"},                     // sample date
+ *         {"s8", new Dimension(1,3)}                 // real object, not just string
+ *     // END OF MATERIAL TO LOCALIZE
+ *     };
  * }
  * </pre>
  * </blockquote>
@@ -112,7 +114,7 @@ public abstract class ListResourceBundle extends ResourceBundle {
     /**
      * Implementation of ResourceBundle.getKeys.
      */
-    public Enumeration getKeys() {
+    public Enumeration<String> getKeys() {
         // lazily load the lookup hashtable.
         if (lookup == null) {
             loadLookup();

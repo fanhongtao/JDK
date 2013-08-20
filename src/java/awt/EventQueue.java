@@ -1,7 +1,7 @@
 /*
- * @(#)EventQueue.java	1.91 05/06/20
+ * @(#)EventQueue.java	1.96 04/06/28
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,11 +22,8 @@ import java.awt.peer.LightweightPeer;
 import java.util.EmptyStackException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
-import java.security.PrivilegedActionException;
 import sun.awt.PeerEvent;
 import sun.awt.SunToolkit;
 import sun.awt.DebugHelper;
@@ -76,7 +73,7 @@ import sun.awt.AppContext;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.91, 06/20/05
+ * @version 	1.96, 06/28/04
  * @since 	1.1
  */
 public class EventQueue {
@@ -91,29 +88,9 @@ public class EventQueue {
     private static final int LOW_PRIORITY = 0;
     private static final int NORM_PRIORITY = 1;
     private static final int HIGH_PRIORITY = 2;
+    private static final int ULTIMATE_PRIORITY = 3;
 
-    private static final int NUM_PRIORITIES = HIGH_PRIORITY + 1;
-
-    private static Method m = null;
-    static {
-	try {
-	     m = (Method)AccessController.doPrivileged(new 
- 	        PrivilegedExceptionAction() {
-		    public Object run() {
-		        Method method = null;
-		        try {
-			    method = InvocationEvent.class.getDeclaredMethod("getThrowableObject", null);
-			    method.setAccessible(true);
-		        } catch (Exception e) {
-		            e.printStackTrace();
-		        }
-		        return method;
-		    }
-		 });       
-	} catch (PrivilegedActionException ex) {
-	        ex.printStackTrace();
-	}
-    }
+    private static final int NUM_PRIORITIES = ULTIMATE_PRIORITY + 1;
 
     /*
      * We maintain one Queue for each priority that the EventQueue supports.
@@ -208,11 +185,16 @@ public class EventQueue {
      * 		or a subclass of it
      */
     final void postEventPrivate(AWTEvent theEvent) {
+        theEvent.isPosted = true;
         synchronized(this) {
             int id = theEvent.getID();
             if (nextQueue != null) {
                 // Forward event to top of EventQueue stack.
                 nextQueue.postEventPrivate(theEvent);
+            } else if (theEvent instanceof PeerEvent &&
+                           (((PeerEvent)theEvent).getFlags() & 
+                            PeerEvent.ULTIMATE_PRIORITY_EVENT) != 0) {
+                postEvent(theEvent, ULTIMATE_PRIORITY);
             } else if (theEvent instanceof PeerEvent &&
                        (((PeerEvent)theEvent).getFlags() & 
                                        PeerEvent.PRIORITY_EVENT) != 0) {
@@ -470,6 +452,7 @@ public class EventQueue {
      * @throws NullPointerException if <code>event</code> is <code>null</code>
      */
     protected void dispatchEvent(AWTEvent event) {
+        event.isPosted = true;
         Object src = event.getSource();
         if (event instanceof ActiveEvent) {
             // This could become the sole method of dispatching in time.
@@ -478,7 +461,7 @@ public class EventQueue {
             ((ActiveEvent)event).dispatch();
         } else if (src instanceof Component) {
             ((Component)src).dispatchEvent(event);
-	    event.dispatched();
+            event.dispatched();
         } else if (src instanceof MenuComponent) {
             ((MenuComponent)src).dispatchEvent(event);
         } else if (src instanceof AWTAutoShutdown) {
@@ -497,9 +480,9 @@ public class EventQueue {
      * dispatched, its timestamp will be returned. If no events have yet 
      * been dispatched, the EventQueue's initialization time will be 
      * returned instead.In the current version of 
-     * the Java platform SDK, only <code>InputEvent</code>s,
+     * the JDK, only <code>InputEvent</code>s,
      * <code>ActionEvent</code>s, and <code>InvocationEvent</code>s have
-     * timestamps; however, future versions of the SDK may add timestamps to
+     * timestamps; however, future versions of the JDK may add timestamps to
      * additional event types. Note that this method should only be invoked
      * from an application's event dispatching thread. If this method is
      * invoked from another thread, the current system time (as reported by
@@ -523,6 +506,13 @@ public class EventQueue {
         return (Thread.currentThread() == dispatchThread)
             ? mostRecentEventTime
             : System.currentTimeMillis();
+    }
+
+    /**
+     * @return most recent event time on all threads.
+     */
+    synchronized long getMostRecentEventTimeEx() {
+        return mostRecentEventTime;
     }
 
     /**
@@ -726,8 +716,9 @@ public class EventQueue {
      * If removeAllEvents parameter is <code>true</code> then all 
      * events for the specified source object are removed, if it 
      * is <code>false</code> then <code>SequencedEvent</code>, <code>SentEvent</code>,
-     * <code>FocusEvent</code>, <code>WindowEvent</code> and <code>KeyEvent</code>
-     * are kept in the queue, but all other events are removed.
+     * <code>FocusEvent</code>, <code>WindowEvent</code>, <code>KeyEvent</code>,
+     * and <code>InputMethodEvent</code> are kept in the queue, but all other 
+     * events are removed.
      *
      * This method is normally called by the source's 
      * <code>removeNotify</code> method.
@@ -745,7 +736,8 @@ public class EventQueue {
                                   || entry.event instanceof SentEvent
                                   || entry.event instanceof FocusEvent
                                   || entry.event instanceof WindowEvent
-                                  || entry.event instanceof KeyEvent)))
+                                  || entry.event instanceof KeyEvent
+                                  || entry.event instanceof InputMethodEvent)))
                     {
                         if (entry.event instanceof SequencedEvent) {
                             ((SequencedEvent)entry.event).dispose();
@@ -830,7 +822,7 @@ public class EventQueue {
      *                  synchronously on the <code>EventQueue</code>
      * @exception       InterruptedException  if another thread has
      *                  interrupted this thread
-     * @exception       InvocationTargetException  if an exception is thrown
+     * @exception       InvocationTargetException  if an throwable is thrown
      *                  when running <code>runnable</code>
      * @see             #invokeLater
      * @since           1.2
@@ -854,18 +846,10 @@ public class EventQueue {
             lock.wait();
         }
 
-	if (m == null) {
-	    return;
-	}
-	//Using reflection to get access to the private getThrowableObject method of InvocationEvent
-	try {
-            Throwable eventThrowable = (Throwable)m.invoke(event, null);
-            if (eventThrowable != null) {
-                throw new InvocationTargetException(eventThrowable);
-            }
-	} catch (IllegalAccessException ie) {
-	    ie.printStackTrace();
-	}
+        Throwable eventThrowable = event.getThrowable();
+        if (eventThrowable != null) {
+            throw new InvocationTargetException(eventThrowable);
+        }
     }
 
     /*

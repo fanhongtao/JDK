@@ -1,7 +1,7 @@
 /*
- * @(#)MenuDragMouseListener.java	1.10 03/01/23
+ * @(#)MenuDragMouseListener.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -13,7 +13,7 @@ import java.util.EventListener;
 /**
  * Defines a menu mouse-drag listener.
  *
- * @version 1.10 01/23/03
+ * @version 1.11 12/19/03
  * @author Georges Saab
  */
 public interface MenuDragMouseListener extends EventListener {

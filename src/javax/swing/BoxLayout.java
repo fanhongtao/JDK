@@ -1,7 +1,7 @@
 /*
- * @(#)BoxLayout.java	1.32 03/01/23
+ * @(#)BoxLayout.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -95,6 +95,11 @@ import java.io.PrintStream;
  * Adding components to multiple nested boxes is a powerful way to get
  * the arrangement you want.
  * <p>
+ * For further information and examples see
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/layout/box.html">How to Use BoxLayout</a>,
+ * a section in <em>The Java Tutorial.</em>
+ * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -110,7 +115,7 @@ import java.io.PrintStream;
  * @see JComponent#getAlignmentY
  *
  * @author   Timothy Prinzing
- * @version 1.32 01/23/03 
+ * @version 1.34 12/19/03 
  */
 public class BoxLayout implements LayoutManager2, Serializable {
 

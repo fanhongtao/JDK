@@ -1,7 +1,7 @@
 /*
- * @(#)Robot.java	1.24 03/01/23
+ * @(#)Robot.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ import sun.security.util.SecurityConstants;
  * Applications that use Robot for purposes other than self-testing should 
  * handle these error conditions gracefully.
  *
- * @version 	1.24, 01/23/03
+ * @version 	1.27, 12/19/03
  * @author 	Robi Khan
  * @since   	1.3
  */
@@ -141,7 +141,8 @@ public class Robot {
     }
 
     /**
-     * Presses one or more mouse buttons. 
+     * Presses one or more mouse buttons.  The mouse buttons should
+     * be released using the <code>mouseRelease</code> method.
      *
      * @param buttons	the Button mask; a combination of one or more
      * of these flags:
@@ -152,6 +153,7 @@ public class Robot {
      * </ul>
      * @throws 	IllegalArgumentException if the button mask is not a
      *		valid combination
+     * @see #mouseRelease(int)
      */
     public synchronized void mousePress(int buttons) {
 	checkButtonsArgument(buttons);
@@ -169,6 +171,7 @@ public class Robot {
      * <li><code>InputEvent.BUTTON2_MASK</code>
      * <li><code>InputEvent.BUTTON3_MASK</code>
      * </ul>
+     * @see #mousePress(int)
      * @throws 	IllegalArgumentException if the button mask is not a valid
      *		combination
      */
@@ -199,14 +202,17 @@ public class Robot {
     }
 
     /**
-     * Presses a given key.
+     * Presses a given key.  The key should be released using the
+     * <code>keyRelease</code> method.
      * <p>
      * Key codes that have more than one physical key associated with them 
      * (e.g. <code>KeyEvent.VK_SHIFT</code> could mean either the 
      * left or right shift key) will map to the left key.
      *
      * @param	keycode	Key to press (e.g. <code>KeyEvent.VK_A</code>)
-     * @throws 	IllegalArgumentException if <code>keycode</code> is not a valid key
+     * @throws 	IllegalArgumentException if <code>keycode</code> is not
+     *          a valid key
+     * @see     #keyRelease(int)
      * @see     java.awt.event.KeyEvent
      */
     public synchronized void keyPress(int keycode) {
@@ -223,7 +229,9 @@ public class Robot {
      * left or right shift key) will map to the left key.
      *
      * @param	keycode	Key to release (e.g. <code>KeyEvent.VK_A</code>)
-     * @throws 	IllegalArgumentException if <code>keycode</code> is not a valid key
+     * @throws 	IllegalArgumentException if <code>keycode</code> is not a
+     *          valid key
+     * @see  #keyPress(int)
      * @see     java.awt.event.KeyEvent
      */
     public synchronized void keyRelease(int keycode) {
@@ -254,7 +262,8 @@ public class Robot {
     }
 
     /**
-     * Creates an image containing pixels read from the screen.
+     * Creates an image containing pixels read from the screen.  This image does
+     * not include the mouse cursor.
      * @param	screenRect	Rect to capture in screen coordinates
      * @return	The captured image
      * @throws 	IllegalArgumentException if <code>screenRect</code> width and height are not greater than zero

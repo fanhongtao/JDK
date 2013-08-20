@@ -1,5 +1,5 @@
 /*
- * @(#)FrameView.java	1.25 04/01/13
+ * @(#)FrameView.java	1.28 03/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  * marginwidth and marginheight attributes.
  *
  * @author    Sunita Mani
- * @version   1.25, 01/13/04
+ * @version   1.28, 12/19/03
  */
 
 class FrameView extends ComponentView implements HyperlinkListener {
@@ -57,14 +57,24 @@ class FrameView extends ComponentView implements HyperlinkListener {
                 htmlPane = new FrameEditorPane();
                 htmlPane.addHyperlinkListener(this);
                 JEditorPane host = getHostPane();
+                boolean isAutoFormSubmission = true;
                 if (host != null) {
                     htmlPane.setEditable(host.isEditable());
 		    String charset = (String) host.getClientProperty("charset");
 		    if (charset != null) {
 			htmlPane.putClientProperty("charset", charset);
 		    }
+                    HTMLEditorKit hostKit = (HTMLEditorKit)host.getEditorKit();
+		    if (hostKit != null) {
+			isAutoFormSubmission = hostKit.isAutoFormSubmission();
+		    }
                 }
                 htmlPane.setPage(src);
+                HTMLEditorKit kit = (HTMLEditorKit)htmlPane.getEditorKit();
+		if (kit != null) {
+		    kit.setAutoFormSubmission(isAutoFormSubmission);
+		}
+
 		Document doc = htmlPane.getDocument();
 		if (doc instanceof HTMLDocument) {
 		    ((HTMLDocument)doc).setFrameDocumentState(true);
@@ -264,35 +274,59 @@ class FrameView extends ComponentView implements HyperlinkListener {
      */
     public void hyperlinkUpdate(HyperlinkEvent evt) {
 
+	JEditorPane c = getOutermostJEditorPane();
+	if (c == null) {
+	    return;
+	}
+
 	if (!(evt instanceof HTMLFrameHyperlinkEvent)) {
+	    c.fireHyperlinkUpdate(evt);
 	    return;
 	}
 
 	HTMLFrameHyperlinkEvent e = (HTMLFrameHyperlinkEvent)evt;
 
 	if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-	    JEditorPane c = getOutermostJEditorPane();
 	    String target = e.getTarget();
 
 	    if (e.getTarget().equals("_parent") && !inNestedFrameSet()){ 
 		target = "_top";
 	    }
 
-	    if (c != null && !c.isEditable()) {
+            if (evt instanceof FormSubmitEvent) {
+                HTMLEditorKit kit = (HTMLEditorKit)c.getEditorKit();
+                if (kit != null && kit.isAutoFormSubmission()) {
+		    if (target.equals("_top")) {
+			try {
+			    c.setPage(e.getURL());
+			} catch (IOException ex) {
+			    // Need a way to handle exceptions
+			}
+		    } else {
+			HTMLDocument doc = (HTMLDocument)c.getDocument();
+			doc.processHTMLFrameHyperlinkEvent(e);
+		    }
+                } else {
+                    c.fireHyperlinkUpdate(evt);
+                }
+                return;
+            }
+
+	    if (target.equals("_top")) {
+		try {
+		    c.setPage(e.getURL());
+		} catch (IOException ex) {
+		    // Need a way to handle exceptions
+		    // ex.printStackTrace();
+		}
+	    }
+	    if (!c.isEditable()) {
 		c.fireHyperlinkUpdate(new HTMLFrameHyperlinkEvent(c,
 								  e.getEventType(), 
 								  e.getURL(), 
 								  e.getDescription(),
 								  getElement(),
 								  target));
-		if (target.equals("_top")) {
-		    try {
-			c.setPage(e.getURL());
-		    } catch (IOException ex) {
-			// Need a way to handle exceptions
-			// ex.printStackTrace();
-		    }
-		}
 	    }
 	}
     }
@@ -321,7 +355,7 @@ class FrameView extends ComponentView implements HyperlinkListener {
 	    if (!createdComponent) {
 		return;
 	    }
-	    if (oldPage.equals(src)) {
+	    if (oldPage.equals(src) && (src.getRef() == null)) {
 		return;
 	    }
 	    htmlPane.setPage(src);
@@ -367,7 +401,7 @@ class FrameView extends ComponentView implements HyperlinkListener {
     public float getMaximumSpan(int axis) {
 	return Integer.MAX_VALUE;
     }
-   
+
     /** Editor pane rendering frame of HTML document
      *  It uses the same editor kits classes as outermost JEditorPane
      */

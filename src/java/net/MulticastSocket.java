@@ -1,7 +1,7 @@
 /*
- * @(#)MulticastSocket.java	1.67 03/01/23
+ * @(#)MulticastSocket.java	1.71 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -73,7 +73,7 @@ class MulticastSocket extends DatagramSocket {
      * This could result in a SecurityException.
      * <p>
      * When the socket is created the 
-     * {@link DatagramSocket#setReuseAddress(true)} method is 
+     * {@link DatagramSocket#setReuseAddress(boolean)} method is 
      * called to enable the SO_REUSEADDR socket option. 
      *
      * @exception IOException if an I/O exception occurs
@@ -97,7 +97,7 @@ class MulticastSocket extends DatagramSocket {
      * This could result in a SecurityException.
      * <p>
      * When the socket is created the
-     * {@link DatagramSocket#setReuseAddress(true)} method is
+     * {@link DatagramSocket#setReuseAddress(boolean)} method is
      * called to enable the SO_REUSEADDR socket option. 
      * 
      * @param port port to use
@@ -123,7 +123,7 @@ class MulticastSocket extends DatagramSocket {
      * This could result in a SecurityException.
      * <p>
      * When the socket is created the
-     * {@link DatagramSocket#setReuseAddress(true)} method is
+     * {@link DatagramSocket#setReuseAddress(boolean)} method is
      * called to enable the SO_REUSEADDR socket option. 
      *
      * @param bindaddr Socket address to bind to, or <code>null</code> for
@@ -181,6 +181,7 @@ class MulticastSocket extends DatagramSocket {
      * <b>int</b> instead of <b>byte</b> as the type for ttl.
      * @see #getTTL()
      */
+    @Deprecated
     public void setTTL(byte ttl) throws IOException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
@@ -219,6 +220,7 @@ class MulticastSocket extends DatagramSocket {
      * an <b>int</b> instead of a <b>byte</b>.
      * @see #setTTL(byte)
      */
+    @Deprecated
     public byte getTTL() throws IOException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
@@ -538,7 +540,7 @@ class MulticastSocket extends DatagramSocket {
      * @see #getLoopbackMode
      */
     public void setLoopbackMode(boolean disable) throws SocketException {
-	getImpl().setOption(SocketOptions.IP_MULTICAST_LOOP, new Boolean(disable));
+	getImpl().setOption(SocketOptions.IP_MULTICAST_LOOP, Boolean.valueOf(disable));
     }
     
     /**
@@ -600,6 +602,7 @@ class MulticastSocket extends DatagramSocket {
      * @see SecurityManager#checkMulticast(java.net.InetAddress, byte)
      * @see SecurityManager#checkConnect
      */
+    @Deprecated
     public void send(DatagramPacket p, byte ttl)
         throws IOException {
 	    if (isClosed())

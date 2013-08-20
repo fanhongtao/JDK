@@ -1,7 +1,7 @@
 /*
- * @(#)Reference.java	1.33 03/03/07
+ * @(#)Reference.java	1.41 04/04/20
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,12 +16,12 @@ import sun.misc.Cleaner;
  * implemented in close cooperation with the garbage collector, this class may
  * not be subclassed directly.
  *
- * @version  1.33, 03/07/03
+ * @version  1.41, 04/20/04
  * @author   Mark Reinhold
  * @since    1.2
  */
 
-public abstract class Reference {
+public abstract class Reference<T> {
 
     /* A Reference instance is in one of four possible internal states:
      *
@@ -31,8 +31,7 @@ public abstract class Reference {
      *	   instance's state to either Pending or Inactive, depending upon
      *	   whether or not the instance was registered with a queue when it was
      *	   created.  In the former case it also adds the instance to the
-     *	   pending-Reference list.  Newly-created instances are Active unless
-     *	   their referents are null, in which case they are Inactive.
+     *	   pending-Reference list.  Newly-created instances are Active.
      *
      *	   Pending: An element of the pending-Reference list, waiting to be
      *	   enqueued by the Reference-handler thread.  Unregistered instances
@@ -71,10 +70,12 @@ public abstract class Reference {
      * discovered objects through the discovered field.
      */
 
-    private Object referent;		/* Treated specially by GC */
-    ReferenceQueue queue;
+    private T referent;		/* Treated specially by GC */
+
+    ReferenceQueue<? super T> queue;
+
     Reference next;
-    transient private Reference discovered; 	/* used by VM */
+    transient private Reference<T> discovered; 	/* used by VM */
 
 
     /* Object used to synchronize with the garbage collector.  The collector
@@ -155,7 +156,7 @@ public abstract class Reference {
      * @return	 The object to which this reference refers, or
      *		 <code>null</code> if this reference object has been cleared
      */
-    public Object get() {
+    public T get() {
 	return this.referent;
     }
 
@@ -202,20 +203,13 @@ public abstract class Reference {
 
     /* -- Constructors -- */
 
-    Reference(Object referent) {
+    Reference(T referent) {
 	this(referent, null);
     }
 
-    Reference(Object referent, ReferenceQueue queue) {
+    Reference(T referent, ReferenceQueue<? super T> queue) {
 	this.referent = referent;
-	if (referent == null) {
-	    /* Immediately make this instance inactive */
-	    this.queue = ReferenceQueue.NULL;
-	    this.next = this;
-	} else {
-	    this.queue = (queue == null) ? ReferenceQueue.NULL : queue;
-	    this.next = null;
-	}
+	this.queue = (queue == null) ? ReferenceQueue.NULL : queue;
     }
 
 }

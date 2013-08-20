@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLEditorKit.java	1.121 03/01/23
+ * @(#)HTMLEditorKit.java	1.131 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -140,7 +140,7 @@ import java.lang.ref.*;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.121 01/23/03
+ * @version 1.131 05/18/04
  */
 public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 
@@ -320,6 +320,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
     public void deinstall(JEditorPane c) {
 	c.removeMouseListener(linkHandler);
         c.removeMouseMotionListener(linkHandler);
+	c.removeCaretListener(nextLinkAction);
 	super.deinstall(c);
         theEditor = null;
     }
@@ -355,7 +356,8 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	    defaultStyles = new StyleSheet();
 	    try {
 		InputStream is = HTMLEditorKit.getResourceAsStream(DEFAULT_CSS);
-		Reader r = new BufferedReader(new InputStreamReader(is));
+		Reader r = new BufferedReader(
+		        new InputStreamReader(is, "ISO-8859-1"));
 		defaultStyles.loadRules(r, null);
 		r.close();
 	    } catch (Throwable e) {
@@ -500,6 +502,33 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
     }
 
     /**
+     * Indicates whether an html form submission is processed automatically 
+     * or only <code>FormSubmitEvent</code> is fired.
+     *
+     * @return true  if html form submission is processed automatically,
+     *         false otherwise.
+     *
+     * @see #setAutoFormSubmission
+     * @since 1.5
+     */
+    public boolean isAutoFormSubmission() {
+        return isAutoFormSubmission;
+    }
+
+    /**
+     * Specifies if an html form submission is processed
+     * automatically or only <code>FormSubmitEvent</code> is fired.
+     * By default it is set to true.
+     *
+     * @see #isAutoFormSubmission
+     * @see FormSubmitEvent
+     * @since 1.5
+     */
+    public void setAutoFormSubmission(boolean isAuto) {
+        isAutoFormSubmission = isAuto;
+    }
+
+    /**
      * Creates a copy of the editor kit.
      *
      * @return the copy
@@ -568,7 +597,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
     private static Parser defaultParser = null;
     private Cursor defaultCursor = DefaultCursor;
     private Cursor linkCursor = MoveCursor;
-
+    private boolean isAutoFormSubmission = true;
 
     /**
      * Class to watch the associated component and fire
@@ -601,7 +630,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
         public void mouseClicked(MouseEvent e) {
 	    JEditorPane editor = (JEditorPane) e.getSource();
 
-	    if (! editor.isEditable()) {
+	    if (! editor.isEditable() && SwingUtilities.isLeftMouseButton(e)) {
 		Point pt = new Point(e.getX(), e.getY());
 		int pos = editor.viewToModel(pt);
 		if (pos >= 0) {
@@ -836,6 +865,9 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	    } else {
 		String target = (anchor != null) ?
 		    (String)anchor.getAttribute(HTML.Attribute.TARGET) : null;
+		if ((target == null) || (target.equals(""))) {
+		    target = hdoc.getBaseTarget();
+		}
 		if ((target == null) || (target.equals(""))) {
 		    target = "_self";
 		}
@@ -1170,7 +1202,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	    return new LabelView(elem);
 	}
 
-	private static class BodyBlockView extends BlockView implements ComponentListener {
+	static class BodyBlockView extends BlockView implements ComponentListener {
 	    public BodyBlockView(Element elem) {
 		super(elem,View.Y_AXIS);
 	    }
@@ -1182,10 +1214,8 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 		r.maximum = Integer.MAX_VALUE;
 		return r;
 	    }
+
 	    protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
-		//idk
-		//Thread.currentThread().dumpStack();
-		//idk
 		Container container = getContainer();
 		Container parentContainer;
 		if (container != null
@@ -1207,38 +1237,13 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 			viewPort.addComponentListener(this);
 			cachedViewPort = new WeakReference(viewPort);
 		    }
-		    int n = getViewCount();
+
 		    componentVisibleWidth = viewPort.getExtentSize().width;
+                    if (componentVisibleWidth > 0) {
 		    Insets insets = container.getInsets();
 		    viewVisibleWidth = componentVisibleWidth - insets.left - getLeftInset(); 
 		    //try to use viewVisibleWidth if it is smaller than targetSpan
 		    targetSpan = Math.min(targetSpan, viewVisibleWidth);
-                    Object key = (axis == X_AXIS) ? CSS.Attribute.WIDTH : CSS.Attribute.HEIGHT;
-
-		    for (int i = 0; i < n; i++) {
-			View v = getView(i);
-			int min = (int) v.getMinimumSpan(axis);
-			int max = (int) v.getMaximumSpan(axis);
-                       
-                        // check for percentage span
-                        AttributeSet a = v.getAttributes();
-                        CSS.LengthValue lv = (CSS.LengthValue) a.getAttribute(key);
-                        if ((lv != null) && lv.isPercentage()) {
-                            // bound the span to the percentage specified
-                            min = Math.max((int) lv.getValue(targetSpan),min);
-                            max = min;
-                        }
-
-			if (max < targetSpan) {
-			    // can't make the child this wide, align it
-			    float align = v.getAlignment(axis);
-			    offsets[i] = (int) ((targetSpan - max) * align);
-			    spans[i] = max;
-			} else {
-			    // make it the target width, or as small as it can get.
-			    offsets[i] = 0;
-			    spans[i] = Math.max(min, targetSpan);
-			}
 		    }
 		} else {
 		    if (cachedViewPort != null) {
@@ -1248,8 +1253,8 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 			}
 			cachedViewPort = null;
 		    }
-		    super.layoutMinorAxis(targetSpan,axis,offsets,spans);
 		}
+                super.layoutMinorAxis(targetSpan, axis, offsets, spans);
 	    }
 
 	    public void setParent(View parent) {
@@ -1591,6 +1596,7 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 	 * to be performed, and then invokes insertHTML.
 	 * @deprecated As of Java 2 platform v1.3, use insertAtBoundary
 	 */
+        @Deprecated
 	protected void insertAtBoundry(JEditorPane editor, HTMLDocument doc,
 				       int offset, Element insertElement,
 				       String html, HTML.Tag parentTag,
@@ -1904,6 +1910,14 @@ public class HTMLEditorKit extends StyledEditorKit implements Accessible {
 		prevStartOffset = nextElement.getStartOffset();
 		prevEndOffset = nextElement.getEndOffset();
 	    }
+            if (focusBack && prevStartOffset >= 0) {
+                foundLink = true;
+                comp.setCaretPosition(prevStartOffset);
+                moveCaretPosition(comp, prevStartOffset, 
+                                  prevEndOffset);
+                prevHypertextOffset = prevStartOffset;
+                return;
+            }
         }
 	
 	/*

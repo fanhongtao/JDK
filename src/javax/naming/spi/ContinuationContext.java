@@ -1,7 +1,7 @@
 /*
- * @(#)ContinuationContext.java	1.7 03/05/09
+ * @(#)ContinuationContext.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import javax.naming.*;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 03/05/09
+  * @version 1.9 04/05/05
   * @since 1.3
   */
 
@@ -102,7 +102,9 @@ class ContinuationContext implements Context, Resolver {
     }
 
 
-    public NamingEnumeration listBindings(Name name) throws NamingException {
+    public NamingEnumeration listBindings(Name name)
+	throws NamingException
+    {
 	Context ctx = getTargetContext();
 	return ctx.listBindings(name);
     }
@@ -149,7 +151,9 @@ class ContinuationContext implements Context, Resolver {
 	return ctx.getNameParser(name);
     }
 
-    public Name composeName(Name name, Name prefix) throws NamingException {
+    public Name composeName(Name name, Name prefix)
+	throws NamingException
+    {
 	Context ctx = getTargetContext();
 	return ctx.composeName(name, prefix);
     }
@@ -182,8 +186,10 @@ class ContinuationContext implements Context, Resolver {
 	return ctx.getNameInNamespace();
     }
 
-    public ResolveResult resolveToClass(Name name, Class contextType)
-	    throws NamingException {
+    public ResolveResult
+	resolveToClass(Name name, Class<? extends Context> contextType)
+	throws NamingException
+    {
 	if (cpe.getResolvedObj() == null)
 	    throw (NamingException)cpe.fillInStackTrace();
 
@@ -196,8 +202,10 @@ class ContinuationContext implements Context, Resolver {
 	return res.resolveToClass(name, contextType);
     }
 
-    public ResolveResult resolveToClass(String name, Class contextType)
-	    throws NamingException {
+    public ResolveResult
+	resolveToClass(String name, Class<? extends Context> contextType)
+	throws NamingException
+    {
 	if (cpe.getResolvedObj() == null)
 	    throw (NamingException)cpe.fillInStackTrace();
 

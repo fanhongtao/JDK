@@ -1,7 +1,7 @@
 /*
- * @(#)Runtime.java	1.67 03/01/23
+ * @(#)Runtime.java	1.74 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  * An application cannot create its own instance of this class. 
  *
  * @author  unascribed
- * @version 1.67, 01/23/03
+ * @version 1.74, 05/18/04
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -280,6 +280,7 @@ public class Runtime {
      * @see     java.lang.SecurityManager#checkExit(int)
      * @since   JDK1.1
      */
+    @Deprecated
     public static void runFinalizersOnExit(boolean value) {
 	SecurityManager security = System.getSecurityManager();
 	if (security != null) {
@@ -292,278 +293,305 @@ public class Runtime {
 	Shutdown.setRunFinalizersOnExit(value);
     }
 
-    /* Helper for exec
-     */
-    private native Process execInternal(String cmdarray[], String envp[], String path) 
-	 throws IOException;
-
     /**
-     * Executes the specified string command in a separate process. 
-     * <p>
-     * The <code>command</code> argument is parsed into tokens and then 
-     * executed as a command in a separate process. The token parsing is 
-     * done by a {@link java.util.StringTokenizer} created by the call:
-     * <blockquote><pre>
-     * new StringTokenizer(command)
-     * </pre></blockquote> 
-     * with no further modifications of the character categories. 
-     * This method has exactly the same effect as 
-     * <code>exec(command, null)</code>. 
+     * Executes the specified string command in a separate process.
      *
-     * @param      command   a specified system command.
-     * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
-     * @exception  IOException if an I/O error occurs
-     * @exception  NullPointerException if <code>command</code> is 
-     *             <code>null</code>
-     * @exception  IllegalArgumentException if <code>command</code> is empty 
-     *             
-     * @see        java.lang.Runtime#exec(java.lang.String, java.lang.String[])
-     * @see     java.lang.SecurityManager#checkExec(java.lang.String)
+     * <p>This is a convenience method.  An invocation of the form
+     * <tt>exec(command)</tt>
+     * behaves in exactly the same way as the invocation
+     * <tt>{@link #exec(String, String[], File) exec}(command, null, null)</tt>.
+     *
+     * @param   command   a specified system command.
+     *
+     * @return  A new {@link Process} object for managing the subprocess
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its
+     *          {@link SecurityManager#checkExec checkExec}
+     *          method doesn't allow creation of the subprocess
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @throws  NullPointerException
+     *          If <code>command</code> is <code>null</code>
+     *
+     * @throws  IllegalArgumentException
+     *          If <code>command</code> is empty
+     *
+     * @see     #exec(String[], String[], File)
+     * @see     ProcessBuilder
      */
     public Process exec(String command) throws IOException {
-	return exec(command, null);
+	return exec(command, null, null);
     }
 
-    /**
-     * Executes the specified string command in a separate process with the 
-     * specified environment. 
-     * <p>
-     * This method breaks the <code>command</code> string into tokens and 
-     * creates a new array <code>cmdarray</code> containing the tokens in the 
-     * order that they were produced by the string tokenizer; it 
-     * then performs the call <code>exec(cmdarray, envp)</code>. The token
-     * parsing is done by a {@link java.util.StringTokenizer} created by 
-     * the call: 
-     * <blockquote><pre>
-     * new StringTokenizer(command)
-     * </pre></blockquote>
-     * with no further modification of the character categories. 
-     *
-     * <p>
-     * The environment variable settings are specified by <tt>envp</tt>.
-     * If <tt>envp</tt> is <tt>null</tt>, the subprocess inherits the 
-     * environment settings of the current process.
-     *
-     * @param      cmd       a specified system command.
-     * @param      envp      array of strings, each element of which 
-     *                       has environment variable settings in format
-     *                       <i>name</i>=<i>value</i>.
-     * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
-     * @exception  IOException if an I/O error occurs
-     * @exception  NullPointerException if <code>cmd</code> is null
-     * @exception  IllegalArgumentException if <code>cmd</code> is empty
-     * @see        java.lang.Runtime#exec(java.lang.String[])
-     * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[])
-     * @see        java.lang.SecurityManager#checkExec(java.lang.String)
-     */
-    public Process exec(String cmd, String envp[]) throws IOException {
-        return exec(cmd, envp, null);
-    }
-    
     /**
      * Executes the specified string command in a separate process with the
-     * specified environment and working directory. 
-     * <p>
-     * This method breaks the <code>command</code> string into tokens and 
-     * creates a new array <code>cmdarray</code> containing the tokens in the 
-     * order that they were produced by the string tokenizer; it 
-     * then performs the call <code>exec(cmdarray, envp)</code>. The token
-     * parsing is done by a {@link java.util.StringTokenizer} created by 
-     * the call: 
-     * <blockquote><pre>
-     * new StringTokenizer(command)
-     * </pre></blockquote>
-     * with no further modification of the character categories. 
+     * specified environment.
      *
-     * <p>
-     * The environment variable settings are specified by <tt>envp</tt>.
-     * If <tt>envp</tt> is <tt>null</tt>, the subprocess inherits the 
-     * environment settings of the current process.
+     * <p>This is a convenience method.  An invocation of the form
+     * <tt>exec(command, envp)</tt>
+     * behaves in exactly the same way as the invocation
+     * <tt>{@link #exec(String, String[], File) exec}(command, envp, null)</tt>.
      *
-     * <p>
-     * The working directory of the new subprocess is specified by <tt>dir</tt>.
-     * If <tt>dir</tt> is <tt>null</tt>, the subprocess inherits the 
-     * current working directory of the current process.
+     * @param   command   a specified system command.
      *
-     * @param      command   a specified system command.
-     * @param      envp      array of strings, each element of which 
-     *                       has environment variable settings in format
-     *                       <i>name</i>=<i>value</i>.
-     * @param      dir       the working directory of the subprocess, or
-     *                       <tt>null</tt> if the subprocess should inherit
-     *                       the working directory of the current process.
-     * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
-     * @exception  IOException if an I/O error occurs
-     * @exception  NullPointerException if <code>command</code> is 
-     *             <code>null</code>
-     * @exception  IllegalArgumentException if <code>command</code> is empty
-     * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[], File)
-     * @see        java.lang.SecurityManager#checkExec(java.lang.String)
+     * @param   envp      array of strings, each element of which
+     *                    has environment variable settings in the format
+     *                    <i>name</i>=<i>value</i>, or
+     *                    <tt>null</tt> if the subprocess should inherit
+     *                    the environment of the current process.
+     *
+     * @return  A new {@link Process} object for managing the subprocess
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its
+     *          {@link SecurityManager#checkExec checkExec}
+     *          method doesn't allow creation of the subprocess
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @throws  NullPointerException
+     *          If <code>command</code> is <code>null</code>,
+     *          or one of the elements of <code>envp</code> is <code>null</code>
+     *
+     * @throws  IllegalArgumentException
+     *          If <code>command</code> is empty
+     *
+     * @see     #exec(String[], String[], File)
+     * @see     ProcessBuilder
+     */
+    public Process exec(String command, String[] envp) throws IOException {
+        return exec(command, envp, null);
+    }
+
+    /**
+     * Executes the specified string command in a separate process with the
+     * specified environment and working directory.
+     *
+     * <p>This is a convenience method.  An invocation of the form
+     * <tt>exec(command, envp, dir)</tt>
+     * behaves in exactly the same way as the invocation
+     * <tt>{@link #exec(String[], String[], File) exec}(cmdarray, envp, dir)</tt>,
+     * where <code>cmdarray</code> is an array of all the tokens in
+     * <code>command</code>.
+     *
+     * <p>More precisely, the <code>command</code> string is broken
+     * into tokens using a {@link StringTokenizer} created by the call
+     * <code>new {@link StringTokenizer}(command)</code> with no
+     * further modification of the character categories.  The tokens
+     * produced by the tokenizer are then placed in the new string
+     * array <code>cmdarray</code>, in the same order.
+     *
+     * @param   command   a specified system command.
+     *
+     * @param   envp      array of strings, each element of which
+     *                    has environment variable settings in the format
+     *                    <i>name</i>=<i>value</i>, or
+     *                    <tt>null</tt> if the subprocess should inherit
+     *                    the environment of the current process.
+     *
+     * @param   dir       the working directory of the subprocess, or
+     *                    <tt>null</tt> if the subprocess should inherit
+     *                    the working directory of the current process.
+     *
+     * @return  A new {@link Process} object for managing the subprocess
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its
+     *          {@link SecurityManager#checkExec checkExec}
+     *          method doesn't allow creation of the subprocess
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @throws  NullPointerException
+     *          If <code>command</code> is <code>null</code>,
+     *          or one of the elements of <code>envp</code> is <code>null</code>
+     *
+     * @throws  IllegalArgumentException
+     *          If <code>command</code> is empty
+     *
+     * @see     ProcessBuilder
      * @since 1.3
      */
-    public Process exec(String command, String envp[], File dir) 
+    public Process exec(String command, String[] envp, File dir)
         throws IOException {
-	int count = 0;
-	String cmdarray[];
- 	StringTokenizer st;
-
         if (command.length() == 0)
-            throw new IllegalArgumentException("Empty command"); 
+            throw new IllegalArgumentException("Empty command");
 
-	st = new StringTokenizer(command);
- 	count = st.countTokens();
-
-	cmdarray = new String[count];
-	st = new StringTokenizer(command);
-	count = 0;
- 	while (st.hasMoreTokens()) {
- 		cmdarray[count++] = st.nextToken();
- 	}
+	StringTokenizer st = new StringTokenizer(command);
+	String[] cmdarray = new String[st.countTokens()];
+ 	for (int i = 0; st.hasMoreTokens(); i++)
+	    cmdarray[i] = st.nextToken();
 	return exec(cmdarray, envp, dir);
     }
 
     /**
      * Executes the specified command and arguments in a separate process.
-     * <p>
-     * The command specified by the tokens in <code>cmdarray</code> is 
-     * executed as a command in a separate process. This has exactly the 
-     * same effect as <code>exec(cmdarray, null)</code>. 
-     * <p>
-     * If there is a security manager, its <code>checkExec</code> 
-     * method is called with the first component of the array 
-     * <code>cmdarray</code> as its argument. This may result in a security 
-     * exception. 
      *
-     * @param      cmdarray   array containing the command to call and
-     *                        its arguments.
-     * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
-     * @exception  IOException if an I/O error occurs
-     * @exception  NullPointerException if <code>cmdarray</code> is 
-     *             <code>null</code>
-     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an
-     *             empty array (has length <code>0</code>).
-     * @see        java.lang.Runtime#exec(java.lang.String[], java.lang.String[])
-     * @see        java.lang.SecurityManager#checkExec(java.lang.String)
+     * <p>This is a convenience method.  An invocation of the form
+     * <tt>exec(cmdarray)</tt>
+     * behaves in exactly the same way as the invocation
+     * <tt>{@link #exec(String[], String[], File) exec}(cmdarray, null, null)</tt>.
+     *
+     * @param   cmdarray  array containing the command to call and
+     *                    its arguments.
+     *
+     * @return  A new {@link Process} object for managing the subprocess
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its
+     *          {@link SecurityManager#checkExec checkExec}
+     *          method doesn't allow creation of the subprocess
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @throws  NullPointerException
+     *          If <code>cmdarray</code> is <code>null</code>,
+     *          or one of the elements of <code>cmdarray</code> is <code>null</code>
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If <code>cmdarray</code> is an empty array
+     *          (has length <code>0</code>)
+     *
+     * @see     ProcessBuilder
      */
     public Process exec(String cmdarray[]) throws IOException {
-	return exec(cmdarray, null);
+	return exec(cmdarray, null, null);
     }
 
     /**
      * Executes the specified command and arguments in a separate process
-     * with the specified environment. 
-     * <p>
-     * Given an array of strings <code>cmdarray</code>, representing the 
-     * tokens of a command line, and an array of strings <code>envp</code>, 
-     * representing "environment" variable settings, this method creates 
-     * a new process in which to execute the specified command. 
+     * with the specified environment.
      *
-     * <p>
-     * If <tt>envp</tt> is <tt>null</tt>, the subprocess inherits the 
-     * environment settings of the current process.
+     * <p>This is a convenience method.  An invocation of the form
+     * <tt>exec(cmdarray, envp)</tt>
+     * behaves in exactly the same way as the invocation
+     * <tt>{@link #exec(String[], String[], File) exec}(cmdarray, envp, null)</tt>.
      *
-     * @param      cmdarray   array containing the command to call and
-     *                        its arguments.
-     * @param      envp       array of strings, each element of which 
-     *                        has environment variable settings in format
-     *                        <i>name</i>=<i>value</i>.
-     * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkExec</code> method doesn't allow creation of a subprocess.
-     * @exception  IOException if an I/O error occurs
-     * @exception  NullPointerException if <code>cmdarray</code> is 
-     *             <code>null</code>
-     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an
-     *             empty array (has length <code>0</code>).
-     * @see     java.lang.Process
-     * @see     java.lang.SecurityException
-     * @see     java.lang.SecurityManager#checkExec(java.lang.String)
+     * @param   cmdarray  array containing the command to call and
+     *                    its arguments.
+     *
+     * @param   envp      array of strings, each element of which
+     *                    has environment variable settings in the format
+     *                    <i>name</i>=<i>value</i>, or
+     *                    <tt>null</tt> if the subprocess should inherit
+     *                    the environment of the current process.
+     *
+     * @return  A new {@link Process} object for managing the subprocess
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its
+     *          {@link SecurityManager#checkExec checkExec}
+     *          method doesn't allow creation of the subprocess
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @throws  NullPointerException
+     *          If <code>cmdarray</code> is <code>null</code>,
+     *          or one of the elements of <code>cmdarray</code> is <code>null</code>,
+     *          or one of the elements of <code>envp</code> is <code>null</code>
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If <code>cmdarray</code> is an empty array
+     *          (has length <code>0</code>)
+     *
+     * @see     ProcessBuilder
      */
-    public Process exec(String cmdarray[], String envp[]) throws IOException {
+    public Process exec(String[] cmdarray, String[] envp) throws IOException {
 	return exec(cmdarray, envp, null);
     }
 
 
     /**
      * Executes the specified command and arguments in a separate process with
-     * the specified environment and working directory. 
-     * <p>
-     * If there is a security manager, its <code>checkExec</code> 
-     * method is called with the first component of the array 
-     * <code>cmdarray</code> as its argument. This may result in a security 
-     * exception. 
-     * <p>
-     * Given an array of strings <code>cmdarray</code>, representing the 
-     * tokens of a command line, and an array of strings <code>envp</code>, 
-     * representing "environment" variable settings, this method creates 
-     * a new process in which to execute the specified command. 
+     * the specified environment and working directory.
      *
-     * <p>
-     * If <tt>envp</tt> is <tt>null</tt>, the subprocess inherits the 
+     * <p>Given an array of strings <code>cmdarray</code>, representing the
+     * tokens of a command line, and an array of strings <code>envp</code>,
+     * representing "environment" variable settings, this method creates
+     * a new process in which to execute the specified command.
+     *
+     * <p>This method checks that <code>cmdarray</code> is a valid operating
+     * system command.  Which commands are valid is system-dependent,
+     * but at the very least the command must be a non-empty list of
+     * non-null strings.
+     *
+     * <p>If <tt>envp</tt> is <tt>null</tt>, the subprocess inherits the
      * environment settings of the current process.
      *
-     * <p>
-     * The working directory of the new subprocess is specified by <tt>dir</tt>.
-     * If <tt>dir</tt> is <tt>null</tt>, the subprocess inherits the 
+     * <p>{@link ProcessBuilder#start()} is now the preferred way to
+     * start a process with a modified environment.
+     *
+     * <p>The working directory of the new subprocess is specified by <tt>dir</tt>.
+     * If <tt>dir</tt> is <tt>null</tt>, the subprocess inherits the
      * current working directory of the current process.
      *
+     * <p>If a security manager exists, its
+     * {@link SecurityManager#checkExec checkExec}
+     * method is invoked with the first component of the array
+     * <code>cmdarray</code> as its argument. This may result in a
+     * {@link SecurityException} being thrown.
      *
-     * @param      cmdarray   array containing the command to call and
-     *                        its arguments.
-     * @param      envp       array of strings, each element of which 
-     *                        has environment variable settings in format
-     *                        <i>name</i>=<i>value</i>.
-     * @param      dir        the working directory of the subprocess, or
-     *                        <tt>null</tt> if the subprocess should inherit
-     *                        the working directory of the current process.
-     * @return     a <code>Process</code> object for managing the subprocess.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkExec</code> method doesn't allow creation of a 
-     *             subprocess.
-     * @exception  NullPointerException if <code>cmdarray</code> is 
-     *             <code>null</code>
-     * @exception  IndexOutOfBoundsException if <code>cmdarray</code> is an
-     *             empty array (has length <code>0</code>).
-     * @exception  IOException if an I/O error occurs.
-     * @see     java.lang.Process
-     * @see     java.lang.SecurityException
-     * @see     java.lang.SecurityManager#checkExec(java.lang.String)
+     * <p>Starting an operating system process is highly system-dependent.
+     * Among the many things that can go wrong are:
+     * <ul>
+     * <li>The operating system program file was not found.
+     * <li>Access to the program file was denied.
+     * <li>The working directory does not exist.
+     * </ul>
+     *
+     * <p>In such cases an exception will be thrown.  The exact nature
+     * of the exception is system-dependent, but it will always be a
+     * subclass of {@link IOException}.
+     *
+     *
+     * @param   cmdarray  array containing the command to call and
+     *                    its arguments.
+     *
+     * @param   envp      array of strings, each element of which
+     *                    has environment variable settings in the format
+     *                    <i>name</i>=<i>value</i>, or
+     *                    <tt>null</tt> if the subprocess should inherit
+     *                    the environment of the current process.
+     *
+     * @param   dir       the working directory of the subprocess, or
+     *                    <tt>null</tt> if the subprocess should inherit
+     *                    the working directory of the current process.
+     *
+     * @return  A new {@link Process} object for managing the subprocess
+     *
+     * @throws  SecurityException
+     *          If a security manager exists and its
+     *          {@link SecurityManager#checkExec checkExec}
+     *          method doesn't allow creation of the subprocess
+     *
+     * @throws  IOException
+     *          If an I/O error occurs
+     *
+     * @throws  NullPointerException
+     *          If <code>cmdarray</code> is <code>null</code>,
+     *          or one of the elements of <code>cmdarray</code> is <code>null</code>,
+     *          or one of the elements of <code>envp</code> is <code>null</code>
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If <code>cmdarray</code> is an empty array
+     *          (has length <code>0</code>)
+     *
+     * @see     ProcessBuilder
      * @since 1.3
      */
-    public Process exec(String cmdarray[], String envp[], File dir) 
-	throws IOException {	
-	cmdarray = (String[])cmdarray.clone();
-	envp = (envp != null ? (String[])envp.clone() : null);
-
-        if (cmdarray.length == 0) {
-            throw new IndexOutOfBoundsException();            
-        }
-        for (int i = 0; i < cmdarray.length; i++) {
-            if (cmdarray[i] == null) {
-                throw new NullPointerException();
-            }
-        }
-        if (envp != null) {
-            for (int i = 0; i < envp.length; i++) {
-                if (envp[i] == null) {
-                    throw new NullPointerException();
-                }
-            }
-        }
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkExec(cmdarray[0]);
-	}
-        String path = (dir == null ? null : dir.getPath());
-	return execInternal(cmdarray, envp, path);
+    public Process exec(String[] cmdarray, String[] envp, File dir)
+	throws IOException {
+	return new ProcessBuilder(cmdarray)
+	    .environment(envp)
+	    .directory(dir)
+	    .start();
     }
 
     /**
@@ -576,6 +604,7 @@ public class Runtime {
      *
      * @return  the maximum number of processors available to the virtual
      *          machine; never smaller than one
+     * @since 1.4
      */
     public native int availableProcessors();
 
@@ -610,6 +639,7 @@ public class Runtime {
      *
      * @return  the maximum amount of memory that the virtual machine will
      *          attempt to use, measured in bytes
+     * @since 1.4
      */
     public native long maxMemory();
 
@@ -717,6 +747,8 @@ public class Runtime {
      *             <code>checkLink</code> method doesn't allow 
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the file does not exist.
+     * @exception  NullPointerException if <code>filename</code> is
+     *             <code>null</code>
      * @see        java.lang.Runtime#getRuntime()
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkLink(java.lang.String)
@@ -769,6 +801,8 @@ public class Runtime {
      *             <code>checkLink</code> method doesn't allow 
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the library does not exist.
+     * @exception  NullPointerException if <code>libname</code> is
+     *             <code>null</code>
      * @see        java.lang.SecurityException
      * @see        java.lang.SecurityManager#checkLink(java.lang.String)
      */
@@ -809,6 +843,7 @@ public class Runtime {
      * the <code>InputStreamReader</code> and <code>BufferedReader</code>
      * classes.
      */
+    @Deprecated
     public InputStream getLocalizedInputStream(InputStream in) {
 	return in;
     }
@@ -836,6 +871,7 @@ public class Runtime {
      * @see        java.io.OutputStreamWriter#OutputStreamWriter(java.io.OutputStream)
      * @see        java.io.PrintWriter#PrintWriter(java.io.OutputStream)
      */
+    @Deprecated
     public OutputStream getLocalizedOutputStream(OutputStream out) {
 	return out;
     }

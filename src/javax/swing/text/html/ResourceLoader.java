@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceLoader.java	1.6 03/01/23
+ * @(#)ResourceLoader.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.InputStream;
  * is called from HTMLEditorKit.getResourceAsStream.
  *
  * @author  Timothy Prinzing
- * @version 1.6 01/23/03
+ * @version 1.7 12/19/03
  */
 class ResourceLoader implements java.security.PrivilegedAction {
 

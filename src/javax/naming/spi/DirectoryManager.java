@@ -1,7 +1,7 @@
 /*
- * @(#)DirectoryManager.java	1.10 03/05/09
+ * @(#)DirectoryManager.java	1.13 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,7 +41,7 @@ import com.sun.naming.internal.FactoryEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.10 03/05/09
+  * @version 1.13 04/07/16
   *
   * @see DirObjectFactory
   * @see DirStateFactory
@@ -133,8 +133,9 @@ public class DirectoryManager extends NamingManager {
       * @see DirObjectFactory#getObjectInstance
       * @since 1.3
       */
-    public static Object getObjectInstance(Object refInfo,
-	Name name, Context nameCtx, Hashtable environment, Attributes attrs) 
+    public static Object
+	getObjectInstance(Object refInfo, Name name, Context nameCtx,
+			  Hashtable<?,?> environment, Attributes attrs)
 	throws Exception {
 
 	    ObjectFactory factory;
@@ -283,7 +284,7 @@ public class DirectoryManager extends NamingManager {
       */
     public static DirStateFactory.Result 
 	getStateToBind(Object obj, Name name, Context nameCtx,
-	Hashtable environment, Attributes attrs)
+		       Hashtable<?,?> environment, Attributes attrs)
 	throws NamingException {
 
 	// Get list of state factories

@@ -1,7 +1,7 @@
 /*
- * @(#)JApplet.java	1.56 03/01/23
+ * @(#)JApplet.java	1.65 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -16,7 +16,7 @@ import java.io.Serializable;
 import javax.accessibility.*;
 
 /**
- * An extended version of java.applet.Applet that adds support for 
+ * An extended version of <code>java.applet.Applet</code> that adds support for 
  * the JFC/Swing component architecture.
  * You can find task-oriented documentation about using <code>JApplet</code>
  * in <em>The Java Tutorial</em>,
@@ -24,32 +24,30 @@ import javax.accessibility.*;
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/applet.html">How to Make Applets</a>.
  * <p>
- * The JApplet class is slightly incompatible with java.applet.Applet.
- * JApplet contains a JRootPane as it's only child.
- * The <b>contentPane</b> should be the parent of any children of the JApplet.
- * This is different than java.applet.Applet, e.g. to add a child to 
- * an an java.applet.Applet you'd write:
+ * The <code>JApplet</code> class is slightly incompatible with
+ * <code>java.applet.Applet</code>.  <code>JApplet</code> contains a
+ * <code>JRootPane</code> as its only child.  The <code>contentPane</code>
+ * should be the parent of any children of the <code>JApplet</code>.
+ * As a convenience <code>add</code> and its variants, <code>remove</code> and
+ * <code>setLayout</code> have been overridden to forward to the
+ * <code>contentPane</code> as necessary. This means you can write:
  * <pre>
  *       applet.add(child);
  * </pre>
- * However using JApplet you need to add the child to the JApplet's contentPane
- * instead:
- * <pre>
- *       applet.getContentPane().add(child);
- * </pre>
- * The same is true for setting LayoutManagers, removing components,
- * listing children, etc. All these methods should normally be sent to
- * the contentPane() instead of the JApplet itself. The contentPane() will
- * always be non-null. Attempting to set it to null will cause the JApplet
- * to throw an exception. The default contentPane() will have a BorderLayout
+ *
+ * And the child will be added to the <code>contentPane</code>.
+ * The <code>contentPane</code> will always be non-<code>null</code>.
+ * Attempting to set it to <code>null</code> will cause the
+ * <code>JApplet</code> to throw an exception. The default
+ * <code>contentPane</code> will have a <code>BorderLayout</code>
  * manager set on it. 
+ * Refer to {@link javax.swing.RootPaneContainer}
+ * for details on adding, removing and setting the <code>LayoutManager</code>
+ * of a <code>JApplet</code>.
  * <p>
- * Please see the JRootPane documentation for a complete description of
- * the contentPane, glassPane, and layeredPane properties.
- * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JApplet"><code>JApplet</code> key assignments</a>.
+ * Please see the <code>JRootPane</code> documentation for a
+ * complete description of the <code>contentPane</code>, <code>glassPane</code>,
+ * and <code>layeredPane</code> properties.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -60,12 +58,13 @@ import javax.accessibility.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
+ * @see javax.swing.RootPaneContainer
  * @beaninfo
  *      attribute: isContainer true
  *      attribute: containerDelegate getContentPane
  *    description: Swing's Applet subclass.
  *
- * @version 1.56 01/23/03
+ * @version 1.65 12/19/03
  * @author Arnaud Weber
  */
 public class JApplet extends Applet implements Accessible, RootPaneContainer 
@@ -77,8 +76,13 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
     protected JRootPane rootPane;
 
     /**
+     * If true then calls to <code>add</code> and <code>setLayout</code>
+     * will be forwarded to the <code>contentPane</code>. This is initially
+     * false, but is set to true when the <code>JApplet</code> is constructed.
+     *
      * @see #isRootPaneCheckingEnabled
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean rootPaneCheckingEnabled = false;
 
@@ -118,13 +122,8 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
         setRootPane(createRootPane());
         setRootPaneCheckingEnabled(true);
 	
-	// This code should be changed after the RFE 4719336 is resolved
-	// to not make the applet a FocusCycleRoot, but set it's
-	// FocusTraversalPolicy only.
-	setFocusCycleRoot(true);
-	setFocusTraversalPolicy(KeyboardFocusManager.
-				getCurrentKeyboardFocusManager().
-				getDefaultFocusTraversalPolicy());
+  	setFocusTraversalPolicyProvider(true);
+        sun.awt.SunToolkit.checkAndSetPolicy(this, true);
 	
         enableEvents(AWTEvent.KEY_EVENT_MASK);
     }
@@ -132,7 +131,13 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 
     /** Called by the constructor methods to create the default rootPane. */
     protected JRootPane createRootPane() {
-        return new JRootPane();
+        JRootPane rp = new JRootPane();
+        // NOTE: this uses setOpaque vs LookAndFeel.installProperty as there
+        // is NO reason for the RootPane not to be opaque. For painting to
+        // work the contentPane must be opaque, therefor the RootPane can
+        // also be opaque.
+        rp.setOpaque(true);
+        return rp;
     }
     
     /** 
@@ -169,10 +174,16 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 
 
     /**
-     * @return true if add and setLayout should be checked
+     * Returns whether calls to <code>add</code> and 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
+     *
+     * @return true if <code>add</code> and <code>setLayout</code> 
+     *         are fowarded; false otherwise
+     *
      * @see #addImpl
      * @see #setLayout
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean isRootPaneCheckingEnabled() {
         return rootPaneCheckingEnabled;
@@ -180,12 +191,20 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 
 
     /**
-     * If true then calls to add() and setLayout() will cause an exception
-     * to be thrown.  
+     * Sets whether calls to <code>add</code> and 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
+     * 
+     * @param enabled  true if <code>add</code> and <code>setLayout</code>
+     *        are forwarded, false if they should operate directly on the
+     *        <code>JApplet</code>.
      *
      * @see #addImpl
      * @see #setLayout
      * @see #isRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
+     * @beaninfo
+     *      hidden: true
+     * description: Whether the add and setLayout methods are forwarded
      */
     protected void setRootPaneCheckingEnabled(boolean enabled) {
         rootPaneCheckingEnabled = enabled;
@@ -193,36 +212,28 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
 
 
     /**
-     * Create an runtime exception with a message like:
-     * <pre>
-     * "Do not use JApplet.add() use JApplet.getContentPane().add() instead"
-     * </pre>
-     */
-    private Error createRootPaneException(String op) {
-        String type = getClass().getName();
-        return new Error(
-            "Do not use " + type + "." + op + "() use " 
-                          + type + ".getContentPane()." + op + "() instead");
-    }
-
-
-    /**
-     * By default, children may not be added directly to a this component,
-     * they must be added to its contentPane instead.  For example:
-     * <pre>
-     * thiComponent.getContentPane().add(child)
-     * </pre>
-     * An attempt to add to directly to this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * Adds the specified child <code>Component</code>.
+     * This method is overridden to conditionally forwad calls to the
+     * <code>contentPane</code>.
+     * By default, children are added to the <code>contentPane</code> instead
+     * of the frame, refer to {@link javax.swing.RootPaneContainer} for
+     * details.
+     * 
+     * @param comp the component to be enhanced
+     * @param constraints the constraints to be respected
+     * @param index the index
+     * @exception IllegalArgumentException if <code>index</code> is invalid
+     * @exception IllegalArgumentException if adding the container's parent
+     *			to itself
+     * @exception IllegalArgumentException if adding a window to a container
      * 
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with rootPaneChecking true
+     * @see javax.swing.RootPaneContainer
      */
     protected void addImpl(Component comp, Object constraints, int index) 
     {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("add");
+            getContentPane().add(comp, constraints, index);
         }
         else {
             super.addImpl(comp, constraints, index);
@@ -230,38 +241,40 @@ public class JApplet extends Applet implements Accessible, RootPaneContainer
     }
 
     /** 
-     * Removes the specified component from this container.
+     * Removes the specified component from the container. If
+     * <code>comp</code> is not the <code>rootPane</code>, this will forward
+     * the call to the <code>contentPane</code>. This will do nothing if
+     * <code>comp</code> is not a child of the <code>JFrame</code> or
+     * <code>contentPane</code>.
+     *
      * @param comp the component to be removed
+     * @throws NullPointerException if <code>comp</code> is null
      * @see #add
+     * @see javax.swing.RootPaneContainer
      */
     public void remove(Component comp) {
 	if (comp == rootPane) {
 	    super.remove(comp);
 	} else {
-	    // Client mistake, but we need to handle it to avoid a
-	    // common object leak in client applications.
 	    getContentPane().remove(comp);
 	}
     }
 
 
     /**
-     * By default the layout of this component may not be set,
-     * the layout of its contentPane should be set instead.  
-     * For example:
-     * <pre>
-     * thisComponent.getContentPane().setLayout(new GridLayout(1, 2))
-     * </pre>
-     * An attempt to set the layout of this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
-     * 
+     * Sets the <code>LayoutManager</code>.
+     * Overridden to conditionally forward the call to the
+     * <code>contentPane</code>.
+     * Refer to {@link javax.swing.RootPaneContainer} for
+     * more information.
+     *
+     * @param manager the <code>LayoutManager</code>
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with rootPaneChecking true
+     * @see javax.swing.RootPaneContainer
      */
     public void setLayout(LayoutManager manager) {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("setLayout");
+            getContentPane().setLayout(manager);
         }
         else {
             super.setLayout(manager);

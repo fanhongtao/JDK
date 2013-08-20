@@ -1,18 +1,17 @@
+// $Id: TemplatesHandler.java,v 1.1.26.1 2004/07/13 22:27:50 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)TemplatesHandler.java	1.12 03/01/23
+ * @(#)TemplatesHandler.java	1.14 04/07/13
  */
 package javax.xml.transform.sax;
 
 import javax.xml.transform.*;
 
 import org.xml.sax.ContentHandler;
-import org.xml.sax.ext.LexicalHandler;
-
 
 /**
  * A SAX ContentHandler that may be used to process SAX
@@ -40,7 +39,7 @@ public interface TemplatesHandler extends ContentHandler {
      * resolve relative URIs in the stylesheet.  This must be
      * called before the startDocument event.
      *
-     * @param baseID Base URI for this stylesheet.
+     * @param systemID Base URI for this stylesheet.
      */
     public void setSystemId(String systemID);
 

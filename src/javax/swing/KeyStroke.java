@@ -1,7 +1,7 @@
 /*
- * @(#)KeyStroke.java	1.44 03/01/23
+ * @(#)KeyStroke.java	1.49 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -40,7 +40,7 @@ import java.awt.event.KeyEvent;
  * @see javax.swing.text.Keymap
  * @see #getKeyStroke
  *
- * @version 1.44, 01/23/03
+ * @version 1.49, 05/18/04
  * @author Arnaud Weber
  * @author David Mendenhall
  */
@@ -85,6 +85,7 @@ public class KeyStroke extends AWTKeyStroke {
      * @return a KeyStroke object for that key
      * @deprecated use getKeyStroke(char)
      */
+    @Deprecated
     public static KeyStroke getKeyStroke(char keyChar, boolean onKeyRelease) {
         return new KeyStroke(keyChar, KeyEvent.VK_UNDEFINED, 0, onKeyRelease);
     }
@@ -197,11 +198,12 @@ public class KeyStroke extends AWTKeyStroke {
      * Returns a KeyStroke which represents the stroke which generated a given
      * KeyEvent.
      * <p>
-     * This method obtains the keyChar from a KeyTyped event, and the key code
+     * This method obtains the keyChar from a KeyTyped event, and the keyCode
      * from a KeyPressed or KeyReleased event. The KeyEvent modifiers are
      * obtained for all three types of KeyEvent.
      *
      * @param anEvent the KeyEvent from which to obtain the KeyStroke
+     * @throws NullPointerException if <code>anEvent</code> is null
      * @return the KeyStroke that precipitated the event
      */
     public static KeyStroke getKeyStrokeForEvent(KeyEvent anEvent) {
@@ -217,7 +219,7 @@ public class KeyStroke extends AWTKeyStroke {
      * <pre>
      *    &lt;modifiers&gt;* (&lt;typedID&gt; | &lt;pressedReleasedID&gt;)
      *
-     *    modifiers := shift | control | ctrl | meta | alt | button1 | button2 | button3
+     *    modifiers := shift | control | ctrl | meta | alt | altGraph 
      *    typedID := typed &lt;typedKey&gt;
      *    typedKey := string of length 1 giving Unicode character.
      *    pressedReleasedID := (pressed | released) key

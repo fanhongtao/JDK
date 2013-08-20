@@ -1,7 +1,7 @@
 /*
- * @(#)Instrument.java	1.14 03/01/23
+ * @(#)Instrument.java	1.16 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import java.net.URL;
  * @see Patch
  * @see Synthesizer#loadInstrument(Instrument)
  * @see MidiChannel#programChange(int, int)
- * @version 1.14, 03/01/23
+ * @version 1.16, 04/05/05
  * @author Kara Kytle
  */
 
@@ -53,7 +53,7 @@ public abstract class Instrument extends SoundbankResource {
      *
      * @see Synthesizer#loadInstrument(Instrument)
      */
-    protected Instrument(Soundbank soundbank, Patch patch, String name, Class dataClass) {
+    protected Instrument(Soundbank soundbank, Patch patch, String name, Class<?> dataClass) {
 
 	super(soundbank, name, dataClass);
 	this.patch = patch;

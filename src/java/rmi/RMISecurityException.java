@@ -1,7 +1,7 @@
 /*
- * @(#)RMISecurityException.java	1.14 03/01/23
+ * @(#)RMISecurityException.java	1.16 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi;
@@ -11,7 +11,7 @@ package java.rmi;
  * has occurred during the execution of one of
  * <code>java.rmi.RMISecurityManager</code>'s methods.
  *
- * @version 1.14, 01/23/03
+ * @version 1.16, 05/18/04
  * @author  Roger Riggs
  * @since   JDK1.1
  * @deprecated Use {@link java.lang.SecurityException} instead.
@@ -19,6 +19,7 @@ package java.rmi;
  * <code>RMISecurityManager</code> no longer throws this subclass of
  * <code>java.lang.SecurityException</code>.
  */
+@Deprecated
 public class RMISecurityException extends java.lang.SecurityException {
 
     /* indicate compatibility with JDK 1.1.x version of class */
@@ -30,6 +31,7 @@ public class RMISecurityException extends java.lang.SecurityException {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public RMISecurityException(String name) {
 	super(name);
     }
@@ -41,6 +43,7 @@ public class RMISecurityException extends java.lang.SecurityException {
      * @since JDK1.1
      * @deprecated no replacement
      */
+    @Deprecated
     public RMISecurityException(String name, String arg) {
 	this(name);
     }

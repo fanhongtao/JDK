@@ -1,7 +1,7 @@
 /*
- * @(#)JFrame.java	1.95 03/01/28
+ * @(#)JFrame.java	1.104 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -32,23 +32,20 @@ import javax.accessibility.*;
  * as a rule, contain
  * all the non-menu components displayed by the <code>JFrame</code>.
  * This is different from the AWT <code>Frame</code> case.  
- * For example, to add a child to 
- * an AWT frame you'd write:
+ * As a conveniance <code>add</code> and its variants, <code>remove</code> and
+ * <code>setLayout</code> have been overridden to forward to the
+ * <code>contentPane</code> as necessary. This means you can write:
  * <pre>
  *       frame.add(child);
  * </pre>
- * However using <code>JFrame</code> you need to add the child
- * to the <code>JFrame's</code> content pane
- * instead:
- * <pre>
- *       frame.getContentPane().add(child);
- * </pre>
- * The same is true for setting layout managers, removing components,
- * listing children, and so on. All these methods should normally be sent to
- * the content pane instead of the JFrame itself. The content pane will
+ * And the child will be added to the contentPane.
+ * The content pane will
  * always be non-null. Attempting to set it to null will cause the JFrame
  * to throw an exception. The default content pane will have a BorderLayout
  * manager set on it. 
+ * Refer to {@link javax.swing.RootPaneContainer}
+ * for details on adding, removing and setting the <code>LayoutManager</code>
+ * of a <code>JFrame</code>.
  * <p>
  * Unlike a <code>Frame</code>, a <code>JFrame</code> has some notion of how to 
  * respond when the user attempts to close the window. The default behavior
@@ -68,10 +65,6 @@ import javax.accessibility.*;
  * on a different screen device.  See {@link java.awt.Frame} for more
  * information.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JFrame"><code>JFrame</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -84,13 +77,14 @@ import javax.accessibility.*;
  * @see JRootPane
  * @see #setDefaultCloseOperation
  * @see java.awt.event.WindowListener#windowClosing
+ * @see javax.swing.RootPaneContainer
  *
  * @beaninfo
  *      attribute: isContainer true
  *      attribute: containerDelegate getContentPane
  *    description: A toplevel window which can be minimized to an icon.
  *
- * @version 1.95 01/28/03
+ * @version 1.104 12/19/03
  * @author Jeff Dinkins
  * @author Georges Saab
  * @author David Kloba
@@ -129,10 +123,12 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
     /**
      * If true then calls to <code>add</code> and <code>setLayout</code>
-     * will cause an exception to be thrown. The default is false.
+     * will be forwarded to the <code>contentPane</code>. This is initially
+     * false, but is set to true when the <code>JFrame</code> is constructed.
      *
      * @see #isRootPaneCheckingEnabled
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean rootPaneCheckingEnabled = false;
 
@@ -240,9 +236,7 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
                 getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
             }
         }
-        setFocusTraversalPolicy(KeyboardFocusManager.
-                                getCurrentKeyboardFocusManager().
-                                getDefaultFocusTraversalPolicy());        
+        sun.awt.SunToolkit.checkAndSetPolicy(this, true);
     }
 
     /**
@@ -250,7 +244,13 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      * <code>rootPane</code>.
      */
     protected JRootPane createRootPane() {
-        return new JRootPane();
+        JRootPane rp = new JRootPane();
+        // NOTE: this uses setOpaque vs LookAndFeel.installProperty as there
+        // is NO reason for the RootPane not to be opaque. For painting to
+        // work the contentPane must be opaque, therefor the RootPane can
+        // also be opaque.
+        rp.setOpaque(true);
+        return rp;
     }
  
     /** 
@@ -316,8 +316,8 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
      *
      * <li><code>EXIT_ON_CLOSE</code>
      * (defined in <code>JFrame</code>):
-     * Exit the application using the <code>System</code> <code>exit</code> method.
-     * Use this only in applications.
+     * Exit the application using the <code>System</code>
+     * <code>exit</code> method.  Use this only in applications.
      * </ul>
      * <p>
      * The value is set to <code>HIDE_ON_CLOSE</code> by default.
@@ -418,14 +418,15 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
     /**
      * Returns whether calls to <code>add</code> and 
-     * <code>setLayout</code> cause an exception to be thrown. 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
      *
      * @return true if <code>add</code> and <code>setLayout</code> 
-     *         are checked; false otherwise
+     *         are fowarded; false otherwise
      *
      * @see #addImpl
      * @see #setLayout
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean isRootPaneCheckingEnabled() {
         return rootPaneCheckingEnabled;
@@ -433,18 +434,20 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * Determines whether calls to <code>add</code> and 
-     * <code>setLayout</code> will cause an exception to be thrown. 
+     * Sets whether calls to <code>add</code> and 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
      * 
-     * @param enabled  true if checking is to be
-     *        enabled, which causes the exceptions to be thrown
+     * @param enabled  true if <code>add</code> and <code>setLayout</code>
+     *        are forwarded, false if they should operate directly on the
+     *        <code>JFrame</code>.
      *
      * @see #addImpl
      * @see #setLayout
      * @see #isRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      * @beaninfo
      *      hidden: true
-     * description: Whether the add and setLayout methods throw exceptions when invoked.
+     * description: Whether the add and setLayout methods are forwarded
      */
     protected void setRootPaneCheckingEnabled(boolean enabled) {
         rootPaneCheckingEnabled = enabled;
@@ -452,43 +455,28 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
 
 
     /**
-     * Creates a runtime exception with a message like:
-     * <pre>
-     * "Do not use JFrame.add() use JFrame.getContentPane().add() instead"
-     * </pre>
-     *
-     * @param op  a <code>String</code> indicating the attempted operation;
-     *		in the example above, the operation string is "add"
-     */
-    private Error createRootPaneException(String op) {
-        String type = getClass().getName();
-        return new Error(
-            "Do not use " + type + "." + op + "() use " 
-                          + type + ".getContentPane()." + op + "() instead");
-    }
-
-
-    /**
-     * By default, children may not be added directly to this component,
-     * they must be added to its contentPane instead.  For example:
-     * <pre>
-     * thisComponent.getContentPane().add(child)
-     * </pre>
-     * An attempt to add to directly to this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * Adds the specified child <code>Component</code>.
+     * This method is overridden to conditionally forwad calls to the
+     * <code>contentPane</code>.
+     * By default, children are added to the <code>contentPane</code> instead
+     * of the frame, refer to {@link javax.swing.RootPaneContainer} for
+     * details.
      * 
      * @param comp the component to be enhanced
      * @param constraints the constraints to be respected
      * @param index the index
-     * @exception Error if called with <code>rootPaneChecking</code> true
+     * @exception IllegalArgumentException if <code>index</code> is invalid
+     * @exception IllegalArgumentException if adding the container's parent
+     *			to itself
+     * @exception IllegalArgumentException if adding a window to a container
      * 
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected void addImpl(Component comp, Object constraints, int index) 
     {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("add");
+            getContentPane().add(comp, constraints, index);
         }
         else {
             super.addImpl(comp, constraints, index);
@@ -496,39 +484,40 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
     }
 
     /** 
-     * Removes the specified component from this container.
+     * Removes the specified component from the container. If
+     * <code>comp</code> is not the <code>rootPane</code>, this will forward
+     * the call to the <code>contentPane</code>. This will do nothing if
+     * <code>comp</code> is not a child of the <code>JFrame</code> or
+     * <code>contentPane</code>.
+     *
      * @param comp the component to be removed
+     * @throws NullPointerException if <code>comp</code> is null
      * @see #add
+     * @see javax.swing.RootPaneContainer
      */
     public void remove(Component comp) {
 	if (comp == rootPane) {
 	    super.remove(comp);
 	} else {
-	    // Client mistake, but we need to handle it to avoid a
-	    // common object leak in client applications.
 	    getContentPane().remove(comp);
 	}
     }
 
 
     /**
-     * By default the layout of this component may not be set,
-     * the layout of its <code>contentPane</code> should be set instead.  
-     * For example:
-     * <pre>
-     * thisComponent.getContentPane().setLayout(new GridLayout(1, 2))
-     * </pre>
-     * An attempt to set the layout of this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * Sets the <code>LayoutManager</code>.
+     * Overridden to conditionally forward the call to the
+     * <code>contentPane</code>.
+     * Refer to {@link javax.swing.RootPaneContainer} for
+     * more information.
+     *
      * @param manager the <code>LayoutManager</code>
-     * @exception Error if called with <code>rootPaneChecking</code> true
-     * 
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     public void setLayout(LayoutManager manager) {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("setLayout");
+            getContentPane().setLayout(manager);
         }
         else {
             super.setLayout(manager);
@@ -577,6 +566,11 @@ public class JFrame  extends Frame implements WindowConstants, Accessible, RootP
         }
     }
 
+    public void setIconImage(Image image) {
+        Image oldImage = getIconImage();
+        super.setIconImage(image);
+        firePropertyChange("iconImage", oldImage, image);
+    }
 
     /**
      * Returns the <code>contentPane</code> object for this frame.

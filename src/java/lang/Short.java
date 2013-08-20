@@ -1,7 +1,7 @@
 /*
- * @(#)Short.java	1.33 03/01/23
+ * @(#)Short.java	1.43 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,11 +21,11 @@ package java.lang;
  * constants and methods useful when dealing with a <code>short</code>.
  *
  * @author  Nakul Saraiya
- * @version 1.33, 01/23/03
+ * @version 1.43, 05/11/04
  * @see     java.lang.Number
  * @since   JDK1.1
  */
-public final class Short extends Number implements Comparable {
+public final class Short extends Number implements Comparable<Short> {
 
     /**
      * A constant holding the minimum value a <code>short</code> can
@@ -43,7 +43,7 @@ public final class Short extends Number implements Comparable {
      * The <code>Class</code> instance representing the primitive type
      * <code>short</code>.
      */
-    public static final Class	TYPE = Class.getPrimitiveClass("short");
+    public static final Class<Short>	TYPE = (Class<Short>) Class.getPrimitiveClass("short");
 
     /**
      * Returns a new <code>String</code> object representing the
@@ -178,6 +178,39 @@ public final class Short extends Number implements Comparable {
 	return valueOf(s, 10);
     }
 
+    private static class ShortCache {
+	private ShortCache(){}
+
+	static final Short cache[] = new Short[-(-128) + 127 + 1];
+
+	static {
+	    for(int i = 0; i < cache.length; i++)
+		cache[i] = new Short((short)(i - 128));
+	}
+    }
+
+    /**
+     * Returns a <tt>Short</tt> instance representing the specified
+     * <tt>short</tt> value.
+     * If a new <tt>Short</tt> instance is not required, this method
+     * should generally be used in preference to the constructor
+     * {@link #Short(short)}, as this method is likely to yield
+     * significantly better space and time performance by caching
+     * frequently requested values.
+     *
+     * @param  s a short value.
+     * @return a <tt>Short</tt> instance representing <tt>s</tt>.
+     * @since  1.5
+     */
+    public static Short valueOf(short s) {
+	final int offset = 128;
+	int sAsInt = s;
+	if (sAsInt >= -128 && sAsInt <= 127) { // must cache 
+	    return ShortCache.cache[sAsInt + offset];
+	}
+        return new Short(s);
+    }
+
     /**
      * Decodes a <code>String</code> into a <code>Short</code>.
      * Accepts decimal, hexadecimal, and octal numbers given by
@@ -268,7 +301,7 @@ public final class Short extends Number implements Comparable {
      *
      * @serial
      */
-    private short value;
+    private final short value;
 
     /**
      * Constructs a newly allocated <code>Short</code> object that
@@ -402,27 +435,21 @@ public final class Short extends Number implements Comparable {
     }
 
     /**
-     * Compares this <code>Short</code> object to another object.  If
-     * the object is a <code>Short</code>, this function behaves like
-     * <code>compareTo(Short)</code>.  Otherwise, it throws a
-     * <code>ClassCastException</code> (as <code>Short</code> objects
-     * are only comparable to other <code>Short</code> objects).
-     *
-     * @param   o the <code>Object</code> to be compared.
-     * @return  the value <code>0</code> if the argument is a 
-     *		<code>Short</code> numerically equal to this 
-     *		<code>Short</code>; a value less than <code>0</code> if 
-     *		the argument is a <code>Short</code> numerically greater 
-     *		than this <code>Short</code>; and a value greater than 
-     *		<code>0</code> if the argument is a <code>Short</code> 
-     *		numerically less than this <code>Short</code>.
-     * @exception <code>ClassCastException</code> if the argument is not a
-     *		  <code>Short</code>.
-     * @see     java.lang.Comparable
-     * @since   1.2
+     * The number of bits used to represent a <tt>short</tt> value in two's
+     * complement binary form.
      */
-    public int compareTo(Object o) {
-	return compareTo((Short)o);
+    public static final int SIZE = 16;
+ 
+    /**
+     * Returns the value obtained by reversing the order of the bytes in the
+     * two's complement representation of the specified <tt>short</tt> value.
+     *
+     * @return the value obtained by reversing (or, equivalently, swapping)
+     *     the bytes in the specified <tt>short</tt> value.
+     * @since 1.5
+     */
+    public static short reverseBytes(short i) {
+        return (short) (((i & 0xFF00) >> 8) | (i << 8));
     }
 
     /** use serialVersionUID from JDK 1.1. for interoperability */

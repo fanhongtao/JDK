@@ -1,7 +1,7 @@
 /*
- * @(#)MetalScrollPaneUI.java	1.17 03/01/27
+ * @(#)MetalScrollPaneUI.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import java.awt.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 01/27/03
+ * @version 1.19 12/19/03
  * @author Steve Wilson
  */
 public class MetalScrollPaneUI extends BasicScrollPaneUI
@@ -95,10 +95,16 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
         else {
             value = Boolean.TRUE;
         }
-	scrollpane.getHorizontalScrollBar().putClientProperty
+        JScrollBar sb = scrollpane.getHorizontalScrollBar();
+        if (sb != null) {
+            sb.putClientProperty
                    (MetalScrollBarUI.FREE_STANDING_PROP, value);
-	scrollpane.getVerticalScrollBar().putClientProperty
+        }
+        sb = scrollpane.getVerticalScrollBar();
+        if (sb != null) {
+            sb.putClientProperty
                    (MetalScrollBarUI.FREE_STANDING_PROP, value);
+        }
     }
 
     protected PropertyChangeListener createScrollBarSwapListener() {
@@ -107,10 +113,17 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
 		  String propertyName = e.getPropertyName();
 		  if (propertyName.equals("verticalScrollBar") ||
 		      propertyName.equals("horizontalScrollBar")) {
-		        ((JScrollBar)e.getOldValue()).putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, 
-									 null);
-		        ((JScrollBar)e.getNewValue()).putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, 
-									 Boolean.FALSE);
+                      JScrollBar oldSB = (JScrollBar)e.getOldValue();
+                      if (oldSB != null) {
+                          oldSB.putClientProperty(
+                              MetalScrollBarUI.FREE_STANDING_PROP, null);
+                      }
+                      JScrollBar newSB = (JScrollBar)e.getNewValue();
+                      if (newSB != null) {
+                          newSB.putClientProperty(
+                              MetalScrollBarUI.FREE_STANDING_PROP,
+                              Boolean.FALSE);
+                      }
 		  }	  
                   else if ("border".equals(propertyName)) {
                       updateScrollbarsFreeStanding();

@@ -1,22 +1,17 @@
+// $Id: SAXTransformerFactory.java,v 1.2.22.1 2004/07/13 22:27:50 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)SAXTransformerFactory.java	1.11 03/01/23
+ * @(#)SAXTransformerFactory.java	1.13 04/07/13
  */
 package javax.xml.transform.sax;
 
 import javax.xml.transform.*;
 
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXNotSupportedException;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.XMLReader;
 import org.xml.sax.XMLFilter;
-
 
 /**
  * This class extends TransformerFactory to provide SAX-specific

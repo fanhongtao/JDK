@@ -1,7 +1,7 @@
 /*
- * @(#)Mixer.java	1.27 03/01/23
+ * @(#)Mixer.java	1.31 04/07/14
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ package javax.sound.sampled;
  * automatically start or stop simultaneously with the explicitly affected one.
  *
  * @author Kara Kytle
- * @version 1.27, 03/01/23
+ * @version 1.31, 04/07/14
  * @since 1.3
  */
 public interface Mixer extends Line {
@@ -67,31 +67,6 @@ public interface Mixer extends Line {
      * an array of length 0 is returned.
      */
     public Line.Info[] getTargetLineInfo();
-
-    /**
-     * Obtains information about lines of a particular type supported
-     * by the mixer.
-     * @return a <code>Line.Info</code> object describing lines matching the type
-     * requested.  If the mixer supports more than one category of
-     * lines with the specified type, one  matching Line.Info object
-     * is returned.  If no lines of the type are supported,
-     * <code>null</code> is returned.
-     */
-    //public Line.Info getLineInfo(Line.Type type);
-
-
-    /**
-     * Obtains information about lines of a particular type supported
-     * by the mixer.
-     * @param info a <code>Line.Info</code> object describing lines about which information
-     * is queried
-     * @return a <code>Line.Info</code> object that describes lines matching the type
-     * requested.  Even if the mixer supports more than one category of
-     * lines with the specified type, only one matching Line.Info object
-     * is returned.  If no lines of the type are supported,
-     * <code>null</code> is returned.
-     */
-    //public Line.Info getLineInfo(Line.Info info);
 
 
     /**
@@ -133,6 +108,13 @@ public interface Mixer extends Line {
     /**
      * Obtains a line that is available for use and that matches the description
      * in the specified <code>Line.Info</code> object.
+     *
+     * <p>If a <code>DataLine</code> is requested, and <code>info</code>
+     * is an instance of <code>DataLine.Info</code> specifying at
+     * least one fully qualified audio format, the last one
+     * will be used as the default format of the returned
+     * <code>DataLine</code>.
+     *
      * @param info describes the desired line
      * @throws LineUnavailableException if a matching line
      * is not available due to resource restrictions
@@ -145,9 +127,16 @@ public interface Mixer extends Line {
 
     //$$fb 2002-04-12: fix for 4667258: behavior of Mixer.getMaxLines(Line.Info) method doesn't match the spec
     /**
-     * Obtains the maximum number of lines of the requested type that can be open simultaneously
-     * on the mixer.  The requested type is any line that matches the description in
-     * the provided <code>Line.Info</code> object.  For example, if the info object represents a speaker
+     * Obtains the approximate maximum number of lines of the requested type that can be open
+     * simultaneously on the mixer.
+     *
+     * Certain types of mixers do not have a hard bound and may allow opening more lines.
+     * Since certain lines are a shared resource, a mixer may not be able to open the maximum
+     * number of lines if another process has opened lines of this mixer.
+     *
+     * The requested type is any line that matches the description in
+     * the provided <code>Line.Info</code> object.  For example, if the info
+     * object represents a speaker
      * port, and the mixer supports exactly one speaker port, this method
      * should return 1.  If the info object represents a source data line
      * and the mixer supports the use of 32 source data lines simultaneously,
@@ -240,7 +229,7 @@ public interface Mixer extends Line {
      * method of the <code>Mixer</code> interface.
      *
      * @author Kara Kytle
-     * @version 1.27, 03/01/23
+     * @version 1.31, 04/07/14
      * @since 1.3
      */
     public static class Info {

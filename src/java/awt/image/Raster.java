@@ -1,7 +1,7 @@
 /*
- * @(#)Raster.java	1.59 03/01/23
+ * @(#)Raster.java	1.61 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -262,8 +262,11 @@ public class Raster {
                                                 dataType);
         }
 
-        return createInterleavedRaster(d, w, h, scanlineStride,
-                                       pixelStride, bandOffsets, location);
+        SunWritableRaster raster = (SunWritableRaster)
+            createInterleavedRaster(d, w, h, scanlineStride,
+                                    pixelStride, bandOffsets, location);
+        raster.setStolen(false);
+        return raster;
     }
 
     /**
@@ -399,8 +402,11 @@ public class Raster {
                                                 dataType);
         }
 
-        return createBandedRaster(d, w, h, scanlineStride,
-                                  bankIndices, bandOffsets, location);
+        SunWritableRaster raster = (SunWritableRaster)
+            createBandedRaster(d, w, h, scanlineStride,
+                               bankIndices, bandOffsets, location);
+        raster.setStolen(false);
+        return raster;
     }
 
     /**
@@ -457,7 +463,10 @@ public class Raster {
                                                 dataType);
         }
 
-        return createPackedRaster(d, w, h, w, bandMasks, location);
+        SunWritableRaster raster = (SunWritableRaster)
+            createPackedRaster(d, w, h, w, bandMasks, location);
+        raster.setStolen(false);
+        return raster;
     }
 
     /**
@@ -569,7 +578,11 @@ public class Raster {
                 throw new IllegalArgumentException("Unsupported data type " +
                                                    dataType);
             }
-            return createPackedRaster(d, w, h, bitsPerBand, location);
+
+            SunWritableRaster raster = (SunWritableRaster)
+                createPackedRaster(d, w, h, bitsPerBand, location);
+            raster.setStolen(false);
+            return raster;
         }
     }
 
@@ -922,9 +935,10 @@ public class Raster {
            location = new Point(0,0);
         }
 
-        return createWritableRaster(sm,
-                                    sm.createDataBuffer(),
-                                    location);
+        SunWritableRaster raster = (SunWritableRaster)
+            createWritableRaster(sm, sm.createDataBuffer(), location);
+        raster.setStolen(false);
+        return raster;
     }
 
     /**
@@ -1320,7 +1334,10 @@ public class Raster {
         int deltaX = childMinX - parentX;
         int deltaY = childMinY - parentY;
 
-	return new Raster(subSampleModel, dataBuffer,
+        // we use getDataBuffer() here, which will ensure that notifyStolen()
+        // is invoked if this is a SunWritableRaster, thus disabling future
+        // acceleration of this WritableRaster
+	return new Raster(subSampleModel, getDataBuffer(),
 			  new Rectangle(childMinX, childMinY, width, height),
 			  new Point(sampleModelTranslateX + deltaX,
 				    sampleModelTranslateY + deltaY), this);

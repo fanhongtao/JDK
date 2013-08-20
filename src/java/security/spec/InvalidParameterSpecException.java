@@ -1,7 +1,7 @@
 /*
- * @(#)InvalidParameterSpecException.java	1.13 03/01/23
+ * @(#)InvalidParameterSpecException.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import java.security.GeneralSecurityException;
  *
  * @author Jan Luehe
  *
- * @version 1.13, 01/23/03
+ * @version 1.15, 12/19/03
  *
  * @see java.security.AlgorithmParameters
  * @see AlgorithmParameterSpec
@@ -24,6 +24,8 @@ import java.security.GeneralSecurityException;
  */
 
 public class InvalidParameterSpecException extends GeneralSecurityException {
+
+    private static final long serialVersionUID = -970468769593399342L;
 
     /**
      * Constructs an InvalidParameterSpecException with no detail message. A

@@ -1,7 +1,7 @@
 /*
- * @(#)LoginContext.java	1.94 03/01/23
+ * @(#)LoginContext.java	1.98 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,6 +19,7 @@ import javax.security.auth.AuthPermission;
 import javax.security.auth.callback.*;
 import java.security.AccessController;
 import java.security.AccessControlContext;
+import sun.security.util.PendingException;
 import sun.security.util.ResourcesMgr;
 
 /**
@@ -27,100 +28,156 @@ import sun.security.util.ResourcesMgr;
  * application independent of the underlying authentication technology.
  * A <code>Configuration</code> specifies the authentication technology, or
  * <code>LoginModule</code>, to be used with a particular application.
- * Therefore, different LoginModules can be plugged in under an application
+ * Different LoginModules can be plugged in under an application
  * without requiring any modifications to the application itself.
  *
  * <p> In addition to supporting <i>pluggable</i> authentication, this class
- * also supports the notion of <i>stacked</i> authentication.  In other words,
- * an application may be configured to use more than one
- * <code>LoginModule</code>.  For example, one could
- * configure both a Kerberos <code>LoginModule</code> and a smart card
- * <code>LoginModule</code> under an application.
+ * also supports the notion of <i>stacked</i> authentication.
+ * Applications may be configured to use more than one
+ * LoginModule.  For example, one could
+ * configure both a Kerberos LoginModule and a smart card
+ * LoginModule under an application.
  *
- * <p> A typical caller instantiates this class and passes in
+ * <p> A typical caller instantiates a LoginContext with
  * a <i>name</i> and a <code>CallbackHandler</code>.
- * <code>LoginContext</code> uses the <i>name</i> as the index into the
- * <code>Configuration</code> to determine which LoginModules should be used,
+ * LoginContext uses the <i>name</i> as the index into a
+ * Configuration to determine which LoginModules should be used,
  * and which ones must succeed in order for the overall authentication to
  * succeed.  The <code>CallbackHandler</code> is passed to the underlying
  * LoginModules so they may communicate and interact with users
  * (prompting for a username and password via a graphical user interface,
  * for example).
  *
- * <p> Once the caller has instantiated a <code>LoginContext</code>,
+ * <p> Once the caller has instantiated a LoginContext,
  * it invokes the <code>login</code> method to authenticate
- * a <code>Subject</code>.  This <code>login</code> method invokes the
- * <code>login</code> method from each of the LoginModules configured for
- * the <i>name</i> specified by the caller.  Each <code>LoginModule</code>
- * then performs its respective type of authentication (username/password,
- * smart card pin verification, etc.).  Note that the LoginModules will not
- * attempt authentication retries or introduce delays if the authentication
- * fails.  Such tasks belong to the caller.
- *
- * <p> Regardless of whether or not the overall authentication succeeded,
- * this <code>login</code> method completes a 2-phase authentication process
- * by then calling either the <code>commit</code> method or the
- * <code>abort</code> method for each of the configured LoginModules.
- * The <code>commit</code> method for each <code>LoginModule</code>
- * gets invoked if the overall authentication succeeded,
- * whereas the <code>abort</code> method for each <code>LoginModule</code>
- * gets invoked if the overall authentication failed.
- * Each successful LoginModule's <code>commit</code>
- * method associates the relevant Principals (authenticated identities)
- * and Credentials (authentication data such as cryptographic keys)
- * with the <code>Subject</code>.  Each LoginModule's <code>abort</code>
- * method cleans up or removes/destroys any previously stored authentication
- * state.
+ * a <code>Subject</code>.  The <code>login</code> method invokes
+ * the configured modules to perform their respective types of authentication
+ * (username/password, smart card pin verification, etc.).
+ * Note that the LoginModules will not attempt authentication retries nor
+ * introduce delays if the authentication fails.
+ * Such tasks belong to the LoginContext caller.
  *
  * <p> If the <code>login</code> method returns without
  * throwing an exception, then the overall authentication succeeded.
  * The caller can then retrieve
- * the newly authenticated <code>Subject</code> by invoking the
+ * the newly authenticated Subject by invoking the
  * <code>getSubject</code> method.  Principals and Credentials associated
- * with the <code>Subject</code> may be retrieved by invoking the Subject's
+ * with the Subject may be retrieved by invoking the Subject's
  * respective <code>getPrincipals</code>, <code>getPublicCredentials</code>,
  * and <code>getPrivateCredentials</code> methods.
  *
- * <p> To logout the <code>Subject</code>, the caller simply needs to
- * invoke the <code>logout</code> method.  As with the <code>login</code>
+ * <p> To logout the Subject, the caller calls
+ * the <code>logout</code> method.  As with the <code>login</code>
  * method, this <code>logout</code> method invokes the <code>logout</code>
- * method for each <code>LoginModule</code> configured for this
- * <code>LoginContext</code>.  Each LoginModule's <code>logout</code>
- * method cleans up state and removes/destroys Principals and Credentials
- * from the <code>Subject</code> as appropriate.
+ * method for the configured modules.
  * 
- * <p> Each of the configured LoginModules invoked by the
- * <code>LoginContext</code> is initialized with a
- * <code>Subject</code> to be authenticated, a <code>CallbackHandler</code>
- * used to communicate with users, shared <code>LoginModule</code> state,
- * and LoginModule-specific options.  If the <code>LoginContext</code>
- * was not provided a <code>Subject</code> then it instantiates one itself.
+ * <p> A LoginContext should not be used to authenticate
+ * more than one Subject.  A separate LoginContext
+ * should be used to authenticate each different Subject.
  *
- * <p> Each <code>LoginModule</code>
- * which successfully authenticates a user updates the <code>Subject</code>
- * with the relevant user information (Principals and Credentials).
- * This <code>Subject</code> can then be returned via the
- * <code>getSubject</code> method from the <code>LoginContext</code> class
- * if the overall authentication succeeds.  Note that LoginModules are always
- * invoked from within an <code>AccessController.doPrivileged</code> call.
- * Therefore, although LoginModules that perform security-sensitive tasks
- * (such as connecting to remote hosts) need to be granted the relevant
- * Permissions in the security <code>Policy</code>, the callers of the
- * LoginModules do not require those Permissions.
+ * <p> The following documentation applies to all LoginContext constructors:
+ * <ol>
+ *
+ * <li> <code>Subject</code>
+ * <ul>
+ * <li> If the constructor has a Subject
+ * input parameter, the LoginContext uses the caller-specified
+ * Subject object.
+ * <p>
+ * <li> If the caller specifies a <code>null</code> Subject
+ * and a <code>null</code> value is permitted,
+ * the LoginContext instantiates a new Subject.
+ * <p>
+ * <li> If the constructor does <b>not</b> have a Subject
+ * input parameter, the LoginContext instantiates a new Subject.
+ * <p>
+ * </ul>
+ *
+ * <li> <code>Configuration</code> 
+ * <ul> 
+ * <li> If the constructor has a Configuration 
+ * input parameter and the caller specifies a non-null Configuration, 
+ * the LoginContext uses the caller-specified Configuration.
+ * <p>
+ * If the constructor does <b>not</b> have a Configuration
+ * input parameter, or if the caller specifies a <code>null</code>
+ * Configuration object, the constructor uses the following call to
+ * get the installed Configuration:
+ * <pre>
+ *      config = Configuration.getConfiguration();
+ * </pre>
+ * For both cases,
+ * the <i>name</i> argument given to the constructor is passed to the
+ * <code>Configuration.getAppConfigurationEntry</code> method.
+ * If the Configuration has no entries for the specified <i>name</i>,
+ * then the <code>LoginContext</code> calls
+ * <code>getAppConfigurationEntry</code> with the name, "<i>other</i>"
+ * (the default entry name).  If there is no entry for "<i>other</i>",
+ * then a <code>LoginException</code> is thrown.
+ * <p>
+ * <li> When LoginContext uses the installed Configuration, the caller
+ * requires the createLoginContext.<em>name</em> and possibly
+ * createLoginContext.other AuthPermissions. Furthermore, the
+ * LoginContext will invoke configured modules from within an
+ * <code>AccessController.doPrivileged</code> call so that modules that
+ * perform security-sensitive tasks (such as connecting to remote hosts,
+ * and updating the Subject) will require the respective permissions, but
+ * the callers of the LoginContext will not require those permissions.
+ * <p>
+ * <li> When LoginContext uses a caller-specified Configuration, the caller
+ * does not require any createLoginContext AuthPermission.  The LoginContext
+ * saves the <code>AccessControlContext</code> for the caller,
+ * and invokes the configured modules from within an
+ * <tt>AccessController.doPrivileged</tt> call constrained by that context.
+ * This means the caller context (stored when the LoginContext was created)
+ * must have sufficient permissions to perform any security-sensitive tasks
+ * that the modules may perform.
+ * <p>
+ * </ul>
+ *
+ * <li> <code>CallbackHandler</code>
+ * <ul>
+ * <li> If the constructor has a CallbackHandler
+ * input parameter, the LoginContext uses the caller-specified
+ * CallbackHandler object.
+ * <p>
+ * <li> If the constructor does <b>not</b> have a CallbackHandler
+ * input parameter, or if the caller specifies a <code>null</code>
+ * CallbackHandler object (and a <code>null</code> value is permitted),
+ * the LoginContext queries the
+ * <i>auth.login.defaultCallbackHandler</i> security property
+ * for the fully qualified class name of a default handler implementation.
+ * If the security property is not set,
+ * then the underlying modules will not have a
+ * CallbackHandler for use in communicating
+ * with users.  The caller thus assumes that the configured
+ * modules have alternative means for authenticating the user.
+ *
+ * <p>
+ * <li> When the LoginContext uses the installed Configuration (instead of
+ * a caller-specified Configuration, see above),
+ * then this LoginContext must wrap any
+ * caller-specified or default CallbackHandler implementation
+ * in a new CallbackHandler implementation
+ * whose <code>handle</code> method implementation invokes the
+ * specified CallbackHandler's <code>handle</code> method in a
+ * <code>java.security.AccessController.doPrivileged</code> call
+ * constrained by the caller's current <code>AccessControlContext</code>.
+ * </ul>
+ * </ol>
+ *
+ * <p> Note that Security Properties
+ * (such as <code>auth.login.defaultCallbackHandler</code>)
+ * can be set programmatically via the
+ * <code>java.security.Security</code> class,
+ * or statically in the Java security properties file located in the
+ * file named &lt;JAVA_HOME&gt;/lib/security/java.security,
+ * where &lt;JAVA_HOME&gt; refers to the directory where the JDK
+ * was installed.
  * 
- * <p> A <code>LoginContext</code> supports authentication retries 
- * by the calling application.  For example, a LoginContext's
- * <code>login</code> method may be invoked multiple times
- * if the user incorrectly types in a password.  However, a
- * <code>LoginContext</code> should not be used to authenticate
- * more than one <code>Subject</code>.  A separate <code>LoginContext</code>
- * should be used to authenticate each different <code>Subject</code>.
- * 
- * <p> Multiple calls into the same <code>LoginContext</code> 
- * do not affect the <code>LoginModule</code> state, or the
- * LoginModule-specific options.
- * 
- * @version 1.94, 01/23/03
+ * @version 1.98, 06/28/04
+ * @see java.security.Security
+ * @see javax.security.auth.AuthPermission
  * @see javax.security.auth.Subject
  * @see javax.security.auth.callback.CallbackHandler
  * @see javax.security.auth.login.Configuration
@@ -143,17 +200,27 @@ public class LoginContext {
     private Map state = new HashMap();
 
     private Configuration config;
+    private boolean configProvided = false;
+    private AccessControlContext creatorAcc = null;
     private ModuleInfo[] moduleStack;
     private ClassLoader contextClassLoader = null;
     private static final Class[] PARAMS = { };
+
+    // state saved in the event a user-specified asynchronous exception
+    // was specified and thrown
+
+    private int moduleIndex = 0;
+    private LoginException firstError = null;
+    private LoginException firstRequiredError = null;
+    private boolean success = false;
 
     private static final sun.security.util.Debug debug =
 	sun.security.util.Debug.getInstance("logincontext", "\t[LoginContext]");
 
     private void init(String name) throws LoginException {
 
-	java.lang.SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null && !configProvided) {
 	    sm.checkPermission(new AuthPermission
 				("createLoginContext." + name));
 	}
@@ -176,7 +243,7 @@ public class LoginContext {
 	AppConfigurationEntry[] entries = config.getAppConfigurationEntry(name);
 	if (entries == null) {
 
-	    if (sm != null) {
+	    if (sm != null && !configProvided) {
 		sm.checkPermission(new AuthPermission
 				("createLoginContext." + OTHER));
 	    }
@@ -200,7 +267,6 @@ public class LoginContext {
 				null);
 	}
 
-
 	contextClassLoader =
 		(ClassLoader)java.security.AccessController.doPrivileged
 		(new java.security.PrivilegedAction() {
@@ -222,7 +288,7 @@ public class LoginContext {
 		(new java.security.PrivilegedExceptionAction() {
 		public Object run() throws Exception {
 		    String defaultHandler = java.security.Security.getProperty
-			("auth.login.defaultCallbackHandler");
+			(DEFAULT_HANDLER);
 		    if (defaultHandler == null || defaultHandler.length() == 0)
 			return null;
 		    Class c = Class.forName(defaultHandler,
@@ -236,7 +302,7 @@ public class LoginContext {
 	}
 
 	// secure it with the caller's ACC
-	if (this.callbackHandler != null) {
+	if (this.callbackHandler != null && !configProvided) {
 	    this.callbackHandler = new SecureCallbackHandler
 				(java.security.AccessController.getContext(),
 				this.callbackHandler);
@@ -244,49 +310,25 @@ public class LoginContext {
     }
 
     /**
-     * Constructor for the <code>LoginContext</code> class.
-     *
-     * <p> Initialize the new <code>LoginContext</code> object with a name.
-     * <code>LoginContext</code> uses the specified name as the index
-     * into the <code>Configuration</code> to determine which LoginModules
-     * should be used.  If the provided name does not match any in the
-     * <code>Configuration</code>, then the <code>LoginContext</code>
-     * uses the default <code>Configuration</code> entry, "<i>other</i>".
-     * If there is no <code>Configuration</code> entry for "<i>other</i>",
-     * then a <code>LoginException</code> is thrown.
-     *
-     * <p> This constructor does not allow for a <code>CallbackHandler</code>.
-     * If the <i>auth.login.defaultCallbackHandler</i> security property
-     * is set to the fully qualified name of a default
-     * <code>CallbackHandler</code> implementation class,
-     * then that <code>CallbackHandler</code> will be loaded and
-     * passed to the underlying LoginModules.  If the security property
-     * is not set, then the underlying LoginModules
-     * will not have a <code>CallbackHandler</code> for use in communicating
-     * with users.  The caller thus assumes that the configured
-     * LoginModules have alternative means for authenticating the user.
-     *
-     * <p> The <i>auth.login.defaultCallbackHandler</i> security property
-     * can be set in the Java security properties file located in the
-     * file named &lt;JAVA_HOME&gt;/lib/security/java.security,
-     * where &lt;JAVA_HOME&gt; refers to the directory where the SDK
-     * was installed.
-     *
-     * <p> Since no <code>Subject</code> can be specified to this constructor,
-     * it instantiates a <code>Subject</code> itself.
-     *
-     * <p>
+     * Instantiate a new <code>LoginContext</code> object with a name.
      *
      * @param name the name used as the index into the
      *		<code>Configuration</code>.
      *
-     * @exception LoginException if the specified <code>name</code>
+     * @exception LoginException if the caller-specified <code>name</code>
      *		does not appear in the <code>Configuration</code>
      *		and there is no <code>Configuration</code> entry
      *		for "<i>other</i>", or if the
      *		<i>auth.login.defaultCallbackHandler</i>
      *		security property was set, but the implementation
      *		class could not be loaded.
+     *		<p>
+     * @exception SecurityException if a SecurityManager is set and
+     *		the caller does not have
+     *		AuthPermission("createLoginContext.<i>name</i>"),
+     *		or if a configuration entry for <i>name</i> does not exist and
+     *		the caller does not additionally have
+     *		AuthPermission("createLoginContext.other")
      */
     public LoginContext(String name) throws LoginException {
 	init(name);
@@ -294,40 +336,8 @@ public class LoginContext {
     }
 
     /**
-     * Constructor for the <code>LoginContext</code> class.
-     *
-     * <p> Initialize the new <code>LoginContext</code> object with a name
+     * Instantiate a new <code>LoginContext</code> object with a name
      * and a <code>Subject</code> object.
-     *
-     * <p> <code>LoginContext</code> uses the name as the index
-     * into the <code>Configuration</code> to determine which LoginModules
-     * should be used.  If the provided name does not match any in the
-     * <code>Configuration</code>, then the <code>LoginContext</code>
-     * uses the default <code>Configuration</code> entry, "<i>other</i>".
-     * If there is no <code>Configuration</code> entry for "<i>other</i>",
-     * then a <code>LoginException</code> is thrown.
-     *
-     * <p> This constructor does not allow for a <code>CallbackHandler</code>.
-     * If the <i>auth.login.defaultCallbackHandler</i> security property
-     * is set to the fully qualified name of a default
-     * <code>CallbackHandler</code> implementation class,
-     * then that <code>CallbackHandler</code> will be loaded and
-     * passed to the underlying LoginModules.  If the security property
-     * is not set, then the underlying LoginModules
-     * will not have a <code>CallbackHandler</code> for use in communicating
-     * with users.  The caller thus assumes that the configured
-     * LoginModules have alternative means for authenticating the user.
-     *
-     * <p> The <i>auth.login.defaultCallbackHandler</i> security property
-     * can be set in the Java security properties file located in the
-     * file named %lt;JAVA_HOME%gt;/lib/security/java.security,
-     * where %lt;JAVA_HOME%gt; refers to the directory where the SDK
-     * was installed.
-     *
-     * <p> <code>LoginContext</code> passes the <code>Subject</code>
-     * object to configured LoginModules so they may perform additional
-     * authentication and update the <code>Subject</code> with new
-     * Principals and Credentials.
      *
      * <p>
      *
@@ -336,14 +346,21 @@ public class LoginContext {
      *
      * @param subject the <code>Subject</code> to authenticate.
      *
-     * @exception LoginException if the specified <code>name</code>
+     * @exception LoginException if the caller-specified <code>name</code>
      *		does not appear in the <code>Configuration</code>
      *          and there is no <code>Configuration</code> entry
-     *          for "<i>other</i>", if the specified <code>subject</code>
+     *          for "<i>other</i>", if the caller-specified <code>subject</code>
      *		is <code>null</code>, or if the
      *		<i>auth.login.defaultCallbackHandler</i>
      *		security property was set, but the implementation
      *		class could not be loaded.
+     *		<p>
+     * @exception SecurityException if a SecurityManager is set and
+     *		the caller does not have
+     *		AuthPermission("createLoginContext.<i>name</i>"),
+     *		or if a configuration entry for <i>name</i> does not exist and
+     *		the caller does not additionally have
+     *		AuthPermission("createLoginContext.other")
      */
     public LoginContext(String name, Subject subject)
     throws LoginException {
@@ -357,33 +374,8 @@ public class LoginContext {
     }
 
     /**
-     * Constructor for the <code>LoginContext</code> class.
-     *
-     * <p> Initialize the new <code>LoginContext</code> object with a name
+     * Instantiate a new <code>LoginContext</code> object with a name
      * and a <code>CallbackHandler</code> object.
-     *
-     * <p> <code>LoginContext</code> uses the name as the index
-     * into the <code>Configuration</code> to determine which LoginModules
-     * should be used.  If the provided name does not match any in the
-     * <code>Configuration</code>, then the <code>LoginContext</code>
-     * uses the default <code>Configuration</code> entry, "<i>other</i>".
-     * If there is no <code>Configuration</code> entry for "<i>other</i>",
-     * then a <code>LoginException</code> is thrown.
-     *
-     * <p> <code>LoginContext</code> passes the <code>CallbackHandler</code>
-     * object to configured LoginModules so they may communicate with the user.
-     * The <code>CallbackHandler</code> object therefore allows LoginModules to
-     * remain independent of the different ways applications interact with
-     * users.  This <code>LoginContext</code> must wrap the
-     * application-provided <code>CallbackHandler</code> in a new
-     * <code>CallbackHandler</code> implementation, whose <code>handle</code>
-     * method implementation invokes the application-provided
-     * CallbackHandler's <code>handle</code> method in a
-     * <code>java.security.AccessController.doPrivileged</code> call
-     * constrained by the caller's current <code>AccessControlContext</code>.
-     *
-     * <p> Since no <code>Subject</code> can be specified to this constructor,
-     * it instantiates a <code>Subject</code> itself.
      *
      * <p>
      *
@@ -393,11 +385,18 @@ public class LoginContext {
      * @param callbackHandler the <code>CallbackHandler</code> object used by
      *		LoginModules to communicate with the user.
      *
-     * @exception LoginException if the specified <code>name</code>
+     * @exception LoginException if the caller-specified <code>name</code>
      *          does not appear in the <code>Configuration</code>
      *          and there is no <code>Configuration</code> entry
-     *          for "<i>other</i>", or if the specified
+     *          for "<i>other</i>", or if the caller-specified
      *		<code>callbackHandler</code> is <code>null</code>.
+     *		<p>
+     * @exception SecurityException if a SecurityManager is set and
+     *		the caller does not have
+     *		AuthPermission("createLoginContext.<i>name</i>"),
+     *		or if a configuration entry for <i>name</i> does not exist and
+     *		the caller does not additionally have
+     *		AuthPermission("createLoginContext.other")
      */
     public LoginContext(String name, CallbackHandler callbackHandler)
     throws LoginException {
@@ -411,37 +410,9 @@ public class LoginContext {
     }
 
     /**
-     * Constructor for the <code>LoginContext</code> class.
-     *
-     * <p> Initialize the new <code>LoginContext</code> object with a name,
+     * Instantiate a new <code>LoginContext</code> object with a name,
      * a <code>Subject</code> to be authenticated, and a
      * <code>CallbackHandler</code> object.
-     *
-     * <p> <code>LoginContext</code> uses the name as the index
-     * into the <code>Configuration</code> to determine which LoginModules
-     * should be used.  If the provided name does not match any in the
-     * <code>Configuration</code>, then the <code>LoginContext</code>
-     * uses the default <code>Configuration</code> entry, "<i>other</i>".
-     * If there is no <code>Configuration</code> entry for "<i>other</i>",
-     * then a <code>LoginException</code> is thrown.
-     *
-     * <p> <code>LoginContext</code> passes the <code>Subject</code>
-     * object to configured LoginModules so they may perform additional
-     * authentication and update the <code>Subject</code> with new
-     * Principals and Credentials.
-     *
-     * <p> <code>LoginContext</code> passes the <code>CallbackHandler</code>
-     * object to configured LoginModules so they may communicate with the user.
-     * The <code>CallbackHandler</code> object therefore allows LoginModules to
-     * remain independent of the different ways applications interact with
-     * users.  This <code>LoginContext</code> must wrap the
-     * application-provided <code>CallbackHandler</code> in a new
-     * <code>CallbackHandler</code> implementation, whose <code>handle</code>
-     * method implementation invokes the application-provided
-     * CallbackHandler's <code>handle</code> method in a
-     * <code>java.security.AccessController.doPrivileged</code> call
-     * constrained by the caller's current <code>AccessControlContext</code>.
-     *
      *
      * <p>
      *
@@ -453,12 +424,20 @@ public class LoginContext {
      * @param callbackHandler the <code>CallbackHandler</code> object used by
      *		LoginModules to communicate with the user.
      *
-     * @exception LoginException if the specified <code>name</code>
+     * @exception LoginException if the caller-specified <code>name</code>
      *          does not appear in the <code>Configuration</code>
      *          and there is no <code>Configuration</code> entry
-     *          for "<i>other</i>", or if the specified <code>subject</code>
-     *          is <code>null</code>, or if the specified
+     *          for "<i>other</i>", or if the caller-specified
+     *		<code>subject</code> is <code>null</code>,
+     *		or if the caller-specified
      *		<code>callbackHandler</code> is <code>null</code>.
+     *		<p>
+     * @exception SecurityException if a SecurityManager is set and
+     *		the caller does not have
+     *		AuthPermission("createLoginContext.<i>name</i>"),
+     *		or if a configuration entry for <i>name</i> does not exist and
+     *		the caller does not additionally have
+     *		AuthPermission("createLoginContext.other")
      */
     public LoginContext(String name, Subject subject,
 			CallbackHandler callbackHandler) throws LoginException {
@@ -472,12 +451,72 @@ public class LoginContext {
     }
 
     /**
-     * Perform the authentication and, if successful,
-     * associate Principals and Credentials with the authenticated
-     * <code>Subject</code>.
+     * Instantiate a new <code>LoginContext</code> object with a name,
+     * a <code>Subject</code> to be authenticated,
+     * a <code>CallbackHandler</code> object, and a login
+     * <code>Configuration</code>.
+     *
+     * <p>
+     *
+     * @param name the name used as the index into the caller-specified
+     *          <code>Configuration</code>. <p>
+     *
+     * @param subject the <code>Subject</code> to authenticate,
+     *          or <code>null</code>. <p>
+     *
+     * @param callbackHandler the <code>CallbackHandler</code> object used by
+     *          LoginModules to communicate with the user, or <code>null</code>.
+     *		<p>
+     *
+     * @param config the <code>Configuration</code> that lists the
+     *          login modules to be called to perform the authentication,
+     *          or <code>null</code>.
+     *
+     * @exception LoginException if the caller-specified <code>name</code>
+     *          does not appear in the <code>Configuration</code>
+     *          and there is no <code>Configuration</code> entry
+     *          for "<i>other</i>".
+     *		<p>
+     * @exception SecurityException if a SecurityManager is set,
+     *		<i>config</i> is <code>null</code>,
+     *		and either the caller does not have
+     *		AuthPermission("createLoginContext.<i>name</i>"),
+     *		or if a configuration entry for <i>name</i> does not exist and
+     *		the caller does not additionally have
+     *		AuthPermission("createLoginContext.other")
+     *
+     * @since 1.5
+     */
+    public LoginContext(String name, Subject subject,
+                        CallbackHandler callbackHandler,
+                        Configuration config) throws LoginException {
+	this.config = config;
+	configProvided = (config != null) ? true : false;
+	if (configProvided) {
+	    creatorAcc = java.security.AccessController.getContext();
+	}
+	
+	init(name);
+	if (subject != null) {
+	    this.subject = subject;
+	    subjectProvided = true;
+	}
+	if (callbackHandler == null) {
+	    loadDefaultCallbackHandler();
+	} else if (!configProvided) {
+	    this.callbackHandler = new SecureCallbackHandler
+				(java.security.AccessController.getContext(),
+				callbackHandler);
+	} else {
+	    this.callbackHandler = callbackHandler;
+	}
+    }
+
+    /**
+     * Perform the authentication.
      *
      * <p> This method invokes the <code>login</code> method for each
-     * LoginModule configured for the <i>name</i> provided to the
+     * LoginModule configured for the <i>name</i> specified to the
      * <code>LoginContext</code> constructor, as determined by the login
      * <code>Configuration</code>.  Each <code>LoginModule</code>
      * then performs its respective type of authentication
@@ -511,7 +550,7 @@ public class LoginContext {
      *
      * <p> Note that if this method enters the <code>abort</code> phase
      * (either the <code>login</code> or <code>commit</code> phase failed),
-     * this method invokes all LoginModules configured for the specified
+     * this method invokes all LoginModules configured for the
      * application regardless of their respective <code>Configuration</code>
      * flag parameters.  Essentially this means that <code>Requisite</code>
      * and <code>Sufficient</code> semantics are ignored during the
@@ -531,13 +570,23 @@ public class LoginContext {
 	}
 
 	try {
-	    invokeModule(LOGIN_METHOD);
-	    invokeModule(COMMIT_METHOD);
+	    if (configProvided) {
+		// module invoked in doPrivileged with creatorAcc
+		invokeCreatorPriv(LOGIN_METHOD);
+		invokeCreatorPriv(COMMIT_METHOD);
+	    } else {
+		// module invoked in doPrivileged
+		invokePriv(LOGIN_METHOD);
+		invokePriv(COMMIT_METHOD);
+	    }
 	    loginSucceeded = true;
 	} catch (LoginException le) {
-
 	    try {
-		invokeModule(ABORT_METHOD);
+		if (configProvided) {
+		    invokeCreatorPriv(ABORT_METHOD);
+		} else {
+		    invokePriv(ABORT_METHOD);
+		}
 	    } catch (LoginException le2) {
 		throw le;
 	    }
@@ -556,7 +605,7 @@ public class LoginContext {
      * from the <code>Subject</code> and state cleanup.
      *
      * <p> Note that this method invokes all LoginModules configured for the
-     * specified application regardless of their respective
+     * application regardless of their respective
      * <code>Configuration</code> flag parameters.  Essentially this means
      * that <code>Requisite</code> and <code>Sufficient</code> semantics are
      * ignored for this method.  This guarantees that proper cleanup
@@ -572,7 +621,13 @@ public class LoginContext {
 		("null subject - logout called before login"));
 	}
 
-	invokeModule(LOGOUT_METHOD);
+	if (configProvided) {
+	    // module invoked in doPrivileged with creatorAcc
+	    invokeCreatorPriv(LOGOUT_METHOD);
+	} else {
+	    // module invoked in doPrivileged
+	    invokePriv(LOGOUT_METHOD);
+	}
     }
 
     /**
@@ -580,10 +635,14 @@ public class LoginContext {
      *
      * <p>
      *
-     * @return the authenticated Subject.  If authentication fails
-     *		and a Subject was not provided to this LoginContext's
-     *		constructor, this method returns <code>null</code>.
-     *		Otherwise, this method returns the provided Subject.
+     * @return the authenticated Subject.  If the caller specified a
+     *		Subject to this LoginContext's constructor,
+     *		this method returns the caller-specified Subject.
+     *		If a Subject was not specified and authentication succeeds,
+     *		this method returns the Subject instantiated and used for
+     *		authentication by this LoginContext.
+     *		If a Subject was not specified, and authentication fails or
+     *		has not been attempted, this method returns null.
      */
     public Subject getSubject() {
 	if (!loginSucceeded && !subjectProvided)
@@ -591,8 +650,20 @@ public class LoginContext {
 	return subject;
     }
 
+    private void clearState() {
+	moduleIndex = 0;
+	firstError = null;
+	firstRequiredError = null;
+	success = false;
+    }
+
     private void throwException(LoginException originalError, LoginException le)
     throws LoginException {
+
+	// first clear state
+	clearState();
+	
+	// throw the exception
 	LoginException error = (originalError != null) ? originalError : le;
 	throw error;
     }
@@ -600,14 +671,16 @@ public class LoginContext {
     /**
      * Invokes the login, commit, and logout methods
      * from a LoginModule inside a doPrivileged block.
+     *
+     * This version is called if the caller did not instantiate
+     * the LoginContext with a Configuration object.
      */
-    private void invokeModule(String methodName) throws LoginException {
+    private void invokePriv(final String methodName) throws LoginException {
 	try {
-	    final String finalName = methodName;
 	    java.security.AccessController.doPrivileged
 		(new java.security.PrivilegedExceptionAction() {
 		public Object run() throws LoginException {
-		    invoke(finalName);
+		    invoke(methodName);
 		    return null;
 		}
 	    });
@@ -616,14 +689,35 @@ public class LoginContext {
 	}
     }
 
+    /**
+     * Invokes the login, commit, and logout methods
+     * from a LoginModule inside a doPrivileged block restricted
+     * by creatorAcc
+     *
+     * This version is called if the caller instantiated
+     * the LoginContext with a Configuration object.
+     */
+    private void invokeCreatorPriv(final String methodName)
+		throws LoginException {
+	try {
+	    java.security.AccessController.doPrivileged
+		(new java.security.PrivilegedExceptionAction() {
+		public Object run() throws LoginException {
+		    invoke(methodName);
+		    return null;
+		}
+	    }, creatorAcc);
+	} catch (java.security.PrivilegedActionException pae) {
+	    throw (LoginException)pae.getException();
+	}
+    }
+
     private void invoke(String methodName) throws LoginException {
 
-	LoginException firstError = null;
-	LoginException firstRequiredError = null;
-	boolean success = false;
+	// start at moduleIndex
+	// - this can only be non-zero if methodName is LOGIN_METHOD
 
-	for (int i = 0; i < moduleStack.length; i++) {
-
+	for (int i = moduleIndex; i < moduleStack.length; i++, moduleIndex++) {
 	    try {
 
 		int mIndex = 0;
@@ -684,6 +778,9 @@ public class LoginContext {
 		    AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT &&
 			firstRequiredError == null) {
 
+			// clear state
+			clearState();
+
 			if (debug != null)
 			    debug.println(methodName + " SUFFICIENT success");
 			return;
@@ -702,26 +799,71 @@ public class LoginContext {
 			("unable to instantiate LoginModule, module, because " +
 			"it does not provide a no-argument constructor"));
 		Object[] source = {moduleStack[i].entry.getLoginModuleName()};
-		throw new LoginException(form.format(source));
+		throwException(null, new LoginException(form.format(source)));
 	    } catch (InstantiationException ie) {
-		throw new LoginException(ResourcesMgr.getString
+		throwException(null, new LoginException(ResourcesMgr.getString
 			("unable to instantiate LoginModule: ") +
-			ie.getMessage());
+			ie.getMessage()));
 	    } catch (ClassNotFoundException cnfe) {
-		throw new LoginException(ResourcesMgr.getString
+		throwException(null, new LoginException(ResourcesMgr.getString
 			("unable to find LoginModule class: ") +
-			cnfe.getMessage());
+			cnfe.getMessage()));
 	    } catch (IllegalAccessException iae) {
-		throw new LoginException(ResourcesMgr.getString
+		throwException(null, new LoginException(ResourcesMgr.getString
 			("unable to access LoginModule: ") +
-			iae.getMessage());
+			iae.getMessage()));
 	    } catch (InvocationTargetException ite) {
 
 		// failure cases
+
 		LoginException le;
-		if (ite.getTargetException() instanceof LoginException) {
+
+		if (ite.getCause() instanceof PendingException &&
+		    methodName.equals(LOGIN_METHOD)) {
+		    
+		    // XXX
+		    //
+		    // if a module's LOGIN_METHOD threw a PendingException
+		    // then immediately throw it.
+		    //
+		    // when LoginContext is called again,
+		    // the module that threw the exception is invoked first
+		    // (the module list is not invoked from the start).
+		    // previously thrown exception state is still present.
+		    //
+		    // it is assumed that the module which threw
+		    // the exception can have its
+		    // LOGIN_METHOD invoked twice in a row
+		    // without any commit/abort in between.
+		    //
+		    // in all cases when LoginContext returns
+		    // (either via natural return or by throwing an exception)
+		    // we need to call clearState before returning.
+		    // the only time that is not true is in this case -
+		    // do not call throwException here.
+
+		    throw (PendingException)ite.getCause();
+
+		} else if (ite.getCause() instanceof LoginException) {
+
 		    le = (LoginException)ite.getCause();
+
+		} else if (ite.getCause() instanceof SecurityException) {
+
+		    // do not want privacy leak
+		    // (e.g., sensitive file path in exception msg)
+
+		    le = new LoginException("Security Exception");
+		    le.initCause(new SecurityException());
+		    if (debug != null) {
+			debug.println
+			    ("original security exception with detail msg " +
+			    "replaced by new exception with empty detail msg");
+			debug.println("original security exception: " +
+				ite.getCause().toString());
+		    }
 		} else {
+
 		    // capture an unexpected LoginModule exception
 		    java.io.StringWriter sw = new java.io.StringWriter();
 		    ite.getCause().printStackTrace
@@ -781,12 +923,14 @@ public class LoginContext {
 		null);
 	} else {
 	    // success
+
+	    clearState();
 	    return;
 	}
     }
 
     /**
-     * Wrap the application-provided CallbackHandler in our own
+     * Wrap the caller-specified CallbackHandler in our own
      * and invoke it within a privileged block, constrained by
      * the caller's AccessControlContext.
      */
@@ -801,15 +945,14 @@ public class LoginContext {
 	    this.ch = ch;
 	}
 
-	public void handle(Callback[] callbacks) throws java.io.IOException,
-						UnsupportedCallbackException {
+	public void handle(final Callback[] callbacks)
+		throws java.io.IOException, UnsupportedCallbackException {
 	    try {
-		final Callback[] finalCallbacks = callbacks;
 		java.security.AccessController.doPrivileged
 		    (new java.security.PrivilegedExceptionAction() {
 		    public Object run() throws java.io.IOException,
 					UnsupportedCallbackException {	
-			ch.handle(finalCallbacks);
+			ch.handle(callbacks);
 			return null;
 		    }
 		}, acc);

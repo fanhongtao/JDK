@@ -1,12 +1,13 @@
 /*
- * @(#)BasicMenuItemUI.java	1.118 03/01/23
+ * @(#)BasicMenuItemUI.java	1.128 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -18,11 +19,12 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.View;
 
+import sun.swing.UIAction;
 
 /**
  * BasicMenuItem implementation
  *
- * @version 1.118 01/23/03
+ * @version 1.128 12/19/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -44,15 +46,13 @@ public class BasicMenuItemUI extends MenuItemUI
     protected MouseInputListener mouseInputListener;
     protected MenuDragMouseListener menuDragMouseListener;
     protected MenuKeyListener menuKeyListener;
-    private   PropertyChangeListener propertyChangeListener;
+    // BasicMenuUI also uses this.
+    Handler handler;
     
     protected Icon arrowIcon = null;
     protected Icon checkIcon = null;
 
     protected boolean oldBorderPainted;
-
-    /** Used for accelerator binding, lazily created. */
-    InputMap windowInputMap;
 
     /* diagnostic aids -- should be false for production builds. */
     private static final boolean TRACE =   false; // trace creates and disposes
@@ -63,6 +63,12 @@ public class BasicMenuItemUI extends MenuItemUI
     /* Client Property keys for text and accelerator text widths */
     static final String MAX_TEXT_WIDTH =  "maxTextWidth";
     static final String MAX_ACC_WIDTH  =  "maxAccWidth";
+
+    static void loadActionMap(LazyActionMap map) {
+        // NOTE: BasicMenuUI also calls into this method.
+	map.put(new Actions(Actions.CLICK));
+        BasicLookAndFeel.installAudioActionMap(map);
+    }
 
     public static ComponentUI createUI(JComponent c) {
         return new BasicMenuItemUI();
@@ -83,7 +89,13 @@ public class BasicMenuItemUI extends MenuItemUI
 
         acceleratorFont = UIManager.getFont("MenuItem.acceleratorFont");
 
-        menuItem.setOpaque(true);
+        Object opaque = UIManager.get(getPropertyPrefix() + ".opaque");
+        if (opaque != null) {
+            LookAndFeel.installProperty(menuItem, "opaque", opaque);
+        }
+        else {
+            LookAndFeel.installProperty(menuItem, "opaque", Boolean.TRUE);
+        }
         if(menuItem.getMargin() == null || 
            (menuItem.getMargin() instanceof UIResource)) {
             menuItem.setMargin(UIManager.getInsets(prefix + ".margin"));
@@ -92,8 +104,9 @@ public class BasicMenuItemUI extends MenuItemUI
         defaultTextIconGap = 4;   // Should be from table
 
         LookAndFeel.installBorder(menuItem, prefix + ".border");
-        oldBorderPainted = menuItem.isBorderPainted();
-        menuItem.setBorderPainted( ( (Boolean) (UIManager.get(prefix + ".borderPainted")) ).booleanValue() );
+        oldBorderPainted = menuItem.isBorderPainted(); // not used anymore
+        LookAndFeel.installProperty(menuItem, "borderPainted",
+                                    UIManager.get(prefix + ".borderPainted"));
         LookAndFeel.installColorsAndFont(menuItem,
                                          prefix + ".background",
                                          prefix + ".foreground",
@@ -162,16 +175,17 @@ public class BasicMenuItemUI extends MenuItemUI
 	if ((menuKeyListener = createMenuKeyListener(menuItem)) != null) {
 	    menuItem.addMenuKeyListener(menuKeyListener);
 	}
-	if ((propertyChangeListener = createPropertyChangeListener(menuItem)) != null) {
-	    menuItem.addPropertyChangeListener(propertyChangeListener);
-	}
+        menuItem.addPropertyChangeListener(getHandler());
     }
 
     protected void installKeyboardActions() {
-	ActionMap actionMap = getActionMap();
-	
-	SwingUtilities.replaceUIActionMap(menuItem, actionMap);
+        installLazyActionMap();
 	updateAcceleratorBinding();
+    }
+
+    void installLazyActionMap() {
+        LazyActionMap.installLazyActionMap(menuItem, BasicMenuItemUI.class,
+                                           getPropertyPrefix() + ".actionMap");
     }
 
     public void uninstallUI(JComponent c) {
@@ -197,7 +211,6 @@ public class BasicMenuItemUI extends MenuItemUI
 
     protected void uninstallDefaults() {
         LookAndFeel.uninstallBorder(menuItem);
-        menuItem.setBorderPainted( oldBorderPainted );
         if (menuItem.getMargin() instanceof UIResource)
             menuItem.setMargin(null);
         if (arrowIcon instanceof UIResource)
@@ -224,61 +237,37 @@ public class BasicMenuItemUI extends MenuItemUI
 	if (menuKeyListener != null) {
 	    menuItem.removeMenuKeyListener(menuKeyListener);
 	}
-	if (propertyChangeListener != null) {
-	    menuItem.removePropertyChangeListener(propertyChangeListener);
-	}
+        menuItem.removePropertyChangeListener(getHandler());
 
         mouseInputListener = null;
         menuDragMouseListener = null;
         menuKeyListener = null;
-	propertyChangeListener = null;
+        handler = null;
     }
 
     protected void uninstallKeyboardActions() {
 	SwingUtilities.replaceUIActionMap(menuItem, null);
-	if (windowInputMap != null) {
-	    SwingUtilities.replaceUIInputMap(menuItem, JComponent.
-					   WHEN_IN_FOCUSED_WINDOW, null);
-	    windowInputMap = null;
-	}
+        SwingUtilities.replaceUIInputMap(menuItem, JComponent.
+                                         WHEN_IN_FOCUSED_WINDOW, null);
     }
 
     protected MouseInputListener createMouseInputListener(JComponent c) {
-        return new MouseInputHandler();
+        return getHandler();
     }
 
     protected MenuDragMouseListener createMenuDragMouseListener(JComponent c) {
-        return new MenuDragMouseHandler();
+        return getHandler();
     }
 
     protected MenuKeyListener createMenuKeyListener(JComponent c) {
-	return new MenuKeyHandler();
+	return null;
     }
 
-    private PropertyChangeListener createPropertyChangeListener(JComponent c) {
-        return new PropertyChangeHandler();
-    }
-
-    ActionMap getActionMap() {
-	String propertyPrefix = getPropertyPrefix();
-	String uiKey = propertyPrefix + ".actionMap";
-	ActionMap am = (ActionMap)UIManager.get(uiKey);
-	if (am == null) {
-	    am = createActionMap();
-	    UIManager.getLookAndFeelDefaults().put(uiKey, am);
-	}
-	return am;
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-	map.put("doClick", new ClickAction());
-	// Set the ActionMap's parent to the Auditory Feedback Action Map
-	BasicLookAndFeel lf = (BasicLookAndFeel)UIManager.getLookAndFeel();
-	ActionMap audioMap = lf.getAudioActionMap();
-	map.setParent(audioMap);
-
-	return map;
+    Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
     }
 
     InputMap createInputMap(int condition) {
@@ -290,6 +279,8 @@ public class BasicMenuItemUI extends MenuItemUI
 
     void updateAcceleratorBinding() {
 	KeyStroke accelerator = menuItem.getAccelerator();
+        InputMap windowInputMap = SwingUtilities.getUIInputMap(
+                       menuItem, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 	if (windowInputMap != null) {
 	    windowInputMap.clear();
@@ -379,8 +370,8 @@ public class BasicMenuItemUI extends MenuItemUI
         }
 
         Font font = b.getFont();
-        FontMetrics fm = b.getToolkit().getFontMetrics(font);
-        FontMetrics fmAccel = b.getToolkit().getFontMetrics( acceleratorFont );
+        FontMetrics fm = b.getFontMetrics(font);
+        FontMetrics fmAccel = b.getFontMetrics( acceleratorFont );
 
         resetRects();
         
@@ -525,8 +516,9 @@ public class BasicMenuItemUI extends MenuItemUI
         Font holdf = g.getFont();
         Font f = c.getFont();
         g.setFont( f );
-        FontMetrics fm = g.getFontMetrics( f );
-        FontMetrics fmAccel = g.getFontMetrics( acceleratorFont );
+        FontMetrics fm = SwingUtilities2.getFontMetrics(c, g, f);
+        FontMetrics fmAccel = SwingUtilities2.getFontMetrics(
+                                   c, g, acceleratorFont);
 
         // get Accelerator text
         KeyStroke accelerator =  b.getAccelerator();
@@ -627,18 +619,18 @@ public class BasicMenuItemUI extends MenuItemUI
 	      if ( disabledForeground != null )
 		  {
                   g.setColor( disabledForeground );
-                  BasicGraphicsUtils.drawString(g,acceleratorText,0,
+                  SwingUtilities2.drawString(b, g,acceleratorText,
                                                 acceleratorRect.x - accOffset, 
                                                 acceleratorRect.y + fmAccel.getAscent());
                 }
                 else
                 {
                   g.setColor(b.getBackground().brighter());
-                  BasicGraphicsUtils.drawString(g,acceleratorText,0,
+                  SwingUtilities2.drawString(b, g,acceleratorText,
                                                 acceleratorRect.x - accOffset, 
 						acceleratorRect.y + fmAccel.getAscent());
                   g.setColor(b.getBackground().darker());
-                  BasicGraphicsUtils.drawString(g,acceleratorText,0,
+                  SwingUtilities2.drawString(b, g,acceleratorText,
                                                 acceleratorRect.x - accOffset - 1, 
 						acceleratorRect.y + fmAccel.getAscent() - 1);
                 }
@@ -649,7 +641,7 @@ public class BasicMenuItemUI extends MenuItemUI
                 } else {
                     g.setColor( acceleratorForeground );
                 }
-                BasicGraphicsUtils.drawString(g,acceleratorText, 0,
+                SwingUtilities2.drawString(b, g,acceleratorText,
                                               acceleratorRect.x - accOffset,
                                               acceleratorRect.y + fmAccel.getAscent());
             }
@@ -676,7 +668,7 @@ public class BasicMenuItemUI extends MenuItemUI
      */
     protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
 	ButtonModel model = menuItem.getModel();
-	Color oldColor = g.getColor();
+        Color oldColor = g.getColor();
         int menuWidth = menuItem.getWidth();
         int menuHeight = menuItem.getHeight();
 
@@ -688,6 +680,12 @@ public class BasicMenuItemUI extends MenuItemUI
                 g.setColor(menuItem.getBackground());
                 g.fillRect(0,0, menuWidth, menuHeight);
             }
+            g.setColor(oldColor);
+        }
+        else if (model.isArmed() || (menuItem instanceof JMenu &&
+                                     model.isSelected())) {
+            g.setColor(bgColor);
+            g.fillRect(0,0, menuWidth, menuHeight);
             g.setColor(oldColor);
         }
     }
@@ -703,34 +701,31 @@ public class BasicMenuItemUI extends MenuItemUI
      */
     protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
 	ButtonModel model = menuItem.getModel();
-	FontMetrics fm = g.getFontMetrics();
+	FontMetrics fm = SwingUtilities2.getFontMetrics(menuItem, g);
 	int mnemIndex = menuItem.getDisplayedMnemonicIndex();
 
 	if(!model.isEnabled()) {
 	    // *** paint the text disabled
 	    if ( UIManager.get("MenuItem.disabledForeground") instanceof Color ) {
 		g.setColor( UIManager.getColor("MenuItem.disabledForeground") );
-		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex,
-					      textRect.x, 
-					      textRect.y + fm.getAscent());
+		SwingUtilities2.drawStringUnderlineCharAt(menuItem, g,text,
+                          mnemIndex, textRect.x,  textRect.y + fm.getAscent());
 	    } else {
 		g.setColor(menuItem.getBackground().brighter());
-		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex, 
-					      textRect.x, 
-					      textRect.y + fm.getAscent());
+		SwingUtilities2.drawStringUnderlineCharAt(menuItem, g, text,
+                           mnemIndex, textRect.x, textRect.y + fm.getAscent());
 		g.setColor(menuItem.getBackground().darker());
-		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex, 
-					      textRect.x - 1, 
-					      textRect.y + fm.getAscent() - 1);
+		SwingUtilities2.drawStringUnderlineCharAt(menuItem, g,text,
+                           mnemIndex,  textRect.x - 1, textRect.y +
+                           fm.getAscent() - 1);
 	    }
 	} else {
 	    // *** paint the text normally
 	    if (model.isArmed()|| (menuItem instanceof JMenu && model.isSelected())) {
 		g.setColor(selectionForeground); // Uses protected field.
 	    }
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemIndex, 
-					  textRect.x, 
-					  textRect.y + fm.getAscent());
+	    SwingUtilities2.drawStringUnderlineCharAt(menuItem, g,text,
+                           mnemIndex, textRect.x, textRect.y + fm.getAscent());
 	}
     }
 
@@ -780,7 +775,8 @@ public class BasicMenuItemUI extends MenuItemUI
             acceleratorText = "";
         }
         else {
-            acceleratorRect.width = SwingUtilities.computeStringWidth( fmAccel, acceleratorText );
+            acceleratorRect.width = SwingUtilities2.stringWidth(
+                                         menuItem, fmAccel, acceleratorText);
             acceleratorRect.height = fmAccel.getHeight();
         }
 
@@ -931,6 +927,108 @@ public class BasicMenuItemUI extends MenuItemUI
             Thread.dumpStack();
     }
     protected class MouseInputHandler implements MouseInputListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this
+        // class calls into the Handler.
+
+        public void mouseClicked(MouseEvent e) {
+            getHandler().mouseClicked(e);
+        }
+        public void mousePressed(MouseEvent e) {
+            getHandler().mousePressed(e);
+        }
+        public void mouseReleased(MouseEvent e) {
+            getHandler().mouseReleased(e);
+        }
+        public void mouseEntered(MouseEvent e) {
+            getHandler().mouseEntered(e);
+        }
+        public void mouseExited(MouseEvent e) {
+            getHandler().mouseExited(e);
+        }
+        public void mouseDragged(MouseEvent e) {
+            getHandler().mouseDragged(e);
+        }
+        public void mouseMoved(MouseEvent e) {
+            getHandler().mouseMoved(e);
+        }
+    }
+
+
+    private static class Actions extends UIAction {
+        private static final String CLICK = "doClick";
+
+        Actions(String key) {
+            super(key);
+        }
+
+	public void actionPerformed(ActionEvent e) {
+	    JMenuItem mi = (JMenuItem)e.getSource();
+	    MenuSelectionManager.defaultManager().clearSelectedPath();
+	    mi.doClick();
+	}
+    }
+
+    /**
+     * Call this method when a menu item is to be activated.
+     * This method handles some of the details of menu item activation
+     * such as clearing the selected path and messaging the 
+     * JMenuItem's doClick() method.
+     *
+     * @param msm  A MenuSelectionManager. The visual feedback and 
+     *             internal bookkeeping tasks are delegated to 
+     *             this MenuSelectionManager. If <code>null</code> is
+     *             passed as this argument, the 
+     *             <code>MenuSelectionManager.defaultManager</code> is
+     *             used.
+     * @see MenuSelectionManager
+     * @see JMenuItem#doClick(int)
+     * @since 1.4
+     */
+    protected void doClick(MenuSelectionManager msm) {
+	// Auditory cue
+	if (! isInternalFrameSystemMenu()) {
+            BasicLookAndFeel.playSound(menuItem, getPropertyPrefix() +
+                                       ".commandSound");
+	}
+	// Visual feedback
+	if (msm == null) {
+	    msm = MenuSelectionManager.defaultManager();
+	}
+	msm.clearSelectedPath();
+	menuItem.doClick(0);
+    }
+
+    /** 
+     * This is to see if the menu item in question is part of the 
+     * system menu on an internal frame.
+     * The Strings that are being checked can be found in 
+     * MetalInternalFrameTitlePaneUI.java,
+     * WindowsInternalFrameTitlePaneUI.java, and
+     * MotifInternalFrameTitlePaneUI.java.
+     *
+     * @since 1.4
+     */
+    private boolean isInternalFrameSystemMenu() {
+	String actionCommand = menuItem.getActionCommand();
+ 	if ((actionCommand == "Close") ||
+	    (actionCommand == "Minimize") ||
+	    (actionCommand == "Restore") ||
+	    (actionCommand == "Maximize")) {
+	  return true;
+	} else {
+	  return false;
+	} 
+    }
+
+
+    // BasicMenuUI subclasses this.
+    class Handler implements MenuDragMouseListener, 
+                          MouseInputListener, PropertyChangeListener {
+        //
+        // MouseInputListener
+        //
         public void mouseClicked(MouseEvent e) {}
         public void mousePressed(MouseEvent e) {
         }
@@ -967,7 +1065,7 @@ public class BasicMenuItemUI extends MenuItemUI
 	    } else {
 
 		MenuElement path[] = manager.getSelectedPath();
-		if (path.length > 1) {
+		if (path.length > 1 && path[path.length-1] == menuItem) {
 		    MenuElement newPath[] = new MenuElement[path.length-1];
 		    int i,c;
 		    for(i=0,c=path.length-1;i<c;i++)
@@ -982,10 +1080,10 @@ public class BasicMenuItemUI extends MenuItemUI
         }
         public void mouseMoved(MouseEvent e) {
         }
-    }
 
-
-    private class MenuDragMouseHandler implements MenuDragMouseListener {
+        //
+        // MenuDragListener
+        //
         public void menuDragMouseEntered(MenuDragMouseEvent e) {
             MenuSelectionManager manager = e.getMenuSelectionManager();
             MenuElement path[] = e.getPath();
@@ -1008,54 +1106,19 @@ public class BasicMenuItemUI extends MenuItemUI
                 manager.clearSelectedPath();
             }
         }
-    }
 
-    private class MenuKeyHandler implements MenuKeyListener {
-	
-	/**
-	 * Handles the mnemonic key typed in the MenuItem if this menuItem is in
-	 * a standalone popup menu. This invocation normally 
-	 * handled in BasicMenuUI.MenuKeyHandler.menuKeyPressed. Ideally, the 
-	 * MenuKeyHandlers for both BasicMenuItemUI and BasicMenuUI can be consolidated
-	 * into BasicPopupMenuUI but that would require an semantic change. This
-	 * would result in a performance win since we can shortcut a lot of the needless
-	 * processing from MenuSelectionManager.processKeyEvent(). See 4670831.
-	 */
-        public void menuKeyTyped(MenuKeyEvent e) {
-	    if (DEBUG) {
-		System.out.println("in BasicMenuItemUI.menuKeyTyped for " + menuItem.getText());
-	    }
-            int key = menuItem.getMnemonic();
-            if(key == 0 || e.getPath().length != 2) // Hack! Only proceed if in a JPopupMenu
-                return;
-            if(lower((char)key) == lower(e.getKeyChar())) {
-                MenuSelectionManager manager = 
-                    e.getMenuSelectionManager();
-		doClick(manager);
-                e.consume();
-            }
-        }
-        public void menuKeyPressed(MenuKeyEvent e) {
-	    if (DEBUG) {
-		System.out.println("in BasicMenuItemUI.menuKeyPressed for " + menuItem.getText());
-	    }
-	}
-        public void menuKeyReleased(MenuKeyEvent e) {}
 
-        private char lower(char keyChar) {
-	    return Character.toLowerCase(keyChar);
-        }
-    }
-
-    private class PropertyChangeHandler implements PropertyChangeListener {
+        //
+        // PropertyChangeListener
+        //
 	public void propertyChange(PropertyChangeEvent e) {
 	    String name = e.getPropertyName();
 
-	    if (name.equals("labelFor") || name.equals("displayedMnemonic") ||
-		name.equals("accelerator")) {
+	    if (name == "labelFor" || name == "displayedMnemonic" ||
+		name == "accelerator") {
 		updateAcceleratorBinding();
-	    } else if (name.equals("text") || "font".equals(name) ||
-                       "foreground".equals(name)) {
+	    } else if (name == "text" || "font" == name ||
+                       "foreground" == name) {
 		// remove the old html view client property if one
 		// existed, and install a new one if the text installed
 		// into the JLabel is html source.
@@ -1064,75 +1127,5 @@ public class BasicMenuItemUI extends MenuItemUI
 		BasicHTML.updateRenderer(lbl, text);
 	    }
 	}
-    }  
-
-    private static class ClickAction extends AbstractAction {
-	public void actionPerformed(ActionEvent e) {
-	    JMenuItem mi = (JMenuItem)e.getSource();
-	    MenuSelectionManager.defaultManager().clearSelectedPath();
-	    mi.doClick();
-	}
     }
-
-    /**
-     * Call this method when a menu item is to be activated.
-     * This method handles some of the details of menu item activation
-     * such as clearing the selected path and messaging the 
-     * JMenuItem's doClick() method.
-     *
-     * @param msm  A MenuSelectionManager. The visual feedback and 
-     *             internal bookkeeping tasks are delegated to 
-     *             this MenuSelectionManager. If <code>null</code> is
-     *             passed as this argument, the 
-     *             <code>MenuSelectionManager.defaultManager</code> is
-     *             used.
-     * @see MenuSelectionManager
-     * @see JMenuItem#doClick(int)
-     * @since 1.4
-     */
-    protected void doClick(MenuSelectionManager msm) {
-	// Auditory cue
-	if (! isInternalFrameSystemMenu()) {
-	    ActionMap map = menuItem.getActionMap();
-	    if (map != null) {
-		Action audioAction = map.get(getPropertyPrefix() + 
-		                             ".commandSound");
-		if (audioAction != null) {
-		    // pass off firing the Action to a utility method
-		    BasicLookAndFeel lf = (BasicLookAndFeel)
-			                   UIManager.getLookAndFeel();
-		    lf.playSound(audioAction);
-		}
-	    }
-	}
-	// Visual feedback
-	if (msm == null) {
-	    msm = MenuSelectionManager.defaultManager();
-	}
-	msm.clearSelectedPath();
-	menuItem.doClick(0);
-    }
-
-    /** 
-     * This is to see if the menu item in question is part of the 
-     * system menu on an internal frame.
-     * The Strings that are being checked can be found in 
-     * MetalInternalFrameTitlePaneUI.java,
-     * WindowsInternalFrameTitlePaneUI.java, and
-     * MotifInternalFrameTitlePaneUI.java.
-     *
-     * @since 1.4
-     */
-    private boolean isInternalFrameSystemMenu() {
-	String actionCommand = menuItem.getActionCommand();
- 	if ((actionCommand == "Close") ||
-	    (actionCommand == "Minimize") ||
-	    (actionCommand == "Restore") ||
-	    (actionCommand == "Maximize")) {
-	  return true;
-	} else {
-	  return false;
-	} 
-    }
-
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)DataInputStream.java	1.65 03/01/23
+ * @(#)DataInputStream.java	1.71 04/05/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,105 +12,9 @@ package java.io;
  * types from an underlying input stream in a machine-independent
  * way. An application uses a data output stream to write data that
  * can later be read by a data input stream.
- * <p>
- * Data input streams and data output streams represent Unicode
- * strings in a format that is a slight modification of UTF-8. (For
- * more information, see X/Open Company Ltd., "File System Safe
- * UCS Transformation Format (FSS_UTF)", X/Open Preliminary
- * Specification, Document Number: P316. This information also
- * appears in ISO/IEC 10646, Annex P.) Note that in the 
- * following tables, the most significant bit appears in the
- * far left-hand column.
- * <p>
- * All characters in the range <code>'&#92;u0001'</code> to
- * <code>'&#92;u007F'</code> are represented by a single byte:
- *
- * <center>
- *    <table border="3" summary="Bit values and bytes">
- *        <tr>
- *            <td></td>
- *            <th id="bit" colspan=2><P ALIGN="LEFT">Bit Values</P></th>
- *        </tr>
- *        <tr> 
- *            <th id="byte1">Byte 1&nbsp;</th>
- *            <td headers="bit byte1"><i>0</i></td>
- *            <td>bits 6-0</td>
- *        </tr>
- *     </table>
- * </center>
- *
- * <p>
- * The null character <code>'&#92;u0000'</code> and characters in the
- * range <code>'&#92;u0080'</code> to <code>'&#92;u07FF'</code> are
- * represented by a pair of bytes:
- *
- * <center>
- *     <table border="3" summary="Bit values and bytes">
- *        <tr>
- *            <td></td>
- *            <th id="bit" colspan=4><P ALIGN="LEFT">Bit Values</P></th>
- *        </tr>
- *         <tr>
- *             <th id="byte1">Byte 1&nbsp;</th>
- *             <td headers="bit byte1">1</td>
- *             <td headers="bit byte1">1</td>
- *             <td headers="bit byte1">0</td>
- *             <td headers="bit byte1">bits 10-6</td>
- *         </tr>
- *         <tr>
- *             <th id="byte2">Byte 2&nbsp;</th>
- *             <td headers="bit byte2">1</td>
- *             <td headers="bit byte2">0</td>
- *             <td headers="bit byte2" colspan=2>bits 5-0</td>
- *         </tr>
- *      </table>
- *  </center>
- *
- * <br>
- * Characters in the range <code>'&#92;u0800'</code> to
- * <code>'&#92;uFFFF'</code> are represented by three bytes:
- *
- * <center>
- *    <table border="3" summary="Bit values and bytes">
- *        <tr>
- *            <td></td>
- *            <th id="bit" colspan=5><P ALIGN="LEFT">Bit Values</P></th>
- *        </tr>
- * 
- *        <tr>
- *            <th id="byte1">Byte 1&nbsp;</th>
- *            <td headers="bit byte1">1</td>
- *            <td headers="bit byte1">1</td>
- *            <td headers="bit byte1">1</td>
- *            <td headers="bit byte1">0</td>
- *            <td headers="bit byte1">bits 15-12</td>
- *        </tr>
- *        <tr>
- *            <th id="byte2">Byte 2&nbsp;</th>
- *            <td headers="bit byte2">1</td>
- *            <td headers="bit byte2">0</td>
- *            <td headers="bit byte2" colspan=3>bits 11-6</td>
- *        </tr>
- *        <tr>
- *            <th id="byte3">Byte 3&nbsp;</th>
- *            <td headers="bit byte3">1</td>
- *            <td headers="bit byte3">0</td>
- *            <td headers="bit byte3" colspan=3>bits 5-0</td>
- *        </tr>
- *     </table>
- *   </center>
- * <p>
- * The two differences between this format and the
- * "standard" UTF-8 format are the following:
- * <ul>
- * <li>The null byte <code>'&#92;u0000'</code> is encoded in 2-byte format
- *     rather than 1-byte, so that the encoded strings never have
- *     embedded nulls.
- * <li>Only the 1-byte, 2-byte, and 3-byte formats are used.
- * </ul>
  *
  * @author  Arthur van Hoff
- * @version 1.65, 01/23/03
+ * @version 1.71, 05/28/04
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
  */
@@ -126,6 +30,12 @@ class DataInputStream extends FilterInputStream implements DataInput {
     public DataInputStream(InputStream in) {
 	super(in);
     }
+
+    /**
+     * working arrays initialized on demand by readUTF
+     */
+    private byte bytearr[] = new byte[80];
+    private char chararr[] = new char[80];
 
     /**
      * Reads some number of bytes from the contained input stream and 
@@ -547,6 +457,7 @@ class DataInputStream extends FilterInputStream implements DataInput {
      * @see        java.io.BufferedReader#readLine()
      * @see        java.io.FilterInputStream#in
      */
+    @Deprecated
     public final String readLine() throws IOException {
 	char buf[] = lineBuffer;
 
@@ -603,7 +514,8 @@ loop:	while (true) {
      * @exception  EOFException  if this input stream reaches the end before
      *               reading all the bytes.
      * @exception  IOException   if an I/O error occurs.
-     * @exception  UTFDataFormatException if the bytes do not represent a valid UTF-8 encoding of a string.
+     * @exception  UTFDataFormatException if the bytes do not represent a valid
+     *             modified UTF-8 encoding of a string.
      * @see        java.io.DataInputStream#readUTF(java.io.DataInput)
      */
     public final String readUTF() throws IOException {
@@ -614,8 +526,8 @@ loop:	while (true) {
      * Reads from the
      * stream <code>in</code> a representation
      * of a Unicode  character string encoded in
-     * Java modified UTF-8 format; this string
-     * of characters  is then returned as a <code>String</code>.
+     * <a href="DataInput.html#modified-utf-8">modified UTF-8</a> format;
+     * this string of characters is then returned as a <code>String</code>.
      * The details of the modified UTF-8 representation
      * are  exactly the same as for the <code>readUTF</code>
      * method of <code>DataInput</code>.
@@ -626,55 +538,82 @@ loop:	while (true) {
      *               before all the bytes.
      * @exception  IOException             if an I/O error occurs.
      * @exception  UTFDataFormatException  if the bytes do not represent a
-     *               valid Java modified UTF-8 encoding of a Unicode string.
+     *               valid modified UTF-8 encoding of a Unicode string.
      * @see        java.io.DataInputStream#readUnsignedShort()
      */
     public final static String readUTF(DataInput in) throws IOException {
         int utflen = in.readUnsignedShort();
-        StringBuffer str = new StringBuffer(utflen);
-        byte bytearr [] = new byte[utflen];
+        byte[] bytearr = null;
+        char[] chararr = null;
+        if (in instanceof DataInputStream) {
+            DataInputStream dis = (DataInputStream)in;
+            if (dis.bytearr.length < utflen){
+                dis.bytearr = new byte[utflen*2];
+                dis.chararr = new char[utflen*2];
+            }
+            chararr = dis.chararr;
+            bytearr = dis.bytearr;
+        } else {
+            bytearr = new byte[utflen];
+            chararr = new char[utflen];
+        }
+
         int c, char2, char3;
-	int count = 0;
+        int count = 0;
+        int chararr_count=0;
 
- 	in.readFully(bytearr, 0, utflen);
+        in.readFully(bytearr, 0, utflen);
 
-	while (count < utflen) {
-     	    c = (int) bytearr[count] & 0xff;
-	    switch (c >> 4) {
-	        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
-		    /* 0xxxxxxx*/
-		    count++;
-                    str.append((char)c);
-		    break;
-	        case 12: case 13:
-		    /* 110x xxxx   10xx xxxx*/
-		    count += 2;
-		    if (count > utflen)
-			throw new UTFDataFormatException();
-		    char2 = (int) bytearr[count-1];
-		    if ((char2 & 0xC0) != 0x80)
-			throw new UTFDataFormatException(); 
-                    str.append((char)(((c & 0x1F) << 6) | (char2 & 0x3F)));
-		    break;
-	        case 14:
-		    /* 1110 xxxx  10xx xxxx  10xx xxxx */
-		    count += 3;
-		    if (count > utflen)
-			throw new UTFDataFormatException();
-		    char2 = (int) bytearr[count-2];
-		    char3 = (int) bytearr[count-1];
-		    if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80))
-			throw new UTFDataFormatException();	  
-                    str.append((char)(((c     & 0x0F) << 12) |
-                    	              ((char2 & 0x3F) << 6)  |
-                    	              ((char3 & 0x3F) << 0)));
-		    break;
-	        default:
-		    /* 10xx xxxx,  1111 xxxx */
-		    throw new UTFDataFormatException();		  
-		}
-	}
+        while (count < utflen) {
+            c = (int) bytearr[count] & 0xff;      
+            if (c > 127) break;
+            count++;
+            chararr[chararr_count++]=(char)c;
+        }
+
+        while (count < utflen) {
+            c = (int) bytearr[count] & 0xff;
+            switch (c >> 4) {
+                case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+                    /* 0xxxxxxx*/
+                    count++;
+                    chararr[chararr_count++]=(char)c;
+                    break;
+                case 12: case 13:
+                    /* 110x xxxx   10xx xxxx*/
+                    count += 2;
+                    if (count > utflen)
+                        throw new UTFDataFormatException(
+                            "malformed input: partial character at end");
+                    char2 = (int) bytearr[count-1];
+                    if ((char2 & 0xC0) != 0x80)
+                        throw new UTFDataFormatException(
+                            "malformed input around byte " + count); 
+                    chararr[chararr_count++]=(char)(((c & 0x1F) << 6) | 
+                                                    (char2 & 0x3F));  
+                    break;
+                case 14:
+                    /* 1110 xxxx  10xx xxxx  10xx xxxx */
+                    count += 3;
+                    if (count > utflen)
+                        throw new UTFDataFormatException(
+                            "malformed input: partial character at end");
+                    char2 = (int) bytearr[count-2];
+                    char3 = (int) bytearr[count-1];
+                    if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80))
+                        throw new UTFDataFormatException(
+                            "malformed input around byte " + (count-1));
+                    chararr[chararr_count++]=(char)(((c     & 0x0F) << 12) |
+                                                    ((char2 & 0x3F) << 6)  |
+                                                    ((char3 & 0x3F) << 0));
+                    break;
+                default:
+                    /* 10xx xxxx,  1111 xxxx */
+                    throw new UTFDataFormatException(
+                        "malformed input around byte " + count);
+            }
+        }
         // The number of chars produced may be less than utflen
-        return new String(str);
+        return new String(chararr, 0, chararr_count);
     }
 }

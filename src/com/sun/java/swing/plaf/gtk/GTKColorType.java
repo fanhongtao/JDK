@@ -1,19 +1,20 @@
 /*
- * @(#)GTKColorType.java	1.6 03/01/23
+ * @(#)GTKColorType.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import javax.swing.plaf.synth.ColorType;
 import java.awt.Color;
 import javax.swing.plaf.ColorUIResource;
 
 /**
- * @version 1.6, 01/23/03
+ * @version 1.8, 12/19/03
  * @author Scott Violet
  */
-class GTKColorType extends ColorType {
+public class GTKColorType extends ColorType {
     // GTK allows you to specify the foreground and background in a
     // gtkrc, the rest (dark, mid, light) are calculated from these
     // values.

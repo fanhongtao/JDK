@@ -1,7 +1,7 @@
 /*
- * @(#)AWTKeyStroke.java	1.14 03/01/23
+ * @(#)AWTKeyStroke.java	1.23 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -13,6 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.io.Serializable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Field;
 
 /**
  * An <code>AWTKeyStroke</code> represents a key action on the
@@ -35,21 +41,24 @@ import java.io.Serializable;
  *
  * @see #getAWTKeyStroke
  *
- * @version 1.14, 01/23/03
+ * @version 1.23, 05/05/04
  * @author Arnaud Weber
  * @author David Mendenhall
  * @since 1.4
  */
 public class AWTKeyStroke implements Serializable {
+    static final long serialVersionUID = -6430539691155161871L;
+
     private static Map cache;
     private static AWTKeyStroke cacheKey;
-    private static Class subclass = AWTKeyStroke.class;
+    private static Constructor ctor = getCtor(AWTKeyStroke.class);
     private static Map modifierKeywords;
     /**
-     * Maps from VK_XXX (as a String) to an Integer. This is done to
-     * avoid the overhead of the reflective call to find the constant.
+     * Associates VK_XXX (as a String) with code (as Integer). This is
+     * done to avoid the overhead of the reflective call to find the
+     * constant.
      */
-    private static Map vkMap;
+    private static VKCollection vks;
 
     private char keyChar = KeyEvent.CHAR_UNDEFINED;
     private int keyCode = KeyEvent.VK_UNDEFINED;
@@ -115,13 +124,6 @@ public class AWTKeyStroke implements Serializable {
 	this.onKeyRelease = onKeyRelease;
     }
 
-    private void copy(AWTKeyStroke rhs) {
-        this.keyChar = rhs.keyChar;
-	this.keyCode = rhs.keyCode;
-	this.modifiers = rhs.modifiers;
-	this.onKeyRelease = rhs.onKeyRelease;
-    }
-
     /**
      * Registers a new class which the factory methods in
      * <code>AWTKeyStroke</code> will use when generating new
@@ -141,11 +143,11 @@ public class AWTKeyStroke implements Serializable {
      *         <code>AWTKeyStroke</code>, or a class derived from
      *         <code>AWTKeyStroke</code>
      */
-    protected static void registerSubclass(Class subclass) {
+    protected static void registerSubclass(Class<?> subclass) {
         if (subclass == null) {
 	    throw new IllegalArgumentException("subclass cannot be null");
 	}
-	if (AWTKeyStroke.subclass.equals(subclass)) {
+	if (AWTKeyStroke.ctor.getDeclaringClass().equals(subclass)) {
 	    // Already registered
 	    return;
 	}
@@ -153,9 +155,15 @@ public class AWTKeyStroke implements Serializable {
 	    throw new ClassCastException("subclass is not derived from AWTKeyStroke");
 	}
 
+        Constructor ctor = getCtor(subclass);
+
 	String couldNotInstantiate = "subclass could not be instantiated";
+
+        if (ctor == null) {
+	    throw new IllegalArgumentException(couldNotInstantiate);
+	}
 	try {
-	    AWTKeyStroke stroke = allocateNewInstance(subclass);
+	    AWTKeyStroke stroke = (AWTKeyStroke)ctor.newInstance(null);
 	    if (stroke == null) {
 	        throw new IllegalArgumentException(couldNotInstantiate);
 	    }
@@ -165,21 +173,41 @@ public class AWTKeyStroke implements Serializable {
 	    throw new IllegalArgumentException(couldNotInstantiate);
 	} catch (InstantiationException e) {
 	    throw new IllegalArgumentException(couldNotInstantiate);
+	} catch (IllegalAccessException e) {
+	    throw new IllegalArgumentException(couldNotInstantiate);
+	} catch (InvocationTargetException e) {
+	    throw new IllegalArgumentException(couldNotInstantiate);
 	}
 
 	synchronized (AWTKeyStroke.class) {
-	    AWTKeyStroke.subclass = subclass;
+	    AWTKeyStroke.ctor = ctor;
 	    cache = null;
 	    cacheKey = null;
 	}
     }
 
-    // Native function allows us to bypass all security and access
-    // restrictions. This allows us to define javax.swing.KeyStroke with only
-    // a private no-arg constructor, yet still instantiate it from AWT without
-    // special knowledge of Swing.
-    private static native AWTKeyStroke allocateNewInstance(Class clazz)
-        throws InstantiationException;
+    /* returns noarg Constructor for class with accessible flag. No security 
+       threat as accessible flag is set only for this Constructor object, 
+       not for Class constructor.
+     */
+    private static Constructor getCtor(final Class clazz)
+    {
+        Object ctor = AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+                try {
+                    Constructor ctor = clazz.getDeclaredConstructor(null);
+                    if (ctor != null) {
+                        ctor.setAccessible(true);
+                    }
+                    return ctor;
+                } catch (SecurityException e) {
+                } catch (NoSuchMethodException e) {
+                }
+                return null;
+            }
+        });
+        return (Constructor)ctor;
+    }
 
     private static synchronized AWTKeyStroke getCachedStroke
         (char keyChar, int keyCode, int modifiers, boolean onKeyRelease)
@@ -190,8 +218,13 @@ public class AWTKeyStroke implements Serializable {
  
 	if (cacheKey == null) {
 	    try {
-		cacheKey = allocateNewInstance(subclass);
+		cacheKey = (AWTKeyStroke)ctor.newInstance(null);
 	    } catch (InstantiationException e) {
+                assert(false); 
+            } catch (IllegalAccessException e) {
+                assert(false); 
+            } catch (InvocationTargetException e) {
+                assert(false); 
 	    }
 	}
 	cacheKey.keyChar = keyChar;
@@ -234,9 +267,6 @@ public class AWTKeyStroke implements Serializable {
      * <li>java.awt.event.InputEvent.META_DOWN_MASK
      * <li>java.awt.event.InputEvent.ALT_DOWN_MASK
      * <li>java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
-     * <li>java.awt.event.InputEvent.BUTTON1_DOWN_MASK 
-     * <li>java.awt.event.InputEvent.BUTTON2_DOWN_MASK 
-     * <li>java.awt.event.InputEvent.BUTTON3_DOWN_MASK
      * </ul>
      * The old modifiers <ul>
      * <li>java.awt.event.InputEvent.SHIFT_MASK 
@@ -286,9 +316,6 @@ public class AWTKeyStroke implements Serializable {
      * <li>java.awt.event.InputEvent.META_DOWN_MASK
      * <li>java.awt.event.InputEvent.ALT_DOWN_MASK
      * <li>java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
-     * <li>java.awt.event.InputEvent.BUTTON1_DOWN_MASK 
-     * <li>java.awt.event.InputEvent.BUTTON2_DOWN_MASK 
-     * <li>java.awt.event.InputEvent.BUTTON3_DOWN_MASK
      * </ul>
      * The old modifiers <ul>
      * <li>java.awt.event.InputEvent.SHIFT_MASK 
@@ -336,9 +363,6 @@ public class AWTKeyStroke implements Serializable {
      * <li>java.awt.event.InputEvent.META_DOWN_MASK
      * <li>java.awt.event.InputEvent.ALT_DOWN_MASK
      * <li>java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK
-     * <li>java.awt.event.InputEvent.BUTTON1_DOWN_MASK 
-     * <li>java.awt.event.InputEvent.BUTTON2_DOWN_MASK 
-     * <li>java.awt.event.InputEvent.BUTTON3_DOWN_MASK
      * </ul>
      * The old modifiers <ul>
      * <li>java.awt.event.InputEvent.SHIFT_MASK 
@@ -369,13 +393,14 @@ public class AWTKeyStroke implements Serializable {
      * Returns an <code>AWTKeyStroke</code> which represents the
      * stroke which generated a given <code>KeyEvent</code>.
      * <p>
-     * This method obtains the key char from a <code>KeyTyped</code>
-     * event, and the key code from a <code>KeyPressed</code> or
+     * This method obtains the keyChar from a <code>KeyTyped</code>
+     * event, and the keyCode from a <code>KeyPressed</code> or
      * <code>KeyReleased</code> event. The <code>KeyEvent</code> modifiers are
      * obtained for all three types of <code>KeyEvent</code>.
      *
      * @param anEvent the <code>KeyEvent</code> from which to
      *      obtain the <code>AWTKeyStroke</code>
+     * @throws NullPointerException if <code>anEvent</code> is null
      * @return the <code>AWTKeyStroke</code> that precipitated the event
      */
     public static AWTKeyStroke getAWTKeyStrokeForEvent(KeyEvent anEvent) {
@@ -404,7 +429,7 @@ public class AWTKeyStroke implements Serializable {
      * <pre>
      *    &lt;modifiers&gt;* (&lt;typedID&gt; | &lt;pressedReleasedID&gt;)
      *
-     *    modifiers := shift | control | ctrl | meta | alt | button1 | button2 | button3
+     *    modifiers := shift | control | ctrl | meta | alt | altGraph 
      *    typedID := typed &lt;typedKey&gt;
      *    typedKey := string of length 1 giving Unicode character.
      *    pressedReleasedID := (pressed | released) key
@@ -522,6 +547,12 @@ public class AWTKeyStroke implements Serializable {
 	throw new IllegalArgumentException(errmsg);
     }
 
+    private static VKCollection getVKCollection() {
+        if (vks == null) {
+            vks = new VKCollection();
+        }
+        return vks;
+    }
     /**
      * Returns the integer constant for the KeyEvent.VK field named
      * <code>key</code>. This will throw an
@@ -529,11 +560,9 @@ public class AWTKeyStroke implements Serializable {
      * not a valid constant.
      */
     private static int getVKValue(String key) {
-        if (vkMap == null) {
-            vkMap = Collections.synchronizedMap(new HashMap());
-        }
+        VKCollection vkCollect = getVKCollection();
 
-        Integer value = (Integer)vkMap.get(key);
+        Integer value = vkCollect.findCode(key);
 
         if (value == null) {
             int keyCode = 0;
@@ -547,11 +576,10 @@ public class AWTKeyStroke implements Serializable {
                 throw new IllegalArgumentException(errmsg);
             }
             value = new Integer(keyCode);
-            vkMap.put(key, value);
+            vkCollect.put(key, value);
         }
         return value.intValue();
     }
-
 
     /**
      * Returns the character for this <code>AWTKeyStroke</code>.
@@ -642,17 +670,81 @@ public class AWTKeyStroke implements Serializable {
 
     /**
      * Returns a string that displays and identifies this object's properties.
+     * The <code>String</code> returned by this method can be passed 
+     * as a parameter to <code>getAWTKeyStroke(String)</code> to produce 
+     * a key stroke equal to this key stroke.
      *
      * @return a String representation of this object
+     * @see #getAWTKeyStroke(String)
      */
     public String toString() {
         if (keyCode == KeyEvent.VK_UNDEFINED) {
-	    return "keyChar " + KeyEvent.getKeyModifiersText(modifiers) +
-	        keyChar;
-	} else {
-	    return "keyCode " + KeyEvent.getKeyModifiersText(modifiers) +
-	        KeyEvent.getKeyText(keyCode) + (onKeyRelease ? "-R" : "-P");
-	}
+            return getModifiersText(modifiers) + "typed " + keyChar;
+        } else {
+            return getModifiersText(modifiers) +
+                (onKeyRelease ? "released" : "pressed") + " " +
+                getVKText(keyCode);
+        }
+    }
+
+    static String getModifiersText(int modifiers) {
+        StringBuffer buf = new StringBuffer();
+
+        if ((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0 ) {
+            buf.append("shift ");
+        }
+        if ((modifiers & InputEvent.CTRL_DOWN_MASK) != 0 ) {
+            buf.append("ctrl ");
+        }
+        if ((modifiers & InputEvent.META_DOWN_MASK) != 0 ) {
+            buf.append("meta ");
+        }
+        if ((modifiers & InputEvent.ALT_DOWN_MASK) != 0 ) {
+            buf.append("alt ");
+        }
+        if ((modifiers & InputEvent.ALT_GRAPH_DOWN_MASK) != 0 ) {
+            buf.append("altGraph ");
+        }
+        if ((modifiers & InputEvent.BUTTON1_DOWN_MASK) != 0 ) {
+            buf.append("button1 ");
+        }
+        if ((modifiers & InputEvent.BUTTON2_DOWN_MASK) != 0 ) {
+            buf.append("button2 ");
+        }
+        if ((modifiers & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
+            buf.append("button3 ");
+        }
+
+        return buf.toString();
+    }
+
+    static String getVKText(int keyCode) { 
+        VKCollection vkCollect = getVKCollection();
+        Integer key = new Integer(keyCode);
+        String name = vkCollect.findName(key);
+        if (name != null) {
+            return name.substring(3);
+        }
+        int expected_modifiers = 
+            (Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL);
+
+        Field[] fields = KeyEvent.class.getDeclaredFields();
+        for (int i = 0; i < fields.length; i++) {
+            try {
+                if (fields[i].getModifiers() == expected_modifiers
+                    && fields[i].getType() == Integer.TYPE
+                    && fields[i].getName().startsWith("VK_")
+                    && fields[i].getInt(KeyEvent.class) == keyCode) 
+                {
+                    name = fields[i].getName();
+                    vkCollect.put(name, key);
+                    return name.substring(3);
+                }
+            } catch (IllegalAccessException e) {
+                assert(false);
+            }
+        }
+        return "UNKNOWN";
     }
 
     /**
@@ -664,7 +756,7 @@ public class AWTKeyStroke implements Serializable {
     protected Object readResolve() throws java.io.ObjectStreamException {
         synchronized (AWTKeyStroke.class) {
 	    Class newClass = getClass();
-	    if (!newClass.equals(subclass)) {
+	    if (!newClass.equals(ctor.getDeclaringClass())) {
 	        registerSubclass(newClass);
 	    }
 	    return getCachedStroke(keyChar, keyCode, modifiers, onKeyRelease);
@@ -686,9 +778,6 @@ public class AWTKeyStroke implements Serializable {
 	}
 	if ((modifiers & InputEvent.META_MASK) != 0) {
 	    modifiers |= InputEvent.META_DOWN_MASK;
-	}
-	if ((modifiers & InputEvent.BUTTON1_MASK) != 0) {
-	    modifiers |= InputEvent.BUTTON1_DOWN_MASK;
 	}
 
  	modifiers &= InputEvent.SHIFT_DOWN_MASK
@@ -723,5 +812,33 @@ public class AWTKeyStroke implements Serializable {
 	return modifiers;
     }
 
+}
+
+class VKCollection {
+    Map code2name;
+    Map name2code;
+
+    public VKCollection() {
+        code2name = new HashMap();
+        name2code = new HashMap();
+    }
+
+    public synchronized void put(String name, Integer code) {
+        assert((name != null) && (code != null));
+        assert(findName(code) == null);
+        assert(findCode(name) == null);
+        code2name.put(code, name);
+        name2code.put(name, code);
+    }
+
+    public synchronized Integer findCode(String name) {
+        assert(name != null);
+        return (Integer)name2code.get(name);
+    }
+
+    public synchronized String findName(Integer code) {
+        assert(code != null);
+        return (String)code2name.get(code);
+    }
 }
 

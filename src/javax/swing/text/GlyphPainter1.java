@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphPainter1.java	1.13 03/01/23
+ * @(#)GlyphPainter1.java	1.18 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -21,14 +21,14 @@ import java.awt.*;
  * <p>
  * This implementation is intended for operation
  * under the JDK1.1 API of the Java Platform.
- * Since the Java 2 SDK is backward compatible with
+ * Since the JDK is backward compatible with
  * JDK1.1 API, this class will also function on
- * Java 2.  The Java 2 SDK introduces improved 
+ * Java 2.  The JDK introduces improved 
  * API for rendering text however, so the GlyphPainter2
- * is recommended for the Java 2 SDK.
+ * is recommended for the DK.
  *
  * @author  Timothy Prinzing
- * @version 1.13 01/23/03
+ * @version 1.18 06/28/04
  * @see GlyphView
  */
 class GlyphPainter1 extends GlyphView.GlyphPainter {
@@ -94,7 +94,7 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	// render the glyphs
 	text = v.getText(p0, p1);
 	g.setFont(metrics.getFont());
-	Utilities.drawTabbedText(text, x, y, g, expander, p0);
+	Utilities.drawTabbedText(v, text, x, y, g, expander,p0);
         SegmentCache.releaseSharedSegment(text);
     }
 
@@ -194,14 +194,9 @@ class GlyphPainter1 extends GlyphView.GlyphPainter {
 	Font f = v.getFont();
 	if ((metrics == null) || (! f.equals(metrics.getFont()))) {
 	    // fetch a new FontMetrics
-	    Toolkit kit;
-	    Component c = v.getContainer();
-	    if (c != null) {
-		kit = c.getToolkit();
-	    } else {
-		kit = Toolkit.getDefaultToolkit();
-	    }
-	    metrics = kit.getFontMetrics(f);
+            Container c = v.getContainer();
+            metrics = (c != null) ? c.getFontMetrics(f) :
+                Toolkit.getDefaultToolkit().getFontMetrics(f);
 	}
     }
 

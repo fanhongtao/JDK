@@ -1,12 +1,13 @@
 /*
- * @(#)MetalRadioButtonUI.java	1.25 03/01/23
+ * @(#)MetalRadioButtonUI.java	1.29 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -29,7 +30,7 @@ import javax.swing.text.View;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.25 01/23/03
+ * @version 1.29 12/19/03
  * @author Michael C. Albers (Metal modifications)
  * @author Jeff Dinkins (original BasicRadioButtonCode)
  */
@@ -61,7 +62,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
             disabledTextColor = UIManager.getColor(getPropertyPrefix() + "disabledText");
             defaults_initialized = true;
         }
-        b.setOpaque(true);
+        LookAndFeel.installProperty(b, "opaque", Boolean.TRUE);
     }
 
     protected void uninstallDefaults(AbstractButton b) {
@@ -100,7 +101,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
 
         Font f = c.getFont();
         g.setFont(f);
-        FontMetrics fm = g.getFontMetrics();
+        FontMetrics fm = SwingUtilities2.getFontMetrics(c, g, f);
 
         Rectangle viewRect = new Rectangle(size);
         Rectangle iconRect = new Rectangle();
@@ -178,18 +179,16 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
                if(model.isEnabled()) {
                    // *** paint the text normally
                    g.setColor(b.getForeground());
-                   BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
-                       mnemIndex, textRect.x, textRect.y + fm.getAscent());
                } else {
                    // *** paint the text disabled
                    g.setColor(getDisabledTextColor());
-                   BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+               }
+               SwingUtilities2.drawStringUnderlineCharAt(c,g,text,
                        mnemIndex, textRect.x, textRect.y + fm.getAscent());
-               }
-               if(b.hasFocus() && b.isFocusPainted() &&
-                  textRect.width > 0 && textRect.height > 0 ) {
-                   paintFocus(g,textRect,size);
-               }
+	   }
+	   if(b.hasFocus() && b.isFocusPainted() &&
+	      textRect.width > 0 && textRect.height > 0 ) {
+	       paintFocus(g,textRect,size);
 	   }
         }
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)RenderedImage.java	1.20 03/01/23
+ * @(#)RenderedImage.java	1.22 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ public interface RenderedImage {
      * no immediate sources.
      * @return a Vector of <code>RenderedImage</code> objects.
      */
-    Vector getSources();
+    Vector<RenderedImage> getSources();
 
     /** 
      * Gets a property from the property set of this image.  The set of

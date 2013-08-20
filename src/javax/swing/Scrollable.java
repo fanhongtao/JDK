@@ -1,7 +1,7 @@
 /*
- * @(#)Scrollable.java	1.10 03/01/23
+ * @(#)Scrollable.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,21 +20,22 @@ import java.awt.Rectangle;
  * @see JViewport
  * @see JScrollPane
  * @see JScrollBar
- * @version 1.10 01/23/03
+ * @version 1.12 12/19/03
  * @author Hans Muller
  */
 public interface Scrollable  
 {
     /**
      * Returns the preferred size of the viewport for a view component.
-     * For example the preferredSize of a JList component is the size
-     * required to accommodate all of the cells in its list however the
-     * value of preferredScrollableViewportSize is the size required for
-     * JList.getVisibleRowCount() rows.   A component without any properties
-     * that would effect the viewport size should just return 
-     * getPreferredSize() here.
+     * For example, the preferred size of a <code>JList</code> component
+     * is the size required to accommodate all of the cells in its list.
+     * However, the value of <code>preferredScrollableViewportSize</code>
+     * is the size required for <code>JList.getVisibleRowCount</code> rows.
+     * A component without any properties that would affect the viewport
+     * size should just return <code>getPreferredSize</code> here.
      * 
-     * @return The preferredSize of a JViewport whose view is this Scrollable.
+     * @return the preferredSize of a <code>JViewport</code> whose view
+     *    is this <code>Scrollable</code>
      * @see JViewport#getPreferredSize
      */
     Dimension getPreferredScrollableViewportSize();

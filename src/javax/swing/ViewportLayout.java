@@ -1,7 +1,7 @@
 /*
- * @(#)ViewportLayout.java	1.36 03/01/23
+ * @(#)ViewportLayout.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,11 +35,14 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.36 01/23/03
+ * @version 1.38 12/19/03
  * @author Hans Muller
  */
 public class ViewportLayout implements LayoutManager, Serializable
 {
+    // Single instance used by JViewport.
+    static ViewportLayout SHARED_INSTANCE = new ViewportLayout();
+
     /**
      * Adds the specified component to the layout. Not used by this class.
      * @param name the name of the component

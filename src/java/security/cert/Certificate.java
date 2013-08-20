@@ -1,7 +1,7 @@
 /*
- * @(#)Certificate.java	1.22 03/01/23
+ * @(#)Certificate.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,10 +38,12 @@ import sun.security.x509.X509CertImpl;
  * @see CertificateFactory
  *
  * @author Hemma Prafullchandra
- * @version 1.22, 01/23/03
+ * @version 1.24, 12/19/03
  */
 
 public abstract class Certificate implements java.io.Serializable {
+
+    private static final long serialVersionUID = -3585440601605666277L;
 
     // the certificate type
     private final String type;
@@ -185,6 +187,9 @@ public abstract class Certificate implements java.io.Serializable {
      * Alternate Certificate class for serialization.
      */
     protected static class CertificateRep implements java.io.Serializable {
+
+	private static final long serialVersionUID = -8563758940495660020L;
+
 	private String type;
 	private byte[] data;
 

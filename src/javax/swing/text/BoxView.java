@@ -1,7 +1,7 @@
 /*
- * @(#)BoxView.java	1.59 03/01/23
+ * @(#)BoxView.java	1.61 04/03/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.59 01/23/03
+ * @version 1.61 03/05/04
  */
 public class BoxView extends CompositeView {
 
@@ -737,16 +737,12 @@ public class BoxView extends CompositeView {
 	 * first pass, calculate the preferred sizes
 	 * and the flexibility to adjust the sizes.
 	 */
-	long minimum = 0;
-	long maximum = 0;
 	long preferred = 0;
 	int n = getViewCount();
 	for (int i = 0; i < n; i++) {
 	    View v = getView(i);
 	    spans[i] = (int) v.getPreferredSpan(axis);
 	    preferred += spans[i];
-	    minimum += v.getMinimumSpan(axis);
-	    maximum += v.getMaximumSpan(axis);
 	}
 
 	/*
@@ -757,36 +753,38 @@ public class BoxView extends CompositeView {
 	// determine the adjustment to be made
 	long desiredAdjustment = targetSpan - preferred;
 	float adjustmentFactor = 0.0f;
+        int[] diffs = null;
+
 	if (desiredAdjustment != 0) {
-	    float maximumAdjustment = (desiredAdjustment > 0) ? 
-		maximum - preferred : preferred - minimum;
-            if (maximumAdjustment == 0.0f) {
-                adjustmentFactor = 0.0f;
+            long totalSpan = 0;
+            diffs = new int[n];
+            for (int i = 0; i < n; i++) {
+                View v = getView(i);
+                int tmp;
+                if (desiredAdjustment < 0) {
+                    tmp = (int)v.getMinimumSpan(axis);
+                    diffs[i] = spans[i] - tmp;
+                } else {
+                    tmp = (int)v.getMaximumSpan(axis);
+                    diffs[i] = tmp - spans[i];
+                }
+                totalSpan += tmp;
             }
-            else {
+            
+            float maximumAdjustment = Math.abs(totalSpan - preferred);
                 adjustmentFactor = desiredAdjustment / maximumAdjustment;
                 adjustmentFactor = Math.min(adjustmentFactor, 1.0f);
                 adjustmentFactor = Math.max(adjustmentFactor, -1.0f);
             }
-	}
 
 	// make the adjustments
 	int totalOffset = 0;
 	for (int i = 0; i < n; i++) {
-	    View v = getView(i);
 	    offsets[i] = totalOffset;
-	    int availableSpan = (adjustmentFactor > 0.0f) ? 
-		(int) v.getMaximumSpan(axis) - spans[i] : 
-		spans[i] - (int) v.getMinimumSpan(axis);
-            float adjF = adjustmentFactor * availableSpan;
-            if (adjF < 0) {
-                adjF -= .5f;
+            if (desiredAdjustment != 0) {
+                float adjF = adjustmentFactor * diffs[i];
+                spans[i] += Math.round(adjF);
             }
-            else {
-                adjF += .5f;
-            }
-	    int adj = (int)adjF;
-	    spans[i] += adj;
 	    totalOffset = (int) Math.min((long) totalOffset + (long) spans[i], Integer.MAX_VALUE);
 	}
     }
@@ -812,7 +810,6 @@ public class BoxView extends CompositeView {
 	int n = getViewCount();
 	for (int i = 0; i < n; i++) {
 	    View v = getView(i);
-	    int min = (int) v.getMinimumSpan(axis);
 	    int max = (int) v.getMaximumSpan(axis);
 	    if (max < targetSpan) {
 		// can't make the child this wide, align it
@@ -821,6 +818,7 @@ public class BoxView extends CompositeView {
 		spans[i] = max;
 	    } else {
 		// make it the target width, or as small as it can get.
+                int min = (int)v.getMinimumSpan(axis);
 		offsets[i] = 0;
 		spans[i] = Math.max(min, targetSpan);
 	    }

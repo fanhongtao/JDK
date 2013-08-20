@@ -1,13 +1,14 @@
 /*
- * @(#)AccessControlContext.java	1.37 03/01/23
+ * @(#)AccessControlContext.java	1.40 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package java.security;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import sun.security.util.Debug;
 import sun.security.util.SecurityConstants;
 
@@ -87,22 +88,27 @@ public final class AccessControlContext {
      * context.
      *
      * @param context the ProtectionDomains associated with this context.
+     * The non-duplicate domains are copied from the array. Subsequent
+     * changes to the array will not affect this AccessControlContext.
      */
-
     public AccessControlContext(ProtectionDomain context[])
     {
 	if (context.length == 0) {
 	    this.context = null;
 	} else if (context.length == 1) {
-	    this.context = (ProtectionDomain[])context.clone();
+	    if (context[0] != null) {
+		this.context = (ProtectionDomain[])context.clone();
+	    } else {
+		this.context = null;
+	    }
 	} else {
-	    Vector v = new Vector(context.length);
+	    List v = new ArrayList(context.length);
 	    for (int i =0; i< context.length; i++) {
 		if ((context[i] != null) &&  (!v.contains(context[i])))
-		    v.addElement(context[i]);
+		    v.add(context[i]);
 	    }
 	    this.context = new ProtectionDomain[v.size()];
-	    v.copyInto(this.context);
+	    this.context = (ProtectionDomain[]) v.toArray(this.context);
 	}
     }
 
@@ -135,11 +141,6 @@ public final class AccessControlContext {
 	    sm.checkPermission(SecurityConstants.CREATE_ACC_PERMISSION);
 	}
 
-	if (acc == null ){
-	    throw new NullPointerException
-		("null AccessControlContext was provided");
-	}
-
 	this.context = acc.context;
 
 	// we do not need to run the combine method on the
@@ -148,12 +149,6 @@ public final class AccessControlContext {
 	//
 	// at this point in time, we simply throw away the old
 	// combiner and use the newly provided one.
-	this.combiner = combiner;
-    }
-
-    private AccessControlContext(ProtectionDomain context[], 
-				DomainCombiner combiner) {
-	this.context = (ProtectionDomain[])context.clone();
 	this.combiner = combiner;
     }
 
@@ -281,8 +276,7 @@ public final class AccessControlContext {
      * Take the stack-based context (this) and combine it with the
      * privileged or inherited context, if need be.
      */
-    AccessControlContext optimize()
-    {
+    AccessControlContext optimize() {
 	// the assigned (privileged or inherited) context
 	AccessControlContext acc;
 	if (isPrivileged) {
@@ -368,7 +362,15 @@ public final class AccessControlContext {
 	    pd = tmp;
 	}
 
-	return new AccessControlContext(pd, false);
+	//	return new AccessControlContext(pd, false);
+
+	// Reuse existing ACC
+
+	this.context = pd;
+	this.combiner = null;
+	this.isPrivileged = false;
+
+	return this;
     }
 
     private AccessControlContext goCombiner(ProtectionDomain[] current,
@@ -383,16 +385,19 @@ public final class AccessControlContext {
 	    debug.println("AccessControlContext invoking the Combiner");
 	}
 
-	ProtectionDomain[] combinedPds = assigned.combiner.combine
-		(current == null ?
-			null :
-			(ProtectionDomain[])current.clone(),
-		assigned.context == null ?
-			null :
-			(ProtectionDomain[])assigned.context.clone());
+	// No need to clone current and assigned.context
+	// combine() will not update them
+	ProtectionDomain[] combinedPds = assigned.combiner.combine(
+	    current, assigned.context);
 
-	// return the new ACC
-	return new AccessControlContext(combinedPds, assigned.combiner);
+	// return new AccessControlContext(combinedPds, assigned.combiner);
+
+	// Reuse existing ACC
+	this.context = combinedPds;
+	this.combiner = assigned.combiner;
+	this.isPrivileged = false;
+
+	return this;
     }
 
     /**
@@ -435,7 +440,6 @@ public final class AccessControlContext {
 	    return false;
 
 	return true;
-
     }
 
     private boolean containsAllPDs(AccessControlContext that) {
@@ -446,19 +450,22 @@ public final class AccessControlContext {
 	// optimize methods. However, historically this logic made attempts
 	// to support the notion of a null PD and therefore this logic continues
 	// to support that notion.
+	ProtectionDomain thisPd;
 	for (int i = 0; i < context.length; i++) {
 	    match = false;
-	    if (context[i] == null) {
+	    if ((thisPd = context[i]) == null) {
 		for (int j = 0; (j < that.context.length) && !match; j++) {
 		    match = (that.context[j] == null);
 		}
 	    } else {
+		Class thisPdClass = thisPd.getClass();
+		ProtectionDomain thatPd;
 		for (int j = 0; (j < that.context.length) && !match; j++) {
-		    if (that.context[j] != null) {
-			match =
-			    ((context[i].getClass()==that.context[j].getClass()) &&
-			     (context[i].equals(that.context[j])));
-		    }
+		    thatPd = that.context[j];
+
+		    // Class check required to avoid PD exposure (4285406)
+		    match = (thatPd != null && 
+			thisPdClass == thatPd.getClass() && thisPd.equals(thatPd));
 		}
 	    }
 	    if (!match) return false;

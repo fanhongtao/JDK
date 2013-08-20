@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEventListener.java	1.8 03/01/23
+ * @(#)AWTEventListener.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,14 +25,14 @@ import java.awt.AWTEvent;
  * class is registered with the Toolkit, using the Toolkit's
  * <code>addAWTEventListener</code> method.  When an event is
  * dispatched anywhere in the AWT, that object's
- * <code>eventDispatcheded</code> method is invoked.
+ * <code>eventDispatched</code> method is invoked.
  *
  * @see java.awt.AWTEvent
  * @see java.awt.Toolkit#addAWTEventListener
  * @see java.awt.Toolkit#removeAWTEventListener
  *
  * @author Fred Ecks
- * @version 1.8, 01/23/03
+ * @version 1.10, 12/19/03
  * @since 1.2
  */
 public interface AWTEventListener extends EventListener {

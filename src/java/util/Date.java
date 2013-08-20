@@ -1,21 +1,24 @@
 /*
- * @(#)Date.java	1.76 08/05/13
+ * @(#)Date.java	1.80 04/05/18
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.lang.ref.SoftReference;
+import sun.util.calendar.BaseCalendar;
+import sun.util.calendar.CalendarDate;
+import sun.util.calendar.CalendarSystem;
+import sun.util.calendar.CalendarUtils;
+import sun.util.calendar.Era;
+import sun.util.calendar.Gregorian;
+import sun.util.calendar.ZoneInfo;
 
 /**
  * The class <code>Date</code> represents a specific instant
@@ -100,45 +103,31 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.76, 05/13/08
+ * @version 1.80, 05/18/04
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
  * @since   JDK1.0
  */
-public class Date implements java.io.Serializable, Cloneable, Comparable {
-    /* DEFAULT ZONE SYNCHRONIZATION: Part of the usage model of Date
-     * is that a Date object behaves like a Calendar object whose zone
-     * is the current default TimeZone.  As a result, we must be
-     * careful about keeping this phantom calendar in sync with the
-     * default TimeZone.  There are three class and instance variables
-     * to watch out for to achieve this.  (1)staticCal. Whenever this
-     * object is used, it must be reset to the default zone. This is a
-     * cheap operation which can be done directly (just a reference
-     * assignment), so we just do it every time. (2)simpleFormatter.
-     * Likewise, the DateFormat object we use to implement toString()
-     * must be reset to the current default zone before use.  Again,
-     * this is a cheap reference assignment. (3)cal. This is a little
-     * more tricky.  Unlike the other cached static objects, cal has
-     * state, and we don't want to monkey with it willy-nilly.  The
-     * correct procedure is to change the zone in a way that doesn't
-     * alter the time of this object.  This means getting the millis
-     * (forcing a fields->time conversion), setting the zone, and then
-     * restoring the millis.  The zone must be set before restoring
-     * the millis.  Since this is an expensive operation, we only do
-     * this when we have to. - liu 1.2b4 */
+public class Date
+    implements java.io.Serializable, Cloneable, Comparable<Date>
+{
+    private static final BaseCalendar gcal =
+				CalendarSystem.getGregorianCalendar();
+    private static BaseCalendar jcal;
 
-    /* If cal is null, then fastTime indicates the time in millis.
-     * Otherwise, fastTime is ignored, and cal indicates the time.
-     * The cal object is only created if a setXxx call is made to
-     * set a field.  For other operations, staticCal is used instead.
-     */
-    private transient Calendar cal;
     private transient long fastTime;
 
-    private static Calendar staticCal = null;
-    private static Calendar utcCal = null;
-    private static int defaultCenturyStart = 0;
+    /*
+     * If cdate is null, then fastTime indicates the time in millis.
+     * Otherwise, fastTime is ignored, and cdate indicates the time.
+     * The cdate object is only created if a setXxx call is made to
+     * set a field.
+     */
+    private transient BaseCalendar.Date cdate;
+
+    // Initialized just before the value is used. See parse().
+    private static int defaultCenturyStart;
 
     /* use serialVersionUID from modified java.util.Date for
      * interoperability with JDK1.1. The Date was modified to write
@@ -146,12 +135,6 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      */
     private static final long serialVersionUID = 7523967970034938905L;
 
-    /**
-     * Caches for the DateFormatters used by various toString methods.
-     */
-    private static SoftReference simpleFormatter = null;
-    private static SoftReference gmtFormatter = null;
-    
     /**
      * Allocates a <code>Date</code> object and initializes it so that 
      * it represents the time at which it was allocated, measured to the 
@@ -173,7 +156,6 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @see     java.lang.System#currentTimeMillis()
      */
     public Date(long date) {
-        cal = null;
         fastTime = date;
     }
 
@@ -191,6 +173,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * replaced by <code>Calendar.set(year + 1900, month, date)</code>
      * or <code>GregorianCalendar(year + 1900, month, date)</code>.
      */
+    @Deprecated
     public Date(int year, int month, int date) {
         this(year, month, date, 0, 0, 0);
     }
@@ -213,6 +196,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * hrs, min)</code> or <code>GregorianCalendar(year + 1900,
      * month, date, hrs, min)</code>.
      */
+    @Deprecated
     public Date(int year, int month, int date, int hrs, int min) {
         this(year, month, date, hrs, min, 0);
     }
@@ -236,16 +220,22 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * hrs, min, sec)</code> or <code>GregorianCalendar(year + 1900,
      * month, date, hrs, min, sec)</code>.
      */
+    @Deprecated
     public Date(int year, int month, int date, int hrs, int min, int sec) {
-        cal = null;
-        if (staticCal == null)
-            makeStaticCalendars();
-        synchronized (staticCal) {
-	    staticCal.setTimeZone(TimeZone.getDefaultRef());
-            staticCal.clear();
-            staticCal.set(year + 1900, month, date, hrs, min, sec);
-            fastTime = staticCal.getTimeInMillis();
-        }
+	int y = year + 1900;
+	// month is 0-based. So we have to normalize month to support Long.MAX_VALUE.
+	if (month >= 12) {
+	    y += month / 12;
+	    month %= 12;
+	} else if (month < 0) {
+	    y += CalendarUtils.floorDivide(month, 12);
+	    month = CalendarUtils.mod(month, 12);
+	}
+	BaseCalendar cal = getCalendarSystem(y);
+        cdate = (BaseCalendar.Date) cal.newCalendarDate(TimeZone.getDefaultRef());
+	cdate.setNormalizedDate(y, month + 1, date).setTimeOfDay(hrs, min, sec, 0);
+	getTimeImpl();
+	cdate = null;
     }
 
     /**
@@ -260,6 +250,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>DateFormat.parse(String s)</code>.
      */
+    @Deprecated
     public Date(String s) {
         this(parse(s));
     }
@@ -271,7 +262,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
         Date d = null;
         try {
             d = (Date)super.clone();
-            if (d.cal != null) d.cal = (Calendar)d.cal.clone();
+	    if (cdate != null) {
+		d.cdate = (BaseCalendar.Date) cdate.clone();
+	    }
         } catch (CloneNotSupportedException e) {} // Won't happen
         return d;
     }
@@ -301,15 +294,25 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * month, date, hrs, min, sec)</code>, using a UTC
      * <code>TimeZone</code>, followed by <code>Calendar.getTime().getTime()</code>.
      */
+    @Deprecated
     public static long UTC(int year, int month, int date,
                            int hrs, int min, int sec) {
-        if (utcCal == null)
-            makeStaticCalendars();
-        synchronized (utcCal) {
-            utcCal.clear();
-            utcCal.set(year + 1900, month, date, hrs, min, sec);
-            return utcCal.getTimeInMillis();
-        }
+	int y = year + 1900;
+	// month is 0-based. So we have to normalize month to support Long.MAX_VALUE.
+	if (month >= 12) {
+	    y += month / 12;
+	    month %= 12;
+	} else if (month < 0) {
+	    y += CalendarUtils.floorDivide(month, 12);
+	    month = CalendarUtils.mod(month, 12);
+	}
+	int m = month + 1;
+	BaseCalendar cal = getCalendarSystem(y);
+        BaseCalendar.Date udate = (BaseCalendar.Date) cal.newCalendarDate(null);
+	udate.setNormalizedDate(y, m, date).setTimeOfDay(hrs, min, sec, 0);
+	udate = normalize(udate);
+	cal = getCalendarSystem(udate);
+	return cal.getTime(udate);
     }
 
     /**
@@ -425,10 +428,8 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>DateFormat.parse(String s)</code>.
      */
+    @Deprecated
     public static long parse(String s) {
-        if (staticCal == null)
-            makeStaticCalendars(); // Called only for side-effect of setting defaultCenturyStart
-        
         int year = Integer.MIN_VALUE;
         int mon = -1;
         int mday = -1;
@@ -564,19 +565,31 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
                 break syntax;
             // Parse 2-digit years within the correct default century.
             if (year < 100) {
+		synchronized (Date.class) {
+		    if (defaultCenturyStart == 0) {
+			defaultCenturyStart = gcal.getCalendarDate().getYear() - 80;
+		    }
+		}
                 year += (defaultCenturyStart / 100) * 100;
                 if (year < defaultCenturyStart) year += 100;
             }
-            year -= 1900;
             if (sec < 0)
                 sec = 0;
             if (min < 0)
                 min = 0;
             if (hour < 0)
                 hour = 0;
-            if (tzoffset == -1) // no time zone specified, have to use local
-                return new Date (year, mon, mday, hour, min, sec).getTime();
-            return UTC(year, mon, mday, hour, min, sec) + tzoffset * (60 * 1000);
+	    BaseCalendar cal = getCalendarSystem(year);
+            if (tzoffset == -1)  { // no time zone specified, have to use local
+		BaseCalendar.Date ldate = (BaseCalendar.Date) cal.newCalendarDate(TimeZone.getDefaultRef());
+		ldate.setDate(year, mon + 1, mday);
+		ldate.setTimeOfDay(hour, min, sec, 0);
+                return cal.getTime(ldate);
+	    }
+	    BaseCalendar.Date udate = (BaseCalendar.Date) cal.newCalendarDate(null); // no time zone
+	    udate.setDate(year, mon + 1, mday);
+	    udate.setTimeOfDay(hour, min, sec, 0);
+            return cal.getTime(udate) + tzoffset * (60 * 1000);
         }
         // syntax error
         throw new IllegalArgumentException();
@@ -589,16 +602,15 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
         "july", "august", "september", "october", "november", "december",
         "gmt", "ut", "utc", "est", "edt", "cst", "cdt",
         "mst", "mdt", "pst", "pdt"
-        // this time zone table needs to be expanded
     };
     private final static int ttb[] = {
         14, 1, 0, 0, 0, 0, 0, 0, 0,
         2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
         10000 + 0, 10000 + 0, 10000 + 0,    // GMT/UT/UTC
-        10000 + 5 * 60, 10000 + 4 * 60, // EST/EDT
-        10000 + 6 * 60, 10000 + 5 * 60,
-        10000 + 7 * 60, 10000 + 6 * 60,
-        10000 + 8 * 60, 10000 + 7 * 60
+        10000 + 5 * 60, 10000 + 4 * 60,     // EST/EDT
+        10000 + 6 * 60, 10000 + 5 * 60,     // CST/CDT
+        10000 + 7 * 60, 10000 + 6 * 60,     // MST/MDT
+        10000 + 8 * 60, 10000 + 7 * 60      // PST/PDT
     };
 
     /**
@@ -612,8 +624,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.YEAR) - 1900</code>.
      */
+    @Deprecated
     public int getYear() {
-        return getField(Calendar.YEAR) - 1900;
+        return normalize().getYear() - 1900;
     }
 
     /**
@@ -631,8 +644,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.YEAR, year + 1900)</code>.
      */
+    @Deprecated
     public void setYear(int year) {
-        setField(Calendar.YEAR, year + 1900);
+	getCalendarDate().setNormalizedYear(year + 1900);
     }
 
     /**
@@ -646,8 +660,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.MONTH)</code>.
      */
+    @Deprecated
     public int getMonth() {
-        return getField(Calendar.MONTH);
+	return normalize().getMonth() - 1; // adjust 1-based to 0-based
     }
 
     /**
@@ -664,8 +679,21 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.MONTH, int month)</code>.
      */
+    @Deprecated
     public void setMonth(int month) {
-        setField(Calendar.MONTH, month);
+	int y = 0;
+	if (month >= 12) {
+	    y = month / 12;
+	    month %= 12;
+	} else if (month < 0) {
+	    y = CalendarUtils.floorDivide(month, 12);
+	    month = CalendarUtils.mod(month, 12);
+	}
+        BaseCalendar.Date d = getCalendarDate();
+	if (y != 0) {
+	    d.setNormalizedYear(d.getNormalizedYear() + y);
+	}
+	d.setMonth(month + 1); // adjust 0-based to 1-based month numbering
     }
 
     /**
@@ -681,8 +709,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * replaced by <code>Calendar.get(Calendar.DAY_OF_MONTH)</code>.
      * @deprecated
      */
+    @Deprecated
     public int getDate() {
-        return getField(Calendar.DATE);
+	return normalize().getDayOfMonth();
     }
 
     /**
@@ -700,8 +729,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.DAY_OF_MONTH, int date)</code>.
      */
+    @Deprecated
     public void setDate(int date) {
-        setField(Calendar.DATE, date);
+        getCalendarDate().setDayOfMonth(date);
     }
 
     /**
@@ -718,8 +748,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.DAY_OF_WEEK)</code>.
      */
+    @Deprecated
     public int getDay() {
-        return getField(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY;
+	return normalize().getDayOfWeek() - gcal.SUNDAY;
     }
 
     /**
@@ -734,8 +765,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.HOUR_OF_DAY)</code>.
      */
+    @Deprecated
     public int getHours() {
-        return getField(Calendar.HOUR_OF_DAY);
+	return normalize().getHours();
     }
 
     /**
@@ -750,8 +782,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.HOUR_OF_DAY, int hours)</code>.
      */
+    @Deprecated
     public void setHours(int hours) {
-        setField(Calendar.HOUR_OF_DAY, hours);
+        getCalendarDate().setHours(hours);
     }
 
     /**
@@ -764,8 +797,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.MINUTE)</code>.
      */
+    @Deprecated
     public int getMinutes() {
-        return getField(Calendar.MINUTE);
+	return normalize().getMinutes();
     }
 
     /**
@@ -780,8 +814,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.MINUTE, int minutes)</code>.
      */
+    @Deprecated
     public void setMinutes(int minutes) {
-        setField(Calendar.MINUTE, minutes);
+        getCalendarDate().setMinutes(minutes);
     }
 
     /**
@@ -795,8 +830,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.get(Calendar.SECOND)</code>.
      */
+    @Deprecated
     public int getSeconds() {
-        return getField(Calendar.SECOND);
+	return normalize().getSeconds();
     }
 
     /**
@@ -811,8 +847,9 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>Calendar.set(Calendar.SECOND, int seconds)</code>. 
      */
+    @Deprecated
     public void setSeconds(int seconds) {
-        setField(Calendar.SECOND, seconds);
+        getCalendarDate().setSeconds(seconds);
     }
 
     /**
@@ -827,22 +864,23 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
     }
 
     private final long getTimeImpl() {
-        return (cal == null) ? fastTime : cal.getTimeInMillis();
+	if (cdate != null) {
+	    normalize();
+	    BaseCalendar cal = getCalendarSystem(cdate);
+	    fastTime = cal.getTime(cdate);
+	}
+	return fastTime;
     }
 
     /**
-     * Sets this <tt>Date</tt> object to represent a point in time that is 
-     * <tt>time</tt> milliseconds after January 1, 1970 00:00:00 GMT. 
+     * Sets this <code>Date</code> object to represent a point in time that is 
+     * <code>time</code> milliseconds after January 1, 1970 00:00:00 GMT. 
      *
      * @param   time   the number of milliseconds.
      */
     public void setTime(long time) {
-        if (cal == null) {
-            fastTime = time;
-        }
-        else {
-            cal.setTimeInMillis(time);
-        }
+	fastTime = time;
+	cdate = null;
     }
 
     /**
@@ -853,9 +891,10 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *            represented by this <tt>Date</tt> object is strictly 
      *            earlier than the instant represented by <tt>when</tt>;
      *          <code>false</code> otherwise.
+     * @exception NullPointerException if <code>when</code> is null.
      */
     public boolean before(Date when) {
-        return getTime() < when.getTime();
+        return getMillisOf(this) < getMillisOf(when);
     }
 
     /**
@@ -866,9 +905,10 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *          by this <tt>Date</tt> object is strictly later than the 
      *          instant represented by <tt>when</tt>; 
      *          <code>false</code> otherwise.
+     * @exception NullPointerException if <code>when</code> is null.
      */
     public boolean after(Date when) {
-        return getTime() > when.getTime();
+        return getMillisOf(this) > getMillisOf(when);
     }
 
     /**
@@ -891,6 +931,18 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
     }
 
     /**
+     * Returns the millisecond value of this <code>Date</code> object
+     * without affecting its internal state.
+     */
+    static final long getMillisOf(Date date) {
+	if (date.cdate == null) {
+	    return date.fastTime;
+	}
+	BaseCalendar.Date d = (BaseCalendar.Date) date.cdate.clone();
+	return gcal.getTime(d);
+    }
+
+    /**
      * Compares two Dates for ordering.
      *
      * @param   anotherDate   the <code>Date</code> to be compared.
@@ -899,31 +951,12 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      *          is before the Date argument; and a value greater than
      *      <code>0</code> if this Date is after the Date argument.
      * @since   1.2
+     * @exception NullPointerException if <code>anotherDate</code> is null.
      */
     public int compareTo(Date anotherDate) {
-    long thisTime = this.getTime();
-    long anotherTime = anotherDate.getTime();
-    return (thisTime<anotherTime ? -1 : (thisTime==anotherTime ? 0 : 1));
-    }
-
-    /**
-     * Compares this Date to another Object.  If the Object is a Date,
-     * this function behaves like <code>compareTo(Date)</code>.  Otherwise,
-     * it throws a <code>ClassCastException</code> (as Dates are comparable
-     * only to other Dates).
-     *
-     * @param   o the <code>Object</code> to be compared.
-     * @return  the value <code>0</code> if the argument is a Date
-     *      equal to this Date; a value less than <code>0</code> if the
-     *      argument is a Date after this Date; and a value greater than
-     *      <code>0</code> if the argument is a Date before this Date.
-     * @exception ClassCastException if the argument is not a
-     *        <code>Date</code>. 
-     * @see     java.lang.Comparable
-     * @since   1.2
-     */
-    public int compareTo(Object o) {
-    return compareTo((Date)o);
+	long thisTime = getMillisOf(this);
+	long anotherTime = getMillisOf(anotherDate);
+	return (thisTime<anotherTime ? -1 : (thisTime==anotherTime ? 0 : 1));
     }
 
     /**
@@ -937,7 +970,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @return  a hash code value for this object. 
      */
     public int hashCode() {
-        long ht = getTime();
+        long ht = this.getTime();
         return (int) ht ^ (int) (ht >> 32);
     }
 
@@ -972,20 +1005,39 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @see     java.util.Date#toGMTString()
      */
     public String toString() {
-	DateFormat formatter = null;
-	if (simpleFormatter != null) {
-	    formatter = (DateFormat)simpleFormatter.get();
+	// "EEE MMM dd HH:mm:ss zzz yyyy";
+	BaseCalendar.Date date = normalize();
+	StringBuilder sb = new StringBuilder(28);
+	int index = date.getDayOfWeek();
+	if (index == gcal.SUNDAY) {
+	    index = 8;
 	}
-	if (formatter == null) {
-	    /* No cache yet, or cached formatter GC'd */
-	    formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy",
-					     Locale.US);
-	    simpleFormatter = new SoftReference(formatter);
+	convertToAbbr(sb, wtb[index]).append(' ');			  // EEE
+	convertToAbbr(sb, wtb[date.getMonth() - 1 + 2 + 7]).append(' ');  // MMM
+	CalendarUtils.sprintf0d(sb, date.getDayOfMonth(), 2).append(' '); // dd
+
+	CalendarUtils.sprintf0d(sb, date.getHours(), 2).append(':');   // HH
+	CalendarUtils.sprintf0d(sb, date.getMinutes(), 2).append(':'); // mm
+	CalendarUtils.sprintf0d(sb, date.getSeconds(), 2).append(' '); // ss
+	TimeZone zi = date.getZone();
+	if (zi != null) {
+	    sb.append(zi.getDisplayName(date.isDaylightTime(), zi.SHORT, Locale.US)); // zzz
+	} else {
+	    sb.append("GMT");
 	}
-        synchronized (formatter) {
-            formatter.setTimeZone(TimeZone.getDefaultRef());
-            return formatter.format(this);
-        }
+	sb.append(' ').append(date.getYear());  // yyyy
+	return sb.toString();
+    }
+
+    /**
+     * Converts the given name to its 3-letter abbreviation (e.g.,
+     * "monday" -> "Mon") and stored the abbreviation in the given
+     * <code>StringBuilder</code>.
+     */
+    private static final StringBuilder convertToAbbr(StringBuilder sb, String name) {
+	sb.append(Character.toUpperCase(name.charAt(0)));
+	sb.append(name.charAt(1)).append(name.charAt(2));
+	return sb;
     }
 
     /**
@@ -1004,9 +1056,10 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>DateFormat.format(Date date)</code>.
      */
+    @Deprecated
     public String toLocaleString() {
-    DateFormat formatter = DateFormat.getDateTimeInstance();
-    return formatter.format(this);
+	DateFormat formatter = DateFormat.getDateTimeInstance();
+	return formatter.format(this);
     }
 
     /**
@@ -1040,25 +1093,28 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * replaced by <code>DateFormat.format(Date date)</code>, using a
      * GMT <code>TimeZone</code>.
      */
+    @Deprecated
     public String toGMTString() {
-    DateFormat formatter = null;
-    if (gmtFormatter != null) {
-        formatter = (DateFormat)gmtFormatter.get();
-    }
-    if (formatter == null) {
-        /* No cache yet, or cached formatter GC'd */
-        formatter = new SimpleDateFormat("d MMM yyyy HH:mm:ss 'GMT'", 
-                         Locale.US);
-            formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-        gmtFormatter = new SoftReference(formatter);
-    }
-        return formatter.format(this);
+	// d MMM yyyy HH:mm:ss 'GMT'
+	long t = getTime();
+	BaseCalendar cal = getCalendarSystem(t);
+	BaseCalendar.Date date =
+	    (BaseCalendar.Date) cal.getCalendarDate(getTime(), (TimeZone)null);
+	StringBuilder sb = new StringBuilder(32);
+	CalendarUtils.sprintf0d(sb, date.getDayOfMonth(), 1).append(' '); // d
+	convertToAbbr(sb, wtb[date.getMonth() - 1 + 2 + 7]).append(' ');  // MMM
+	sb.append(date.getYear()).append(' ');                            // yyyy
+	CalendarUtils.sprintf0d(sb, date.getHours(), 2).append(':');      // HH
+	CalendarUtils.sprintf0d(sb, date.getMinutes(), 2).append(':');    // mm
+	CalendarUtils.sprintf0d(sb, date.getSeconds(), 2);                // ss
+	sb.append(" GMT");                                                // ' GMT'
+	return sb.toString();
     }
 
     /**
      * Returns the offset, measured in minutes, for the local time zone 
      * relative to UTC that is appropriate for the time represented by 
-     * this <tt>Date</tt> object. 
+     * this <code>Date</code> object. 
      * <p>
      * For example, in Massachusetts, five time zones west of Greenwich:
      * <blockquote><pre>
@@ -1087,29 +1143,137 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
      * replaced by <code>-(Calendar.get(Calendar.ZONE_OFFSET) +
      * Calendar.get(Calendar.DST_OFFSET)) / (60 * 1000)</code>.
      */
+    @Deprecated
     public int getTimezoneOffset() {
-        int offset;
-        if (cal == null) {
-            if (staticCal == null)
-                makeStaticCalendars();
-            synchronized (staticCal) {
-                staticCal.setTimeZone(TimeZone.getDefaultRef());
-                staticCal.setTimeInMillis(getTime());
-                offset = staticCal.get(Calendar.ZONE_OFFSET) +
-                    staticCal.get(Calendar.DST_OFFSET);
-            }
-        }
-        else {
-            TimeZone defaultZone = TimeZone.getDefaultRef();
-            if (!defaultZone.equals(cal.getTimeZone())) {
-                long ms = cal.getTimeInMillis();
-                cal.setTimeZone(TimeZone.getDefaultRef());
-                cal.setTimeInMillis(ms);
-            }
-            offset = cal.get(Calendar.ZONE_OFFSET) +
-                cal.get(Calendar.DST_OFFSET);
-        }
-        return -(offset / 1000 / 60);  // convert to minutes
+	int zoneOffset;
+        if (cdate == null) {
+	    TimeZone tz = TimeZone.getDefaultRef();
+	    if (tz instanceof ZoneInfo) {
+		zoneOffset = ((ZoneInfo)tz).getOffsets(fastTime, null);
+	    } else {
+		zoneOffset = tz.getOffset(fastTime);
+	    }
+	} else {
+	    normalize();
+	    zoneOffset = cdate.getZoneOffset();
+	}
+	return -zoneOffset/60000;  // convert to minutes
+    }
+
+    private final BaseCalendar.Date getCalendarDate() {
+	if (cdate == null) {
+	    BaseCalendar cal = getCalendarSystem(fastTime);
+	    cdate = (BaseCalendar.Date) cal.getCalendarDate(fastTime,
+							    TimeZone.getDefaultRef());
+	}
+	return cdate;
+    }
+
+    private final BaseCalendar.Date normalize() {
+	if (cdate == null) {
+	    BaseCalendar cal = getCalendarSystem(fastTime);
+	    cdate = (BaseCalendar.Date) cal.getCalendarDate(fastTime,
+							    TimeZone.getDefaultRef());
+	} else {
+	    TimeZone tz = TimeZone.getDefaultRef();
+	    if (tz != cdate.getZone()) {
+		BaseCalendar cal = getCalendarSystem(cdate);
+		long t = cal.getTime(cdate);
+		cdate.setZone(tz);
+		cal.getCalendarDate(t, cdate);
+	    }
+	    cdate = normalize(cdate);
+	}
+	return cdate;
+    }
+
+    private static final BaseCalendar.Date normalize(BaseCalendar.Date cdate) {
+	int y = cdate.getNormalizedYear();
+	int m = cdate.getMonth();
+	int d = cdate.getDayOfMonth();
+	int hh = cdate.getHours();
+	int mm = cdate.getMinutes();
+	int ss = cdate.getSeconds();
+	int ms = cdate.getMillis();
+	TimeZone tz = cdate.getZone();
+
+	// If the specified year can't be handled using a long value
+	// in milliseconds, GregorianCalendar is used for full
+	// compatibility with underflow and overflow. This is required
+	// by some JCK tests. The limits are based max year values -
+	// years that can be represented by max values of d, hh, mm,
+	// ss and ms. Also, let GregorianCalendar handle the default
+	// cutover year so that we don't need to worry about the
+	// transition here.
+	if (y == 1582 || y > 280000000 || y < -280000000) {
+	    if (tz == null) {
+		tz = TimeZone.getTimeZone("GMT");
+	    }
+	    GregorianCalendar gc = new GregorianCalendar(tz);
+	    gc.clear();
+	    gc.set(gc.MILLISECOND, ms);
+	    gc.set(y, m-1, d, hh, mm, ss);
+	    long t = gc.getTimeInMillis();
+	    BaseCalendar cal = getCalendarSystem(t);
+	    cdate = (BaseCalendar.Date) cal.getCalendarDate(t, tz);
+	    return cdate;
+	}
+
+	BaseCalendar cal = getCalendarSystem(y);
+	if (cal != getCalendarSystem(cdate)) {
+	    cdate = (BaseCalendar.Date) cal.newCalendarDate(tz);
+	    cdate.setNormalizedDate(y, m, d).setTimeOfDay(hh, mm, ss, ms);
+	}
+	// Perform the GregorianCalendar-style normalization.
+	long t = cal.getTime(cdate);
+
+	// In case the normalized date requires the other calendar
+	// system, we need to recalculate it using the other one.
+	BaseCalendar ncal = getCalendarSystem(t);
+	if (ncal != cal) {
+	    cdate = (BaseCalendar.Date) ncal.newCalendarDate(cdate.getZone());
+	    cdate.setNormalizedDate(y, m, d).setTimeOfDay(hh, mm, ss, ms);
+	    ncal.getTime(cdate);
+	}
+	return cdate;
+    }
+
+    /**
+     * Returns the Gregorian or Julian calendar system to use with the
+     * given date. Use Gregorian from October 15, 1582.
+     *
+     * @param year normalized calendar year (not -1900)
+     * @return the CalendarSystem to use for the specified date
+     */
+    private static final BaseCalendar getCalendarSystem(int year) {
+	if (year >= 1582) {
+	    return gcal;
+	}
+	return getJulianCalendar();
+    }
+
+    private static final BaseCalendar getCalendarSystem(long t) {
+	if (t >= GregorianCalendar.DEFAULT_GREGORIAN_CUTOVER) {
+	    return gcal;
+	}
+	return getJulianCalendar();
+    }
+
+    private static final BaseCalendar getCalendarSystem(BaseCalendar.Date cdate) {
+	if (jcal == null) {
+	    return gcal;
+	}
+	if (cdate.getEra() != null) {
+	    return jcal;
+	}
+	return gcal;
+    }
+
+    synchronized private static final BaseCalendar getJulianCalendar() {
+	if (jcal == null) {
+	    jcal = (BaseCalendar) CalendarSystem.forName("julian");
+	}
+	return jcal;
     }
 
     /**
@@ -1132,58 +1296,5 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
          throws IOException, ClassNotFoundException
     {
         fastTime = s.readLong();
-        // we expect to have cal == null here
-    }
-
-    /**
-     * Return a field for this date by looking it up in a Calendar object.
-     *
-     * @return the field value
-     * @see    java.util.Calendar
-     * @param  field the field to return
-     */
-    private final int getField(int field) {
-        if (cal == null) {
-            if (staticCal == null)
-                makeStaticCalendars();
-            synchronized (staticCal) {
-                staticCal.setTimeZone(TimeZone.getDefaultRef());
-                staticCal.setTimeInMillis(fastTime);
-                return staticCal.get(field);
-            }
-        }
-        else {
-            TimeZone defaultZone = TimeZone.getDefaultRef();
-            if (!defaultZone.equals(cal.getTimeZone())) {
-                long ms = cal.getTimeInMillis();
-                cal.setTimeZone(TimeZone.getDefaultRef());
-                cal.setTimeInMillis(ms);
-            }
-            return cal.get(field);
-        }
-    }
-
-    /**
-     * Set a field for this day.
-     *
-     * @param field the field to set
-     * @param value the value to set it to
-     * @see java.util.Calendar
-     */
-    private final void setField(int field, int value) {
-        if (cal == null) {
-            cal = new GregorianCalendar();
-            cal.setTimeInMillis(fastTime);
-        }
-        cal.set(field, value);
-    }
-
-    private synchronized static void makeStaticCalendars() {
-	if (staticCal == null) {
-	    GregorianCalendar calendar = new GregorianCalendar();
-	    utcCal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
-	    defaultCenturyStart = calendar.get(Calendar.YEAR) - 80;
-	    staticCal = calendar;
-	}
     }
 }

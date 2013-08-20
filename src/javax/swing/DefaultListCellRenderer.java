@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.24 05/12/07
+ * @(#)DefaultListCellRenderer.java	1.25 03/12/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,9 +23,11 @@ import java.io.Serializable;
  * <p>
  * <strong><a name="override">Implementation Note:</a></strong>
  * This class overrides
+ * <code>invalidate</code>,
  * <code>validate</code>,
  * <code>revalidate</code>,
  * <code>repaint</code>,
+ * <code>isOpaque</code>,
  * and
  * <code>firePropertyChange</code>
  * solely to improve performance.
@@ -46,16 +48,15 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.24 12/07/05
+ * @version 1.25 12/19/03
  * @author Philip Milne
  * @author Hans Muller
  */
 public class DefaultListCellRenderer extends JLabel
     implements ListCellRenderer, Serializable
 {
-    protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
-    private static final Border SAFE_NO_FOCUS_BORDER =
-				new EmptyBorder(1, 1, 1, 1);
+
+    protected static Border noFocusBorder;
 
     /**
      * Constructs a default renderer object for an item
@@ -63,17 +64,13 @@ public class DefaultListCellRenderer extends JLabel
      */
     public DefaultListCellRenderer() {
 	super();
+        if (noFocusBorder == null) {
+            noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+        }
 	setOpaque(true);
-	setBorder(getNoFocusBorder());
+	setBorder(noFocusBorder);
     }
 
-    private static Border getNoFocusBorder() {
-        if (System.getSecurityManager() != null) {
-            return SAFE_NO_FOCUS_BORDER;
-        } else {
-            return noFocusBorder;
-        }
-    }
 
     public Component getListCellRendererComponent(
         JList list,
@@ -103,11 +100,34 @@ public class DefaultListCellRenderer extends JLabel
 
 	setEnabled(list.isEnabled());
 	setFont(list.getFont());
-	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : getNoFocusBorder());
+	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
 
 	return this;
     }
 
+
+    /**
+     * Overridden for performance reasons.
+     * See the <a href="#override">Implementation Note</a> 
+     * for more information.
+     *
+     * @since 1.5
+     * @return <code>true</code> if the background is completely opaque
+     *         and differs from the JList's background;
+     *         <code>false</code> otherwise
+     */
+    public boolean isOpaque() { 
+	Color back = getBackground();
+	Component p = getParent(); 
+	if (p != null) { 
+	    p = p.getParent(); 
+	}
+	// p should now be the JList. 
+	boolean colorMatch = (back != null) && (p != null) && 
+	    back.equals(p.getBackground()) && 
+			p.isOpaque();
+	return !colorMatch && super.isOpaque(); 
+    }
 
    /**
     * Overridden for performance reasons.
@@ -115,6 +135,24 @@ public class DefaultListCellRenderer extends JLabel
     * for more information.
     */
     public void validate() {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    *
+    * @since 1.5
+    */
+    public void invalidate() {}
+
+   /**
+    * Overridden for performance reasons.
+    * See the <a href="#override">Implementation Note</a>
+    * for more information.
+    *
+    * @since 1.5
+    */
+    public void repaint() {}
 
    /**
     * Overridden for performance reasons.

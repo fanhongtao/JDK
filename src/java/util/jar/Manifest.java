@@ -1,7 +1,7 @@
 /*
- * @(#)Manifest.java	1.41 03/01/23
+ * @(#)Manifest.java	1.45 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * Manifest format specification</a>.
  *
  * @author  David Connelly
- * @version 1.41, 01/23/03
+ * @version 1.45, 05/05/04
  * @see	    Attributes
  * @since   1.2
  */
@@ -76,7 +76,7 @@ public class Manifest implements Cloneable {
      *
      * @return a Map of the entries contained in this Manifest
      */
-    public Map getEntries() {
+    public Map<String,Attributes> getEntries() {
 	return entries;
     }
 

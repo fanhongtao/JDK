@@ -1,7 +1,7 @@
 /*
- * @(#)Dictionary.java	1.18 03/01/23
+ * @(#)Dictionary.java	1.23 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.util;
  * implement the Map interface, rather than extending this class.</strong>
  *
  * @author  unascribed
- * @version 1.18, 01/23/03
+ * @version 1.23, 01/12/04
  * @see	    java.util.Map
  * @see     java.lang.Object#equals(java.lang.Object)
  * @see     java.lang.Object#hashCode()
@@ -30,7 +30,7 @@ package java.util;
  * @since   JDK1.0
  */
 public abstract
-class Dictionary {
+class Dictionary<K,V> {
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
@@ -39,7 +39,7 @@ class Dictionary {
     }
 
     /**
-     * Returns the number of entries (dinstint keys) in this dictionary.
+     * Returns the number of entries (distinct keys) in this dictionary.
      *
      * @return  the number of keys in this dictionary.
      */
@@ -65,7 +65,7 @@ class Dictionary {
      * @see     java.util.Dictionary#elements()
      * @see     java.util.Enumeration
      */
-    abstract public Enumeration keys();
+    abstract public Enumeration<K> keys();
 
     /**
      * Returns an enumeration of the values in this dictionary. The general 
@@ -77,7 +77,7 @@ class Dictionary {
      * @see     java.util.Dictionary#keys()
      * @see     java.util.Enumeration
      */
-    abstract public Enumeration elements();
+    abstract public Enumeration<V> elements();
 
     /**
      * Returns the value to which the key is mapped in this dictionary. 
@@ -92,7 +92,7 @@ class Dictionary {
      * @exception NullPointerException if the <tt>key</tt> is <tt>null</tt>.
      * @see     java.util.Dictionary#put(java.lang.Object, java.lang.Object)
      */
-    abstract public Object get(Object key);
+    abstract public V get(Object key);
 
     /**
      * Maps the specified <code>key</code> to the specified 
@@ -121,7 +121,7 @@ class Dictionary {
      * @see        java.lang.Object#equals(java.lang.Object)
      * @see        java.util.Dictionary#get(java.lang.Object)
      */
-    abstract public Object put(Object key, Object value);
+    abstract public V put(K key, V value);
 
     /**
      * Removes the <code>key</code> (and its corresponding 
@@ -134,5 +134,5 @@ class Dictionary {
      *          mapping.
      * @exception NullPointerException if <tt>key</tt> is <tt>null</tt>.
      */
-    abstract public Object remove(Object key);
+    abstract public V remove(Object key);
 }

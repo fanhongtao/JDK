@@ -1,7 +1,7 @@
 /*
- * @(#)TimerTask.java	1.8 03/01/23
+ * @(#)TimerTask.java	1.10 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util;
  * A task that can be scheduled for one-time or repeated execution by a Timer.
  *
  * @author  Josh Bloch
- * @version 1.8, 01/23/03
+ * @version 1.10, 02/19/04
  * @see	    Timer
  * @since   1.3
  */
@@ -51,7 +51,7 @@ public abstract class TimerTask implements Runnable {
 
     /**
      * Next execution time for this task in the format returned by
-     * System.currentTimeMillis, assuming this task is schedule for execution.
+     * System.currentTimeMillis, assuming this task is scheduled for execution.
      * For repeating tasks, this field is updated prior to each task execution.
      */
     long nextExecutionTime;

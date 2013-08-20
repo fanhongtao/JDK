@@ -1,7 +1,7 @@
 /*
- * @(#)GIFStreamMetadataFormatResources.java	1.7 05/08/30
+ * @(#)GIFStreamMetadataFormatResources.java	1.6 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,11 +11,7 @@ import java.util.ListResourceBundle;
 
 public class GIFStreamMetadataFormatResources extends ListResourceBundle {
 
-    public GIFStreamMetadataFormatResources() {}
-
-    protected Object[][] getContents() {
-        return new Object[][] {
-
+    static final Object[][] contents = {
         // Node name, followed by description
         { "Version", "The file version, either 87a or 89a" },
         { "LogicalScreenDescriptor",
@@ -47,7 +43,11 @@ public class GIFStreamMetadataFormatResources extends ListResourceBundle {
           "The green value for the color table entry" },
         { "ColorTableEntry/blue",
           "The blue value for the color table entry" },
+    };
 
-        };
+    public GIFStreamMetadataFormatResources() {}
+
+    public Object[][] getContents() {
+        return contents;
     }
 }

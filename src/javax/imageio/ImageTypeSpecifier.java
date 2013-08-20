@@ -1,7 +1,7 @@
 /*
- * @(#)ImageTypeSpecifier.java	1.32 03/01/23
+ * @(#)ImageTypeSpecifier.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -448,6 +448,13 @@ public class ImageTypeSpecifier {
 
             return true;
         }
+
+        public int hashCode() {
+            return (super.hashCode() +
+                    (4 * bandOffsets.length) +
+                    (25 * dataType) +
+                    (hasAlpha ? 17 : 18));
+        }
     }
 
     /**
@@ -592,6 +599,14 @@ public class ImageTypeSpecifier {
 
             return true;
         }
+
+        public int hashCode() {
+            return (super.hashCode() +
+                    (3 * bandOffsets.length) +
+                    (7 * bankIndices.length) +
+                    (21 * dataType) +
+                    (hasAlpha ? 19 : 29));
+        }
     }
 
     /**
@@ -657,7 +672,25 @@ public class ImageTypeSpecifier {
                          int dataType,
                          boolean isSigned,
                          boolean hasAlpha,
-                         boolean isAlphaPremultiplied) {
+                         boolean isAlphaPremultiplied)
+        {
+            if (bits != 1 && bits != 2 && bits != 4 &&
+                bits != 8 && bits != 16)
+            {
+                throw new IllegalArgumentException("Bad value for bits!");
+            }
+            if (dataType != DataBuffer.TYPE_BYTE &&
+                dataType != DataBuffer.TYPE_SHORT &&
+                dataType != DataBuffer.TYPE_USHORT)
+            {
+                throw new IllegalArgumentException
+                    ("Bad value for dataType!");
+            }
+            if (bits > 8 && dataType == DataBuffer.TYPE_BYTE) {
+                throw new IllegalArgumentException
+                    ("Too many bits for dataType!");
+            }
+
             this.bits = bits;
             this.dataType = dataType;
             this.isSigned = isSigned;
@@ -731,6 +764,15 @@ public class ImageTypeSpecifier {
      *
      * @return an <code>ImageTypeSpecifier</code> with the desired
      * characteristics.
+     *
+     * @exception IllegalArgumentException if <code>bits</code> is
+     * not one of 1, 2, 4, 8, or 16.
+     * @exception IllegalArgumentException if <code>dataType</code> is
+     * not one of <code>DataBuffer.TYPE_BYTE</code>,
+     * <code>DataBuffer.TYPE_SHORT</code>, or
+     * <code>DataBuffer.TYPE_USHORT</code>.
+     * @exception IllegalArgumentException if <code>bits</code> is
+     * larger than the bit size of the given <code>dataType</code>.
      */
     public static ImageTypeSpecifier
         createGrayscale(int bits,
@@ -758,6 +800,15 @@ public class ImageTypeSpecifier {
      *
      * @return an <code>ImageTypeSpecifier</code> with the desired
      * characteristics.
+     *
+     * @exception IllegalArgumentException if <code>bits</code> is
+     * not one of 1, 2, 4, 8, or 16.
+     * @exception IllegalArgumentException if <code>dataType</code> is
+     * not one of <code>DataBuffer.TYPE_BYTE</code>,
+     * <code>DataBuffer.TYPE_SHORT</code>, or
+     * <code>DataBuffer.TYPE_USHORT</code>.
+     * @exception IllegalArgumentException if <code>bits</code> is
+     * larger than the bit size of the given <code>dataType</code>.
      */
     public static ImageTypeSpecifier
         createGrayscale(int bits,
@@ -888,8 +939,9 @@ public class ImageTypeSpecifier {
      * exactly <code>1 << bits</code>.
      * @exception IllegalArgumentException if <code>dataType</code> is
      * not one of <code>DataBuffer.TYPE_BYTE</code>,
-     * <code>DataBuffer.TYPE_SHORT</code>, <code>TYPE_USHORT</code>,
-     * or <code>TYPE_INT</code>.
+     * <code>DataBuffer.TYPE_SHORT</code>,
+     * <code>DataBuffer.TYPE_USHORT</code>,
+     * or <code>DataBuffer.TYPE_INT</code>.
      * @exception IllegalArgumentException if <code>bits</code> is
      * larger than the bit size of the given <code>dataType</code>.
      */
@@ -1146,5 +1198,14 @@ public class ImageTypeSpecifier {
         ImageTypeSpecifier that = (ImageTypeSpecifier)o;
         return (colorModel.equals(that.colorModel)) &&
             (sampleModel.equals(that.sampleModel));
+    }
+
+    /**
+     * Returns the hash code for this ImageTypeSpecifier.
+     *
+     * @return a hash code for this ImageTypeSpecifier
+     */
+    public int hashCode() {
+        return (9 * colorModel.hashCode()) + (14 * sampleModel.hashCode());
     }
 }

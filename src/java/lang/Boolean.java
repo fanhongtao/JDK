@@ -1,7 +1,7 @@
 /*
- * @(#)Boolean.java	1.43 03/01/23
+ * @(#)Boolean.java	1.51 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,11 +20,12 @@ package java.lang;
  * <code>boolean</code>. 
  *
  * @author  Arthur van Hoff
- * @version 1.43, 01/23/03
+ * @version 1.51, 05/11/04
  * @since   JDK1.0
  */
-public final
-class Boolean implements java.io.Serializable {
+public final class Boolean implements java.io.Serializable,
+                                      Comparable<Boolean>
+{
     /** 
      * The <code>Boolean</code> object corresponding to the primitive 
      * value <code>true</code>. 
@@ -42,14 +43,14 @@ class Boolean implements java.io.Serializable {
      *
      * @since   JDK1.1
      */
-    public static final Class	TYPE = Class.getPrimitiveClass("boolean");
+    public static final Class<Boolean> TYPE = Class.getPrimitiveClass("boolean");
 
     /**
      * The value of the Boolean.
      *
      * @serial
      */
-    private boolean value;
+    private final boolean value;
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = -3665804199014368530L;
@@ -87,6 +88,21 @@ class Boolean implements java.io.Serializable {
     }
 
     /**
+     * Parses the string argument as a boolean.  The <code>boolean</code> 
+     * returned represents the value <code>true</code> if the string argument 
+     * is not <code>null</code> and is equal, ignoring case, to the string 
+     * <code>"true"</code>.
+     *
+     * @param      s   the <code>String</code> containing the boolean
+     *                 representation to be parsed
+     * @return     the boolean represented by the string argument
+     * @since 1.5
+     */
+    public static boolean parseBoolean(String s) {
+        return toBoolean(s);
+    }
+
+    /**
      * Returns the value of this <tt>Boolean</tt> object as a boolean 
      * primitive.
      *
@@ -103,7 +119,7 @@ class Boolean implements java.io.Serializable {
      * if it is <tt>false</tt>, this method returns <tt>Boolean.FALSE</tt>.
      * If a new <tt>Boolean</tt> instance is not required, this method
      * should generally be used in preference to the constructor
-     * {@link #Boolean(boolean)}, as this method is likely to to yield
+     * {@link #Boolean(boolean)}, as this method is likely to yield
      * significantly better space and time performance.
      *
      * @param  b a boolean value.
@@ -207,6 +223,22 @@ class Boolean implements java.io.Serializable {
         } catch (NullPointerException e) {
         }
         return result;
+    }
+
+    /**
+     * Compares this <tt>Boolean</tt> instance with another.
+     *
+     * @param   b the <tt>Boolean</tt> instance to be compared
+     * @return  zero if this object represents the same boolean value as the
+     *          argument; a positive value if this object represents true
+     *          and the argument represents false; and a negative value if
+     *          this object represents false and the argument represents true
+     * @throws  NullPointerException if the argument is <tt>null</tt>
+     * @see     Comparable
+     * @since  1.5
+     */
+    public int compareTo(Boolean b) {
+        return (b.value == value ? 0 : (value ? 1 : -1));
     }
 
     private static boolean toBoolean(String name) { 

@@ -1,7 +1,7 @@
 /*
- * @(#)CompoundName.java	1.9 03/01/23
+ * @(#)CompoundName.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -125,7 +125,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.9 03/01/23
+ * @version 1.11 04/05/05
  * @since 1.3
  */
 
@@ -160,7 +160,7 @@ public class CompoundName implements Name {
       *			this compound name. See class description for
       *			contents of properties.
       */
-    protected CompoundName(Enumeration comps, Properties syntax) {
+    protected CompoundName(Enumeration<String> comps, Properties syntax) {
 	if (syntax == null) {
 	    throw new NullPointerException();
 	}
@@ -326,7 +326,7 @@ public class CompoundName implements Name {
       * @return	A non-null enumeration of the components of this
       * compound name. Each element of the enumeration is of class String.
       */
-    public Enumeration getAll() {
+    public Enumeration<String> getAll() {
 	return (impl.getAll());
     }
 

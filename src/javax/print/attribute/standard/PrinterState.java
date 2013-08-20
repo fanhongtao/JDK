@@ -1,11 +1,12 @@
 /*
- * @(#)PrinterState.java	1.5 03/01/23
+ * @(#)PrinterState.java	1.8 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.EnumSyntax;
 import javax.print.attribute.PrintServiceAttribute;
 
@@ -29,6 +30,8 @@ import javax.print.attribute.PrintServiceAttribute;
  */
 public final class PrinterState extends EnumSyntax 
 implements PrintServiceAttribute {
+
+    private static final long serialVersionUID = -649578618346507718L;
 
     /**
      * The printer state is unknown.
@@ -102,7 +105,7 @@ implements PrintServiceAttribute {
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return PrinterState.class;
     }
 

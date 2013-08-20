@@ -1,7 +1,7 @@
 /*
- * @(#)ActivationGroup.java	1.43 03/01/23
+ * @(#)ActivationGroup.java	1.44 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -76,7 +76,7 @@ import sun.security.action.GetIntegerAction;
  * manager you would like to install.
  *
  * @author 	Ann Wollrath
- * @version	1.43, 03/01/23
+ * @version	1.44, 03/12/19
  * @see 	ActivationInstantiator
  * @see		ActivationGroupDesc
  * @see		ActivationGroupID

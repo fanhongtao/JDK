@@ -1,7 +1,7 @@
 /*
- * @(#)StringTokenizer.java	1.29 03/01/23
+ * @(#)StringTokenizer.java	1.34 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -78,12 +78,12 @@ import java.lang.*;
  * </pre></blockquote>
  *
  * @author  unascribed
- * @version 1.29, 01/23/03
+ * @version 1.34, 05/05/04
  * @see     java.io.StreamTokenizer
  * @since   JDK1.0
  */
 public
-class StringTokenizer implements Enumeration {
+class StringTokenizer implements Enumeration<Object> {
     private int currentPosition;
     private int newPosition;
     private int maxPosition;
@@ -93,28 +93,63 @@ class StringTokenizer implements Enumeration {
     private boolean delimsChanged;
 
     /**
-     * maxDelimChar stores the value of the delimiter character with the
+     * maxDelimCodePoint stores the value of the delimiter character with the
      * highest value. It is used to optimize the detection of delimiter
      * characters.
+     *
+     * It is unlikely to provide any optimization benefit in the
+     * hasSurrogates case because most string characters will be
+     * smaller than the limit, but we keep it so that the two code
+     * paths remain similar.
      */
-    private char maxDelimChar;
+    private int maxDelimCodePoint;
 
     /**
-     * Set maxDelimChar to the highest char in the delimiter set.
+     * If delimiters include any surrogates (including surrogate
+     * pairs), hasSurrogates is true and the tokenizer uses the
+     * different code path. This is because String.indexOf(int)
+     * doesn't handle unpaired surrogates as a single character.
      */
-    private void setMaxDelimChar() {
+    private boolean hasSurrogates = false;
+
+    /**
+     * When hasSurrogates is true, delimiters are converted to code
+     * points and isDelimiter(int) is used to determine if the given
+     * codepoint is a delimiter.
+     */
+    private int[] delimiterCodePoints;
+
+    /**
+     * Set maxDelimCodePoint to the highest char in the delimiter set.
+     */
+    private void setMaxDelimCodePoint() {
         if (delimiters == null) {
-            maxDelimChar = 0;
+            maxDelimCodePoint = 0;
             return;
         }
 
-	char m = 0;
-	for (int i = 0; i < delimiters.length(); i++) {
-	    char c = delimiters.charAt(i);
+	int m = 0;
+	int c;
+	int count = 0;
+	for (int i = 0; i < delimiters.length(); i += Character.charCount(c)) {
+	    c = delimiters.charAt(i);
+	    if (c >= Character.MIN_HIGH_SURROGATE && c <= Character.MAX_LOW_SURROGATE) {
+		c = delimiters.codePointAt(i);
+		hasSurrogates = true;
+	    }
 	    if (m < c)
 		m = c;
+	    count++;
 	}
-	maxDelimChar = m;
+	maxDelimCodePoint = m;
+
+	if (hasSurrogates) {
+	    delimiterCodePoints = new int[count];
+	    for (int i = 0, j = 0; i < count; i++, j += Character.charCount(c)) {
+		c = delimiters.codePointAt(j);
+		delimiterCodePoints[i] = c;
+	    }
+	}
     }
 
     /**
@@ -137,6 +172,7 @@ class StringTokenizer implements Enumeration {
      * @param   delim          the delimiters.
      * @param   returnDelims   flag indicating whether to return the delimiters
      *                         as tokens.
+     * @exception NullPointerException if str is <CODE>null</CODE>
      */
     public StringTokenizer(String str, String delim, boolean returnDelims) {
 	currentPosition = 0;
@@ -146,7 +182,7 @@ class StringTokenizer implements Enumeration {
 	maxPosition = str.length();
 	delimiters = delim;
 	retDelims = returnDelims;
-        setMaxDelimChar();
+        setMaxDelimCodePoint();
     }
 
     /**
@@ -154,9 +190,15 @@ class StringTokenizer implements Enumeration {
      * characters in the <code>delim</code> argument are the delimiters 
      * for separating tokens. Delimiter characters themselves will not 
      * be treated as tokens.
+     * <p>
+     * Note that if <tt>delim</tt> is <tt>null</tt>, this constructor does
+     * not throw an exception. However, trying to invoke other methods on the
+     * resulting <tt>StringTokenizer</tt> may result in a
+     * <tt>NullPointerException</tt>.
      *
      * @param   str     a string to be parsed.
      * @param   delim   the delimiters.
+     * @exception NullPointerException if str is <CODE>null</CODE>
      */
     public StringTokenizer(String str, String delim) {
 	this(str, delim, false);
@@ -171,6 +213,7 @@ class StringTokenizer implements Enumeration {
      * not be treated as tokens.
      *
      * @param   str   a string to be parsed.
+     * @exception NullPointerException if str is <CODE>null</CODE> 
      */
     public StringTokenizer(String str) {
 	this(str, " \t\n\r\f", false);
@@ -187,10 +230,18 @@ class StringTokenizer implements Enumeration {
 
         int position = startPos;
 	while (!retDelims && position < maxPosition) {
-            char c = str.charAt(position);
-            if ((c > maxDelimChar) || (delimiters.indexOf(c) < 0))
-                break;
-	    position++;
+	    if (!hasSurrogates) {
+		char c = str.charAt(position);
+		if ((c > maxDelimCodePoint) || (delimiters.indexOf(c) < 0))
+		    break;
+		position++;
+	    } else {
+		int c = str.codePointAt(position);
+		if ((c > maxDelimCodePoint) || !isDelimiter(c)) {
+		    break;
+		}
+		position += Character.charCount(c);
+	    }
 	}
         return position;
     }
@@ -202,17 +253,39 @@ class StringTokenizer implements Enumeration {
     private int scanToken(int startPos) {
         int position = startPos;
         while (position < maxPosition) {
-            char c = str.charAt(position);
-            if ((c <= maxDelimChar) && (delimiters.indexOf(c) >= 0))
-                break;
-            position++;
+	    if (!hasSurrogates) {
+		char c = str.charAt(position);
+		if ((c <= maxDelimCodePoint) && (delimiters.indexOf(c) >= 0))
+		    break;
+		position++;
+	    } else {
+		int c = str.codePointAt(position);
+		if ((c <= maxDelimCodePoint) && isDelimiter(c))
+		    break;
+		position += Character.charCount(c);
+	    }
 	}
 	if (retDelims && (startPos == position)) {
-            char c = str.charAt(position);
-	    if ((c <= maxDelimChar) && (delimiters.indexOf(c) >= 0))
-                position++;
+	    if (!hasSurrogates) {
+		char c = str.charAt(position);
+		if ((c <= maxDelimCodePoint) && (delimiters.indexOf(c) >= 0))
+		    position++;
+	    } else {
+		int c = str.codePointAt(position);
+		if ((c <= maxDelimCodePoint) && isDelimiter(c))
+		    position += Character.charCount(c);
+	    }
         }
         return position;
+    }
+
+    private boolean isDelimiter(int codePoint) {
+	for (int i = 0; i < delimiterCodePoints.length; i++) {
+	    if (delimiterCodePoints[i] == codePoint) {
+		return true;
+	    }
+	}
+	return false;
     }
 
     /**
@@ -226,8 +299,8 @@ class StringTokenizer implements Enumeration {
      */
     public boolean hasMoreTokens() {
 	/*
-	 * Temporary store this position and use it in the following
-	 * nextToken() method only if the delimiters have'nt been changed in
+	 * Temporarily store this position and use it in the following
+	 * nextToken() method only if the delimiters haven't been changed in
 	 * that nextToken() invocation.
 	 */
 	newPosition = skipDelimiters(currentPosition);
@@ -275,6 +348,7 @@ class StringTokenizer implements Enumeration {
      * @return     the next token, after switching to the new delimiter set.
      * @exception  NoSuchElementException  if there are no more tokens in this
      *               tokenizer's string.
+     * @exception NullPointerException if delim is <CODE>null</CODE>
      */
     public String nextToken(String delim) {
 	delimiters = delim;
@@ -282,7 +356,7 @@ class StringTokenizer implements Enumeration {
 	/* delimiter string specified, so set the appropriate flag. */
 	delimsChanged = true;
 
-        setMaxDelimChar();
+        setMaxDelimCodePoint();
 	return nextToken();
     }
 

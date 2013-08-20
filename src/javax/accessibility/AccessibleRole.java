@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRole.java	1.40 03/01/27
+ * @(#)AccessibleRole.java	1.45 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *
- * @version     1.32 10/12/99
+ * @version     1.45 04/15/04
  * @author      Willie Walker
  * @author	Peter Korn
  * @author	Lynn Monsanto
@@ -515,6 +515,58 @@ public class AccessibleRole extends AccessibleBundle {
      */
     public static final AccessibleRole GROUP_BOX
 	= new AccessibleRole("groupbox");
+
+    /**
+     * A text header
+     *
+     * @since 1.5
+     */
+    public static final AccessibleRole HEADER =
+        new AccessibleRole("header"); 
+ 
+    /**
+     * A text footer
+     *
+     * @since 1.5
+     */
+    public static final AccessibleRole FOOTER =
+        new AccessibleRole("footer"); 
+ 
+    /**
+     * A text paragraph
+     *
+     * @since 1.5
+     */
+    public static final AccessibleRole PARAGRAPH =
+        new AccessibleRole("paragraph");
+ 
+    /**
+     * A ruler is an object used to measure distance
+     *
+     * @since 1.5
+     */
+    public static final AccessibleRole RULER =
+        new AccessibleRole("ruler"); 
+ 
+    /**
+     * A role indicating the object acts as a formula for
+     * calculating a value.  An example is a formula in
+     * a spreadsheet cell.
+     *
+     * @since 1.5
+     */
+    static public final AccessibleRole EDITBAR =
+        new AccessibleRole("editbar");
+
+    /**
+     * A role indicating the object monitors the progress 
+     * of some operation.
+     *
+     * @since 1.5
+     */
+    static public final AccessibleRole PROGRESS_MONITOR =
+        new AccessibleRole("progressMonitor");
+
 
 // The following are all under consideration for potential future use.
 

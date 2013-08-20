@@ -1,13 +1,14 @@
 /*
- * @(#)Resolver.java	1.7 03/01/23
+ * @(#)Resolver.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 
 package javax.naming.spi;
 
+import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.NamingException;
 
@@ -27,7 +28,7 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 03/01/23
+  * @version 1.9 04/05/05
   * @since 1.3
   */
 
@@ -52,7 +53,8 @@ public interface Resolver {
      *
      * @see #resolveToClass(String, Class)
      */
-    public ResolveResult resolveToClass(Name name, Class contextType)
+    public ResolveResult resolveToClass(Name name,
+					Class<? extends Context> contextType)
 	    throws NamingException;
 
     /**
@@ -71,6 +73,7 @@ public interface Resolver {
      *		if no context of the appropriate type is found
      * @throws	NamingException if a naming exception was encountered
      */
-    public ResolveResult resolveToClass(String name, Class contextType)
+    public ResolveResult resolveToClass(String name,
+					Class<? extends Context> contextType)
 	    throws NamingException;
 };

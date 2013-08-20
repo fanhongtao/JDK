@@ -1,7 +1,7 @@
 /*
- * @(#)LinkedHashMap.java	1.11 03/01/23
+ * @(#)LinkedHashMap.java	1.18 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +56,7 @@ import  java.io.*;
  * <p>This class provides all of the optional <tt>Map</tt> operations, and
  * permits null elements.  Like <tt>HashMap</tt>, it provides constant-time
  * performance for the basic operations (<tt>add</tt>, <tt>contains</tt> and
- * <tt>remove</tt>), assuming the the hash function disperses elements
+ * <tt>remove</tt>), assuming the hash function disperses elements
  * properly among the buckets.  Performance is likely to be just slightly
  * below that of <tt>HashMap</tt>, due to the added expense of maintaining the
  * linked list, with one exception: Iteration over the collection-views
@@ -114,7 +114,7 @@ import  java.io.*;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.11, 01/23/03
+ * @version 1.18, 02/19/04
  * @see     Object#hashCode()
  * @see     Collection
  * @see     Map
@@ -124,11 +124,17 @@ import  java.io.*;
  * @since   JDK1.4
  */
 
-public class LinkedHashMap extends HashMap {
+public class LinkedHashMap<K,V>
+    extends HashMap<K,V>
+    implements Map<K,V>
+{
+
+    private static final long serialVersionUID = 3801124242820219131L;
+
     /**
      * The head of the doubly linked list.
      */
-    private transient Entry header;
+    private transient Entry<K,V> header;
 
     /**
      * The iteration ordering method for this linked hash map: <tt>true</tt>
@@ -182,7 +188,7 @@ public class LinkedHashMap extends HashMap {
      * @param  m the map whose mappings are to be placed in this map.
      * @throws NullPointerException if the specified map is null.
      */
-    public LinkedHashMap(Map m) {
+    public LinkedHashMap(Map<? extends K, ? extends V> m) {
         super(m);
         accessOrder = false;
     }
@@ -198,7 +204,8 @@ public class LinkedHashMap extends HashMap {
      * @throws IllegalArgumentException if the initial capacity is negative
      *         or the load factor is nonpositive.
      */
-    public LinkedHashMap(int initialCapacity, float loadFactor,
+    public LinkedHashMap(int initialCapacity,
+			 float loadFactor,
                          boolean accessOrder) {
         super(initialCapacity, loadFactor);
         this.accessOrder = accessOrder;
@@ -210,7 +217,7 @@ public class LinkedHashMap extends HashMap {
      * the chain.
      */
     void init() {
-        header = new Entry(-1, null, null, null);
+        header = new Entry<K,V>(-1, null, null, null);
         header.before = header.after = header;
     }
 
@@ -221,7 +228,7 @@ public class LinkedHashMap extends HashMap {
      */
     void transfer(HashMap.Entry[] newTable) {
         int newCapacity = newTable.length;
-        for (Entry e = header.after; e != header; e = e.after) {
+        for (Entry<K,V> e = header.after; e != header; e = e.after) {
             int index = indexFor(e.hash, newCapacity);
             e.next = newTable[index];
             newTable[index] = e;
@@ -262,8 +269,8 @@ public class LinkedHashMap extends HashMap {
      * @return the value to which this map maps the specified key.
      * @param key key whose associated value is to be returned.
      */
-    public Object get(Object key) {
-        Entry e = (Entry)getEntry(key);
+    public V get(Object key) {
+        Entry<K,V> e = (Entry<K,V>)getEntry(key);
         if (e == null)
             return null;
         e.recordAccess(this);
@@ -281,11 +288,11 @@ public class LinkedHashMap extends HashMap {
     /**
      * LinkedHashMap entry.
      */
-    private static class Entry extends HashMap.Entry {
+    private static class Entry<K,V> extends HashMap.Entry<K,V> {
         // These fields comprise the doubly linked list used for iteration.
-        Entry before, after;
+        Entry<K,V> before, after;
 
-	Entry(int hash, Object key, Object value, HashMap.Entry next) {
+	Entry(int hash, K key, V value, HashMap.Entry<K,V> next) {
             super(hash, key, value, next);
         }
 
@@ -300,7 +307,7 @@ public class LinkedHashMap extends HashMap {
         /**                                             
          * Insert this entry before the specified existing entry in the list.
          */
-        private void addBefore(Entry existingEntry) {
+        private void addBefore(Entry<K,V> existingEntry) {
             after  = existingEntry;
             before = existingEntry.before;
             before.after = this;
@@ -313,8 +320,8 @@ public class LinkedHashMap extends HashMap {
          * If the enclosing Map is access-ordered, it moves the entry
          * to the end of the list; otherwise, it does nothing. 
          */
-        void recordAccess(HashMap m) {
-            LinkedHashMap lm = (LinkedHashMap)m;
+        void recordAccess(HashMap<K,V> m) {
+            LinkedHashMap<K,V> lm = (LinkedHashMap<K,V>)m;
             if (lm.accessOrder) {
                 lm.modCount++;
                 remove();
@@ -322,14 +329,14 @@ public class LinkedHashMap extends HashMap {
             }
         }
 
-        void recordRemoval(HashMap m) {
+        void recordRemoval(HashMap<K,V> m) {
             remove();
         }
     }
 
-    private abstract class LinkedHashIterator implements Iterator {
-	Entry nextEntry    = header.after;
-	Entry lastReturned = null;
+    private abstract class LinkedHashIterator<T> implements Iterator<T> {
+	Entry<K,V> nextEntry    = header.after;
+	Entry<K,V> lastReturned = null;
 
 	/**
 	 * The modCount value that the iterator believes that the backing
@@ -353,45 +360,45 @@ public class LinkedHashMap extends HashMap {
             expectedModCount = modCount;
 	}
 
-	Entry nextEntry() {
+	Entry<K,V> nextEntry() {
 	    if (modCount != expectedModCount)
 		throw new ConcurrentModificationException();
             if (nextEntry == header)
                 throw new NoSuchElementException();
 
-            Entry e = lastReturned = nextEntry;
+            Entry<K,V> e = lastReturned = nextEntry;
             nextEntry = e.after;
             return e;
 	}
     }
 
-    private class KeyIterator extends LinkedHashIterator {
-	public Object next() { return nextEntry().getKey(); }
+    private class KeyIterator extends LinkedHashIterator<K> {
+	public K next() { return nextEntry().getKey(); }
     }
 
-    private class ValueIterator extends LinkedHashIterator {
-	public Object next() { return nextEntry().value; }
+    private class ValueIterator extends LinkedHashIterator<V> {
+	public V next() { return nextEntry().value; }
     }
 
-    private class EntryIterator extends LinkedHashIterator {
-	public Object next() { return nextEntry(); }
+    private class EntryIterator extends LinkedHashIterator<Map.Entry<K,V>> {
+	public Map.Entry<K,V> next() { return nextEntry(); }
     }
 
     // These Overrides alter the behavior of superclass view iterator() methods
-    Iterator newKeyIterator()   { return new KeyIterator();   }
-    Iterator newValueIterator() { return new ValueIterator(); }
-    Iterator newEntryIterator() { return new EntryIterator(); }
+    Iterator<K> newKeyIterator()   { return new KeyIterator();   }
+    Iterator<V> newValueIterator() { return new ValueIterator(); }
+    Iterator<Map.Entry<K,V>> newEntryIterator() { return new EntryIterator(); }
 
     /**
      * This override alters behavior of superclass put method. It causes newly
      * allocated entry to get inserted at the end of the linked list and
      * removes the eldest entry if appropriate.
      */
-    void addEntry(int hash, Object key, Object value, int bucketIndex) {
+    void addEntry(int hash, K key, V value, int bucketIndex) {
         createEntry(hash, key, value, bucketIndex);
 
         // Remove eldest entry if instructed, else grow capacity if appropriate
-        Entry eldest = header.after;
+        Entry<K,V> eldest = header.after;
         if (removeEldestEntry(eldest)) {
             removeEntryForKey(eldest.key);
         } else {
@@ -404,8 +411,9 @@ public class LinkedHashMap extends HashMap {
      * This override differs from addEntry in that it doesn't resize the
      * table or remove the eldest entry.
      */
-    void createEntry(int hash, Object key, Object value, int bucketIndex) {
-        Entry e = new Entry(hash, key, value, table[bucketIndex]);
+    void createEntry(int hash, K key, V value, int bucketIndex) {
+        HashMap.Entry<K,V> old = table[bucketIndex];
+	Entry<K,V> e = new Entry<K,V>(hash, key, value, old);
         table[bucketIndex] = e;
         e.addBefore(header);
         size++;
@@ -452,7 +460,7 @@ public class LinkedHashMap extends HashMap {
      * @return   <tt>true</tt> if the eldest entry should be removed
      *           from the map; <tt>false</t> if it should be retained.
      */
-    protected boolean removeEldestEntry(Map.Entry eldest) {
+    protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
         return false;
     }
 }

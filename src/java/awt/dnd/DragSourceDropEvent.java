@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceDropEvent.java	1.17 03/01/23
+ * @(#)DragSourceDropEvent.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.awt.dnd;
  * to provide appropriate feedback to the end user 
  * when the operation completes.
  * <P>
- * @version 	1.17, 01/23/03
+ * @version 	1.19, 12/19/03
  * <P>
  * @since 1.2
  */
@@ -36,11 +36,18 @@ public class DragSourceDropEvent extends DragSourceEvent {
      * The coordinates for this <code>DragSourceDropEvent</code> 
      * are not specified, so <code>getLocation</code> will return
      * <code>null</code> for this event.
+     * <p> 
+     * The argument <code>action</code> should be one of <code>DnDConstants</code>
+     * that represents a single action.
+     * This constructor does not throw any exception for invalid <code>action</code>.
      * 
      * @param dsc the <code>DragSourceContext</code> 
      * associated with this <code>DragSourceDropEvent</code>
      * @param action the drop action
      * @param success a boolean indicating if the drop was successful
+     *
+     * @throws <code>IllegalArgumentException</code> if <code>dsc</code> is <code>null</code>.
+     *
      * @see DragSourceEvent#getLocation
      */
 
@@ -55,6 +62,10 @@ public class DragSourceDropEvent extends DragSourceEvent {
      * Construct a <code>DragSourceDropEvent</code> for a drop, given the
      * <code>DragSourceContext</code>, the drop action, a <code>boolean</code>
      * indicating if the drop was successful, and coordinates.
+     * <p> 
+     * The argument <code>action</code> should be one of <code>DnDConstants</code>
+     * that represents a single action.
+     * This constructor does not throw any exception for invalid <code>action</code>.
      * 
      * @param dsc the <code>DragSourceContext</code> 
      * associated with this <code>DragSourceDropEvent</code>
@@ -62,6 +73,9 @@ public class DragSourceDropEvent extends DragSourceEvent {
      * @param success a boolean indicating if the drop was successful
      * @param x   the horizontal coordinate for the cursor location
      * @param y   the vertical coordinate for the cursor location
+     *
+     * @throws <code>IllegalArgumentException</code> if <code>dsc</code> is <code>null</code>.
+     *
      * @since 1.4
      */
     public DragSourceDropEvent(DragSourceContext dsc, int action, 
@@ -80,6 +94,9 @@ public class DragSourceDropEvent extends DragSourceEvent {
      * <code>null</code> for this event.
      *
      * @param dsc the <code>DragSourceContext</code>
+     *
+     * @throws <code>IllegalArgumentException</code> if <code>dsc</code> is <code>null</code>.
+     *
      * @see DragSourceEvent#getLocation
      */
 

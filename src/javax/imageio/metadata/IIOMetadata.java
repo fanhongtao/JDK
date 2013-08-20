@@ -1,7 +1,7 @@
 /*
- * @(#)IIOMetadata.java	1.37 03/01/23
+ * @(#)IIOMetadata.java	1.39 04/03/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -380,8 +380,45 @@ public abstract class IIOMetadata {
             throw new IllegalArgumentException("Unsupported format name");
         }
         try {
-            Class cls = Class.forName(formatClassName, true,
-                                      ClassLoader.getSystemClassLoader());
+            Class cls = null;
+            final Object o = this; 
+
+            // firstly we try to use classloader used for loading 
+            // the IIOMetadata implemantation for this plugin.
+            ClassLoader loader = (ClassLoader)
+                java.security.AccessController.doPrivileged(
+                    new java.security.PrivilegedAction() {
+                            public Object run() {
+                                return o.getClass().getClassLoader();
+                            }
+                        });
+            
+            try {
+                cls = Class.forName(formatClassName, true,
+                                    loader);
+            } catch (ClassNotFoundException e) {
+                // we failed to load IIOMetadataFormat class by 
+                // using IIOMetadata classloader.Next try is to
+                // use thread context classloader.
+                loader = (ClassLoader)
+                    java.security.AccessController.doPrivileged(
+                        new java.security.PrivilegedAction() {
+                                public Object run() {
+                                    return Thread.currentThread().getContextClassLoader();
+                                }
+                        });                
+                try {
+                    cls = Class.forName(formatClassName, true,
+                                        loader);
+                } catch (ClassNotFoundException e1) {
+                    // finally we try to use system classloader in case
+                    // if we failed to load IIOMetadataFormat implementation
+                    // class above.
+                    cls = Class.forName(formatClassName, true,
+                                        ClassLoader.getSystemClassLoader());
+                }
+            }
+            
             Method meth = cls.getMethod("getInstance", null);
             return (IIOMetadataFormat) meth.invoke(null, null);
         } catch (Exception e) {

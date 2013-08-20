@@ -1,5 +1,5 @@
 /*
- * @(#)UNIXProcess.java.linux	1.34 02/02/25 
+ * @(#)UNIXProcess.java.linux	1.37 04/01/12
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -9,15 +9,15 @@
 
 package java.lang;
 
-import java.io.*; 
+import java.io.*;
 
 /* java.lang.Process subclass in the UNIX environment.
- * 
+ *
  * @author Mario Wolczko and Ross Knippel.
  * @author Konstantin Kladko (ported to Linux)
  */
 
-class UNIXProcess extends Process {
+final class UNIXProcess extends Process {
     private FileDescriptor stdin_fd;
     private FileDescriptor stdout_fd;
     private FileDescriptor stderr_fd;
@@ -32,17 +32,15 @@ class UNIXProcess extends Process {
     /* this is for the reaping thread */
     private native int waitForProcessExit(int pid);
 
-    private UNIXProcess() {}
-
-    private native int forkAndExec(String cmd[], String env[], String path,
+    private native int forkAndExec(byte[] prog,
+				   byte[] argBlock, int argc,
+				   byte[] envBlock, int envc,
+				   byte[] dir,
+				   boolean redirectErrorStream,
 				   FileDescriptor stdin_fd,
 				   FileDescriptor stdout_fd,
 				   FileDescriptor stderr_fd)
 	throws IOException;
-  
-    UNIXProcess(String cmdarray[], String env[]) throws IOException {
-	this(cmdarray, env, null);
-    }
 
     /* In the process constructor we wait on this gate until the process    */
     /* has been created. Then we return from the constructor.               */
@@ -58,60 +56,67 @@ class UNIXProcess extends Process {
            exited = true;
            this.notify();
         }
-        
+
         synchronized void waitForExit() { /* wait until the gate is open */
             boolean interrupted = false;
             while (!exited) {
                 try {
                     this.wait();
                 } catch (InterruptedException e) {
-                    interrupted = true; 
+                    interrupted = true;
                 }
             }
             if (interrupted) {
                 Thread.currentThread().interrupt();
             }
-        }            
+        }
 
         void setException (IOException e) {
             savedException = e;
         }
-     
+
         IOException getException() {
             return savedException;
         }
-}
+    }
 
-    UNIXProcess(final String cmdarray[], final String env[], final String path)
+    UNIXProcess(final byte[] prog,
+		final byte[] argBlock, final int argc,
+		final byte[] envBlock, final int envc,
+		final byte[] dir,
+		final boolean redirectErrorStream)
     throws IOException {
-        
-	stdin_fd = new FileDescriptor();
+	stdin_fd  = new FileDescriptor();
 	stdout_fd = new FileDescriptor();
 	stderr_fd = new FileDescriptor();
 
-        final Gate gate = new Gate();	
+        final Gate gate = new Gate();
 	/*
 	 * For each subprocess forked a corresponding reaper thread
 	 * is started.  That thread is the only thread which waits
 	 * for the subprocess to terminate and it doesn't hold any
-	 * locks while doing so.  This design allows waitFor() and 
+	 * locks while doing so.  This design allows waitFor() and
 	 * exitStatus() to be safely executed in parallel (and they
 	 * need no native code).
 	 */
-	 
+
 	java.security.AccessController.doPrivileged(
 			    new java.security.PrivilegedAction() {
 	    public Object run() {
 		Thread t = new Thread("process reaper") {
 		    public void run() {
                         try {
-                            pid = forkAndExec(cmdarray, env, 
-                                          path, stdin_fd, stdout_fd, stderr_fd);
+                            pid = forkAndExec(prog,
+					      argBlock, argc,
+					      envBlock, envc,
+					      dir,
+					      redirectErrorStream,
+					      stdin_fd, stdout_fd, stderr_fd);
                         } catch (IOException e) {
                             gate.setException(e); /*remember to rethrow later*/
                             gate.exit();
-                            return; 
-                        } 
+                            return;
+                        }
                         java.security.AccessController.doPrivileged(
                         new java.security.PrivilegedAction() {
                             public Object run() {
@@ -123,7 +128,7 @@ class UNIXProcess extends Process {
                             return null;
                         }
                         });
-                        gate.exit(); /* exit from contructor */ 
+                        gate.exit(); /* exit from constructor */
 			int res = waitForProcessExit(pid);
 			synchronized (UNIXProcess.this) {
 			    hasExited = true;
@@ -162,7 +167,7 @@ class UNIXProcess extends Process {
 	return exitcode;
     }
 
-    public synchronized int exitValue() { 
+    public synchronized int exitValue() {
 	if (!hasExited) {
 	    throw new IllegalThreadStateException("process hasn't exited");
 	}

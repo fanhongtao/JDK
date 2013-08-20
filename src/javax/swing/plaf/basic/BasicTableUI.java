@@ -1,34 +1,37 @@
 /*
- * @(#)BasicTableUI.java	1.123 03/01/23
+ * @(#)BasicTableUI.java	1.140 04/06/14
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.TooManyListenersException;
-import java.awt.event.*;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
-import javax.swing.plaf.*;
+import java.awt.event.*;
+import java.util.Enumeration;
 import java.util.EventObject;
-
+import java.util.Hashtable;
+import java.util.TooManyListenersException;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.plaf.*;
 import javax.swing.text.*;
+import javax.swing.table.*;
+
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
+
 /**
  * BasicTableUI implementation
  *
- * @version 1.117 08/27/01
+ * @version 1.140 06/14/04
  * @author Philip Milne
  */
 public class BasicTableUI extends TableUI
@@ -47,276 +50,596 @@ public class BasicTableUI extends TableUI
     protected FocusListener focusListener;
     protected MouseInputListener mouseInputListener;
 
-    private PropertyChangeListener propertyChangeListener;
+    private Handler handler;
 
 //
 //  Helper class for keyboard actions
 //
 
-    private static class NavigationalAction extends AbstractAction {
+    private static class Actions extends UIAction {
+        private static final String CANCEL_EDITING = "cancel";
+        private static final String SELECT_ALL = "selectAll";
+        private static final String CLEAR_SELECTION = "clearSelection";
+        private static final String START_EDITING = "startEditing";
+
+        private static final String NEXT_ROW = "selectNextRow";
+        private static final String NEXT_ROW_CELL = "selectNextRowCell";
+	private static final String NEXT_ROW_EXTEND_SELECTION =
+                "selectNextRowExtendSelection";
+        private static final String NEXT_ROW_CHANGE_LEAD =
+                "selectNextRowChangeLead";
+        private static final String PREVIOUS_ROW = "selectPreviousRow";
+        private static final String PREVIOUS_ROW_CELL = "selectPreviousRowCell";
+	private static final String PREVIOUS_ROW_EXTEND_SELECTION =
+                "selectPreviousRowExtendSelection";
+        private static final String PREVIOUS_ROW_CHANGE_LEAD =
+                "selectPreviousRowChangeLead";
+
+        private static final String NEXT_COLUMN = "selectNextColumn";
+        private static final String NEXT_COLUMN_CELL = "selectNextColumnCell";
+	private static final String NEXT_COLUMN_EXTEND_SELECTION =
+                "selectNextColumnExtendSelection";
+        private static final String NEXT_COLUMN_CHANGE_LEAD =
+                "selectNextColumnChangeLead";
+        private static final String PREVIOUS_COLUMN = "selectPreviousColumn";
+        private static final String PREVIOUS_COLUMN_CELL =
+                "selectPreviousColumnCell";
+	private static final String PREVIOUS_COLUMN_EXTEND_SELECTION =
+                "selectPreviousColumnExtendSelection";
+        private static final String PREVIOUS_COLUMN_CHANGE_LEAD =
+                "selectPreviousColumnChangeLead";
+
+        private static final String SCROLL_LEFT_CHANGE_SELECTION =
+                "scrollLeftChangeSelection";
+        private static final String SCROLL_LEFT_EXTEND_SELECTION =
+                "scrollLeftExtendSelection";
+        private static final String SCROLL_RIGHT_CHANGE_SELECTION =
+                "scrollRightChangeSelection";
+        private static final String SCROLL_RIGHT_EXTEND_SELECTION =
+                "scrollRightExtendSelection";
+
+	private static final String SCROLL_UP_CHANGE_SELECTION =
+                "scrollUpChangeSelection";
+        private static final String SCROLL_UP_EXTEND_SELECTION =
+                "scrollUpExtendSelection";
+        private static final String SCROLL_DOWN_CHANGE_SELECTION =
+                "scrollDownChangeSelection";
+        private static final String SCROLL_DOWN_EXTEND_SELECTION =
+                "scrollDownExtendSelection";
+
+        private static final String FIRST_COLUMN =
+                "selectFirstColumn";
+        private static final String FIRST_COLUMN_EXTEND_SELECTION =
+                "selectFirstColumnExtendSelection";
+        private static final String LAST_COLUMN =
+                "selectLastColumn";
+        private static final String LAST_COLUMN_EXTEND_SELECTION =
+                "selectLastColumnExtendSelection";
+
+        private static final String FIRST_ROW =
+                "selectFirstRow";
+        private static final String FIRST_ROW_EXTEND_SELECTION =
+                "selectFirstRowExtendSelection";
+        private static final String LAST_ROW =
+                "selectLastRow";
+        private static final String LAST_ROW_EXTEND_SELECTION =
+                "selectLastRowExtendSelection";
+
+        // add the lead item to the selection without changing lead or anchor
+        private static final String ADD_TO_SELECTION = "addToSelection";
+
+        // toggle the selected state of the lead item and move the anchor to it
+        private static final String TOGGLE_AND_ANCHOR = "toggleAndAnchor";
+
+        // extend the selection to the lead item
+        private static final String EXTEND_TO = "extendTo";
+
+        // move the anchor to the lead and ensure only that item is selected
+        private static final String MOVE_SELECTION_TO = "moveSelectionTo";
+
         protected int dx;
         protected int dy;
-	protected boolean toggle;
 	protected boolean extend;
 	protected boolean inSelection;
+        protected boolean forwards;
+        protected boolean vertically;
+        protected boolean toLimit;
 
-	protected int anchorRow;
-	protected int anchorColumn;
 	protected int leadRow;
 	protected int leadColumn;
 
-        protected NavigationalAction(int dx, int dy, boolean toggle, boolean extend,
-				  boolean inSelection) {
-            this.dx = dx;
-            this.dy = dy;
-	    this.toggle = toggle;
-	    this.extend = extend;
-	    this.inSelection = inSelection;
+        Actions(String name) {
+            super(name);
         }
 
-	private int clipToRange(int i, int a, int b) {
+        Actions(String name, int dx, int dy, boolean extend,
+                boolean inSelection) {
+            super(name);
+
+            // Actions spcifying true for "inSelection" are
+            // fairly sensitive to bad parameter values. They require
+            // that one of dx and dy be 0 and the other be -1 or 1.
+            // Bogus parameter values could cause an infinite loop.
+            // To prevent any problems we massage the params here
+            // and complain if we get something we can't deal with.
+            if (inSelection) {
+                this.inSelection = true;
+
+                // look at the sign of dx and dy only
+                dx = sign(dx);
+                dy = sign(dy);
+
+                // make sure one is zero, but not both
+                assert (dx == 0 || dy == 0) && !(dx == 0 && dy == 0);
+            }
+
+            this.dx = dx;
+            this.dy = dy;
+            this.extend = extend;
+        }
+
+        Actions(String name, boolean extend, boolean forwards,
+                boolean vertically, boolean toLimit) {
+            this(name, 0, 0, extend, false);
+            this.forwards = forwards;
+            this.vertically = vertically;
+            this.toLimit = toLimit;
+        }
+
+	private static int clipToRange(int i, int a, int b) {
 	    return Math.min(Math.max(i, a), b-1);
 	}
 
-	private void moveWithinTableRange(JTable table, int dx, int dy, boolean changeLead) {
-	    if (changeLead) {
-		leadRow = clipToRange(leadRow+dy, 0, table.getRowCount());
-		leadColumn = clipToRange(leadColumn+dx, 0, table.getColumnCount());
-	    }
-	    else {
-		anchorRow = clipToRange(anchorRow+dy, 0, table.getRowCount());
-		anchorColumn = clipToRange(anchorColumn+dx, 0, table.getColumnCount());
-	    }
+	private void moveWithinTableRange(JTable table, int dx, int dy) {
+            leadRow = clipToRange(leadRow+dy, 0, table.getRowCount());
+            leadColumn = clipToRange(leadColumn+dx, 0, table.getColumnCount());
 	}
 
-	private int selectionSpan(ListSelectionModel sm) {
-	    return sm.getMaxSelectionIndex() - sm.getMinSelectionIndex() + 1;
+        private static int sign(int num) {
+            return (num < 0) ? -1 : ((num == 0) ? 0 : 1);
+        }
+
+        /**
+         * Called to move within the selected range of the given JTable.
+         * This method uses the table's notion of selection, which is
+         * important to allow the user to navigate between items visually
+         * selected on screen. This notion may or may not be the same as
+         * what could be determined by directly querying the selection models.
+         * It depends on certain table properties (such as whether or not
+         * row or column selection is allowed). When performing modifications,
+         * it is recommended that caution be taken in order to preserve
+         * the intent of this method, especially when deciding whether to
+         * query the selection models or interact with JTable directly.
+         */
+	private boolean moveWithinSelectedRange(JTable table, int dx, int dy,
+                ListSelectionModel rsm, ListSelectionModel csm) {
+
+            // Note: The Actions constructor ensures that only one of
+            // dx and dy is 0, and the other is either -1 or 1
+
+            // find out how many items the table is showing as selected
+            // and the range of items to navigate through
+            int totalCount;
+            int minX, maxX, minY, maxY;
+
+            boolean rs = table.getRowSelectionAllowed();
+            boolean cs = table.getColumnSelectionAllowed();
+
+            // both column and row selection
+            if (rs && cs) {
+                totalCount = table.getSelectedRowCount() * table.getSelectedColumnCount();
+                minX = csm.getMinSelectionIndex();
+                maxX = csm.getMaxSelectionIndex();
+                minY = rsm.getMinSelectionIndex();
+                maxY = rsm.getMaxSelectionIndex();
+            // row selection only
+            } else if (rs) {
+                totalCount = table.getSelectedRowCount();
+                minX = 0;
+                maxX = table.getColumnCount() - 1;
+                minY = rsm.getMinSelectionIndex();
+                maxY = rsm.getMaxSelectionIndex();
+            // column selection only
+            } else if (cs) {
+                totalCount = table.getSelectedColumnCount();
+                minX = csm.getMinSelectionIndex();
+                maxX = csm.getMaxSelectionIndex();
+                minY = 0;
+                maxY = table.getRowCount() - 1;
+            // no selection allowed
+            } else {
+                totalCount = 0;
+                // A bogus assignment to stop javac from complaining
+                // about unitialized values. In this case, these
+                // won't even be used.
+                minX = maxX = minY = maxY = 0;
+            }
+
+            // For some cases, there is no point in trying to stay within the
+            // selected area. Instead, move outside the selection, wrapping at
+            // the table boundaries. The cases are:
+            boolean stayInSelection;
+
+            // - nothing selected
+            if (totalCount == 0 ||
+                    // - one item selected, and the lead is already selected
+                    (totalCount == 1 && table.isCellSelected(leadRow, leadColumn))) {
+
+                stayInSelection = false;
+
+                maxX = table.getColumnCount() - 1;
+                maxY = table.getRowCount() - 1;
+
+                // the mins are calculated like this in case the max is -1
+                minX = Math.min(0, maxX);
+                minY = Math.min(0, maxY);
+            } else {
+                stayInSelection = true;
+            }
+
+            // In cases where the lead is not within the search range,
+            // we need to bring it within one cell for the the search
+            // to work properly. Check these here.
+            leadRow = Math.min(Math.max(leadRow, minY - 1), maxY + 1);
+            leadColumn = Math.min(Math.max(leadColumn, minX - 1), maxX + 1);
+
+            // find the next position, possibly looping until it is selected
+            do {
+                calcNextPos(dx, minX, maxX, dy, minY, maxY);
+            } while (stayInSelection && !table.isCellSelected(leadRow, leadColumn));
+
+            return stayInSelection;
 	}
 
-	private int compare(int i, ListSelectionModel sm) {
-	    return compare(i, sm.getMinSelectionIndex(), sm.getMaxSelectionIndex()+1);
-	}
+        /**
+         * Find the next lead row and column based on the given
+         * dx/dy and max/min values.
+         */
+        private void calcNextPos(int dx, int minX, int maxX,
+                                 int dy, int minY, int maxY) {
 
-	private int compare(int i, int a, int b) {
-	    return (i < a) ? -1 : (i >= b) ? 1 : 0 ;
-	}
-
-	private boolean moveWithinSelectedRange(JTable table, int dx, int dy, boolean ignoreCarry) {
-	    ListSelectionModel rsm = table.getSelectionModel();
-	    ListSelectionModel csm = table.getColumnModel().getSelectionModel();
-
-	    int newAnchorRow =    anchorRow + dy;
-	    int newAnchorColumn = anchorColumn + dx;
-
-	    int rowSgn;
-	    int colSgn;
-	    int rowCount = selectionSpan(rsm);
-	    int columnCount = selectionSpan(csm);
-
-	    boolean canStayInSelection = (rowCount * columnCount > 1);
-	    if (canStayInSelection) {
-		rowSgn = compare(newAnchorRow, rsm);
-		colSgn = compare(newAnchorColumn, csm);
-	    }
-	    else {
-		// If there is only one selected cell, there is no point
-		// in trying to stay within the selected area. Move outside
-		// the selection, wrapping at the table boundaries.
-		rowCount = table.getRowCount();
-		columnCount = table.getColumnCount();
-		rowSgn = compare(newAnchorRow, 0, rowCount);
-		colSgn = compare(newAnchorColumn, 0, columnCount);
-
-	    }
-
-	    anchorRow    = newAnchorRow - rowCount * rowSgn;
-	    anchorColumn = newAnchorColumn - columnCount * colSgn;
-
-	    if (!ignoreCarry) {
-		return moveWithinSelectedRange(table, rowSgn, colSgn, true);
-	    }
-	    return canStayInSelection;
-	}
+            if (dx != 0) {
+                leadColumn += dx;
+                if (leadColumn > maxX) {
+                    leadColumn = minX;
+                    leadRow++;
+                    if (leadRow > maxY) {
+                        leadRow = minY;
+                    }
+                } else if (leadColumn < minX) {
+                    leadColumn = maxX;
+                    leadRow--;
+                    if (leadRow < minY) {
+                        leadRow = maxY;
+                    }
+                }
+            } else {
+                leadRow += dy;
+                if (leadRow > maxY) {
+                    leadRow = minY;
+                    leadColumn++;
+                    if (leadColumn > maxX) {
+                        leadColumn = minX;
+                    }
+                } else if (leadRow < minY) {
+                    leadRow = maxY;
+                    leadColumn--;
+                    if (leadColumn < minX) {
+                        leadColumn = maxX;
+                    }
+                }
+            }
+        }
 
         public void actionPerformed(ActionEvent e) {
+            String key = getName();
             JTable table = (JTable)e.getSource();
-            ListSelectionModel rsm = table.getSelectionModel();
-	    anchorRow =    rsm.getAnchorSelectionIndex();
-            leadRow =      rsm.getLeadSelectionIndex();
 
-	    ListSelectionModel csm = table.getColumnModel().getSelectionModel();
-	    anchorColumn = csm.getAnchorSelectionIndex();
+            ListSelectionModel rsm = table.getSelectionModel();
+            leadRow = rsm.getLeadSelectionIndex();
+
+            ListSelectionModel csm = table.getColumnModel().getSelectionModel();
             leadColumn =   csm.getLeadSelectionIndex();
 
-	    int oldAnchorRow = anchorRow;
-	    int oldAnchorColumn = anchorColumn;
-
-            if (table.isEditing() && !table.getCellEditor().stopCellEditing()) {
-		return;
+            if (!table.getComponentOrientation().isLeftToRight()) {
+                if (key == SCROLL_LEFT_CHANGE_SELECTION ||
+                        key == SCROLL_LEFT_EXTEND_SELECTION) {
+                    forwards = true;
+                } else if (key == SCROLL_RIGHT_CHANGE_SELECTION ||
+                        key == SCROLL_RIGHT_EXTEND_SELECTION) {
+                    forwards = false;
+                }
             }
 
-            // Unfortunately, this strategy introduces bugs because
-            // of the asynchronous nature of requestFocus() call below.
-            // Introducing a delay with invokeLater() makes this work
-            // in the typical case though race conditions then allow
-            // focus to disappear altogether. The right solution appears
-            // to be to fix requestFocus() so that it queues a request
-            // for the focus regardless of who owns the focus at the
-            // time the call to requestFocus() is made. The optimisation
-            // to ignore the call to requestFocus() when the component
-            // already has focus may ligitimately be made as the
-            // request focus event is dequeued, not before.
+            if (key == SCROLL_LEFT_CHANGE_SELECTION ||        // Paging Actions
+                    key == SCROLL_LEFT_EXTEND_SELECTION ||
+                    key == SCROLL_RIGHT_CHANGE_SELECTION ||
+                    key == SCROLL_RIGHT_EXTEND_SELECTION ||
+	            key == SCROLL_UP_CHANGE_SELECTION ||
+                    key == SCROLL_UP_EXTEND_SELECTION ||
+                    key == SCROLL_DOWN_CHANGE_SELECTION ||
+                    key == SCROLL_DOWN_EXTEND_SELECTION ||
+                    key == FIRST_COLUMN ||
+                    key == FIRST_COLUMN_EXTEND_SELECTION ||
+                    key == FIRST_ROW ||
+                    key == FIRST_ROW_EXTEND_SELECTION ||
+                    key == LAST_COLUMN ||
+                    key == LAST_COLUMN_EXTEND_SELECTION ||
+                    key == LAST_ROW ||
+                    key == LAST_ROW_EXTEND_SELECTION) {
+                if (toLimit) {
+                    if (vertically) {
+                        int rowCount = table.getRowCount();
+                        this.dx = 0;
+                        this.dy = forwards ? rowCount : -rowCount;
+                    }
+                    else {
+                        int colCount = table.getColumnCount();
+                        this.dx = forwards ? colCount : -colCount;
+                        this.dy = 0;
+                    }
+                }
+                else {
+                    if (!(table.getParent().getParent() instanceof
+                            JScrollPane)) {
+                        return;
+                    }
+    
+                    Dimension delta = table.getParent().getSize();
 
-            // boolean wasEditingWithFocus = table.isEditing() && table.getEditorComponent().isFocusOwner();
+                    int start = (vertically) ? rsm.getLeadSelectionIndex() :
+                                               csm.getLeadSelectionIndex();
 
-            if (!inSelection) {
-		moveWithinTableRange(table, dx, dy, extend);
-		if (!extend) {
-		    table.changeSelection(anchorRow, anchorColumn, false, extend);
-		}
-		else {
-		    table.changeSelection(leadRow, leadColumn, false, extend);
-		}
+                    if (vertically) {
+                        Rectangle r = table.getCellRect(start, 0, true);
+                        r.y += forwards ? delta.height : -delta.height;
+                        this.dx = 0;
+                        int newRow = table.rowAtPoint(r.getLocation());
+                        if (newRow == -1 && forwards) {
+                            newRow = table.getRowCount();
+                        }
+                        this.dy = newRow - start;
+                    }
+                    else {
+                        Rectangle r = table.getCellRect(0, start, true);
+                        r.x += forwards ? delta.width : -delta.width;
+                        int newColumn = table.columnAtPoint(r.getLocation());
+                        if (newColumn == -1 && forwards) {
+                            newColumn = table.getColumnCount();
+                        }
+                        this.dx = newColumn - start;
+                        this.dy = 0;
+                    }
+                }
             }
-	    else {
-		if (moveWithinSelectedRange(table, dx, dy, false)) {
-		    table.changeSelection(anchorRow, anchorColumn, true, true);
-		}
-		else {
-		    table.changeSelection(anchorRow, anchorColumn, false, false);
-		}
-	    }
+            if (key == NEXT_ROW ||  // Navigate Actions
+                    key == NEXT_ROW_CELL ||
+                    key == NEXT_ROW_EXTEND_SELECTION ||
+                    key == NEXT_ROW_CHANGE_LEAD ||
+                    key == NEXT_COLUMN ||
+                    key == NEXT_COLUMN_CELL ||
+                    key == NEXT_COLUMN_EXTEND_SELECTION ||
+                    key == NEXT_COLUMN_CHANGE_LEAD ||
+                    key == PREVIOUS_ROW ||
+                    key == PREVIOUS_ROW_CELL ||
+                    key == PREVIOUS_ROW_EXTEND_SELECTION ||
+                    key == PREVIOUS_ROW_CHANGE_LEAD ||
+                    key == PREVIOUS_COLUMN ||
+                    key == PREVIOUS_COLUMN_CELL ||
+                    key == PREVIOUS_COLUMN_EXTEND_SELECTION ||
+                    key == PREVIOUS_COLUMN_CHANGE_LEAD ||
+                    // Paging Actions.
+                    key == SCROLL_LEFT_CHANGE_SELECTION ||
+                    key == SCROLL_LEFT_EXTEND_SELECTION ||
+                    key == SCROLL_RIGHT_CHANGE_SELECTION ||
+                    key == SCROLL_RIGHT_EXTEND_SELECTION ||
+	            key == SCROLL_UP_CHANGE_SELECTION ||
+                    key == SCROLL_UP_EXTEND_SELECTION ||
+                    key == SCROLL_DOWN_CHANGE_SELECTION ||
+                    key == SCROLL_DOWN_EXTEND_SELECTION ||
+                    key == FIRST_COLUMN ||
+                    key == FIRST_COLUMN_EXTEND_SELECTION ||
+                    key == FIRST_ROW ||
+                    key == FIRST_ROW_EXTEND_SELECTION ||
+                    key == LAST_COLUMN ||
+                    key == LAST_COLUMN_EXTEND_SELECTION ||
+                    key == LAST_ROW ||
+                    key == LAST_ROW_EXTEND_SELECTION) {
 
-	    /*
-	    if (wasEditingWithFocus) {
-		table.editCellAt(anchorRow, anchorColumn);
-		final Component editorComp = table.getEditorComponent();
-		if (editorComp != null) {
-		    SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-			    editorComp.requestFocus();
-			}
-		    });
-		}
-	    }
-	    */
+                if (table.isEditing() &&
+                        !table.getCellEditor().stopCellEditing()) {
+                    return;
+                }
+    
+                // Unfortunately, this strategy introduces bugs because
+                // of the asynchronous nature of requestFocus() call below.
+                // Introducing a delay with invokeLater() makes this work
+                // in the typical case though race conditions then allow
+                // focus to disappear altogether. The right solution appears
+                // to be to fix requestFocus() so that it queues a request
+                // for the focus regardless of who owns the focus at the
+                // time the call to requestFocus() is made. The optimisation
+                // to ignore the call to requestFocus() when the component
+                // already has focus may ligitimately be made as the
+                // request focus event is dequeued, not before.
+    
+                // boolean wasEditingWithFocus = table.isEditing() &&
+                // table.getEditorComponent().isFocusOwner();
+
+                boolean changeLead = false;
+                if (key == NEXT_ROW_CHANGE_LEAD || key == PREVIOUS_ROW_CHANGE_LEAD) {
+                    changeLead = (rsm.getSelectionMode()
+                                     == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+                } else if (key == NEXT_COLUMN_CHANGE_LEAD || key == PREVIOUS_COLUMN_CHANGE_LEAD) {
+                    changeLead = (csm.getSelectionMode()
+                                     == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+                }
+
+                if (changeLead) {
+                    moveWithinTableRange(table, dx, dy);
+                    if (dy != 0) {
+                        // casting should be safe since the action is only enabled
+                        // for DefaultListSelectionModel
+                        ((DefaultListSelectionModel)rsm).moveLeadSelectionIndex(leadRow);
+                    } else {
+                        // casting should be safe since the action is only enabled
+                        // for DefaultListSelectionModel
+                        ((DefaultListSelectionModel)csm).moveLeadSelectionIndex(leadColumn);
+                    }
+
+                    Rectangle cellRect = table.getCellRect(leadRow, leadColumn, false);
+                    if (cellRect != null) {
+                        table.scrollRectToVisible(cellRect);
+                    }
+                } else if (!inSelection) {
+                    moveWithinTableRange(table, dx, dy);
+                    table.changeSelection(leadRow, leadColumn, false, extend);
+                }
+                else {
+                    if (moveWithinSelectedRange(table, dx, dy, rsm, csm)) {
+                        // this is the only way we have to set both the lead
+                        // and the anchor without changing the selection
+                        if (rsm.isSelectedIndex(leadRow)) {
+                            rsm.addSelectionInterval(leadRow, leadRow);
+                        } else {
+                            rsm.removeSelectionInterval(leadRow, leadRow);
+                        }
+
+                        if (csm.isSelectedIndex(leadColumn)) {
+                            csm.addSelectionInterval(leadColumn, leadColumn);
+                        } else {
+                            csm.removeSelectionInterval(leadColumn, leadColumn);
+                        }
+
+                        Rectangle cellRect = table.getCellRect(leadRow, leadColumn, false);
+                        if (cellRect != null) {
+                            table.scrollRectToVisible(cellRect);
+                        }
+                    }
+                    else {
+                        table.changeSelection(leadRow, leadColumn,
+                                false, false);
+                    }
+                }
+    
+                /*
+                if (wasEditingWithFocus) {
+                    table.editCellAt(leadRow, leadColumn);
+                    final Component editorComp = table.getEditorComponent();
+                    if (editorComp != null) {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                editorComp.requestFocus();
+                            }
+                        });
+                    }
+                }
+                */
+            } else if (key == CANCEL_EDITING) {
+                table.removeEditor();
+            } else if (key == SELECT_ALL) {
+                table.selectAll();
+            } else if (key == CLEAR_SELECTION) {
+                table.clearSelection();
+            } else if (key == START_EDITING) {
+                if (!table.hasFocus()) {
+                    CellEditor cellEditor = table.getCellEditor();
+                    if (cellEditor != null && !cellEditor.stopCellEditing()) {
+                        return;
+                    }
+                    table.requestFocus();
+                    return;
+                }
+                table.editCellAt(leadRow, leadColumn);
+                Component editorComp = table.getEditorComponent();
+                if (editorComp != null) {
+                    editorComp.requestFocus();
+                }
+            } else if (key == ADD_TO_SELECTION) {
+                if (!table.isCellSelected(leadRow, leadColumn)) {
+                    int oldAnchorRow = rsm.getAnchorSelectionIndex();
+                    int oldAnchorColumn = csm.getAnchorSelectionIndex();
+                    rsm.setValueIsAdjusting(true);
+                    csm.setValueIsAdjusting(true);
+                    table.changeSelection(leadRow, leadColumn, true, false);
+                    rsm.setAnchorSelectionIndex(oldAnchorRow);
+                    csm.setAnchorSelectionIndex(oldAnchorColumn);
+                    rsm.setValueIsAdjusting(false);
+                    csm.setValueIsAdjusting(false);
+                }
+            } else if (key == TOGGLE_AND_ANCHOR) {
+                table.changeSelection(leadRow, leadColumn, true, false);
+            } else if (key == EXTEND_TO) {
+                table.changeSelection(leadRow, leadColumn, false, true);
+            } else if (key == MOVE_SELECTION_TO) {
+                table.changeSelection(leadRow, leadColumn, false, false);
+            }
+        }
+
+        public boolean isEnabled(Object sender) {
+            String key = getName();
+
+            if (sender instanceof JTable &&
+                Boolean.TRUE.equals(((JTable)sender).getClientProperty("Table.isFileList"))) {
+                if (key == NEXT_COLUMN ||
+                        key == NEXT_COLUMN_CELL ||
+                        key == NEXT_COLUMN_EXTEND_SELECTION ||
+                        key == NEXT_COLUMN_CHANGE_LEAD ||
+                        key == PREVIOUS_COLUMN ||
+                        key == PREVIOUS_COLUMN_CELL ||
+                        key == PREVIOUS_COLUMN_EXTEND_SELECTION ||
+                        key == PREVIOUS_COLUMN_CHANGE_LEAD ||
+                        key == SCROLL_LEFT_CHANGE_SELECTION ||
+                        key == SCROLL_LEFT_EXTEND_SELECTION ||
+                        key == SCROLL_RIGHT_CHANGE_SELECTION ||
+                        key == SCROLL_RIGHT_EXTEND_SELECTION ||
+                        key == FIRST_COLUMN ||
+                        key == FIRST_COLUMN_EXTEND_SELECTION ||
+                        key == LAST_COLUMN ||
+                        key == LAST_COLUMN_EXTEND_SELECTION ||
+                        key == NEXT_ROW_CELL ||
+                        key == PREVIOUS_ROW_CELL) {
+
+                    return false;
+                }
+            }
+
+            if (key == CANCEL_EDITING && sender instanceof JTable) {
+                return ((JTable)sender).isEditing();
+            } else if (key == NEXT_ROW_CHANGE_LEAD ||
+                       key == PREVIOUS_ROW_CHANGE_LEAD) {
+                // discontinuous selection actions are only enabled for
+                // DefaultListSelectionModel
+                return sender != null &&
+                       ((JTable)sender).getSelectionModel()
+                           instanceof DefaultListSelectionModel;
+            } else if (key == NEXT_COLUMN_CHANGE_LEAD ||
+                       key == PREVIOUS_COLUMN_CHANGE_LEAD) {
+                // discontinuous selection actions are only enabled for
+                // DefaultListSelectionModel
+                return sender != null &&
+                       ((JTable)sender).getColumnModel().getSelectionModel()
+                           instanceof DefaultListSelectionModel;
+            } else if (key == ADD_TO_SELECTION && sender instanceof JTable) {
+                // This action is typically bound to SPACE.
+                // If the table is already in an editing mode, SPACE should
+                // simply enter a space character into the table, and not
+                // select a cell. Likewise, if the lead cell is already selected
+                // then hitting SPACE should just enter a space character
+                // into the cell and begin editing. In both of these cases
+                // this action will be disabled.
+                JTable table = (JTable)sender;
+                int leadRow = table.getSelectionModel().
+                                  getLeadSelectionIndex();
+                int leadCol = table.getColumnModel().getSelectionModel().
+                                  getLeadSelectionIndex();
+                return !(table.isEditing() || table.isCellSelected(leadRow, leadCol));
+            }
+
+            return true;
         }
     }
 
-    private static class PagingAction extends NavigationalAction {
-
-	private boolean forwards;
-	private boolean vertically;
-	private boolean toLimit;
-
-        private PagingAction(boolean extend, boolean forwards,
-			     boolean vertically, boolean toLimit) {
-            super(0, 0, false, extend, false);
-	    this.forwards = forwards;
-	    this.vertically = vertically;
-	    this.toLimit = toLimit;
-	}
-
-        public void actionPerformed(ActionEvent e) {
-            JTable table = (JTable)e.getSource();
-	    if (toLimit) {
-		if (vertically) {
-		    int rowCount = table.getRowCount();
-		    this.dx = 0;
-		    this.dy = forwards ? rowCount : -rowCount;
-		}
-		else {
-		    int colCount = table.getColumnCount();
-		    this.dx = forwards ? colCount : -colCount;
-		    this.dy = 0;
-		}
-	    }
-	    else {
-		if (!(table.getParent().getParent() instanceof JScrollPane)) {
-		    return;
-		}
-
-		Dimension delta = table.getParent().getSize();
-		ListSelectionModel sm = (vertically)
-		    ? table.getSelectionModel()
-		    : table.getColumnModel().getSelectionModel();
-
-		int start = (extend) ? sm.getLeadSelectionIndex()
-                                     : sm.getAnchorSelectionIndex();
-
-		if (vertically) {
-		    Rectangle r = table.getCellRect(start, 0, true);
-		    r.y += forwards ? delta.height : -delta.height;
-		    this.dx = 0;
-		    int newRow = table.rowAtPoint(r.getLocation());
-		    if (newRow == -1 && forwards) {
-			newRow = table.getRowCount();
-		    }
-		    this.dy = newRow - start;
-		}
-		else {
-		    Rectangle r = table.getCellRect(0, start, true);
-		    r.x += forwards ? delta.width : -delta.width;
-		    int newColumn = table.columnAtPoint(r.getLocation());
-		    if (newColumn == -1 && forwards) {
-			newColumn = table.getColumnCount();
-		    }
-		    this.dx = newColumn - start;
-		    this.dy = 0;
-		}
-	    }
-	    super.actionPerformed(e);
-        }
-    }
-
-
-    /**
-     * Action to invoke <code>selectAll</code> on the table.
-     */
-    private static class SelectAllAction extends AbstractAction {
-	public void actionPerformed(ActionEvent e) {
-	    JTable table = (JTable)e.getSource();
-	    table.selectAll();
-	}
-    }
-
-
-    /**
-     * Action to invoke <code>removeEditor</code> on the table.
-     */
-    private static class CancelEditingAction extends AbstractAction {
-	public void actionPerformed(ActionEvent e) {
-	    JTable table = (JTable)e.getSource();
-	    table.removeEditor();
-	}
-    }
-
-
-    /**
-     * Action to start editing, and pass focus to the editor.
-     */
-    private static class StartEditingAction extends AbstractAction {
-	public void actionPerformed(ActionEvent e) {
-	    JTable table = (JTable)e.getSource();
-	    if (!table.hasFocus()) {
-		CellEditor cellEditor = table.getCellEditor();
-		if (cellEditor != null && !cellEditor.stopCellEditing()) {
-		    return;
-		}
-		table.requestFocus();
-		return;
-	    }
-	    ListSelectionModel rsm = table.getSelectionModel();
-	    int anchorRow =    rsm.getAnchorSelectionIndex();
-	    ListSelectionModel csm = table.getColumnModel().getSelectionModel();
-	    int anchorColumn = csm.getAnchorSelectionIndex();
-	    table.editCellAt(anchorRow, anchorColumn);
-	    Component editorComp = table.getEditorComponent();
-	    if (editorComp != null) {
-		editorComp.requestFocus();
-	    }
-	}
-    }
 
 //
 //  The Table's Key listener
@@ -332,12 +655,124 @@ public class BasicTableUI extends TableUI
      * the current <code>TableCellEditor</code>.
      */
      public class KeyHandler implements KeyListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void keyPressed(KeyEvent e) {
+            getHandler().keyPressed(e);
+        }
+
+        public void keyReleased(KeyEvent e) {
+            getHandler().keyReleased(e);
+        }
+
+        public void keyTyped(KeyEvent e) {
+            getHandler().keyTyped(e);
+        }
+    }
+
+//
+//  The Table's focus listener
+//
+
+    /**
+     * This inner class is marked &quot;public&quot; due to a compiler bug.
+     * This class should be treated as a &quot;protected&quot; inner class.
+     * Instantiate it only within subclasses of BasicTableUI.
+     */
+    public class FocusHandler implements FocusListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void focusGained(FocusEvent e) {
+            getHandler().focusGained(e);
+        }
+
+        public void focusLost(FocusEvent e) {
+            getHandler().focusLost(e);
+        }
+    }
+
+//
+//  The Table's mouse and mouse motion listeners
+//
+
+    /**
+     * This inner class is marked &quot;public&quot; due to a compiler bug.
+     * This class should be treated as a &quot;protected&quot; inner class.
+     * Instantiate it only within subclasses of BasicTableUI.
+     */
+    public class MouseInputHandler implements MouseInputListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void mouseClicked(MouseEvent e) {
+            getHandler().mouseClicked(e);
+        }
+
+        public void mousePressed(MouseEvent e) {
+            getHandler().mousePressed(e);
+	}
+
+        public void mouseReleased(MouseEvent e) {
+            getHandler().mouseReleased(e);
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            getHandler().mouseEntered(e);
+        }
+
+        public void mouseExited(MouseEvent e) {
+            getHandler().mouseExited(e);
+        }
+
+        public void mouseMoved(MouseEvent e) {
+            getHandler().mouseMoved(e);
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            getHandler().mouseDragged(e);
+        }
+    }
+
+    private class Handler implements FocusListener, MouseInputListener,
+            PropertyChangeListener {
+
+        // FocusListener
+        private void repaintLeadCell( ) {
+	    int rc = table.getRowCount();
+	    int cc = table.getColumnCount();
+            int lr = table.getSelectionModel().getLeadSelectionIndex();
+            int lc = table.getColumnModel().getSelectionModel().
+                    getLeadSelectionIndex();
+	    if (lr < 0 || lr >= rc || lc < 0 || lc >= cc) {
+		return;
+	    }
+
+            Rectangle dirtyRect = table.getCellRect(lr, lc, false);
+            table.repaint(dirtyRect);
+        }
+
+        public void focusGained(FocusEvent e) {
+            repaintLeadCell();
+        }
+
+        public void focusLost(FocusEvent e) {
+            repaintLeadCell();
+        }
+
+
+        // KeyListener
         public void keyPressed(KeyEvent e) { }
 
         public void keyReleased(KeyEvent e) { }
 
         public void keyTyped(KeyEvent e) {
-            KeyStroke keyStroke = KeyStroke.getKeyStroke(e.getKeyChar(), e.getModifiers());
+            KeyStroke keyStroke = KeyStroke.getKeyStroke(e.getKeyChar(),
+                    e.getModifiers());
 
             // We register all actions using ANCESTOR_OF_FOCUSED_COMPONENT
             // which means that we might perform the appropriate action
@@ -362,11 +797,11 @@ public class BasicTableUI extends TableUI
                 return;
             }
 
-            int anchorRow = table.getSelectionModel().getAnchorSelectionIndex();
-            int anchorColumn =
-		table.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
-            if (anchorRow != -1 && anchorColumn != -1 && !table.isEditing()) {
-                if (!table.editCellAt(anchorRow, anchorColumn)) {
+            int leadRow = table.getSelectionModel().getLeadSelectionIndex();
+            int leadColumn = table.getColumnModel().getSelectionModel().
+                    getLeadSelectionIndex();
+            if (leadRow != -1 && leadColumn != -1 && !table.isEditing()) {
+                if (!table.editCellAt(leadRow, leadColumn)) {
                     return;
                 }
             }
@@ -402,58 +837,14 @@ public class BasicTableUI extends TableUI
                 }
             }
         }
-    }
 
-//
-//  The Table's focus listener
-//
 
-    /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of BasicTableUI.
-     */
-    public class FocusHandler implements FocusListener {
-
-        private void repaintAnchorCell( ) {
-	    int rc = table.getRowCount();
-	    int cc = table.getColumnCount();
-            int ar = table.getSelectionModel().getAnchorSelectionIndex();
-            int ac = table.getColumnModel().getSelectionModel().getAnchorSelectionIndex();
-	    if (ar < 0 || ar >= rc || ac < 0 || ac >= cc) {
-		return;
-	    }
-
-            Rectangle dirtyRect = table.getCellRect(ar, ac, false);
-            table.repaint(dirtyRect);
-        }
-
-        public void focusGained(FocusEvent e) {
-            repaintAnchorCell();
-        }
-
-        public void focusLost(FocusEvent e) {
-            repaintAnchorCell();
-        }
-    }
-
-//
-//  The Table's mouse and mouse motion listeners
-//
-
-    /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of BasicTableUI.
-     */
-    public class MouseInputHandler implements MouseInputListener {
+        // MouseInputListener
 
         // Component receiving mouse events during editing.
         // May not be editorComponent.
         private Component dispatchComponent;
 	private boolean selectedOnPress;
-
-//  The Table's mouse listener methods.
 
         public void mouseClicked(MouseEvent e) {}
 
@@ -461,8 +852,9 @@ public class BasicTableUI extends TableUI
             Component editorComponent = table.getEditorComponent();
             Point p = e.getPoint();
             Point p2 = SwingUtilities.convertPoint(table, p, editorComponent);
-            dispatchComponent = SwingUtilities.getDeepestComponentAt(editorComponent,
-                                                                 p2.x, p2.y);
+            dispatchComponent =
+                    SwingUtilities.getDeepestComponentAt(editorComponent,
+                            p2.x, p2.y);
         }
 
         private boolean repostEvent(MouseEvent e) {
@@ -471,18 +863,21 @@ public class BasicTableUI extends TableUI
             if (dispatchComponent == null || !table.isEditing()) {
                 return false;
             }
-            MouseEvent e2 = SwingUtilities.convertMouseEvent(table, e, dispatchComponent);
+            MouseEvent e2 = SwingUtilities.convertMouseEvent(table, e,
+                    dispatchComponent);
             dispatchComponent.dispatchEvent(e2);
             return true;
         }
 
         private void setValueIsAdjusting(boolean flag) {
             table.getSelectionModel().setValueIsAdjusting(flag);
-            table.getColumnModel().getSelectionModel().setValueIsAdjusting(flag);
+            table.getColumnModel().getSelectionModel().
+                    setValueIsAdjusting(flag);
         }
 
 	private boolean shouldIgnore(MouseEvent e) {
-	    return e.isConsumed() || (!(SwingUtilities.isLeftMouseButton(e) && table.isEnabled()));
+	    return e.isConsumed() || (!(SwingUtilities.isLeftMouseButton(e) &&
+                        table.isEnabled()));
 	}
 
         public void mousePressed(MouseEvent e) {
@@ -502,7 +897,24 @@ public class BasicTableUI extends TableUI
             Point p = e.getPoint();
             int row = table.rowAtPoint(p);
             int column = table.columnAtPoint(p);
-	    // The autoscroller can generate drag events outside the Table's range.
+            // Fix for 4835633
+            if (pointOutsidePrefSize(table, row, column, p)) { 
+                // If shift is down in multi-select, we should just return.
+                // For single select or non-shift-click, clear the selection
+                if (e.getID() ==  MouseEvent.MOUSE_PRESSED &&
+                    (!e.isShiftDown() ||
+                     table.getSelectionModel().getSelectionMode() ==
+                     ListSelectionModel.SINGLE_SELECTION)) {
+                    table.clearSelection();
+                    TableCellEditor tce = table.getCellEditor();
+                    if (tce != null) {
+                        tce.stopCellEditing();
+                    }
+                }
+                return;
+            }
+	    // The autoscroller can generate drag events outside the
+            // table's range.
             if ((column == -1) || (row == -1)) {
                 return;
             }
@@ -517,9 +929,11 @@ public class BasicTableUI extends TableUI
 
             CellEditor editor = table.getCellEditor();
             if (editor == null || editor.shouldSelectCell(e)) {
-		boolean adjusting = (e.getID() == MouseEvent.MOUSE_PRESSED) ? true : false;
+		boolean adjusting = (e.getID() == MouseEvent.MOUSE_PRESSED) ?
+                        true : false;
                 setValueIsAdjusting(adjusting);
-                table.changeSelection(row, column, e.isControlDown(), e.isShiftDown());
+                boolean ctrl = e.isControlDown();
+                table.changeSelection(row, column, ctrl, !ctrl && e.isShiftDown());
 	    }
         }
 
@@ -542,8 +956,6 @@ public class BasicTableUI extends TableUI
 
         public void mouseExited(MouseEvent e) {}
 
-//  The Table's mouse motion listener methods.
-
         public void mouseMoved(MouseEvent e) {}
 
         public void mouseDragged(MouseEvent e) {
@@ -558,18 +970,95 @@ public class BasicTableUI extends TableUI
                 Point p = e.getPoint();
                 int row = table.rowAtPoint(p);
                 int column = table.columnAtPoint(p);
-	        // The autoscroller can generate drag events outside the Table's range.
+	        // The autoscroller can generate drag events outside the
+                // table's range.
                 if ((column == -1) || (row == -1)) {
+                    return;
+                }
+                // Fix for 4835633
+                // Until we support drag-selection, dragging should not change
+                // the selection (act like single-select).
+                Object bySize = table.getClientProperty("Table.isFileList");
+                if (bySize instanceof Boolean &&
+                    ((Boolean)bySize).booleanValue()) {
                     return;
                 }
 	        table.changeSelection(row, column, false, true);
             }
         }
+
+
+        // PropertyChangeListener
+	public void propertyChange(PropertyChangeEvent event) {
+	    String changeName = event.getPropertyName();
+
+	    if ("componentOrientation" == changeName) {
+		JTableHeader header = table.getTableHeader();
+		if (header != null) {
+		    header.setComponentOrientation(
+                            (ComponentOrientation)event.getNewValue());
+		}
+            } else if ("transferHandler" == changeName) {
+                DropTarget dropTarget = table.getDropTarget();
+                if (dropTarget instanceof UIResource) {
+                    if (defaultDropTargetListener == null) {
+                        defaultDropTargetListener =
+                            new TableDropTargetListener();
+                    }
+                    try {
+                        dropTarget.addDropTargetListener(
+                                defaultDropTargetListener);
+                    } catch (TooManyListenersException tmle) {
+                        // should not happen... swing drop target is multicast
+                    }
+                }
+            }
+	}
+    }
+
+
+    /*
+     * Returns true if the given point is outside the preferredSize of the
+     * item at the given row of the table.  (Column must be 0).
+     * Returns false if the "Table.isFileList" client property is not set.
+     */
+    private static boolean pointOutsidePrefSize(JTable table,
+                                                int row, int column, Point p) {
+        Object bySize = table.getClientProperty("Table.isFileList");
+        if (bySize instanceof Boolean && ((Boolean)bySize).booleanValue()) {
+            if (table.convertColumnIndexToModel(column) != 0 || row == -1) {
+                return true;
+            }
+            TableCellRenderer tcr = table.getCellRenderer(row, column);
+            Object value = table.getValueAt(row, column);
+            Component cell = tcr.getTableCellRendererComponent(table, value, false,
+                    false, row, column);
+            Dimension itemSize = cell.getPreferredSize();
+            Rectangle cellBounds = table.getCellRect(row, column, false);
+            cellBounds.width = itemSize.width;
+            cellBounds.height = itemSize.height;
+
+            // See if coords are inside
+            // ASSUME: mouse x,y will never be < cell's x,y
+            assert (p.x >= cellBounds.x && p.y >= cellBounds.y);
+            if (p.x > cellBounds.x + cellBounds.width ||
+                    p.y > cellBounds.y + cellBounds.height) {
+                return true;
+            }
+        }
+        return false;
     }
 
 //
 //  Factory methods for the Listeners
 //
+
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
+    }
 
     /**
      * Creates the key listener for handling keyboard navigation in the JTable.
@@ -582,21 +1071,14 @@ public class BasicTableUI extends TableUI
      * Creates the focus listener for handling keyboard navigation in the JTable.
      */
     protected FocusListener createFocusListener() {
-        return new FocusHandler();
+        return getHandler();
     }
 
     /**
      * Creates the mouse listener for the JTable.
      */
     protected MouseInputListener createMouseInputListener() {
-        return new MouseInputHandler();
-    }
-
-    /**
-     * Creates the property change listener for the JTable.
-     */
-    private PropertyChangeListener createPropertyChangeListener() {
-        return new PropertyChangeHandler();
+        return getHandler();
     }
 
 //
@@ -614,8 +1096,8 @@ public class BasicTableUI extends TableUI
 
         rendererPane = new CellRendererPane();
         table.add(rendererPane);
-
         installDefaults();
+        installDefaults2();
         installListeners();
         installKeyboardActions();
     }
@@ -631,6 +1113,15 @@ public class BasicTableUI extends TableUI
     protected void installDefaults() {
         LookAndFeel.installColorsAndFont(table, "Table.background",
                                          "Table.foreground", "Table.font");
+        // JTable's original row height is 16.  To correctly display the
+        // contents on Linux we should have set it to 18, Windows 19 and
+        // Solaris 20.  As these values vary so much it's too hard to
+        // be backward compatable and try to update the row height, we're
+        // therefor NOT going to adjust the row height based on font.  If the
+        // developer changes the font, it's there responsability to update
+        // the row height.
+
+        LookAndFeel.installProperty(table, "opaque", Boolean.TRUE);
 
         Color sbg = table.getSelectionBackground();
         if (sbg == null || sbg instanceof UIResource) {
@@ -655,7 +1146,9 @@ public class BasicTableUI extends TableUI
                 LookAndFeel.installBorder((JScrollPane)parent, "Table.scrollPaneBorder");
             }
         }
+    }
 
+    private void installDefaults2() {
 	TransferHandler th = table.getTransferHandler();
 	if (th == null || th instanceof UIResource) {
 	    table.setTransferHandler(defaultTransferHandler);
@@ -663,7 +1156,8 @@ public class BasicTableUI extends TableUI
 	DropTarget dropTarget = table.getDropTarget();
 	if (dropTarget instanceof UIResource) {
             if (defaultDropTargetListener == null) {
-                defaultDropTargetListener = new TableDropTargetListener();
+                defaultDropTargetListener = 
+                    new TableDropTargetListener();
             }
 	    try {
 		dropTarget.addDropTargetListener(defaultDropTargetListener);
@@ -680,7 +1174,6 @@ public class BasicTableUI extends TableUI
         focusListener = createFocusListener();
         keyListener = createKeyListener();
         mouseInputListener = createMouseInputListener();
-        propertyChangeListener = createPropertyChangeListener();
 
         table.addFocusListener(focusListener);
         table.addKeyListener(keyListener);
@@ -688,16 +1181,16 @@ public class BasicTableUI extends TableUI
 	table.addMouseMotionListener(defaultDragRecognizer);
         table.addMouseListener(mouseInputListener);
         table.addMouseMotionListener(mouseInputListener);
-        table.addPropertyChangeListener(propertyChangeListener);
+        table.addPropertyChangeListener(getHandler());
     }
 
     /**
      * Register all keyboard actions on the JTable.
      */
     protected void installKeyboardActions() {
-	ActionMap map = getActionMap();
+        LazyActionMap.installLazyActionMap(table, BasicTableUI.class,
+                "Table.actionMap");
 
-	SwingUtilities.replaceUIActionMap(table, map);
 	InputMap inputMap = getInputMap(JComponent.
 					WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 	SwingUtilities.replaceUIInputMap(table,
@@ -706,94 +1199,90 @@ public class BasicTableUI extends TableUI
     }
 
     InputMap getInputMap(int condition) {
-	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
-	    InputMap keyMap = (InputMap)UIManager.get("Table.ancestorInputMap");
-	    InputMap rtlKeyMap;
-
-	    if (table.getComponentOrientation().isLeftToRight() ||
-		((rtlKeyMap = (InputMap)UIManager.get("Table.ancestorInputMap.RightToLeft")) == null)) {
-		return keyMap;
-	    } else {
-		rtlKeyMap.setParent(keyMap);
-		return rtlKeyMap;
-	    }
-	}
-	return null;
+        if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
+            InputMap keyMap =
+                (InputMap)DefaultLookup.get(table, this,
+                                            "Table.ancestorInputMap");
+            return keyMap;
+        }
+        return null;
     }
 
-    ActionMap getActionMap() {
-	ActionMap map = (ActionMap)UIManager.get("Table.actionMap");
+    static void loadActionMap(LazyActionMap map) {
+        // IMPORTANT: There is a very close coupling between the parameters
+        // passed to the Actions constructor. Only certain parameter
+        // combinations are supported. For example, the following Action would
+        // not work as expected:
+        //     new Actions(Actions.NEXT_ROW_CELL, 1, 4, false, true)
+        // Actions which move within the selection only (having a true
+        // inSelection parameter) require that one of dx or dy be
+        // zero and the other be -1 or 1. The point of this warning is
+        // that you should be very careful about making sure a particular
+        // combination of parameters is supported before changing or
+        // adding anything here.
+        
+        map.put(new Actions(Actions.NEXT_COLUMN, 1, 0,
+                false, false));
+        map.put(new Actions(Actions.NEXT_COLUMN_CHANGE_LEAD, 1, 0,
+                false, false));
+        map.put(new Actions(Actions.PREVIOUS_COLUMN, -1, 0,
+                false, false));
+        map.put(new Actions(Actions.PREVIOUS_COLUMN_CHANGE_LEAD, -1, 0,
+                false, false));
+        map.put(new Actions(Actions.NEXT_ROW, 0, 1,
+                false, false));
+        map.put(new Actions(Actions.NEXT_ROW_CHANGE_LEAD, 0, 1,
+                false, false));
+        map.put(new Actions(Actions.PREVIOUS_ROW, 0, -1,
+                false, false));
+        map.put(new Actions(Actions.PREVIOUS_ROW_CHANGE_LEAD, 0, -1,
+                false, false));
+        map.put(new Actions(Actions.NEXT_COLUMN_EXTEND_SELECTION,
+                1, 0, true, false));
+        map.put(new Actions(Actions.PREVIOUS_COLUMN_EXTEND_SELECTION,
+                -1, 0, true, false));
+        map.put(new Actions(Actions.NEXT_ROW_EXTEND_SELECTION,
+                0, 1, true, false));
+        map.put(new Actions(Actions.PREVIOUS_ROW_EXTEND_SELECTION,
+                0, -1, true, false));
+        map.put(new Actions(Actions.SCROLL_UP_CHANGE_SELECTION,
+	        false, false, true, false));
+        map.put(new Actions(Actions.SCROLL_DOWN_CHANGE_SELECTION,
+	        false, true, true, false));
+        map.put(new Actions(Actions.FIRST_COLUMN,
+	        false, false, false, true));
+        map.put(new Actions(Actions.LAST_COLUMN,
+	        false, true, false, true));
 
-	if (map == null) {
-	    map = createActionMap();
-	    if (map != null) {
-		UIManager.getLookAndFeelDefaults().put("Table.actionMap", map);
-	    }
-	}
-	return map;
-    }
+        map.put(new Actions(Actions.SCROLL_UP_EXTEND_SELECTION,
+		true, false, true, false));
+        map.put(new Actions(Actions.SCROLL_DOWN_EXTEND_SELECTION,
+                true, true, true, false));
+        map.put(new Actions(Actions.FIRST_COLUMN_EXTEND_SELECTION,
+                true, false, false, true));
+        map.put(new Actions(Actions.LAST_COLUMN_EXTEND_SELECTION,
+                true, true, false, true));
 
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
+	map.put(new Actions(Actions.FIRST_ROW, false, false, true, true));
+	map.put(new Actions(Actions.LAST_ROW, false, true, true, true));
 
-	map.put("selectNextColumn", new NavigationalAction
-		(1, 0, false, false, false));
-	map.put("selectPreviousColumn", new NavigationalAction
-		(-1, 0, false, false, false));
-	map.put("selectNextRow", new NavigationalAction
-		(0, 1, false, false, false));
-	map.put("selectPreviousRow", new NavigationalAction
-		(0, -1, false, false, false));
+	map.put(new Actions(Actions.FIRST_ROW_EXTEND_SELECTION,
+                true, false, true, true));
+	map.put(new Actions(Actions.LAST_ROW_EXTEND_SELECTION,
+                true, true, true, true));
 
-	map.put("selectNextColumnExtendSelection", new NavigationalAction
-		(1, 0, false, true, false));
-	map.put("selectPreviousColumnExtendSelection", new NavigationalAction
-		(-1, 0, false, true, false));
-	map.put("selectNextRowExtendSelection", new NavigationalAction
-		(0, 1, false, true, false));
-	map.put("selectPreviousRowExtendSelection", new NavigationalAction
-		(0, -1, false, true, false));
+	map.put(new Actions(Actions.NEXT_COLUMN_CELL,
+                1, 0, false, true));
+	map.put(new Actions(Actions.PREVIOUS_COLUMN_CELL,
+                -1, 0, false, true));
+	map.put(new Actions(Actions.NEXT_ROW_CELL, 0, 1, false, true));
+	map.put(new Actions(Actions.PREVIOUS_ROW_CELL,
+                0, -1, false, true));
 
-	map.put("scrollUpChangeSelection",
-		new PagingAction(false, false, true, false));
-	map.put("scrollDownChangeSelection",
-		new PagingAction(false, true, true, false));
-	map.put("selectFirstColumn",
-		new PagingAction(false, false, false, true));
-	map.put("selectLastColumn",
-		new PagingAction(false, true, false, true));
-
-	map.put("scrollUpExtendSelection",
-		new PagingAction(true, false, true, false));
-	map.put("scrollDownExtendSelection",
-		new PagingAction(true, true, true, false));
-	map.put("selectFirstColumnExtendSelection",
-		new PagingAction(true, false, false, true));
-	map.put("selectLastColumnExtendSelection",
-		new PagingAction(true, true, false, true));
-
-	map.put("selectFirstRow",
-		new PagingAction(false, false, true, true));
-	map.put("selectLastRow",
-		new PagingAction(false, true, true, true));
-
-	map.put("selectFirstRowExtendSelection",
-		new PagingAction(true, false, true, true));
-	map.put("selectLastRowExtendSelection",
-		new PagingAction(true, true, true, true));
-
-	map.put("selectNextColumnCell",
-		new NavigationalAction(1, 0, true, false, true));
-	map.put("selectPreviousColumnCell",
-		new NavigationalAction(-1, 0, true, false, true));
-	map.put("selectNextRowCell",
-		new NavigationalAction(0, 1, true, false, true));
-	map.put("selectPreviousRowCell",
-		new NavigationalAction(0, -1, true, false, true));
-
-	map.put("selectAll", new SelectAllAction());
-	map.put("cancel", new CancelEditingAction());
-	map.put("startEditing", new StartEditingAction());
+	map.put(new Actions(Actions.SELECT_ALL));
+        map.put(new Actions(Actions.CLEAR_SELECTION));
+	map.put(new Actions(Actions.CANCEL_EDITING));
+	map.put(new Actions(Actions.START_EDITING));
 
         map.put(TransferHandler.getCutAction().getValue(Action.NAME),
                 TransferHandler.getCutAction());
@@ -802,26 +1291,19 @@ public class BasicTableUI extends TableUI
         map.put(TransferHandler.getPasteAction().getValue(Action.NAME),
                 TransferHandler.getPasteAction());
 
-	if (table.getComponentOrientation().isLeftToRight()) {
-	    map.put("scrollLeftChangeSelection",
-		new PagingAction(false, false, false, false));
-	    map.put("scrollRightChangeSelection",
-		new PagingAction(false, true, false, false));
-	    map.put("scrollLeftExtendSelection",
-		new PagingAction(true, false, false, false));
-	    map.put("scrollRightExtendSelection",
-		new PagingAction(true, true, false, false));
-	} else {
-	    map.put("scrollLeftChangeSelection",
-		new PagingAction(false, true, false, false));
-	    map.put("scrollRightChangeSelection",
-		new PagingAction(false, false, false, false));
-	    map.put("scrollLeftExtendSelection",
-		new PagingAction(true, true, false, false));
-	    map.put("scrollRightExtendSelection",
-		new PagingAction(true, false, false, false));
-	}
-	return map;
+	map.put(new Actions(Actions.SCROLL_LEFT_CHANGE_SELECTION,
+                false, false, false, false));
+	map.put(new Actions(Actions.SCROLL_RIGHT_CHANGE_SELECTION,
+                false, true, false, false));
+	map.put(new Actions(Actions.SCROLL_LEFT_EXTEND_SELECTION,
+                true, false, false, false));
+	map.put(new Actions(Actions.SCROLL_RIGHT_EXTEND_SELECTION,
+                true, true, false, false));
+
+        map.put(new Actions(Actions.ADD_TO_SELECTION));
+        map.put(new Actions(Actions.TOGGLE_AND_ANCHOR));
+        map.put(new Actions(Actions.EXTEND_TO));
+        map.put(new Actions(Actions.MOVE_SELECTION_TO));
     }
 
 //  Uninstallation
@@ -849,18 +1331,18 @@ public class BasicTableUI extends TableUI
 	table.removeMouseMotionListener(defaultDragRecognizer);
         table.removeMouseListener(mouseInputListener);
         table.removeMouseMotionListener(mouseInputListener);
-        table.removePropertyChangeListener(propertyChangeListener);
+        table.removePropertyChangeListener(getHandler());
 
         focusListener = null;
         keyListener = null;
         mouseInputListener = null;
-        propertyChangeListener = null;
+        handler = null;
     }
 
     protected void uninstallKeyboardActions() {
 	SwingUtilities.replaceUIInputMap(table, JComponent.
 				   WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, null);
-	SwingUtilities.replaceUIActionMap(table, null);
+        SwingUtilities.replaceUIActionMap(table, null);
     }
 
 //
@@ -936,19 +1418,33 @@ public class BasicTableUI extends TableUI
      * that was set in installUI().
      */
     public void paint(Graphics g, JComponent c) {
-	if (table.getRowCount() <= 0 || table.getColumnCount() <= 0) {
+        Rectangle clip = g.getClipBounds();
+
+        Rectangle bounds = table.getBounds();
+        // account for the fact that the graphics has already been translated
+        // into the table's bounds
+        bounds.x = bounds.y = 0;
+
+	if (table.getRowCount() <= 0 || table.getColumnCount() <= 0 ||
+                // this check prevents us from painting the entire table
+                // when the clip doesn't intersect our bounds at all
+                !bounds.intersects(clip)) {
+
 	    return;
 	}
-	Rectangle clip = g.getClipBounds();
+
 	Point upperLeft = clip.getLocation();
 	Point lowerRight = new Point(clip.x + clip.width - 1, clip.y + clip.height - 1);
         int rMin = table.rowAtPoint(upperLeft);
         int rMax = table.rowAtPoint(lowerRight);
-        // This should never happen.
+        // This should never happen (as long as our bounds intersect the clip,
+        // which is why we bail above if that is the case).
         if (rMin == -1) {
 	    rMin = 0;
         }
         // If the table does not have enough rows to fill the view we'll get -1.
+        // (We could also get -1 if our bounds don't intersect the clip,
+        // which is why we bail above if that is the case).
         // Replace this with the index of the last row.
         if (rMax == -1) {
 	    rMax = table.getRowCount()-1;
@@ -1179,6 +1675,11 @@ public class BasicTableUI extends TableUI
 		    Point p = e.getPoint();
 		    int row = table.rowAtPoint(p);
 		    int column = table.columnAtPoint(p);
+            // For 4835633.  Otherwise, you can drag a file by clicking below
+            // it.
+            if (pointOutsidePrefSize(table, row, column, p)) {
+                return false;
+            }
 		    if ((column != -1) && (row != -1) && table.isCellSelected(row, column)) {
 			return true;
 		    }
@@ -1324,46 +1825,4 @@ public class BasicTableUI extends TableUI
 	}
 
     }
-
-    /**
-     * PropertyChangeListener for the table. Updates the appropriate
-     * varaible, or TreeState, based on what changes.
-     */
-    private class PropertyChangeHandler implements
-	               PropertyChangeListener {
-	public void propertyChange(PropertyChangeEvent event) {
-	    String changeName = event.getPropertyName();
-
-	    if (changeName.equals("componentOrientation")) {
-		InputMap inputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		SwingUtilities.replaceUIInputMap(table,
-				JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-				inputMap);
-
-		UIManager.getLookAndFeelDefaults().put("Table.actionMap",
-                                                       null);
-		ActionMap actionMap = getActionMap();
-		SwingUtilities.replaceUIActionMap(table, actionMap);
-
-		JTableHeader header = table.getTableHeader();
-		if (header != null) {
-		    header.setComponentOrientation((ComponentOrientation)event.getNewValue());
-		}
-            } else if ("transferHandler".equals(changeName)) {
-                DropTarget dropTarget = table.getDropTarget();
-                if (dropTarget instanceof UIResource) {
-                    if (defaultDropTargetListener == null) {
-                        defaultDropTargetListener = new TableDropTargetListener();
-                    }
-                    try {
-                        dropTarget.addDropTargetListener(defaultDropTargetListener);
-                    } catch (TooManyListenersException tmle) {
-                        // should not happen... swing drop target is multicast
-                    }
-                }
-            }
-	}
-    } // End of BasicTableUI.PropertyChangeHandler
-
 }  // End of Class BasicTableUI
-

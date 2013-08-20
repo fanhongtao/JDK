@@ -1,7 +1,7 @@
 /*
- * @(#)JMenu.java	1.169 03/01/23
+ * @(#)JMenu.java	1.172 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,9 +55,6 @@ import java.lang.ref.WeakReference;
  * For information and examples of using menus see
  * <a href="http://java.sun.com/doc/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
  * a section in <em>The Java Tutorial.</em>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JMenu"><code>JMenu</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -72,7 +69,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer true
  * description: A popup window containing menu items displayed in a menu bar.
  *
- * @version 1.169 01/23/03
+ * @version 1.172 12/19/03
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -271,17 +268,14 @@ public class JMenu extends JMenuItem implements Accessible,MenuElement
         ButtonModel model = getModel();
         boolean oldValue = model.isSelected();
 
-        if ((accessibleContext != null) && (oldValue != b)) {
-            if (b) {
-                 accessibleContext.firePropertyChange(
-                         AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                         null, AccessibleState.SELECTED);
-            } else {
-                 accessibleContext.firePropertyChange(
-                         AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                         AccessibleState.SELECTED, null);
-            }
-        }
+        // TIGER - 4840653
+        // Removed code which fired an AccessibleState.SELECTED
+        // PropertyChangeEvent since this resulted in two
+        // identical events being fired since
+        // AbstractButton.fireItemStateChanged also fires the
+        // same event. This caused screen readers to speak the
+        // name of the item twice.
+
         if (b != model.isSelected()) {
             getModel().setSelected(b);
         }

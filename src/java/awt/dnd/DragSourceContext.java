@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceContext.java	1.50 03/01/23
+ * @(#)DragSourceContext.java	1.51 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import java.util.TooManyListenersException;
  *
  * @see DragSourceListener
  * @see DragSourceMotionListener
- * @version 1.50, 01/23/03
+ * @version 1.51, 12/19/03
  * @since 1.2
  */
 

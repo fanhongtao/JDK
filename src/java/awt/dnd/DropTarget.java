@@ -1,7 +1,7 @@
 /*
- * @(#)DropTarget.java	1.46 03/01/23
+ * @(#)DropTarget.java	1.48 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ import java.awt.dnd.peer.DropTargetPeer;
  * The default <code>FlavorMap</code> hereafter designates the
  * <code>FlavorMap</code> returned by <code>SystemFlavorMap.getDefaultFlavorMap()</code>. 
  * 
- * @version 	1.46, 01/23/03
+ * @version 	1.48, 12/19/03
  * @since 1.2
  */
 
@@ -316,15 +316,20 @@ public class DropTarget implements DropTargetListener, Serializable {
 	}
     }
 
-
     /**
-     * The <code>DropTarget</code> intercepts 
-     * dragEnter() notifications before the 
-     * registered <code>DropTargetListener</code> gets them. 
-     * <P>
+     * Calls <code>dragEnter</code> on the registered
+     * <code>DropTargetListener</code> and passes it
+     * the specified <code>DropTargetDragEvent</code>.
+     * Has no effect if this <code>DropTarget</code>
+     * is not active.
+     *
      * @param dtde the <code>DropTargetDragEvent</code>
+     *
+     * @throws NullPointerException if this <code>DropTarget</code>
+     *         is active and <code>dtde</code> is <code>null</code>
+     *
+     * @see #isActive
      */
-
     public synchronized void dragEnter(DropTargetDragEvent dtde) {
 	if (!active) return;
 
@@ -337,13 +342,19 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * The <code>DropTarget</code> 
-     * intercepts dragOver() notifications before the
-     * registered <code>DropTargetListener</code> gets them.
-     * <P>
+     * Calls <code>dragOver</code> on the registered
+     * <code>DropTargetListener</code> and passes it
+     * the specified <code>DropTargetDragEvent</code>.
+     * Has no effect if this <code>DropTarget</code>
+     * is not active.
+     *
      * @param dtde the <code>DropTargetDragEvent</code>
+     *
+     * @throws NullPointerException if this <code>DropTarget</code>
+     *         is active and <code>dtde</code> is <code>null</code>
+     *
+     * @see #isActive
      */
-
     public synchronized void dragOver(DropTargetDragEvent dtde) {
 	if (!active) return;
 
@@ -353,13 +364,19 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * The <code>DropTarget</code> intercepts 
-     * dropActionChanged() notifications before the 
-     * registered <code>DropTargetListener</code> gets them.
-     * <P>
-     * @param dtde the DropTargetDragEvent
+     * Calls <code>dropActionChanged</code> on the registered
+     * <code>DropTargetListener</code> and passes it
+     * the specified <code>DropTargetDragEvent</code>.
+     * Has no effect if this <code>DropTarget</code>
+     * is not active.
+     *
+     * @param dtde the <code>DropTargetDragEvent</code>
+     *
+     * @throws NullPointerException if this <code>DropTarget</code>
+     *         is active and <code>dtde</code> is <code>null</code>
+     *
+     * @see #isActive
      */
-
     public synchronized void dropActionChanged(DropTargetDragEvent dtde) {
 	if (!active) return;
 
@@ -369,13 +386,20 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * The <code>DropTarget</code> intercepts 
-     * dragExit() notifications before the 
-     * registered <code>DropTargetListener</code> gets them.
-     * <P>
+     * Calls <code>dragExit</code> on the registered
+     * <code>DropTargetListener</code> and passes it
+     * the specified <code>DropTargetEvent</code>.
+     * Has no effect if this <code>DropTarget</code>
+     * is not active.
+     * <p>
+     * This method itself does not throw any exception
+     * for null parameter but for exceptions thrown by
+     * the respective method of the listener.
+     *
      * @param dte the <code>DropTargetEvent</code>
+     *
+     * @see #isActive
      */
-
     public synchronized void dragExit(DropTargetEvent dte) {
 	if (!active) return;
 
@@ -385,12 +409,20 @@ public class DropTarget implements DropTargetListener, Serializable {
     }
 
     /**
-     * The <code>DropTarget</code> intercepts drop() notifications before the 
-     * registered <code>DropTargetListener</code> gets them.
-     * <P>
+     * Calls <code>drop</code> on the registered
+     * <code>DropTargetListener</code> and passes it
+     * the specified <code>DropTargetDropEvent</code>
+     * if this <code>DropTarget</code> is active.
+     *
      * @param dtde the <code>DropTargetDropEvent</code>
+     *
+     * @throws NullPointerException if <code>dtde</code> is null
+     *         and at least one of the following is true: this
+     *         <code>DropTarget</code> is not active, or there is
+     *         no a <code>DropTargetListener</code> registered.
+     *
+     * @see #isActive
      */
-
     public synchronized void drop(DropTargetDropEvent dtde) {
 	clearAutoscroll();
 

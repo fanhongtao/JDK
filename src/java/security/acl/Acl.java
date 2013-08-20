@@ -1,7 +1,7 @@
 /*
- * @(#)Acl.java	1.21 03/01/23
+ * @(#)Acl.java	1.23 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -67,7 +67,7 @@ import java.security.Principal;
  * @see java.security.acl.Owner
  * @see java.security.acl.Acl#getPermissions
  * 
- * @version 1.21, 03/01/23
+ * @version 1.23, 04/05/05
  * @author Satish Dharmaraj 
  */
 
@@ -183,7 +183,7 @@ public interface Acl extends Owner {
      * @return the permission set specifying the permissions the principal 
      * is allowed. 
      */
-    public Enumeration getPermissions(Principal user);
+    public Enumeration<Permission> getPermissions(Principal user);
 
     /**
      * Returns an enumeration of the entries in this ACL. Each element in 
@@ -191,7 +191,7 @@ public interface Acl extends Owner {
      * 
      * @return an enumeration of the entries in this ACL.
      */
-    public Enumeration entries();
+    public Enumeration<AclEntry> entries();
 
     /**
      * Checks whether or not the specified principal has the specified 

@@ -1,7 +1,7 @@
 /*
- * @(#)RSAMultiPrimePrivateCrtKeySpec.java	1.5 03/01/23
+ * @(#)RSAMultiPrimePrivateCrtKeySpec.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.math.BigInteger;
  *
  * @author Valerie Peng
  *
- * @version 1.5 03/01/23
+ * @version 1.8 03/12/19
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -31,15 +31,13 @@ import java.math.BigInteger;
 
 public class RSAMultiPrimePrivateCrtKeySpec extends RSAPrivateKeySpec {
 
-    private BigInteger modulus;
-    private BigInteger publicExponent;
-    private BigInteger privateExponent;
-    private BigInteger primeP;
-    private BigInteger primeQ;
-    private BigInteger primeExponentP;
-    private BigInteger primeExponentQ;
-    private BigInteger crtCoefficient;
-    private RSAOtherPrimeInfo otherPrimeInfo[];
+    private final BigInteger publicExponent;
+    private final BigInteger primeP;
+    private final BigInteger primeQ;
+    private final BigInteger primeExponentP;
+    private final BigInteger primeExponentQ;
+    private final BigInteger crtCoefficient;
+    private final RSAOtherPrimeInfo otherPrimeInfo[];
 
    /**
     * Creates a new <code>RSAMultiPrimePrivateCrtKeySpec</code>
@@ -47,8 +45,9 @@ public class RSAMultiPrimePrivateCrtKeySpec extends RSAPrivateKeySpec {
     * primeP, primeQ, primeExponentP, primeExponentQ,
     * crtCoefficient, and otherPrimeInfo as defined in PKCS#1 v2.1.
     *
-    * <p>Note that <code>otherPrimeInfo</code> is cloned when constructing
-    * this object.
+    * <p>Note that the contents of <code>otherPrimeInfo</code> 
+    * are copied to protect against subsequent modification when 
+    * constructing this object.
     *
     * @param modulus the modulus n.
     * @param publicExponent the public exponent e.
@@ -186,7 +185,8 @@ public class RSAMultiPrimePrivateCrtKeySpec extends RSAPrivateKeySpec {
      * Returns a copy of the otherPrimeInfo or null if there are 
      * only two prime factors (p and q).
      *
-     * @return the otherPrimeInfo.
+     * @return the otherPrimeInfo. Returns a new array each
+     * time this method is called.
      */
     public RSAOtherPrimeInfo[] getOtherPrimeInfo() {
 	if (otherPrimeInfo == null) return null;

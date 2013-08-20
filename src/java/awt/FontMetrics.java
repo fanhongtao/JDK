@@ -1,7 +1,7 @@
 /*
- * @(#)FontMetrics.java	1.49 03/01/23
+ * @(#)FontMetrics.java	1.53 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -71,7 +71,7 @@ import java.text.CharacterIterator;
  * called a <em>ligature</em>.  Measuring characters individually does
  * not account for these transformations.
  *
- * @version 	1.49 01/23/03
+ * @version 	1.53 05/18/04
  * @author 	Jim Graham
  * @see         java.awt.Font
  * @since       JDK1.0
@@ -215,6 +215,7 @@ public abstract class FontMetrics implements java.io.Serializable {
      * @deprecated As of JDK version 1.1.1,
      * replaced by <code>getMaxDescent()</code>.
      */
+    @Deprecated
     public int getMaxDecent() {
 	return getMaxDescent();
     }
@@ -240,15 +241,32 @@ public abstract class FontMetrics implements java.io.Serializable {
      * character's baseline.  Note that the advance of a
      * <code>String</code> is not necessarily the sum of the advances 
      * of its characters.
-     * @param ch the character to be measured
-     * @return    the advance width of the specified <code>char</code>
-     *                 in the <code>Font</code> described by this
-     *			<code>FontMetrics</code> object.
-     * @see       #charsWidth(char[], int, int)
-     * @see       #stringWidth(String)
+     * 
+     * <p>This method doesn't validate the specified character to be a
+     * valid Unicode code point. The caller must validate the
+     * character value using {@link
+     * java.lang.Character#isValidCodePoint(int)
+     * Character.isValidCodePoint} if necessary.
+     *
+     * @param codePoint the character (Unicode code point) to be measured
+     * @return    the advance width of the specified character
+     *            in the <code>Font</code> described by this
+     *		  <code>FontMetrics</code> object.
+     * @see   #charsWidth(char[], int, int)
+     * @see   #stringWidth(String)
      */
-    public int charWidth(int ch) {
-	return charWidth((char)ch);
+    public int charWidth(int codePoint) {
+	if (!Character.isValidCodePoint(codePoint)) {
+	    codePoint = 0xffff; // substitute missing glyph width
+	}
+
+	if (codePoint < 256) {
+	    return getWidths()[codePoint];
+	} else {
+	    char[] buffer = new char[2];
+	    int len = Character.toChars(codePoint, buffer, 0);
+	    return charsWidth(buffer, 0, len);
+	}
     }
 
     /**
@@ -258,8 +276,14 @@ public abstract class FontMetrics implements java.io.Serializable {
      * character's baseline.  Note that the advance of a
      * <code>String</code> is not necessarily the sum of the advances 
      * of its characters.
+     *
+     * <p><b>Note:</b> This method cannot handle <a
+     * href="../../lang/Character.html#supplementary"> supplementary
+     * characters</a>. To support all Unicode characters, including
+     * supplementary characters, use the {@link #charWidth(int)} method.
+     *
      * @param ch the character to be measured
-     * @return     the advance width of the specified <code>char</code>
+     * @return     the advance width of the specified character
      *                  in the <code>Font</code> described by this 
      *			<code>FontMetrics</code> object.
      * @see        #charsWidth(char[], int, int)

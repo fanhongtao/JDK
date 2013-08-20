@@ -1,7 +1,7 @@
 /*
- * @(#)InetSocketAddress.java	1.15 03/01/23
+ * @(#)InetSocketAddress.java	1.20 04/02/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.net;
@@ -44,6 +44,9 @@ public class InetSocketAddress extends SocketAddress {
 
     private static final long serialVersionUID = 5076001401234631237L;
     
+    private InetSocketAddress() {
+    }
+
     /**
      * Creates a socket address where the IP address is the wildcard address
      * and the port number a specified value.
@@ -93,6 +96,10 @@ public class InetSocketAddress extends SocketAddress {
      * An attempt will be made to resolve the hostname into an InetAddress.
      * If that attempt fails, the address will be flagged as <I>unresolved</I>.
      * <p>
+     * If there is a security manager, its <code>checkConnect</code> method
+     * is called with the host name as its argument to check the permissiom
+     * to resolve it. This could result in a SecurityException.
+     * <P>
      * A valid port value is between 0 and 65535.
      * A port number of <code>zero</code> will let the system pick up an
      * ephemeral port in a <code>bind</code> operation.
@@ -101,6 +108,9 @@ public class InetSocketAddress extends SocketAddress {
      * @param	port	The port number
      * @throws IllegalArgumentException if the port parameter is outside the range
      * of valid port values, or if the hostname parameter is <TT>null</TT>.
+     * @throws SecurityException if a security manager is present and
+     *				 permission to resolve the host name is
+     *				 denied.
      * @see	#isUnresolved()
      */
     public InetSocketAddress(String hostname, int port) {
@@ -117,6 +127,41 @@ public class InetSocketAddress extends SocketAddress {
 	    addr = null;
 	}
 	this.port = port;
+    }
+
+    /**
+     *
+     * Creates an unresolved socket address from a hostname and a port number.
+     * <p>
+     * No attempt will be made to resolve the hostname into an InetAddress.
+     * The address will be flagged as <I>unresolved</I>.
+     * <p>
+     * A valid port value is between 0 and 65535.
+     * A port number of <code>zero</code> will let the system pick up an
+     * ephemeral port in a <code>bind</code> operation.
+     * <P>
+     * @param	host    the Host name
+     * @param	port	The port number
+     * @throws IllegalArgumentException if the port parameter is outside
+     *                  the range of valid port values, or if the hostname
+     *                  parameter is <TT>null</TT>.
+     * @see	#isUnresolved()
+     * @return  a <code>InetSocketAddress</code> representing the unresolved
+     *          socket address
+     * @since 1.5
+     */
+    public static InetSocketAddress createUnresolved(String host, int port) {
+	if (port < 0 || port > 0xFFFF) {
+	    throw new IllegalArgumentException("port out of range:" + port);
+	}
+	if (host == null) {
+	    throw new IllegalArgumentException("hostname can't be null");
+	}
+	InetSocketAddress s = new InetSocketAddress();
+	s.port = port;
+	s.hostname = host;
+	s.addr = null;
+	return s;
     }
 
     private void readObject(ObjectInputStream s) 
@@ -167,7 +212,7 @@ public class InetSocketAddress extends SocketAddress {
     }
 
     /**
-     * Checks wether the address has been resolved or not.
+     * Checks whether the address has been resolved or not.
      *
      * @return <code>true</code> if the hostname couldn't be resolved into
      *		an <code>InetAddress</code>.

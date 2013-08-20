@@ -1,7 +1,7 @@
 /*
- * @(#)StringSelection.java	1.18 03/01/23
+ * @(#)StringSelection.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -85,9 +85,10 @@ public class StringSelection implements Transferable, ClipboardOwner {
      * <code>DataFlavor</code> if possible. If the desired flavor is
      * <code>DataFlavor.stringFlavor</code>, or an equivalent flavor,
      * the <code>String</code> representing the selection is
-     * returned. If the desired flavor is </code>DataFlavor.plainTextFlavor
-     * </code>, or an equivalent flavor, a <code>Reader</code> is returned.
-     * <b>Note:<b> The behavior of this method for
+     * returned. If the desired flavor is
+     * <code>DataFlavor.plainTextFlavor</code>,
+     * or an equivalent flavor, a <code>Reader</code> is returned.
+     * <b>Note:</b> The behavior of this method for
      * </code>DataFlavor.plainTextFlavor</code>
      * and equivalent <code>DataFlavor</code>s is inconsistent with the
      * definition of <code>DataFlavor.plainTextFlavor</code>.
@@ -110,7 +111,7 @@ public class StringSelection implements Transferable, ClipboardOwner {
 	if (flavor.equals(flavors[STRING])) {
 	    return (Object)data;
 	} else if (flavor.equals(flavors[PLAIN_TEXT])) {
-	    return new StringReader(data);
+	    return new StringReader(data == null ? "" : data);
 	} else {
 	    throw new UnsupportedFlavorException(flavor);
 	}

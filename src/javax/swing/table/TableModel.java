@@ -1,7 +1,7 @@
 /*
- * @(#)TableModel.java	1.24 03/01/23
+ * @(#)TableModel.java	1.26 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import javax.swing.event.*;
  * For further documentation, see <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/table.html#data">Creating a Table Model</a>
  * in <em>The Java Tutorial</em>.
  * <p>
- * @version 1.24 01/23/03
+ * @version 1.26 05/05/04
  * @author Philip Milne
  * @see JTable
  */
@@ -71,7 +71,7 @@ public interface TableModel
      * @param columnIndex  the index of the column
      * @return the common ancestor class of the object values in the model.
      */
-    public Class getColumnClass(int columnIndex);
+    public Class<?> getColumnClass(int columnIndex);
 
     /**
      * Returns true if the cell at <code>rowIndex</code> and

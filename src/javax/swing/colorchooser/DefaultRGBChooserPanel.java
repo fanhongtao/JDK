@@ -1,7 +1,7 @@
 /*
  * @(#)DefaultRGBChooserPanel.java	1.31 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -164,7 +164,7 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
 
         // The row for the red value
         JLabel l = new JLabel(redString);
-        l.setDisplayedMnemonic(UIManager.getInt("ColorChooser.rgbRedMnemonic"));
+        l.setDisplayedMnemonic(AbstractColorChooserPanel.getInt("ColorChooser.rgbRedMnemonic", -1));
         enclosure.add(l);
         redSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, color.getRed());
         redSlider.setMajorTickSpacing( 85 );
@@ -183,7 +183,7 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
 
         // The row for the green value
         l = new JLabel(greenString);
-        l.setDisplayedMnemonic(UIManager.getInt("ColorChooser.rgbGreenMnemonic"));
+        l.setDisplayedMnemonic(AbstractColorChooserPanel.getInt("ColorChooser.rgbGreenMnemonic", -1));
         enclosure.add(l);
         greenSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, color.getGreen());
         greenSlider.setMajorTickSpacing( 85 );
@@ -201,7 +201,7 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
 
         // The slider for the blue value
         l = new JLabel(blueString);
-        l.setDisplayedMnemonic(UIManager.getInt("ColorChooser.rgbBlueMnemonic"));
+        l.setDisplayedMnemonic(AbstractColorChooserPanel.getInt("ColorChooser.rgbBlueMnemonic", -1));
         enclosure.add(l);
         blueSlider = new JSlider(JSlider.HORIZONTAL, 0, 255, color.getBlue());
         blueSlider.setMajorTickSpacing( 85 );
@@ -228,6 +228,7 @@ class DefaultRGBChooserPanel extends AbstractColorChooserPanel implements Change
 
     public void uninstallChooserPanel(JColorChooser enclosingChooser) {
         super.uninstallChooserPanel(enclosingChooser);
+        removeAll();
     }
 
     public void updateChooser() {

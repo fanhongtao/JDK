@@ -1,7 +1,7 @@
 /*
- * @(#)PangoFonts.java	1.7 03/06/23
+ * @(#)PangoFonts.java	1.11 04/03/31
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,12 +11,12 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import javax.swing.plaf.FontUIResource;
 import java.util.StringTokenizer;
-import sun.java2d.SunGraphicsEnvironment;
+import sun.font.FontManager;
 
 /**
  * @author Shannon Hickey
  * @author Leif Samuelsson
- * @version 1.7 06/23/03
+ * @version 1.11 03/31/04
  */
 class PangoFonts {
 
@@ -26,7 +26,17 @@ class PangoFonts {
                                                {"monospace", "monospaced"}};
 
     /**
-     * Amount to scale fonts by.
+     * Calculate a default scale factor for fonts in this L&F to match
+     * the reported resolution of the screen.
+     * Java 2D specified a default user-space scale of 72dpi.
+     * This is unlikely to correspond to that of the real screen.
+     * The Xserver reports a value which may be used to adjust for this.
+     * and Java 2D exposes it via a normalizing transform.
+     * However many Xservers report a hard-coded 90dpi whilst others report a
+     * calculated value based on possibly incorrect data.
+     * That is something that must be solved at the X11 level
+     * Note that in an X11 multi-screen environment, the default screen
+     * is the one used by the JRE so it is safe to use it here.
      */
     private static double fontScale;
 
@@ -86,22 +96,92 @@ class PangoFonts {
             }
         }
 
-        // Scale the font
-        size = (int)(size * fontScale);
-
-        // Retrieve the DPI setting, if available, and scale the font
-        // accordingly.
-        int dpi = 96;
+	/*
+	 * Java 2D font point sizes are in a user-space scale of 72dpi.
+	 * GTK allows a user to configure a "dpi" property used to scale
+	 * the fonts used to match a user's preference.
+	 * To match the font size of GTK apps we need to obtain this DPI and
+	 * adjust as follows:
+	 * Some versions of GTK use XSETTINGS if available to dynamically
+	 * monitor user-initiated changes in the DPI to be used by GTK
+	 * apps. This value is also made available as the Xft.dpi X resource.
+	 * This is presumably a function of the font preferences API and/or
+	 * the manner in which it requests the toolkit to update the default
+	 * for the desktop. This dual approach is probably necessary since
+	 * other versions of GTK - or perhaps some apps - determine the size
+	 * to use only at start-up from that X resource.
+	 * If that resource is not set then GTK scales for the DPI resolution
+	 * reported by the Xserver using the formula
+	 * DisplayHeight(dpy, screen) / DisplayHeightMM(dpy, screen) * 25.4
+	 * (25.4mm == 1 inch).
+	 * JDK tracks the Xft.dpi XSETTINGS property directly so it can
+	 * dynamically change font size by tracking just that value.
+	 * If that resource is not available use the same fall back formula
+	 * as GTK (see calculation for fontScale).
+         * 
+	 * GTK's default setting for Xft.dpi is 96 dpi (and it seems -1
+	 * apparently also can mean that "default"). However this default
+	 * isn't used if there's no property set. The real default in the
+	 * absence of a resource is the Xserver reported dpi.
+	 * Finally this DPI is used to calculate the nearest Java 2D font
+	 * 72 dpi font size.
+	 * There are cases in which JDK behaviour may not exactly mimic
+	 * GTK native app behaviour :
+	 * 1) When a GTK app is not able to dynamically track the changes
+	 * (does not use XSETTINGS), JDK will resize but other apps will
+	 * not. This is OK as JDK is exhibiting preferred behaviour and
+	 * this is probably how all later GTK apps will behave
+         * 2) When a GTK app does not use XSETTINGS and for some reason
+	 * the XRDB property is not present. JDK will pick up XSETTINGS
+	 * and the GTK app will use the Xserver default. Since its
+	 * impossible for JDK to know that some other GTK app is not
+	 * using XSETTINGS its impossible to account for this and in any
+	 * case for it to be a problem the values would have to be different.
+	 * It also seems unlikely to arise except when a user explicitly
+	 * deletes the X resource database entry.
+         * 3) Because of rounding errors sizes may differ very slightly
+	 * between JDK and GTK. To fix that would at the very least require
+         * Swing to specify floating pt font sizes.
+	 * Eg "10 pts" for GTK at 96 dpi to get the same size at Java 2D's
+	 * 72 dpi you'd need to specify exactly 13.33.
+	 * There also some other issues to be aware of for the future:
+	 * GTK specifies the Xft.dpi value as server-wide which when used
+	 * on systems with 2 distinct X screens with different physical DPI
+	 * the font sizes will inevitably appear different. It would have
+	 * been a more user-friendly design to further adjust that one
+	 * setting depending on the screen resolution to achieve perceived
+	 * equivalent sizes. If such a change were ever to be made in GTK
+	 * we would need to update for that.
+	 */
+	double dsize = size;
+        int dpi = 96; 
         Object value =
             Toolkit.getDefaultToolkit().getDesktopProperty("gnome.Xft/DPI");
         if (value instanceof Integer) {
             dpi = ((Integer)value).intValue() / 1024;
-        }
-        size = (int)((double)dpi * (double)size / 96.0);
+	    if (dpi == -1) {
+	      dpi = 96;
+	    }
+	    if (dpi < 50) { /* 50 dpi is the minimum value gnome allows */
+		dpi = 50;
+	    }
+	    /* The Java rasteriser assumes pts are in a user space of
+	     * 72 dpi, so we need to adjust for that.
+	     */
+	    dsize = ((double)(dpi * size)/ 72.0);
+        } else {
+	    /* If there's no property, GTK scales for the resolution
+	     * reported by the Xserver using the formula listed above.
+	     * fontScale already accounts for the 72 dpi Java 2D space.
+	     */
+	    dsize = size * fontScale;
+	}
 
-        if (size < 1) {
-            size = 1;
-        }
+	/* Round size to nearest integer pt size */
+        size = (int)(dsize + 0.5);
+	if (size < 1) {
+	    size = 1;
+	}
 
         String mappedName = mapName(family.toLowerCase());
         if (mappedName != null) {
@@ -109,14 +189,10 @@ class PangoFonts {
         }
 
         Font font = new FontUIResource(family, style, size);
-        if (!SunGraphicsEnvironment.isLogicalFont(font) &&
-                !SunGraphicsEnvironment.fontSupportsDefaultEncoding(font)) {
-            // Font does not contain enough glyphs for this locale, fallback
-            // to SansSerif.
-            // PENDING: should create a composite Font here.
-            font = new FontUIResource("sansserif", style, size);
+        if (!FontManager.fontSupportsDefaultEncoding(font)) {
+            font = FontManager.getCompositeFontUIResource(font);
         }
         return font;
     }
-
 }
+

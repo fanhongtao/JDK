@@ -1,7 +1,7 @@
 /*
- * @(#)Locale.java	1.69 03/01/23
+ * @(#)Locale.java	1.79 04/05/10
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,25 +47,25 @@ import sun.text.resources.LocaleData;
  * Locale(String language, String country, String variant)
  * </pre>
  * </blockquote>
- * The language argument is a valid <STRONG>ISO Language Code.</STRONG> 
+ * The language argument is a valid <STRONG>ISO Language Code.</STRONG>
  * These codes are the lower-case, two-letter codes as defined by ISO-639.
  * You can find a full list of these codes at a number of sites, such as:
- * <BR><a href ="http://www.ics.uci.edu/pub/ietf/http/related/iso639.txt">
- * <code>http://www.ics.uci.edu/pub/ietf/http/related/iso639.txt</code></a>
+ * <BR><a href ="http://www.loc.gov/standards/iso639-2/englangn.html">
+ * <code>http://www.loc.gov/standards/iso639-2/englangn.html</code></a>
  *
  * <P>
- * The country argument is a valid <STRONG>ISO Country Code.</STRONG> These 
+ * The country argument is a valid <STRONG>ISO Country Code.</STRONG> These
  * codes are the upper-case, two-letter codes as defined by ISO-3166.
  * You can find a full list of these codes at a number of sites, such as:
- * <BR><a href="http://www.chemie.fu-berlin.de/diverse/doc/ISO_3166.html">
- * <code>http://www.chemie.fu-berlin.de/diverse/doc/ISO_3166.html</code></a>
+ * <BR><a href="http://www.iso.ch/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1.html">
+ * <code>http://www.iso.ch/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1.html</code></a>
  *
  * <P>
  * The variant argument is a vendor or browser-specific code.
  * For example, use WIN for Windows, MAC for Macintosh, and POSIX for POSIX.
  * Where there are two variants, separate them with an underscore, and
- * put the most important one first. For example, a Traditional Spanish collation 
- * might construct a locale with parameters for language, country and variant as: 
+ * put the most important one first. For example, a Traditional Spanish collation
+ * might construct a locale with parameters for language, country and variant as:
  * "es", "ES", "Traditional_WIN".
  *
  * <P>
@@ -132,30 +132,10 @@ import sun.text.resources.LocaleData;
  * <STRONG>just</STRONG> a mechanism for identifying objects,
  * <STRONG>not</STRONG> a container for the objects themselves.
  *
- * <P>
- * Each class that performs locale-sensitive operations allows you
- * to get all the available objects of that type. You can sift
- * through these objects by language, country, or variant,
- * and use the display names to present a menu to the user.
- * For example, you can create a menu of all the collation objects
- * suitable for a given language. Such classes must implement these
- * three class methods:
- * <blockquote>
- * <pre>
- * public static Locale[] getAvailableLocales()
- * public static String getDisplayName(Locale objectLocale,
- *                                     Locale displayLocale)
- * public static final String getDisplayName(Locale objectLocale)
- *     // getDisplayName will throw MissingResourceException if the locale
- *     // is not one of the available locales.
- * </pre>
- * </blockquote>
- *
  * @see         ResourceBundle
  * @see         java.text.Format
  * @see         java.text.NumberFormat
  * @see         java.text.Collator
- * @version     1.69, 01/23/03
  * @author      Mark Davis
  * @since       1.1
  */
@@ -375,7 +355,11 @@ public final class Locale implements Cloneable, Serializable {
     }
 
     /**
-     * Returns a list of all installed locales.
+     * Returns an array of all installed locales.
+     * The array returned must contain at least a <code>Locale</code>
+     * instance equal to {@link java.util.Locale#US Locale.US}.
+     *
+     * @return An array of installed locales.
      */
     public static Locale[] getAvailableLocales() {
         return LocaleData.getAvailableLocales("LocaleString");
@@ -433,8 +417,8 @@ public final class Locale implements Cloneable, Serializable {
     }
 
     /**
-     * Returns the country/region code for this locale, which will either be the empty string
-     * or an upercase ISO 3166 2-letter code.
+     * Returns the country/region code for this locale, which will
+     * either be the empty string or an uppercase ISO 3166 2-letter code.
      * @see #getDisplayCountry
      */
     public String getCountry() {
@@ -480,7 +464,7 @@ public final class Locale implements Cloneable, Serializable {
      * doesn't specify a language, this will be the empty string.  Otherwise, this will
      * be a lowercase ISO 639-2/T language code.
      * The ISO 639-2 language codes can be found on-line at
-     *   <a href="ftp://dkuug.dk/i18n/iso-639-2.txt"><code>ftp://dkuug.dk/i18n/iso-639-2.txt</code></a>
+     *   <a href="http://www.loc.gov/standards/iso639-2/englangn.html"><code>http://www.loc.gov/standards/iso639-2/englangn.html</code></a>
      * @exception MissingResourceException Throws MissingResourceException if the
      * three-letter language abbreviation is not available for this locale.
      */
@@ -501,8 +485,10 @@ public final class Locale implements Cloneable, Serializable {
 
     /**
      * Returns a three-letter abbreviation for this locale's country.  If the locale
-     * doesn't specify a country, this will be tbe the empty string.  Otherwise, this will
+     * doesn't specify a country, this will be the empty string.  Otherwise, this will
      * be an uppercase ISO 3166 3-letter country code.
+     * The ISO 3166-2 country codes can be found on-line at
+     *   <a href="http://www.davros.org/misc/iso3166.txt"><code>http://www.davros.org/misc/iso3166.txt</code></a>
      * @exception MissingResourceException Throws MissingResourceException if the
      * three-letter country abbreviation is not available for this locale.
      */
@@ -580,11 +566,15 @@ public final class Locale implements Cloneable, Serializable {
             if (!done) {
                 switch (phase) {
                     case 0:
-                        workingLocale.variant = "";
+                        workingLocale = new Locale(workingLocale.language,
+                                                   workingLocale.country,
+                                                   "");
                         break;
 
                     case 1:
-                        workingLocale.country = "";
+                        workingLocale = new Locale(workingLocale.language,
+                                                   "",
+                                                   workingLocale.variant);
                         break;
 
                     case 2:
@@ -663,11 +653,15 @@ public final class Locale implements Cloneable, Serializable {
             if (!done) {
                 switch (phase) {
                     case 0:
-                        workingLocale.variant = "";
+                        workingLocale = new Locale(workingLocale.language,
+                                                   workingLocale.country,
+                                                   "");
                         break;
 
                     case 1:
-                        workingLocale.country = "";
+                        workingLocale = new Locale(workingLocale.language,
+                                                   "",
+                                                   workingLocale.variant);
                         break;
 
                     case 2:
@@ -849,13 +843,12 @@ public final class Locale implements Cloneable, Serializable {
      * for speed.
      */
     public int hashCode() {
-	int hc = hashCodeValue;
+        int hc = hashCodeValue;
         if (hc == 0) {
-	    hc = (language.hashCode() << 8) ^ country.hashCode() ^ (variant.hashCode() << 4);
+            hc = (language.hashCode() << 8) ^ country.hashCode() ^ (variant.hashCode() << 4);
             hashCodeValue = hc;
-         }
-
-	return hc;
+        }
+        return hc;
     }
 
     // Overrides
@@ -871,13 +864,12 @@ public final class Locale implements Cloneable, Serializable {
     public boolean equals(Object obj) {
         if (this == obj)                      // quick check
             return true;
-        if (!(obj instanceof Locale))         
+        if (!(obj instanceof Locale))
             return false;
         Locale other = (Locale) obj;
-
-	return language == other.language
-	    && country == other.country
-	    && variant == other.variant;
+	return language == other.language 
+            && country == other.country
+            && variant == other.variant;
     }
 
     // ================= privates =====================================
@@ -889,28 +881,28 @@ public final class Locale implements Cloneable, Serializable {
      * @serial
      * @see #getLanguage
      */
-    private String language = "";
+    private final String language;
 
     /**
      * @serial
      * @see #getCountry
      */
-    private String country = "";
+    private final String country;
 
     /**
      * @serial
      * @see #getVariant
      */
-    private String variant = "";
+    private final String variant;
 
     /**
      * Placeholder for the object's hash code.  Always -1.
      * @serial
      */
-    private volatile int hashcode = -1;        // lazy evaluated
+    private volatile int hashcode = -1;        // lazy evaluate
 
     /**
-     * Calculated hashcode
+     * Calculated hashcode to fix 4518797.
      */
     private transient volatile int hashCodeValue = 0;
 
@@ -1005,40 +997,15 @@ public final class Locale implements Cloneable, Serializable {
     }
 
     /**
-     * @serialData The first three fields are three <code>String</code> objects:
-     * the first is a 2-letter ISO 639 code representing the locale's language,
-     * the second is a 2-letter ISO 3166 code representing the locale's region or
-     * country, and the third is an optional chain of variant codes defined by this
-     * library.  Any of the fields may be the empty string.  The fourth field is an
-     * <code>int</code> whose value is always -1.  This is a sentinel value indicating
-     * the <code>Locale</code>'s hash code must be recomputed.
+     * Replace the deserialized Locale object with a newly
+     * created object. Older language codes are replaced with newer ISO
+     * codes. The country and variant codes are replaced with internalized
+     * String copies.
      */
-    private void writeObject(ObjectOutputStream out) throws IOException {
-	// hashcode is no longer used except for the serialization
-	// compatibility to fix 4518797.
-        out.defaultWriteObject();
+    private Object readResolve() throws java.io.ObjectStreamException {
+        return new Locale(language, country, variant);
     }
 
-    /**
-     * @serialData The first three fields are three <code>String</code> objects:
-     * the first is a 2-letter ISO 639 code representing the locale's language,
-     * the second is a 2-letter ISO 3166 code representing the locale's region or
-     * country, and the third is an optional chain of variant codes defined by this
-     * library.  Any of the fields may be the empty string.  The fourth field is an
-     * <code>int</code>representing the locale's hash code, but is ignored by
-     * <code>readObject()</code>.  Whatever this field's value, the hash code is
-     * initialized to -1, a sentinel value that indicates the hash code must be
-     * recomputed.
-     */
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-	// hashcode is no longer used except for the serialization
-	// compatibility to fix 4518797.
-        hashcode = -1;
-        language = convertOldISOCodes(language);
-        country = country.intern();
-        variant = variant.intern();
-    }
 
     /**
      * List of all 2-letter language codes currently defined in ISO 639.
@@ -1053,17 +1020,25 @@ public final class Locale implements Cloneable, Serializable {
      */
     private static String[] isoLanguages = null;
     private static final String compressedIsoLanguages =
-        ",aaaar,ababk,afafr,amamh,arara,asasm,ayaym,azaze,babak,bebel,bgbul,bhbih,bibis,bnben,"
-        + "bobod,brbre,cacat,cocos,csces,cycym,dadan,dedeu,dzdzo,elell,eneng,eoepo,esspa,"
-        + "etest,eueus,fafas,fifin,fjfij,fofao,frfra,fyfry,gagai,gdgdh,glglg,gngrn,guguj,"
-        + "hahau,heheb,hihin,hrhrv,huhun,hyhye,iaina,idind,ieile,ikipk,inind,isisl,itita,"
-        + "iuiku,iwheb,jajpn,jiyid,jwjaw,kakat,kkkaz,klkal,kmkhm,knkan,kokor,kskas,kukur,"
-        + "kykir,lalat,lnlin,lolao,ltlit,lvlav,mgmlg,mimri,mkmkd,mlmal,mnmon,momol,mrmar,"
-        + "msmsa,mtmlt,mymya,nanau,nenep,nlnld,nonor,ococi,omorm,orori,papan,plpol,pspus,"
-        + "ptpor,quque,rmroh,rnrun,roron,rurus,rwkin,sasan,sdsnd,sgsag,shsrp,sisin,skslk,"
-        + "slslv,smsmo,snsna,sosom,sqsqi,srsrp,ssssw,stsot,susun,svswe,swswa,tatam,tetel,"
-        + "tgtgk,ththa,titir,tktuk,tltgl,tntsn,toton,trtur,tstso,tttat,twtwi,uguig,ukukr,"
-        + "ururd,uzuzb,vivie,vovol,wowol,xhxho,yiyid,yoyor,zazha,zhzho,zuzul";
+        ",aaaar,ababk,aeave,afafr,akaka,amamh,anarg,arara,asasm,avava"
+      + ",ayaym,azaze,babak,bebel,bgbul,bhbih,bibis,bmbam,bnben,bobod"
+      + ",brbre,bsbos,cacat,ceche,chcha,cocos,crcre,csces,cuchu,cvchv"
+      + ",cycym,dadan,dedeu,dvdiv,dzdzo,eeewe,elell,eneng,eoepo,esspa"
+      + ",etest,eueus,fafas,ffful,fifin,fjfij,fofao,frfra,fyfry,gagle"
+      + ",gdgla,glglg,gngrn,guguj,gvglv,hahau,heheb,hihin,hohmo,hrhrv"
+      + ",hthat,huhun,hyhye,hzher,iaina,idind,ieile,igibo,iiiii,ikipk"
+      + ",inind,ioido,isisl,itita,iuiku,iwheb,jajpn,jiyid,jvjav,kakat"
+      + ",kgkon,kikik,kjkua,kkkaz,klkal,kmkhm,knkan,kokor,krkau,kskas"
+      + ",kukur,kvkom,kwcor,kykir,lalat,lbltz,lglug,lilim,lnlin,lolao"
+      + ",ltlit,lulub,lvlav,mgmlg,mhmah,mimri,mkmkd,mlmal,mnmon,momol"
+      + ",mrmar,msmsa,mtmlt,mymya,nanau,nbnob,ndnde,nenep,ngndo,nlnld"
+      + ",nnnno,nonor,nrnbl,nvnav,nynya,ococi,ojoji,omorm,orori,ososs"
+      + ",papan,pipli,plpol,pspus,ptpor,quque,rmroh,rnrun,roron,rurus"
+      + ",rwkin,sasan,scsrd,sdsnd,sesme,sgsag,sisin,skslk,slslv,smsmo"
+      + ",snsna,sosom,sqsqi,srsrp,ssssw,stsot,susun,svswe,swswa,tatam"
+      + ",tetel,tgtgk,ththa,titir,tktuk,tltgl,tntsn,toton,trtur,tstso"
+      + ",tttat,twtwi,tytah,uguig,ukukr,ururd,uzuzb,veven,vivie,vovol"
+      + ",wawln,wowol,xhxho,yiyid,yoyor,zazha,zhzho,zuzul";
 
     /**
      * List of all 2-letter country codes currently defined in ISO 3166.
@@ -1078,40 +1053,43 @@ public final class Locale implements Cloneable, Serializable {
      */
     private static String[] isoCountries = null;
     private static final String compressedIsoCountries =
-        ",ADAND,AEARE,AFAFG,AGATG,AIAIA,ALALB,AMARM,ANANT,AOAGO,AQATA,ARARG,ASASM,ATAUT,"
-        + "AUAUS,AWABW,AZAZE,BABIH,BBBRB,BDBGD,BEBEL,BFBFA,BGBGR,BHBHR,BIBDI,BJBEN,BMBMU,"
-        + "BNBRN,BOBOL,BRBRA,BSBHS,BTBTN,BVBVT,BWBWA,BYBLR,BZBLZ,CACAN,CCCCK,CFCAF,CGCOG,"
-        + "CHCHE,CICIV,CKCOK,CLCHL,CMCMR,CNCHN,COCOL,CRCRI,CUCUB,CVCPV,CXCXR,CYCYP,CZCZE,"
-        + "DEDEU,DJDJI,DKDNK,DMDMA,DODOM,DZDZA,ECECU,EEEST,EGEGY,EHESH,ERERI,ESESP,ETETH,"
-        + "FIFIN,FJFJI,FKFLK,FMFSM,FOFRO,FRFRA,FXFXX,GAGAB,GBGBR,GDGRD,GEGEO,GFGUF,GHGHA,"
-        + "GIGIB,GLGRL,GMGMB,GNGIN,GPGLP,GQGNQ,GRGRC,GSSGS,GTGTM,GUGUM,GWGNB,GYGUY,HKHKG,"
-        + "HMHMD,HNHND,HRHRV,HTHTI,HUHUN,IDIDN,IEIRL,ILISR,ININD,IOIOT,IQIRQ,IRIRN,ISISL,"
-        + "ITITA,JMJAM,JOJOR,JPJPN,KEKEN,KGKGZ,KHKHM,KIKIR,KMCOM,KNKNA,KPPRK,KRKOR,KWKWT,"
-        + "KYCYM,KZKAZ,LALAO,LBLBN,LCLCA,LILIE,LKLKA,LRLBR,LSLSO,LTLTU,LULUX,LVLVA,LYLBY,"
-        + "MAMAR,MCMCO,MDMDA,MGMDG,MHMHL,MKMKD,MLMLI,MMMMR,MNMNG,MOMAC,MPMNP,MQMTQ,MRMRT,"
-        + "MSMSR,MTMLT,MUMUS,MVMDV,MWMWI,MXMEX,MYMYS,MZMOZ,NANAM,NCNCL,NENER,NFNFK,NGNGA,"
-        + "NINIC,NLNLD,NONOR,NPNPL,NRNRU,NUNIU,NZNZL,OMOMN,PAPAN,PEPER,PFPYF,PGPNG,PHPHL,"
-        + "PKPAK,PLPOL,PMSPM,PNPCN,PRPRI,PTPRT,PWPLW,PYPRY,QAQAT,REREU,ROROM,RURUS,RWRWA,"
-        + "SASAU,SBSLB,SCSYC,SDSDN,SESWE,SGSGP,SHSHN,SISVN,SJSJM,SKSVK,SLSLE,SMSMR,SNSEN,"
-        + "SOSOM,SRSUR,STSTP,SVSLV,SYSYR,SZSWZ,TCTCA,TDTCD,TFATF,TGTGO,THTHA,TJTJK,TKTKL,"
-        + "TMTKM,TNTUN,TOTON,TPTMP,TRTUR,TTTTO,TVTUV,TWTWN,TZTZA,UAUKR,UGUGA,UMUMI,USUSA,"
-        + "UYURY,UZUZB,VAVAT,VCVCT,VEVEN,VGVGB,VIVIR,VNVNM,VUVUT,WFWLF,WSWSM,YEYEM,YTMYT,"
-        + "YUYUG,ZAZAF,ZMZMB,ZRZAR,ZWZWE";
- 
-
+        ",ADAND,AEARE,AFAFG,AGATG,AIAIA,ALALB,AMARM,ANANT,AOAGO,AQATA"
+      + ",ARARG,ASASM,ATAUT,AUAUS,AWABW,AXALA,AZAZE,BABIH,BBBRB,BDBGD,BEBEL"
+      + ",BFBFA,BGBGR,BHBHR,BIBDI,BJBEN,BMBMU,BNBRN,BOBOL,BRBRA,BSBHS"
+      + ",BTBTN,BVBVT,BWBWA,BYBLR,BZBLZ,CACAN,CCCCK,CDCOD,CFCAF,CGCOG"
+      + ",CHCHE,CICIV,CKCOK,CLCHL,CMCMR,CNCHN,COCOL,CRCRI,CSSCG,CUCUB"
+      + ",CVCPV,CXCXR,CYCYP,CZCZE,DEDEU,DJDJI,DKDNK,DMDMA,DODOM,DZDZA"
+      + ",ECECU,EEEST,EGEGY,EHESH,ERERI,ESESP,ETETH,FIFIN,FJFJI,FKFLK"
+      + ",FMFSM,FOFRO,FRFRA,GAGAB,GBGBR,GDGRD,GEGEO,GFGUF,GHGHA,GIGIB"
+      + ",GLGRL,GMGMB,GNGIN,GPGLP,GQGNQ,GRGRC,GSSGS,GTGTM,GUGUM,GWGNB"
+      + ",GYGUY,HKHKG,HMHMD,HNHND,HRHRV,HTHTI,HUHUN,IDIDN,IEIRL,ILISR"
+      + ",ININD,IOIOT,IQIRQ,IRIRN,ISISL,ITITA,JMJAM,JOJOR,JPJPN,KEKEN"
+      + ",KGKGZ,KHKHM,KIKIR,KMCOM,KNKNA,KPPRK,KRKOR,KWKWT,KYCYM,KZKAZ"
+      + ",LALAO,LBLBN,LCLCA,LILIE,LKLKA,LRLBR,LSLSO,LTLTU,LULUX,LVLVA"
+      + ",LYLBY,MAMAR,MCMCO,MDMDA,MGMDG,MHMHL,MKMKD,MLMLI,MMMMR,MNMNG"
+      + ",MOMAC,MPMNP,MQMTQ,MRMRT,MSMSR,MTMLT,MUMUS,MVMDV,MWMWI,MXMEX"
+      + ",MYMYS,MZMOZ,NANAM,NCNCL,NENER,NFNFK,NGNGA,NINIC,NLNLD,NONOR"
+      + ",NPNPL,NRNRU,NUNIU,NZNZL,OMOMN,PAPAN,PEPER,PFPYF,PGPNG,PHPHL"
+      + ",PKPAK,PLPOL,PMSPM,PNPCN,PRPRI,PSPSE,PTPRT,PWPLW,PYPRY,QAQAT"
+      + ",REREU,ROROU,RURUS,RWRWA,SASAU,SBSLB,SCSYC,SDSDN,SESWE,SGSGP"
+      + ",SHSHN,SISVN,SJSJM,SKSVK,SLSLE,SMSMR,SNSEN,SOSOM,SRSUR,STSTP"
+      + ",SVSLV,SYSYR,SZSWZ,TCTCA,TDTCD,TFATF,TGTGO,THTHA,TJTJK,TKTKL"
+      + ",TLTLS,TMTKM,TNTUN,TOTON,TRTUR,TTTTO,TVTUV,TWTWN,TZTZA,UAUKR"
+      + ",UGUGA,UMUMI,USUSA,UYURY,UZUZB,VAVAT,VCVCT,VEVEN,VGVGB,VIVIR"
+      + ",VNVNM,VUVUT,WFWLF,WSWSM,YEYEM,YTMYT,ZAZAF,ZMZMB,ZWZWE";
 
     /*
-     * Locale needs its own, locale insenitive version of toLowerCase to
+     * Locale needs its own, locale insensitive version of toLowerCase to
      * avoid circularity problems between Locale and String.
      * The most straightforward algorithm is used. Look at optimizations later.
      */
-     private String toLowerCase(String str) {
- 	char[] buf = new char[str.length()];
-         for (int i = 0; i < buf.length; i++) {
+    private String toLowerCase(String str) {
+	char[] buf = new char[str.length()];
+        for (int i = 0; i < buf.length; i++) {
 	    buf[i] = Character.toLowerCase(str.charAt(i));
-         }
-         return new String( buf );
-     }
+        }
+        return new String( buf );
+    }
 
     /*
      * Locale needs its own, locale insensitive version of toUpperCase to
@@ -1120,10 +1098,10 @@ public final class Locale implements Cloneable, Serializable {
      */
     private String toUpperCase(String str) {
 	char[] buf = new char[str.length()];
-         for (int i = 0; i < buf.length; i++) {
+        for (int i = 0; i < buf.length; i++) {
 	    buf[i] = Character.toUpperCase(str.charAt(i));
-         }
-         return new String( buf );
+        }
+        return new String( buf );
     }
 
     private String findStringMatch(String[][] languages,

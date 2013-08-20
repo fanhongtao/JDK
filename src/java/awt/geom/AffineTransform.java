@@ -1,7 +1,7 @@
 /*
- * @(#)AffineTransform.java	1.70 03/01/23
+ * @(#)AffineTransform.java	1.71 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.awt.Shape;
  *	[ 1 ]   [   0    0    1   ] [ 1 ]   [         1         ]
  * </pre>
  *
- * @version 1.70, 01/23/03
+ * @version 1.71, 12/19/03
  * @author Jim Graham
  */
 public class AffineTransform implements Cloneable, java.io.Serializable {

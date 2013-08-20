@@ -1,7 +1,7 @@
 /*
- * @(#)TableView.java	1.31 03/01/23
+ * @(#)TableView.java	1.33 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -47,7 +47,7 @@ import javax.swing.text.html.HTML;
  * spans if desired).
  * 
  * @author  Timothy Prinzing
- * @version 1.31 01/23/03
+ * @version 1.33 05/18/04
  * @see     View
  */
 public abstract class TableView extends BoxView {
@@ -81,6 +81,7 @@ public abstract class TableView extends BoxView {
      * @param elem an element
      * @return the cell
      */
+    @Deprecated
     protected TableCell createTableCell(Element elem) {
 	return new TableCell(elem);
     }
@@ -783,6 +784,7 @@ public abstract class TableView extends BoxView {
     /**
      * @deprecated  A table cell can now be any View implementation.
      */
+    @Deprecated
     public class TableCell extends BoxView implements GridCell {
 
 	/**

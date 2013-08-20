@@ -1,13 +1,13 @@
 /*
- * @(#)MetalToolTipUI.java	1.24 03/01/23
+ * @(#)MetalToolTipUI.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
-
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -29,7 +29,7 @@ import javax.swing.plaf.basic.BasicToolTipUI;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.24 01/23/03
+ * @version 1.28 12/19/03
  * @author Steve Wilson
  */
 public class MetalToolTipUI extends BasicToolTipUI {
@@ -69,7 +69,7 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	super.paint(g, c);
 
         Font font = c.getFont();
-        FontMetrics metrics = Toolkit.getDefaultToolkit().getFontMetrics(font);
+        FontMetrics metrics = SwingUtilities2.getFontMetrics(c, g, font);
 	String keyText = getAcceleratorString(tip);
 	String tipText = tip.getTipText();
 	if (tipText == null) {
@@ -78,8 +78,9 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	if (! (keyText.equals(""))) {  // only draw control key if there is one
 	    g.setFont(smallFont);
 	    g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
-	    g.drawString(keyText, 
-		         metrics.stringWidth(tipText) + padSpaceBetweenStrings, 
+	    SwingUtilities2.drawString(tip, g, keyText,
+                         SwingUtilities2.stringWidth(
+                         tip, metrics, tipText) + padSpaceBetweenStrings, 
 		         2 + metrics.getAscent());
 	}
     }
@@ -89,8 +90,9 @@ public class MetalToolTipUI extends BasicToolTipUI {
 
 	String key = getAcceleratorString((JToolTip)c);
 	if (! (key.equals(""))) {
-            FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(smallFont);	
-	    d.width += fm.stringWidth(key) + padSpaceBetweenStrings;
+            FontMetrics fm = c.getFontMetrics(smallFont);	
+	    d.width += SwingUtilities2.stringWidth(c, fm, key) +
+                            padSpaceBetweenStrings;
 	}
         return d;
     }
@@ -123,16 +125,43 @@ public class MetalToolTipUI extends BasicToolTipUI {
 	if (comp == null) {
 	    return "";
 	}
-	KeyStroke[] keys =comp.getRegisteredKeyStrokes();
+
+	KeyStroke[] keys;
+
+	if (comp instanceof JTabbedPane) {
+	  TabbedPaneUI ui = ( (JTabbedPane)(comp) ).getUI();
+	  if (ui instanceof MetalTabbedPaneUI) {		
+	    // if comp is instance of JTabbedPane and have 'metal' look-and-feel
+	    // detect tab the mouse is over now
+	    int rolloverTabIndex = ( (MetalTabbedPaneUI)ui ).getRolloverTabIndex();
+       	    if  (rolloverTabIndex == -1)
+    	      keys = new KeyStroke[0];
+    	    else {
+    	      // detect mnemonic for this tab
+    	      int mnemonic = ((JTabbedPane)comp).getMnemonicAt(rolloverTabIndex);
+    	      if (mnemonic == -1)
+ 	        keys = new KeyStroke[0];
+ 	      else {
+ 	        // and store it as mnemonic for the component
+                KeyStroke keyStroke = KeyStroke.getKeyStroke(mnemonic, Event.ALT_MASK);
+                keys = new KeyStroke[1];
+                keys[0] = keyStroke;
+              }
+            }
+          }
+          else
+            keys = comp.getRegisteredKeyStrokes();
+        }
+	else
+	  keys = comp.getRegisteredKeyStrokes();
+
 	String controlKeyStr = "";
 
 	for (int i = 0; i < keys.length; i++) {
 	  int mod = keys[i].getModifiers();
 	  int condition =  comp.getConditionForKeyStroke(keys[i]);
 
-	  if ( condition == JComponent.WHEN_IN_FOCUSED_WINDOW &&
-	       ( (mod & InputEvent.ALT_MASK) != 0 || (mod & InputEvent.CTRL_MASK) != 0 ||
-		 (mod & InputEvent.SHIFT_MASK) != 0 || (mod & InputEvent.META_MASK) != 0 ) )
+	  if ( condition == JComponent.WHEN_IN_FOCUSED_WINDOW )
 	  {
 	      controlKeyStr = KeyEvent.getKeyModifiersText(mod) +
                               acceleratorDelimiter +

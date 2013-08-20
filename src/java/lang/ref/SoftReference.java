@@ -1,7 +1,7 @@
 /*
- * @(#)SoftReference.java	1.30 03/01/23
+ * @(#)SoftReference.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,12 +39,12 @@ package java.lang.ref;
  * strong referents to those entries, leaving the remaining entries to be
  * discarded at the discretion of the garbage collector.
  *
- * @version  1.30, 01/23/03
+ * @version  1.34, 12/19/03
  * @author   Mark Reinhold
  * @since    1.2
  */
 
-public class SoftReference extends Reference {
+public class SoftReference<T> extends Reference<T> {
 
     /* Timestamp clock, updated by the garbage collector
      */
@@ -62,7 +62,7 @@ public class SoftReference extends Reference {
      *
      * @param referent object the new soft reference will refer to
      */
-    public SoftReference(Object referent) {
+    public SoftReference(T referent) {
 	super(referent);
 	this.timestamp = clock;
     }
@@ -72,12 +72,11 @@ public class SoftReference extends Reference {
      * registered with the given queue.
      *
      * @param referent object the new soft reference will refer to
-     * @param q queue the soft reference is registered with
-     * @throws  NullPointerException  If the <code>queue</code> argument
-     *                                is <code>null</code>
+     * @param q the queue with which the reference is to be registered,
+     *          or <tt>null</tt> if registration is not required
      *
      */
-    public SoftReference(Object referent, ReferenceQueue q) {
+    public SoftReference(T referent, ReferenceQueue<? super T> q) {
 	super(referent, q);
 	this.timestamp = clock;
     }
@@ -90,8 +89,8 @@ public class SoftReference extends Reference {
      * @return   The object to which this reference refers, or
      *           <code>null</code> if this reference object has been cleared
      */
-    public Object get() {
-	Object o = super.get();
+    public T get() {
+	T o = super.get();
 	if (o != null) this.timestamp = clock;
 	return o;
     }

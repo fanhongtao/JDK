@@ -1,7 +1,7 @@
 /*
- * @(#)DTD.java	1.16 03/01/23
+ * @(#)DTD.java	1.20 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,14 +34,16 @@ import java.net.URL;
  * @see ContentModel
  * @see Parser
  * @author Arthur van Hoff
- * @version 1.16 01/23/03
+ * @version 1.20 05/05/04
  */
 public
 class DTD implements DTDConstants {
     public String name;
-    public Vector elements = new Vector();
-    public Hashtable elementHash = new Hashtable();
-    public Hashtable entityHash = new Hashtable();
+    public Vector<Element> elements = new Vector<Element>();
+    public Hashtable<String,Element> elementHash
+	= new Hashtable<String,Element>();
+    public Hashtable<Object,Entity> entityHash
+	= new Hashtable<Object,Entity>();
     public final Element pcdata = getElement("#pcdata");
     public final Element html = getElement("html");
     public final Element meta = getElement("meta");
@@ -55,8 +57,9 @@ class DTD implements DTDConstants {
     public final Element title = getElement("title");
     final Element style = getElement("style");
     final Element link = getElement("link");
+    final Element script = getElement("script");
 
-    public static int FILE_VERSION = 1;
+    public static final int FILE_VERSION = 1;
 
     /**
      * Creates a new DTD with the specified name.

@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleHyperlink.java	1.12 03/01/23
+ * @(#)AccessibleHyperlink.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import javax.swing.text.*;
  * @see AccessibleText
  * @see AccessibleContext#getAccessibleText
  *
- * @version 1.12, 01/23/03
+ * @version 1.13, 12/19/03
  * @author	Peter Korn
  */
 public abstract class AccessibleHyperlink implements AccessibleAction {

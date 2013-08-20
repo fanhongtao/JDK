@@ -1,7 +1,7 @@
 /*
- * @(#)GridLayout.java	1.35 03/01/23
+ * @(#)GridLayout.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -69,7 +69,7 @@ package java.awt;
  * the number of columns affects the layout only when the 
  * number of rows is set to zero.
  *
- * @version 1.35, 01/23/03
+ * @version 1.39, 12/19/03
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
@@ -149,9 +149,9 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * columns. All components in the layout are given equal size. 
      * <p>
      * In addition, the horizontal and vertical gaps are set to the 
-     * specified values. Horizontal gaps are placed at the left and 
-     * right edges, and between each of the columns. Vertical gaps are 
-     * placed at the top and bottom edges, and between each of the rows. 
+     * specified values. Horizontal gaps are placed between each
+     * of the columns. Vertical gaps are placed between each of
+     * the rows. 
      * <p>
      * One, but not both, of <code>rows</code> and <code>cols</code> can 
      * be zero, which means that any number of objects can be placed in a 
@@ -285,13 +285,13 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * this grid layout. 
      * <p>
      * The preferred width of a grid layout is the largest preferred 
-     * width of any of the components in the container times the number of 
+     * width of all of the components in the container times the number of 
      * columns, plus the horizontal padding times the number of columns 
-     * plus one, plus the left and right insets of the target container. 
+     * minus one, plus the left and right insets of the target container. 
      * <p>
      * The preferred height of a grid layout is the largest preferred 
-     * height of any of the components in the container times the number of 
-     * rows, plus the vertical padding times the number of rows plus one, 
+     * height of all of the components in the container times the number of 
+     * rows, plus the vertical padding times the number of rows minus one, 
      * plus the top and bottom insets of the target container. 
      * 
      * @param     parent   the container in which to do the layout
@@ -334,13 +334,13 @@ public class GridLayout implements LayoutManager, java.io.Serializable {
      * grid layout. 
      * <p>
      * The minimum width of a grid layout is the largest minimum width 
-     * of any of the components in the container times the number of columns, 
-     * plus the horizontal padding times the number of columns plus one, 
+     * of all of the components in the container times the number of columns, 
+     * plus the horizontal padding times the number of columns minus one, 
      * plus the left and right insets of the target container. 
      * <p>
      * The minimum height of a grid layout is the largest minimum height 
-     * of any of the components in the container times the number of rows, 
-     * plus the vertical padding times the number of rows plus one, plus 
+     * of all of the components in the container times the number of rows, 
+     * plus the vertical padding times the number of rows minus one, plus 
      * the top and bottom insets of the target container. 
      *  
      * @param       parent   the container in which to do the layout

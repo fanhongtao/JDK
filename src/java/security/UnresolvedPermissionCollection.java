@@ -1,7 +1,7 @@
 /*
- * @(#)UnresolvedPermissionCollection.java	1.12 03/01/23
+ * @(#)UnresolvedPermissionCollection.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.io.IOException;
  * @see java.security.Permissions
  * @see java.security.UnresolvedPermission
  *
- * @version 1.12 03/01/23
+ * @version 1.14 03/12/19
  *
  * @author Roland Schemers
  *
@@ -61,26 +61,27 @@ implements java.io.Serializable
 					       permission);
 	UnresolvedPermission up = (UnresolvedPermission) permission;
 
-        // No need to synchronize because all adds are done sequentially
-	// (by policy provider) before any getUnresolvedPermissions() calls.
-	// If policy provider is multithreaded, it should lock the
-	// collection to allow concurrent adds
-
-	List v = (List) perms.get(up.getName());
-	if (v == null) {
-	    v = new ArrayList();
-	    perms.put(up.getName(), v);
+	List v;
+	synchronized (this) {
+	    v = (List) perms.get(up.getName());
+	    if (v == null) {
+		v = new ArrayList();
+		perms.put(up.getName(), v);
+	    }
 	}
-	v.add(up);
+	synchronized (v) {
+	    v.add(up);
+	}
     }
 
     /**
      * get any unresolved permissions of the same type as p,
      * and return the List containing them.
      */
-    // No need to synchronize; list is only gotten for reading
     List getUnresolvedPermissions(Permission p) {
-	return (List) perms.get(p.getClass().getName());
+	synchronized (this) {
+	    return (List) perms.get(p.getClass().getName());
+	}
     }
 
     /**
@@ -99,16 +100,17 @@ implements java.io.Serializable
      * @return an enumeration of all the UnresolvedPermission objects.
      */
 
-    // No need to synchronize; lists won't change after initial adds
-    // XXX A performance improvement might be to construct the global 
-    // list lazily as enumeration proceeds.
-    
     public Enumeration elements() {
 	List results = new ArrayList(); // where results are stored
 
 	// Get iterator of Map values (which are lists of permissions)
-	for (Iterator iter = perms.values().iterator(); iter.hasNext();) {
-	    results.addAll((List) iter.next());
+	synchronized (this) {
+	    for (Iterator iter = perms.values().iterator(); iter.hasNext();) {
+		List l = (List) iter.next();
+		synchronized (l) {
+		    results.addAll(l);
+		}
+	    }
 	}
 
 	return Collections.enumeration(results);
@@ -144,17 +146,21 @@ implements java.io.Serializable
 	Hashtable permissions = new Hashtable(perms.size()*2);
 
 	// Convert each entry (List) into a Vector
-	Set set = perms.entrySet();
-	for (Iterator iter = set.iterator(); iter.hasNext(); ) {
-	    Map.Entry e = (Map.Entry)iter.next();
+	synchronized (this) {
+	    Set set = perms.entrySet();
+	    for (Iterator iter = set.iterator(); iter.hasNext(); ) {
+		Map.Entry e = (Map.Entry)iter.next();
 
-	    // Convert list into Vector
-	    List list = (List) e.getValue();
-	    Vector vec = new Vector(list.size());
-	    vec.addAll(list);
+		// Convert list into Vector
+		List list = (List) e.getValue();
+		Vector vec = new Vector(list.size());
+		synchronized (list) {
+		    vec.addAll(list);
+		}
 
-	    // Add to Hashtable being serialized
-	    permissions.put(e.getKey(), vec);
+		// Add to Hashtable being serialized
+		permissions.put(e.getKey(), vec);
+	    }
 	}
 
 	// Write out serializable fields

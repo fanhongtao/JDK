@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsPopupMenuUI.java	1.19 03/01/23
+ * @(#)WindowsPopupMenuUI.java	1.21 04/04/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package com.sun.java.swing.plaf.windows;
 import java.awt.Component;
 import java.awt.KeyEventPostProcessor;
 import java.awt.KeyboardFocusManager;
+import java.awt.Window;
 import java.awt.event.KeyEvent;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -68,9 +69,15 @@ public class WindowsPopupMenuUI extends BasicPopupMenuUI {
 	    MenuSelectionManager msm = (MenuSelectionManager)ev.getSource();
             MenuElement[] path = msm.getSelectedPath();
             if (path.length == 0) {
-                // menu was canceled -- hide mnemonics
-                WindowsLookAndFeel.setMnemonicHidden(true);
-                if (repaintRoot != null) repaintRoot.repaint();
+                if(!WindowsLookAndFeel.isMnemonicHidden()) {
+                    // menu was canceled -- hide mnemonics
+                    WindowsLookAndFeel.setMnemonicHidden(true);
+                    if (repaintRoot != null) {
+                        Window win =
+                            SwingUtilities.getWindowAncestor(repaintRoot);
+                        WindowsUtils.repaintMnemonicsInWindow(win);
+                    }
+                }
             } else {
                 Component c = (Component)path[0];
                 if (c instanceof JPopupMenu) c = ((JPopupMenu)c).getInvoker();

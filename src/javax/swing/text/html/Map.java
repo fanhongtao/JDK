@@ -1,7 +1,7 @@
 /*
- * @(#)Map.java	1.7 03/01/23
+ * @(#)Map.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -18,7 +18,7 @@ import javax.swing.text.AttributeSet;
  * you can test if a point falls inside the map via the contains method.
  *
  * @author  Scott Violet
- * @version 1.7 01/23/03
+ * @version 1.8 12/19/03
  */
 class Map {
     /** Name of the Map. */

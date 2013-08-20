@@ -1,7 +1,7 @@
 /*
- * @(#)Policy.java	1.48 03/01/23
+ * @(#)Policy.java	1.50 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -133,8 +133,9 @@ package javax.security.auth;
  * Policy for Principal-based Permission entries.
  *
  *
- * @version 1.48, 01/23/03
+ * @version 1.50, 05/18/04
  */
+@Deprecated
 public abstract class Policy {
 
     private static Policy policy;

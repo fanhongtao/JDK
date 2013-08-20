@@ -1,7 +1,7 @@
 /*
- * @(#)MetalComboBoxUI.java	1.42 03/01/23
+ * @(#)MetalComboBoxUI.java	1.49 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.beans.*;
  *
  * @see MetalComboBoxEditor
  * @see MetalComboBoxButton
- * @version 1.42 01/23/03
+ * @version 1.49 05/18/04
  * @author Tom Santos
  */
 public class MetalComboBoxUI extends BasicComboBoxUI {
@@ -41,6 +41,59 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     }
 
     public void paint(Graphics g, JComponent c) {
+        if (MetalLookAndFeel.usingOcean()) {
+            super.paint(g, c);
+        }
+    }
+
+    /**
+     * If necessary paints the currently selected item.
+     *
+     * @param g Graphics to paint to
+     * @param bounds Region to paint current value to
+     * @param hasFocus whether or not the JComboBox has focus
+     * @throws NullPointerException if any of the arguments are null.
+     * @since 1.5
+     */
+    public void paintCurrentValue(Graphics g, Rectangle bounds,
+                                  boolean hasFocus) {
+        // This is really only called if we're using ocean.
+        if (MetalLookAndFeel.usingOcean()) {
+            bounds.x += 2;
+            bounds.y += 2;
+            bounds.width -= 3;
+            bounds.height -= 4;
+            super.paintCurrentValue(g, bounds, hasFocus);
+        }
+        else if (g == null || bounds == null) {
+            throw new NullPointerException(
+                "Must supply a non-null Graphics and Rectangle");
+        }
+    }
+
+    /**
+     * If necessary paints the background of the currently selected item.
+     *
+     * @param g Graphics to paint to
+     * @param bounds Region to paint background to
+     * @param hasFocus whether or not the JComboBox has focus
+     * @throws NullPointerException if any of the arguments are null.
+     * @since 1.5
+     */
+    public void paintCurrentValueBackground(Graphics g, Rectangle bounds,
+                                            boolean hasFocus) {
+        // This is really only called if we're using ocean.
+        if (MetalLookAndFeel.usingOcean()) {
+            g.setColor(MetalLookAndFeel.getControlDarkShadow());
+            g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height - 1);
+            g.setColor(MetalLookAndFeel.getControlShadow());
+            g.drawRect(bounds.x + 1, bounds.y + 1, bounds.width - 2,
+                       bounds.height - 3);
+        }
+        else if (g == null || bounds == null) {
+            throw new NullPointerException(
+                "Must supply a non-null Graphics and Rectangle");
+        }
     }
 
     protected ComboBoxEditor createEditor() {
@@ -48,17 +101,36 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     }
 
     protected ComboPopup createPopup() {
-        return new MetalComboPopup( comboBox );
+        return super.createPopup();
     }
 
     protected JButton createArrowButton() {
+        boolean iconOnly = (comboBox.isEditable() ||
+                            MetalLookAndFeel.usingOcean());
         JButton button = new MetalComboBoxButton( comboBox,
                                                   new MetalComboBoxIcon(),
-                                                  comboBox.isEditable(),
+                                                  iconOnly,
                                                   currentValuePane,
                                                   listBox );
         button.setMargin( new Insets( 0, 1, 1, 3 ) );
+        if (MetalLookAndFeel.usingOcean()) {
+            // Disabled rollover effect.
+            button.putClientProperty(MetalBorders.NO_BUTTON_ROLLOVER,
+                                     Boolean.TRUE);
+        }
+        updateButtonForOcean(button);
         return button;
+    }
+
+    /**
+     * Resets the necessary state on the ComboBoxButton for ocean.
+     */
+    private void updateButtonForOcean(JButton button) {
+        if (MetalLookAndFeel.usingOcean()) {
+            // Ocean renders the focus in a different way, this
+            // would be redundant.
+            button.setFocusPainted(comboBox.isEditable());
+        }
     }
 
     public PropertyChangeListener createPropertyChangeListener() {
@@ -75,16 +147,18 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
             super.propertyChange( e );
             String propertyName = e.getPropertyName();
 
-            if ( propertyName.equals( "editable" ) ) {
+            if ( propertyName == "editable" ) {
 		MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
-		button.setIconOnly( comboBox.isEditable() );
+		button.setIconOnly( comboBox.isEditable() ||
+                                    MetalLookAndFeel.usingOcean() );
 		comboBox.repaint();
-            } else if ( propertyName.equals( "background" ) ) {
+                updateButtonForOcean(button);
+            } else if ( propertyName == "background" ) {
                 Color color = (Color)e.getNewValue();
                 arrowButton.setBackground(color);
                 listBox.setBackground(color);
                 
-            } else if ( propertyName.equals( "foreground" ) ) {
+            } else if ( propertyName == "foreground" ) {
                 Color color = (Color)e.getNewValue();
                 arrowButton.setForeground(color);
                 listBox.setForeground(color);
@@ -99,6 +173,7 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
      *
      * @deprecated As of Java 2 platform v1.4.
      */
+    @Deprecated
     protected void editablePropertyChanged( PropertyChangeEvent e ) { }
 
     protected LayoutManager createLayoutManager() {
@@ -123,11 +198,26 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     // When a protected-inner-class-savvy compiler comes out we
     // should move this into MetalComboBoxLayoutManager.
     public void layoutComboBox( Container parent, MetalComboBoxLayoutManager manager ) {
-        if ( comboBox.isEditable() ) {
+        if (comboBox.isEditable() && !MetalLookAndFeel.usingOcean()) {
             manager.superLayout( parent );
+            return;
         }
-        else {
-            if ( arrowButton != null ) {
+
+        if (arrowButton != null) {
+            if (MetalLookAndFeel.usingOcean() &&
+                                (arrowButton instanceof MetalComboBoxButton)) {
+                Icon icon = ((MetalComboBoxButton)arrowButton).getComboIcon();
+                Insets buttonInsets = arrowButton.getInsets();
+                Insets insets = comboBox.getInsets();
+                int buttonWidth = icon.getIconWidth() + buttonInsets.left +
+                                  buttonInsets.right;
+		arrowButton.setBounds(MetalUtils.isLeftToRight(comboBox)
+				? (comboBox.getWidth() - insets.right - buttonWidth)
+				: insets.left,
+                            insets.top, buttonWidth,
+                            comboBox.getHeight() - insets.top - insets.bottom);
+            }
+            else {
                 Insets insets = comboBox.getInsets();
                 int width = comboBox.getWidth();
                 int height = comboBox.getHeight();
@@ -135,6 +225,11 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
                                        width - (insets.left + insets.right),
                                        height - (insets.top + insets.bottom) );
             }
+        }
+
+        if (editor != null && MetalLookAndFeel.usingOcean()) {
+            Rectangle cvb = rectangleForCurrentValue();
+            editor.setBounds(cvb);
         }
     }
 
@@ -144,6 +239,7 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
      *
      * @deprecated As of Java 2 platform v1.4.
      */
+    @Deprecated
     protected void removeListeners() {
         if ( propertyChangeListener != null ) {
             comboBox.removePropertyChangeListener( propertyChangeListener );
@@ -214,6 +310,7 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
      * 
      * @deprecated As of Java 2 platform v1.4.
      */          
+    @Deprecated
     public class MetalComboPopup extends BasicComboPopup {
 
 	public MetalComboPopup( JComboBox cBox) {

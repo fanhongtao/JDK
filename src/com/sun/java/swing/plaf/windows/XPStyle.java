@@ -1,7 +1,7 @@
 /*
- * @(#)XPStyle.java	1.10 03/03/20
+ * @(#)XPStyle.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import sun.security.action.GetPropertyAction;
 /**
  * Implements Windows XP Styles for the Windows Look and Feel.
  *
- * @version 1.10 03/20/03
+ * @version 1.19 12/19/03
  * @author Leif Samuelsson
  */
 class XPStyle {
@@ -76,8 +76,9 @@ class XPStyle {
 	    if (themeActive == null) {
 		themeActive = Boolean.FALSE;
 	    }
-	    if (themeActive.booleanValue() &&
-		AccessController.doPrivileged(new GetPropertyAction("swing.noxp")) == null) {
+   	    if (themeActive.booleanValue() &&
+		AccessController.doPrivileged(new GetPropertyAction("swing.noxp")) == null &&
+		!(UIManager.getLookAndFeel() instanceof WindowsClassicLookAndFeel)) {
 		xp = new XPStyle();
 	    }
 	}
@@ -90,9 +91,73 @@ class XPStyle {
      * @return a <code>String</code> or null if key is not found
      *    in the current style
      */
-    synchronized String getString(String key) {
-	return (String)map.get(key);
+    private static String getString(String key) {
+	// Example: getString("a.b(c).d") => return getString("a.b", "c", "d");
+
+	String category = "";
+	String state = "";
+	String attributeKey = key;
+
+	int i = key.lastIndexOf('.');
+	if (i > 0 && key.length() > i+1) {
+	    category = key.substring(0, i);
+	    attributeKey = key.substring(i+1);
+
+	    i = category.lastIndexOf('(');
+	    if (i > 0) {
+		int i2 = category.indexOf(')', i);
+		if (i2 == category.length() - 1) {
+		    state = category.substring(i+1, i2);
+		    category = category.substring(0, i);
+		}
+	    }
+	}
+	return getString(category, state, attributeKey);
     }
+
+    /** Get a named <code>String</code> value from the current style
+     *
+     * @param category a <code>String</code>
+     * @param state a <code>String</code>
+     * @param attributeKey a <code>String</code>
+     * @return a <code>String</code> or null if key is not found
+     *    in the current style
+     */
+    static String getString(String category, String state, String attributeKey) {
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Map resources = (Map)toolkit.getDesktopProperty("win.xpstyle.resources.strings");
+
+	String value;
+	if (category == null || category.length() == 0) {
+	    value = (String)resources.get(attributeKey);
+	} else {
+	    if (state == null || state.length() == 0) {
+		value = (String)resources.get(category + "." + attributeKey);
+	    } else {
+		value = (String)resources.get(category + "(" + state + ")." + attributeKey);
+	    }
+	}
+	if (value == null) {
+	    // Look for inheritance. For example, the attributeKey "transparent" in
+	    // category "window.closebutton" can be inherited from category "window".
+	    int i = category.lastIndexOf('.');
+	    if (i > 0) {
+		value = getString(category.substring(0, i), state, attributeKey);
+	    }
+	}
+	if (value == null && state != null && state.length() > 0) {
+	    // Try again without a state specified
+	    value = getString(category, "", attributeKey);
+	}
+	return value;
+    }
+
+    static BufferedImage getBitmapResource(String key) {
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Map resources = (Map)toolkit.getDesktopProperty("win.xpstyle.resources.images");
+	return (BufferedImage)resources.get(key);
+    }
+
 
     /** Get a named <code>int</code> value from the current style
      *
@@ -212,6 +277,16 @@ class XPStyle {
      *    category is not defined as "borderfill".
      */
     synchronized Border getBorder(String category) {
+	if (category == "menu") {
+	    // Special case because XP has no skin for menus
+	    if (getBoolean("sysmetrics.flatmenus") == Boolean.TRUE) {
+		// TODO: The classic border uses this color, but we should create
+		// a new UI property called "PopupMenu.borderColor" instead.
+		return new XPFillBorder(UIManager.getColor("InternalFrame.borderShadow"), 1);
+	    } else {
+		return null;	// Will cause L&F to use classic border
+	    }
+	}
 	Border border = (Border)map.get("Border "+category);
 	if (border == null) {
 	    String bgType = getString(category + ".bgtype");
@@ -222,7 +297,11 @@ class XPStyle {
 	    } else if ("imagefile".equalsIgnoreCase(bgType)) {
 		Insets m = getMargin(category + ".sizingmargins");
 		if (m != null) {
-		    border = new XPEmptyBorder(m);
+		    if (getBoolean(category + ".borderonly") == Boolean.TRUE) {
+			border = new XPImageBorder(category);
+		    } else {
+			border = new XPEmptyBorder(m);
+		    }
 		}
 	    }
 	    if (border != null) {
@@ -259,6 +338,45 @@ class XPStyle {
 	   insets.left   = (margin != null? margin.left : 0)   + thickness;
 	   insets.bottom = (margin != null? margin.bottom : 0) + thickness;
 	   insets.right =  (margin != null? margin.right : 0)  + thickness;
+	       
+	   return insets;
+        }
+    }
+
+    private class XPImageBorder extends AbstractBorder implements UIResource {
+	Skin skin;
+
+	XPImageBorder(String category) {
+	    this.skin = getSkin(category);
+	}
+
+	public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+	    skin.paintSkin(g, x, y, width, height, 0);
+	}
+
+        public Insets getBorderInsets(Component c)       {
+	    return getBorderInsets(c, new Insets(0,0,0,0));
+        }
+
+        public Insets getBorderInsets(Component c, Insets insets)       {
+            Insets margin = null;
+	    Insets borderInsets = skin.getContentMargin();
+            //
+            // Ideally we'd have an interface defined for classes which
+            // support margins (to avoid this hackery), but we've
+            // decided against it for simplicity
+            //
+           if (c instanceof AbstractButton) {
+               margin = ((AbstractButton)c).getMargin();
+           } else if (c instanceof JToolBar) {
+               margin = ((JToolBar)c).getMargin();
+           } else if (c instanceof JTextComponent) {
+               margin = ((JTextComponent)c).getMargin();
+           }
+	   insets.top    = (margin != null? margin.top : 0)    + borderInsets.top;
+	   insets.left   = (margin != null? margin.left : 0)   + borderInsets.left;
+	   insets.bottom = (margin != null? margin.bottom : 0) + borderInsets.bottom;
+	   insets.right =  (margin != null? margin.right : 0)  + borderInsets.right;
 	       
 	   return insets;
         }
@@ -314,10 +432,15 @@ class XPStyle {
      * and glyphs
      */
     class Skin {
+	private String category;
 	private Image image;
 	private Insets contentMargin;
 	private int w, h;
+	private String imageSelectType;
 	private Image scaledImage;
+	private int nScaledImages;
+	private int scaledToWidth  = 0;
+	private int scaledToHeight = 0;
 	private Image glyphImage;
 	private int frameCount;
 	private Insets paintMargin;
@@ -342,7 +465,8 @@ class XPStyle {
 	 * determining the minimum and preferred sizes for a component.
 	 */
 	Insets getContentMargin() {
-	    return contentMargin;
+	    // This is only called by WindowsTableHeaderUI so far.
+	    return paintMargin;
 	}
 
 	/** The width of the source image for this skin.
@@ -360,25 +484,29 @@ class XPStyle {
 	}
 
 	private Skin(String category) {
+	    this.category = category;
 	    XPStyle xp = getXP();
+
 	    // Load main image
 	    image = xp.getImage(category+".imagefile",
-				xp.getBoolean(category+".transparent", true));
+				getBoolean(category+".transparent"),
+				xp.getColor(category+".transparentcolor", null));
 
 	    // Look for additional (prescaled) images
-	    int n = 0;
+	    nScaledImages = 0;
 	    while (true) {
-		if (xp.getString(category+".imagefile"+(n+1)) == null) {
+		if (xp.getString(category+".imagefile"+(nScaledImages+1)) == null) {
 		    break;
 		}
-		n++;
+		nScaledImages++;
 	    }
-	    if (n > 0) {
-		int index = (n / 2) + 1;
-		if ("dpi".equalsIgnoreCase(getString(category+".imageselecttype"))) {
+	    if (nScaledImages > 0) {
+		int index = (nScaledImages / 2) + 1;
+		imageSelectType = getString(category+".imageselecttype").toLowerCase();
+		if ("dpi".equals(imageSelectType)) {
 		    int dpi = Toolkit.getDefaultToolkit().getScreenResolution();
 		    index = 1;
-		    for (int i = n; i >= 1; i--) {
+		    for (int i = nScaledImages; i >= 1; i--) {
 			int minDpi = xp.getInt(category+".mindpi"+i, -1);
 			if (minDpi > 0 && dpi >= minDpi) {
 			    index = i;
@@ -386,19 +514,18 @@ class XPStyle {
 			}
 		    }
 		}
-		scaledImage = xp.getImage(category+".imagefile"+index,
-					  xp.getBoolean(category+".transparent", false) ||
-					  xp.getBoolean(category+".glyphtransparent", false)); 
+		scaledImage = getScaledImage(index);
 	    }
 
 	    frameCount     = getInt(category+".imagecount", 1);
 	    paintMargin    = getMargin(category+".sizingmargins");
 	    contentMargin  = getMargin(category+".contentmargins");
 	    tile           = "tile".equalsIgnoreCase(getString(category+".sizingtype"));
-	    sourceShrink   = getBoolean(category+".sourceshrink", false);
+	    sourceShrink   = (getBoolean(category+".sourceshrink") == Boolean.TRUE);
 	    verticalFrames = "vertical".equalsIgnoreCase(getString(category+".imagelayout"));
 	    glyphImage    = xp.getImage(category+".glyphimagefile",
-					xp.getBoolean(category+".glyphtransparent", false));
+					xp.getBoolean(category+".glyphtransparent"),
+					null);
 
 	    Image im = image;
 	    if (im == null && scaledImage != null) {
@@ -409,9 +536,51 @@ class XPStyle {
 		if (frameCount < 1) {
 		    abandonXP();
 		}
-		this.w = im.getWidth(null)  / (verticalFrames ? 1 : frameCount);
-		this.h = im.getHeight(null) / (verticalFrames ? frameCount : 1);
+		this.w = getImageWidth(im);
+		this.h = getImageHeight(im);
 	    }
+	}
+
+	private int getImageWidth(Image im) {
+	    return im.getWidth(null)  / (verticalFrames ? 1 : frameCount);
+	}
+
+	private int getImageHeight(Image im) {
+	    return im.getHeight(null) / (verticalFrames ? frameCount : 1);
+	}
+
+	private Image getScaledImage(int i) {
+	    Boolean useTransparency = xp.getBoolean(category+".transparent");
+	    if (useTransparency == null) {
+		useTransparency = xp.getBoolean(category+".glyphtransparent");
+	    }
+	    return xp.getImage(category+".imagefile"+i,
+			       useTransparency,
+			       xp.getColor(category+".transparentcolor", null));
+	}
+
+	private Image getScaledImage(int dw, int dh) {
+	    if ("size".equals(imageSelectType) && nScaledImages > 1
+		&& (scaledToWidth != dw || scaledToHeight != dh)) {
+		scaledImage = getScaledImage(1);
+		for (int i = 2; i <= nScaledImages; i++) {
+		    Image im = getScaledImage(i);
+		    int w = dw;
+		    int h = dh;
+		    if (contentMargin != null) {
+			w -= (contentMargin.left + contentMargin.right);
+			h -= (contentMargin.top + contentMargin.bottom);
+		    }
+		    if (getImageWidth(im) <= w && getImageHeight(im) <= h) {
+			scaledImage = im;
+		    } else {
+			break;
+		    }
+		}
+		scaledToWidth  = dw;
+		scaledToHeight = dh;
+	    }
+	    return scaledImage;
 	}
 
 	/** Paint a skin at x, y.
@@ -467,30 +636,20 @@ class XPStyle {
 		       (verticalFrames ? (index*h) : 0) + sy,
 		       w, h, paintMargin, tile, sourceShrink);
 	    }
-	    if (scaledImage != null) {
-		Image im = scaledImage;
-		int sw = im.getWidth(null)  / (verticalFrames ? 1 : frameCount);
-		int sh = im.getHeight(null) / (verticalFrames ? frameCount : 1);
+	    // Paint glyph on top of background image
+	    Image im = getScaledImage(dw, dh);
+	    if (im == null) {
+		im = glyphImage;
+	    }
+	    if (im != null) {
+		// The glyph is pre-scaled, so don't stretch it here
+		int sw = getImageWidth(im);
+		int sh = getImageHeight(im);
 		int sx = verticalFrames ? 0 : (index*sw);
 		int sy = verticalFrames ? (index*sh) : 0;
-		dx += (w-sw)/2;
-		dy += (h-sh)/2;
+		dx += (dw-sw)/2;
+		dy += (dh-sh)/2;
 		g.drawImage(im, dx, dy, dx+sw,  dy+sh, sx, sy, sx+sw, sy+sh, null);
-	    } else if (glyphImage != null) {
-		int gsw = glyphImage.getWidth(null)  / (verticalFrames ? 1 : frameCount);
-		int gsh = glyphImage.getHeight(null) / (verticalFrames ? frameCount : 1);
-		dx += (dw - gsw) / 2;
-		dy += (dh - gsh) / 2;
-
-		if (dx >= 0 && dy >= 0) {
-		    int gsx = 0, gsy = 0;
-		    if (verticalFrames) {
-			gsy = index * gsh;
-		    } else {
-			gsx = index * gsw;
-		    }
-		    g.drawImage(glyphImage, dx, dy, dx+gsw, dy+gsh, gsx, gsy, gsx+gsw, gsy+gsh, null);
-		}
 	    }
 	}
 
@@ -603,7 +762,8 @@ class XPStyle {
 	    XPStyle xp = getXP();
 	    skin          = xp.getSkin(category);
 	    glyphImage    = xp.getImage(category+".glyphimagefile",
-					xp.getBoolean(category+".glyphtransparent", true));
+					xp.getBoolean(category+".glyphtransparent"),
+					null);
 	    setBorder(null);
 	    setContentAreaFilled(false);
 	}   
@@ -648,130 +808,88 @@ class XPStyle {
 	Toolkit toolkit = Toolkit.getDefaultToolkit();
 	styleFile = (String)toolkit.getDesktopProperty("win.xpstyle.dllName");
 	if (styleFile != null) {
-	     String sizeName     = (String)toolkit.getDesktopProperty("win.xpstyle.sizeName");
-	     String colorName    = (String)toolkit.getDesktopProperty("win.xpstyle.colorName");
-	     if (sizeName != null && colorName != null) {
-		 String[] sizeNames =
-		     splitTextResource(getTextResourceByInt(styleFile, 1, "SIZENAMES"));
-		 String[] colorNames =
-		     splitTextResource(getTextResourceByInt(styleFile, 1, "COLORNAMES"));
-		 String[] themeFileNames =
-		     splitTextResource(getTextResourceByInt(styleFile, 1, "FILERESNAMES"));
-
-		 if (sizeNames != null && colorNames != null && themeFileNames != null) {
-		     themeFile = null;
-		     for (int color = 0; color < colorNames.length; color++) {
-			 for (int size = 0; size < sizeNames.length; size++) {
-			     if (sizeName.equals(sizeNames[size]) &&
-				 colorName.equals(colorNames[color]) &&
-				 (color * sizeNames.length + size) < themeFileNames.length) {
-
-				 themeFile = themeFileNames[color * sizeNames.length + size];
-				 break;
-			     }
-			 }
-		     }
-
-		     if (themeFile != null) {
-			 String themeData = getTextResourceByName(styleFile, themeFile, "TEXTFILE");
-			 if (themeData != null) {
-			     merge(themeData);
-			 }
-		     }
-		 }
-	     }
+            themeFile = getString("themeFile");
 	}
 	// Note: All further access to the map must be synchronized
     }
 
-
-    private static native int[] getBitmapResource(String path, String resource);
-    private static native String getTextResourceByName(String path, String resource, String resType);
-    private static native String getTextResourceByInt(String path, int resource, String resType);
-
-    private void merge(String bytes) {
-	StringTokenizer tok = new StringTokenizer(bytes, "\r\n");
-	String category = "";
-	while (tok.hasMoreElements()) {
-	    String line = tok.nextToken().trim();
-	    char[] chars = line.toCharArray();
-	    int len = chars.length;
-	    if (len > 1) {
-		// Modify "[Category]" to "category."
-		if (chars[0] == '[') {
-		    chars[len-1] = '.';
-		    toLowerCase(chars, 1, len-1);
-		    category = new String(chars, 1, len-1);
-		} else {
-		    int i = line.indexOf('=');
-		    if (i >= 0) {
-			while (i > 0 && (chars[i-1] == ' ' || chars[i-1] == '\t')) {
-			    i--;
-			}
-			toLowerCase(chars, 0, i);
-			String key = category + new String(chars, 0, i);
-			while (i < len &&
-			       (chars[i] == ' ' || chars[i] == '\t' || chars[i] == '=')) {
-			    i++;
-			}
-			String value = new String(chars, i, len-i);
-			i = value.indexOf(';');
-			if (i >= 0) {
-			    value = value.substring(0, i);
-			}
-			map.put(key, value.trim());
-		    }
-		}
-	    }
-	}
-    }
-
-    private void toLowerCase(char[] a, int start, int end) {
-	for (int i = start; i < end; i++) {
-	    a[i] = Character.toLowerCase(a[i]);
-	}
-    }
-
-    private synchronized Image getImage(String key, boolean useTransparency) {
-	Image image = null;
+    private synchronized Image getImage(String key,
+					Boolean useTransparency,
+					Color transparentColor) {
 	String imageName = getString(key);
-	if (imageName != null) {
-	    // We cache images separately because multiple keys/skins
-	    // can point to the same image
-	    image = (Image)map.get("Image "+imageName);
-	    if (image == null) {
-		// Replace \ and . with _ and convert to uppercase
-		int i;
-		String resourceName = imageName;
-		while ((i = resourceName.indexOf("\\")) >= 0
-		       || (i = resourceName.indexOf(".")) >= 0) {
-		    resourceName = resourceName.substring(0, i) + "_" + resourceName.substring(i+1);
-		}
-		resourceName = resourceName.toUpperCase();
-		int[] bits = getBitmapResource(styleFile, resourceName);
-		if (bits != null) {
-		    // The last two ints in the array are the width and the transparency value
-		    int width = bits[bits.length-2];
-		    int transparency = useTransparency ? bits[bits.length-1] : Transparency.OPAQUE;
-		    int height = (bits.length - 2) / width;
+	if (imageName == null) {
+            return null;
+        }
 
-		    GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().
-			getDefaultScreenDevice().getDefaultConfiguration();
-		    BufferedImage bImage =
-			(BufferedImage)gc.createCompatibleImage(width, height, transparency);
-					
-		    bImage.setRGB(0, 0, width, height, bits, 0, width);
-		    image = bImage;
-		    map.put("Image "+imageName, image);
-		}
-	    }
+        String imageKey = "Image " + imageName;
+	BufferedImage image = (BufferedImage)map.get(imageKey);
+         
+	if (image != null) {
+            return image;
+        }
+	
+	image = getBitmapResource(imageName);
+
+	if (image == null) {
+            return null;
+        }
+
+	int oldTransparency = image.getColorModel().getTransparency();
+
+	// Transparency can be forced to false for 32-bit images and forced
+	// to true for 8/24-bit images. Do nothing if useTransparency is null.
+        if (useTransparency == Boolean.FALSE && oldTransparency != Transparency.OPAQUE) {
+            image = convertToOpaque(image);
+        } else if (useTransparency == Boolean.TRUE && oldTransparency == Transparency.OPAQUE) {
+	    // Assume we only use images from 8/24-bit bitmaps here
+	    image = convertToTransparent(image, transparentColor);
 	}
+        // We cache images separately because multiple keys/skins
+        // can point to the same image
+        map.put(imageKey, image);
 	return image;
     }
 
-    private boolean getBoolean(String key, boolean fallback) {
+    private BufferedImage convertToOpaque(BufferedImage src) {
+        GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().
+            getDefaultScreenDevice().getDefaultConfiguration();
+        BufferedImage dest = (BufferedImage)gc.
+            createCompatibleImage(src.getWidth(), src.getHeight(), Transparency.OPAQUE);
+        ColorConvertOp op = new ColorConvertOp(src.getColorModel().getColorSpace(),
+            dest.getColorModel().getColorSpace(), null);
+        op.filter(src, dest);
+        return dest;
+    }
+
+    private BufferedImage convertToTransparent(BufferedImage src, Color transparentColor) {
+	int w = src.getWidth();
+	int h = src.getHeight();
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsConfiguration gc = ge.getDefaultScreenDevice().getDefaultConfiguration();
+        BufferedImage dest = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+	int trgb;
+	if (transparentColor != null) {
+	    trgb = transparentColor.getRGB() | 0xff000000;
+	} else {
+	    trgb = 0xffff00ff;
+	}
+	// Copy pixels a scan line at a time
+	int buf[] = new int[w];
+        for (int y = 0; y < h; y++) {
+	    src.getRGB(0, y, w, 1, buf, 0, w);
+            for (int x = 0; x < w; x++) {
+		if (buf[x] == trgb) {
+		    buf[x] = 0;
+		}
+            }
+	    dest.setRGB(0, y, w, 1, buf, 0, w);
+	}
+	return dest;
+    }
+
+    private Boolean getBoolean(String key) {
 	String value = getString(key);
-	return ((value == null) ? fallback : "true".equalsIgnoreCase(value));
+	return (value != null) ? Boolean.valueOf("true".equalsIgnoreCase(value)) : null;
     }
 
 
@@ -781,17 +899,5 @@ class XPStyle {
 	    new Exception().printStackTrace();
 	}
 	xp = null;
-    }
-
-    private String[] splitTextResource(String str) {
-	if (str == null) {
-	    return null;
-	}
-	StringTokenizer tok = new StringTokenizer(str, "\0");
-	String[] array = new String[tok.countTokens()];
-	for (int i = 0; tok.hasMoreTokens(); i++) {
-	    array[i] = tok.nextToken();
-	}
-	return array;
     }
 }

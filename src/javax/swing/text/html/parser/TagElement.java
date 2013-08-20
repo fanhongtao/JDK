@@ -1,7 +1,7 @@
 /*
- * @(#)TagElement.java	1.10 03/01/23
+ * @(#)TagElement.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import javax.swing.text.html.HTML;
  * A generic HTML TagElement class. The methods define how white
  * space is interpreted around the tag.
  *
- * @version 	1.10, 01/23/03
+ * @version 	1.11, 12/19/03
  * @author      Sunita Mani
  */
 

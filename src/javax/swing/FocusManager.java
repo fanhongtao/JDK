@@ -1,7 +1,7 @@
 /*
- * @(#)FocusManager.java	1.25 03/01/23
+ * @(#)FocusManager.java	1.28 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -13,12 +13,18 @@ import java.awt.*;
  * This class has been obsoleted by the 1.4 focus APIs. While client code may
  * still use this class, developers are strongly encouraged to use
  * <code>java.awt.KeyboardFocusManager</code> and
- * <code>java.awt.DefaultKeyboardFocusManager</code> instead. Please see the
- * Focus Specification for more information.
+ * <code>java.awt.DefaultKeyboardFocusManager</code> instead.
+ * <p>
+ * Please see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/focus.html">
+ * How to Use the Focus Subsystem</a>,
+ * a section in <em>The Java Tutorial</em>, and the
+ * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
+ * for more information.
  *
  * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  *
- * @version 1.25, 01/23/03
+ * @version 1.28, 05/18/04
  * @author Arnaud Weber
  * @author David Mendenhall
  */
@@ -103,6 +109,7 @@ public abstract class FocusManager extends DefaultKeyboardFocusManager {
      * @deprecated as of 1.4, replaced by 
      * <code>KeyboardFocusManager.setDefaultFocusTraversalPolicy(FocusTraversalPolicy)</code>
      */
+    @Deprecated
     public static void disableSwingFocusManager() {
 	if (enabled) {
 	    enabled = false;
@@ -120,6 +127,7 @@ public abstract class FocusManager extends DefaultKeyboardFocusManager {
      * @deprecated As of 1.4, replaced by
      *   <code>KeyboardFocusManager.getDefaultFocusTraversalPolicy()</code>
      */
+    @Deprecated
     public static boolean isFocusManagerEnabled() {
 	return enabled;
     }

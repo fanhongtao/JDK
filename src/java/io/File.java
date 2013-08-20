@@ -1,7 +1,7 @@
 /*
- * @(#)File.java	1.114 08/09/05
+ * @(#)File.java	1.122 04/05/05
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,9 +14,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Hashtable;
+import java.util.Random;
 import java.security.AccessController;
 import java.security.AccessControlException;
-import java.security.SecureRandom;
 import sun.security.action.GetPropertyAction;
 
 
@@ -31,7 +31,7 @@ import sun.security.action.GetPropertyAction;
  * <ol>
  * <li> An optional system-dependent <em>prefix</em> string,
  *      such as a disk-drive specifier, <code>"/"</code>&nbsp;for the UNIX root
- *      directory, or <code>"\\"</code>&nbsp;for a Microsoft Windows UNC pathname, and
+ *      directory, or <code>"\\\\"</code>&nbsp;for a Microsoft Windows UNC pathname, and
  * <li> A sequence of zero or more string <em>names</em>.
  * </ol>
  *
@@ -73,8 +73,8 @@ import sun.security.action.GetPropertyAction;
  *
  * <li> For Microsoft Windows platforms, the prefix of a pathname that contains a drive
  * specifier consists of the drive letter followed by <code>":"</code> and
- * possibly followed by <code>"\"</code> if the pathname is absolute.  The
- * prefix of a UNC pathname is <code>"\\"</code>; the hostname and the share
+ * possibly followed by <code>"\\"</code> if the pathname is absolute.  The
+ * prefix of a UNC pathname is <code>"\\\\"</code>; the hostname and the share
  * name are the first two names in the name sequence.  A relative pathname that
  * does not specify a drive has no prefix.
  *
@@ -84,12 +84,14 @@ import sun.security.action.GetPropertyAction;
  * created, the abstract pathname represented by a <code>File</code> object
  * will never change.
  *
- * @version 1.114, 09/05/08
+ * @version 1.122, 05/05/04
  * @author  unascribed
  * @since   JDK1.0
  */
 
-public class File implements java.io.Serializable, Comparable {
+public class File
+    implements Serializable, Comparable<File>
+{
 
     /**
      * The FileSystem object representing the platform's local file system.
@@ -123,7 +125,7 @@ public class File implements java.io.Serializable, Comparable {
      * The system-dependent default name-separator character.  This field is
      * initialized to contain the first character of the value of the system
      * property <code>file.separator</code>.  On UNIX systems the value of this
-     * field is <code>'/'</code>; on Microsoft Windows systems it is <code>'\'</code>.
+     * field is <code>'/'</code>; on Microsoft Windows systems it is <code>'\\'</code>.
      *
      * @see     java.lang.System#getProperty(java.lang.String)
      */
@@ -164,6 +166,18 @@ public class File implements java.io.Serializable, Comparable {
     private File(String pathname, int prefixLength) {
 	this.path = pathname;
 	this.prefixLength = prefixLength;
+    }
+
+    /**
+     * Internal constructor for already-normalized pathname strings.
+     * The parameter order is used to disambiguate this method from the
+     * public(File, String) constructor.
+     */
+    private File(String child, File parent) {
+        assert parent.path != null;
+        assert (!parent.path.equals(""));
+        this.path = fs.resolve(parent.path, child);
+	this.prefixLength = parent.prefixLength;
     }
 
     /**
@@ -423,7 +437,7 @@ public class File implements java.io.Serializable, Comparable {
      * absolute pathname is system dependent.  On UNIX systems, a pathname is
      * absolute if its prefix is <code>"/"</code>.  On Microsoft Windows systems, a
      * pathname is absolute if its prefix is a drive specifier followed by
-     * <code>"\\"</code>, or if its prefix is <code>"\\"</code>.
+     * <code>"\\"</code>, or if its prefix is <code>"\\\\"</code>.
      *
      * @return  <code>true</code> if this abstract pathname is absolute,
      *          <code>false</code> otherwise
@@ -472,7 +486,8 @@ public class File implements java.io.Serializable, Comparable {
      * @since 1.2
      */
     public File getAbsoluteFile() {
-	return new File(getAbsolutePath());
+        String absPath = getAbsolutePath();
+	return new File(absPath, fs.prefixLength(absPath));
     }
 
     /**
@@ -505,7 +520,10 @@ public class File implements java.io.Serializable, Comparable {
      *          filesystem queries
      *
      * @throws  SecurityException
-     *          If a required system property value cannot be accessed.
+     *          If a required system property value cannot be accessed, or
+     *          if a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
      *
      * @since   JDK1.1
      */
@@ -526,12 +544,16 @@ public class File implements java.io.Serializable, Comparable {
      *          filesystem queries
      *
      * @throws  SecurityException
-     *          If a required system property value cannot be accessed.
+     *          If a required system property value cannot be accessed, or
+     *          if a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead}</code> method denies
+     *          read access to the file
      *
      * @since 1.2
      */
     public File getCanonicalFile() throws IOException {
-	return new File(getCanonicalPath());
+        String canonPath = getCanonicalPath();
+	return new File(canonPath, fs.prefixLength(canonPath));
     }
 
     private static String slashify(String path, boolean isDirectory) {
@@ -639,7 +661,7 @@ public class File implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Tests whether the application can modify to the file denoted by this
+     * Tests whether the application can modify the file denoted by this
      * abstract pathname.
      *
      * @return  <code>true</code> if and only if the file system actually
@@ -995,7 +1017,7 @@ public class File implements java.io.Serializable, Comparable {
 	int n = ss.length;
 	File[] fs = new File[n];
 	for (int i = 0; i < n; i++) {
-	    fs[i] = new File(this.path, ss[i]);
+	    fs[i] = new File(ss[i], this);
 	}
 	return fs;
     }
@@ -1034,7 +1056,7 @@ public class File implements java.io.Serializable, Comparable {
 	ArrayList v = new ArrayList();
 	for (int i = 0 ; i < ss.length ; i++) {
 	    if ((filter == null) || filter.accept(this, ss[i])) {
-		v.add(new File(this.path, ss[i]));
+		v.add(new File(ss[i], this));
 	    }
 	}
 	return (File[])(v.toArray(new File[0]));
@@ -1072,7 +1094,7 @@ public class File implements java.io.Serializable, Comparable {
 	if (ss == null) return null;
 	ArrayList v = new ArrayList();
 	for (int i = 0 ; i < ss.length ; i++) {
-	    File f = new File(this.path, ss[i]);
+	    File f = new File(ss[i], this);
 	    if ((filter == null) || filter.accept(f)) {
 		v.add(f);
 	    }
@@ -1111,9 +1133,13 @@ public class File implements java.io.Serializable, Comparable {
      *
      * @throws  SecurityException
      *          If a security manager exists and its <code>{@link
+     *          java.lang.SecurityManager#checkRead(java.lang.String)}</code>
+     *          method does not permit verification of the existence of the 
+     *          named directory and all necessary parent directories; or if
+     *          the <code>{@link 
      *          java.lang.SecurityManager#checkWrite(java.lang.String)}</code>
      *          method does not permit the named directory and all necessary
-     *          parent directories and to be created
+     *          parent directories to be created
      */
     public boolean mkdirs() {
 	if (exists()) {
@@ -1129,16 +1155,20 @@ public class File implements java.io.Serializable, Comparable {
             return false;
         }
 	String parent = canonFile.getParent();
-        return (parent != null) && (new File(parent).mkdirs() &&
+        return (parent != null) && 
+               (new File(parent, fs.prefixLength(parent)).mkdirs() &&
                                     canonFile.mkdir());
     }
 
     /**
      * Renames the file denoted by this abstract pathname.
      * 
-     * <p> Whether or not this method can move a file from one filesystem 
-     * to another is platform-dependent.  The return value should always 
-     * be checked to make sure that the rename operation was successful.
+     * <p> Many aspects of the behavior of this method are inherently
+     * platform-dependent: The rename operation might not be able to move a
+     * file from one filesystem to another, it might not be atomic, and it
+     * might not succeed if a file with the destination abstract pathname
+     * already exists.  The return value should always be checked to make sure
+     * that the rename operation was successful.
      *
      * @param  dest  The new abstract pathname for the named file
      * 
@@ -1234,7 +1264,7 @@ public class File implements java.io.Serializable, Comparable {
      * system can be reached.  Windows platforms, for example, have a root
      * directory for each active drive; UNIX platforms have a single root
      * directory, namely <code>"/"</code>.  The set of available filesystem
-     * roots is affected by various system-level operations such the insertion
+     * roots is affected by various system-level operations such as the insertion
      * or ejection of removable media and the disconnecting or unmounting of
      * physical or virtual disk drives.
      *
@@ -1271,30 +1301,32 @@ public class File implements java.io.Serializable, Comparable {
 	return fs.listRoots();
     }
 
+
     /* -- Temporary files -- */
 
-    // lazy initialization of SecureRandom and temporary file directory
-    private static class LazyInitialization {
-        static final SecureRandom random = new SecureRandom();
-  
-        static final String temporaryDirectory = temporaryDirectory();
-        static String temporaryDirectory() {
-            return fs.normalize(
-                (String) AccessController.doPrivileged(
-                    new GetPropertyAction("java.io.tmpdir")));
-        }
-    }
+    private static final Object tmpFileLock = new Object();
+
+    private static int counter = -1; /* Protected by tmpFileLock */
 
     private static File generateFile(String prefix, String suffix, File dir)
 	throws IOException
     {
-        long n = LazyInitialization.random.nextLong();
-        if (n == Long.MIN_VALUE) {
-            n = 0;      // corner case
-        } else {
-            n = Math.abs(n);
-        }
-        return new File(dir, prefix + Long.toString(n) + suffix);
+	if (counter == -1) {
+	    counter = new Random().nextInt() & 0xffff;
+	}
+	counter++;
+	return new File(dir, prefix + Integer.toString(counter) + suffix);
+    }
+
+    private static String tmpdir; /* Protected by tmpFileLock */
+
+    private static String getTempDir() {
+	if (tmpdir == null) {
+	    GetPropertyAction a = new GetPropertyAction("java.io.tmpdir");
+	    tmpdir = ((String) AccessController.doPrivileged(a));
+            tmpdir = fs.normalize(tmpdir);
+	}
+	return tmpdir;
     }
 
     private static boolean checkAndCreate(String filename, SecurityManager sm)
@@ -1351,10 +1383,10 @@ public class File implements java.io.Serializable, Comparable {
      * default temporary-file directory is specified by the system property
      * <code>java.io.tmpdir</code>.  On UNIX systems the default value of this
      * property is typically <code>"/tmp"</code> or <code>"/var/tmp"</code>; on
-     * Microsoft Windows systems it is typically <code>"c:\\temp"</code>.  A different
+     * Microsoft Windows systems it is typically <code>"C:\\WINNT\\TEMP"</code>.  A different
      * value may be given to this system property when the Java virtual machine
      * is invoked, but programmatic changes to this property are not guaranteed
-     * to have any effect upon the the temporary directory used by this method.
+     * to have any effect upon the temporary directory used by this method.
      *
      * @param  prefix     The prefix string to be used in generating the file's
      *                    name; must be at least three characters long
@@ -1390,16 +1422,18 @@ public class File implements java.io.Serializable, Comparable {
 	if (prefix.length() < 3)
 	    throw new IllegalArgumentException("Prefix string too short");
 	String s = (suffix == null) ? ".tmp" : suffix;
-	if (directory == null) {
-	    directory = new File(LazyInitialization.temporaryDirectory());
+	synchronized (tmpFileLock) {
+	    if (directory == null) {
+                String tmpDir = getTempDir();
+		directory = new File(tmpDir, fs.prefixLength(tmpDir));
+	    }
+	    SecurityManager sm = System.getSecurityManager();
+	    File f;
+	    do {
+		f = generateFile(prefix, s, directory);
+	    } while (!checkAndCreate(f.getPath(), sm));
+	    return f;
 	}
-	SecurityManager sm = System.getSecurityManager();
-	File f;
-	do {
-	    f = generateFile(prefix, s, directory);
-	} while (!checkAndCreate(f.getPath(), sm));
-	return f;
-
     }
 
     /**
@@ -1462,33 +1496,6 @@ public class File implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Compares this abstract pathname to another object.  If the other object
-     * is an abstract pathname, then this function behaves like <code>{@link
-     * #compareTo(File)}</code>.  Otherwise, it throws a
-     * <code>ClassCastException</code>, since abstract pathnames can only be
-     * compared to abstract pathnames.
-     *
-     * @param   o  The <code>Object</code> to be compared to this abstract
-     *             pathname
-     *
-     * @return  If the argument is an abstract pathname, returns zero
-     *          if the argument is equal to this abstract pathname, a value
-     *          less than zero if this abstract pathname is lexicographically
-     *          less than the argument, or a value greater than zero if this
-     *          abstract pathname is lexicographically greater than the
-     *          argument
-     *
-     * @throws  <code>ClassCastException</code> if the argument is not an
-     *		abstract pathname
-     *
-     * @see     java.lang.Comparable
-     * @since   1.2
-     */
-    public int compareTo(Object o) {
-	return compareTo((File)o);
-    }
-
-    /**
      * Tests this abstract pathname for equality with the given object.
      * Returns <code>true</code> if and only if the argument is not
      * <code>null</code> and is an abstract pathname that denotes the same file
@@ -1513,10 +1520,12 @@ public class File implements java.io.Serializable, Comparable {
      * Computes a hash code for this abstract pathname.  Because equality of
      * abstract pathnames is inherently system-dependent, so is the computation
      * of their hash codes.  On UNIX systems, the hash code of an abstract
-     * pathname is equal to the exclusive <em>or</em> of its pathname string
-     * and the decimal value <code>1234321</code>.  On Microsoft Windows systems, the hash
-     * code is equal to the exclusive <em>or</em> of its pathname string,
-     * convered to lower case, and the decimal value <code>1234321</code>.
+     * pathname is equal to the exclusive <em>or</em> of the hash code
+     * of its pathname string and the decimal value
+     * <code>1234321</code>.  On Microsoft Windows systems, the hash
+     * code is equal to the exclusive <em>or</em> of the hash code of
+     * its pathname string converted to lower case and the decimal
+     * value <code>1234321</code>.
      *
      * @return  A hash code for this abstract pathname
      */
@@ -1549,14 +1558,14 @@ public class File implements java.io.Serializable, Comparable {
     /**
      * readObject is called to restore this filename.
      * The original separator character is read.  If it is different
-     * than the separator character on this system, then the old seperator
+     * than the separator character on this system, then the old separator
      * is replaced by the local separator.
      */
     private synchronized void readObject(java.io.ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
 	s.defaultReadObject();
-	char sep = s.readChar(); // read the previous seperator char
+	char sep = s.readChar(); // read the previous separator char
 	if (sep != separatorChar)
 	    this.path = this.path.replace(sep, separatorChar);
 	this.path = fs.normalize(this.path);

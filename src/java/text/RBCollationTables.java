@@ -1,7 +1,7 @@
 /*
- * @(#)RBCollationTables.java	1.7 03/01/23
+ * @(#)RBCollationTables.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@
 package java.text;
 
 import java.util.Vector;
-import sun.text.CompactIntArray;
+import sun.text.UCompactIntArray;
 import sun.text.IntHashtable;
 
 /**
@@ -93,7 +93,7 @@ final class RBCollationTables {
          */
         void fillInTables(boolean f2ary,
 			  boolean swap,
-                          CompactIntArray map,
+                          UCompactIntArray map,
                           Vector cTbl,
                           Vector eTbl,
                           IntHashtable cFlgs,
@@ -137,13 +137,14 @@ final class RBCollationTables {
      *  table.
      *  @param ch the starting character of the contracting string
      */
-    Vector getContractValues(char ch)
+    Vector getContractValues(int ch)
     {
         int index = mapping.elementAt(ch);
-        return getContractValues(index - CONTRACTCHARINDEX);
+        return getContractValuesImpl(index - CONTRACTCHARINDEX);
     }
 
-    Vector getContractValues(int index)
+    //get contract values from contractTable by index
+    private Vector getContractValuesImpl(int index)
     {
         if (index >= 0)
         {
@@ -159,7 +160,7 @@ final class RBCollationTables {
      * Returns true if this character appears anywhere in a contracting
      * character sequence.  (Used by CollationElementIterator.setOffset().)
      */
-    boolean usedInContractSeq(char c) {
+    boolean usedInContractSeq(int c) {
         return contractFlags.get(c) == 1;
     }
 
@@ -208,7 +209,7 @@ final class RBCollationTables {
      *  Get the comarison order of a character from the collation table.
      *  @return the comparison order of a character.
      */
-    int getUnicodeOrder(char ch)
+    int getUnicodeOrder(int ch)
     {
         return mapping.elementAt(ch);
     }
@@ -224,6 +225,8 @@ final class RBCollationTables {
     /**
      * Reverse a string.
      */
+    //shemran/Note: this is used for secondary order value reverse, no
+    //              need to consider supplementary pair.
     static void reverse (StringBuffer result, int from, int to)
     {
         int i = from;
@@ -252,6 +255,7 @@ final class RBCollationTables {
     // ==============================================================
     // constants
     // ==============================================================
+    //sherman/Todo: is the value big enough?????
     final static int EXPANDCHARINDEX = 0x7E000000; // Expand index follows
     final static int CONTRACTCHARINDEX = 0x7F000000;  // contract indexes follow
     final static int UNMAPPED = 0xFFFFFFFF;
@@ -271,7 +275,7 @@ final class RBCollationTables {
     private boolean frenchSec = false;
     private boolean seAsianSwapping = false;
 
-    private CompactIntArray mapping = null;
+    private UCompactIntArray mapping = null;
     private Vector contractTable = null;
     private Vector expandTable = null;
     private IntHashtable contractFlags = null;

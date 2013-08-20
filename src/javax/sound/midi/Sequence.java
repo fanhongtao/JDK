@@ -1,13 +1,14 @@
 /*
- * @(#)Sequence.java	1.24 03/01/23
+ * @(#)Sequence.java	1.27 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi;
 
 import java.util.Vector;
+import com.sun.media.sound.MidiUtils;
 
 
 /**
@@ -31,7 +32,7 @@ import java.util.Vector;
  * @see Track#add(MidiEvent)
  * @see MidiFileFormat
  *
- * @version 1.24, 03/01/23
+ * @version 1.27, 04/05/05
  * @author Kara Kytle
  */
 public class Sequence {
@@ -93,7 +94,7 @@ public class Sequence {
      * The MIDI tracks in this sequence.
      * @see #getTracks
      */
-    protected Vector tracks = new Vector();
+    protected Vector<Track> tracks = new Vector<Track>();
 
 
     /**
@@ -266,16 +267,7 @@ public class Sequence {
      */
     public Track[] getTracks() {
 
-	synchronized(tracks) {
-
-	    Track[] trackArray = new Track[tracks.size()];
-
-	    for (int i = 0; i < trackArray.length; i++) {
-		trackArray[i] = (Track)tracks.elementAt(i);
-	    }
-
-	    return trackArray;
-	}
+	return (Track[]) tracks.toArray(new Track[tracks.size()]);
     }
 
 
@@ -285,79 +277,7 @@ public class Sequence {
      */
     public long getMicrosecondLength() {
 
-	long ticks = getTickLength();
-
-	double seconds;
-
-	// now convert ticks to time
-
-	if( divisionType != PPQ ) {
-
-	    seconds = ( (double)getTickLength() / (double)( divisionType * resolution ) );
-
-	    //$$fb 2002-10-30: fix for 4702328: Wrong time in sequence for SMPTE based types
-	    return (long) (1000000 * seconds);
-	} else {
-
-	    Track tempos           = new Track();
-	    Track tmpTrack         = null;
-	    MidiEvent tmpEvent     = null;
-	    MidiMessage tmpMessage = null;
-	    MetaMessage tmpMeta    = null;
-	    byte[] data;
-
-	    // find all tempo events
-	    synchronized(tracks) {
-		for(int i=0; i<tracks.size(); i++ ) {
-		    tmpTrack = (Track)tracks.elementAt(i);
-		    for(int j=0; j < tmpTrack.size(); j++) {
-			tmpEvent=(MidiEvent)tmpTrack.get(j);
-			tmpMessage=tmpEvent.getMessage();
-			if( tmpMessage instanceof MetaMessage ) {
-
-			    if( ((MetaMessage)tmpMessage).getType() == 0x51 ) {
-				tempos.add(tmpEvent);
-			    }
-			}
-		    }
-		}
-	    }
-	    // now add up chunks of time
-	    int tempo = (60 * 1000000) / 120;	// default 120 bpm, converted to uSec/beat
-	    long microseconds = 0;
-	    long runningTick = 0;
-	    long tmpTick = 0;
-
-	    // loop through the tempo changes, but don't
-	    // include the last event, which is track end
-	    for(int i=0; i<(tempos.size()-1); i++) {
-
-		tmpEvent = (MidiEvent)tempos.get(i);
-		tmpTick = tmpEvent.getTick();
-
-		if(tmpTick>=runningTick) {
-		    microseconds += ((tmpTick-runningTick) * tempo / resolution);
-		    runningTick = tmpTick;
-		    data = ((MetaMessage)(tmpEvent.getMessage())).getMessage();
-
-		    // data[0] => status, 0xFF
-		    // data[1] => type,   0x51
-		    // data[2] => length, 0x03
-		    // data[3] -> data[5] => tempo data
-		    tempo = (int) 0xff&data[5];
-		    tempo = tempo | ( (0xff&data[4]) << 8 );
-		    tempo = tempo | ( (0xff&data[3]) << 16 );
-		}
-	    }
-	    tmpTick = getTickLength();
-	    if( tmpTick>runningTick ) {
-		microseconds += ((tmpTick-runningTick) * tempo / resolution);
-	    }
-
-	    // return in microseconds
-	    return (microseconds);
-	}
-
+    	return com.sun.media.sound.MidiUtils.tick2microsecond(this, getTickLength(), null);
     }
 
 

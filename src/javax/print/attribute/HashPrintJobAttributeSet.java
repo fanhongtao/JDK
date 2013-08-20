@@ -1,7 +1,7 @@
 /*
- * @(#)HashPrintJobAttributeSet.java	1.4 03/01/23
+ * @(#)HashPrintJobAttributeSet.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,8 @@ import java.io.Serializable;
  */
 public class HashPrintJobAttributeSet extends HashAttributeSet
     implements PrintJobAttributeSet, Serializable {
+
+    private static final long serialVersionUID = -4204473656070350348L;
 
     /**
      * Construct a new, empty hash print job attribute set. 

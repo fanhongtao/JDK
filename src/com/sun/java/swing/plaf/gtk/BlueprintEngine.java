@@ -1,5 +1,5 @@
 /*
- * @(#)BlueprintEngine.java	1.21 04/01/13
+ * @(#)BlueprintEngine.java	1.23 03/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,13 +12,15 @@ import java.security.AccessController;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.synth.*;
 import sun.security.action.GetPropertyAction;
+import sun.swing.plaf.synth.SynthUI;
 
 /**
  * GTKEngine implementation that renders using images. The images to render
  * are dictated by the <code>BlueprintStyle.Info</code>.
  *
- * @version 1.21 01/13/04
+ * @version 1.23 12/19/03
  * @author Joshua Outwater
  */
 class BlueprintEngine extends GTKEngine implements GTKConstants {
@@ -56,7 +58,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     public void paintSlider(SynthContext context, Graphics g, int state,
                            int shadowType, String info,
                            int x, int y, int w, int h, int orientation) {
-        if (!paintSimpleImage(context, g, x, y, w, h, true, 
+        if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                          getInfo("SLIDER", info, state, shadowType, orientation,
                                  UNDEFINED, UNDEFINED, null))) {
@@ -74,13 +76,11 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
         // We have a different style to use if we are the child of
         // a popup menu.
         c = c.getParent();
-        if (c != null && c instanceof JPopupMenu) {
-            ComponentUI ui = ((JPopupMenu)c).getUI();
-            if (ui instanceof SynthUI) {
-                SynthContext parentContext =
-                    ((SynthUI)ui).getContext((JComponent)c);
-                style = parentContext.getStyle();       
-                parentContext.dispose();                    
+        if (c instanceof JPopupMenu) {
+            SynthStyle newStyle = getStyle((JPopupMenu)c,
+                    ((JPopupMenu)c).getUI());
+            if (newStyle != null) {
+                style = newStyle;
             }
         }
 
@@ -89,7 +89,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                         state, UNDEFINED, GTKConstants.HORIZONTAL,
                         UNDEFINED, UNDEFINED, null);
         if (blueprintInfo != null && blueprintInfo.getImage() != null) {
-            themeBlueprintRender(context, g, x, y, w, h, 
+            themeBlueprintRender(context, g, x, y, w, h,
                     blueprintInfo.getImage(), blueprintInfo.getImageInsets(),
                     COMPONENT_ALL, blueprintInfo.getStretch(), false,
                     blueprintInfo.isBkgMask(), blueprintInfo.isRecolorable(),
@@ -160,9 +160,11 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
         // vscrollbar, because they do the work in paintArrow instead.
         // We do it here because we have the correct bounds for the whole
         // button.
+        Integer arrowDirection =
+            (Integer)((JComponent)c).getClientProperty("__arrow_direction__");
         if (info == "vscrollbar" || info == "hscrollbar" &&
-                c instanceof SynthArrowButton) {
-            int direction = ((SynthArrowButton)c).getDirection();
+                arrowDirection != null) {
+            int direction = arrowDirection.intValue();
             switch (direction) {
             case SwingConstants.NORTH:
                 direction = GTKConstants.ARROW_UP;
@@ -184,12 +186,10 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
             }
 
             if (c instanceof JScrollBar) {
-                ComponentUI ui = ((JScrollBar)c).getUI();
-                if (ui instanceof SynthUI) {
-                    SynthContext parentContext =
-                        ((SynthUI)ui).getContext((JComponent)c);
-                    style = parentContext.getStyle();       
-                    parentContext.dispose();                    
+                SynthStyle newStyle = getStyle((JScrollBar)c,
+                        ((JScrollBar)c).getUI());
+                if (newStyle != null) {
+                    style = newStyle;
                 }
 
                 if (paintSimpleImage(context, g, x, y, w, h, true,
@@ -198,7 +198,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                                 direction, null))) {
                     return;
                 }
-                if (paintSimpleImage(context, g, x, y, w, h, true,
+                if (!paintSimpleImage(context, g, x, y, w, h, true,
                     ((BlueprintStyle)style).getInfo("BOX", info, state,
                                 shadowType, UNDEFINED, UNDEFINED,
                                 UNDEFINED, null))) {
@@ -212,20 +212,18 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
         // If the button is in a spinner get the style of the JSpinner.
         if (c.getName() == "Spinner.nextButton" ||
                 c.getName() == "Spinner.previousButton" &&
-                c instanceof SynthArrowButton) {
-            if (((SynthArrowButton)c).getDirection() == SwingConstants.NORTH) {
+                arrowDirection != null) {
+            if (arrowDirection.intValue() == SwingConstants.NORTH) {
                 info = "spinbutton_up";
             } else {
                 info = "spinbutton_down";
             }
             c = c.getParent();
-            if (c != null && c instanceof JSpinner) {
-                ComponentUI ui = ((JSpinner)c).getUI();
-                if (ui instanceof SynthUI) {
-                    SynthContext parentContext =
-                        ((SynthUI)ui).getContext((JComponent)c);
-                    style = parentContext.getStyle();       
-                    parentContext.dispose();                    
+            if (c instanceof JSpinner) {
+                SynthStyle newStyle = getStyle((JSpinner)c,
+                        ((JSpinner)c).getUI());
+                if (newStyle != null) {
+                    style = newStyle;
                 }
             }
         }
@@ -356,12 +354,10 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                     cb.add(editor);
                     cb.remove(editor);
                 }
-                ComponentUI ui = ((JTextField)editor).getUI();
-                if (ui instanceof SynthUI) {
-                    SynthContext parentContext =
-                        ((SynthUI)ui).getContext((JComponent)c);
-                    style = parentContext.getStyle();       
-                    parentContext.dispose();                    
+                SynthStyle newStyle = getStyle((JTextField)editor,
+                        ((JTextField)editor).getUI());
+                if (newStyle != null) {
+                    style = newStyle;
                 }
             }
         }
@@ -374,7 +370,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
                 ((BlueprintStyle)style).getInfo("SHADOW", info, state,
                         shadowType, UNDEFINED, UNDEFINED, UNDEFINED,
                         parentType))) {
-            super.paintShadow(context, g, state, shadowType, info, x, y, w, h);
+           super.paintShadow(context, g, state, shadowType, info, x, y, w, h);
         }
     }
 
@@ -398,13 +394,13 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
 
     public void paintExtension(SynthContext context, Graphics g, int state,
                                int shadowType, String info, int x, int y,
-                               int w, int h, int placement) {
+                               int w, int h, int placement, int tabIndex) {
         if (!paintSimpleImage(context, g, x, y, w, h, true,
                 ((BlueprintStyle)context.getStyle()).
                          getInfo("EXTENSION", info, state, shadowType,
                                  UNDEFINED, placement, UNDEFINED, null))) {
             super.paintExtension(context, g, state, shadowType, info, x, y,
-                                 w, h, placement);
+                                 w, h, placement, tabIndex);
         }
     }
 
@@ -419,6 +415,7 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
         String parentType = null;
         c = c.getParent();
         if (c instanceof CellRendererPane) {
+            // Skip the CellRendererPane
             c = c.getParent();
         }
         if (c != null && c instanceof JComponent) {
@@ -625,7 +622,6 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     /**
      * Paints the image and overlay image from the passed in style.
      *
-     * @param context SynthContext identifying the hosting component
      * @param g Graphics object to paint to
      * @param x X origin
      * @param y Y origin
@@ -634,9 +630,8 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
      * @param drawCenter Whether the center of the image should be drawn
      * @param info Used to fetch image, insets and overlay image from
      */
-    private boolean paintSimpleImage(SynthContext context, Graphics g,
-                        int x, int y, int w, int h,
-                        boolean drawCenter, BlueprintStyle.Info info) {
+    private boolean paintSimpleImage(SynthContext context, Graphics g, int x, int y,
+            int w, int h, boolean drawCenter, BlueprintStyle.Info info) {
         if (info != null) {
             Rectangle clip = g.getClipBounds();
             _clipX1 = clip.x;
@@ -662,7 +657,6 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
     /**
      * Paints the image in the specified region.
      *
-     * @param context SynthContext identifying the hosting component
      * @param g Graphics object to paint to
      * @param x X origin
      * @param y Y origin
@@ -677,12 +671,12 @@ class BlueprintEngine extends GTKEngine implements GTKConstants {
      * @param isRecolorable If the image is recolorable.
      * @param colorizeColor Color to use if image is recolorable.
      */
-private void themeBlueprintRender(SynthContext context, Graphics g,
-                                  int x, int y, int w, int h, Image image,
-                                  Insets insets, int componentMask,
-                                  boolean stretch, boolean center,
-                                  boolean isBkgMask, boolean isRecolorable,
-                                  Color colorizeColor) {
+    private void themeBlueprintRender(SynthContext context, Graphics g,
+                                      int x, int y, int w, int h, Image image,
+                                      Insets insets, int componentMask,
+                                      boolean stretch, boolean center,
+                                      boolean isBkgMask, boolean isRecolorable,
+                                      Color colorizeColor) {
         if (image == null) {
             return;
         }
@@ -691,45 +685,42 @@ private void themeBlueprintRender(SynthContext context, Graphics g,
         }
         int iw = image.getWidth(null);
         int ih = image.getHeight(null);
-        
+ 
         if (isBkgMask) {
             // Colorize mask using the colorizeColor from info.
             BufferedImage i = new BufferedImage(iw, ih,
-                    BufferedImage.TYPE_INT_ARGB);
+                                                BufferedImage.TYPE_INT_ARGB);
             Graphics2D g3 = i.createGraphics();
-            
+             
             boolean topParentReached = false;
             int steps = 0;
-            
+ 
             Component compParent = context.getComponent();
-            
-            while (!topParentReached && steps <= 2)
-            {
+ 
+            while (!topParentReached && steps <= 2) {
                 compParent = compParent.getParent ();
                 steps ++;
-                
-                if (compParent != null)
-                {
+ 
+                if (compParent != null) {
                     Color color = compParent.getBackground ();
-                    if (color != null)
-                    {
+                    if (color != null) {
                         if (!color.equals (colorizeColor) && 
-                                !color.equals (Color.black) && 
-                                !(compParent  instanceof JFileChooser))
-                        {
+                            !color.equals (Color.black) && 
+                            !(compParent instanceof JFileChooser)) {
                             colorizeColor = color;
                             topParentReached = true;
                         }
                     }
-                }
-                else
+                } else {
                     topParentReached = true;
+                }
             }
-            
+ 
             if (colorizeColor == null) {
-                colorizeColor = ((GTKStyle)context.getStyle()).getGTKColor(
-                        context.getComponent(), context.getRegion(),
-                        context.getComponentState(), ColorType.BACKGROUND);
+                colorizeColor = ((GTKStyle)context.getStyle()).
+                    getGTKColor(context.getComponent(), context.getRegion(),
+                                context.getComponentState(),
+                                ColorType.BACKGROUND);
             }
             g3.setColor(colorizeColor);
             g3.fillRect(0, 0, iw, ih);
@@ -951,7 +942,7 @@ private void themeBlueprintRender(SynthContext context, Graphics g,
      * @param image Image to render.
      * @param g Graphics to render to
      * @param srcX X origin to draw from
-     * @param srcY Y origin to draw from
+     * @param srxY Y origin to draw from
      * @param srcWidth Width of source
      * @param srcHeight Height of source
      * @param destX X origin to draw to
@@ -1013,6 +1004,17 @@ private void themeBlueprintRender(SynthContext context, Graphics g,
 
     private String getComponentType(JComponent c) {
         return GTKStyleFactory.gtkClassFor(SynthLookAndFeel.getRegion(c));
+    }
+
+    private SynthStyle getStyle(JComponent c, ComponentUI ui) {
+        if (ui instanceof SynthUI) {
+            SynthContext parentContext = ((SynthUI)ui).getContext(c);
+            // Note that we don't dispose of the context here, while this
+            // isn't good, it just means we won't be recycling as often as
+            // we can.
+            return parentContext.getStyle();
+        }
+        return null;
     }
 
     /**

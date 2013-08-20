@@ -1,7 +1,7 @@
 /*
- * @(#)BandedSampleModel.java	1.33 03/01/23
+ * @(#)BandedSampleModel.java	1.35 04/01/06
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -170,22 +170,22 @@ public final class BandedSampleModel extends ComponentSampleModel
 	int size = scanlineStride * height;
         switch (dataType) {
         case DataBuffer.TYPE_BYTE:
-            dataBuffer = new DataBufferByte(size, numBands);
+            dataBuffer = new DataBufferByte(size, numBanks);
             break;
         case DataBuffer.TYPE_USHORT:
-            dataBuffer = new DataBufferUShort(size, numBands);
+            dataBuffer = new DataBufferUShort(size, numBanks);
             break;
         case DataBuffer.TYPE_SHORT:
-            dataBuffer = new DataBufferShort(size, numBands);
+            dataBuffer = new DataBufferShort(size, numBanks);
             break;
         case DataBuffer.TYPE_INT:
-            dataBuffer = new DataBufferInt(size, numBands);
+            dataBuffer = new DataBufferInt(size, numBanks);
             break;
         case DataBuffer.TYPE_FLOAT:
-            dataBuffer = new DataBufferFloat(size, numBands);
+            dataBuffer = new DataBufferFloat(size, numBanks);
             break;
         case DataBuffer.TYPE_DOUBLE:
-            dataBuffer = new DataBufferDouble(size, numBands);
+            dataBuffer = new DataBufferDouble(size, numBanks);
             break;
         default:
             throw new IllegalArgumentException("dataType is not one " +

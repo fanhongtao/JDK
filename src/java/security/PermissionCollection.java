@@ -1,7 +1,7 @@
 /*
- * @(#)PermissionCollection.java	1.30 03/01/23
+ * @(#)PermissionCollection.java	1.35 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import java.util.*;
  * <code>Permission.newPermissionCollection</code>
  * method is a homogeneous collection, which stores only Permission objects
  * for a given Permission type.  A PermissionCollection may also be
- * heterogenous.  For example, Permissions is a PermissionCollection
+ * heterogeneous.  For example, Permissions is a PermissionCollection
  * subclass that represents a collection of PermissionCollections.
  * That is, its members are each a homogeneous PermissionCollection.
  * For example, a Permissions object might have a FilePermissionCollection
@@ -56,7 +56,7 @@ import java.util.*;
  * <code>newPermissionCollection</code>
  * returns null, the PermissionCollection
  * is free to store the permission in any type of PermissionCollection it
- * desires (one using a Hastable, one using a Vector, etc.). For example,
+ * desires (one using a Hashtable, one using a Vector, etc.). For example,
  * the Permissions object uses a default PermissionCollection implementation
  * that stores the permission objects in a Hashtable.
  *
@@ -70,7 +70,7 @@ import java.util.*;
  * @see Permission
  * @see Permissions
  *
- * @version 1.30 03/01/23
+ * @version 1.35 04/05/05
  *
  * @author Roland Schemers
  */
@@ -80,7 +80,7 @@ public abstract class PermissionCollection implements java.io.Serializable {
     private static final long serialVersionUID = -6727011328946861783L;
 
     // when set, add will throw an exception.
-    private boolean readOnly;
+    private volatile boolean readOnly;
 
     /**
      * Adds a permission object to the current collection of permission objects.
@@ -108,7 +108,7 @@ public abstract class PermissionCollection implements java.io.Serializable {
      *
      * @return an enumeration of all the Permissions.
      */
-    public abstract Enumeration elements();
+    public abstract Enumeration<Permission> elements();
 
     /**
      * Marks this PermissionCollection object as "readonly". After
@@ -158,13 +158,13 @@ public abstract class PermissionCollection implements java.io.Serializable {
      *
      */
     public String toString() {
-	Enumeration enum = elements();
-	StringBuffer sb = new StringBuffer();
+	Enumeration enum_ = elements();
+	StringBuilder sb = new StringBuilder();
 	sb.append(super.toString()+" (\n");
-	while (enum.hasMoreElements()) {
+	while (enum_.hasMoreElements()) {
 	    try {
 		sb.append(" ");
-		sb.append(enum.nextElement().toString());
+		sb.append(enum_.nextElement().toString());
 		sb.append("\n");
 	    } catch (NoSuchElementException e){
 		// ignore

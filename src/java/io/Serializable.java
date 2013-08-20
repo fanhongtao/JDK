@@ -1,7 +1,7 @@
 /*
- * @(#)Serializable.java	1.20 03/01/23
+ * @(#)Serializable.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -90,10 +90,41 @@ package java.io;
  * </PRE><p>
  *
  * This readResolve method follows the same invocation rules and
- * accessibility rules as writeReplace.
+ * accessibility rules as writeReplace.<p>
+ *
+ * The serialization runtime associates with each serializable class a version
+ * number, called a serialVersionUID, which is used during deserialization to
+ * verify that the sender and receiver of a serialized object have loaded
+ * classes for that object that are compatible with respect to serialization.
+ * If the receiver has loaded a class for the object that has a different
+ * serialVersionUID than that of the corresponding sender's class, then
+ * deserialization will result in an {@link InvalidClassException}.  A
+ * serializable class can declare its own serialVersionUID explicitly by
+ * declaring a field named <code>"serialVersionUID"</code> that must be static,
+ * final, and of type <code>long</code>:<p>
+ *
+ * <PRE>
+ * ANY-ACCESS-MODIFIER static final long serialVersionUID = 42L;
+ * </PRE>
+ *
+ * If a serializable class does not explicitly declare a serialVersionUID, then
+ * the serialization runtime will calculate a default serialVersionUID value
+ * for that class based on various aspects of the class, as described in the
+ * Java(TM) Object Serialization Specification.  However, it is <em>strongly
+ * recommended</em> that all serializable classes explicitly declare
+ * serialVersionUID values, since the default serialVersionUID computation is
+ * highly sensitive to class details that may vary depending on compiler
+ * implementations, and can thus result in unexpected
+ * <code>InvalidClassException</code>s during deserialization.  Therefore, to
+ * guarantee a consistent serialVersionUID value across different java compiler
+ * implementations, a serializable class must declare an explicit
+ * serialVersionUID value.  It is also strongly advised that explicit
+ * serialVersionUID declarations use the <code>private</code> modifier where
+ * possible, since such declarations apply only to the immediately declaring
+ * class--serialVersionUID fields are not useful as inherited members.
  *
  * @author  unascribed
- * @version 1.20, 01/23/03
+ * @version 1.22, 12/19/03
  * @see java.io.ObjectOutputStream
  * @see java.io.ObjectInputStream
  * @see java.io.ObjectOutput

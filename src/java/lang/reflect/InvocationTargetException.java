@@ -1,7 +1,7 @@
 /*
- * @(#)InvocationTargetException.java	1.17 03/01/23
+ * @(#)InvocationTargetException.java	1.19 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -81,7 +81,7 @@ public class InvocationTargetException extends Exception {
     }
 
     /**
-     * Returns the the cause of this exception (the thrown target exception,
+     * Returns the cause of this exception (the thrown target exception,
      * which may be <tt>null</tt>).
      *
      * @return  the cause of this exception.

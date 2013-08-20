@@ -1,7 +1,7 @@
 /*
- * @(#)DragSource.java	1.42 03/01/23
+ * @(#)DragSource.java	1.45 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.security.AccessController;
 import java.util.EventListener;
 import sun.awt.dnd.SunDragSourceContextPeer;
+import sun.security.action.GetIntegerAction;
 
 
 /**
@@ -97,7 +98,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * duration of the operation with respect to the 
  * <code>DragSource</code>. 
  *
- * @version 	1.42, 01/23/03
+ * @version 	1.45, 05/05/04
  * @since 1.2
  */
 
@@ -323,7 +324,7 @@ public class DragSource implements Serializable {
      * <code>null</code> for defaults
      * @param transferable   the subject data of the drag
      * @param dsl	     the <code>DragSourceListener</code>
-     * @param flavorMap	     the <code>FlavorMap to use or <code>null</code>
+     * @param flavorMap	     the <code>FlavorMap</code> to use or <code>null</code>
      * <P>
      * @throws <code>java.awt.dnd.InvalidDnDOperationException</code> 
      *    if the Drag and Drop
@@ -483,7 +484,11 @@ public class DragSource implements Serializable {
      *    subclass and returns <code>null</code>
      */
 
-    public DragGestureRecognizer createDragGestureRecognizer(Class recognizerAbstractClass, Component c, int actions, DragGestureListener dgl) {
+    public <T extends DragGestureRecognizer> T
+	createDragGestureRecognizer(Class<T> recognizerAbstractClass,
+				    Component c, int actions,
+				    DragGestureListener dgl)
+    {
 	return Toolkit.getDefaultToolkit().createDragGestureRecognizer(recognizerAbstractClass, this, c, actions, dgl);
     }
 
@@ -657,7 +662,7 @@ public class DragSource implements Serializable {
      * @see #getDragSourceMotionListeners
      * @since 1.4
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
         EventListener l = null; 
         if (listenerType == DragSourceListener.class) { 
             l = listener;
@@ -849,6 +854,37 @@ public class DragSource implements Serializable {
                 s.readObject();
             }
         }
+    }
+
+    /**
+     * Returns the drag gesture motion threshold. The drag gesture motion threshold
+     * defines the recommended behavior for {@link MouseDragGestureRecognizer}s.
+     * <p>
+     * If the system property <code>awt.dnd.drag.threshold</code> is set to 
+     * a positive integer, this method returns the value of the system property;
+     * otherwise if a pertinent desktop property is available and supported by
+     * the implementation of the Java platform, this method returns the value of
+     * that property; otherwise this method returns some default value.
+     * The pertinent desktop property can be queried using
+     * <code>java.awt.Toolkit.getDesktopProperty("DnD.gestureMotionThreshold")</code>.
+     *
+     * @return the drag gesture motion threshold
+     * @see MouseDragGestureRecognizer
+     * @since 1.5
+     */
+    public static int getDragThreshold() {
+        int ts = ((Integer)AccessController.doPrivileged(
+                new GetIntegerAction("awt.dnd.drag.threshold", 0))).intValue();
+        if (ts > 0) {
+            return ts;
+        } else {
+            Integer td = (Integer)Toolkit.getDefaultToolkit().
+                    getDesktopProperty("DnD.gestureMotionThreshold");
+            if (td != null) {
+                return td.intValue();
+            }
+        }
+        return 5;
     }
 
     /*

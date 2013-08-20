@@ -1,7 +1,7 @@
 /*
- * @(#)View.java	1.68 03/01/23
+ * @(#)View.java	1.70 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -200,7 +200,7 @@ A view has the following responsibilities:
 </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.68 01/23/03
+ * @version 1.70 05/18/04
  */
 public abstract class View implements SwingConstants {
 
@@ -1323,6 +1323,7 @@ public abstract class View implements SwingConstants {
      * @see View#modelToView
      * @deprecated
      */
+    @Deprecated
     public Shape modelToView(int pos, Shape a) throws BadLocationException {
 	return modelToView(pos, a, Position.Bias.Forward);
     }
@@ -1340,6 +1341,7 @@ public abstract class View implements SwingConstants {
      * @see View#viewToModel
      * @deprecated
      */
+    @Deprecated
     public int viewToModel(float x, float y, Shape a) {
 	sharedBiasReturn[0] = Position.Bias.Forward;
 	return viewToModel(x, y, a, sharedBiasReturn);

@@ -1,7 +1,7 @@
 /*
- * @(#)RSAPrivateCrtKeySpec.java	1.10 03/01/23
+ * @(#)RSAPrivateCrtKeySpec.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.math.BigInteger;
  *
  * @author Jan Luehe
  *
- * @version 1.10 03/01/23
+ * @version 1.12 03/12/19
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -28,14 +28,12 @@ import java.math.BigInteger;
 
 public class RSAPrivateCrtKeySpec extends RSAPrivateKeySpec {
 
-    private BigInteger modulus;
-    private BigInteger publicExponent;
-    private BigInteger privateExponent;
-    private BigInteger primeP;
-    private BigInteger primeQ;
-    private BigInteger primeExponentP;
-    private BigInteger primeExponentQ;
-    private BigInteger crtCoefficient;
+    private final BigInteger publicExponent;
+    private final BigInteger primeP;
+    private final BigInteger primeQ;
+    private final BigInteger primeExponentP;
+    private final BigInteger primeExponentQ;
+    private final BigInteger crtCoefficient;
 
 
 

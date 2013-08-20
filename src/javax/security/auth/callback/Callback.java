@@ -1,7 +1,7 @@
 /*
- * @(#)Callback.java	1.9 03/01/23
+ * @(#)Callback.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package javax.security.auth.callback;
  * if appropriate, to return requested information back to the
  * underlying security services.
  *
- * @version 1.9, 01/23/03
+ * @version 1.10, 12/19/03
  * @see javax.security.auth.callback.CallbackHandler
  * @see javax.security.auth.callback.ChoiceCallback
  * @see javax.security.auth.callback.ConfirmationCallback

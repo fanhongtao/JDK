@@ -1,7 +1,7 @@
 /*
- * @(#)BreakIterator.java	1.32 03/01/23
+ * @(#)BreakIterator.java	1.35 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -184,7 +184,7 @@ import java.security.PrivilegedAction;
  *     int current = wb.next();
  *     while (current != BreakIterator.DONE) {
  *         for (int p = last; p < current; p++) {
- *             if (Character.isLetter(text.charAt(p))
+ *             if (Character.isLetter(text.codePointAt(p))
  *                 return last;
  *         }
  *         last = current;
@@ -205,7 +205,6 @@ import java.security.PrivilegedAction;
  * a Hangul syllable, a Kana character, etc.), then the text between this boundary
  * and the next is a word; otherwise, it's the material between words.)
  * </blockquote>
-
  *
  * @see CharacterIterator
  *
@@ -390,8 +389,8 @@ public abstract class BreakIterator implements Cloneable
     {
         return getBreakInstance(where,
                                 WORD_INDEX,
-                                "WordBreakRules",
-                                "WordBreakDictionary");
+                                "WordData",
+                                "WordDictionary");
     }
 
     /**
@@ -422,8 +421,8 @@ public abstract class BreakIterator implements Cloneable
     {
         return getBreakInstance(where,
                                 LINE_INDEX,
-                                "LineBreakRules",
-                                "LineBreakDictionary");
+                                "LineData",
+                                "LineDictionary");
     }
 
     /**
@@ -450,8 +449,8 @@ public abstract class BreakIterator implements Cloneable
     {
         return getBreakInstance(where,
                                 CHARACTER_INDEX,
-                                "CharacterBreakRules",
-                                "CharacterBreakDictionary");
+                                "CharacterData",
+                                "CharacterDictionary");
     }
 
     /**
@@ -476,13 +475,13 @@ public abstract class BreakIterator implements Cloneable
     {
         return getBreakInstance(where,
                                 SENTENCE_INDEX,
-                                "SentenceBreakRules",
-                                "SentenceBreakDictionary");
+                                "SentenceData",
+                                "SentenceDictionary");
     }
 
     private static BreakIterator getBreakInstance(Locale where,
                                                   int type,
-                                                  String rulesName,
+                                                  String dataName,
                                                   String dictionaryName) {
         if (iterCache[type] != null) {
             BreakIteratorCache cache = (BreakIteratorCache) iterCache[type].get();
@@ -495,7 +494,7 @@ public abstract class BreakIterator implements Cloneable
 
         BreakIterator result = createBreakInstance(where,
                                                    type,
-                                                   rulesName,
+                                                   dataName,
                                                    dictionaryName);
         BreakIteratorCache cache = new BreakIteratorCache(where, result);
         iterCache[type] = new SoftReference(cache);
@@ -512,38 +511,42 @@ public abstract class BreakIterator implements Cloneable
 
     private static BreakIterator createBreakInstance(Locale where,
                                                      int type,
-                                                     String rulesName,
+                                                     String dataName,
                                                      String dictionaryName) {
 
         ResourceBundle bundle = getBundle(
-                        "sun.text.resources.BreakIteratorRules", where);
+                        "sun.text.resources.BreakIteratorInfo", where);
         String[] classNames = bundle.getStringArray("BreakIteratorClasses");
 
-        String rules = bundle.getString(rulesName);
+        String dataFile = bundle.getString(dataName);
 
-        if (classNames[type].equals("RuleBasedBreakIterator")) {
-            return new RuleBasedBreakIterator(rules);
+        try {
+            if (classNames[type].equals("RuleBasedBreakIterator")) {
+                return new RuleBasedBreakIterator(dataFile);
+            }
+            else if (classNames[type].equals("DictionaryBasedBreakIterator")) {
+                String dictionaryFile = bundle.getString(dictionaryName);
+                return new DictionaryBasedBreakIterator(dataFile, dictionaryFile);
+            }
+            else {
+                throw new IllegalArgumentException("Invalid break iterator class \"" +
+                                classNames[type] + "\"");
+            }
         }
-        else if (classNames[type].equals("DictionaryBasedBreakIterator")) {
-            try {
-                URL url = (URL) bundle.getObject(dictionaryName);
-                InputStream dictionary = url.openStream();
-                return new DictionaryBasedBreakIterator(rules, dictionary);
-            }
-            catch(IOException e) {
-            }
-            catch(MissingResourceException e) {
-            }
-            return new RuleBasedBreakIterator(rules);
+        catch (Exception e) {
+            throw new InternalError(e.toString()); 
         }
-        else
-            throw new IllegalArgumentException("Invalid break iterator class \"" +
-                            classNames[type] + "\"");
     }
 
     /**
-     * Get the set of Locales for which BreakIterators are installed
-     * @return available locales
+     * Returns an array of all locales for which the
+     * <code>get*Instance</code> methods of this class can return
+     * localized instances.
+     * The array returned must contain at least a <code>Locale</code>
+     * instance equal to {@link java.util.Locale#US Locale.US}.
+     *
+     * @return An array of locales for which localized
+     *         <code>BreakIterator</code> instances are available.
      */
     public static synchronized Locale[] getAvailableLocales()
     {
@@ -569,5 +572,27 @@ public abstract class BreakIterator implements Cloneable
         BreakIterator createBreakInstance() {
             return (BreakIterator) iter.clone();
         }
+    }
+
+    protected static long getLong(byte[] buf, int offset) {
+        long num = buf[offset]&0xFF;
+        for (int i = 1; i < 8; i++) {
+            num = num<<8 | (buf[offset+i]&0xFF);
+        }
+        return num;
+    }
+
+    protected static int getInt(byte[] buf, int offset) {
+        int num = buf[offset]&0xFF;
+        for (int i = 1; i < 4; i++) {
+            num = num<<8 | (buf[offset+i]&0xFF);
+        }
+        return num;
+    }
+
+    protected static short getShort(byte[] buf, int offset) {
+        short num = (short)(buf[offset]&0xFF);
+        num = (short)(num<<8 | (buf[offset+1]&0xFF));
+        return num;
     }
 }

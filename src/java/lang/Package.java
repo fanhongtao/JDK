@@ -1,7 +1,7 @@
 /*
- * @(#)Package.java	1.38 03/01/23
+ * @(#)Package.java	1.45 04/04/26
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import sun.net.www.ParseUtil;
+
+import java.lang.annotation.Annotation;
 
 /**
  * <code>Package</code> objects contain version information
@@ -75,7 +77,7 @@ import sun.net.www.ParseUtil;
  * reporting of the packages involved when a problem occurs. The contents
  * all three implementation strings are vendor specific. The
  * implementation version strings have no specified syntax and should
- * only be compared for equality with desired version identifers.
+ * only be compared for equality with desired version identifiers.
  *
  * <p>Within each <code>ClassLoader</code> instance all classes from the same
  * java package have the same Package object.  The static methods allow a package
@@ -84,7 +86,7 @@ import sun.net.www.ParseUtil;
  *
  * @see ClassLoader#definePackage
  */
-public class Package {
+public class Package implements java.lang.reflect.AnnotatedElement {
     /**
      * Return the name of this package.
      *
@@ -342,6 +344,37 @@ public class Package {
 	return "package " + pkgName + spec + ver;
     }
 
+    private Class<?> getPackageInfo() {
+        if (packageInfo == null) {
+            try {
+                packageInfo = Class.forName(pkgName + ".package-info", false, loader);
+            } catch (ClassNotFoundException ex) {
+                // store a proxy for the package info that has no annotations
+                class PackageInfoProxy {}
+                packageInfo = PackageInfoProxy.class;
+            }
+        }
+        return packageInfo;
+    }
+
+    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+        return getPackageInfo().getAnnotation(annotationClass);
+    }
+
+    public boolean isAnnotationPresent(
+        Class<? extends Annotation> annotationClass)
+    {
+        return getPackageInfo().isAnnotationPresent(annotationClass);
+    }
+
+    public Annotation[] getAnnotations() { 
+        return getPackageInfo().getAnnotations();
+    }
+
+    public Annotation[] getDeclaredAnnotations()  {
+        return getPackageInfo().getDeclaredAnnotations();
+    }
+
     /**
      * Construct a package instance with the specified version
      * information.
@@ -357,7 +390,7 @@ public class Package {
     Package(String name,
 	    String spectitle, String specversion, String specvendor,
 	    String impltitle, String implversion, String implvendor,
-	    URL sealbase)
+	    URL sealbase, ClassLoader loader)
     {
     	pkgName = name;
 	implTitle = impltitle;
@@ -367,6 +400,7 @@ public class Package {
 	specVersion = specversion;
 	specVendor = specvendor;
 	sealBase = sealbase;
+	this.loader = loader;
     }
 
     /*
@@ -376,9 +410,16 @@ public class Package {
      * @param man the optional manifest for the package
      * @param url the optional code source url for the package
      */
-    private Package(String name, Manifest man, URL url) {
+    private Package(String name, Manifest man, URL url, ClassLoader loader) {
 	String path = name.replace('.', '/').concat("/");
 	String sealed = null;
+	String specTitle= null;
+	String specVersion= null;
+	String specVendor= null;
+	String implTitle= null;
+	String implVersion= null;
+	String implVendor= null;
+	URL sealBase= null;
 	Attributes attr = man.getAttributes(path);
 	if (attr != null) {
 	    specTitle   = attr.getValue(Name.SPECIFICATION_TITLE);
@@ -417,6 +458,14 @@ public class Package {
 	    sealBase = url;
 	}
 	pkgName = name;
+	this.specTitle = specTitle;
+	this.specVersion = specVersion;
+	this.specVendor = specVendor;
+	this.implTitle = implTitle;
+	this.implVersion = implVersion;
+	this.implVendor = implVendor;
+	this.sealBase = sealBase;
+	this.loader = loader;
     }
 
     /*
@@ -478,10 +527,10 @@ public class Package {
 		Package pkg;
 		Manifest man = (Manifest)mans.get(fn);
 		if (man != null) {
-		    pkg = new Package(name, man, url);
+		    pkg = new Package(name, man, url, null);
 		} else {
 		    pkg = new Package(name, null, null, null,
-				      null, null, null, null);
+				      null, null, null, null, null);
 		}
 		pkgs.put(name, pkg);
 		return pkg;
@@ -519,12 +568,14 @@ public class Package {
     /*
      * Private storage for the package name and attributes.
      */
-    private String pkgName;
-    private String specTitle;
-    private String specVersion;
-    private String specVendor;
-    private String implTitle;
-    private String implVersion;
-    private String implVendor;
-    private URL sealBase;
+    private final String pkgName;
+    private final String specTitle;
+    private final String specVersion;
+    private final String specVendor;
+    private final String implTitle;
+    private final String implVersion;
+    private final String implVendor;
+    private final URL sealBase;
+    private transient final ClassLoader loader;
+    private transient Class packageInfo;
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)ContainerEvent.java	1.15 03/01/23
+ * @(#)ContainerEvent.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.awt.Component;
  *
  * @author Tim Prinzing
  * @author Amy Fowler
- * @version 1.15 01/23/03
+ * @version 1.18 12/19/03
  * @since 1.1
  */
 public class ContainerEvent extends ComponentEvent {
@@ -78,12 +78,15 @@ public class ContainerEvent extends ComponentEvent {
     /**
      * Constructs a <code>ContainerEvent</code> object.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      * 
      * @param source the <code>Component</code> object (container)
      *               that originated the event
      * @param id     an integer indicating the type of event
      * @param child  the component that was added or removed
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public ContainerEvent(Component source, int id, Component child) {
         super(source, id);
@@ -93,10 +96,12 @@ public class ContainerEvent extends ComponentEvent {
     /**
      * Returns the originator of the event.
      *
-     * @return the Container object that originated the event
+     * @return the <code>Container</code> object that originated 
+     * the event, or <code>null</code> if the object is not a 
+     * <code>Container</code>.  
      */
     public Container getContainer() {
-        return (Container)source; // cast should always be OK, type was checked in constructor
+        return (source instanceof Container) ? (Container)source : null;
     }
 
     /**

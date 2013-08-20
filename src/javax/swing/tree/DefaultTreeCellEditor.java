@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeCellEditor.java	1.28 03/01/23
+ * @(#)DefaultTreeCellEditor.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import java.util.Vector;
  *
  * @see javax.swing.JTree
  *
- * @version 1.28 01/23/03
+ * @version 1.30 12/19/03
  * @author Scott Violet
  */
 public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
@@ -245,6 +245,16 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
                                          ((MouseEvent)event).getY());
                     editable = (lastPath != null && path != null &&
                                lastPath.equals(path));
+		    if (path!=null) {
+			lastRow = tree.getRowForPath(path);
+			Object value = path.getLastPathComponent();
+			boolean isSelected = tree.isRowSelected(lastRow);
+			boolean expanded = tree.isExpanded(path);
+			TreeModel treeModel = tree.getModel();
+			boolean leaf = treeModel.isLeaf(value);
+			determineOffset(tree, value, isSelected,
+					expanded, leaf, lastRow);
+		    }
                 }
             }
         }
@@ -431,10 +441,18 @@ public class DefaultTreeCellEditor implements ActionListener, TreeCellEditor,
      */
     protected boolean inHitRegion(int x, int y) {
 	if(lastRow != -1 && tree != null) {
-	    Rectangle         bounds = tree.getRowBounds(lastRow);
-
-	    if(bounds != null && x <= (bounds.x + offset) &&
-	       offset < (bounds.width - 5)) {
+	    Rectangle bounds = tree.getRowBounds(lastRow);
+	    ComponentOrientation treeOrientation = tree.getComponentOrientation();
+	    
+	    if ( treeOrientation.isLeftToRight() ) {
+		if (bounds != null && x <= (bounds.x + offset) &&
+		    offset < (bounds.width - 5)) {
+		    return false;
+		}
+	    } else if ( bounds != null &&
+			( x >= (bounds.x+bounds.width-offset+5) ||
+			  x <= (bounds.x + 5) ) &&
+			offset < (bounds.width - 5) ) {
 		return false;
 	    }
 	}

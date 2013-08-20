@@ -1,7 +1,7 @@
 /*
- * @(#)BasicStroke.java	1.39 03/03/19
+ * @(#)BasicStroke.java	1.40 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -96,7 +96,7 @@ import sun.dc.pr.Rasterizer;
  * For more information on the user space coordinate system and the 
  * rendering process, see the <code>Graphics2D</code> class comments.
  * @see Graphics2D
- * @version 1.39, 03/19/03
+ * @version 1.40, 12/19/03
  * @author Jim Graham
  */
 public class BasicStroke implements Stroke {
@@ -285,23 +285,36 @@ public class BasicStroke implements Stroke {
     public Shape createStrokedShape(Shape s) {
 	FillAdapter filler = new FillAdapter();
 	PathStroker stroker = new PathStroker(filler);
-	PathConsumer consumer;
+	PathDasher dasher = null;
 
-	stroker.setPenDiameter(width);
-	stroker.setPenT4(null);
-	stroker.setCaps(RasterizerCaps[cap]);
-	stroker.setCorners(RasterizerCorners[join], miterlimit);
-	if (dash != null) {
-	    PathDasher dasher = new PathDasher(stroker);
-	    dasher.setDash(dash, dash_phase);
-	    dasher.setDashT4(null);
-	    consumer = dasher;
-	} else {
-	    consumer = stroker;
+	try {
+	    PathConsumer consumer;
+
+	    stroker.setPenDiameter(width);
+	    stroker.setPenT4(null);
+	    stroker.setCaps(RasterizerCaps[cap]);
+	    stroker.setCorners(RasterizerCorners[join], miterlimit);
+	    if (dash != null) {
+		dasher = new PathDasher(stroker);
+		dasher.setDash(dash, dash_phase);
+		dasher.setDashT4(null);
+		consumer = dasher;
+	    } else {
+		consumer = stroker;
+	    }
+
+	    feedConsumer(consumer, s.getPathIterator(null));
+	} finally {
+	    stroker.dispose();
+	    if (dasher != null) {
+		dasher.dispose();
+	    }
 	}
 
-	PathIterator pi = s.getPathIterator(null);
+	return filler.getShape();
+    }
 
+    public void feedConsumer(PathConsumer consumer, PathIterator pi) {
 	try {
 	    consumer.beginPath();
 	    boolean pathClosed = false;
@@ -351,8 +364,6 @@ public class BasicStroke implements Stroke {
 	    throw new InternalError("Unable to Stroke shape ("+
 				    e.getMessage()+")");
 	}
-
-	return filler.getShape();
     }
 
     /**
@@ -518,6 +529,13 @@ public class BasicStroke implements Stroke {
 	    return path;
 	}
 
+	public void dispose() {
+	}
+
+	public PathConsumer getConsumer() {
+	    return null;
+	}
+
 	public void beginPath() {}
 
 	public void beginSubpath(float x0, float y0) {
@@ -562,8 +580,5 @@ public class BasicStroke implements Stroke {
 	public long getCPathConsumer() {
 	    return 0;
 	}
-
-	public void dispose() {
-        }
     }
 }

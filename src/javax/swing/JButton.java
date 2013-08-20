@@ -1,7 +1,7 @@
 /*
- * @(#)JButton.java	1.93 03/01/23
+ * @(#)JButton.java	1.97 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -27,10 +27,6 @@ import java.io.IOException;
  * in <em>The Java Tutorial</em>
  * for information and examples of using buttons.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JButton"><code>JButton</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -44,7 +40,7 @@ import java.io.IOException;
  *   attribute: isContainer false
  * description: An implementation of a \"push\" button.
  *
- * @version 1.93 01/23/03
+ * @version 1.97 12/19/03
  * @author Jeff Dinkins
  */
 public class JButton extends AbstractButton implements Accessible {
@@ -54,8 +50,6 @@ public class JButton extends AbstractButton implements Accessible {
      * @see #readObject
      */
     private static final String uiClassID = "ButtonUI";
-
-    private boolean defaultCapable = true;
 
     /**
      * Creates a button with no set text or icon.
@@ -223,18 +217,7 @@ public class JButton extends AbstractButton implements Accessible {
      * @see #setAction
      */
     protected void configurePropertiesFromAction(Action a) {
-        // properties that we want to configure from Action. We handle
-        // Action.NAME differently from AbstractButton, so we don't call
-        // super.configurePropertiesFromAction(a) here.
-        String[] types = { Action.MNEMONIC_KEY, Action.SHORT_DESCRIPTION,
-                           Action.SMALL_ICON, Action.ACTION_COMMAND_KEY,
-                           "enabled" };
-        configurePropertiesFromAction(a, types);
-
-	Boolean hide = (Boolean)getClientProperty("hideActionText");
-	setText((( a != null && (hide == null || hide!=Boolean.TRUE))
-		 ? (String)a.getValue(Action.NAME)
-		 : null));
+        super.configurePropertiesFromAction(a);
     }
 
     /** 

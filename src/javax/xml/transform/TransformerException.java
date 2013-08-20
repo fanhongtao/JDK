@@ -1,19 +1,15 @@
+// $Id: TransformerException.java,v 1.2 2003/09/10 01:45:55 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)TransformerException.java	1.17 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-/*
- * @(#)TransformerException.java	1.12 03/01/23
- */
 package javax.xml.transform;
 
 import java.lang.reflect.Method;
-import java.lang.IllegalAccessException;
 import java.lang.reflect.InvocationTargetException;
-
-import javax.xml.transform.SourceLocator;
-
 
 /**
  * This class specifies an exceptional condition that occured
@@ -291,6 +287,7 @@ public class TransformerException extends Exception {
      * @param s The writer where the dump will be sent to.
      */
     public void printStackTrace(java.io.PrintWriter s) {
+
         if (s == null) {
             s = new java.io.PrintWriter(System.err, true);
         }
@@ -301,6 +298,7 @@ public class TransformerException extends Exception {
             if (null != locInfo) {
                 s.println(locInfo);
             }
+
             super.printStackTrace(s);
         } catch (Throwable e) {}
 
@@ -349,6 +347,7 @@ public class TransformerException extends Exception {
                 exception = null;
             }
         }
-	s.flush();
+        // insure output is written
+        s.flush();
     }
 }

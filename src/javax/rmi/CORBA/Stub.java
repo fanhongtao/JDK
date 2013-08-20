@@ -1,7 +1,7 @@
 /*
- * @(#)Stub.java	1.29 03/01/23
+ * @(#)Stub.java	1.32 04/06/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,19 +17,20 @@
 package javax.rmi.CORBA;
 
 import org.omg.CORBA.ORB;
+import org.omg.CORBA.INITIALIZE;
 import org.omg.CORBA_2_3.portable.ObjectImpl;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.io.File;
 import java.io.FileInputStream;
-
-
+import java.net.MalformedURLException ;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import sun.security.action.GetPropertyAction;
 import java.util.Properties;
+import java.rmi.server.RMIClassLoader;
 
+import com.sun.corba.se.impl.orbutil.GetPropertyAction;
 
 
 /**
@@ -44,7 +45,7 @@ public abstract class Stub extends ObjectImpl
     private transient StubDelegate stubDelegate = null;
     private static Class stubDelegateClass = null;
     private static final String StubClassKey = "javax.rmi.CORBA.StubClass";
-    private static final String defaultStubImplName = "com.sun.corba.se.internal.javax.rmi.CORBA.StubDelegateImpl";
+    private static final String defaultStubImplName = "com.sun.corba.se.impl.javax.rmi.CORBA.StubDelegateImpl";
 
     static {
         Object stubDelegateInstance = (Object) createDelegateIfSpecified(StubClassKey, defaultStubImplName);
@@ -205,17 +206,36 @@ public abstract class Stub extends ObjectImpl
 	}
 
         try {
-            return Util.loadClass(className, null, null).newInstance();
+            return loadDelegateClass(className).newInstance();
         } catch (ClassNotFoundException ex) {
-            throw new org.omg.CORBA.INITIALIZE(
-                                              "cannot instantiate " + className);
+	    INITIALIZE exc = new INITIALIZE( "Cannot instantiate " + className);
+	    exc.initCause( ex ) ;
+	    throw exc ;
         } catch (Exception ex) {
-            throw new org.omg.CORBA.INITIALIZE(
-                                              "cannot instantiate " + className);
+	    INITIALIZE exc = new INITIALIZE( "Error while instantiating" + className);
+	    exc.initCause( ex ) ;
+	    throw exc ;
         }
 
     }
 
+    private static Class loadDelegateClass( String className )  throws ClassNotFoundException
+    {
+	try {
+	    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+	    return Class.forName(className, false, loader);
+	} catch (ClassNotFoundException e) {
+	    // ignore, then try RMIClassLoader
+	}
+
+	try {
+	    return RMIClassLoader.loadClass(className);
+	} catch (MalformedURLException e) {
+	    String msg = "Could not load " + className + ": " + e.toString();
+	    ClassNotFoundException exc = new ClassNotFoundException( msg ) ; 
+	    throw exc ;
+	}
+    }
 
     /**
      * Load the orb.properties file.

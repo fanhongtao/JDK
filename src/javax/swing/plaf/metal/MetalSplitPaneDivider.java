@@ -1,7 +1,7 @@
 /*
- * @(#)MetalSplitPaneDivider.java	1.18 03/01/23
+ * @(#)MetalSplitPaneDivider.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,30 +25,30 @@ import javax.swing.plaf.basic.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.18 01/23/03
+ * @version 1.21 12/19/03
  * @author Steve Wilson
  * @author Ralph kar
  */
 class MetalSplitPaneDivider extends BasicSplitPaneDivider
 {
     private MetalBumps bumps = new MetalBumps(10, 10,
-                                MetalLookAndFeel.getControlHighlight(),
-                                MetalLookAndFeel.getControlDarkShadow(),
-                                MetalLookAndFeel.getControl() );
+                 MetalLookAndFeel.getControlHighlight(),
+                 MetalLookAndFeel.getControlDarkShadow(),
+                 MetalLookAndFeel.getControl() );
 
     private MetalBumps focusBumps = new MetalBumps(10, 10,
-                                MetalLookAndFeel.getPrimaryControlHighlight(),
-                                MetalLookAndFeel.getPrimaryControlDarkShadow(),
-                                MetalLookAndFeel.getPrimaryControl() );
+                 MetalLookAndFeel.getPrimaryControlHighlight(),
+                 MetalLookAndFeel.getPrimaryControlDarkShadow(),
+                 UIManager.getColor("SplitPane.dividerFocusColor"));
 
     private int inset = 2;
 
     private Color controlColor = MetalLookAndFeel.getControl();
-    private Color primaryControlColor = MetalLookAndFeel.getPrimaryControl();
+    private Color primaryControlColor = UIManager.getColor(
+                                "SplitPane.dividerFocusColor");
 
     public MetalSplitPaneDivider(BasicSplitPaneUI ui) {
         super(ui);
-        setLayout(new MetalDividerLayout());
     }
 
     public void paint(Graphics g) {
@@ -113,8 +113,10 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
 
                     // Fill the background first ...
                     g.setColor(this.getBackground());
-                    g.fillRect(0, 0, this.getWidth(),
-                               this.getHeight());
+                    if (isOpaque()) {
+                        g.fillRect(0, 0, this.getWidth(),
+                                   this.getHeight());
+                    }
 
                     // ... then draw the arrow.
                     if (getModel().isPressed()) {
@@ -173,7 +175,18 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
 	b.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         b.setFocusPainted(false);
         b.setBorderPainted(false);
+        maybeMakeButtonOpaque(b);
         return b;
+    }
+
+    /**
+     * If necessary <code>c</code> is made opaque.
+     */
+    private void maybeMakeButtonOpaque(JComponent c) {
+        Object opaque = UIManager.get("SplitPane.oneTouchButtonsOpaque");
+        if (opaque != null) {
+            c.setOpaque(((Boolean)opaque).booleanValue());
+        }
     }
 
     /**
@@ -209,8 +222,10 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
 
                     // Fill the background first ...
                     g.setColor(this.getBackground());
-                    g.fillRect(0, 0, this.getWidth(),
-                               this.getHeight());
+                    if (isOpaque()) {
+                        g.fillRect(0, 0, this.getWidth(),
+                                   this.getHeight());
+                    }
 
                     // ... then draw the arrow.
                     if (getModel().isPressed()) {
@@ -269,6 +284,7 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         b.setRequestFocusEnabled(false);
+        maybeMakeButtonOpaque(b);
         return b;
     }
 
@@ -276,11 +292,16 @@ class MetalSplitPaneDivider extends BasicSplitPaneDivider
      * Used to layout a MetalSplitPaneDivider. Layout for the divider
      * involves appropriately moving the left/right buttons around.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of MetalSplitPaneDivider.
      */
     public class MetalDividerLayout implements LayoutManager {
+
+        // NOTE NOTE NOTE NOTE NOTE
+        // This class is no longer used, the functionality has
+        // been rolled into BasicSplitPaneDivider.DividerLayout as a
+        // defaults property
+
         public void layoutContainer(Container c) {
             JButton     leftButton = getLeftButtonFromSuper();
             JButton     rightButton = getRightButtonFromSuper();

@@ -1,7 +1,7 @@
 /*
- * @(#)ByteArrayInputStream.java	1.42 03/01/23
+ * @(#)ByteArrayInputStream.java	1.44 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.io;
  * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.42, 01/23/03
+ * @version 1.44, 12/19/03
  * @see     java.io.StringBufferInputStream
  * @since   JDK1.0
  */
@@ -230,6 +230,9 @@ class ByteArrayInputStream extends InputStream {
      * If no mark has been set, then the value of the mark is the
      * offset passed to the constructor (or 0 if the offset was not
      * supplied).
+     *
+     * <p> Note: The <code>readAheadLimit</code> for this class
+     *  has no meaning.
      *
      * @since   JDK1.1
      */

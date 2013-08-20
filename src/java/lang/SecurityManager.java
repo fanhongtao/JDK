@@ -1,7 +1,7 @@
 /*
- * @(#)SecurityManager.java	1.129 03/01/23
+ * @(#)SecurityManager.java	1.136 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -167,7 +167,7 @@ import sun.security.util.SecurityConstants;
  * tasks that require all (or numerous) permissions.
  * <p>
  * See <a href ="../../../guide/security/permissions.html">
- * Permissions in the Java 2 SDK</a> for permission-related information.
+ * Permissions in the JDK</a> for permission-related information.
  * This document includes, for example, a table listing the various SecurityManager
  * <code>check</code> methods and the permission(s) the default 
  * implementation of each such method requires. 
@@ -176,13 +176,13 @@ import sun.security.util.SecurityConstants;
  * which permission it requires.
  * <p>
  * For more information about <code>SecurityManager</code> changes made in 
- * the Java 2 SDK and advice regarding porting of 1.1-style security managers,
+ * the JDK and advice regarding porting of 1.1-style security managers,
  * see the <a href="../../../guide/security/index.html">security documentation</a>.
  *
  * @author  Arthur van Hoff
  * @author  Roland Schemers
  *
- * @version 1.129, 01/23/03
+ * @version 1.136, 06/28/04
  * @see     java.lang.ClassLoader
  * @see     java.lang.SecurityException
  * @see     java.lang.SecurityManager#checkTopLevelWindow(java.lang.Object)
@@ -217,6 +217,7 @@ class SecurityManager {
      *  It is recommended that the <code>checkPermission</code>
      *  call be used instead.
      */
+    @Deprecated
     protected boolean inCheck;
 
     /* 
@@ -250,6 +251,7 @@ class SecurityManager {
      *  It is recommended that the <code>checkPermission</code>
      *  call be used instead.
      */
+    @Deprecated
     public boolean getInCheck() {
 	return inCheck;
     }
@@ -332,6 +334,7 @@ class SecurityManager {
      * @see  java.lang.ClassLoader#getSystemClassLoader() getSystemClassLoader
      * @see  #checkPermission(java.security.Permission) checkPermission
      */
+    @Deprecated
     protected ClassLoader currentClassLoader()
     {
 	ClassLoader cl = currentClassLoader0();
@@ -378,7 +381,8 @@ class SecurityManager {
      * @see  java.lang.ClassLoader#getSystemClassLoader() getSystemClassLoader
      * @see  #checkPermission(java.security.Permission) checkPermission
      */
-    protected Class currentLoadedClass() {
+    @Deprecated
+    protected Class<?> currentLoadedClass() {
 	Class c = currentLoadedClass0();
 	if ((c != null) && hasAllPermission())
 	    c = null;
@@ -397,6 +401,7 @@ class SecurityManager {
      *  call be used instead.
      *
      */
+    @Deprecated
     protected native int classDepth(String name);
 
     /**
@@ -434,6 +439,7 @@ class SecurityManager {
      * @see   java.lang.ClassLoader#getSystemClassLoader() getSystemClassLoader
      * @see   #checkPermission(java.security.Permission) checkPermission
      */
+    @Deprecated
     protected int classLoaderDepth()
     {
 	int depth = classLoaderDepth0();
@@ -459,6 +465,7 @@ class SecurityManager {
      *  It is recommended that the <code>checkPermission</code>
      *  call be used instead.
      */
+    @Deprecated
     protected boolean inClass(String name) {
 	return classDepth(name) >= 0;
     }
@@ -475,6 +482,7 @@ class SecurityManager {
      *  call be used instead.
      * @see        #currentClassLoader() currentClassLoader 
      */
+    @Deprecated
     protected boolean inClassLoader() {
 	return currentClassLoader() != null;
     }
@@ -622,7 +630,7 @@ class SecurityManager {
      * it should additionally check to see if the calling thread has the
      * <code>RuntimePermission("modifyThread")</code> permission, and
      * if so, return silently. This is to ensure that code granted
-     * that permission (such as the SDK itself) is allowed to
+     * that permission (such as the JDK itself) is allowed to
      * manipulate any thread.
      * <p>
      * If this method is overridden, then 
@@ -675,7 +683,7 @@ class SecurityManager {
      * it should additionally check to see if the calling thread has the
      * <code>RuntimePermission("modifyThreadGroup")</code> permission, and
      * if so, return silently. This is to ensure that code granted
-     * that permission (such as the SDK itself) is allowed to
+     * that permission (such as the JDK itself) is allowed to
      * manipulate any thread.
      * <p>
      * If this method is overridden, then 
@@ -1207,6 +1215,7 @@ class SecurityManager {
      * @deprecated Use #checkPermission(java.security.Permission) instead
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
+    @Deprecated
     public void checkMulticast(InetAddress maddr, byte ttl) {
 	String host = maddr.getHostAddress();
 	if (!host.startsWith("[") && host.indexOf(':') != -1) {
@@ -1397,14 +1406,21 @@ class SecurityManager {
      * invalidate the cache.
      *
      * Locking is handled by synchronization to the
-     * packageAccess/packageDefinition variables.  They are only
+     * packageAccessLock/packageDefinitionLock objects.  They are only
      * used in this class.
+     *
+     * Note that cache invalidation as a result of the property change
+     * happens without using these locks, so there may be a delay between
+     * when a thread updates the property and when other threads updates
+     * the cache.
      */
     private static boolean packageAccessValid = false;
-    private static String[] packageAccess = new String[0];
+    private static String[] packageAccess;
+    private static final Object packageAccessLock = new Object();
 
     private static boolean packageDefinitionValid = false;
-    private static String[] packageDefinition = new String[0];
+    private static String[] packageDefinition;
+    private static final Object packageDefinitionLock = new Object();
 
     private static String[] getPackages(String p) {
 	String packages[] = null;
@@ -1464,7 +1480,8 @@ class SecurityManager {
 	    throw new NullPointerException("package name can't be null");
 	}
 
- 	synchronized (packageAccess) {
+	String[] pkgs;
+ 	synchronized (packageAccessLock) {
 	    /*
 	     * Do we need to update our property array?
 	     */
@@ -1482,17 +1499,21 @@ class SecurityManager {
 		packageAccessValid = true;
 	    }
 
-	    /*
-	     * Traverse the list of packages, check for any matches.
-	     */
-	    for (int i = 0; i < packageAccess.length; i++) {
-		if (pkg.startsWith(packageAccess[i]) ||
-		    packageAccess[i].equals(pkg + ".")) {
-		    checkPermission(
-			new RuntimePermission("accessClassInPackage."+pkg));
-		}
+	    // Using a snapshot of packageAccess -- don't care if static field
+	    // changes afterwards; array contents won't change.
+	    pkgs = packageAccess;
+	}
+
+	/*
+         * Traverse the list of packages, check for any matches.
+	 */
+	for (int i = 0; i < pkgs.length; i++) {
+	    if (pkg.startsWith(pkgs[i]) || pkgs[i].equals(pkg + ".")) {
+		checkPermission(
+		    new RuntimePermission("accessClassInPackage."+pkg));
+		break; 	// No need to continue; only need to check this once
 	    }
-	}  /* synchronized */
+	}
     }
 
     /**
@@ -1528,7 +1549,8 @@ class SecurityManager {
 	    throw new NullPointerException("package name can't be null");
 	}
 
- 	synchronized (packageDefinition) {
+	String[] pkgs;
+ 	synchronized (packageDefinitionLock) {
 	    /*
 	     * Do we need to update our property array?
 	     */
@@ -1545,18 +1567,21 @@ class SecurityManager {
 		packageDefinition = getPackages(tmpPropertyStr);
 		packageDefinitionValid = true;
 	    }
+	    // Using a snapshot of packageDefinition -- don't care if static
+	    // field changes afterwards; array contents won't change.
+	    pkgs = packageDefinition;
+	}
 
-	    /*
-	     * Traverse the list of packages, check for any matches.
-	     */
-	    for (int i = 0; i < packageDefinition.length; i++) {
-		if (pkg.startsWith(packageDefinition[i]) ||
-		    packageDefinition[i].equals(pkg + ".")) {
-		    checkPermission(
-			new RuntimePermission("defineClassInPackage."+pkg));
-		}
+	/*
+	 * Traverse the list of packages, check for any matches.
+	 */
+	for (int i = 0; i < pkgs.length; i++) {
+	    if (pkg.startsWith(pkgs[i]) || pkgs[i].equals(pkg + ".")) {
+		checkPermission(
+		    new RuntimePermission("defineClassInPackage."+pkg));
+		break; // No need to continue; only need to check this once
 	    }
-	}  /* synchronized */
+	}
     }
 
     /**
@@ -1615,7 +1640,7 @@ class SecurityManager {
      * @since JDK1.1
      * @see        #checkPermission(java.security.Permission) checkPermission
      */
-    public void checkMemberAccess(Class clazz, int which) {
+    public void checkMemberAccess(Class<?> clazz, int which) {
 	if (clazz == null) {
 	    throw new NullPointerException("class can't be null");
 	}
@@ -1626,10 +1651,10 @@ class SecurityManager {
 	     * methods in java.lang.Class that invoke checkMember
 	     * access. The stack should look like:
 	     * 
-	     * someCaller                         [3]
-	     * java.lang.Class.someReflectionAPI  [2]
-	     * java.lang.Class.checkMemeberAccess [1]
-	     * SecurityManager.checkMemeberAccess [0]
+	     * someCaller                        [3]
+	     * java.lang.Class.someReflectionAPI [2]
+	     * java.lang.Class.checkMemberAccess [1]
+	     * SecurityManager.checkMemberAccess [0]
 	     *
 	     */
 	    if ((stack.length<4) || 

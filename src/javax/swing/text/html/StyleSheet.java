@@ -1,11 +1,12 @@
 /*
- * @(#)StyleSheet.java	1.77 03/01/23
+ * @(#)StyleSheet.java	1.84 04/07/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.util.*;
 import java.awt.*;
 import java.io.*;
@@ -106,7 +107,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.77 01/23/03
+ * @version 1.84 07/23/04
  */
 public class StyleSheet extends StyleContext {
     // As the javadoc states, this class maintains a mapping between
@@ -267,10 +268,27 @@ public class StyleSheet extends StyleContext {
      */
     public void addRule(String rule) {
 	if (rule != null) {
-	    CssParser parser = new CssParser();
-	    try {
-		parser.parse(getBase(), new StringReader(rule), false, false);
-	    } catch (IOException ioe) { }
+            //tweaks to control display properties
+            //see BasicEditorPaneUI
+            final String baseUnitsDisable = "BASE_SIZE_DISABLE";
+            final String baseUnits = "BASE_SIZE ";
+            final String w3cLengthUnitsEnable = "W3C_LENGTH_UNITS_ENABLE";
+            final String w3cLengthUnitsDisable = "W3C_LENGTH_UNITS_DISABLE";
+            if (rule == baseUnitsDisable) {
+                sizeMap = sizeMapDefault;
+            } else if (rule.startsWith(baseUnits)) {
+                rebaseSizeMap(Integer.
+                              parseInt(rule.substring(baseUnits.length())));
+            } else if (rule == w3cLengthUnitsEnable) {
+                w3cLengthUnits = true;
+            } else if (rule == w3cLengthUnitsDisable) {
+                w3cLengthUnits = false;
+            } else {
+                CssParser parser = new CssParser();
+                try {
+                    parser.parse(getBase(), new StringReader(rule), false, false);
+                } catch (IOException ioe) { }
+            }
 	}
     }
 
@@ -360,8 +378,13 @@ public class StyleSheet extends StyleContext {
 		linkedStyleSheets = new Vector();
 	    }
 	    if (!linkedStyleSheets.contains(ss)) {
-		linkedStyleSheets.insertElementAt(ss, 0);
-		linkStyleSheetAt(ss, 0);
+                int index = 0;
+                if (ss instanceof javax.swing.plaf.UIResource
+                    && linkedStyleSheets.size() > 1) {
+                    index = linkedStyleSheets.size() - 1;
+                }
+		linkedStyleSheets.insertElementAt(ss, index);
+		linkStyleSheetAt(ss, index);
 	    }
 	}
     }
@@ -591,7 +614,7 @@ public class StyleSheet extends StyleContext {
      * @return the updated attribute set
      * @see MutableAttributeSet#removeAttributes
      */
-    public AttributeSet removeAttributes(AttributeSet old, Enumeration names) {
+    public AttributeSet removeAttributes(AttributeSet old, Enumeration<?> names) {
         // PENDING: Should really be doing something similar to 
         // removeHTMLTags here, but it is rather expensive to have to
         // clone names
@@ -841,7 +864,7 @@ public class StyleSheet extends StyleContext {
      * Fetches the font to use for the given set of attributes.
      */
     public Font getFont(AttributeSet a) {
-	return css.getFont(this, a, 12);
+	return css.getFont(this, a, 12, this);
     }
 
     /**
@@ -905,14 +928,14 @@ public class StyleSheet extends StyleContext {
     }
 
     public static int getIndexOfSize(float pt) {
-	return CSS.getIndexOfSize(pt);
+	return CSS.getIndexOfSize(pt, sizeMapDefault);
     }
 
     /**
      * Returns the point size, given a size index.
      */
     public float getPointSize(int index) {
-	return css.getPointSize(index);
+	return css.getPointSize(index, this);
     }
 
     /**
@@ -920,7 +943,7 @@ public class StyleSheet extends StyleContext {
      *  returns a point size value.
      */
     public float getPointSize(String size) {
-	return css.getPointSize(size);
+	return css.getPointSize(size, this);
     }
 
     /**
@@ -1601,8 +1624,8 @@ public class StyleSheet extends StyleContext {
 	    for (int index = 0, eIndex = total - 3; index < numTags;
 		 index++, eIndex -= 3) {
 		tags[index] = (String)elements.elementAt(eIndex);
-		ids[index] = (String)elements.elementAt(eIndex + 1);
-		classes[index] = (String)elements.elementAt(eIndex + 2);
+		classes[index] = (String)elements.elementAt(eIndex + 1);
+		ids[index] = (String)elements.elementAt(eIndex + 2);
 	    }
 	    return createResolvedStyle(selector, tags, ids, classes);
 	}
@@ -1655,7 +1678,11 @@ public class StyleSheet extends StyleContext {
 	static SearchBuffer obtainSearchBuffer() {
 	    SearchBuffer sb;
 	    try {
-		sb = (SearchBuffer)searchBuffers.pop();
+		if(!searchBuffers.empty()) {
+		   sb = (SearchBuffer)searchBuffers.pop();
+		} else {
+		   sb = new SearchBuffer();
+		}
 	    } catch (EmptyStackException ese) {
 		sb = new SearchBuffer();
 	    }
@@ -1842,23 +1869,36 @@ public class StyleSheet extends StyleContext {
 	    // PENDING(prinz) implement real rendering... which would
 	    // do full set of border and background capabilities.
 	    // remove margin
+
+            float dx = 0;                                                 
+            float dy = 0;                                                 
+            float dw = 0;                                                 
+            float dh = 0;                                                 
+            if (!(v instanceof HTMLEditorKit.HTMLFactory.BodyBlockView)) {
+                dx = leftMargin;                                          
+                dy = topMargin;                                           
+                dw = -(leftMargin + rightMargin);                         
+                dh = -(topMargin + bottomMargin);                         
+            }                                                             
+            if (bg != null) {                                             
+                g.setColor(bg);                                           
+                g.fillRect((int) (x + dx),                                
+                           (int) (y + dy),                                
+                           (int) (w + dw),                                
+                           (int) (h + dh));                               
+            }                                                             
+            if (bgPainter != null) {                                      
+                bgPainter.paint(g, x + dx, y + dy, w + dw, h + dh, v);    
+            }                                                             
 	    x += leftMargin;
 	    y += topMargin;
 	    w -= leftMargin + rightMargin;
 	    h -= topMargin + bottomMargin;
-
-	    if (bg != null) {
-		g.setColor(bg);
-		g.fillRect((int) x, (int) y, (int) w, (int) h);
-	    }
-	    if (bgPainter != null) {
-		bgPainter.paint(g, x, y, w, h, v);
-	    }
 	    border.paintBorder(null, g, (int) x, (int) y, (int) w, (int) h);
 	}
 
 	float getLength(CSS.Attribute key, AttributeSet a) {
-	    return css.getLength(a, key);
+	    return css.getLength(a, key, ss);
 	}
 
 	float topMargin;
@@ -1886,6 +1926,7 @@ public class StyleSheet extends StyleContext {
     public static class ListPainter implements Serializable {
 
 	ListPainter(AttributeSet attr, StyleSheet ss) {
+	    this.ss = ss;
 	    /* Get the image to use as a list bullet */
 	    String imgstr = (String)attr.getAttribute(CSS.Attribute.
 						      LIST_STYLE_IMAGE);
@@ -1995,8 +2036,7 @@ public class StyleSheet extends StyleContext {
                 if (as.getAttribute(StyleConstants.NameAttribute) !=
                     HTML.Tag.LI) {
                     retIndex--;
-                }
-                else {
+                } else if (as.isDefined(HTML.Attribute.VALUE)) {
                     Object value = as.getAttribute(HTML.Attribute.VALUE);
                     if (value != null &&
                         (value instanceof String)) {
@@ -2034,6 +2074,10 @@ public class StyleSheet extends StyleContext {
                 name != HTML.Tag.LI) {
                 return;
             }
+	    // deside on what side draw bullets, etc.
+	    isLeftToRight = 
+		cv.getContainer().getComponentOrientation().isLeftToRight();
+
             // How the list indicator is aligned is not specified, it is
             // left up to the UA. IE and NS differ on this behavior.
             // This is closer to NS where we align to the first line of text.
@@ -2059,8 +2103,16 @@ public class StyleSheet extends StyleContext {
                     }
                 }
             }
+
+	    // set the color of a decoration
+	    if (ss != null) {
+		g.setColor(ss.getForeground(cv.getAttributes()));
+	    } else {
+		g.setColor(Color.black);
+	    }
+
 	    if (img != null) {
-    		drawIcon(g, (int) x, (int) y, (int) h, align,
+    		drawIcon(g, (int) x, (int) y, (int) w, (int) h, align,
 			 v.getContainer());
 		return;
 	    }
@@ -2072,23 +2124,22 @@ public class StyleSheet extends StyleContext {
 	    }
 	    if (childtype == CSS.Value.SQUARE || childtype == CSS.Value.CIRCLE
                 || childtype == CSS.Value.DISC) {
-    		drawShape(g, childtype, (int) x, (int) y, (int) h, align);
-	    } else if (childtype == CSS.Value.CIRCLE) {
-    		drawShape(g, childtype, (int) x, (int) y, (int) h, align);
+    		drawShape(g, childtype, (int) x, (int) y, 
+			  (int) w, (int) h, align);
 	    } else if (childtype == CSS.Value.DECIMAL) {
-		drawLetter(g, '1', (int) x, (int) y, (int) h, align,
+		drawLetter(g, '1', (int) x, (int) y, (int) w, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.LOWER_ALPHA) {
-		drawLetter(g, 'a', (int) x, (int) y, (int) h, align,
+		drawLetter(g, 'a', (int) x, (int) y, (int) w, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.UPPER_ALPHA) {
-		drawLetter(g, 'A', (int) x, (int) y, (int) h, align,
+		drawLetter(g, 'A', (int) x, (int) y, (int) w, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.LOWER_ROMAN) {
-		drawLetter(g, 'i', (int) x, (int) y, (int) h, align,
+		drawLetter(g, 'i', (int) x, (int) y, (int) w, (int) h, align,
                            getRenderIndex(v, item));
 	    } else if (childtype == CSS.Value.UPPER_ROMAN) {
-		drawLetter(g, 'I', (int) x, (int) y, (int) h, align,
+		drawLetter(g, 'I', (int) x, (int) y, (int) w, (int) h, align,
                            getRenderIndex(v, item));
 	    }
 	}
@@ -2099,14 +2150,16 @@ public class StyleSheet extends StyleContext {
 	 * @param g     the graphics context
 	 * @param ax    x coordinate to place the bullet
 	 * @param ay    y coordinate to place the bullet
+	 * @param aw    width of the container the bullet is placed in
 	 * @param ah    height of the container the bullet is placed in
 	 * @param align preferred alignment factor for the child view
 	 */
-	void drawIcon(Graphics g, int ax, int ay, int ah,
+	void drawIcon(Graphics g, int ax, int ay, int aw, int ah,
 		      float align, Component c) {
             // Align to bottom of icon.
-	    g.setColor(Color.black);
-	    int x = ax - img.getIconWidth() - bulletgap;
+            int gap = isLeftToRight ? - (img.getIconWidth() + bulletgap) : 
+		                        (aw + bulletgap);
+            int x = ax + gap;
             int y = Math.max(ay, ay + (int)(align * ah) -img.getIconHeight());
 
 	    img.paintIcon(c, g, x, y);
@@ -2119,14 +2172,15 @@ public class StyleSheet extends StyleContext {
 	 * @param type  type of bullet to draw (circle, square, disc)
 	 * @param ax    x coordinate to place the bullet
 	 * @param ay    y coordinate to place the bullet
+	 * @param aw    width of the container the bullet is placed in
 	 * @param ah    height of the container the bullet is placed in
 	 * @param align preferred alignment factor for the child view
 	 */
-	void drawShape(Graphics g, CSS.Value type, int ax, int ay, int ah,
-		       float align) {
+	void drawShape(Graphics g, CSS.Value type, int ax, int ay, int aw, 
+		       int ah, float align) {
             // Align to bottom of shape.
-	    g.setColor(Color.black);
-	    int x = ax - bulletgap - 8;
+            int gap = isLeftToRight ? - (bulletgap + 8) : (aw + bulletgap);
+            int x = ax + gap;
             int y = Math.max(ay, ay + (int)(align * ah) - 8);
 
 	    if (type == CSS.Value.SQUARE) {
@@ -2145,18 +2199,21 @@ public class StyleSheet extends StyleContext {
 	 * @param letter type of ordered list to draw
 	 * @param ax    x coordinate to place the bullet
 	 * @param ay    y coordinate to place the bullet
+	 * @param aw    width of the container the bullet is placed in
 	 * @param ah    height of the container the bullet is placed in
 	 * @param index position of the list item in the list
 	 */
-	void drawLetter(Graphics g, char letter, int ax, int ay, int ah,
-                        float align, int index) {
-	    g.setColor(Color.black);
-	    String str = formatItemNum(index, letter) + ".";
-	    FontMetrics fm = g.getFontMetrics();
-	    int stringwidth = fm.stringWidth(str);
-	    int x = ax - stringwidth - bulletgap;
+	void drawLetter(Graphics g, char letter, int ax, int ay, int aw, 
+			int ah, float align, int index) {
+	    String str = formatItemNum(index, letter);
+            str = isLeftToRight ? str + "." : "." + str;
+	    FontMetrics fm = SwingUtilities2.getFontMetrics(null, g);
+	    int stringwidth = SwingUtilities2.stringWidth(null, fm, str);
+            int gap = isLeftToRight ? - (stringwidth + bulletgap) : 
+		                        (aw + bulletgap);
+            int x = ax + gap;
 	    int y = Math.max(ay + fm.getAscent(), ay + (int)(ah * align));
-	    g.drawString(str, x, y);
+	    SwingUtilities2.drawString(null, g, str, x, y);
 	}
 
 	/**
@@ -2284,8 +2341,10 @@ public class StyleSheet extends StyleContext {
         private int start;
         private CSS.Value type;
         URL imageurl;
+        private StyleSheet ss = null;
         Icon img = null;
         private int bulletgap = 5;
+	private boolean isLeftToRight;
     }
 
 
@@ -2317,13 +2376,13 @@ public class StyleSheet extends StyleContext {
 		    flags |= 4;
 		}
 		else if (pos.isHorizontalPositionRelativeToSize()) {
-		    hPosition *= css.getFontSize(a, 12);
+		    hPosition *= css.getFontSize(a, 12, ss);
 		}
 		if (pos.isVerticalPositionRelativeToSize()) {
 		    flags |= 8;
 		}
 		else if (pos.isVerticalPositionRelativeToFontSize()) {
-		    vPosition *= css.getFontSize(a, 12);
+		    vPosition *= css.getFontSize(a, 12, ss);
 		}
 	    }
 	    // Determine any repeating values.
@@ -2837,7 +2896,7 @@ public class StyleSheet extends StyleContext {
 	public void addAttribute(Object name, Object value) {}
 	public void addAttributes(AttributeSet attributes) {}
 	public void removeAttribute(Object name) {}
-	public void removeAttributes(Enumeration names) {}
+	public void removeAttributes(Enumeration<?> names) {}
 	public void removeAttributes(AttributeSet attributes) {}
 	public void setResolveParent(AttributeSet parent) {}
 	public String getName() {return name;}
@@ -3089,7 +3148,7 @@ public class StyleSheet extends StyleContext {
 	 * Invoked when a property value is encountered.
 	 */
 	public void handleValue(String value) {
-	    if (propertyName != null) {
+	    if (propertyName != null && value != null && value.length() > 0) {
 		CSS.Attribute cssKey = CSS.getAttribute(propertyName);
 		if (cssKey != null) {
                     // There is currently no mechanism to determine real
@@ -3149,4 +3208,31 @@ public class StyleSheet extends StyleContext {
 	URL base;
 	CSSParser parser = new CSSParser();
     }
+
+    void rebaseSizeMap(int base) {
+        final int minimalFontSize = 4;
+        sizeMap = new int[sizeMapDefault.length];
+        for (int i = 0; i < sizeMapDefault.length; i++) {
+            sizeMap[i] = Math.max(base * sizeMapDefault[i] / 
+                                  sizeMapDefault[CSS.baseFontSizeIndex],
+                                  minimalFontSize);
+        }
+
+    }
+
+    int[] getSizeMap() {
+        return sizeMap;
+    }
+    boolean isW3CLengthUnits() {
+        return w3cLengthUnits;
+    }
+
+    /**
+     * The HTML/CSS size model has seven slots
+     * that one can assign sizes to.
+     */
+    static int sizeMapDefault[] = { 8, 10, 12, 14, 18, 24, 36 };
+
+    private int sizeMap[] = sizeMapDefault;
+    private boolean w3cLengthUnits = false;
 }

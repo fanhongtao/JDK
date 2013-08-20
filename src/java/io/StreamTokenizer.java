@@ -1,7 +1,7 @@
 /*
- * @(#)StreamTokenizer.java	1.39 03/01/23
+ * @(#)StreamTokenizer.java	1.44 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ package java.io;
  * it returns the value <code>TT_EOF</code>.
  *
  * @author  James Gosling
- * @version 1.39, 01/23/03
+ * @version 1.44, 05/18/04
  * @see     java.io.StreamTokenizer#nextToken()
  * @see     java.io.StreamTokenizer#TT_EOF
  * @since   JDK1.0
@@ -209,6 +209,7 @@ public class StreamTokenizer {
      * @see        java.io.InputStreamReader
      * @see        java.io.StreamTokenizer#StreamTokenizer(java.io.Reader)
      */
+    @Deprecated
     public StreamTokenizer(InputStream is) {
 	this();
         if (is == null) {
@@ -307,9 +308,14 @@ public class StreamTokenizer {
      * in this tokenizer. It removes any special significance the
      * character has as a comment character, word component, string
      * delimiter, white space, or number character. When such a character
-     * is encountered by the parser, the parser treates it as a
+     * is encountered by the parser, the parser treats it as a
      * single-character token and sets <code>ttype</code> field to the
      * character value.
+     *
+     * <p>Making a line terminator character "ordinary" may interfere
+     * with the ability of a <code>StreamTokenizer</code> to count
+     * lines. The <code>lineno</code> method may no longer reflect
+     * the presence of such terminator characters in its line count.
      *
      * @param   ch   the character.
      * @see     java.io.StreamTokenizer#ttype
@@ -374,7 +380,7 @@ public class StreamTokenizer {
      * <p>
      * When the parser encounters a word token that has the format of a
      * double precision floating-point number, it treats the token as a
-     * number rather than a word, by setting the the <code>ttype</code>
+     * number rather than a word, by setting the <code>ttype</code>
      * field to the value <code>TT_NUMBER</code> and putting the numeric
      * value of the token into the <code>nval</code> field.
      *

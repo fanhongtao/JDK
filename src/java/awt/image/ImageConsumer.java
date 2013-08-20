@@ -1,7 +1,7 @@
 /*
- * @(#)ImageConsumer.java	1.20 03/01/23
+ * @(#)ImageConsumer.java	1.23 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.util.Hashtable;
  *
  * @see ImageProducer
  *
- * @version	1.20 01/23/03
+ * @version	1.23 07/16/04
  * @author 	Jim Graham
  */
 public interface ImageConsumer {
@@ -34,7 +34,7 @@ public interface ImageConsumer {
      * @param props the list of properties to be associated with this
      *        image
      */
-    void setProperties(Hashtable props);
+    void setProperties(Hashtable<?,?> props);
 
     /**
      * Sets the ColorModel object used for the majority of

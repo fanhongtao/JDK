@@ -1,7 +1,7 @@
 /*
- * @(#)LinkedHashSet.java	1.8 03/01/20
+ * @(#)LinkedHashSet.java	1.14 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ package java.util;
  * <p>This class provides all of the optional <tt>Set</tt> operations, and
  * permits null elements.  Like <tt>HashSet</tt>, it provides constant-time
  * performance for the basic operations (<tt>add</tt>, <tt>contains</tt> and
- * <tt>remove</tt>), assuming the the hash function disperses elements
+ * <tt>remove</tt>), assuming the hash function disperses elements
  * properly among the buckets.  Performance is likely to be just slightly
  * below that of <tt>HashSet</tt>, due to the added expense of maintaining the
  * linked list, with one exception: Iteration over a <tt>LinkedHashSet</tt>
@@ -85,7 +85,7 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.8 01/20/03
+ * @version 1.14 04/02/19
  * @see     Object#hashCode()
  * @see     Collection
  * @see     Set
@@ -95,8 +95,12 @@ package java.util;
  * @since   1.4
  */
 
-public class LinkedHashSet extends HashSet
-    implements Set, Cloneable, java.io.Serializable {
+public class LinkedHashSet<E>
+    extends HashSet<E>
+    implements Set<E>, Cloneable, java.io.Serializable {
+
+    private static final long serialVersionUID = -2851667679971038690L;
+
     /**
      * Constructs a new, empty linked hash set with the specified initial
      * capacity and load factor. 
@@ -140,7 +144,7 @@ public class LinkedHashSet extends HashSet
      *           this set.
      * @throws NullPointerException if the specified collection is null.
      */
-    public LinkedHashSet(Collection c) {
+    public LinkedHashSet(Collection<? extends E> c) {
         super(Math.max(2*c.size(), 11), .75f, true);
         addAll(c);
     }

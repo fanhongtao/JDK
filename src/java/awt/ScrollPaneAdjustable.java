@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPaneAdjustable.java	1.7 03/01/23
+ * @(#)ScrollPaneAdjustable.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -17,7 +17,7 @@ import java.io.Serializable;
  * scrollbar of a <code>ScrollPane</code>.  Objects of this class are
  * returned by <code>ScrollPane</code> methods.
  *
- * @version     1.7 01/23/03
+ * @version     1.9 12/19/03
  * @since	1.4
  */
 public class ScrollPaneAdjustable implements Adjustable, Serializable {
@@ -299,21 +299,35 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @param v the new value of the scrollbar
      */
     public void setValue(int v) {
-	// bounds check
-	v = Math.max(v, minimum);
-	v = Math.min(v, maximum - visibleAmount);
+        setTypedValue(v, AdjustmentEvent.TRACK);
+    }
+
+    /**
+     * Sets the value of this scrollbar to the specified value.
+     * <p>
+     * If the value supplied is less than the current minimum or
+     * greater than the current maximum, then one of those values is
+     * substituted, as appropriate. Also, creates and dispatches
+     * the AdjustementEvent with specified type and value.
+     *
+     * @param v the new value of the scrollbar
+     * @param type the type of the scrolling operation occured
+     */
+    private void setTypedValue(int v, int type) {
+        v = Math.max(v, minimum);
+        v = Math.min(v, maximum - visibleAmount);
 
         if (v != value) {
-	    value = v;
-	    // Synchronously notify the listeners so that they are
-	    // guaranteed to be up-to-date with the Adjustable before
-	    // it is mutated again.
-	    AdjustmentEvent e =
-		new AdjustmentEvent(this,
-		        AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED,
-			AdjustmentEvent.TRACK, value, isAdjusting);
-	    adjustmentListener.adjustmentValueChanged(e);
-	}
+            value = v;
+            // Synchronously notify the listeners so that they are
+            // guaranteed to be up-to-date with the Adjustable before
+            // it is mutated again.
+            AdjustmentEvent e =
+                new AdjustmentEvent(this,
+                        AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED,
+                        type, value, isAdjusting);
+            adjustmentListener.adjustmentValueChanged(e);
+        }
     }
 
     public int getValue() {

@@ -1,7 +1,7 @@
 /*
- * @(#)URLEncoder.java	1.30 07/05/17
+ * @(#)URLEncoder.java	1.30 04/05/18
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,10 +12,6 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.io.CharArrayWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.BitSet;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -60,7 +56,7 @@ import sun.security.action.GetPropertyAction;
  * character @ is encoded as one byte 40 (hex).
  *
  * @author  Herb Jellinek
- * @version 1.30, 05/17/07
+ * @version 1.30, 05/18/04
  * @since   JDK1.0
  */
 public class URLEncoder {
@@ -145,6 +141,7 @@ public class URLEncoder {
      *             method to specify the encoding.
      * @return  the translated <code>String</code>.
      */
+    @Deprecated
     public static String encode(String s) {
 
 	String str = null;
@@ -183,93 +180,89 @@ public class URLEncoder {
     public static String encode(String s, String enc) 
 	throws UnsupportedEncodingException {
 
-       boolean needToChange = false;
-       StringBuffer out = new StringBuffer(s.length());
-       Charset charset;
-       CharArrayWriter charArrayWriter = new CharArrayWriter();
+	boolean needToChange = false;
+	boolean wroteUnencodedChar = false; 
+	int maxBytesPerChar = 10; // rather arbitrary limit, but safe for now
+        StringBuffer out = new StringBuffer(s.length());
+	ByteArrayOutputStream buf = new ByteArrayOutputStream(maxBytesPerChar);
 
-       if (enc == null)
-           throw new NullPointerException("charsetName");
+	OutputStreamWriter writer = new OutputStreamWriter(buf, enc);
 
-       try {
-           charset = Charset.forName(enc);
-       } catch (IllegalCharsetNameException e) {
-           throw new UnsupportedEncodingException(enc);
-       } catch (UnsupportedCharsetException e) {
-           throw new UnsupportedEncodingException(enc);
-       }
+	for (int i = 0; i < s.length(); i++) {
+	    int c = (int) s.charAt(i);
+	    //System.out.println("Examining character: " + c);
+	    if (dontNeedEncoding.get(c)) {
+		if (c == ' ') {
+		    c = '+';
+		    needToChange = true;
+		}
+		//System.out.println("Storing: " + c);
+		out.append((char)c);
+		wroteUnencodedChar = true;
+	    } else {
+		// convert to external encoding before hex conversion
+		try {
+		    if (wroteUnencodedChar) { // Fix for 4407610
+		    	writer = new OutputStreamWriter(buf, enc);
+			wroteUnencodedChar = false;
+		    }
+		    writer.write(c);
+		    /*
+		     * If this character represents the start of a Unicode
+		     * surrogate pair, then pass in two characters. It's not
+		     * clear what should be done if a bytes reserved in the 
+		     * surrogate pairs range occurs outside of a legal
+		     * surrogate pair. For now, just treat it as if it were 
+		     * any other character.
+		     */
+		    if (c >= 0xD800 && c <= 0xDBFF) {
+			/*
+			  System.out.println(Integer.toHexString(c) 
+			  + " is high surrogate");
+			*/
+			if ( (i+1) < s.length()) {
+			    int d = (int) s.charAt(i+1);
+			    /*
+			      System.out.println("\tExamining " 
+			      + Integer.toHexString(d));
+			    */
+			    if (d >= 0xDC00 && d <= 0xDFFF) {
+				/*
+				  System.out.println("\t" 
+				  + Integer.toHexString(d) 
+				  + " is low surrogate");
+				*/
+				writer.write(d);
+				i++;
+			    }
+			}
+		    }
+		    writer.flush();
+		} catch(IOException e) {
+		    buf.reset();
+		    continue;
+		}
+		byte[] ba = buf.toByteArray();
+		for (int j = 0; j < ba.length; j++) {
+		    out.append('%');
+		    char ch = Character.forDigit((ba[j] >> 4) & 0xF, 16);
+		    // converting to use uppercase letter as part of
+		    // the hex value if ch is a letter.
+		    if (Character.isLetter(ch)) {
+			ch -= caseDiff;
+		    }
+		    out.append(ch);
+		    ch = Character.forDigit(ba[j] & 0xF, 16);
+		    if (Character.isLetter(ch)) {
+			ch -= caseDiff;
+		    }
+		    out.append(ch);
+		}
+		buf.reset();
+		needToChange = true;
+	    }
+	}
 
-       for (int i = 0; i < s.length();) {
-           int c = (int) s.charAt(i);
-           //System.out.println("Examining character: " + c);
-           if (dontNeedEncoding.get(c)) {
-               if (c == ' ') {
-                   c = '+';
-                   needToChange = true;
-               }
-               //System.out.println("Storing: " + c);
-               out.append((char)c);
-               i++;
-           } else {
-               // convert to external encoding before hex conversion
-               do {
-                   charArrayWriter.write(c);
-                   /*
-                    * If this character represents the start of a Unicode
-                    * surrogate pair, then pass in two characters. It's not
-                    * clear what should be done if a bytes reserved in the
-                    * surrogate pairs range occurs outside of a legal
-                    * surrogate pair. For now, just treat it as if it were
-                    * any other character.
-                    */
-                   if (c >= 0xD800 && c <= 0xDBFF) {
-                       /*
-                         System.out.println(Integer.toHexString(c)
-                         + " is high surrogate");
-                        */
-                        if ( (i+1) < s.length()) {
-                            int d = (int) s.charAt(i+1);
-                            /*
-                              System.out.println("\tExamining "
-                              + Integer.toHexString(d));
-                            */
-                            if (d >= 0xDC00 && d <= 0xDFFF) {
-                                /*
-                                  System.out.println("\t"
-                                  + Integer.toHexString(d)
-                                  + " is low surrogate");
-                                */
-                                charArrayWriter.write(d);
-                                i++;
-                            }
-                        }
-                    }
-                    i++;
-                } while (i < s.length() && !dontNeedEncoding.get((c = (int) s.charAt(i))));
-                charArrayWriter.flush();
-                String str = new String(charArrayWriter.toCharArray());
-                byte[] ba = str.getBytes(charset.name());
-                for (int j = 0; j < ba.length; j++) {
-                    out.append('%');
-                    char ch = Character.forDigit((ba[j] >> 4) & 0xF, 16);
-                    // converting to use uppercase letter as part of
-                    // the hex value if ch is a letter.
-                    if (Character.isLetter(ch)) {
-                        ch -= caseDiff;
-                    }
-                    out.append(ch);
-                    ch = Character.forDigit(ba[j] & 0xF, 16);
-                    if (Character.isLetter(ch)) {
-                        ch -= caseDiff;
-                    }
-                    out.append(ch);
-                }
-                charArrayWriter.reset();
-                needToChange = true;
-            }
-        }
-
-        return (needToChange? out.toString() : s);
+	return (needToChange? out.toString() : s);
     }
 }
-

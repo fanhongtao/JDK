@@ -1,7 +1,7 @@
 /*
- * @(#)CertStore.java	1.9 03/01/23
+ * @(#)CertStore.java	1.13 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,8 +15,9 @@ import java.security.PrivilegedAction;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Collection;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+
+import sun.security.jca.*;
+import sun.security.jca.GetInstance.Instance;
 
 /**
  * A class for retrieving <code>Certificate</code>s and <code>CRL</code>s
@@ -57,7 +58,7 @@ import java.lang.reflect.InvocationTargetException;
  * Multiple threads may concurrently invoke the static methods defined in
  * this class with no ill effects.
  *
- * @version 	1.9 01/23/03
+ * @version 	1.13 06/28/04
  * @since	1.4
  * @author	Sean Mullan, Steve Hanna
  */
@@ -75,39 +76,6 @@ public class CertStore {
     private Provider provider;
     private String type;
     private CertStoreParameters params;
-
-    // for use with the reflection API
-    private static final Class cl = java.security.Security.class;
-    private static final Class[] GET_IMPL_PARAMS = { String.class,
-						     String.class,
-						     String.class,
-						     Object.class };
-    private static final Class[] GET_IMPL_PARAMS2 = { String.class,
-						      String.class,
-						      Provider.class,
-						      Object.class };
-    // Get the implMethod via the name of a provider. Note: the name could
-    // be null. 
-    private static Method implMethod;
-    // Get the implMethod2 via a Provider object. 
-    private static Method implMethod2;
-    private static Boolean implMethod2Set = new Boolean(false);
-
-    static {
-	implMethod = (Method)
-	    AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-		Method m = null;
-		try {
-		    m = cl.getDeclaredMethod("getImpl", GET_IMPL_PARAMS);
-		    if (m != null)
-			m.setAccessible(true);
-		} catch (NoSuchMethodException nsme) {
-		}
-		return m;
-	    }
-	});
-    }
 
     /**
      * Creates a <code>CertStore</code> object of the given type, and
@@ -152,10 +120,9 @@ public class CertStore {
      *         match the specified selector (never <code>null</code>)
      * @throws CertStoreException if an exception occurs 
      */
-    public final Collection getCertificates(CertSelector selector)
-        throws CertStoreException 
-    {
-        return(storeSpi.engineGetCertificates(selector));
+    public final Collection<? extends Certificate> getCertificates
+	    (CertSelector selector) throws CertStoreException {
+        return storeSpi.engineGetCertificates(selector);
     }
    
     /**
@@ -183,10 +150,9 @@ public class CertStore {
      *         match the specified selector (never <code>null</code>)
      * @throws CertStoreException if an exception occurs 
      */
-    public final Collection getCRLs(CRLSelector selector)
-        throws CertStoreException 
-    {
-        return(storeSpi.engineGetCRLs(selector));
+    public final Collection<? extends CRL> getCRLs(CRLSelector selector)
+	    throws CertStoreException {
+        return storeSpi.engineGetCRLs(selector);
     }
    
     /**
@@ -218,44 +184,27 @@ public class CertStore {
      * <code>CertStore</code>
      */
     public static CertStore getInstance(String type, CertStoreParameters params)
-        throws InvalidAlgorithmParameterException, NoSuchAlgorithmException 
-    {
+	    throws InvalidAlgorithmParameterException, 
+	    NoSuchAlgorithmException {
 	try {
-	    if (implMethod == null) {
-		throw new NoSuchAlgorithmException(type + " not found");
-	    }
-
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod.invoke(null,
-					       new Object[]
-					       { type,
-						 "CertStore",
-						 (String)null,
-						 params
-					       } );
-	    return new CertStore((CertStoreSpi)objs[0],
-				 (Provider)objs[1], type, params);
-	} catch (IllegalAccessException iae) {
-	    NoSuchAlgorithmException nsae = new
-	                   NoSuchAlgorithmException(type + " not found");
-	    nsae.initCause(iae);
-	    throw nsae;
-	} catch (InvocationTargetException ite) {
-            Throwable t = ite.getCause();
-            if (t != null) {
-	        if (t instanceof InvalidAlgorithmParameterException)
-	            throw (InvalidAlgorithmParameterException)t;
-	        if (t instanceof NoSuchAlgorithmException)
-	            throw (NoSuchAlgorithmException)t;
-            }
-	    NoSuchAlgorithmException nsae = new
-	        NoSuchAlgorithmException(type + " not found");
-	    nsae.initCause(ite);
-	    throw nsae;
+	    Instance instance = GetInstance.getInstance("CertStore",
+	    	CertStoreSpi.class, type, params);
+	    return new CertStore((CertStoreSpi)instance.impl, 
+	    	instance.provider, type, params);
+	} catch (NoSuchAlgorithmException e) {
+	    return handleException(e);
 	}
     }
-
+    
+    private static CertStore handleException(NoSuchAlgorithmException e) 
+	    throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+	Throwable cause = e.getCause();
+	if (cause instanceof InvalidAlgorithmParameterException) {
+	    throw (InvalidAlgorithmParameterException)cause;
+	}
+	throw e;
+    }
+    
     /**
      * Returns a <code>CertStore</code> object that implements the specified
      * <code>CertStore</code> type, as supplied by the specified provider
@@ -282,50 +231,19 @@ public class CertStore {
      * null
      */
     public static CertStore getInstance(String type, 
-	CertStoreParameters params, String provider)
-        throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, 
-	       NoSuchProviderException 
-    {
-	if (provider == null || provider.length() == 0)
-	    throw new IllegalArgumentException("missing provider");
+	    CertStoreParameters params, String provider)
+	    throws InvalidAlgorithmParameterException, 
+	    NoSuchAlgorithmException, NoSuchProviderException {
 	try {
-	    if (implMethod == null) {
-		throw new NoSuchAlgorithmException(type + " not found");
-	    }
-
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod.invoke(null,
-					       new Object[]
-					       { type,
-						 "CertStore",
-						 provider,
-						 params
-					       } );
-	    return new CertStore((CertStoreSpi)objs[0],
-				 (Provider)objs[1], type, params);
-	} catch (IllegalAccessException iae) {
-	    NoSuchAlgorithmException nsae = new
-	                   NoSuchAlgorithmException(type + " not found");
-	    nsae.initCause(iae);
-	    throw nsae;
-	} catch (InvocationTargetException ite) {
-            Throwable t = ite.getCause();
-            if (t != null) {
-                if (t instanceof NoSuchProviderException)
-	            throw (NoSuchProviderException)t;
-	        if (t instanceof InvalidAlgorithmParameterException)
-	            throw (InvalidAlgorithmParameterException)t;
-	        if (t instanceof NoSuchAlgorithmException)
-	            throw (NoSuchAlgorithmException)t;
-            }
-	    NoSuchAlgorithmException nsae = new
-	        NoSuchAlgorithmException(type + " not found");
-	    nsae.initCause(ite);
-	    throw nsae;
-        }
+	    Instance instance = GetInstance.getInstance("CertStore",
+	    	CertStoreSpi.class, type, params, provider);
+	    return new CertStore((CertStoreSpi)instance.impl, 
+	    	instance.provider, type, params);
+	} catch (NoSuchAlgorithmException e) {
+	    return handleException(e);
+	}
     }
-
+    
     /**
      * Returns a <code>CertStore</code> object that implements the specified
      * <code>CertStore</code> type, as supplied by the specified provider and
@@ -352,71 +270,18 @@ public class CertStore {
      * null 
      */
     public static CertStore getInstance(String type, CertStoreParameters params,
-	Provider provider) 
-        throws NoSuchAlgorithmException, InvalidAlgorithmParameterException
-    {
-	if (provider == null)
-	    throw new IllegalArgumentException("missing provider");
-
-	if (implMethod2Set.booleanValue() == false) {
-	    synchronized (implMethod2Set) {
-		if (implMethod2Set.booleanValue() == false) {
-		    implMethod2 = (Method)
-			AccessController.doPrivileged(
-					   new PrivilegedAction() {
-			    public Object run() {
-				Method m = null;
-				try {
-				    m = cl.getDeclaredMethod("getImpl",
-							     GET_IMPL_PARAMS2);
-				    if (m != null)
-					m.setAccessible(true);
-				} catch (NoSuchMethodException nsme) {
-				}
-				return m;
-			    }
-			});
-		    implMethod2Set = new Boolean(true);
-		}		
-	    }
-	}
-
-	if (implMethod2 == null) {
-	    throw new NoSuchAlgorithmException(type + " not found");
-	}
-
+	    Provider provider) throws NoSuchAlgorithmException, 
+	    InvalidAlgorithmParameterException {
 	try {
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod2.invoke(null,
-					       new Object[]
-					       { type,
-						 "CertStore",
-						 provider,
-						 params
-					       } );
-	    return new CertStore((CertStoreSpi)objs[0],
-				 (Provider)objs[1], type, params);
-	} catch (IllegalAccessException iae) {
-	    NoSuchAlgorithmException nsae = new
-	                   NoSuchAlgorithmException(type + " not found");
-	    nsae.initCause(iae);
-	    throw nsae;
-	} catch (InvocationTargetException ite) {
-            Throwable t = ite.getCause();
-            if (t != null) {
-	        if (t instanceof InvalidAlgorithmParameterException)
-	            throw (InvalidAlgorithmParameterException)t;
-	        if (t instanceof NoSuchAlgorithmException)
-	            throw (NoSuchAlgorithmException)t;
-            }
-	    NoSuchAlgorithmException nsae = new
-	        NoSuchAlgorithmException(type + " not found");
-	    nsae.initCause(ite);
-	    throw nsae;
+	    Instance instance = GetInstance.getInstance("CertStore",
+	    	CertStoreSpi.class, type, params, provider);
+	    return new CertStore((CertStoreSpi)instance.impl,
+	    	instance.provider, type, params);
+	} catch (NoSuchAlgorithmException e) {
+	    return handleException(e);
 	}
     }
-
+    
     /**
      * Returns the parameters used to initialize this <code>CertStore</code>.
      * Note that the <code>CertStoreParameters</code> object is cloned before 
@@ -452,7 +317,7 @@ public class CertStore {
      * Java security properties file, or the string &quot;LDAP&quot; if no 
      * such property exists. The Java security properties file is located in 
      * the file named &lt;JAVA_HOME&gt;/lib/security/java.security, where 
-     * &lt;JAVA_HOME&gt; refers to the directory where the SDK was installed.
+     * &lt;JAVA_HOME&gt; refers to the directory where the JDK was installed.
      *
      * <p>The default <code>CertStore</code> type can be used by applications 
      * that do not want to use a hard-coded type when calling one of the

@@ -1,5 +1,5 @@
 /*
- * @(#)ClassLoader.java	1.171 04/05/06
+ * @(#)ClassLoader.java	1.186 04/08/02
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -33,16 +33,17 @@ import sun.misc.ClassFileTransformer;
 import sun.misc.CompoundEnumeration;
 import sun.misc.Resource;
 import sun.misc.URLClassPath;
+import sun.misc.VM;
 import sun.reflect.Reflection;
 import sun.security.util.SecurityConstants;
 
 /**
  * A class loader is an object that is responsible for loading classes. The
- * class <tt>ClassLoader</tt> is an abstract class.  Given the name of a
- * class, a class loader should attempt to locate or generate data that
- * constitutes a definition for the class.  A typical strategy is to transform
- * the name into a file name and then read a "class file" of that name
- * from a file system.
+ * class <tt>ClassLoader</tt> is an abstract class.  Given the <a
+ * href="#name">binary name</a> of a class, a class loader should attempt to
+ * locate or generate data that constitutes a definition for the class.  A
+ * typical strategy is to transform the name into a file name and then read a
+ * "class file" of that name from a file system.
  *
  * <p> Every {@link Class <tt>Class</tt>} object contains a {@link
  * Class#getClassLoader() reference} to the <tt>ClassLoader</tt> that defined
@@ -120,9 +121,23 @@ import sun.security.util.SecurityConstants;
  *     }
  * </pre></blockquote>
  *
- * @version  1.171, 05/06/04
+ * <h4> <a name="name">Binary names</a> </h4>
+ *
+ * <p> Any class name provided as a {@link String} parameter to methods in
+ * <tt>ClassLoader</tt> must be a binary name as defined by the <a
+ * href="http://java.sun.com/docs/books/jls/">Java Language Specification</a>.
+ *
+ * <p> Examples of valid class names include:
+ * <blockquote><pre>
+ *   "java.lang.String"
+ *   "javax.swing.JSpinner$DefaultEditor"
+ *   "java.security.KeyStore$Builder$FileBuilder$1"
+ *   "java.net.URLClassLoader$3$1"
+ * </pre></blockquote>
+ *
+ * @version  1.186, 08/02/04
  * @see      #resolveClass(Class)
- * @since    1.0
+ * @since 1.0
  */
 public abstract class ClassLoader {
 
@@ -217,27 +232,29 @@ public abstract class ClassLoader {
     // -- Class --
 
     /**
-     * Loads the class with the specified name.  This method searches for
-     * classes in the same manner as the {@link #loadClass(String, boolean)}
-     * method.  It is invoked by the Java virtual machine to resolve class
-     * references.  Invoking this method is equivalent to invoking {@link
-     * #loadClass(String, boolean) <tt>loadClass(name, false)</tt>}.  </p>
+     * Loads the class with the specified <a href="#name">binary name</a>.
+     * This method searches for classes in the same manner as the {@link
+     * #loadClass(String, boolean)} method.  It is invoked by the Java virtual
+     * machine to resolve class references.  Invoking this method is equivalent
+     * to invoking {@link #loadClass(String, boolean) <tt>loadClass(name,
+     * false)</tt>}.  </p>
      *
      * @param  name
-     *         The name of the class
+     *         The <a href="#name">binary name</a> of the class
      *
      * @return  The resulting <tt>Class</tt> object
      *
      * @throws  ClassNotFoundException
      *          If the class was not found
      */
-    public Class loadClass(String name) throws ClassNotFoundException {
+    public Class<?> loadClass(String name) throws ClassNotFoundException {
 	return loadClass(name, false);
     }
 
     /**
-     * Loads the class with the specified name.  The default implementation
-     * of this method searches for classes in the following order:
+     * Loads the class with the specified <a href="#name">binary name</a>.  The
+     * default implementation of this method searches for classes in the
+     * following order:
      *
      * <p><ol>
      *
@@ -261,7 +278,7 @@ public abstract class ClassLoader {
      * #findClass(String)}, rather than this method.  </p>
      *
      * @param  name
-     *         The name of the class
+     *         The <a href="#name">binary name</a> of the class
      *
      * @param  resolve
      *         If <tt>true</tt> then resolve the class
@@ -271,7 +288,7 @@ public abstract class ClassLoader {
      * @throws  ClassNotFoundException
      *          If the class could not be found
      */
-    protected synchronized Class loadClass(String name, boolean resolve)
+    protected synchronized Class<?> loadClass(String name, boolean resolve)
 	throws ClassNotFoundException
     {
 	// First, check if the class has already been loaded
@@ -320,15 +337,15 @@ public abstract class ClassLoader {
     }
 
     /**
-     * Finds the specified class.  This method should be overridden by class
-     * loader implementations that follow the delegation model for loading
-     * classes, and will be invoked by the {@link #loadClass
-     * <tt>loadClass</tt>} method after checking the parent class loader for
-     * the requested class.  The default implementation throws a
-     * <tt>ClassNotFoundException</tt>.  </p>
+     * Finds the class with the specified <a href="#name">binary name</a>.
+     * This method should be overridden by class loader implementations that
+     * follow the delegation model for loading classes, and will be invoked by
+     * the {@link #loadClass <tt>loadClass</tt>} method after checking the
+     * parent class loader for the requested class.  The default implementation
+     * throws a <tt>ClassNotFoundException</tt>.  </p>
      *
      * @param  name
-     *         The name of the class
+     *         The <a href="#name">binary name</a> of the class
      *
      * @return  The resulting <tt>Class</tt> object
      *
@@ -337,15 +354,15 @@ public abstract class ClassLoader {
      *
      * @since  1.2
      */
-    protected Class findClass(String name) throws ClassNotFoundException {
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
 	throw new ClassNotFoundException(name);
     }
 
     /**
      * Converts an array of bytes into an instance of class <tt>Class</tt>.
      * Before the <tt>Class</tt> can be used it must be resolved.  This method
-     * is deprecated in favor of the version that takes the class name as its
-     * first argument, and is more secure.
+     * is deprecated in favor of the version that takes a <a
+     * href="#name">binary name</a> as its first argument, and is more secure.
      *
      * @param  b
      *         The bytes that make up the class data.  The bytes in positions
@@ -376,7 +393,8 @@ public abstract class ClassLoader {
      * @deprecated  Replaced by {@link #defineClass(String, byte[], int, int)
      * defineClass(String, byte[], int, int)}
      */
-    protected final Class defineClass(byte[] b, int off, int len)
+    @Deprecated
+    protected final Class<?> defineClass(byte[] b, int off, int len)
 	throws ClassFormatError
     {
 	return defineClass(null, b, off, len, null);
@@ -402,9 +420,8 @@ public abstract class ClassLoader {
      * <tt>ProtectionDomain</tt> as one of its arguments.  </p>
      *
      * @param  name
-     *         The expected name of the class, or <tt>null</tt>
-     *         if not known, using '<tt>.</tt>' and not '<tt>/</tt>' as the
-     *         separator and without a trailing <tt>.class</tt> suffix.
+     *         The expected <a href="#name">binary name</a> of the class, or
+     *         <tt>null</tt> if not known
      *
      * @param  b
      *         The bytes that make up the class data.  The bytes in positions
@@ -432,8 +449,8 @@ public abstract class ClassLoader {
      * @throws  SecurityException
      *          If an attempt is made to add this class to a package that
      *          contains classes that were signed by a different set of
-     *          certificates than this class (which is unsigned), or if the
-     *          class name begins with "<tt>java.</tt>".
+     *          certificates than this class (which is unsigned), or if
+     *          <tt>name</tt> begins with "<tt>java.</tt>".
      *
      * @see  #loadClass(String, boolean)
      * @see  #resolveClass(Class)
@@ -442,10 +459,85 @@ public abstract class ClassLoader {
      *
      * @since  1.1
      */
-    protected final Class defineClass(String name, byte[] b, int off, int len)
+    protected final Class<?> defineClass(String name, byte[] b, int off, int len)
 	throws ClassFormatError
     {
 	return defineClass(name, b, off, len, null);
+    }
+
+    /* Determine protection domain, and check that:
+        - not define java.* class,
+	- signer of this class matches signers for the rest of the classes in package.
+    */
+    private ProtectionDomain preDefineClass(String name,
+					    ProtectionDomain protectionDomain)
+    {
+	if (!checkName(name))
+	    throw new NoClassDefFoundError("IllegalName: " + name);
+
+	if ((name != null) && name.startsWith("java.")) {
+	    throw new SecurityException("Prohibited package name: " +
+					name.substring(0, name.lastIndexOf('.')));
+	}
+	if (protectionDomain == null) {
+	    protectionDomain = getDefaultDomain();
+	}
+
+	if (name != null)
+	    checkCerts(name, protectionDomain.getCodeSource());
+
+	return protectionDomain;
+    }
+
+    private String defineClassSourceLocation(ProtectionDomain protectionDomain)
+    {
+	CodeSource cs = protectionDomain.getCodeSource();
+	String source = null;
+	if (cs != null && cs.getLocation() != null) {
+	    source = cs.getLocation().toString();
+	}
+	return source;
+    }
+
+    private Class defineTransformedClass(String name, byte[] b, int off, int len,
+					 ProtectionDomain protectionDomain,
+					 ClassFormatError cfe, String source)
+      throws ClassFormatError
+    {
+        // Class format error - try to transform the bytecode and
+        // define the class again
+        //
+        Object[] transformers = ClassFileTransformer.getTransformers();
+	Class c = null;
+
+	for (int i = 0; transformers != null && i < transformers.length; i++) {
+	    try {
+	      // Transform byte code using transformer
+	      byte[] tb = ((ClassFileTransformer) transformers[i]).transform(b, off, len);
+	      c = defineClass1(name, tb, 0, tb.length, protectionDomain, source);
+	      break;
+	    } catch (ClassFormatError cfe2)	{
+	      // If ClassFormatError occurs, try next transformer
+	    }
+	}
+
+	// Rethrow original ClassFormatError if unable to transform
+	// bytecode to well-formed
+	//
+	if (c == null)
+	    throw cfe;
+
+	return c;
+    }
+
+    private void postDefineClass(Class c, ProtectionDomain protectionDomain)
+    {
+	if (protectionDomain.getCodeSource() != null) {
+	    java.security.cert.Certificate certs[] =
+		protectionDomain.getCodeSource().getCertificates();
+	    if (certs != null)
+		setSigners(c, certs);
+	}
     }
 
     /**
@@ -461,23 +553,22 @@ public abstract class ClassLoader {
      * {@link java.security.CodeSource <tt>CodeSource</tt>} within the
      * <tt>ProtectionDomain</tt> of the class.  Any classes added to that
      * package must contain the same set of certificates or a
-     * <tt>SecurityException</tt> will be thrown.  Note that if the
-     * <tt>name</tt> argument is <tt>null</tt>, this check is not performed.
-     * You should always pass in the name of the class you are defining as
-     * well as the bytes.  This ensures that the class you are defining is
-     * indeed the class you think it is.
+     * <tt>SecurityException</tt> will be thrown.  Note that if
+     * <tt>name</tt> is <tt>null</tt>, this check is not performed.
+     * You should always pass in the <a href="#name">binary name</a> of the
+     * class you are defining as well as the bytes.  This ensures that the
+     * class you are defining is indeed the class you think it is.
      *
-     * <p> The specified class name cannot begin with "<tt>java.</tt>", since
+     * <p> The specified <tt>name</tt> cannot begin with "<tt>java.</tt>", since
      * all classes in the "<tt>java.*</tt> packages can only be defined by the
-     * bootstrap class loader. If the name parameter is not <tt>null</tt>, it
-     * must be equal to the name of the class specified by the byte array
-     * "<tt>b</tt>", otherwise a {@link <tt>NoClassDefFoundError</tt>} will be
-     * thrown.  </p>
+     * bootstrap class loader.  If <tt>name</tt> is not <tt>null</tt>, it
+     * must be equal to the <a href="#name">binary name</a> of the class
+     * specified by the byte array "<tt>b</tt>", otherwise a {@link
+     * <tt>NoClassDefFoundError</tt>} will be thrown.  </p>
      *
      * @param  name
-     *         The expected name of the class, or <tt>null</tt> if not known,
-     *         using '<tt>.</tt>' and not '<tt>/</tt>' as the separator and
-     *         without a trailing "<tt>.class</tt>" suffix.
+     *         The expected <a href="#name">binary name</a> of the class, or
+     *         <tt>null</tt> if not known
      *
      * @param  b
      *         The bytes that make up the class data. The bytes in positions
@@ -502,8 +593,8 @@ public abstract class ClassLoader {
      *          If the data did not contain a valid class
      *
      * @throws  NoClassDefFoundError
-     *          If <tt>name</tt> is not equal to the name of the class
-     *          specified by <tt>b</tt>
+     *          If <tt>name</tt> is not equal to the <a href="#name">binary
+     *          name</a> of the class specified by <tt>b</tt>
      *
      * @throws  IndexOutOfBoundsException
      *          If either <tt>off</tt> or <tt>len</tt> is negative, or if
@@ -512,75 +603,148 @@ public abstract class ClassLoader {
      * @throws  SecurityException
      *          If an attempt is made to add this class to a package that
      *          contains classes that were signed by a different set of
-     *          certificates than this class, or if the class name begins with
+     *          certificates than this class, or if <tt>name</tt> begins with
      *          "<tt>java.</tt>".
      */
-    protected final Class defineClass(String name, byte[] b, int off, int len,
-				      ProtectionDomain protectionDomain)
+    protected final Class<?> defineClass(String name, byte[] b, int off, int len,
+					 ProtectionDomain protectionDomain)
 	throws ClassFormatError
     {
 	check();
-        if ((name != null) && name.startsWith("java.")) {
-            throw new SecurityException("Prohibited package name: " +
-                                        name.substring(0, name.lastIndexOf('.')));
-        }
-	if (protectionDomain == null) {
-	    protectionDomain = getDefaultDomain();
-	}
-
-	if (name != null)
-	    checkCerts(name, protectionDomain.getCodeSource());
+	protectionDomain = preDefineClass(name, protectionDomain);
 
 	Class c = null;
+        String source = defineClassSourceLocation(protectionDomain);
 
 	try {
-            if (!checkName(name, false))
-              throw new NoClassDefFoundError("Illegal name: " + name);
-	    c = defineClass0(name, b, off, len, protectionDomain);
+	    c = defineClass1(name, b, off, len, protectionDomain, source);
 	} catch (ClassFormatError cfe) {
-	    // Class format error - try to transform the bytecode and
-	    // define the class again
-	    //
-	    Object[] transformers = ClassFileTransformer.getTransformers();
+	    c = defineTransformedClass(name, b, off, len, protectionDomain, cfe, source);
+	}
 
-	    for (int i = 0; transformers != null && i < transformers.length; i++) {
-		try {
-		    // Transform byte code using transformer
-		    byte[] tb = ((ClassFileTransformer) transformers[i]).transform(b, off, len);
-		    c = defineClass0(name, tb, 0, tb.length, protectionDomain);
-		    break;
-		} catch (ClassFormatError cfe2)	{
-		    // If ClassFormatError occurs, try next transformer
-		}
+	postDefineClass(c, protectionDomain);
+	return c;
+    }
+
+    /**
+     * Converts a {@link java.nio.ByteBuffer <tt>ByteBuffer</tt>}
+     * into an instance of class <tt>Class</tt>,
+     * with an optional <tt>ProtectionDomain</tt>.  If the domain is
+     * <tt>null</tt>, then a default domain will be assigned to the class as
+     * specified in the documentation for {@link #defineClass(String, byte[],
+     * int, int)}.  Before the class can be used it must be resolved.
+     *
+     * <p>The rules about the first class defined in a package determining the set of
+     * certificates for the package, and the restrictions on class names are identical
+     * to those specified in the documentation for {@link #defineClass(String, byte[],
+     * int, int, ProtectionDomain)}.
+     *
+     * <p> An invocation of this method of the form
+     * <i>cl</i><tt>.defineClass(</tt><i>name</i><tt>,</tt>
+     * <i>bBuffer</i><tt>,</tt> <i>pd</i><tt>)</tt> yields exactly the same
+     * result as the statements
+     *
+     * <blockquote><tt>
+     * ...<br>
+     * byte[] temp = new byte[</tt><i>bBuffer</i><tt>.{@link java.nio.ByteBuffer#remaining
+     * remaining}()];<br>
+     * 	   </tt><i>bBuffer</i><tt>.{@link java.nio.ByteBuffer#get(byte[])
+     * get}(temp);<br>
+     *     return {@link #defineClass(String, byte[], int, int, ProtectionDomain)
+     * </tt><i>cl</i><tt>.defineClass}(</tt><i>name</i><tt>, temp, 0, temp.length, </tt><i>pd</i><tt>);<br>
+     * </tt></blockquote>
+     *
+     * @param  name
+     *         The expected <a href="#name">binary name</a. of the class, or
+     *         <tt>null</tt> if not known
+     *
+     * @param  b
+     *         The bytes that make up the class data. The bytes from positions
+     *         <tt>b.position()</tt> through <tt>b.position() + b.limit() -1 </tt>
+     *         should have the format of a valid class file as defined by the <a
+     *         href="http://java.sun.com/docs/books/vmspec/">Java Virtual
+     *         Machine Specification</a>.
+     *
+     * @param  protectionDomain
+     *         The ProtectionDomain of the class, or <tt>null</tt>.
+     *
+     * @return  The <tt>Class</tt> object created from the data,
+     *          and optional <tt>ProtectionDomain</tt>.
+     *
+     * @throws  ClassFormatError
+     *          If the data did not contain a valid class.
+     *
+     * @throws  NoClassDefFoundError
+     *          If <tt>name</tt> is not equal to the <a href="#name">binary
+     *          name</a> of the class specified by <tt>b</tt>
+     *
+     * @throws  SecurityException
+     *          If an attempt is made to add this class to a package that
+     *          contains classes that were signed by a different set of
+     *          certificates than this class, or if <tt>name</tt> begins with
+     *          "<tt>java.</tt>".
+     *
+     * @see      #defineClass(String, byte[], int, int, ProtectionDomain)
+     *
+     * @since  1.5
+     */
+    protected final Class<?> defineClass(String name, java.nio.ByteBuffer b,
+					 ProtectionDomain protectionDomain)
+	throws ClassFormatError
+    {
+	check();
+
+	int len = b.remaining();
+
+	// Use byte[] if not a direct ByteBufer:
+	if (!b.isDirect()) {
+	    if (b.hasArray()) {
+		return defineClass(name, b.array(),
+				   b.position() + b.arrayOffset(), len,
+				   protectionDomain);
+	    } else {
+		// no array, or read-only array
+		byte[] tb = new byte[len];
+		b.get(tb);  // get bytes out of byte buffer.
+		return defineClass(name, tb, 0, len, protectionDomain);
 	    }
-
-	    // Rethrow original ClassFormatError if unable to transform
-	    // bytecode to well-formed
-	    //
-	    if (c == null)
-		throw cfe;
 	}
 
-	if (protectionDomain.getCodeSource() != null) {
-	    java.security.cert.Certificate certs[] =
-		protectionDomain.getCodeSource().getCertificates();
-	    if (certs != null)
-		setSigners(c, certs);
+        protectionDomain = preDefineClass(name, protectionDomain);
+
+	Class c = null;
+	String source = defineClassSourceLocation(protectionDomain);
+
+	try {
+	    c = defineClass2(name, b, b.position(), len, protectionDomain, source);
+	} catch (ClassFormatError cfe) {
+	    byte[] tb = new byte[len];
+	    b.get(tb);  // get bytes out of byte buffer.
+	    c = defineTransformedClass(name, tb, 0, len, protectionDomain, cfe, source);
 	}
+
+	postDefineClass(c, protectionDomain);
 	return c;
     }
 
     private native Class defineClass0(String name, byte[] b, int off, int len,
-	ProtectionDomain pd);
+	                              ProtectionDomain pd);
 
-    private boolean checkName(String name, boolean allowArrayClass) {
-      if ((name == null) || (name.length() == 0))
-          return true;
-      if (name.indexOf('/') != -1)
-          return false;
-      if (!allowArrayClass && (name.charAt(0) == '['))
-          return false;
-      return true;
+    private native Class defineClass1(String name, byte[] b, int off, int len,
+	                              ProtectionDomain pd, String source);
+
+    private native Class defineClass2(String name, java.nio.ByteBuffer b,
+				      int off, int len, ProtectionDomain pd,
+				      String source);
+
+    // true if the name is null or has the potential to be a valid binary name
+    private boolean checkName(String name) {
+	if ((name == null) || (name.length() == 0))
+   	    return true;
+	if ((name.indexOf('/') != -1)
+	    || (!VM.allowArraySyntax() && (name.charAt(0) == '[')))
+   	    return false;
+ 	return true;
     }
 
     private synchronized void checkCerts(String name, CodeSource cs) {
@@ -664,7 +828,8 @@ public abstract class ClassLoader {
      * used by a class loader to link a class.  If the class <tt>c</tt> has
      * already been linked, then this method simply returns. Otherwise, the
      * class is linked as described in the "Execution" chapter of the <a
-     * href="http://java.sun.com/docs/books/jls/">Java Language Specification</a>.
+     * href="http://java.sun.com/docs/books/jls/">Java Language
+     * Specification</a>.
      * </p>
      *
      * @param  c
@@ -675,7 +840,7 @@ public abstract class ClassLoader {
      *
      * @see  #defineClass(String, byte[], int, int)
      */
-    protected final void resolveClass(Class c) {
+    protected final void resolveClass(Class<?> c) {
 	check();
 	resolveClass0(c);
     }
@@ -683,7 +848,8 @@ public abstract class ClassLoader {
     private native void resolveClass0(Class c);
 
     /**
-     * Finds a class with the specified name, loading it if necessary.
+     * Finds a class with the specified <a href="#name">binary name</a>,
+     * loading it if necessary.
      *
      * <p> This method loads the class through the system class loader (see
      * {@link #getSystemClassLoader()}).  The <tt>Class</tt> object returned
@@ -693,7 +859,7 @@ public abstract class ClassLoader {
      * #findClass(String)}.  </p>
      *
      * @param  name
-     *         The name of the class that is to be found
+     *         The <a href="#name">binary name</a> of the class
      *
      * @return  The <tt>Class</tt> object for the specified <tt>name</tt>
      *
@@ -703,27 +869,25 @@ public abstract class ClassLoader {
      * @see  #ClassLoader(ClassLoader)
      * @see  #getParent()
      */
-    protected final Class findSystemClass(String name)
+    protected final Class<?> findSystemClass(String name)
 	throws ClassNotFoundException
     {
 	check();
 	ClassLoader system = getSystemClassLoader();
 	if (system == null) {
-            if (!checkName(name, true))
-              throw new ClassNotFoundException(name);
-
+	    if (!checkName(name))
+		throw new ClassNotFoundException(name);
 	    return findBootstrapClass(name);
 	}
 	return system.loadClass(name);
     }
 
-
     private Class findBootstrapClass0(String name)
-	throws ClassNotFoundException {
+	throws ClassNotFoundException
+    {
 	check();
-        if (!checkName(name, true))
-          throw new ClassNotFoundException(name);
-
+	if (!checkName(name))
+	    throw new ClassNotFoundException(name);
 	return findBootstrapClass(name);
     }
 
@@ -738,27 +902,27 @@ public abstract class ClassLoader {
     }
 
     /**
-     * Returns the class with the given name if this loader has been recorded
-     * by the Java virtual machine as an initiating loader of a class with
-     * that name.  Otherwise <tt>null</tt> is returned.  </p>
+     * Returns the class with the given <a href="#name">binary name</a> if this
+     * loader has been recorded by the Java virtual machine as an initiating
+     * loader of a class with that <a href="#name">binary name</a>.  Otherwise
+     * <tt>null</tt> is returned.  </p>
      *
      * @param  name
-     *         The class name
+     *         The <a href="#name">binary name</a> of the class
      *
      * @return  The <tt>Class</tt> object, or <tt>null</tt> if the class has
      *          not been loaded
      *
      * @since  1.1
      */
-    protected final Class findLoadedClass(String name) {
-      check();
-      if (!checkName(name, true))
-          return null;
-      return findLoadedClass0(name);
+    protected final Class<?> findLoadedClass(String name) {
+	check();
+	if (!checkName(name))
+	    return null;
+	return findLoadedClass0(name);
     }
 
     private native final Class findLoadedClass0(String name);
-
 
     /**
      * Sets the signers of a class.  This should be invoked after defining a
@@ -772,7 +936,7 @@ public abstract class ClassLoader {
      *
      * @since  1.1
      */
-    protected final void setSigners(Class c, Object[] signers) {
+    protected final void setSigners(Class<?> c, Object[] signers) {
         check();
 	c.setSigners(signers);
     }
@@ -841,7 +1005,7 @@ public abstract class ClassLoader {
      *
      * @since  1.2
      */
-    public final Enumeration getResources(String name) throws IOException {
+    public Enumeration<URL> getResources(String name) throws IOException {
 	Enumeration[] tmp = new Enumeration[2];
 	if (parent != null) {
 	    tmp[0] = parent.getResources(name);
@@ -886,7 +1050,7 @@ public abstract class ClassLoader {
      *
      * @since  1.2
      */
-    protected Enumeration findResources(String name) throws IOException {
+    protected Enumeration<URL> findResources(String name) throws IOException {
 	return new CompoundEnumeration(new Enumeration[0]);
     }
 
@@ -931,7 +1095,7 @@ public abstract class ClassLoader {
 
      * @since  1.2
      */
-    public static Enumeration getSystemResources(String name)
+    public static Enumeration<URL> getSystemResources(String name)
 	throws IOException
     {
 	ClassLoader system = getSystemClassLoader();
@@ -1014,12 +1178,12 @@ public abstract class ClassLoader {
      * @since  1.1
      */
     public static InputStream getSystemResourceAsStream(String name) {
-	URL url = getSystemResource(name);
-	try {
-	    return url != null ? url.openStream() : null;
-	} catch (IOException e) {
-	    return null;
-	}
+        URL url = getSystemResource(name);
+        try {
+            return url != null ? url.openStream() : null;
+        } catch (IOException e) {
+            return null;
+        }
     }
 
 
@@ -1255,7 +1419,7 @@ public abstract class ClassLoader {
 	    }
 	    pkg = new Package(name, specTitle, specVersion, specVendor,
 			      implTitle, implVersion, implVendor,
-			      sealBase);
+			      sealBase, this);
 	    packages.put(name, pkg);
 	    return pkg;
 	}
@@ -1352,12 +1516,12 @@ public abstract class ClassLoader {
      * into the system are entered into the <tt>systemNativeLibraries</tt>
      * vector.
      *
-     * <p> Every native library reuqires a particular version of JNI. This is
+     * <p> Every native library requires a particular version of JNI. This is
      * denoted by the private <tt>jniVersion</tt> field.  This field is set by
      * the VM when it loads the library, and used by the VM to pass the correct
      * version of JNI to the native methods.  </p>
      *
-     * @version  1.171 05/06/04
+     * @version  1.186 08/02/04
      * @see      ClassLoader
      * @since    1.2
      */
@@ -1411,13 +1575,14 @@ public abstract class ClassLoader {
     }
 
     // The "default" domain. Set as the default ProtectionDomain on newly
-    // created classses.
+    // created classes.
     private ProtectionDomain defaultDomain = null;
 
     // Returns (and initializes) the default domain.
     private synchronized ProtectionDomain getDefaultDomain() {
 	if (defaultDomain == null) {
-	    CodeSource cs = new CodeSource(null, null);
+	    CodeSource cs =
+		new CodeSource(null, (java.security.cert.Certificate[]) null);
 	    defaultDomain = new ProtectionDomain(cs, null, this, null);
 	}
 	return defaultDomain;

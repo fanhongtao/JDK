@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultEditorKit.java	1.63 03/01/23
+ * @(#)DefaultEditorKit.java	1.67 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -49,7 +49,7 @@ import javax.swing.UIManager;
  * </dl>
  *
  * @author  Timothy Prinzing
- * @version 1.63 01/23/03
+ * @version 1.67 12/19/03
  */
 public class DefaultEditorKit extends EditorKit {
     
@@ -1302,24 +1302,30 @@ public class DefaultEditorKit extends EditorKit {
 		Rectangle visible = target.getVisibleRect();
                 Rectangle newVis = new Rectangle(visible);
                 int selectedIndex = target.getCaretPosition();
-                int yOffset = direction * visible.height;
+                int scrollAmount = target.getScrollableBlockIncrement(
+                                  visible, SwingConstants.VERTICAL, direction); 
                 int initialY = visible.y;
                 Caret caret = target.getCaret();
                 Point magicPosition = caret.getMagicCaretPosition();
+                int yOffset;   
 
-                newVis.y = constrainY(target, visible.y + yOffset, yOffset);
                 if (selectedIndex != -1) {
                     try {
                         Rectangle dotBounds = target.modelToView(
                                                      selectedIndex);
                         int x = (magicPosition != null) ? magicPosition.x :
                                                           dotBounds.x;
+                        // fix for 4697612 
+                        int h = dotBounds.height;
+                        yOffset = direction *
+                                  (int)Math.ceil(scrollAmount / (double)h) * h; 
+                        newVis.y = constrainY(target, initialY + yOffset, yOffset);                        
+
                         int newIndex;
 
                         if (visible.contains(dotBounds.x, dotBounds.y)) {
                             // Dot is currently visible, base the new
                             // location off the old, or
-
                             newIndex = target.viewToModel(
                                 new Point(x, constrainY(target,
                                           dotBounds.y + yOffset, 0)));
@@ -1351,6 +1357,9 @@ public class DefaultEditorKit extends EditorKit {
                             }
                         }
                     } catch (BadLocationException ble) { }
+                } else {
+                    yOffset = direction * scrollAmount;
+                    newVis.y = constrainY(target, initialY + yOffset, yOffset);
                 }
                 if (magicPosition != null) {
                     caret.setMagicCaretPosition(magicPosition);
@@ -1699,7 +1708,15 @@ public class DefaultEditorKit extends EditorKit {
                 int offs = target.getCaretPosition();
                 boolean failed = false;
                 try {
+                    Element curPara =
+                            Utilities.getParagraphElement(target, offs);
                     offs = Utilities.getPreviousWord(target, offs);
+                    if(offs < curPara.getStartOffset()) {
+                        // we should first move to the end of the
+                        // previous paragraph (bug #4278839)
+                        offs = Utilities.getParagraphElement(target, offs).
+                                getEndOffset() - 1;
+                    }
                 } catch (BadLocationException bl) {
                     if (offs != 0) {
                         offs = 0;
@@ -1749,12 +1766,25 @@ public class DefaultEditorKit extends EditorKit {
             if (target != null) {
                 int offs = target.getCaretPosition();
                 boolean failed = false;
+                int oldOffs = offs;
+                Element curPara =
+                        Utilities.getParagraphElement(target, offs);
                 try {
                     offs = Utilities.getNextWord(target, offs);
+                    if(offs >= curPara.getEndOffset() &&
+                            oldOffs != curPara.getEndOffset() - 1) {
+                        // we should first move to the end of current
+                        // paragraph (bug #4278839)
+                        offs = curPara.getEndOffset() - 1;
+                    }
                 } catch (BadLocationException bl) {
                     int end = target.getDocument().getLength();
                     if (offs != end) {
+                        if(oldOffs != curPara.getEndOffset() - 1) {
+                            offs = curPara.getEndOffset() - 1;
+                        } else {
                         offs = end;
+                    }
                     }
                     else {
                         failed = true;

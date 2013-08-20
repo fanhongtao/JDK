@@ -1,7 +1,7 @@
 /*
- * @(#)JComboBox.java	1.117 03/01/23
+ * @(#)JComboBox.java	1.126 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -55,7 +55,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A combination of a text field and a drop-down list.
  *
- * @version 1.117 01/23/03
+ * @version 1.126 05/05/04
  * @author Arnaud Weber
  * @author Mark Davidson
  */
@@ -186,7 +186,7 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
      * @param items  an array of vectors to insert into the combo box
      * @see DefaultComboBoxModel
      */
-    public JComboBox(Vector items) {
+    public JComboBox(Vector<?> items) {
         super();
         setModel(new DefaultComboBoxModel(items));
         init();
@@ -1554,6 +1554,120 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
     protected class AccessibleJComboBox extends AccessibleJComponent 
     implements AccessibleAction, AccessibleSelection {
 
+
+	private JList popupList; // combo box popup list
+	private Accessible previousSelectedAccessible = null;
+
+	/**
+	 * Returns an AccessibleJComboBox instance
+	 */
+	public AccessibleJComboBox() {
+	    // TIGER - 4894944  4894434 
+	    // Get the popup list
+            Accessible a = getUI().getAccessibleChild(JComboBox.this, 0);
+            if (a instanceof javax.swing.plaf.basic.ComboPopup) {
+                // Listen for changes to the popup menu selection.
+                popupList = ((javax.swing.plaf.basic.ComboPopup)a).getList();
+		popupList.addListSelectionListener(
+		    new AccessibleJComboBoxListSelectionListener());
+            }
+	    // Listen for popup menu show/hide events
+	    JComboBox.this.addPopupMenuListener(
+	      new AccessibleJComboBoxPopupMenuListener());
+	}
+
+	/*
+	 * Listener for combo box popup menu
+         * TIGER - 4669379 4894434 
+	 */
+	private class AccessibleJComboBoxPopupMenuListener 
+            implements PopupMenuListener {
+	    
+	    /**
+	     *  This method is called before the popup menu becomes visible 
+	     */
+	    public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+		// save the initial selection
+		if (popupList == null) {
+		    return;
+		}
+		int selectedIndex = popupList.getSelectedIndex();
+		if (selectedIndex < 0) {
+		    return;
+		}
+		previousSelectedAccessible = 
+		    popupList.getAccessibleContext().getAccessibleChild(selectedIndex);
+	    }
+	    
+	    /**
+	     * This method is called before the popup menu becomes invisible
+	     * Note that a JPopupMenu can become invisible any time 
+	     */
+	    public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+		// ignore
+	    }
+	    
+	    /**
+	     * This method is called when the popup menu is canceled
+	     */
+	    public void popupMenuCanceled(PopupMenuEvent e) {
+		// ignore
+	    }
+	}
+
+	/*
+	 * Handles changes to the popup list selection.
+         * TIGER - 4669379 4894434 4933143
+	 */
+	private class AccessibleJComboBoxListSelectionListener
+	    implements ListSelectionListener {
+
+	    public void valueChanged(ListSelectionEvent e) {
+		if (popupList == null) {
+		    return;
+		}
+
+		// Get the selected popup list item.
+		int selectedIndex = popupList.getSelectedIndex();
+		if (selectedIndex < 0) {
+		    return;
+		}
+		Accessible selectedAccessible = 
+		    popupList.getAccessibleContext().getAccessibleChild(selectedIndex);
+		if (selectedAccessible == null) {
+		    return;
+		}
+
+		// Fire a FOCUSED lost PropertyChangeEvent for the
+		// previously selected list item.
+		PropertyChangeEvent pce = null;
+
+		if (previousSelectedAccessible != null) {
+		    pce = new PropertyChangeEvent(previousSelectedAccessible,
+		        AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+		        AccessibleState.FOCUSED, null);
+		    firePropertyChange(AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+				       null, pce);
+		}
+		// Fire a FOCUSED gained PropertyChangeEvent for the
+		// currently selected list item.
+		pce = new PropertyChangeEvent(selectedAccessible,
+                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+		    null, AccessibleState.FOCUSED);
+		firePropertyChange(AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+				   null, pce);
+
+		// Fire the ACCESSIBLE_ACTIVE_DESCENDANT_PROPERTY event
+		// for the combo box.
+		firePropertyChange(AccessibleContext.ACCESSIBLE_ACTIVE_DESCENDANT_PROPERTY, 
+				   previousSelectedAccessible, selectedAccessible);
+
+		// Save the previous selection.
+		previousSelectedAccessible = selectedAccessible;
+	    }
+	}
+
+
         /**
          * Returns the number of accessible children in the object.  If all
          * of the children of this object implement Accessible, than this
@@ -1598,6 +1712,34 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
         public AccessibleRole getAccessibleRole() {
             return AccessibleRole.COMBO_BOX;
         }
+
+	/**
+	 * Gets the state set of this object.  The AccessibleStateSet of 
+	 * an object is composed of a set of unique AccessibleStates.  
+	 * A change in the AccessibleStateSet of an object will cause a 
+	 * PropertyChangeEvent to be fired for the ACCESSIBLE_STATE_PROPERTY 
+	 * property.
+	 *
+	 * @return an instance of AccessibleStateSet containing the 
+	 * current state set of the object
+	 * @see AccessibleStateSet
+	 * @see AccessibleState
+	 * @see #addPropertyChangeListener
+	 *
+	 */
+	public AccessibleStateSet getAccessibleStateSet() {
+	    // TIGER - 4489748
+	    AccessibleStateSet ass = super.getAccessibleStateSet();
+	    if (ass == null) {
+		ass = new AccessibleStateSet();
+	    }
+	    if (JComboBox.this.isPopupVisible()) {
+		ass.add(AccessibleState.EXPANDED);
+	    } else {
+		ass.add(AccessibleState.COLLAPSED);
+	    }
+	    return ass;
+	}
 
         /**
          * Get the AccessibleAction associated with this object.  In the
@@ -1737,6 +1879,8 @@ implements ItemSelectable,ListDataListener,ActionListener, Accessible {
 	 * @see AccessibleContext#getAccessibleChild
 	 */
 	public void addAccessibleSelection(int i) {
+            // TIGER - 4856195 
+            clearAccessibleSelection();
 	    JComboBox.this.setSelectedIndex(i);
 	}
 	

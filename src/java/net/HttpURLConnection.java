@@ -1,7 +1,7 @@
 /*
- * @(#)HttpURLConnection.java	1.36 03/01/23
+ * @(#)HttpURLConnection.java	1.42 04/06/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,6 +38,19 @@ abstract public class HttpURLConnection extends URLConnection {
      */
     protected String method = "GET";
 
+    /** 
+     * The chunk-length when using chunked encoding streaming mode for output.
+     * A value of <code>-1</code> means chunked encoding is disabled for output.
+     */
+    protected int chunkLength = -1;
+
+    /**
+     * The fixed content-length when using fixed-length streaming mode.
+     * A value of <code>-1</code> means fixed-length streaming mode is disabled
+     * for output.
+     */
+    protected int fixedContentLength = -1;
+
     /**
      * Returns the key for the <code>n</code><sup>th</sup> header field.
      * Some implementations may treat the <code>0</code><sup>th</sup> 
@@ -51,6 +64,88 @@ abstract public class HttpURLConnection extends URLConnection {
      */
     public String getHeaderFieldKey (int n) {
 	return null;
+    }
+
+    /**
+     * This method is used to enable streaming of a HTTP request body
+     * without internal buffering, when the content length is known in
+     * advance. 
+     * <p>
+     * An exception will be thrown if the application
+     * attempts to write more data than the indicated
+     * content-length, or if the application closes the OutputStream
+     * before writing the indicated amount.
+     * <p>
+     * When output streaming is enabled, authentication
+     * and redirection cannot be handled automatically.
+     * A HttpRetryException will be thrown when reading
+     * the response if authentication or redirection are required.
+     * This exception can be queried for the details of the error.
+     * <p>
+     * This method must be called before the URLConnection is connected.
+     *
+     * @param   contentLength The number of bytes which will be written
+     *		to the OutputStream.
+     *
+     * @throws  IllegalStateException if URLConnection is already connected 
+     *		or if a different streaming mode is already enabled.
+     *
+     * @throws  IllegalArgumentException if a content length less than 
+     *		zero is specified.
+     *
+     * @see     #setChunkedStreamingMode(int)
+     */ 
+    public void setFixedLengthStreamingMode (int contentLength) {
+	if (connected) {
+	    throw new IllegalStateException ("Already connected");
+	}
+	if (chunkLength != -1) {
+	    throw new IllegalStateException ("Chunked encoding streaming mode set");
+	}
+	if (contentLength < 0) {
+	    throw new IllegalArgumentException ("invalid content length");
+	}
+	fixedContentLength = contentLength;
+    }
+
+    /* Default chunk size (including chunk header) if not specified;
+     * we want to keep this in sync with the one defined in
+     * sun.net.www.http.ChunkedOutputStream
+     */
+    private static final int DEFAULT_CHUNK_SIZE = 4096;
+
+    /**
+     * This method is used to enable streaming of a HTTP request body
+     * without internal buffering, when the content length is <b>not</b>
+     * known in advance. In this mode, chunked transfer encoding 
+     * is used to send the request body. Note, not all HTTP servers
+     * support this mode.
+     * <p>
+     * When output streaming is enabled, authentication
+     * and redirection cannot be handled automatically.
+     * A HttpRetryException will be thrown when reading
+     * the response if authentication or redirection are required.
+     * This exception can be queried for the details of the error.
+     * <p>
+     * This method must be called before the URLConnection is connected.
+     *
+     * @param   chunklen The number of bytes to write in each chunk.
+     *		If chunklen is less than or equal to zero, a default 
+     *		value will be used.
+     *
+     * @throws  IllegalStateException if URLConnection is already connected 
+     *		or if a different streaming mode is already enabled.
+     *
+     * @see     #setFixedLengthStreamingMode(int)
+     */ 
+    public void setChunkedStreamingMode (int chunklen) {
+	if (connected) {
+	    throw new IllegalStateException ("Can't set streaming mode: already connected");
+	}
+	if (fixedContentLength != -1) {
+	    throw new IllegalStateException ("Fixed length streaming mode set");
+	}
+	chunkLength = chunklen <=0? DEFAULT_CHUNK_SIZE : chunklen;
     }
 
     /**
@@ -562,6 +657,7 @@ abstract public class HttpURLConnection extends URLConnection {
      * HTTP Status-Code 500: Internal Server Error. 
      * @deprecated   it is misplaced and shouldn't have existed.
      */
+    @Deprecated
     public static final int HTTP_SERVER_ERROR = 500;
 
     /** 

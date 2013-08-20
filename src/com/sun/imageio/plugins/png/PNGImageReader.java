@@ -1,7 +1,7 @@
 /*
- * @(#)PNGImageReader.java	1.53 03/01/23
+ * @(#)PNGImageReader.java	1.55 03/12/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -329,7 +329,7 @@ public class PNGImageReader extends ImageReader {
         int paletteEntries;
         if (numEntries > 16) {
             paletteEntries = 256;
-        } else if (numEntries > 8) {
+        } else if (numEntries > 4) {
             paletteEntries = 16;
         } else if (numEntries > 2) {
             paletteEntries = 4;
@@ -1441,78 +1441,29 @@ public class PNGImageReader extends ImageReader {
         case PNG_COLOR_PALETTE:
             readMetadata(); // Need tRNS chunk
 
-
-            /*
-             * The PLTE chunk spec says:
-             *
-             * The number of palette entries must not exceed the range that
-             * can be represented in the image bit depth (for example, 2^4 = 16
-             * for a bit depth of 4). It is permissible to have fewer entries
-             * than the bit depth would allow. In that case, any out-of-range
-             * pixel value found in the image data is an error.
-             *
-             * http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.PLTE
-             *
-             * Consequently, the case when the palette length is smaller than 
-             * 2^bitDepth is legal in the view of PNG spec. 
-             *
-             * However the spec of createIndexed() method demands the exact
-             * equality of the palette lengh and number of possible palette
-             * entries (2^bitDepth).
-             *
-             * {@link javax.imageio.ImageTypeSpecifier.html#createIndexed}
-             *
-             * In order to avoid this contradiction we need to extend the
-             * palette arrays to the limit defined by the bitDepth. 
-             */
-
-            int plength = 1 << bitDepth;
-
-            byte[] red = metadata.PLTE_red;
-            byte[] green = metadata.PLTE_green;
-            byte[] blue = metadata.PLTE_blue;
-
-            if (metadata.PLTE_red.length < plength) {
-                red = new byte[plength];
-                System.arraycopy(metadata.PLTE_red, 0, red, 0, metadata.PLTE_red.length);
-                Arrays.fill(red, metadata.PLTE_red.length, plength,
-                            metadata.PLTE_red[metadata.PLTE_red.length - 1]);
-
-                green = new byte[plength];
-                System.arraycopy(metadata.PLTE_green, 0, green, 0,
-                                 Math.min(metadata.PLTE_green.length, plength));
-
-                Arrays.fill(green, metadata.PLTE_green.length, plength,
-                            metadata.PLTE_green[metadata.PLTE_green.length - 1]);
-
-                blue = new byte[plength];
-                System.arraycopy(metadata.PLTE_blue, 0, blue, 0,
-                                 Math.min(metadata.PLTE_blue.length, plength));
-                Arrays.fill(blue, metadata.PLTE_blue.length, plength,
-                            metadata.PLTE_blue[metadata.PLTE_blue.length - 1]);
-
-            }
-
-
             // Alpha from tRNS chunk may have fewer entries than
             // the RGB LUTs from the PLTE chunk; if so, pad with
             // 255.
             byte[] alpha = null;
             if (metadata.tRNS_present && (metadata.tRNS_alpha != null)) {
-                if (metadata.tRNS_alpha.length == red.length) {
+                if (metadata.tRNS_alpha.length == metadata.PLTE_red.length) {
                     alpha = metadata.tRNS_alpha;
                 } else {
-                    alpha = new byte[red.length];
-                    System.arraycopy(metadata.tRNS_alpha, 0, alpha, 0,
-                                     Math.min(metadata.tRNS_alpha.length, red.length));
+                    alpha = new byte[metadata.PLTE_red.length];
+                    System.arraycopy(metadata.tRNS_alpha, 0,
+                                     alpha, 0,
+                                     metadata.tRNS_alpha.length);
                     Arrays.fill(alpha,
                                 metadata.tRNS_alpha.length,
-                                red.length, (byte)255);
+                                metadata.PLTE_red.length,
+                                (byte)255);
                 }
             }
 
-            l.add(ImageTypeSpecifier.createIndexed(red, green,
-                                                   blue, alpha,
+            l.add(ImageTypeSpecifier.createIndexed(metadata.PLTE_red,
+                                                   metadata.PLTE_green,
+                                                   metadata.PLTE_blue,
+                                                   alpha,
                                                    bitDepth,
                                                    DataBuffer.TYPE_BYTE));
             break;

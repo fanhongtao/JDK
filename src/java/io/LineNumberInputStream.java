@@ -1,7 +1,7 @@
 /*
- * @(#)LineNumberInputStream.java	1.24 03/01/23
+ * @(#)LineNumberInputStream.java	1.27 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ package java.io;
  * <code>1</code> when a <code>read</code> returns a newline character.
  *
  * @author     Arthur van Hoff
- * @version    1.24, 01/23/03
+ * @version    1.27, 05/18/04
  * @see        java.io.LineNumberReader
  * @since      JDK1.0
  * @deprecated This class incorrectly assumes that bytes adequately represent
@@ -29,6 +29,7 @@ package java.io;
  *             character streams is via the new character-stream classes, which
  *             include a class for counting line numbers.
  */
+@Deprecated
 public
 class LineNumberInputStream extends FilterInputStream {
     int pushBack = -1;
@@ -208,7 +209,7 @@ class LineNumberInputStream extends FilterInputStream {
      * <i>k</i> input characters without blocking, the 
      * <code>LineNumberInputStream</code> can guarantee only to provide 
      * <i>k</i>/2 characters without blocking, because the 
-     * <i>k</i> characters from the underlyhing input stream might 
+     * <i>k</i> characters from the underlying input stream might
      * consist of <i>k</i>/2 pairs of <code>'&#92;r'</code> and 
      * <code>'&#92;n'</code>, which are converted to just 
      * <i>k</i>/2 <code>'&#92;n'</code> characters. 

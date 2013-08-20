@@ -1,7 +1,7 @@
 /*
- * @(#)CRC32.java	1.29 03/02/07
+ * @(#)CRC32.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.util.zip;
  * A class that can be used to compute the CRC-32 of a data stream.
  *
  * @see		Checksum
- * @version 	1.29, 02/07/03
+ * @version 	1.30, 12/19/03
  * @author 	David Connelly
  */
 public

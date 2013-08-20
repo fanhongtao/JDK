@@ -1,7 +1,7 @@
 /*
- * @(#)AllPermission.java	1.17 03/01/23
+ * @(#)AllPermission.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -31,7 +31,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.17 03/01/23
+ * @version 1.20 03/12/19
  *
  * @author Roland Schemers
  *
@@ -39,6 +39,8 @@ import sun.security.util.SecurityConstants;
  */
 
 public final class AllPermission extends Permission {
+
+    private static final long serialVersionUID = -2916474571451318075L;
 
     /**
      * Creates a new AllPermission object.
@@ -131,7 +133,7 @@ public final class AllPermission extends Permission {
  * @see java.security.Permission
  * @see java.security.Permissions
  *
- * @version 1.17 01/23/03
+ * @version 1.20 12/19/03
  *
  * @author Roland Schemers
  *
@@ -178,7 +180,7 @@ implements java.io.Serializable
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
-	all_allowed = true;
+	all_allowed = true; // No sync; staleness OK
     }
 
     /**
@@ -192,7 +194,7 @@ implements java.io.Serializable
 
     public boolean implies(Permission permission) 
     {
-	return all_allowed;
+	return all_allowed; // No sync; staleness OK
     }
 
     /**

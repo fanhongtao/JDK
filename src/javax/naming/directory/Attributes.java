@@ -1,7 +1,7 @@
 /*
- * @(#)Attributes.java	1.8 03/01/23
+ * @(#)Attributes.java	1.10 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import javax.naming.NamingEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 03/01/23
+  * @version 1.10 04/05/05
   *
   * @see DirContext#getAttributes
   * @see DirContext#modifyAttributes
@@ -90,7 +90,7 @@ public interface Attributes extends Cloneable, java.io.Serializable {
       * 	If attribute set has zero attributes, an empty enumeration 
       * 	is returned.
       */
-    NamingEnumeration getAll();
+    NamingEnumeration<? extends Attribute> getAll();
 
     /**
       * Retrieves an enumeration of the ids of the attributes in the
@@ -104,7 +104,7 @@ public interface Attributes extends Cloneable, java.io.Serializable {
       * 	If attribute set has zero attributes, an empty enumeration 
       * 	is returned.
       */
-    NamingEnumeration getIDs();
+    NamingEnumeration<String> getIDs();
 
     /**
       * Adds a new attribute to the attribute set.

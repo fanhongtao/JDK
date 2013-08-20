@@ -1,7 +1,7 @@
 /*
- * @(#)ConcurrentModificationException.java	1.15 03/01/23
+ * @(#)ConcurrentModificationException.java	1.18 04/06/22
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,10 +11,10 @@ package java.util;
  * This exception may be thrown by methods that have detected concurrent
  * modification of an object when such modification is not permissible.
  * <p>
- * For example, it is not generally permssible for one thread to modify a Collection
+ * For example, it is not generally permissible for one thread to modify a Collection
  * while another thread is iterating over it.  In general, the results of the
  * iteration are undefined under these circumstances.  Some Iterator
- * implementations (including those of all the collection implementations
+ * implementations (including those of all the general purpose collection implementations
  * provided by the JRE) may choose to throw this exception if this behavior is
  * detected.  Iterators that do this are known as <i>fail-fast</i> iterators,
  * as they fail quickly and cleanly, rather that risking arbitrary,
@@ -26,7 +26,7 @@ package java.util;
  * contract of an object, the object may throw this exception.  For
  * example, if a thread modifies a collection directly while it is
  * iterating over the collection with a fail-fast iterator, the iterator
- * will thow this exception.
+ * will throw this exception.
  *
  * <p>Note that fail-fast behavior cannot be guaranteed as it is, generally
  * speaking, impossible to make any hard guarantees in the presence of
@@ -37,7 +37,7 @@ package java.util;
  * should be used only to detect bugs.</i>
  *
  * @author  Josh Bloch
- * @version 1.15, 01/23/03
+ * @version 1.18, 06/22/04
  * @see	    Collection
  * @see     Iterator
  * @see     ListIterator

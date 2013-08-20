@@ -1,7 +1,7 @@
 /*
- * @(#)InputStream.java	1.33 03/01/23
+ * @(#)InputStream.java	1.36 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.CORBA.portable;
@@ -114,7 +114,7 @@ stream.
      * Reads an array of booleans from this input stream.
      * @param value returned array of booleans.
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_boolean_array(boolean[] value, int offset, int 
 length);
@@ -122,7 +122,7 @@ length);
      * Reads an array of chars from this input stream.
      * @param value returned array of chars.
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_char_array(char[] value, int offset, int 
 length);
@@ -130,7 +130,7 @@ length);
      * Reads an array of wide chars from this input stream.
      * @param value returned array of wide chars.
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_wchar_array(char[] value, int offset, int 
 length);
@@ -138,7 +138,7 @@ length);
      * Reads an array of octets (that is, bytes) from this input stream.
      * @param value returned array of octets (that is, bytes).
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_octet_array(byte[] value, int offset, int 
 length);
@@ -146,7 +146,7 @@ length);
      * Reads an array of shorts from this input stream.
      * @param value returned array of shorts.
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_short_array(short[] value, int offset, int 
 length);
@@ -154,7 +154,7 @@ length);
      * Reads an array of unsigned shorts from this input stream.
      * @param value returned array of shorts.
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_ushort_array(short[] value, int offset, int 
 length);
@@ -162,7 +162,7 @@ length);
      * Reads an array of CORBA longs (that is, Java ints) from this input stream.
      * @param value returned array of CORBA longs (that is, Java ints).
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_long_array(int[] value, int offset, int 
 length);
@@ -171,7 +171,7 @@ length);
 stream.
      * @param value returned array of CORBA longs (that is, Java ints).
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_ulong_array(int[] value, int offset, int 
 length);
@@ -180,7 +180,7 @@ length);
 stream.
      * @param value returned array of CORBA longs (that is, Java longs).
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_longlong_array(long[] value, int offset, int 
 length);
@@ -189,7 +189,7 @@ length);
 input stream.
      * @param value returned array of CORBA longs (that is, Java longs).
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_ulonglong_array(long[] value, int offset, int 
 length);
@@ -197,15 +197,15 @@ length);
      * Reads an array of floats from this input stream.
      * @param value returned array of floats.
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_float_array(float[] value, int offset, int 
 length);
     /**
-     * Reads an array of boubles from this input stream.
+     * Reads an array of doubles from this input stream.
      * @param value returned array of doubles.
      * @param offset offset on the stream.
-     * @param length length of buffer to read
+     * @param length length of buffer to read.
      */
     public abstract void	read_double_array(double[] value, int offset, int 
 length);
@@ -213,27 +213,28 @@ length);
     /**
      * Reads a CORBA object from this input stream.
      *
-     * @return the <code>Object</code> instance read from this input stream
+     * @return the <code>Object</code> instance read from this input stream.
      */
     public abstract org.omg.CORBA.Object read_Object();
     /**
-     * Reads a TypeCode from this input stream.
+     * Reads a <code>TypeCode</code> from this input stream.
      *
-     * @return the <code>TypeCode</code> instance read from this input stream
+     * @return the <code>TypeCode</code> instance read from this input stream.
      */
     public abstract TypeCode	read_TypeCode();
     /**
      * Reads an Any from this input stream.
      *
-     * @return the <code>Any</code> instance read from this input stream
+     * @return the <code>Any</code> instance read from this input stream.
      */
     public abstract Any		read_any();
 
     /**
-     * Returns principle for invocation.
-     * @return Principle for invocation
+     * Returns principal for invocation.
+     * @return Principal for invocation.
      * @deprecated Deprecated by CORBA 2.2.
      */
+    @Deprecated
     public  Principal	read_Principal() {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }

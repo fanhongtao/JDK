@@ -1,14 +1,16 @@
 /*
- * @(#)BasicInternalFrameTitlePane.java	1.53 03/01/23
+ * @(#)BasicInternalFrameTitlePane.java	1.61 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
+import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.border.*;
@@ -18,6 +20,9 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.VetoableChangeListener;
 import java.beans.PropertyVetoException;
+
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 
 /**
  * The class that manages a basic title bar
@@ -81,6 +86,7 @@ public class BasicInternalFrameTitlePane extends JComponent
     private String iconButtonToolTip;
     private String restoreButtonToolTip;
     private String maxButtonToolTip;
+    private Handler handler;
 
     public BasicInternalFrameTitlePane(JInternalFrame f) {
 	frame = f;
@@ -135,6 +141,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     protected void uninstallListeners() {
 	frame.removePropertyChangeListener(propertyChangeListener);
+        handler = null;
     }
 
     protected void installDefaults() {
@@ -163,16 +170,19 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
 
     protected void createButtons() {
-	iconButton = new NoFocusButton();
+	iconButton = new NoFocusButton(
+                     "InternalFrameTitlePane.iconifyButtonAccessibleName");
 	iconButton.addActionListener(iconifyAction);
         if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
             iconButton.setToolTipText(iconButtonToolTip);
         }
 
-	maxButton = new NoFocusButton();
+	maxButton = new NoFocusButton(
+                        "InternalFrameTitlePane.maximizeButtonAccessibleName");
 	maxButton.addActionListener(maximizeAction);
 
-	closeButton = new NoFocusButton();  
+	closeButton = new NoFocusButton(
+                      "InternalFrameTitlePane.closeButtonAccessibleName");
 	closeButton.addActionListener(closeAction);
         if (closeButtonToolTip != null && closeButtonToolTip.length() != 0) {
             closeButton.setToolTipText(closeButtonToolTip);
@@ -183,34 +193,50 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     protected void setButtonIcons() {
         if(frame.isIcon()) {
-            iconButton.setIcon(minIcon);
+            if (minIcon != null) {
+                iconButton.setIcon(minIcon);
+            }
             if (restoreButtonToolTip != null &&
                     restoreButtonToolTip.length() != 0) {
                 iconButton.setToolTipText(restoreButtonToolTip);
             }
-            maxButton.setIcon(maxIcon);
+            if (maxIcon != null) {
+                maxButton.setIcon(maxIcon);
+            }
             if (maxButtonToolTip != null && maxButtonToolTip.length() != 0) {
                 maxButton.setToolTipText(maxButtonToolTip);
             }
         } else if (frame.isMaximum()) {
-	    iconButton.setIcon(iconIcon);
-	    maxButton.setIcon(minIcon);
+            if (iconIcon != null) {
+	        iconButton.setIcon(iconIcon);
+            }
+            if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
+                iconButton.setToolTipText(iconButtonToolTip);
+            }
+            if (minIcon != null) {
+	        maxButton.setIcon(minIcon);
+            }
             if (restoreButtonToolTip != null &&
                     restoreButtonToolTip.length() != 0) {
                 maxButton.setToolTipText(restoreButtonToolTip);
             }
         } else {
-	    iconButton.setIcon(iconIcon);
+            if (iconIcon != null) {
+	        iconButton.setIcon(iconIcon);
+            }
             if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
                 iconButton.setToolTipText(iconButtonToolTip);
             }
-	    maxButton.setIcon(maxIcon);
+            if (maxIcon != null) {
+	        maxButton.setIcon(maxIcon);
+            }
             if (maxButtonToolTip != null && maxButtonToolTip.length() != 0) {
                 maxButton.setToolTipText(maxButtonToolTip);
             }
         }
-
-	closeButton.setIcon(closeIcon);
+        if (closeIcon != null) {
+	    closeButton.setIcon(closeIcon);
+        }
     }
 
     protected void assembleSystemMenu() {
@@ -266,7 +292,7 @@ public class BasicInternalFrameTitlePane extends JComponent
 		g.setColor(notSelectedTextColor);
 
             // Center text vertically.
-	    FontMetrics fm = g.getFontMetrics();
+	    FontMetrics fm = SwingUtilities2.getFontMetrics(frame, g);
             int baseline = (getHeight() + fm.getAscent() - fm.getLeading() -
                     fm.getDescent()) / 2;
 
@@ -285,10 +311,10 @@ public class BasicInternalFrameTitlePane extends JComponent
               title = getTitle(frame.getTitle(), fm, titleW);
             } else {
                 titleX = menuBar.getX() - 2
-                         - SwingUtilities.computeStringWidth(fm,title);
+                         - SwingUtilities2.stringWidth(frame,fm,title);
             }
             
-	    g.drawString(title, titleX, baseline);
+	    SwingUtilities2.drawString(frame, g, title, titleX, baseline);
 	    g.setFont(f);
 	}
     }
@@ -311,21 +337,8 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
 
     protected String getTitle(String text, FontMetrics fm, int availTextWidth) {
-        if ( (text == null) || (text.equals("")) )  return "";
-        int textWidth = SwingUtilities.computeStringWidth(fm, text);
-        String clipString = "...";
-        if (textWidth > availTextWidth) {
-            int totalWidth = SwingUtilities.computeStringWidth(fm, clipString);
-            int nChars;
-            for(nChars = 0; nChars < text.length(); nChars++) {
-                totalWidth += fm.charWidth(text.charAt(nChars));
-                if (totalWidth > availTextWidth) {
-                    break;
-                }
-            }
-            text = text.substring(0, nChars) + clipString;
-        }
-        return text;
+        return SwingUtilities2.clipStringIfNecessary(
+                           frame, fm, text, availTextWidth);
       }
 
     /**
@@ -350,80 +363,84 @@ public class BasicInternalFrameTitlePane extends JComponent
 
     protected void enableActions() {
         restoreAction.setEnabled(frame.isMaximum() || frame.isIcon()); 
-	maximizeAction.setEnabled(frame.isMaximizable() && !frame.isMaximum() ); 
-	iconifyAction.setEnabled(frame.isIconifiable() && !frame.isIcon()); 
-	closeAction.setEnabled(frame.isClosable());
-	sizeAction.setEnabled(false);
-	moveAction.setEnabled(false);
+        maximizeAction.setEnabled(
+            (frame.isMaximizable() && !frame.isMaximum() && !frame.isIcon()) ||
+            (frame.isMaximizable() && frame.isIcon()));
+        iconifyAction.setEnabled(frame.isIconifiable() && !frame.isIcon()); 
+        closeAction.setEnabled(frame.isClosable());
+        sizeAction.setEnabled(false);
+        moveAction.setEnabled(false);
     }
 
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
+    }
 
     protected PropertyChangeListener createPropertyChangeListener() {
-        return new PropertyChangeHandler();
+        return getHandler();
     }
 
     protected LayoutManager createLayout() {
-        return new TitlePaneLayout();
+        return getHandler();
     }
 
 
-    /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <Foo>.
-     */
-    public class PropertyChangeHandler implements PropertyChangeListener {
+    private class Handler implements LayoutManager, PropertyChangeListener {
+        //
+        // PropertyChangeListener
+        //
         public void propertyChange(PropertyChangeEvent evt) {
+            String prop = (String)evt.getPropertyName();
 
-	    String prop = (String)evt.getPropertyName();
+            if (prop == JInternalFrame.IS_SELECTED_PROPERTY) {
+                repaint();
+                return;
+            } 
 
-	    if(JInternalFrame.IS_SELECTED_PROPERTY.equals(prop)) {
-	        repaint();
-		return;
-	    } 
-
-	    if(JInternalFrame.IS_ICON_PROPERTY.equals(prop) ||
-	       JInternalFrame.IS_MAXIMUM_PROPERTY.equals(prop)) {
-		setButtonIcons();
-		enableActions();
-		return;
-	    }
-
-            if( prop.equals("closable") ) {
-                if( (Boolean)evt.getNewValue() == Boolean.TRUE )
-                    add(closeButton);
-                else
-                    remove(closeButton);
-            } else if( prop.equals("maximizable") ) {
-                if( (Boolean)evt.getNewValue() == Boolean.TRUE )
-                    add(maxButton);
-                else
-                    remove(maxButton);
-            } else if( prop.equals("iconable") ) {
-                if( (Boolean)evt.getNewValue() == Boolean.TRUE )
-                    add(iconButton);
-                else
-                    remove(iconButton);
+            if (prop == JInternalFrame.IS_ICON_PROPERTY ||
+                    prop == JInternalFrame.IS_MAXIMUM_PROPERTY) {
+                setButtonIcons();
+                enableActions();
+                return;
             }
-	    enableActions();
+
+            if ("closable" == prop) {
+                if ((Boolean)evt.getNewValue() == Boolean.TRUE) {
+                    add(closeButton);
+                } else {
+                    remove(closeButton);
+                }
+            } else if ("maximizable" == prop) {
+                if ((Boolean)evt.getNewValue() == Boolean.TRUE) {
+                    add(maxButton);
+                } else {
+                    remove(maxButton);
+                }
+            } else if ("iconable" == prop) {
+                if ((Boolean)evt.getNewValue() == Boolean.TRUE) {
+                    add(iconButton);
+                } else {
+                    remove(iconButton);
+                }
+            }
+            enableActions();
             
             revalidate();
             repaint();
-	}
+        }
 
-    }  // end PropertyHandler class
 
-    /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <Foo>.
-     */
-    public class TitlePaneLayout implements LayoutManager {
+        //
+        // LayoutManager
+        //
         public void addLayoutComponent(String name, Component c) {}
         public void removeLayoutComponent(Component c) {}    
-        public Dimension preferredLayoutSize(Container c)  {
-	    return minimumLayoutSize(c);
-	}
+        public Dimension preferredLayoutSize(Container c) {
+            return minimumLayoutSize(c);
+        }
     
         public Dimension minimumLayoutSize(Container c) {
             // Calculate width.
@@ -439,15 +456,16 @@ public class BasicInternalFrameTitlePane extends JComponent
                 width += 19;
             }
 
-            FontMetrics fm = getFontMetrics(getFont());
+            FontMetrics fm = frame.getFontMetrics(getFont());
             String frameTitle = frame.getTitle();
-            int title_w = frameTitle != null ? fm.stringWidth(frameTitle) : 0;
+            int title_w = frameTitle != null ? SwingUtilities2.stringWidth(
+                               frame, fm, frameTitle) : 0;
             int title_length = frameTitle != null ? frameTitle.length() : 0;
 
             // Leave room for three characters in the title.
             if (title_length > 3) {
-                int subtitle_w =
-                    fm.stringWidth(frameTitle.substring(0, 3) + "...");
+                int subtitle_w = SwingUtilities2.stringWidth(
+                    frame, fm, frameTitle.substring(0, 3) + "...");
                 width += (title_w < subtitle_w) ? title_w : subtitle_w;
             } else {
                 width += title_w;
@@ -475,17 +493,16 @@ public class BasicInternalFrameTitlePane extends JComponent
                 dim.width += insets.left + insets.right;
             }
             return dim;
-	}
+        }
     
         public void layoutContainer(Container c) {
             boolean leftToRight = BasicGraphicsUtils.isLeftToRight(frame);
             
-	    int w = getWidth();
+            int w = getWidth();
             int h = getHeight();
             int x;
 
             int buttonHeight = closeButton.getIcon().getIconHeight();
-            //int buttonWidth = closeButton.getIcon().getIconWidth();
 
             Icon icon = frame.getFrameIcon();
             int iconHeight = 0;
@@ -497,24 +514,67 @@ public class BasicInternalFrameTitlePane extends JComponent
 
             x = (leftToRight) ? w - 16 - 2 : 2;
             
-	    if (frame.isClosable()) {
+            if (frame.isClosable()) {
                 closeButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
                 x += (leftToRight) ? -(16 + 2) : 16 + 2;
-	    } 
+            } 
             
-	    if(frame.isMaximizable()) {
-	        maxButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
-		x += (leftToRight) ? -(16 + 2) : 16 + 2;
-	    }
+            if (frame.isMaximizable()) {
+                maxButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
+                x += (leftToRight) ? -(16 + 2) : 16 + 2;
+            }
         
-	    if(frame.isIconifiable()) {
-	        iconButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
-	    } 
-	}
-    } // end TitlePaneLayout
+            if (frame.isIconifiable()) {
+                iconButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
+            } 
+        }
+    }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
+     * This class should be treated as a &quot;protected&quot; inner class.
+     * Instantiate it only within subclasses of <Foo>.
+     */
+    public class PropertyChangeHandler implements PropertyChangeListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void propertyChange(PropertyChangeEvent evt) {
+            getHandler().propertyChange(evt);
+	}
+    }
+
+    /**
+     * This class should be treated as a &quot;protected&quot; inner class.
+     * Instantiate it only within subclasses of <Foo>.
+     */
+    public class TitlePaneLayout implements LayoutManager {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void addLayoutComponent(String name, Component c) {
+            getHandler().addLayoutComponent(name, c);
+        }
+
+        public void removeLayoutComponent(Component c) {
+            getHandler().removeLayoutComponent(c);
+        }    
+
+        public Dimension preferredLayoutSize(Container c)  {
+            return getHandler().preferredLayoutSize(c);
+	}
+    
+        public Dimension minimumLayoutSize(Container c) {
+            return getHandler().minimumLayoutSize(c);
+	}
+    
+        public void layoutContainer(Container c) {
+            getHandler().layoutContainer(c);
+	}
+    }
+
+    /**
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */  
@@ -531,7 +591,6 @@ public class BasicInternalFrameTitlePane extends JComponent
     } // end CloseAction
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
@@ -540,21 +599,26 @@ public class BasicInternalFrameTitlePane extends JComponent
 	    super(MAXIMIZE_CMD);
         }
 
-        public void actionPerformed(ActionEvent e) {
-	    if(frame.isMaximizable()) {
-	        if(!frame.isMaximum()) {
-		    try { frame.setMaximum(true); } catch (PropertyVetoException e5) { }
+        public void actionPerformed(ActionEvent evt) {
+	    if (frame.isMaximizable()) {
+                if (frame.isMaximum() && frame.isIcon()) {
+                    try {
+                        frame.setIcon(false);
+                    } catch (PropertyVetoException e) { }
+                } else if (!frame.isMaximum()) {
+		    try {
+                        frame.setMaximum(true);
+                    } catch (PropertyVetoException e) { }
 		} else {
 		    try { 
 		        frame.setMaximum(false); 
-		    } catch (PropertyVetoException e6) { }
+		    } catch (PropertyVetoException e) { }
 		}
 	    }
 	}
-    } // MaximizeAction
+    }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
@@ -575,7 +639,6 @@ public class BasicInternalFrameTitlePane extends JComponent
     } // end IconifyAction
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
@@ -584,18 +647,24 @@ public class BasicInternalFrameTitlePane extends JComponent
 	    super(RESTORE_CMD);
         }
 
-        public void actionPerformed(ActionEvent e) {
-	    if(frame.isMaximizable() && frame.isMaximum()) {
-	        try { frame.setMaximum(false); } catch (PropertyVetoException e4) { }
-	    } 
-	    else if ( frame.isIconifiable() && frame.isIcon() ) {
-	      try { frame.setIcon(false); } catch (PropertyVetoException e4) { }
+        public void actionPerformed(ActionEvent evt) {
+	    if (frame.isMaximizable() && frame.isMaximum() && frame.isIcon()) {
+	        try {
+                    frame.setIcon(false);
+                } catch (PropertyVetoException e) { }
+	    } else if (frame.isMaximizable() && frame.isMaximum()) {
+                try {
+                    frame.setMaximum(false);
+                } catch (PropertyVetoException e) { }
+            } else if (frame.isIconifiable() && frame.isIcon()) {
+	        try {
+                    frame.setIcon(false);
+                } catch (PropertyVetoException e) { }
 	    }
 	}      
-    } // end RestoreAction
+    }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
@@ -629,7 +698,6 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
@@ -645,7 +713,6 @@ public class BasicInternalFrameTitlePane extends JComponent
 
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
@@ -655,7 +722,8 @@ public class BasicInternalFrameTitlePane extends JComponent
 	public void paint(Graphics g) {
 	    Icon icon = frame.getFrameIcon();
 	    if (icon == null) {
-	      icon = UIManager.getIcon("InternalFrame.icon");
+	      icon = (Icon)DefaultLookup.get(frame, frame.getUI(),
+                      "InternalFrame.icon");
 	    }
 	    if (icon != null) {
 	        // Resize to 16x16 if necessary.
@@ -674,13 +742,23 @@ public class BasicInternalFrameTitlePane extends JComponent
 
 
     private class NoFocusButton extends JButton {
-        public NoFocusButton() {
+        private String uiKey;
+        public NoFocusButton(String uiKey) {
             setFocusPainted(false);
             setMargin(new Insets(0,0,0,0));
 	    setOpaque(true);
+            this.uiKey = uiKey;
         }
 	public boolean isFocusTraversable() { return false; }
 	public void requestFocus() {};
+        public AccessibleContext getAccessibleContext() {
+            AccessibleContext ac = super.getAccessibleContext();
+            if (uiKey != null) {
+                ac.setAccessibleName(UIManager.getString(uiKey));
+                uiKey = null;
+            }
+            return ac;
+        }
     };  // end NoFocusButton
 
 }   // End Title Pane Class

@@ -1,7 +1,7 @@
 /*
- * @(#)RemoteServer.java	1.31 03/01/23
+ * @(#)RemoteServer.java	1.32 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -18,7 +18,7 @@ import sun.rmi.runtime.Log;
  * available) are provided abstractly by <code>RemoteServer</code> and
  * concretely by its subclass(es).
  *
- * @version 1.31, 01/23/03
+ * @version 1.32, 12/19/03
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

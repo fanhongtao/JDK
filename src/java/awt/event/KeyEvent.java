@@ -1,7 +1,7 @@
 /*
- * @(#)KeyEvent.java	1.65 03/01/23
+ * @(#)KeyEvent.java	1.75 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,6 @@ import java.io.ObjectInputStream;
  * (<code>KeyAdapter</code> objects implement the 
  * <code>KeyListener</code> interface.)  Each such listener object 
  * gets this <code>KeyEvent</code> when the event occurs.
- *
  * <p>
  * <em>"Key typed" events</em> are higher-level and generally do not depend on 
  * the platform or keyboard layout.  They are generated when a Unicode character 
@@ -39,8 +38,13 @@ import java.io.ObjectInputStream;
  * entering ASCII sequences via the Alt-Numpad method in Windows).  
  * No key typed events are generated for keys that don't generate Unicode 
  * characters (e.g., action keys, modifier keys, etc.).
+ * <p>
  * The getKeyChar method always returns a valid Unicode character or 
- * CHAR_UNDEFINED.  
+ * CHAR_UNDEFINED.  Character input is reported by KEY_TYPED events: 
+ * KEY_PRESSED and KEY_RELEASED events are not necessarily associated 
+ * with character input.  Therefore, the result of the getKeyChar method 
+ * is guaranteed to be meaningful only for KEY_TYPED events.   
+ * <p>
  * For key pressed and key released events, the getKeyCode method returns 
  * the event's keyCode.  For key typed events, the getKeyCode method 
  * always returns VK_UNDEFINED.
@@ -96,7 +100,7 @@ import java.io.ObjectInputStream;
  * @author Carl Quinn
  * @author Amy Fowler
  * @author Norbert Lindenberg
- * @version 1.65 01/23/03
+ * @version 1.75 05/18/04
  *
  * @see KeyAdapter
  * @see KeyListener
@@ -191,15 +195,25 @@ public class KeyEvent extends InputEvent {
      */
     public static final int VK_DOWN           = 0x28;
 
+    /**
+     * Constant for the comma key, ","
+     */
     public static final int VK_COMMA          = 0x2C;
 
     /**
-     * Constant for the "-" key.
+     * Constant for the minus key, "-"
      * @since 1.2
      */
     public static final int VK_MINUS          = 0x2D;
 
+    /**
+     * Constant for the period key, "."
+     */
     public static final int VK_PERIOD         = 0x2E;
+
+    /**
+     * Constant for the forward slash key, "/"
+     */
     public static final int VK_SLASH          = 0x2F;
 
     /** VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39) */
@@ -214,7 +228,14 @@ public class KeyEvent extends InputEvent {
     public static final int VK_8              = 0x38;
     public static final int VK_9              = 0x39;
 
+    /**
+     * Constant for the semicolon key, ";"
+     */
     public static final int VK_SEMICOLON      = 0x3B;
+
+    /**
+     * Constant for the equals key, "="
+     */
     public static final int VK_EQUALS         = 0x3D;
 
     /** VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A) */
@@ -245,8 +266,19 @@ public class KeyEvent extends InputEvent {
     public static final int VK_Y              = 0x59;
     public static final int VK_Z              = 0x5A;
 
+    /**
+     * Constant for the open bracket key, "["
+     */
     public static final int VK_OPEN_BRACKET   = 0x5B;
+
+    /**
+     * Constant for the back slash key, "\"
+     */
     public static final int VK_BACK_SLASH     = 0x5C;
+
+    /**
+     * Constant for the close bracket key, "]"
+     */
     public static final int VK_CLOSE_BRACKET  = 0x5D;
 
     public static final int VK_NUMPAD0        = 0x60;
@@ -549,6 +581,20 @@ public class KeyEvent extends InputEvent {
      */
     public static final int VK_UNDERSCORE               = 0x020B;
  
+    /**
+     * Constant for the Microsoft Windows "Windows" key.
+     * It is used for both the left and right version of the key.  
+     * @see #getKeyLocation()
+     * @since 1.5
+     */
+    public static final int VK_WINDOWS                  = 0x020C;
+ 
+    /**
+     * Constant for the Microsoft Windows Context Menu key.
+     * @since 1.5
+     */
+    public static final int VK_CONTEXT_MENU             = 0x020D;
+ 
     /* for input method support on Asian Keyboards */
 
     /* not clear what this means - listed in Microsoft Windows API */
@@ -710,6 +756,12 @@ public class KeyEvent extends InputEvent {
     public static final int VK_ALT_GRAPH                = 0xFF7E;
 
     /**
+     * Constant for the Begin key.
+     * @since 1.5
+     */
+    public static final int VK_BEGIN                    = 0xFF58;
+
+    /**
      * This value is used to indicate that the keyCode is unknown.
      * KEY_TYPED events do not have a keyCode value; this value 
      * is used instead.  
@@ -725,7 +777,7 @@ public class KeyEvent extends InputEvent {
     /**
      * A constant indicating that the keyLocation is indeterminate
      * or not relevant.
-     * KEY_TYPED events do not have a keyLocation; this value
+     * <code>KEY_TYPED</code> events do not have a keyLocation; this value
      * is used instead.
      * @since 1.4
      */
@@ -827,7 +879,9 @@ public class KeyEvent extends InputEvent {
     /**
      * Constructs a <code>KeyEvent</code> object.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source    the <code>Component</code> that originated the event
      * @param id        an integer identifying the type of event
@@ -848,7 +902,7 @@ public class KeyEvent extends InputEvent {
      *        values are <code>KEY_LOCATION_UNKNOWN</code>, 
      *        <code>KEY_LOCATION_STANDARD</code>, <code>KEY_LOCATION_LEFT</code>, 
      *        <code>KEY_LOCATION_RIGHT</code>, and <code>KEY_LOCATION_NUMPAD</code>.
-     * @exception IllegalArgumentException  
+     * @throws IllegalArgumentException  
      *     if <code>id</code> is <code>KEY_TYPED</code> and 
      *       <code>keyChar</code> is <code>CHAR_UNDEFINED</code>; 
      *     or if <code>id</code> is <code>KEY_TYPED</code> and 
@@ -857,6 +911,7 @@ public class KeyEvent extends InputEvent {
      *       <code>keyLocation</code> is not <code>KEY_LOCATION_UNKNOWN</code>;
      *     or if <code>keyLocation</code> is not one of the legal 
      *       values enumerated above.  
+     * @throws IllegalArgumentException if <code>source</code> is null
      * @since 1.4
      */
     private KeyEvent(Component source, int id, long when, int modifiers,
@@ -897,7 +952,9 @@ public class KeyEvent extends InputEvent {
     /**
      * Constructs a <code>KeyEvent</code> object.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source    the <code>Component</code> that originated the event
      * @param id        an integer identifying the type of event
@@ -914,11 +971,12 @@ public class KeyEvent extends InputEvent {
      * @param keyChar   the Unicode character generated by this event, or 
      *                  CHAR_UNDEFINED (for key-pressed and key-released
      *                  events which do not map to a valid Unicode character)
-     * @exception IllegalArgumentException  if <code>id</code> is
+     * @throws IllegalArgumentException  if <code>id</code> is
      *     <code>KEY_TYPED</code> and <code>keyChar</code> is
      *     <code>CHAR_UNDEFINED</code>; or if <code>id</code> is
      *     <code>KEY_TYPED</code> and <code>keyCode</code> is not
      *     <code>VK_UNDEFINED</code>
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public KeyEvent(Component source, int id, long when, int modifiers,
                     int keyCode, char keyChar) {
@@ -929,6 +987,7 @@ public class KeyEvent extends InputEvent {
     /**
      * @deprecated as of JDK1.1 
      */
+    @Deprecated
     public KeyEvent(Component source, int id, long when, int modifiers,
                     int keyCode) {
         this(source, id, when, modifiers, keyCode, (char)keyCode);
@@ -956,12 +1015,17 @@ public class KeyEvent extends InputEvent {
 
     /**
      * Returns the character associated with the key in this event.
-     * For example, the key-typed event for shift + "a" returns the 
-     * value for "A".
+     * For example, the <code>KEY_TYPED</code> event for shift + "a" 
+     * returns the value for "A".
+     * <p>
+     * <code>KEY_PRESSED</code> and <code>KEY_RELEASED</code> events 
+     * are not intended for reporting of character input.  Therefore, 
+     * the values returned by this method are guaranteed to be 
+     * meaningful only for <code>KEY_TYPED</code> events.  
      *
      * @return the Unicode character defined for this key event.
      *         If no valid Unicode character exists for this key event, 
-     *         keyChar is <code>CHAR_UNDEFINED</code>.
+     *         <code>CHAR_UNDEFINED</code> is returned.
      */
     public char getKeyChar() {
         return keyChar;
@@ -990,6 +1054,7 @@ public class KeyEvent extends InputEvent {
      * @see InputEvent
      * @deprecated as of JDK1.1.4
      */
+    @Deprecated
     public void setModifiers(int modifiers) {
         this.modifiers = modifiers;
         if ((getModifiers() != 0) && (getModifiersEx() == 0)) {
@@ -1028,21 +1093,13 @@ public class KeyEvent extends InputEvent {
             return String.valueOf((char)keyCode);
         }
 
-        // Check for other ASCII keyCodes.
-        int index = ",./;=[\\]".indexOf(keyCode);
-        if (index >= 0) {
-            return String.valueOf((char)keyCode);
-        }
-	
         switch(keyCode) {
           case VK_ENTER: return Toolkit.getProperty("AWT.enter", "Enter");
           case VK_BACK_SPACE: return Toolkit.getProperty("AWT.backSpace", "Backspace");
           case VK_TAB: return Toolkit.getProperty("AWT.tab", "Tab");
           case VK_CANCEL: return Toolkit.getProperty("AWT.cancel", "Cancel");
           case VK_CLEAR: return Toolkit.getProperty("AWT.clear", "Clear");
-          case VK_SHIFT: return Toolkit.getProperty("AWT.shift", "Shift");
-          case VK_CONTROL: return Toolkit.getProperty("AWT.control", "Control");
-          case VK_ALT: return Toolkit.getProperty("AWT.alt", "Alt");
+          case VK_COMPOSE: return Toolkit.getProperty("AWT.compose", "Compose");
           case VK_PAUSE: return Toolkit.getProperty("AWT.pause", "Pause");
           case VK_CAPS_LOCK: return Toolkit.getProperty("AWT.capsLock", "Caps Lock");
           case VK_ESCAPE: return Toolkit.getProperty("AWT.escape", "Escape");
@@ -1055,9 +1112,24 @@ public class KeyEvent extends InputEvent {
           case VK_UP: return Toolkit.getProperty("AWT.up", "Up");
           case VK_RIGHT: return Toolkit.getProperty("AWT.right", "Right");
           case VK_DOWN: return Toolkit.getProperty("AWT.down", "Down");
-          // handled by ASCII value above:
-          //   comma, period, slash, 0-9, semicolon, equals, A-Z,
-          //   open_bracket, back_slash, close_bracket
+          case VK_BEGIN: return Toolkit.getProperty("AWT.begin", "Begin");
+
+          // modifiers 
+          case VK_SHIFT: return Toolkit.getProperty("AWT.shift", "Shift");
+          case VK_CONTROL: return Toolkit.getProperty("AWT.control", "Control");
+          case VK_ALT: return Toolkit.getProperty("AWT.alt", "Alt");
+          case VK_META: return Toolkit.getProperty("AWT.meta", "Meta");
+          case VK_ALT_GRAPH: return Toolkit.getProperty("AWT.altGraph", "Alt Graph");
+
+          // punctuation
+          case VK_COMMA: return Toolkit.getProperty("AWT.comma", "Comma");
+          case VK_PERIOD: return Toolkit.getProperty("AWT.period", "Period");
+          case VK_SLASH: return Toolkit.getProperty("AWT.slash", "Slash");
+          case VK_SEMICOLON: return Toolkit.getProperty("AWT.semicolon", "Semicolon");
+          case VK_EQUALS: return Toolkit.getProperty("AWT.equals", "Equals");
+          case VK_OPEN_BRACKET: return Toolkit.getProperty("AWT.openBracket", "Open Bracket");
+          case VK_BACK_SLASH: return Toolkit.getProperty("AWT.backSlash", "Back Slash");
+          case VK_CLOSE_BRACKET: return Toolkit.getProperty("AWT.closeBracket", "Close Bracket");
 
           // numpad numeric keys handled below
           case VK_MULTIPLY: return Toolkit.getProperty("AWT.multiply", "NumPad *");
@@ -1069,6 +1141,9 @@ public class KeyEvent extends InputEvent {
           case VK_DELETE: return Toolkit.getProperty("AWT.delete", "Delete");
           case VK_NUM_LOCK: return Toolkit.getProperty("AWT.numLock", "Num Lock");
           case VK_SCROLL_LOCK: return Toolkit.getProperty("AWT.scrollLock", "Scroll Lock");
+
+          case VK_WINDOWS: return Toolkit.getProperty("AWT.windows", "Windows");
+          case VK_CONTEXT_MENU: return Toolkit.getProperty("AWT.context", "Context Menu");
 
           case VK_F1: return Toolkit.getProperty("AWT.f1", "F1");
           case VK_F2: return Toolkit.getProperty("AWT.f2", "F2");
@@ -1098,7 +1173,6 @@ public class KeyEvent extends InputEvent {
           case VK_PRINTSCREEN: return Toolkit.getProperty("AWT.printScreen", "Print Screen");
           case VK_INSERT: return Toolkit.getProperty("AWT.insert", "Insert");
           case VK_HELP: return Toolkit.getProperty("AWT.help", "Help");
-          case VK_META: return Toolkit.getProperty("AWT.meta", "Meta");
           case VK_BACK_QUOTE: return Toolkit.getProperty("AWT.backQuote", "Back Quote");
           case VK_QUOTE: return Toolkit.getProperty("AWT.quote", "Quote");
 			 
@@ -1175,9 +1249,6 @@ public class KeyEvent extends InputEvent {
           case VK_FIND: return Toolkit.getProperty("AWT.find", "Find");
           case VK_PROPS: return Toolkit.getProperty("AWT.props", "Props");
           case VK_STOP: return Toolkit.getProperty("AWT.stop", "Stop");
-
-          case VK_COMPOSE: return Toolkit.getProperty("AWT.compose", "Compose");
-          case VK_ALT_GRAPH: return Toolkit.getProperty("AWT.altGraph", "Alt Graph");
         }
 
         if (keyCode >= VK_NUMPAD0 && keyCode <= VK_NUMPAD9) {
@@ -1186,17 +1257,25 @@ public class KeyEvent extends InputEvent {
             return numpad + "-" + c;
         }
 
-        String unknown = Toolkit.getProperty("AWT.unknown", "Unknown keyCode");
-        return unknown + ": 0x" + Integer.toString(keyCode, 16);
+        String unknown = Toolkit.getProperty("AWT.unknown", "Unknown");
+        return unknown + " keyCode: 0x" + Integer.toString(keyCode, 16);
     }
 
     /**
-     * Returns a String describing the modifier key(s), such as "Shift",
-     * or "Ctrl+Shift".  These strings can be localized by changing the 
-     * awt.properties file.
+     * Returns a <code>String</code> describing the modifier key(s),
+     * such as "Shift", or "Ctrl+Shift".  These strings can be
+     * localized by changing the <code>awt.properties</code> file.
+     * <p>
+     * Note that <code>InputEvent.ALT_MASK</code> and
+     * <code>InputEvent.BUTTON2_MASK</code> have the same value,
+     * so the string "Alt" is returned for both modifiers.  Likewise,
+     * <code>InputEvent.META_MASK</code> and
+     * <code>InputEvent.BUTTON3_MASK</code> have the same value,
+     * so the string "Meta" is returned for both modifiers.
      *
      * @return string a text description of the combination of modifier
      *                keys that were held down during the event
+     * @see InputEvent#getModifiersExText(int)
      */
     public static String getKeyModifiersText(int modifiers) {
         StringBuffer buf = new StringBuffer();
@@ -1249,6 +1328,7 @@ public class KeyEvent extends InputEvent {
           case VK_DOWN:
           case VK_LEFT:
           case VK_RIGHT:
+          case VK_BEGIN:
 
 	  case VK_KP_LEFT: 
 	  case VK_KP_UP: 
@@ -1318,6 +1398,8 @@ public class KeyEvent extends InputEvent {
           case VK_STOP:
 
           case VK_HELP:
+          case VK_WINDOWS:
+          case VK_CONTEXT_MENU:
               return true;
         }
         return false;
@@ -1375,7 +1457,8 @@ public class KeyEvent extends InputEvent {
             str.append(getKeyText(VK_DELETE));
             break;
           case CHAR_UNDEFINED:
-            str.append(Toolkit.getProperty("AWT.undefinedKeyChar", "Undefined keyChar"));
+            str.append(Toolkit.getProperty("AWT.undefined", "Undefined"));
+            str.append(" keyChar");
             break;
           default:
             str.append("'").append(keyChar).append("'");

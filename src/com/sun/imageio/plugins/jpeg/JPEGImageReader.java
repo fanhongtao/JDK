@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGImageReader.java	1.45 08/05/08
+ * @(#)JPEGImageReader.java	1.49 04/03/29
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -68,7 +68,9 @@ public class JPEGImageReader extends ImageReader {
     static {
         java.security.AccessController.doPrivileged(
             new sun.security.action.LoadLibraryAction("jpeg"));
-        initReaderIDs(ImageInputStream.class);
+        initReaderIDs(ImageInputStream.class,
+                      JPEGQTable.class,
+                      JPEGHuffmanTable.class);
     }
 
     // The following warnings are converted to strings when used
@@ -235,7 +237,9 @@ public class JPEGImageReader extends ImageReader {
     }
 
     /** Sets up static C structures. */
-    private static native void initReaderIDs(Class iisClass);
+    private static native void initReaderIDs(Class iisClass,
+                                             Class qTableClass,
+                                             Class huffClass);
 
     public JPEGImageReader(ImageReaderSpi originator) {
         super(originator);
@@ -280,11 +284,12 @@ public class JPEGImageReader extends ImageReader {
 
     public void setInput(Object input,
                          boolean seekForwardOnly,
-                         boolean ignoreMetadata) {
+                         boolean ignoreMetadata)
+    {
         super.setInput(input, seekForwardOnly, ignoreMetadata);
         this.ignoreMetadata = ignoreMetadata;
-        iis = (ImageInputStream) input; // Always works
         resetInternalState();
+        iis = (ImageInputStream) input; // Always works
         setSource(structPointer, iis);
     }
 
@@ -920,16 +925,6 @@ public class JPEGImageReader extends ImageReader {
 
         Rectangle srcROI = new Rectangle(0, 0, 0, 0);
         destROI = new Rectangle(0, 0, 0, 0);
-        // For Rasters, destination offset is logical, not physical, so
-        // set it to 0 before calling computeRegions, so that the destination
-        // region is not clipped.
-        Point saveDestOffset = null;
-        if (wantRaster) {
-            if (param != null) {
-                saveDestOffset = param.getDestinationOffset();
-                param.setDestinationOffset(new Point(0, 0));
-            }
-        }
         computeRegions(param, width, height, image, srcROI, destROI);
 
         int periodX = 1;
@@ -988,12 +983,7 @@ public class JPEGImageReader extends ImageReader {
                                                      bandOffs,
                                                      null);
         } else {
-            target = imRas.createWritableChild(destROI.x, 
-                                               destROI.y,
-                                               destROI.width,
-                                               destROI.height,
-                                               0, 0,
-                                               destinationBands);
+	    target = imRas;
         }
         int [] bandSizes = target.getSampleModel().getSampleSize();
 
@@ -1076,13 +1066,6 @@ public class JPEGImageReader extends ImageReader {
             processImageComplete();
         }
 
-        // Apply the destination offset, if any, as a logical offset
-        // This applies only to Rasters
-        if (saveDestOffset != null) {
-            target = target.createWritableTranslatedChild(saveDestOffset.x,
-                                                          saveDestOffset.y);
-        }
-
         return target;
 
     }
@@ -1097,7 +1080,7 @@ public class JPEGImageReader extends ImageReader {
         if (convert != null) {
             convert.filter(raster, raster);
         }
-        target.setRect(0, y, raster);
+        target.setRect(destROI.x, destROI.y + y, raster);
         
         processImageUpdate(image,
                            destROI.x, destROI.y+y,
@@ -1229,7 +1212,26 @@ public class JPEGImageReader extends ImageReader {
         throws IOException {
         Raster retval = null;
         try {
+	    /*
+	     * This could be further optimized by not resetting the dest.
+	     * offset and creating a translated raster in readInternal()
+	     * (see bug 4994702 for more info).
+	     */
+
+	    // For Rasters, destination offset is logical, not physical, so
+	    // set it to 0 before calling computeRegions, so that the destination
+	    // region is not clipped.
+	    Point saveDestOffset = null;
+	    if (param != null) {
+		saveDestOffset = param.getDestinationOffset();
+		param.setDestinationOffset(new Point(0, 0));
+	    }
             retval = readInternal(imageIndex, param, true);
+	    // Apply the destination offset, if any, as a logical offset
+	    if (saveDestOffset != null) {
+		target = target.createWritableTranslatedChild(saveDestOffset.x,
+							      saveDestOffset.y);
+	    }
         } catch (RuntimeException e) {            
             resetLibraryState(structPointer);
             throw e;
@@ -1301,6 +1303,7 @@ public class JPEGImageReader extends ImageReader {
     private void resetInternalState() {
         // reset C structures
         resetReader(structPointer);
+
         // reset local Java structures
         numImages = 0;
         imagePositions = new ArrayList();

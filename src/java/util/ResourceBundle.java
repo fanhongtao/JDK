@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceBundle.java	1.73 05/08/30
+ * @(#)ResourceBundle.java	1.71 04/05/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -93,14 +93,15 @@ import sun.misc.SoftCache;
  * <blockquote>
  * <pre>
  * public class MyResources extends ListResourceBundle {
- *     protected Object[][] getContents() { 
- *         return new Object[][] = {
- *         // LOCALIZE THIS
- *             {"OkKey", "OK"},
- *             {"CancelKey", "Cancel"},
- *         // END OF MATERIAL TO LOCALIZE
- *         };
- *     }
+ *      public Object[][] getContents() {
+ *              return contents;
+ *      }
+ *      static final Object[][] contents = {
+ *      // LOCALIZE THIS
+ *              {"OkKey", "OK"},
+ *              {"CancelKey", "Cancel"},
+ *      // END OF MATERIAL TO LOCALIZE
+ *      };
  * }
  * </pre>
  * </blockquote>
@@ -486,7 +487,6 @@ abstract public class ResourceBundle {
                 //this should never happen
                 throw new InternalError();
             }
-
         }
 
         public void setKeyValues(ClassLoader loader, String searchName, Locale defaultLocale) {
@@ -516,18 +516,17 @@ abstract public class ResourceBundle {
      */
     private static final class LoaderReference extends WeakReference {
         private ResourceCacheKey cacheKey;
-
+        
         LoaderReference(Object referent, ReferenceQueue q, ResourceCacheKey key) {
             super(referent, q);
             cacheKey = key;
         }
-
+        
         ResourceCacheKey getCacheKey() {
             return cacheKey;
         }
     }
-
-
+    
     /**
      * Gets a resource bundle using the specified base name, the default locale,
      * and the caller's class loader. Calling this method is equivalent to calling
@@ -881,7 +880,7 @@ abstract public class ResourceBundle {
                 cacheList.remove(((LoaderReference) ref).getCacheKey());
                 ref = referenceQueue.poll();
             }
-
+            
             //check for bundle in cache
             cacheKey.setKeyValues(loader, bundleName, defaultLocale);
             result = cacheList.get(cacheKey);
@@ -1045,18 +1044,13 @@ abstract public class ResourceBundle {
      * @return the bundle or null if none could be found.
      */
     private static Object loadBundle(final ClassLoader loader, String bundleName, Locale defaultLocale) {
-
-	// replace any '/'s with '.'s for the bug-for-bug compatible
-	// ClassLoader behavior. (5077272, see also 4872868)
-	String correctedBundleName = bundleName.replace('/', '.');
-
         // Search for class file using class loader
         try {
             Class bundleClass;
             if (loader != null) {
-                bundleClass = loader.loadClass(correctedBundleName);
+                bundleClass = loader.loadClass(bundleName);
             } else {
-                bundleClass = Class.forName(correctedBundleName);
+                bundleClass = Class.forName(bundleName);
             }
             if (ResourceBundle.class.isAssignableFrom(bundleClass)) {
                 Object myBundle = bundleClass.newInstance();
@@ -1123,5 +1117,5 @@ abstract public class ResourceBundle {
      * Returns an enumeration of the keys.
      *
      */
-    public abstract Enumeration getKeys();
+    public abstract Enumeration<String> getKeys();
 }

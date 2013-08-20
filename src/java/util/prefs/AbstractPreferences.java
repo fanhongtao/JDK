@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractPreferences.java	1.17 03/01/23
+ * @(#)AbstractPreferences.java	1.20 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ import java.lang.Double;
  * throw exceptions.  In some implementations, there may be circumstances
  * under which these calls cannot even enqueue the requested operation for
  * later processing.  Even under these circumstances it is generally better to
- * simply ignore the invocation and return, rather than throwing an an
+ * simply ignore the invocation and return, rather than throwing an
  * exception.  Under these circumstances, however, all subsequent invocations
  * of <tt>flush()</tt> and <tt>sync</tt> should return <tt>false</tt>, as
  * returning <tt>true</tt> would imply that all previous operations had
@@ -99,7 +99,7 @@ import java.lang.Double;
  * with normal <tt>Preferences</tt> usage and would lead to great confusion.
  *
  * @author  Josh Bloch
- * @version 1.17, 01/23/03
+ * @version 1.20, 01/12/04
  * @see     Preferences
  * @since   1.4
  */
@@ -1429,11 +1429,13 @@ public abstract class AbstractPreferences extends Preferences {
      * childAdded or childRemoved.
      */
     private class NodeAddedEvent extends NodeChangeEvent {
+	private static final long serialVersionUID = -6743557530157328528L;
         NodeAddedEvent(Preferences parent, Preferences child) {
             super(parent, child);
         }
     }
     private class NodeRemovedEvent extends NodeChangeEvent {
+	private static final long serialVersionUID = 8735497392918824837L;
         NodeRemovedEvent(Preferences parent, Preferences child) {
             super(parent, child);
         }

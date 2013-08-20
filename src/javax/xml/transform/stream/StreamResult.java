@@ -1,26 +1,26 @@
+// $Id: StreamResult.java,v 1.3.22.4 2004/07/13 22:27:51 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)StreamResult.java	1.13 03/01/23
+ * @(#)StreamResult.java	1.15 04/07/13
  */
 package javax.xml.transform.stream;
 
-import javax.xml.transform.*;
+import javax.xml.transform.Result;
 
-import java.lang.String;
-
+import java.io.File;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.io.File;
-
+import java.net.MalformedURLException;
 
 /**
- * Acts as an holder for a transformation result,
- * which may be XML, plain Text, HTML, or some other form of markup.
+ * <p>Acts as an holder for a transformation result,
+ * which may be XML, plain Text, HTML, or some other form of markup.</p>
  *
+ * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
  */
 public class StreamResult implements Result {
 
@@ -34,7 +34,8 @@ public class StreamResult implements Result {
     /**
      * Zero-argument default constructor.
      */
-    public StreamResult() {}
+    public StreamResult() {
+    }
 
     /**
      * Construct a StreamResult from a byte stream.  Normally,
@@ -138,19 +139,39 @@ public class StreamResult implements Result {
     }
 
     /**
-     * Set the system ID from a File reference.
+     * <p>Set the system ID from a <code>File</code> reference.</p>
+     * 
+     * <p>Note the use of {@link File#toURI()} and {@link File#toURL()}.
+     * <code>toURI()</code> is prefered and used if possible.
+     * To allow JAXP 1.3 to run on J2SE 1.3, <code>toURL()</code>
+     * is used if a {@link NoSuchMethodException} is thrown by the attempt
+     * to use <code>toURI()</code>.</p>
      *
      * @param f Must a non-null File reference.
      */
     public void setSystemId(File f) {
-        String fpath=f.getAbsolutePath();
-	if (File.separatorChar != '/') {
-	    fpath = fpath.replace(File.separatorChar, '/');
-	}
-        if( fpath.startsWith("/"))
-	  this.systemId= "file://" + fpath;
-	else
-	  this.systemId = "file:///" + fpath;
+    	
+    	try {
+    		// assume >= 1.4
+    		this.systemId = f.toURI().toString();
+    	} catch (java.lang.NoSuchMethodError nme) {
+    		// running on J2SE 1.3?
+    		try {
+        		this.systemId = f.toURL().toString();
+    		} catch (MalformedURLException malformedURLException) {
+    			this.systemId = null;
+    			throw new RuntimeException(
+    					"javax.xml.transform.stream.StreamResult#setSystemId(File f) with MalformedURLException: "
+    					+ malformedURLException.toString()
+    			);
+    		}
+        } catch (Exception exception) {
+    		throw new RuntimeException(
+    				"javax.xml.transform.stream.StreamResult#setSystemId(File f):"
+    				+ " unexpected Exception: " + exception.toString()
+			);
+    		
+        }
     }
 
     /**

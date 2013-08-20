@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceBundleEnumeration.java	1.3 03/01/23
+ * @(#)ResourceBundleEnumeration.java	1.5 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,11 +11,11 @@ package java.util;
  * Implements an Enumeration that combines elements from a Set and
  * an Enumeration. Used by ListResourceBundle and PropertyResourceBundle.
  */
-class ResourceBundleEnumeration implements Enumeration {
+class ResourceBundleEnumeration implements Enumeration<String> {
 
-    Set set;
-    Iterator iterator;
-    Enumeration enumeration; // may remain null
+    Set<String> set;
+    Iterator<String> iterator;
+    Enumeration<String> enumeration; // may remain null
 
     /**
      * Constructs a resource bundle enumeration.
@@ -23,13 +23,13 @@ class ResourceBundleEnumeration implements Enumeration {
      * @param enumeration an enumeration providing more elements of the enumeration.
      *        enumeration may be null.
      */
-    ResourceBundleEnumeration(Set set, Enumeration enumeration) {
+    ResourceBundleEnumeration(Set<String> set, Enumeration<String> enumeration) {
         this.set = set;
         this.iterator = set.iterator();
         this.enumeration = enumeration;
     }
 
-    Object next = null;
+    String next = null;
             
     public boolean hasMoreElements() {
         if (next == null) {
@@ -47,9 +47,9 @@ class ResourceBundleEnumeration implements Enumeration {
         return next != null;
     }
 
-    public Object nextElement() {
+    public String nextElement() {
         if (hasMoreElements()) {
-            Object result = next;
+            String result = next;
             next = null;
             return result;
         } else {

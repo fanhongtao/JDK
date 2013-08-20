@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsBorders.java	1.27 03/01/23
+ * @(#)WindowsBorders.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the Windows 95 L & F.
- * @version 1.27 01/23/03
+ * @version 1.30 12/19/03
  * @author Rich Schiavi
  */
 
@@ -63,14 +63,11 @@ public class WindowsBorders {
      * Returns an new instance of a border used to indicate which cell item 
      * has focus.
      *
-     * @return a dashed border with the control highlight value as the color
+     * @return a border to indicate which cell item has focus
      * @since 1.4
      */
     public static Border getFocusCellHighlightBorder() {
-	UIDefaults table = UIManager.getLookAndFeelDefaults();
-	Border focusCellBorder = new DashedBorder(table.getColor("List.focusCellBorderColor"));
-
-	return focusCellBorder;
+        return new ComplementDashedBorder();
     }
 
     public static Border getTableHeaderBorder() {
@@ -150,21 +147,31 @@ public class WindowsBorders {
                                 int width, int height) {
 	    g.translate(x, y);
 
+	    if (xp != null) {
+		Border xpBorder = xp.getBorder("toolbar");
+		if (xpBorder != null) {
+		    xpBorder.paintBorder(c, g, 0, 0, width, height);
+		}
+	    }
 	    if (((JToolBar)c).isFloatable()) {
 		boolean vertical = ((JToolBar)c).getOrientation() == VERTICAL;
 
 		if (xp != null) {
-		    Border xpBorder = xp.getBorder("toolbar");
-		    if (xpBorder != null) {
-			xpBorder.paintBorder(c, g, 0, 0, width, height);
-		    }
 		    String category = vertical ? "rebar.grippervert" : "rebar.gripper";
 		    XPStyle.Skin skin = xp.getSkin(category);
-		    int dw = vertical ? (width-1) : skin.getWidth();
-		    int dh = vertical ? skin.getHeight() : (height-1);
-		    int dx = (vertical || c.getComponentOrientation().isLeftToRight())
-							    ? 1 : (width-dw-1);
-		    skin.paintSkin(g, dx, 1, dw, dh, 0);
+		    int dx, dy, dw, dh;
+		    if (vertical) {
+			dx = 0;
+			dy = 2;
+			dw = width - 1;
+			dh = skin.getHeight();
+		    } else {
+			dw = skin.getWidth();
+			dh = height - 1;
+			dx = c.getComponentOrientation().isLeftToRight() ? 2 : (width-dw-2);
+			dy = 0;
+		    }
+		    skin.paintSkin(g, dx, dy, dw, dh, 0);
 
 		} else {
 
@@ -208,14 +215,15 @@ public class WindowsBorders {
         public Insets getBorderInsets(Component c, Insets insets) {
 	    insets.top = insets.left = insets.bottom = insets.right = 1;
 	    if (((JToolBar)c).isFloatable()) {
+		int gripInset = (XPStyle.getXP() != null) ? 12 : 9;
 		if (((JToolBar)c).getOrientation() == HORIZONTAL) {
 		    if (c.getComponentOrientation().isLeftToRight()) {
-			insets.left = 9;
+			insets.left = gripInset;
 		    } else {
-			insets.right = 9;
+			insets.right = gripInset;
 		    }
 		} else {
-		    insets.top = 9;
+		    insets.top = gripInset;
 		}
 	    }
 	    return insets;
@@ -245,6 +253,31 @@ public class WindowsBorders {
 	    }
 	    g.setColor(oldColor);
 	}
+    }
+
+    /**
+     * A dashed border that paints itself in the complementary color
+     * of the component's background color.
+     */
+    static class ComplementDashedBorder extends LineBorder implements UIResource {
+        private Color origColor;
+        private Color paintColor;
+
+        public ComplementDashedBorder() {
+            super(null);
+        }
+
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Color color = c.getBackground();
+
+            if (origColor != color) {
+                origColor = color;
+                paintColor = new Color(~origColor.getRGB());
+            }
+
+            g.setColor(paintColor);
+            BasicGraphicsUtils.drawDashedRect(g, x, y, width, height);
+        }
     }
 
     /**

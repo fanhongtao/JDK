@@ -1,7 +1,7 @@
 /*
- * @(#)TreeUI.java	1.23 03/01/23
+ * @(#)TreeUI.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import javax.swing.tree.TreePath;
 /**
  * Pluggable look and feel interface for JTree.
  *
- * @version 1.23 01/23/03
+ * @version 1.24 12/19/03
  * @author Rob Davis
  * @author Scott Violet
  */

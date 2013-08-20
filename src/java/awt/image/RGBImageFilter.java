@@ -1,7 +1,7 @@
 /*
- * @(#)RGBImageFilter.java	1.22 03/01/23
+ * @(#)RGBImageFilter.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ import java.awt.image.ColorModel;
  * @see ImageFilter
  * @see ColorModel#getRGBdefault
  *
- * @version	1.22 01/23/03
+ * @version	1.24 12/19/03
  * @author 	Jim Graham
  */
 public abstract class RGBImageFilter extends ImageFilter {
@@ -77,10 +77,11 @@ public abstract class RGBImageFilter extends ImageFilter {
     protected boolean canFilterIndexColorModel;
 
     /**
-     * If the ColorModel is an IndexColorModel, and the subclass has
+     * If the ColorModel is an IndexColorModel and the subclass has
      * set the canFilterIndexColorModel flag to true, we substitute
      * a filtered version of the color model here and wherever
-     * that original ColorModel object appears in the setPixels methods. Otherwise
+     * that original ColorModel object appears in the setPixels methods. 
+     * If the ColorModel is not an IndexColorModel or is null, this method
      * overrides the default ColorModel used by the ImageProducer and
      * specifies the default RGB ColorModel instead.
      * <p>
@@ -123,6 +124,7 @@ public abstract class RGBImageFilter extends ImageFilter {
      * a color table entry is being filtered rather than an actual
      * pixel value.
      * @param icm the IndexColorModel object to be filtered
+     * @exception NullPointerException if <code>icm</code> is null
      * @return a new IndexColorModel representing the filtered colors
      */
     public IndexColorModel filterIndexColorModel(IndexColorModel icm) {

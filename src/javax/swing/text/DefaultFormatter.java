@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFormatter.java	1.10 03/01/23
+ * @(#)DefaultFormatter.java	1.13 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -36,7 +36,7 @@ import javax.swing.text.*;
  *
  * @see javax.swing.JFormattedTextField.AbstractFormatter
  *
- * @version 1.10 01/23/03
+ * @version 1.13 05/05/04
  * @since 1.4
  */
 public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
@@ -186,7 +186,7 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
      * @param valueClass Class used to construct return value from
      *        stringToValue
      */
-    public void setValueClass(Class valueClass) {
+    public void setValueClass(Class<?> valueClass) {
         this.valueClass = valueClass;
     }
 
@@ -195,7 +195,7 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
      *
      * @return Class used to constuct return value from stringToValue
      */
-    public Class getValueClass() {
+    public Class<?> getValueClass() {
         return valueClass;
     }
 
@@ -276,7 +276,6 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
     /**
      * Returns the <code>NavigationFilter</code> used to restrict where the
      * cursor can be placed.
-     * characters that can be input into the <code>JFormattedTextField</code>.
      *
      * @return NavigationFilter to restrict navigation
      */

@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSpinnerModel.java	1.5 03/01/23
+ * @(#)AbstractSpinnerModel.java	1.7 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import javax.swing.event.*;
  * @see SpinnerNumberModel
  * @see SpinnerDateModel
  * 
- * @version 1.5 01/23/03
+ * @version 1.7 05/05/04
  * @author Hans Muller
  * @since 1.4
  */
@@ -117,7 +117,7 @@ public abstract class AbstractSpinnerModel implements SpinnerModel
      * @return all of the objects receiving <em>listenerType</em> notifications 
      *         from this model
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 }

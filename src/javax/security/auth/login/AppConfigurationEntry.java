@@ -1,7 +1,7 @@
 /*
- * @(#)AppConfigurationEntry.java	1.32 03/01/23
+ * @(#)AppConfigurationEntry.java	1.34 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -21,7 +21,7 @@ import java.util.Collections;
  * options.  Please refer to the <code>Configuration</code> class for
  * more information on the different control flags and their semantics.
  *
- * @version 1.32, 01/23/03
+ * @version 1.34, 05/05/04
  * @see javax.security.auth.login.Configuration
  */
 public class AppConfigurationEntry {
@@ -55,7 +55,8 @@ public class AppConfigurationEntry {
      */
     public AppConfigurationEntry(String loginModuleName,
 				LoginModuleControlFlag controlFlag,
-				Map options) {
+				Map<String,?> options)
+    {
 	if (loginModuleName == null || loginModuleName.length() == 0 ||
 	    (controlFlag != LoginModuleControlFlag.REQUIRED &&
 		controlFlag != LoginModuleControlFlag.REQUISITE &&
@@ -98,7 +99,7 @@ public class AppConfigurationEntry {
      * @return the options configured for this <code>LoginModule</code>
      *		as an unmodifiable <code>Map</code>.
      */
-    public Map getOptions() {
+    public Map<String,?> getOptions() {
 	return options;
     }
 

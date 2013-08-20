@@ -1,7 +1,7 @@
 /*
- * @(#)PrinterStateReasons.java	1.6 03/01/23
+ * @(#)PrinterStateReasons.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -13,6 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.HashMap;
 import java.util.Set;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.PrintServiceAttribute;
 
 /**
@@ -62,8 +63,12 @@ import javax.print.attribute.PrintServiceAttribute;
  *
  * @author  Alan Kaminsky
  */
-public final class PrinterStateReasons extends HashMap
-    implements PrintServiceAttribute {
+public final class PrinterStateReasons
+    extends HashMap<PrinterStateReason,Severity>
+    implements PrintServiceAttribute
+{
+
+    private static final long serialVersionUID = -3731791085163619457L;
 
     /**
      * Construct a new, empty printer state reasons attribute; the underlying 
@@ -119,13 +124,10 @@ public final class PrinterStateReasons extends HashMap
      *     if any value in <CODE>map</CODE> is not an instance of class 
      *     {@link Severity Severity}. 
      */
-    public PrinterStateReasons(Map map) {
+    public PrinterStateReasons(Map<PrinterStateReason,Severity> map) {
 	this();
-	Iterator i = map.entrySet().iterator();
-	while (i.hasNext()) {
-	    Map.Entry e = (Map.Entry) i.next();
+	for (Map.Entry<PrinterStateReason,Severity> e : map.entrySet())
 	    put(e.getKey(), e.getValue());
-	}
     }
 
     /**
@@ -152,16 +154,16 @@ public final class PrinterStateReasons extends HashMap
      *     <CODE>severity</CODE> is not an instance of class {@link Severity 
      *     Severity}. 
      */
-	public Object put(Object reason, Object severity) {
-	    if (reason == null) {
-		throw new NullPointerException("reason is null");
-	    }
-	    if (severity == null) {
-		throw new NullPointerException("severity is null");
-	    }
-	    return super.put((PrinterStateReason) reason,
-			     (Severity) severity);
+    public Severity put(PrinterStateReason reason, Severity severity) {
+	if (reason == null) {
+	    throw new NullPointerException("reason is null");
 	}
+	if (severity == null) {
+	    throw new NullPointerException("severity is null");
+	}
+	return super.put((PrinterStateReason) reason,
+			 (Severity) severity);
+    }
 
     /**
      * Get the printing attribute class which is to be used as the "category" 
@@ -173,7 +175,7 @@ public final class PrinterStateReasons extends HashMap
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return PrinterStateReasons.class;
     }
 
@@ -211,14 +213,16 @@ public final class PrinterStateReasons extends HashMap
      * @exception  NullPointerException
      *     (unchecked exception) Thrown if <CODE>severity</CODE> is null.
      */
-    public Set printerStateReasonSet(Severity severity) {
+    public Set<PrinterStateReason> printerStateReasonSet(Severity severity) {
 	if (severity == null) {
 	    throw new NullPointerException("severity is null");
 	}
 	return new PrinterStateReasonSet (severity, entrySet());
     }
 
-    private class PrinterStateReasonSet extends AbstractSet {
+    private class PrinterStateReasonSet
+	extends AbstractSet<PrinterStateReason>
+    {
 	private Severity mySeverity;
 	private Set myEntrySet;
 

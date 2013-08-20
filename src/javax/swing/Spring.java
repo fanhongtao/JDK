@@ -1,11 +1,12 @@
 /*
- * @(#)Spring.java	1.6 03/01/23
+ * @(#)Spring.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
+import java.awt.Component;
 import java.util.*;
 
 /**
@@ -87,11 +88,26 @@ import java.util.*;
  *  potentially changing characteristics of the springs from which it
  *  was made. This is a little like the idea of a <em>lazy value</em>
  *  in a functional language.
+ * <p>
+ * If you are implementing a <code>SpringLayout</code> you
+ * can find further information and examples in
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/layout/spring.html">How to Use SpringLayout</a>,
+ * a section in <em>The Java Tutorial.</em>
+ * <p>
+ * <strong>Warning:</strong>
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see SpringLayout
  * @see SpringLayout.Constraints
  *
- * @version 1.6 01/23/03
+ * @version 1.9 12/19/03
  * @author 	Philip Milne
  * @since       1.4
  */
@@ -260,6 +276,87 @@ public abstract class Spring {
 
         /*pp*/ boolean isCyclic(SpringLayout l) {
             return s.isCyclic(l);
+        }
+    }
+
+    private static class ScaleSpring extends Spring {
+        private Spring s;
+        private float factor;
+
+        private ScaleSpring(Spring s, float factor) {
+            this.s = s;
+            this.factor = factor;
+        }
+
+        public int getMinimumValue() {
+            return Math.round((factor < 0 ? s.getMaximumValue() : s.getMinimumValue()) * factor);
+        }
+
+        public int getPreferredValue() {
+            return Math.round(s.getPreferredValue() * factor);
+        }
+
+        public int getMaximumValue() {
+            return Math.round((factor < 0 ? s.getMinimumValue() : s.getMaximumValue()) * factor);
+        }
+
+        public int getValue() {
+            return Math.round(s.getValue() * factor);
+        }
+
+        public void setValue(int value) {
+            if (value == UNSET) {
+                s.setValue(UNSET);
+            } else {
+                s.setValue(Math.round(value / factor));
+            }
+        }
+
+        /*pp*/ boolean isCyclic(SpringLayout l) {
+            return s.isCyclic(l);
+        }
+    }
+
+    /*pp*/ static class WidthSpring extends AbstractSpring {
+        /*pp*/ Component c;
+
+        public WidthSpring(Component c) {
+            this.c = c;
+        }
+
+        public int getMinimumValue() {
+            return c.getMinimumSize().width;
+        }
+
+        public int getPreferredValue() {
+            return c.getPreferredSize().width;
+        }
+
+        public int getMaximumValue() {
+            // We will be doing arithmetic with the results of this call,
+            // so if a returned value is Integer.MAX_VALUE we will get
+            // arithmetic overflow. Truncate such values.
+            return Math.min(Short.MAX_VALUE, c.getMaximumSize().width);
+        }
+    }
+
+     /*pp*/  static class HeightSpring extends AbstractSpring {
+        /*pp*/ Component c;
+
+        public HeightSpring(Component c) {
+            this.c = c;
+        }
+
+        public int getMinimumValue() {
+            return c.getMinimumSize().height;
+        }
+
+        public int getPreferredValue() {
+            return c.getPreferredSize().height;
+        }
+
+        public int getMaximumValue() {
+            return Math.min(Short.MAX_VALUE, c.getMaximumSize().height);
         }
     }
 
@@ -479,4 +576,78 @@ public abstract class Spring {
     }
     */
 
+    /**
+     * Returns a spring whose <em>minimum</em>, <em>preferred</em>, <em>maximum</em>
+     * and <em>value</em> properties are each multiples of the properties of the
+     * argument spring, <code>s</code>. Minimum and maximum properties are
+     * swapped when <code>factor</code> is negative (in accordance with the
+     * rules of interval arithmetic).
+     * <p>
+     * When factor is, for example, 0.5f the result represents 'the mid-point'
+     * of its input - an operation that is useful for centering components in
+     * a container.
+     *
+     * @param s the spring to scale
+     * @param factor amount to scale by.
+     * @return  a spring whose properties are those of the input spring <code>s</code>
+     * multiplied by <code>factor</code>
+     * @throws NullPointerException if <code>s</code> is null
+     * @since 1.5
+     */
+    public static Spring scale(Spring s, float factor) {
+        checkArg(s);
+        return new ScaleSpring(s, factor);
+    }
+
+    /**
+     * Returns a spring whose <em>minimum</em>, <em>preferred</em>, <em>maximum</em>
+     * and <em>value</em> properties are defined by the widths of the <em>minimumSize</em>,
+     * <em>preferredSize</em>, <em>maximumSize</em> and <em>size</em> properties
+     * of the supplied component. The returned spring is a 'wrapper' implementation
+     * whose methods call the appropriate size methods of the supplied component.
+     * The minimum, preferred, maximum and value properties of the returned spring
+     * therefore report the current state of the appropriate properties in the
+     * component and track them as they change.
+     *
+     * @param c Component used for calculating size
+     * @return  a spring whose properties are defined by the horizontal component
+     * of the component's size methods.
+     * @throws NullPointerException if <code>c</code> is null
+     * @since 1.5
+     */
+    public static Spring width(Component c) {
+        checkArg(c);
+        return new WidthSpring(c);
+    }
+
+    /**
+     * Returns a spring whose <em>minimum</em>, <em>preferred</em>, <em>maximum</em>
+     * and <em>value</em> properties are defined by the heights of the <em>minimumSize</em>,
+     * <em>preferredSize</em>, <em>maximumSize</em> and <em>size</em> properties
+     * of the supplied component. The returned spring is a 'wrapper' implementation
+     * whose methods call the appropriate size methods of the supplied component.
+     * The minimum, preferred, maximum and value properties of the returned spring
+     * therefore report the current state of the appropriate properties in the
+     * component and track them as they change.
+     *
+     * @param c Component used for calculating size
+     * @return  a spring whose properties are defined by the vertical component
+     * of the component's size methods.
+     * @throws NullPointerException if <code>c</code> is null
+     * @since 1.5
+     */
+    public static Spring height(Component c) {
+        checkArg(c);
+        return new HeightSpring(c);
+    }
+
+
+    /**
+     * If <code>s</code> is null, this throws an NullPointerException.
+     */
+    private static void checkArg(Object s) {
+        if (s == null) {
+            throw new NullPointerException("Argument must not be null");
+        }
+    }
 }

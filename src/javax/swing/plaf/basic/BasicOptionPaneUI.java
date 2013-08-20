@@ -1,12 +1,14 @@
 /*
- * @(#)BasicOptionPaneUI.java	1.55 03/01/23
+ * @(#)BasicOptionPaneUI.java	1.58 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.*;
@@ -20,6 +22,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Locale;
 import java.security.AccessController;
+
+import sun.security.action.GetPropertyAction;
 
 
 /**
@@ -51,7 +55,7 @@ import java.security.AccessController;
  * The <code>Container</code>, message, icon, and buttons are all
  * determined from abstract methods.
  * 
- * @version 1.55 01/23/03
+ * @version 1.58 12/19/03
  * @author James Gosling
  * @author Scott Violet
  * @author Amy Fowler
@@ -62,11 +66,6 @@ public class BasicOptionPaneUI extends OptionPaneUI {
     public static final int MinimumHeight = 90;
 
     private static String newline;
-
-    /**
-     * The mnemonics for the keys, these are set in <code>getButtons</code>.
-     */
-    private int[] mnemonics;
 
     /**
      * <code>JOptionPane</code> that the receiver is providing the
@@ -89,19 +88,22 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
     protected PropertyChangeListener propertyChangeListener;
 
+    private Handler handler;
+
+
     static {
-        java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction() {
-                public Object run() {
-		    newline = System.getProperty("line.separator");
-		    if (newline == null) {
-		        newline = "\n";
-		    }
-		    return null;
-                }
-            }
-        );
+	newline = (String)java.security.AccessController.doPrivileged(
+                                new GetPropertyAction("line.separator"));
+        if (newline == null) {
+            newline = "\n";
+        }
     }
+
+    static void loadActionMap(LazyActionMap map) {
+	map.put(new Actions(Actions.CLOSE));
+        BasicLookAndFeel.installAudioActionMap(map);
+    }
+
 
 
     /**
@@ -142,8 +144,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
                                          "OptionPane.foreground", "OptionPane.font");
 	LookAndFeel.installBorder(optionPane, "OptionPane.border");
         minimumSize = UIManager.getDimension("OptionPane.minimumSize");
-	optionPane.setOpaque(true);
-
+        LookAndFeel.installProperty(optionPane, "opaque", Boolean.TRUE);
     }
 
     protected void uninstallDefaults() {
@@ -183,10 +184,18 @@ public class BasicOptionPaneUI extends OptionPaneUI {
             optionPane.removePropertyChangeListener(propertyChangeListener);
             propertyChangeListener = null;
         }
+        handler = null;
     }
 
     protected PropertyChangeListener createPropertyChangeListener() {
-        return new PropertyChangeHandler();
+        return getHandler();
+    }
+
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
     }
 
     protected void installKeyboardActions() {
@@ -194,9 +203,9 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
 	SwingUtilities.replaceUIInputMap(optionPane, JComponent.
 				       WHEN_IN_FOCUSED_WINDOW, map);
-	ActionMap actionMap = getActionMap();
 
-	SwingUtilities.replaceUIActionMap(optionPane, actionMap);
+        LazyActionMap.installLazyActionMap(optionPane, BasicOptionPaneUI.class,
+                                           "OptionPane.actionMap");
     }
 
     protected void uninstallKeyboardActions() {
@@ -207,37 +216,13 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_IN_FOCUSED_WINDOW) {
-	    Object[] bindings = (Object[])UIManager.get
-		                ("OptionPane.windowBindings");
+	    Object[] bindings = (Object[])DefaultLookup.get(
+                             optionPane, this, "OptionPane.windowBindings");
 	    if (bindings != null) {
 		return LookAndFeel.makeComponentInputMap(optionPane, bindings);
 	    }
 	}
 	return null;
-    }
-
-    ActionMap getActionMap() {
-	ActionMap map = (ActionMap)UIManager.get("OptionPane.actionMap");
-
-	if (map == null) {
-	    map = createActionMap();
-	    if (map != null) {
-		UIManager.getLookAndFeelDefaults().put("OptionPane.actionMap",
-                                                       map);
-	    }
-	}
-	return map;
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-	map.put("close", new CloseAction());
-	// Set the ActionMap's parent to the Auditory Feedback Action Map
-	BasicLookAndFeel lf = (BasicLookAndFeel)UIManager.getLookAndFeel();
-	ActionMap audioMap = lf.getAudioActionMap();
-	map.setParent(audioMap);
-
-	return map;
     }
 
     /**
@@ -246,8 +231,6 @@ public class BasicOptionPaneUI extends OptionPaneUI {
      */
     public Dimension getMinimumOptionPaneSize() {
         if (minimumSize == null) {
-            //minimumSize = UIManager.getDimension("OptionPane.minimumSize");
-            // this is called before defaults initialized?!!!
             return new Dimension(MinimumWidth, MinimumHeight);
         }
 	return new Dimension(minimumSize.width,
@@ -281,51 +264,40 @@ public class BasicOptionPaneUI extends OptionPaneUI {
     }
 
     /**
-     * Messages getPreferredSize.
-     */
-    public Dimension getMinimumSize(JComponent c) {
-	return getPreferredSize(c);
-    }
-
-    /**
-     * Messages getPreferredSize.
-     */
-    public Dimension getMaximumSize(JComponent c) {
-	return getPreferredSize(c);
-    }
-
-    /**
      * Messaged from installComponents to create a Container containing the
      * body of the message. The icon is the created by calling
      * <code>addIcon</code>.
      */
     protected Container createMessageArea() {
         JPanel top = new JPanel();
-        top.setBorder(UIManager.getBorder("OptionPane.messageAreaBorder"));
+        Border topBorder = (Border)DefaultLookup.get(optionPane, this,
+                                             "OptionPane.messageAreaBorder");
+        if (topBorder != null) {
+            top.setBorder(topBorder);
+        }
 	top.setLayout(new BorderLayout());
 
 	/* Fill the body. */
-	Container          body = new JPanel() {};
-	Container          realBody = new JPanel() {};
+	Container          body = new JPanel(new GridBagLayout());
+	Container          realBody = new JPanel(new BorderLayout());
 
-	realBody.setLayout(new BorderLayout());
+        body.setName("OptionPane.body");
+        realBody.setName("OptionPane.realBody");
 
 	if (getIcon() != null) {
-            Container sep = new JPanel() {
-	        public Dimension getPreferredSize() {
-		    return new Dimension(15, 1);
-	        }
-            };
+            JPanel sep = new JPanel();
+            sep.setName("OptionPane.separator");
+            sep.setPreferredSize(new Dimension(15, 1));
 	    realBody.add(sep, BorderLayout.BEFORE_LINE_BEGINS);
 	}
 	realBody.add(body, BorderLayout.CENTER);
 
-	body.setLayout(new GridBagLayout());
 	GridBagConstraints cons = new GridBagConstraints();
 	cons.gridx = cons.gridy = 0;
 	cons.gridwidth = GridBagConstraints.REMAINDER;
 	cons.gridheight = 1;
-	cons.anchor = GridBagConstraints.LINE_START;
+	cons.anchor = DefaultLookup.getInt(optionPane, this,
+                      "OptionPane.messageAnchor", GridBagConstraints.CENTER);
 	cons.insets = new Insets(0,0,3,0);
 
 	addMessageComponents(body, cons, getMessage(),
@@ -405,7 +377,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    if (nl >= 0) {
 		// break up newlines
 		if (nl == 0) {
-		    addMessageComponents(container, cons, new Component() {
+                    JPanel breakPanel = new JPanel() {
 		        public Dimension getPreferredSize() {
 			    Font       f = getFont();
 			    
@@ -414,7 +386,10 @@ public class BasicOptionPaneUI extends OptionPaneUI {
                             }
 			    return new Dimension(0, 0);
 		        }
-		    }, maxll, true);
+                    };
+                    breakPanel.setName("OptionPane.break");
+		    addMessageComponents(container, cons, breakPanel, maxll,
+                                         true);
 		} else {
 		    addMessageComponents(container, cons, s.substring(0, nl),
 				      maxll, false);
@@ -424,12 +399,14 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
 	    } else if (len > maxll) {
 		Container c = Box.createVerticalBox();
+                c.setName("OptionPane.verticalBox");
 		burstStringInto(c, s, maxll);
 		addMessageComponents(container, cons, c, maxll, true );
 
 	    } else {
 	        JLabel label;
 		label = new JLabel( s, JLabel.LEADING );
+                label.setName("OptionPane.label");
                 configureMessageLabel(label);
 		addMessageComponents(container, cons, label, maxll, true);
 	    }
@@ -458,6 +435,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 		    if (sValues.length < 20) {
 			JComboBox            cBox = new JComboBox();
 
+                        cBox.setName("OptionPane.comboBox");
 			for(int counter = 0, maxCounter = sValues.length;
 			    counter < maxCounter; counter++) {
 			    cBox.addItem(sValues[counter]);
@@ -472,11 +450,13 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 			JList                list = new JList(sValues);
 			JScrollPane          sp = new JScrollPane(list);
 
+                        sp.setName("OptionPane.scrollPane");
+                        list.setName("OptionPane.list");
 			list.setVisibleRowCount(10);
 			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			if(inputValue != null)
 			    list.setSelectedValue(inputValue, true);
-			list.addMouseListener(new ListSelectionListener());
+			list.addMouseListener(getHandler());
 			toAdd = sp;
 			inputComponent = list;
 		    }
@@ -484,6 +464,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 		} else {
 		    MultiplexingTextField   tf = new MultiplexingTextField(20);
 
+                    tf.setName("OptionPane.textField");
                     tf.setKeyStrokes(new KeyStroke[] {
                                      KeyStroke.getKeyStroke("ENTER") } );
 		    if (inputValue != null) {
@@ -492,7 +473,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
                         tf.setSelectionStart(0);
                         tf.setSelectionEnd(inputString.length());
                     }
-		    tf.addActionListener(new TextFieldActionListener());
+		    tf.addActionListener(getHandler());
 		    toAdd = inputComponent = tf;
 		}
 
@@ -526,6 +507,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	if (sideIcon != null) {
 	    JLabel            iconLabel = new JLabel(sideIcon);
 
+            iconLabel.setName("OptionPane.iconLabel");
 	    iconLabel.setVerticalAlignment(SwingConstants.TOP);
 	    top.add(iconLabel, BorderLayout.BEFORE_LINE_BEGINS);
 	}
@@ -550,15 +532,23 @@ public class BasicOptionPaneUI extends OptionPaneUI {
     protected Icon getIconForType(int messageType) {
 	if(messageType < 0 || messageType > 3)
 	    return null;
+        String propertyName = null;
 	switch(messageType) {
 	case 0:
-	    return UIManager.getIcon("OptionPane.errorIcon");
+	    propertyName = "OptionPane.errorIcon";
+            break;
 	case 1:
-	    return UIManager.getIcon("OptionPane.informationIcon");
+	    propertyName = "OptionPane.informationIcon";
+            break;
 	case 2:
-	    return UIManager.getIcon("OptionPane.warningIcon");
+	    propertyName = "OptionPane.warningIcon";
+            break;
 	case 3:
-	    return UIManager.getIcon("OptionPane.questionIcon");
+	    propertyName = "OptionPane.questionIcon";
+            break;
+	}
+        if (propertyName != null) {
+            return (Icon)DefaultLookup.get(optionPane, this, propertyName);
 	}
 	return null;
     }
@@ -590,6 +580,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    }
 	}
 	JLabel label = new JLabel(d, JLabel.LEFT);
+        label.setName("OptionPane.label");
         configureMessageLabel(label);
 	c.add(label);
     }
@@ -604,10 +595,22 @@ public class BasicOptionPaneUI extends OptionPaneUI {
      */
     protected Container createButtonArea() {
         JPanel bottom = new JPanel();
-        bottom.setBorder(UIManager.getBorder("OptionPane.buttonAreaBorder"));
-	bottom.setLayout(new ButtonAreaLayout(true, 6));
+        Border border = (Border)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.buttonAreaBorder");
+        bottom.setName("OptionPane.buttonArea");
+        if (border != null) {
+            bottom.setBorder(border);
+        }
+	bottom.setLayout(new ButtonAreaLayout(
+           DefaultLookup.getBoolean(optionPane, this,
+                                    "OptionPane.sameSizeButtons", true),
+           DefaultLookup.getInt(optionPane, this, "OptionPane.buttonPadding",
+                                6),
+           DefaultLookup.getInt(optionPane, this,
+                        "OptionPane.buttonOrientation", SwingConstants.CENTER),
+           DefaultLookup.getBoolean(optionPane, this, "OptionPane.isYesLast",
+                                    false)));
 	addButtonComponents(bottom, getButtons(), getInitialValueIndex());
-        mnemonics = null;
 	return bottom;
     }
 
@@ -626,11 +629,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    int                numButtons = buttons.length;
 	    JButton[]          createdButtons = null;
 	    int                maxWidth = 0;
-            int[]              mnemonics = this.mnemonics;
 
-            if (mnemonics != null && mnemonics.length != buttons.length) {
-                mnemonics = null;
-            }
 	    if (sizeButtonsToSame) {
 		createdButtons = new JButton[numButtons];
             }
@@ -648,12 +647,18 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 		} else {
 		    JButton      aButton;
 
-		    if (button instanceof Icon)
+                    if (button instanceof ButtonFactory) {
+                        aButton = ((ButtonFactory)button).createButton();
+                    }
+		    else if (button instanceof Icon)
 			aButton = new JButton((Icon)button);
 		    else
 			aButton = new JButton(button.toString());
 
-		    aButton.setMultiClickThreshhold(UIManager.getInt("OptionPane.buttonClickThreshhold"));
+                    aButton.setName("OptionPane.button");
+		    aButton.setMultiClickThreshhold(DefaultLookup.getInt(
+                          optionPane, this, "OptionPane.buttonClickThreshhold",
+                          0));
                     configureButton(aButton);
 
 		    container.add(aButton);
@@ -663,9 +668,6 @@ public class BasicOptionPaneUI extends OptionPaneUI {
                         aButton.addActionListener(buttonListener);
                     }
 		    newComponent = aButton;
-                    if (mnemonics != null) {
-                        aButton.setMnemonic(mnemonics[counter]);
-                    }
 		}
 		if (sizeButtonsToSame && createdAll && 
 		   (newComponent instanceof JButton)) {
@@ -696,7 +698,9 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    /* Set the padding, windows seems to use 8 if <= 2 components,
 	       otherwise 4 is used. It may actually just be the size of the
 	       buttons is always the same, not sure. */
-	    if (sizeButtonsToSame && createdAll) {
+	    if (DefaultLookup.getBoolean(optionPane, this,
+                   "OptionPane.setButtonMargin", true) && sizeButtonsToSame &&
+                   createdAll) {
 		JButton               aButton;
 		int                   padSize;
 
@@ -729,39 +733,55 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	    if (suppliedOptions == null) {
                 Object[] defaultOptions;
 		int type = optionPane.getOptionType();
-
                 Locale l = optionPane.getLocale();
 		if (type == JOptionPane.YES_NO_OPTION) {
-                    defaultOptions = new String[2];
-                    defaultOptions[0] = UIManager.get("OptionPane.yesButtonText",l);
-                    defaultOptions[1] = UIManager.get("OptionPane.noButtonText",l);
-                    mnemonics = new int[2];
-                    mnemonics[0] = getMnemonic("OptionPane.yesButtonMnemonic", l);
-                    mnemonics[1] = getMnemonic("OptionPane.noButtonMnemonic", l);
-
+                    defaultOptions = new ButtonFactory[2];
+                    defaultOptions[0] = new ButtonFactory(
+                        UIManager.getString("OptionPane.yesButtonText", l),
+                        getMnemonic("OptionPane.yesButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.yesIcon"));
+                    defaultOptions[1] = new ButtonFactory(
+                        UIManager.getString("OptionPane.noButtonText", l),
+                        getMnemonic("OptionPane.noButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.noIcon"));
 		} else if (type == JOptionPane.YES_NO_CANCEL_OPTION) {
-                    defaultOptions = new String[3];
-                    defaultOptions[0] = UIManager.get("OptionPane.yesButtonText",l);
-                    defaultOptions[1] = UIManager.get("OptionPane.noButtonText",l);
-                    defaultOptions[2] = UIManager.get("OptionPane.cancelButtonText",l);
-                    mnemonics = new int[3];
-                    mnemonics[0] = getMnemonic("OptionPane.yesButtonMnemonic", l);
-                    mnemonics[1] = getMnemonic("OptionPane.noButtonMnemonic", l);
-                    mnemonics[2] = getMnemonic("OptionPane.cancelButtonMnemonic", l);
-
+                    defaultOptions = new ButtonFactory[3];
+                    defaultOptions[0] = new ButtonFactory(
+                        UIManager.getString("OptionPane.yesButtonText", l),
+                        getMnemonic("OptionPane.yesButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.yesIcon"));
+                    defaultOptions[1] = new ButtonFactory(
+                        UIManager.getString("OptionPane.noButtonText",l),
+                        getMnemonic("OptionPane.noButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.noIcon"));
+                    defaultOptions[2] = new ButtonFactory(
+                        UIManager.getString("OptionPane.cancelButtonText",l),
+                        getMnemonic("OptionPane.cancelButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.cancelIcon"));
 		} else if (type == JOptionPane.OK_CANCEL_OPTION) {
-                    defaultOptions = new String[2];
-                    defaultOptions[0] = UIManager.get("OptionPane.okButtonText",l);
-                    defaultOptions[1] = UIManager.get("OptionPane.cancelButtonText",l);
-                    mnemonics = new int[2];
-                    mnemonics[0] = getMnemonic("OptionPane.okButtonMnemonic", l);
-                    mnemonics[1] = getMnemonic("OptionPane.cancelButtonMnemonic", l);
-
+                    defaultOptions = new ButtonFactory[2];
+                    defaultOptions[0] = new ButtonFactory(
+                        UIManager.getString("OptionPane.okButtonText",l),
+                        getMnemonic("OptionPane.okButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.okIcon"));
+                    defaultOptions[1] = new ButtonFactory(
+                        UIManager.getString("OptionPane.cancelButtonText",l),
+                        getMnemonic("OptionPane.cancelButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.cancelIcon"));
 		} else {
-                    defaultOptions = new String[1];
-                    defaultOptions[0] = UIManager.get("OptionPane.okButtonText",l);
-                    mnemonics = new int[1];
-                    mnemonics[0] = getMnemonic("OptionPane.okButtonMnemonic", l);
+                    defaultOptions = new ButtonFactory[1];
+                    defaultOptions[0] = new ButtonFactory(
+                        UIManager.getString("OptionPane.okButtonText",l),
+                        getMnemonic("OptionPane.okButtonMnemonic", l),
+                        (Icon)DefaultLookup.get(optionPane, this,
+                                          "OptionPane.okIcon"));
                 }
                 return defaultOptions;
                 
@@ -771,9 +791,6 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	return null;
     }
 
-    /**
-     * Returns the mnemonic for the passed in key.
-     */
     private int getMnemonic(String key, Locale l) {
         String value = (String)UIManager.get(key, l);
 
@@ -881,12 +898,29 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 	protected int               padding;
         /** If true, children are lumped together in parent. */
 	protected boolean           centersChildren;
+        private int orientation;
+        private boolean reverseButtons;
+        /**
+         * Indicates whether or not centersChildren should be used vs
+         * the orientation. This is done for backward compatability
+         * for subclassers.
+         */
+        private boolean useOrientation;
 
 	public ButtonAreaLayout(boolean syncAllWidths, int padding) {
 	    this.syncAllWidths = syncAllWidths;
 	    this.padding = padding;
 	    centersChildren = true;
+            useOrientation = false;
 	}
+
+        ButtonAreaLayout(boolean syncAllSizes, int padding, int orientation,
+                         boolean reverseButtons) {
+            this(syncAllSizes, padding);
+            useOrientation = true;
+            this.orientation = orientation;
+            this.reverseButtons = reverseButtons;
+        }
 
 	public void setSyncAllWidths(boolean newValue) {
 	    syncAllWidths = newValue;
@@ -906,11 +940,30 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
         public void setCentersChildren(boolean newValue) {
 	    centersChildren = newValue;
+            useOrientation = false;
 	}
 
         public boolean getCentersChildren() {
 	    return centersChildren;
 	}
+
+        private int getOrientation(Container container) {
+            if (!useOrientation) {
+                return SwingConstants.CENTER;
+            }
+            if (container.getComponentOrientation().isLeftToRight()) {
+                return orientation;
+            }
+            switch (orientation) {
+            case SwingConstants.LEFT:
+                return SwingConstants.RIGHT;
+            case SwingConstants.RIGHT:
+                return SwingConstants.LEFT;
+            case SwingConstants.CENTER:
+                return SwingConstants.CENTER;
+            }
+            return SwingConstants.LEFT;
+        }
 
 	public void addLayoutComponent(String string, Component comp) {
 	}
@@ -920,112 +973,74 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
 	    if(children != null && children.length > 0) {
 		int               numChildren = children.length;
-		Dimension[]       sizes = new Dimension[numChildren];
 		Insets            insets = container.getInsets();
-		int               counter;
-		int               yLocation = insets.top;
-                boolean           ltr = container.getComponentOrientation().isLeftToRight();
+                int maxWidth = 0;
+                int maxHeight = 0;
+                int totalButtonWidth = 0;
+                int x = 0;
+                int xOffset = 0;
+                boolean ltr = container.getComponentOrientation().
+                                        isLeftToRight();
+                boolean reverse = (ltr) ? reverseButtons : !reverseButtons;
 
-		if(syncAllWidths) {
-		    int           maxWidth = 0;
+                for(int counter = 0; counter < numChildren; counter++) {
+                    Dimension pref = children[counter].getPreferredSize();
+                    maxWidth = Math.max(maxWidth, pref.width);
+                    maxHeight = Math.max(maxHeight, pref.height);
+                    totalButtonWidth += pref.width;
+                }
+                if (getSyncAllWidths()) {
+                    totalButtonWidth = maxWidth * numChildren;
+                }
+                totalButtonWidth += (numChildren - 1) * padding;
 
-		    for(counter = 0; counter < numChildren; counter++) {
-			sizes[counter] = children[counter].getPreferredSize();
-			maxWidth = Math.max(maxWidth, sizes[counter].width);
-		    }
-
-		    int      xLocation;
-		    int      xOffset;
-
-		    if(getCentersChildren()) {
-			xLocation = (container.getSize().width - insets.left - insets.right -
-					  (maxWidth * numChildren +
-					   (numChildren - 1) * padding)) / 2;
-			xOffset = padding + maxWidth;
-		    }
-		    else {
-			if(numChildren > 1) {
-			    xLocation = insets.left;
-			    xOffset = (container.getSize().width - insets.left - insets.right -
-				       (maxWidth * numChildren)) /
-				(numChildren - 1) + maxWidth;
-			}
-			else {
-			    xLocation = insets.left + 
-			                (container.getSize().width - 
-					 insets.left - insets.right -
-					 maxWidth) / 2;
-			    xOffset = 0;
-			}
-		    }
-
-                    // If right to left layout then adjust xLocation and
-                    // xOffset to start at the right side of the container
-                    // and move left.
-                    if( !ltr ) {
-                        xLocation = container.getSize().width - insets.right
-                                    - (xLocation - insets.left) - maxWidth;
-                        xOffset = -xOffset;
+                switch (getOrientation(container)) {
+                case SwingConstants.LEFT:
+                    x = insets.left;
+                    break;
+                case SwingConstants.RIGHT:
+                    x = container.getWidth() - insets.right - totalButtonWidth;
+                    break;
+                case SwingConstants.CENTER:
+                    if (getCentersChildren() || numChildren < 2) {
+                        x = (container.getWidth() - totalButtonWidth) / 2;
                     }
-
-		    for(counter = 0; counter < numChildren; counter++) {
-			children[counter].setBounds(xLocation, yLocation,
-						    maxWidth,
-						    sizes[counter].height);
-			xLocation += xOffset;
-		    }
-		}
-		else {
-		    int          totalWidth = 0;
-
-		    for(counter = 0; counter < numChildren; counter++) {
-			sizes[counter] = children[counter].getPreferredSize();
-			totalWidth += sizes[counter].width;
-		    }
-		    totalWidth += ((numChildren - 1) * padding);
-
-		    boolean      cc = getCentersChildren();
-		    int          xOffset;
-		    int          xLocation;
-
-		    if(cc) {
-			xLocation = insets.left + 
-			             (container.getSize().width - insets.left - insets.right -
-					      totalWidth) / 2;
-			xOffset = padding;
-		    }
-		    else {
-			if(numChildren > 1) {
-			    xOffset = (container.getSize().width - insets.left - insets.right -
-				       totalWidth) / (numChildren - 1);	
-			    xLocation = insets.left;
-			}
-			else {
-			    xLocation = insets.left + 
-			                (container.getSize().width - insets.left - insets.right -
-					 totalWidth) / 2;
-			    xOffset = 0;
-			}
-		    }
-
-                    if( ltr ) {
-                        for(counter = 0; counter < numChildren; counter++) {
-                            children[counter].setBounds(xLocation, yLocation,
-                                                        sizes[counter].width, sizes[counter].height);
-                            xLocation += xOffset + sizes[counter].width;
+                    else {
+                        x = insets.left;
+                        if (getSyncAllWidths()) {
+                            xOffset = (container.getWidth() - insets.left -
+                                       insets.right - totalButtonWidth) /
+                                (numChildren - 1) + maxWidth;
                         }
-                    } else {
-                        // If right to left layout then adjust xLocation to
-                        // start at the right side of the container.
-                        xLocation = container.getSize().width - insets.right
-                                    - (xLocation - insets.left);
-                        for(counter = 0; counter < numChildren; counter++) {
-                            xLocation -= xOffset + sizes[counter].width;
-                            children[counter].setBounds(xLocation, yLocation,
-                                                        sizes[counter].width, sizes[counter].height);
+                        else {
+                            xOffset = (container.getWidth() - insets.left -
+                                       insets.right - totalButtonWidth) /
+                                      (numChildren - 1);
                         }
                     }
-		}
+                    break;
+                }
+
+                for (int counter = 0; counter < numChildren; counter++) {
+                    int index = (reverse) ? numChildren - counter - 1 :
+                                counter;
+                    Dimension pref = children[index].getPreferredSize();
+
+                    if (getSyncAllWidths()) {
+                        children[index].setBounds(x, insets.top,
+                                                  maxWidth, maxHeight);
+                    }
+                    else {
+                        children[index].setBounds(x, insets.top, pref.width,
+                                                  pref.height);
+                    }
+                    if (xOffset != 0) {
+                        x += xOffset;
+                    }
+                    else {
+                        x += children[index].getWidth() + padding;
+                    }
+                }
 	    }
 	}
 
@@ -1090,99 +1105,7 @@ public class BasicOptionPaneUI extends OptionPaneUI {
          * validateComponent is invoked.
          */
         public void propertyChange(PropertyChangeEvent e) {
-	    if(e.getSource() == optionPane) {
-		// Option Pane Auditory Cue Activation
-		// only respond to "ancestor" changes
-		// the idea being that a JOptionPane gets a JDialog when it is 
-		// set to appear and loses it's JDialog when it is dismissed.
-		if ("ancestor" == e.getPropertyName()) {
-		    JOptionPane op = (JOptionPane)e.getSource();
-		    boolean isComingUp;
-		    
-		    // if the old value is null, then the JOptionPane is being
-		    // created since it didn't previously have an ancestor.
-		    if (e.getOldValue() == null) {
-			isComingUp = true;
-		    } else {
-			isComingUp = false;
-		    }
-		    
-		    // figure out what to do based on the message type
-		    switch (op.getMessageType()) {
-		    case JOptionPane.PLAIN_MESSAGE:
-			if (isComingUp) {
-			    fireAudioAction("OptionPane.informationSound");
-			}
-			break;
-		    case JOptionPane.QUESTION_MESSAGE:
-			if (isComingUp) {
-			    fireAudioAction("OptionPane.questionSound");
-			}
-			break;
-		    case JOptionPane.INFORMATION_MESSAGE:
-			if (isComingUp) {
-			    fireAudioAction("OptionPane.informationSound");
-			}
-			break;
-		    case JOptionPane.WARNING_MESSAGE:
-			if (isComingUp) {
-			    fireAudioAction("OptionPane.warningSound");
-			}
-			break;
-		    case JOptionPane.ERROR_MESSAGE:
-			if (isComingUp) {
-			    fireAudioAction("OptionPane.errorSound");
-			}
-			break;
-		    default:
-			System.err.println("Undefined JOptionPane type: " +
-					   op.getMessageType());
-			break;
-		    }
-		}
-		// Visual activity
-	        String         changeName = e.getPropertyName();
-
-	        if(changeName.equals(JOptionPane.OPTIONS_PROPERTY) ||
-    	           changeName.equals(JOptionPane.INITIAL_VALUE_PROPERTY) ||
-	           changeName.equals(JOptionPane.ICON_PROPERTY) ||
-	           changeName.equals(JOptionPane.MESSAGE_TYPE_PROPERTY) ||
-	           changeName.equals(JOptionPane.OPTION_TYPE_PROPERTY) ||
-	           changeName.equals(JOptionPane.MESSAGE_PROPERTY) ||
-	           changeName.equals(JOptionPane.SELECTION_VALUES_PROPERTY) ||
-	           changeName.equals(JOptionPane.INITIAL_SELECTION_VALUE_PROPERTY) ||
-	           changeName.equals(JOptionPane.WANTS_INPUT_PROPERTY)) {
-                   uninstallComponents();
-                   installComponents();
-                   optionPane.validate();
-                }
-		else if (changeName.equals("componentOrientation")) {
-		    ComponentOrientation o = (ComponentOrientation)e.getNewValue();
-		    JOptionPane op = (JOptionPane)e.getSource();
-		    if (o != (ComponentOrientation)e.getOldValue()) {
-			op.applyComponentOrientation(o);
-		    }
-		}
-            }
-	}
-    }
-
-    /** 
-     * Utility method which contains code to fire the auditory feedback
-     * Actions.
-     *
-     * @since 1.4
-     */
-    private void fireAudioAction (String actionName) {
-	ActionMap map = optionPane.getActionMap();
-	if (map != null) {
-	    Action audioAction = map.get(actionName);
-	    if (audioAction != null) {
-		// pass off firing the Action to a utility method
-		BasicLookAndFeel lf = (BasicLookAndFeel)
-		                       UIManager.getLookAndFeel();
-		lf.playSound(audioAction);
-	    }
+            getHandler().propertyChange(e);
 	}
     }
 
@@ -1191,9 +1114,13 @@ public class BasicOptionPaneUI extends OptionPaneUI {
      * used representing the message.
      */
     private void configureMessageLabel(JLabel label) {
-        label.setForeground(UIManager.getColor(
-                            "OptionPane.messageForeground"));
-        Font messageFont = UIManager.getFont("OptionPane.messageFont");
+        Color color = (Color)DefaultLookup.get(optionPane, this,
+                                               "OptionPane.messageForeground");
+        if (color != null) {
+            label.setForeground(color);
+        }
+        Font messageFont = (Font)DefaultLookup.get(optionPane, this,
+                                                   "OptionPane.messageFont");
         if (messageFont != null) {
             label.setFont(messageFont);
         }
@@ -1204,7 +1131,8 @@ public class BasicOptionPaneUI extends OptionPaneUI {
      * used representing the button portion of the optionpane.
      */
     private void configureButton(JButton button) {
-        Font buttonFont = UIManager.getFont("OptionPane.buttonFont");
+        Font buttonFont = (Font)DefaultLookup.get(optionPane, this,
+                                            "OptionPane.buttonFont");
         if (buttonFont != null) {
             button.setFont(buttonFont);
         }
@@ -1258,15 +1186,31 @@ public class BasicOptionPaneUI extends OptionPaneUI {
     }
 
 
-    //
-    // Classed used when optionPane.getWantsInput returns true.
-    //
+    private class Handler implements ActionListener, MouseListener,
+                                     PropertyChangeListener {
+        //
+        // ActionListener
+        //
+	public void actionPerformed(ActionEvent e) {
+	    optionPane.setInputValue(((JTextField)e.getSource()).getText());
+	}
 
-    /**
-     * Listener when a JList is created to handle input from the user.
-     */
-    private class ListSelectionListener extends MouseAdapter
-    {
+
+        //
+        // MouseListener
+        //
+        public void mouseClicked(MouseEvent e) {
+        }
+
+        public void mouseReleased(MouseEvent e) {
+        }
+
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        public void mouseExited(MouseEvent e) {
+        }
+
 	public void mousePressed(MouseEvent e) {
 	    if (e.getClickCount() == 2) {
 		JList     list = (JList)e.getSource();
@@ -1275,18 +1219,97 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 		optionPane.setInputValue(list.getModel().getElementAt(index));
 	    }
 	}
+
+        //
+        // PropertyChangeListener
+        //
+        public void propertyChange(PropertyChangeEvent e) {
+	    if(e.getSource() == optionPane) {
+		// Option Pane Auditory Cue Activation
+		// only respond to "ancestor" changes
+		// the idea being that a JOptionPane gets a JDialog when it is 
+		// set to appear and loses it's JDialog when it is dismissed.
+		if ("ancestor" == e.getPropertyName()) {
+		    JOptionPane op = (JOptionPane)e.getSource();
+		    boolean isComingUp;
+		    
+		    // if the old value is null, then the JOptionPane is being
+		    // created since it didn't previously have an ancestor.
+		    if (e.getOldValue() == null) {
+			isComingUp = true;
+		    } else {
+			isComingUp = false;
+		    }
+		    
+		    // figure out what to do based on the message type
+		    switch (op.getMessageType()) {
+		    case JOptionPane.PLAIN_MESSAGE:
+			if (isComingUp) {
+                            BasicLookAndFeel.playSound(optionPane,
+                                               "OptionPane.informationSound");
+			}
+			break;
+		    case JOptionPane.QUESTION_MESSAGE:
+			if (isComingUp) {
+                            BasicLookAndFeel.playSound(optionPane,
+                                             "OptionPane.questionSound");
+			}
+			break;
+		    case JOptionPane.INFORMATION_MESSAGE:
+			if (isComingUp) {
+                            BasicLookAndFeel.playSound(optionPane,
+                                             "OptionPane.informationSound");
+			}
+			break;
+		    case JOptionPane.WARNING_MESSAGE:
+			if (isComingUp) {
+                            BasicLookAndFeel.playSound(optionPane,
+                                             "OptionPane.warningSound");
+			}
+			break;
+		    case JOptionPane.ERROR_MESSAGE:
+			if (isComingUp) {
+                            BasicLookAndFeel.playSound(optionPane,
+			                     "OptionPane.errorSound");
+			}
+			break;
+		    default:
+			System.err.println("Undefined JOptionPane type: " +
+					   op.getMessageType());
+			break;
+		    }
+		}
+		// Visual activity
+	        String         changeName = e.getPropertyName();
+
+	        if(changeName == JOptionPane.OPTIONS_PROPERTY ||
+    	           changeName == JOptionPane.INITIAL_VALUE_PROPERTY ||
+	           changeName == JOptionPane.ICON_PROPERTY ||
+	           changeName == JOptionPane.MESSAGE_TYPE_PROPERTY ||
+	           changeName == JOptionPane.OPTION_TYPE_PROPERTY ||
+	           changeName == JOptionPane.MESSAGE_PROPERTY ||
+	           changeName == JOptionPane.SELECTION_VALUES_PROPERTY ||
+	           changeName == JOptionPane.INITIAL_SELECTION_VALUE_PROPERTY ||
+	           changeName == JOptionPane.WANTS_INPUT_PROPERTY) {
+                   uninstallComponents();
+                   installComponents();
+                   optionPane.validate();
+                }
+		else if (changeName == "componentOrientation") {
+		    ComponentOrientation o = (ComponentOrientation)e.getNewValue();
+		    JOptionPane op = (JOptionPane)e.getSource();
+		    if (o != (ComponentOrientation)e.getOldValue()) {
+			op.applyComponentOrientation(o);
+		    }
+		}
+            }
+        }
     }
 
-    /**
-     * Listener when a JTextField is created to handle input from the user.
-     */
-    private class TextFieldActionListener implements ActionListener
-    {
-	public void actionPerformed(ActionEvent e) {
-	    optionPane.setInputValue(((JTextField)e.getSource()).getText());
-	}
-    }
 
+    //
+    // Classes used when optionPane.getWantsInput returns true.
+    //
 
     /**
      * A JTextField that allows you to specify an array of KeyStrokes that
@@ -1333,18 +1356,52 @@ public class BasicOptionPaneUI extends OptionPaneUI {
 
 
 
-    // REMIND(aim,7/29/98): These actions should be broken
-    // out into protected inner classes in the next release where
-    // API changes are allowed
     /**
      * Registered in the ActionMap. Sets the value of the option pane
      * to <code>JOptionPane.CLOSED_OPTION</code>.
      */
-    private static class CloseAction extends AbstractAction {
-	public void actionPerformed(ActionEvent e) {
-	    JOptionPane optionPane = (JOptionPane)e.getSource();
+    private static class Actions extends UIAction {
+        private static final String CLOSE = "close";
 
-	    optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+        Actions(String key) {
+            super(key);
+        }
+
+	public void actionPerformed(ActionEvent e) {
+            if (getName() == CLOSE) {
+                JOptionPane optionPane = (JOptionPane)e.getSource();
+
+                optionPane.setValue(new Integer(JOptionPane.CLOSED_OPTION));
+            }
 	}
+    }
+
+
+    /**
+     * This class is used to create the default buttons. This indirection is
+     * used so that addButtonComponents can tell which Buttons were created
+     * by us vs subclassers or from the JOptionPane itself.
+     */
+    private static class ButtonFactory {
+        private String text;
+        private int mnemonic;
+        private Icon icon;
+
+        ButtonFactory(String text, int mnemonic, Icon icon) {
+            this.text = text;
+            this.mnemonic = mnemonic;
+            this.icon = icon;
+        }
+
+        JButton createButton() {
+            JButton button = new JButton(text);
+            if (icon != null) {
+                button.setIcon(icon);
+            }
+            if (mnemonic != 0) {
+                button.setMnemonic(mnemonic);
+            }
+            return button;
+        }
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)OutputStreamWriter.java	1.45 03/01/23
+ * @(#)OutputStreamWriter.java	1.47 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import sun.nio.cs.StreamEncoder;
  * sequence</i> is written to the output stream.
  *
  * <p> A <i>malformed surrogate element</i> is a high surrogate that is not
- * followed by a low surrogate or a low surrogate that is not preceeded by a
+ * followed by a low surrogate or a low surrogate that is not preceded by a
  * high surrogate.  It is illegal to attempt to write a character stream
  * containing malformed surrogate elements.  The behavior of an instance of
  * this class when a malformed surrogate element is written is not specified.
@@ -51,7 +51,7 @@ import sun.nio.cs.StreamEncoder;
  * @see OutputStream
  * @see java.nio.charset.Charset
  *
- * @version 	1.45, 03/01/23
+ * @version 	1.47, 04/01/12
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

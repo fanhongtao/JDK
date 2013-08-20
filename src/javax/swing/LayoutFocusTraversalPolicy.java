@@ -1,7 +1,7 @@
 /*
- * @(#)LayoutFocusTraversalPolicy.java	1.8 03/01/23
+ * @(#)LayoutFocusTraversalPolicy.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -23,7 +23,7 @@ import java.io.*;
  * <code>ComponentOrientation</code> for more information. All columns in a
  * row are fully traversed before proceeding to the next row.
  *
- * @version 1.8, 01/23/03
+ * @version 1.10, 12/19/03
  * @author David Mendenhall
  *
  * @see java.awt.ComponentOrientation
@@ -54,68 +54,74 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
 
     /**
      * Returns the Component that should receive the focus after aComponent.
-     * focusCycleRoot must be a focus cycle root of aComponent.
+     * aContainer must be a focus cycle root of aComponent.
      * <p>
      * By default, LayoutFocusTraversalPolicy implicitly transfers focus down-
      * cycle. That is, during normal focus traversal, the Component
      * traversed after a focus cycle root will be the focus-cycle-root's
      * default Component to focus. This behavior can be disabled using the
      * <code>setImplicitDownCycleTraversal</code> method.
+     * <p>
+     * If aContainer is <a href="doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
+     * traversal policy provider</a>, the focus is always transferred down-cycle.
      *
-     * @param focusCycleRoot a focus cycle root of aComponent
-     * @param aComponent a (possibly indirect) child of focusCycleRoot, or
-     *        focusCycleRoot itself
+     * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider
+     * @param aComponent a (possibly indirect) child of aContainer, or
+     *        aContainer itself
      * @return the Component that should receive the focus after aComponent, or
      *         null if no suitable Component can be found
-     * @throws IllegalArgumentException if focusCycleRoot is not a focus cycle
-     *         root of aComponent, or if either focusCycleRoot or aComponent is
-     *         null
+     * @throws IllegalArgumentException if aContainer is not a focus cycle
+     *         root of aComponent or a focus traversal policy provider, or if either aContainer or
+     *         aComponent is null
      */
-    public Component getComponentAfter(Container focusCycleRoot,
+    public Component getComponentAfter(Container aContainer,
                                        Component aComponent) {
-        if (focusCycleRoot == null || aComponent == null) {
-            throw new IllegalArgumentException("focusCycleRoot and aComponent cannot be null");
+        if (aContainer == null || aComponent == null) {
+            throw new IllegalArgumentException("aContainer and aComponent cannot be null");
         }
 	Comparator comparator = getComparator();
 	if (comparator instanceof LayoutComparator) {
 	    ((LayoutComparator)comparator).
-		setComponentOrientation(focusCycleRoot.
+                setComponentOrientation(aContainer.
 					getComponentOrientation());
 	}
-	return super.getComponentAfter(focusCycleRoot, aComponent);
+        return super.getComponentAfter(aContainer, aComponent);
     }
 
     /**
      * Returns the Component that should receive the focus before aComponent.
-     * focusCycleRoot must be a focus cycle root of aComponent.
+     * aContainer must be a focus cycle root of aComponent.
      * <p>
      * By default, LayoutFocusTraversalPolicy implicitly transfers focus down-
      * cycle. That is, during normal focus traversal, the Component
      * traversed after a focus cycle root will be the focus-cycle-root's
      * default Component to focus. This behavior can be disabled using the
      * <code>setImplicitDownCycleTraversal</code> method.
+     * <p>
+     * If aContainer is <a href="doc-files/FocusSpec.html#FocusTraversalPolicyProviders">focus
+     * traversal policy provider</a>, the focus is always transferred down-cycle.
      *
-     * @param focusCycleRoot a focus cycle root of aComponent
-     * @param aComponent a (possibly indirect) child of focusCycleRoot, or
-     *        focusCycleRoot itself
+     * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider
+     * @param aComponent a (possibly indirect) child of aContainer, or
+     *        aContainer itself
      * @return the Component that should receive the focus before aComponent,
      *         or null if no suitable Component can be found
-     * @throws IllegalArgumentException if focusCycleRoot is not a focus cycle
-     *         root of aComponent, or if either focusCycleRoot or aComponent is
-     *         null
+     * @throws IllegalArgumentException if aContainer is not a focus cycle
+     *         root of aComponent or a focus traversal policy provider, or if either aContainer or
+     *         aComponent is null
      */
-    public Component getComponentBefore(Container focusCycleRoot,
+    public Component getComponentBefore(Container aContainer,
                                         Component aComponent) {
-        if (focusCycleRoot == null || aComponent == null) {
-            throw new IllegalArgumentException("focusCycleRoot and aComponent cannot be null");
+        if (aContainer == null || aComponent == null) {
+            throw new IllegalArgumentException("aContainer and aComponent cannot be null");
         }
 	Comparator comparator = getComparator();
 	if (comparator instanceof LayoutComparator) {
 	    ((LayoutComparator)comparator).
-		setComponentOrientation(focusCycleRoot.
+                setComponentOrientation(aContainer.
 					getComponentOrientation());
 	}
-	return super.getComponentBefore(focusCycleRoot, aComponent);
+        return super.getComponentBefore(aContainer, aComponent);
     }
 
     /**
@@ -123,24 +129,23 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
      * to determine the next Component to focus when traversal wraps in the
      * forward direction.
      *
-     * @param focusCycleRoot the focus cycle root whose first Component is to
-     *         be returned
-     * @return the first Component in the traversal cycle when focusCycleRoot
-     *         is the focus cycle root, or null if no suitable Component can be
-     *         found
-     * @throws IllegalArgumentException if focusCycleRoot is null
+     * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider whose
+     *        first Component is to be returned
+     * @return the first Component in the traversal cycle of aContainer,
+     *         or null if no suitable Component can be found
+     * @throws IllegalArgumentException if aContainer is null
      */
-    public Component getFirstComponent(Container focusCycleRoot) {
-        if (focusCycleRoot == null) {
-            throw new IllegalArgumentException("focusCycleRoot cannot be null");
+    public Component getFirstComponent(Container aContainer) {
+        if (aContainer == null) {
+            throw new IllegalArgumentException("aContainer cannot be null");
         }
 	Comparator comparator = getComparator();
 	if (comparator instanceof LayoutComparator) {
 	    ((LayoutComparator)comparator).
-		setComponentOrientation(focusCycleRoot.
+                setComponentOrientation(aContainer.
 					getComponentOrientation());
 	}
-	return super.getFirstComponent(focusCycleRoot);
+        return super.getFirstComponent(aContainer);
     }
 
     /**
@@ -148,24 +153,23 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
      * to determine the next Component to focus when traversal wraps in the
      * reverse direction.
      *
-     * @param focusCycleRoot the focus cycle root whose last Component is to be
-     *        returned
-     * @return the last Component in the traversal cycle when focusCycleRoot is
-     *         the focus cycle root, or null if no suitable Component can be
-     *         found
-     * @throws IllegalArgumentException if focusCycleRoot is null
+     * @param aContainer a focus cycle root of aComponent or a focus traversal policy provider whose
+     *        last Component is to be returned
+     * @return the last Component in the traversal cycle of aContainer,
+     *         or null if no suitable Component can be found
+     * @throws IllegalArgumentException if aContainer is null
      */
-    public Component getLastComponent(Container focusCycleRoot) {
-        if (focusCycleRoot == null) {
-            throw new IllegalArgumentException("focusCycleRoot cannot be null");
+    public Component getLastComponent(Container aContainer) {
+        if (aContainer == null) {
+            throw new IllegalArgumentException("aContainer cannot be null");
         }
 	Comparator comparator = getComparator();
 	if (comparator instanceof LayoutComparator) {
 	    ((LayoutComparator)comparator).
-		setComponentOrientation(focusCycleRoot.
+                setComponentOrientation(aContainer.
 					getComponentOrientation());
 	}
-	return super.getLastComponent(focusCycleRoot);
+        return super.getLastComponent(aContainer);
     }
 
     /**  

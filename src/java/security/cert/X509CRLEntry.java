@@ -1,7 +1,7 @@
 /*
- * @(#)X509CRLEntry.java	1.14 03/01/23
+ * @(#)X509CRLEntry.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,8 @@ package java.security.cert;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Set;
+
+import javax.security.auth.x500.X500Principal;
 
 /**
  * <p>Abstract class for a revoked certificate in a CRL (Certificate
@@ -42,7 +44,7 @@ import java.util.Set;
  * @see X509Extension
  *
  * @author Hemma Prafullchandra
- * @version 1.14 03/01/23
+ * @version 1.16 03/12/19
  */
 
 public abstract class X509CRLEntry implements X509Extension {
@@ -115,13 +117,31 @@ public abstract class X509CRLEntry implements X509Extension {
     public abstract BigInteger getSerialNumber();
 
     /**
+     * Get the issuer of the X509Certificate described by this entry. If
+     * the certificate issuer is also the CRL issuer, this method returns
+     * null.
+     *
+     * <p>This method is used with indirect CRLs. The default implementation
+     * always returns null. Subclasses that wish to support indirect CRLs
+     * should override it.
+     *
+     * @return the issuer of the X509Certificate described by this entry
+     * or null if it is issued by the CRL issuer.
+     *
+     * @since 1.5
+     */
+    public X500Principal getCertificateIssuer() {
+	return null;
+    }
+
+    /**
      * Gets the revocation date from this X509CRLEntry,
      * the <em>revocationDate</em>.
      *
      * @return the revocation date.
      */
     public abstract Date getRevocationDate();
-
+    
     /**
      * Returns true if this CRL entry has extensions.
      *

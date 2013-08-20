@@ -1,7 +1,7 @@
 /*
- * @(#)WrappedPlainView.java	1.32 03/03/06
+ * @(#)WrappedPlainView.java	1.38 04/05/26
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -31,7 +31,7 @@ import javax.swing.event.*;
  * without concern for the layout aspects.
  *
  * @author  Timothy Prinzing
- * @version 1.32 03/06/03
+ * @version 1.38 05/26/04
  * @see     View
  */
 public class WrappedPlainView extends BoxView implements TabExpander {
@@ -115,12 +115,12 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 
 	if (Utilities.isComposedTextAttributeDefined(attr)) {
 	    g.setColor(unselected);
-	    x = Utilities.drawComposedText(attr, g, x, y, 
+	    x = Utilities.drawComposedText(this, attr, g, x, y, 
 					p0-elem.getStartOffset(), 
 					p1-elem.getStartOffset());
 	} else {
-	    if (sel0 == sel1) {
-		// no selection
+	    if (sel0 == sel1 || selected == unselected) {
+		// no selection, or it is invisible
 		x = drawUnselectedText(g, x, y, p0, p1);
 	    } else if ((p0 >= sel0 && p0 <= sel1) && (p1 >= sel0 && p1 <= sel1)) {
 		x = drawSelectedText(g, x, y, p0, p1);
@@ -162,7 +162,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
         Document doc = getDocument();
         Segment segment = SegmentCache.getSharedSegment();
         doc.getText(p0, p1 - p0, segment);
-        int ret = Utilities.drawTabbedText(segment, x, y, g, this, p0);
+        int ret = Utilities.drawTabbedText(this, segment, x, y, g, this, p0);
         SegmentCache.releaseSharedSegment(segment);
         return ret;
     }
@@ -187,7 +187,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
         Document doc = getDocument();
         Segment segment = SegmentCache.getSharedSegment();
         doc.getText(p0, p1 - p0, segment);
-        int ret = Utilities.drawTabbedText(segment, x, y, g, this, p0);
+        int ret = Utilities.drawTabbedText(this, segment, x, y, g, this, p0);
         SegmentCache.releaseSharedSegment(segment);
         return ret;
     }
@@ -217,14 +217,15 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 	int p;
         Segment segment = SegmentCache.getSharedSegment();
 	loadText(segment, p0, p1);
+        int currentWidth = getWidth();
 	if (wordWrap) {
 	    p = p0 + Utilities.getBreakLocation(segment, metrics,
-						tabBase, tabBase + getWidth(),
+						tabBase, tabBase + currentWidth,
 						this, p0);
 	} else {
 	    p = p0 + Utilities.getTabbedTextOffset(segment, metrics, 
-						   tabBase, tabBase + getWidth(),
-						   this, p0);
+						   tabBase, tabBase + currentWidth,
+						   this, p0, false);
 	}
         SegmentCache.releaseSharedSegment(segment);
 	return p;
@@ -344,7 +345,8 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 	unselected = (host.isEnabled()) ? 
 	    host.getForeground() : host.getDisabledTextColor();
 	Caret c = host.getCaret();
-        selected = c.isSelectionVisible() ? host.getSelectedTextColor() : unselected;
+        selected = c.isSelectionVisible() && host.getHighlighter() != null ?
+                        host.getSelectedTextColor() : unselected;
 	g.setFont(host.getFont());
 
         // superclass paints the children
@@ -526,7 +528,11 @@ public class WrappedPlainView extends BoxView implements TabExpander {
             for (int p0 = getStartOffset(); p0 < p1; ) {
                 nlines += 1;
 		int p = calculateBreakPosition(p0, p1);
-                p0 = (p == p0) ? p1 : p;
+		p0 = (p == p0) ? ++p : p; // this is the fix of #4410243
+					   // we check on situation when
+					   // width is too small and
+					   // break position is calculated
+					   // incorrect
             }
             return nlines;
         }
@@ -693,7 +699,7 @@ public class WrappedPlainView extends BoxView implements TabExpander {
 			    return p0;
 			} else if (x > alloc.x + alloc.width) {
 			    // point is to the right of the line
-			    return p;
+			    return p - 1;
 			} else {
 			    // Determine the offset into the text
                             Segment segment = SegmentCache.getSharedSegment();

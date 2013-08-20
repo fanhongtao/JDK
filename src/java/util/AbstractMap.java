@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractMap.java	1.34 03/01/23
+ * @(#)AbstractMap.java	1.42 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,13 +38,14 @@ import java.util.Map.Entry;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.34, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.42, 02/19/04
  * @see Map
  * @see Collection
  * @since 1.2
  */
 
-public abstract class AbstractMap implements Map {
+public abstract class AbstractMap<K,V> implements Map<K,V> {
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
@@ -96,16 +97,16 @@ public abstract class AbstractMap implements Map {
      * @return <tt>true</tt> if this map maps one or more keys to this value.
      */
     public boolean containsValue(Object value) {
-	Iterator i = entrySet().iterator();
+	Iterator<Entry<K,V>> i = entrySet().iterator();
 	if (value==null) {
 	    while (i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (e.getValue()==null)
 		    return true;
 	    }
 	} else {
 	    while (i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (value.equals(e.getValue()))
 		    return true;
 	    }
@@ -128,20 +129,20 @@ public abstract class AbstractMap implements Map {
      * @return <tt>true</tt> if this map contains a mapping for the specified
      *            key.
      * 
-     * @throws NullPointerException key is <tt>null</tt> and this map does not
-     *            not permit <tt>null</tt> keys.
+     * @throws NullPointerException if the key is <tt>null</tt> and this map
+     *            does not permit <tt>null</tt> keys.
      */
     public boolean containsKey(Object key) {
-	Iterator i = entrySet().iterator();
+	Iterator<Map.Entry<K,V>> i = entrySet().iterator();
 	if (key==null) {
 	    while (i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (e.getKey()==null)
 		    return true;
 	    }
 	} else {
 	    while (i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (key.equals(e.getKey()))
 		    return true;
 	    }
@@ -168,21 +169,21 @@ public abstract class AbstractMap implements Map {
      * @return the value to which this map maps the specified key.
      * 
      * @throws NullPointerException if the key is <tt>null</tt> and this map
-     *		  does not not permit <tt>null</tt> keys.
+     *		  does not permit <tt>null</tt> keys.
      * 
      * @see #containsKey(Object)
      */
-    public Object get(Object key) {
-	Iterator i = entrySet().iterator();
+    public V get(Object key) {
+	Iterator<Entry<K,V>> i = entrySet().iterator();
 	if (key==null) {
 	    while (i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (e.getKey()==null)
 		    return e.getValue();
 	    }
 	} else {
 	    while (i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (key.equals(e.getKey()))
 		    return e.getValue();
 	    }
@@ -219,11 +220,11 @@ public abstract class AbstractMap implements Map {
      * @throws IllegalArgumentException if some aspect of this key or value *
      *            prevents it from being stored in this map.
      * 
-     * @throws NullPointerException this map does not permit <tt>null</tt>
+     * @throws NullPointerException if this map does not permit <tt>null</tt>
      *            keys or values, and the specified key or value is
      *            <tt>null</tt>.
      */
-    public Object put(Object key, Object value) {
+    public V put(K key, V value) {
 	throw new UnsupportedOperationException();
     }
 
@@ -233,7 +234,7 @@ public abstract class AbstractMap implements Map {
      *
      * This implementation iterates over <tt>entrySet()</tt> searching for an
      * entry with the specified key.  If such an entry is found, its value is
-     * obtained with its <tt>getValue</tt> operation, the entry is is removed
+     * obtained with its <tt>getValue</tt> operation, the entry is removed
      * from the Collection (and the backing map) with the iterator's
      * <tt>remove</tt> operation, and the saved value is returned.  If the
      * iteration terminates without finding such an entry, <tt>null</tt> is
@@ -254,24 +255,24 @@ public abstract class AbstractMap implements Map {
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation
      * 		  is not supported by this map.
      */
-    public Object remove(Object key) {
-	Iterator i = entrySet().iterator();
-	Entry correctEntry = null;
+    public V remove(Object key) {
+	Iterator<Entry<K,V>> i = entrySet().iterator();
+	Entry<K,V> correctEntry = null;
 	if (key==null) {
 	    while (correctEntry==null && i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (e.getKey()==null)
 		    correctEntry = e;
 	    }
 	} else {
 	    while (correctEntry==null && i.hasNext()) {
-		Entry e = (Entry) i.next();
+		Entry<K,V> e = i.next();
 		if (key.equals(e.getKey()))
 		    correctEntry = e;
 	    }
 	}
 
-	Object oldValue = null;
+	V oldValue = null;
 	if (correctEntry !=null) {
 	    oldValue = correctEntry.getValue();
 	    i.remove();
@@ -305,14 +306,14 @@ public abstract class AbstractMap implements Map {
      * 
      * @throws IllegalArgumentException if some aspect of a key or value in
      *	          the specified map prevents it from being stored in this map.
-     * @throws NullPointerException the specified map is <tt>null</tt>, or if
+     * @throws NullPointerException if the specified map is <tt>null</tt>, or if
      *         this map does not permit <tt>null</tt> keys or values, and the
      *         specified map contains <tt>null</tt> keys or values.
      */
-    public void putAll(Map t) {
-	Iterator i = t.entrySet().iterator();
+    public void putAll(Map<? extends K, ? extends V> t) {
+	Iterator<? extends Entry<? extends K, ? extends V>> i = t.entrySet().iterator();
 	while (i.hasNext()) {
-	    Entry e = (Entry) i.next();
+	    Entry<? extends K, ? extends V> e = i.next();
 	    put(e.getKey(), e.getValue());
 	}
     }
@@ -341,8 +342,8 @@ public abstract class AbstractMap implements Map {
      * appropriate view the first time this view is requested.  The views are
      * stateless, so there's no reason to create more than one of each.
      */
-    transient volatile Set        keySet = null;
-    transient volatile Collection values = null;
+    transient volatile Set<K>        keySet = null;
+    transient volatile Collection<V> values = null;
 
     /**
      * Returns a Set view of the keys contained in this map.  The Set is
@@ -367,19 +368,19 @@ public abstract class AbstractMap implements Map {
      *
      * @return a Set view of the keys contained in this map.
      */
-    public Set keySet() {
+    public Set<K> keySet() {
 	if (keySet == null) {
-	    keySet = new AbstractSet() {
-		public Iterator iterator() {
-		    return new Iterator() {
-			private Iterator i = entrySet().iterator();
+	    keySet = new AbstractSet<K>() {
+		public Iterator<K> iterator() {
+		    return new Iterator<K>() {
+			private Iterator<Entry<K,V>> i = entrySet().iterator();
 
 			public boolean hasNext() {
 			    return i.hasNext();
 			}
 
-			public Object next() {
-			    return ((Entry)i.next()).getKey();
+			public K next() {
+			    return i.next().getKey();
 			}
 
 			public void remove() {
@@ -424,19 +425,19 @@ public abstract class AbstractMap implements Map {
      *
      * @return a collection view of the values contained in this map.
      */
-    public Collection values() {
+    public Collection<V> values() {
 	if (values == null) {
-	    values = new AbstractCollection() {
-		public Iterator iterator() {
-		    return new Iterator() {
-			private Iterator i = entrySet().iterator();
+	    values = new AbstractCollection<V>() {
+		public Iterator<V> iterator() {
+		    return new Iterator<V>() {
+			private Iterator<Entry<K,V>> i = entrySet().iterator();
 
 			public boolean hasNext() {
 			    return i.hasNext();
 			}
 
-			public Object next() {
-			    return ((Entry)i.next()).getValue();
+			public V next() {
+			    return i.next().getValue();
 			}
 
 			public void remove() {
@@ -470,7 +471,7 @@ public abstract class AbstractMap implements Map {
      *
      * @return a set view of the mappings contained in this map.
      */
-    public abstract Set entrySet();
+    public abstract Set<Entry<K,V>> entrySet();
 
 
     // Comparison and hashing
@@ -489,7 +490,7 @@ public abstract class AbstractMap implements Map {
      * This implementation first checks if the specified object is this map;
      * if so it returns <tt>true</tt>.  Then, it checks if the specified
      * object is a map whose size is identical to the size of this set; if
-     * not, it it returns <tt>false</tt>.  If so, it iterates over this map's
+     * not, it returns <tt>false</tt>.  If so, it iterates over this map's
      * <tt>entrySet</tt> collection, and checks that the specified map
      * contains each mapping that this map contains.  If the specified map
      * fails to contain such a mapping, <tt>false</tt> is returned.  If the
@@ -504,16 +505,16 @@ public abstract class AbstractMap implements Map {
 
 	if (!(o instanceof Map))
 	    return false;
-	Map t = (Map) o;
+	Map<K,V> t = (Map<K,V>) o;
 	if (t.size() != size())
 	    return false;
 
         try {
-            Iterator i = entrySet().iterator();
+            Iterator<Entry<K,V>> i = entrySet().iterator();
             while (i.hasNext()) {
-                Entry e = (Entry) i.next();
-                Object key = e.getKey();
-                Object value = e.getValue();
+                Entry<K,V> e = i.next();
+		K key = e.getKey();
+                V value = e.getValue();
                 if (value == null) {
                     if (!(t.get(key)==null && t.containsKey(key)))
                         return false;
@@ -522,7 +523,7 @@ public abstract class AbstractMap implements Map {
                         return false;
                 }
             }
-        } catch(ClassCastException unused)   {
+        } catch(ClassCastException unused) {
             return false;
         } catch(NullPointerException unused) {
             return false;
@@ -551,7 +552,7 @@ public abstract class AbstractMap implements Map {
      */
     public int hashCode() {
 	int h = 0;
-	Iterator i = entrySet().iterator();
+	Iterator<Entry<K,V>> i = entrySet().iterator();
 	while (i.hasNext())
 	    h += i.next().hashCode();
 	return h;
@@ -580,15 +581,21 @@ public abstract class AbstractMap implements Map {
 	StringBuffer buf = new StringBuffer();
 	buf.append("{");
 
-	Iterator i = entrySet().iterator();
+	Iterator<Entry<K,V>> i = entrySet().iterator();
         boolean hasNext = i.hasNext();
         while (hasNext) {
-	    Entry e = (Entry) (i.next());
-            Object key = e.getKey();
-            Object value = e.getValue();
-            buf.append((key == this ?  "(this Map)" : key) + "=" + 
-                       (value == this ? "(this Map)": value));
-
+	    Entry<K,V> e = i.next();
+	    K key = e.getKey();
+            V value = e.getValue();
+	    if (key == this)
+		buf.append("(this Map)");
+	    else
+		buf.append(key);
+	    buf.append("=");
+	    if (value == this)
+		buf.append("(this Map)");
+	    else
+		buf.append(value);
             hasNext = i.hasNext();
             if (hasNext)
                 buf.append(", ");
@@ -605,40 +612,40 @@ public abstract class AbstractMap implements Map {
      * @return a shallow copy of this map.
      */
     protected Object clone() throws CloneNotSupportedException {
-        AbstractMap result = (AbstractMap)super.clone();
+        AbstractMap<K,V> result = (AbstractMap<K,V>)super.clone();
         result.keySet = null;
         result.values = null;
         return result;
     }
 
     /**
-     * This should be made public as soon as possible.  It greately simplifies
+     * This should be made public as soon as possible.  It greatly simplifies
      * the task of implementing Map.
      */
-    static class SimpleEntry implements Entry {
-	Object key;
-	Object value;
+    static class SimpleEntry<K,V> implements Entry<K,V> {
+	K key;
+	V value;
 
-	public SimpleEntry(Object key, Object value) {
+	public SimpleEntry(K key, V value) {
 	    this.key   = key;
             this.value = value;
 	}
 
-	public SimpleEntry(Map.Entry e) {
+	public SimpleEntry(Entry<K,V> e) {
 	    this.key   = e.getKey();
             this.value = e.getValue();
 	}
 
-	public Object getKey() {
+	public K getKey() {
 	    return key;
 	}
 
-	public Object getValue() {
+	public V getValue() {
 	    return value;
 	}
 
-	public Object setValue(Object value) {
-	    Object oldValue = this.value;
+	public V setValue(V value) {
+	    V oldValue = this.value;
 	    this.value = value;
 	    return oldValue;
 	}
@@ -647,11 +654,10 @@ public abstract class AbstractMap implements Map {
 	    if (!(o instanceof Map.Entry))
 		return false;
 	    Map.Entry e = (Map.Entry)o;
-	    return eq(key, e.getKey()) &&  eq(value, e.getValue());
+	    return eq(key, e.getKey()) && eq(value, e.getValue());
 	}
 
 	public int hashCode() {
-	    Object v;
 	    return ((key   == null)   ? 0 :   key.hashCode()) ^
 		   ((value == null)   ? 0 : value.hashCode());
 	}

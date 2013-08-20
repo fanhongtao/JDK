@@ -1,7 +1,7 @@
 /*
- * @(#)URI.java	1.33 03/01/23
+ * @(#)URI.java	1.39 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,12 +29,15 @@ import java.lang.NullPointerException;	// for javadoc
 /**
  * Represents a Uniform Resource Identifier (URI) reference.
  *
- * <p> An instance of this class represents a URI reference as defined by <a
- * href="http://www.ietf.org/rfc/rfc2396.txt""><i>RFC&nbsp;2396: Uniform
+ * <p> Aside from some minor deviations noted below, an instance of this 
+ * class represents a URI reference as defined by
+ * <a href="http://www.ietf.org/rfc/rfc2396.txt""><i>RFC&nbsp;2396: Uniform
  * Resource Identifiers (URI): Generic Syntax</i></a>, amended by <a
  * href="http://www.ietf.org/rfc/rfc2732.txt"><i>RFC&nbsp;2732: Format for
- * Literal IPv6 Addresses in URLs</i></a> and with the minor deviations noted
- * below.  This class provides constructors for creating URI instances from
+ * Literal IPv6 Addresses in URLs</i></a>. The Literal IPv6 address format
+ * also supports scope_ids. The syntax and usage of scope_ids is described
+ * <a href="Inet6Address.html#scoped">here</a>.
+ * This class provides constructors for creating URI instances from
  * their components or by parsing their string forms, methods for accessing the
  * various components of an instance, and methods for normalizing, resolving,
  * and relativizing URI instances.  Instances of this class are immutable.
@@ -73,8 +76,8 @@ import java.lang.NullPointerException;	// for javadoc
  *
  * <blockquote>
  * <tt>http://java.sun.com/j2se/1.3/</tt><br>
- * <tt>docs/guide/collections/designfaq.html#28</tt></br>
- * <tt>../../../demo/jfc/SwingSet2/src/SwingSet2.java</tt></br>
+ * <tt>docs/guide/collections/designfaq.html#28</tt><br>
+ * <tt>../../../demo/jfc/SwingSet2/src/SwingSet2.java</tt><br>
  * <tt>file:///~/calendar</tt>
  * </blockquote>
  *
@@ -252,11 +255,11 @@ import java.lang.NullPointerException;	// for javadoc
  *           java.lang.Character#isISOControl(char) Character.isISOControl}
  * 	     method), and are not space characters (according to the {@link
  * 	     java.lang.Character#isSpaceChar(char) Character.isSpaceChar}
- * 	     method)&nbsp;&nbsp;(<b><i>Deviation from RFC 2396</b>, which is
- * 	     limited to US-ASCII)</td></tr>
+ * 	     method)&nbsp;&nbsp;<i>(<b>Deviation from RFC 2396</b>, which is
+ * 	     limited to US-ASCII)</i></td></tr>
  * </table></blockquote>
  *
- * <p><a name="legal-chars"> The set of all legal URI characters consists of
+ * <p><a name="legal-chars"></a> The set of all legal URI characters consists of
  * the <i>unreserved</i>, <i>reserved</i>, <i>escaped</i>, and <i>other</i>
  * characters.
  *
@@ -283,20 +286,21 @@ import java.lang.NullPointerException;	// for javadoc
  *
  * <ul>
  *
- *   <li><p><a name="encode"> A character is <i>encoded</i> by replacing it
+ *   <li><p><a name="encode"></a> A character is <i>encoded</i> by replacing it
  *   with the sequence of escaped octets that represent that character in the
  *   UTF-8 character set.  The Euro currency symbol (<tt>'&#92;u20AC'</tt>),
  *   for example, is encoded as <tt>"%E2%82%AC"</tt>.  <i>(<b>Deviation from
  *   RFC&nbsp;2396</b>, which does not specify any particular character
- *   set.)</i> </li></p>
+ *   set.)</i> </p></li>
  *
- *   <li><p><a name="quote"> An illegal character is <i>quoted</i> simply by
+ *   <li><p><a name="quote"></a> An illegal character is <i>quoted</i> simply by
  *   encoding it.  The space character, for example, is quoted by replacing it
  *   with <tt>"%20"</tt>.  UTF-8 contains US-ASCII, hence for US-ASCII
  *   characters this transformation has exactly the effect required by
- *   RFC&nbsp;2396.
+ *   RFC&nbsp;2396. </p></li>
  *
- *   <li><p><a name="decode"> A sequence of escaped octets is <i>decoded</i> by
+ *   <li><p><a name="decode"></a>
+ *   A sequence of escaped octets is <i>decoded</i> by
  *   replacing it with the sequence of characters that it represents in the
  *   UTF-8 character set.  UTF-8 contains US-ASCII, hence decoding has the
  *   effect of de-quoting any quoted US-ASCII characters as well as that of
@@ -312,14 +316,14 @@ import java.lang.NullPointerException;	// for javadoc
  *
  * <ul>
  *
- *   <li><p> The {@link #URI(java.lang.String) </code>single-argument
- *   constructor<code>} requires any illegal characters in its argument to be
+ *   <li><p> The {@link #URI(java.lang.String) <code>single-argument
+ *   constructor</code>} requires any illegal characters in its argument to be
  *   quoted and preserves any escaped octets and <i>other</i> characters that
  *   are present.  </p></li>
  *
  *   <li><p> The {@link
  *   #URI(java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String)
- *   </code>multi-argument constructors<code>} quote illegal characters as
+ *   <code>multi-argument constructors</code>} quote illegal characters as
  *   required by the components in which they appear.  The percent character
  *   (<tt>'%'</tt>) is always quoted by these constructors.  Any <i>other</i>
  *   characters are preserved.  </p></li>
@@ -432,7 +436,7 @@ import java.lang.NullPointerException;	// for javadoc
  * opening a connection to the specified resource.
  *
  *
- * @version 1.33, 03/01/23
+ * @version 1.39, 04/05/05
  * @author Mark Reinhold
  * @since 1.4
  *
@@ -448,7 +452,7 @@ import java.lang.NullPointerException;	// for javadoc
  */
 
 public final class URI
-    implements Comparable, Serializable
+    implements Comparable<URI>, Serializable
 {
 
     // Note: Comments containing the word "ASSERT" indicate places where a
@@ -951,7 +955,7 @@ public final class URI
      * <p> If the given URI is already absolute, or if this URI is opaque, then
      * the given URI is returned.
      *
-     * <p><a name="resolve-frag"> If the given URI's fragment component is
+     * <p><a name="resolve-frag"></a> If the given URI's fragment component is
      * defined, its path component is empty, and its scheme, authority, and
      * query components are undefined, then a URI with the given fragment but
      * with all other components equal to those of this URI is returned.  This
@@ -1084,10 +1088,10 @@ public final class URI
      *
      * <p> The scheme component of a URI, if defined, only contains characters
      * in the <i>alphanum</i> category and in the string <tt>"-.+"</tt>.  A
-     * scheme always starts with an <i>alpha</i> character. </p>
+     * scheme always starts with an <i>alpha</i> character. <p>
      *
      * The scheme component of a URI cannot contain escaped octets, hence this
-     * method does not perform any decoding.  </p>
+     * method does not perform any decoding.
      *
      * @return  The scheme component of this URI,
      *          or <tt>null</tt> if the scheme is undefined
@@ -1230,7 +1234,7 @@ public final class URI
      *   as well as hyphen characters (<tt>'-'</tt>), though hyphens never
      *   occur as the first or last characters in a label. The rightmost
      *   label of a domain name consisting of two or more labels, begins
-     *   with an <i>alpha</i> character. </li></p>
+     *   with an <i>alpha</i> character. </li>
      *
      *   <li><p> A dotted-quad IPv4 address of the form
      *   <i>digit</i><tt>+.</tt><i>digit</i><tt>+.</tt><i>digit</i><tt>+.</tt><i>digit</i><tt>+</tt>,
@@ -1247,7 +1251,7 @@ public final class URI
      * </ul>
      *
      * The host component of a URI cannot contain escaped octets, hence this
-     * method does not perform any decoding.  </p>
+     * method does not perform any decoding.
      *
      * @return  The host component of this URI,
      *          or <tt>null</tt> if the host is undefined
@@ -1436,7 +1440,7 @@ public final class URI
     /**
      * Returns a hash-code value for this URI.  The hash code is based upon all
      * of the URI's components, and satisfies the general contract of the
-     * {@link java.lang.Object#hashCode() Object.hashCode} method. </p>
+     * {@link java.lang.Object#hashCode() Object.hashCode} method.
      *
      * @return  A hash-code value for this URI
      */
@@ -1530,8 +1534,7 @@ public final class URI
      * @throws  ClassCastException
      *          If the given object is not a URI
      */
-    public int compareTo(Object ob) {
-	URI that = (URI)ob;
+    public int compareTo(URI that) {
 	int c;
 
 	if ((c = compareIgnoringCase(this.scheme, that.scheme)) != 0)
@@ -1810,9 +1813,27 @@ public final class URI
 	    }
 	} else if (authority != null) {
 	    sb.append("//");
-	    sb.append(quote(authority,
+	    if (authority.startsWith("[")) {
+		int end = authority.indexOf("]");
+		if (end != -1 && authority.indexOf(":")!=-1) {
+		    String doquote, dontquote;
+		    if (end == authority.length()) {
+			dontquote = authority;
+			doquote = "";
+		    } else {
+		    	dontquote = authority.substring(0,end+1);
+			doquote = authority.substring(end+1);
+		    }
+		    sb.append (dontquote);
+	    	    sb.append(quote(doquote, 
 			    L_REG_NAME | L_SERVER,
 			    H_REG_NAME | H_SERVER));
+		}
+	    } else {
+	    	sb.append(quote(authority,
+			    L_REG_NAME | L_SERVER,
+			    H_REG_NAME | H_SERVER));
+	    }
 	}
     }
 
@@ -1826,7 +1847,26 @@ public final class URI
 					  String query)
     {
 	if (opaquePart != null) {
-	    sb.append(quote(opaquePart, L_URIC, H_URIC));
+	    /* check if SSP begins with an IPv6 address
+	     * because we must not quote a literal IPv6 address
+	     */
+	    if (opaquePart.startsWith("//[")) {
+		int end =  opaquePart.indexOf("]");
+		if (end != -1 && opaquePart.indexOf(":")!=-1) {
+		    String doquote, dontquote;
+		    if (end == opaquePart.length()) {
+			dontquote = opaquePart;
+			doquote = "";
+		    } else {
+		    	dontquote = opaquePart.substring(0,end+1);
+			doquote = opaquePart.substring(end+1);
+		    }
+		    sb.append (dontquote);
+	    	    sb.append(quote(doquote, L_URIC, H_URIC));
+		}
+	    } else {
+	    	sb.append(quote(opaquePart, L_URIC, H_URIC));
+	    }
 	} else {
 	    appendAuthority(sb, authority, userInfo, host, port);
 	    if (path != null) 
@@ -1870,9 +1910,8 @@ public final class URI
     private void defineSchemeSpecificPart() {
 	if (schemeSpecificPart != null) return;
 	StringBuffer sb = new StringBuffer();
-	appendSchemeSpecificPart(sb, null,
-				 authority, userInfo, host, port,
-				 path, query);
+	appendSchemeSpecificPart(sb, null, getAuthority(), getUserInfo(),
+				 host, port, getPath(), getQuery());
 	if (sb.length() == 0) return;
 	schemeSpecificPart = sb.toString();
     }
@@ -2538,6 +2577,15 @@ public final class URI
     private static final long H_SERVER
 	= H_USERINFO | H_ALPHANUM | H_DASH | highMask(".:@[]");
 
+    // Special case of server authority that represents an IPv6 address
+    // In this case, a % does not signify an escape sequence
+    private static final long L_SERVER_PERCENT
+	= L_SERVER | lowMask("%");
+    private static final long H_SERVER_PERCENT
+	= H_SERVER | highMask("%");
+    private static final long L_LEFT_BRACKET = lowMask("[");
+    private static final long H_LEFT_BRACKET = highMask("[");
+
     // scheme        = alpha *( alpha | digit | "+" | "-" | "." )
     private static final long L_SCHEME = L_ALPHA | L_DIGIT | lowMask("+-.");
     private static final long H_SCHEME = H_ALPHA | H_DIGIT | highMask("+-.");
@@ -2672,6 +2720,8 @@ public final class URI
     // that escapes are well-formed syntactically, i.e., of the form %XX.  If a
     // sequence of escaped octets is not valid UTF-8 then the erroneous octets
     // are replaced with '\uFFFD'.
+    // Exception: any "%" found between "[]" is left alone. It is an IPv6 literal
+    //            with a scope_id
     //
     private static String decode(String s) {
 	if (s == null)
@@ -2692,9 +2742,16 @@ public final class URI
 
 	// This is not horribly efficient, but it will do for now
 	char c = s.charAt(0);
+    	boolean betweenBrackets = false;
+
 	for (int i = 0; i < n;) {
 	    assert c == s.charAt(i);	// Loop invariant
-	    if (c != '%') {
+	    if (c == '[') {
+		betweenBrackets = true;
+	    } else if (betweenBrackets && c == ']') {
+		betweenBrackets = false;
+	    }
+	    if (c != '%' || betweenBrackets) {
 		sb.append(c);
 		if (++i >= n)
 		    break;
@@ -3034,8 +3091,16 @@ public final class URI
 	    int q = p;
 	    URISyntaxException ex = null;
 
-	    boolean serverChars = (scan(p, n, L_SERVER, H_SERVER) == n);
-	    boolean regChars = (scan(p, n, L_REG_NAME, H_REG_NAME) == n);
+	    boolean serverChars;
+	    boolean regChars;
+
+	    if (scan(p, n, "", "]") > p) {
+		// contains a literal IPv6 address, therefore % is allowed
+	    	serverChars = (scan(p, n, L_SERVER_PERCENT, H_SERVER_PERCENT) == n);
+	    } else {
+	    	serverChars = (scan(p, n, L_SERVER, H_SERVER) == n);
+	    }
+	    regChars = (scan(p, n, L_REG_NAME, H_REG_NAME) == n);
 
 	    if (regChars && !serverChars) {
 		// Must be a registry-based authority
@@ -3109,7 +3174,19 @@ public final class URI
 		p++;
 		q = scan(p, n, "/?#", "]");
 		if ((q > p) && at(q, n, ']')) {
-		    parseIPv6Reference(p, q);
+		    // look for a "%" scope id
+		    int r = scan (p, q, "", "%");
+		    if (r > p) {
+		    	parseIPv6Reference(p, r);
+			if (r+1 == q) {
+			    fail ("scope id expected");
+			}
+			checkChars (r+1, q, L_ALPHANUM, H_ALPHANUM, 
+						"scope id");
+		    } else {
+		    	parseIPv6Reference(p, q);
+		    }
+	    	    host = substring(p-1, q+1);
 		    p = q + 1;
 		} else {
 		    failExpecting("closing bracket for IPv6 address", q);
@@ -3358,7 +3435,6 @@ public final class URI
 	    if (compressedZeros && ipv6byteCount == 16)
 		fail("Malformed IPv6 address", start);
 
-	    host = substring(start-1, p+1);
 	    return p;
 	}
 

@@ -1,7 +1,7 @@
 /*
- * @(#)ParagraphView.java	1.89 03/03/17
+ * @(#)ParagraphView.java	1.92 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -25,7 +25,7 @@ import javax.swing.SizeRequirements;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.89 03/17/03
+ * @version 1.90 04/16/03
  * @see     View
  */
 public class ParagraphView extends FlowView implements TabExpander {
@@ -220,7 +220,12 @@ public class ParagraphView extends FlowView implements TabExpander {
 	magicPoint = (c != null) ? c.getMagicCaretPosition() : null;
 	int x;
 	if(magicPoint == null) {
-	    Shape posBounds = text.getUI().modelToView(text, pos, b);
+	    Shape posBounds;
+	    try {
+		posBounds = text.getUI().modelToView(text, pos, b);
+	    } catch (BadLocationException exc) {
+		posBounds = null;
+	    }
 	    if(posBounds == null) {
 		x = 0;
 	    }
@@ -255,45 +260,53 @@ public class ParagraphView extends FlowView implements TabExpander {
     // other ParagraphViews. It won't raise, but this does not message
     // the children views with getNextVisualPositionFrom.
     protected int getClosestPositionTo(int pos, Position.Bias b, Shape a,
-				       int direction, Position.Bias[] biasRet,
-				       int rowIndex, int x)
-	      throws BadLocationException {
-	JTextComponent text = (JTextComponent)getContainer();
-	Document doc = getDocument();
-	AbstractDocument aDoc = (doc instanceof AbstractDocument) ?
-	                        (AbstractDocument)doc : null;
-	View row = getView(rowIndex);
-	int lastPos = -1;
-	// This could be made better to check backward positions too.
-	biasRet[0] = Position.Bias.Forward;
-	for(int vc = 0, numViews = row.getViewCount(); vc < numViews; vc++) {
-	    View v = row.getView(vc);
-	    int start = v.getStartOffset();
-	    boolean ltr = (aDoc != null) ? aDoc.isLeftToRight
-		           (start, start + 1) : true;
-	    if(ltr) {
-		lastPos = start;
-		for(int end = v.getEndOffset(); lastPos < end; lastPos++) {
-		    if(text.modelToView(lastPos).getBounds().x >= x) {
-			return lastPos;
-		    }
-		}
-		lastPos--;
-	    }
-	    else {
-		for(lastPos = v.getEndOffset() - 1; lastPos >= start;
-		    lastPos--) {
-		    if(text.modelToView(lastPos).getBounds().x >= x) {
-			return lastPos;
-		    }
-		}
-		lastPos++;
-	    }
-	}
-	if(lastPos == -1) {
-	    return getStartOffset();
-	}
-	return lastPos;
+                                       int direction, Position.Bias[] biasRet,
+                                       int rowIndex, int x)
+              throws BadLocationException {
+        JTextComponent text = (JTextComponent)getContainer();
+        Document doc = getDocument();
+        AbstractDocument aDoc = (doc instanceof AbstractDocument) ?
+                                (AbstractDocument)doc : null;
+        View row = getView(rowIndex);
+        int lastPos = -1;
+        // This could be made better to check backward positions too.
+        biasRet[0] = Position.Bias.Forward;
+        for(int vc = 0, numViews = row.getViewCount(); vc < numViews; vc++) {
+            View v = row.getView(vc);
+            int start = v.getStartOffset();
+            boolean ltr = (aDoc != null) ? aDoc.isLeftToRight
+                           (start, start + 1) : true;
+            if(ltr) {
+                lastPos = start;
+                for(int end = v.getEndOffset(); lastPos < end; lastPos++) {
+                    float xx = text.modelToView(lastPos).getBounds().x;
+                    if(xx >= x) {
+                        while (++lastPos < end &&
+                               text.modelToView(lastPos).getBounds().x == xx) {
+                        }
+                        return --lastPos;
+                    }
+                }
+                lastPos--;
+            }
+            else {
+                for(lastPos = v.getEndOffset() - 1; lastPos >= start;
+                    lastPos--) {
+                    float xx = text.modelToView(lastPos).getBounds().x;
+                    if(xx >= x) {
+                        while (--lastPos >= start &&
+                               text.modelToView(lastPos).getBounds().x == xx) {
+                        }
+                        return ++lastPos;
+                    }
+                }
+                lastPos++;
+            }
+        }
+        if(lastPos == -1) {
+            return getStartOffset();
+        }
+        return lastPos;
     }
 
     /**
@@ -565,8 +578,28 @@ public class ParagraphView extends FlowView implements TabExpander {
      */
     public void paint(Graphics g, Shape a) {
         Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a : a.getBounds();
-        tabBase = alloc.x + getLeftInset();
-        super.paint(g, a);
+       	tabBase = alloc.x + getLeftInset();
+	super.paint(g, a);
+
+	// line with the negative firstLineIndent value needs
+	// special handling
+	if (firstLineIndent < 0) {
+	    Shape sh = getChildAllocation(0, a);
+	    if ((sh != null) &&  sh.intersects(alloc)) {
+		int x = alloc.x + getLeftInset() + firstLineIndent;
+		int y = alloc.y + getTopInset();                                 
+                                                                              
+		Rectangle clip = g.getClipBounds();                              
+		tempRect.x = x + getOffset(X_AXIS, 0); 
+		tempRect.y = y + getOffset(Y_AXIS, 0);                       
+		tempRect.width = getSpan(X_AXIS, 0) - firstLineIndent;
+		tempRect.height = getSpan(Y_AXIS, 0);                            
+		if (tempRect.intersects(clip)) {                             
+		    tempRect.x = tempRect.x - firstLineIndent;                
+		    paintChild(g, tempRect, 0);                      
+		}                            
+	    }
+	}
     }
 
     /**

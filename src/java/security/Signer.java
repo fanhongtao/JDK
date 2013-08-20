@@ -1,7 +1,7 @@
 /*
- * @(#)Signer.java	1.39 03/01/23
+ * @(#)Signer.java	1.42 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.io.*;
  *
  * @see Identity
  *
- * @version 1.39 03/01/23
+ * @version 1.42 04/05/18
  * @author Benjamin Renaud
  *
  * @deprecated This class is no longer used. Its functionality has been
@@ -27,7 +27,10 @@ import java.io.*;
  * <code>java.security.cert</code> package, and
  * <code>java.security.Principal</code>.
  */
+@Deprecated
 public abstract class Signer extends Identity {
+
+    private static final long serialVersionUID = -1763464102261361480L;
 
     /**
      * The signer's private key.

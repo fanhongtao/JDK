@@ -1,7 +1,7 @@
 /*
- * @(#)Toolkit.java	1.189 03/01/23
+ * @(#)Toolkit.java	1.203 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,6 +53,38 @@ import sun.security.util.SecurityConstants;
  * <code>Toolkit</code> are used to bind the various components
  * to particular native toolkit implementations.
  * <p>
+ * Many GUI operations may be performed asynchronously.  This
+ * means that if you set the state of a component, and then 
+ * immediately query the state, the returned value may not yet
+ * reflect the requested change.  This includes, but is not
+ * limited to:
+ * <ul>
+ * <li>Scrolling to a specified position.
+ * <br>For example, calling <code>ScrollPane.setScrollPosition</code>
+ *     and then <code>getScrollPosition</code> may return an incorrect
+ *     value if the original request has not yet been processed.
+ * <p>
+ * <li>Moving the focus from one component to another.
+ * <br>For more information, see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/focus.html#transferTiming">Timing
+ * Focus Transfers</a>, a section in
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/">The Swing
+ * Tutorial</a>.
+ * <p>
+ * <li>Making a top-level container visible.
+ * <br>Calling <code>setVisible(true)</code> on a <code>Window</code>,
+ *     <code>Frame</code> or <code>Dialog</code> may occur
+ *     asynchronously.
+ * <p>
+ * <li>Setting the size or location of a top-level container.
+ * <br>Calls to <code>setSize</code>, <code>setBounds</code> or
+ *     <code>setLocation</code> on a <code>Window</code>, 
+ *     <code>Frame</code> or <code>Dialog</code> are forwarded
+ *     to the underlying window management system and may be
+ *     ignored or modified.  See {@link java.awt.Window} for
+ *     more information.
+ * </ul>
+ * <p>
  * Most applications should not call any of the methods in this
  * class directly. The methods defined by <code>Toolkit</code> are
  * the "glue" that joins the platform-independent classes in the
@@ -60,7 +92,7 @@ import sun.security.util.SecurityConstants;
  * <code>java.awt.peer</code>. Some methods defined by
  * <code>Toolkit</code> query the native operating system directly.
  *
- * @version 	1.189, 01/23/03
+ * @version 	1.203, 12/19/03
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @author	Fred Ecks
@@ -342,6 +374,18 @@ public abstract class  Toolkit {
     protected abstract CheckboxMenuItemPeer createCheckboxMenuItem(
         CheckboxMenuItem target) throws HeadlessException;
 
+    /**
+     * Obtains this toolkit's implementation of helper class for 
+     * <code>MouseInfo</code> operations.
+     * @return    this toolkit's implementation of  helper for <code>MouseInfo</code>
+     * @throws    UnsupportedOperationException if this operation is not implemented
+     * @see       java.awt.peer.MouseInfoPeer
+     * @see       java.awt.MouseInfo
+     */
+    protected MouseInfoPeer getMouseInfoPeer() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
     private static LightweightPeer lightweightMarker;
 
     /**
@@ -370,6 +414,7 @@ public abstract class  Toolkit {
      * @see       java.awt.GraphicsEnvironment#getAllFonts
      * @deprecated  see java.awt.GraphicsEnvironment#getAllFonts
      */
+    @Deprecated
     protected abstract FontPeer getFontPeer(String name, int style);
 
     // The following method is called by the private method
@@ -553,6 +598,7 @@ public abstract class  Toolkit {
      * @deprecated see {@link java.awt.GraphicsEnvironment#getAvailableFontFamilyNames()}
      * @see java.awt.GraphicsEnvironment#getAvailableFontFamilyNames()
      */
+    @Deprecated
     public abstract String[] getFontList();
 
     /**
@@ -565,6 +611,7 @@ public abstract class  Toolkit {
      * @see java.awt.Font#getLineMetrics
      * @see java.awt.GraphicsEnvironment#getScreenDevices
      */
+    @Deprecated
     public abstract FontMetrics getFontMetrics(Font font);
 
     /**
@@ -582,32 +629,30 @@ public abstract class  Toolkit {
     private static Toolkit toolkit;
 
     /**
-     * Loads additional classes into the VM, using the property
-     * 'assistive_technologies' specified in the Sun reference
-     * implementation by a line in the 'accessibility.properties'
-     * file.  The form is "assistive_technologies=..." where
-     * the "..." is a comma-separated list of assistive technology
-     * classes to load.  Each class is loaded in the order given
-     * and a single instance of each is created using
-     * Class.forName(class).newInstance().  All errors are handled
-     * via an AWTError exception.
-     *
-     * <p>The assumption is made that assistive technology classes are supplied
-     * as part of INSTALLED (as opposed to: BUNDLED) extensions or specified
-     * on the class path
-     * (and therefore can be loaded using the class loader returned by
-     * a call to <code>ClassLoader.getSystemClassLoader</code>, whose
-     * delegation parent is the extension class loader for installed
-     * extensions).
+     * Used internally by the assistive technologies functions; set at
+     * init time and used at load time
      */
-    private static void loadAssistiveTechnologies() {
+    private static String atNames;
+
+    /**
+     * Initializes properties related to assistive technologies.
+     * These properties are used both in the loadAssistiveProperties()
+     * function below, as well as other classes in the jdk that depend
+     * on the properties (such as the use of the screen_magnifier_present
+     * property in Java2D hardware acceleration initialization).  The
+     * initialization of the properties must be done before the platform-
+     * specific Toolkit class is instantiated so that all necessary
+     * properties are set up properly before any classes dependent upon them
+     * are initialized.
+     */
+    private static void initAssistiveTechnologies() {
 
 	// Get accessibility properties 
         final String sep = File.separator;
         final Properties properties = new Properties();
 
 
-	String atNames = (String)java.security.AccessController.doPrivileged(
+	atNames = (String)java.security.AccessController.doPrivileged(
 	    new java.security.PrivilegedAction() {
 	    public Object run() {
 
@@ -669,8 +714,28 @@ public abstract class  Toolkit {
 		return classNames;
 	    }
 	});
+    }
 
-
+    /**
+     * Loads additional classes into the VM, using the property
+     * 'assistive_technologies' specified in the Sun reference
+     * implementation by a line in the 'accessibility.properties'
+     * file.  The form is "assistive_technologies=..." where
+     * the "..." is a comma-separated list of assistive technology
+     * classes to load.  Each class is loaded in the order given
+     * and a single instance of each is created using
+     * Class.forName(class).newInstance().  All errors are handled
+     * via an AWTError exception.
+     *
+     * <p>The assumption is made that assistive technology classes are supplied
+     * as part of INSTALLED (as opposed to: BUNDLED) extensions or specified
+     * on the class path
+     * (and therefore can be loaded using the class loader returned by
+     * a call to <code>ClassLoader.getSystemClassLoader</code>, whose
+     * delegation parent is the extension class loader for installed
+     * extensions).
+     */
+    private static void loadAssistiveTechnologies() {
 	// Load any assistive technologies
         if (atNames != null) {
 	    ClassLoader cl = ClassLoader.getSystemClassLoader();
@@ -735,15 +800,23 @@ public abstract class  Toolkit {
 		// tends to touch lots of classes that aren't needed again
 		// later and therefore JITing is counter-productiive.
 		java.lang.Compiler.disable();
-
+		
 	        java.security.AccessController.doPrivileged(
 			new java.security.PrivilegedAction() {
 		    public Object run() {
 		        String nm = null;
 			Class cls = null;
 		        try {
+                            String defaultToolkit;
+
+                            if (System.getProperty("os.name").equals("Linux")) { 
+                                defaultToolkit = "sun.awt.X11.XToolkit";
+                            }
+                            else { 
+                                defaultToolkit = "sun.awt.motif.MToolkit";
+                            }
 			    nm = System.getProperty("awt.toolkit",
-						"sun.awt.motif.MToolkit");
+						defaultToolkit);
 			    try {
 			    	cls = Class.forName(nm);
 		            } catch (ClassNotFoundException e) {
@@ -772,7 +845,6 @@ public abstract class  Toolkit {
 		    }
 	        });
 	        loadAssistiveTechnologies();
-
 	    } finally {
 		// Make sure to always re-enable the JIT.
 		java.lang.Compiler.enable();
@@ -1456,6 +1528,7 @@ public abstract class  Toolkit {
 
 	// ensure that the proper libraries are loaded
         loadLibraries();
+	initAssistiveTechnologies();
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
@@ -1491,12 +1564,12 @@ public abstract class  Toolkit {
      * a call to the security manager's <code>checkPermission</code> method
      * with an <code>AWTPermission("accessEventQueue")</code> permission.
      * 
-     * @return    the <code>EventQueue</code> object.
+     * @return    the <code>EventQueue</code> object
      * @throws  SecurityException
      *          if a security manager exists and its <code>{@link
-     *          java.lang.SecurityManager#checkAwtEventQueueAccess}</code> method denies
-     *          access to the EventQueue.
-     * @see       java.awt.AWTPermission
+     *          java.lang.SecurityManager#checkAwtEventQueueAccess}</code>
+     *          method denies access to the <code>EventQueue</code>
+     * @see     java.awt.AWTPermission
     */
     public final EventQueue getSystemEventQueue() {
         SecurityManager security = System.getSecurityManager();
@@ -1506,11 +1579,11 @@ public abstract class  Toolkit {
         return getSystemEventQueueImpl();
     }
 
-    /*
-     * Get the application's or applet's EventQueue instance, without
-     * checking access.  For security reasons, this can only be called
-     * from a Toolkit subclass.  Implementations wishing to modify
-     * the default EventQueue support should subclass this method.
+    /**
+     * Gets the application's or applet's <code>EventQueue</code>
+     * instance, without checking access.  For security reasons,
+     * this can only be called from a <code>Toolkit</code> subclass. 
+     * @return the <code>EventQueue</code> object
      */
     protected abstract EventQueue getSystemEventQueueImpl();
 
@@ -1544,7 +1617,11 @@ public abstract class  Toolkit {
      * GraphicsEnvironment.isHeadless() returns true.
      * @see java.awt.GraphicsEnvironment#isHeadless
      */
-    public DragGestureRecognizer createDragGestureRecognizer(Class abstractRecognizerClass, DragSource ds, Component c, int srcActions, DragGestureListener dgl) {
+    public <T extends DragGestureRecognizer> T
+	createDragGestureRecognizer(Class<T> abstractRecognizerClass,
+				    DragSource ds, Component c, int srcActions,
+				    DragGestureListener dgl)
+    {
 	return null;
     }
 
@@ -1687,12 +1764,14 @@ public abstract class  Toolkit {
         return desktopPropsSupport.getPropertyChangeListeners(propertyName);
     }
 
-    protected final Map		          desktopProperties   = new HashMap();
+    protected final Map<String,Object> desktopProperties
+	= new HashMap<String,Object>();
     protected final PropertyChangeSupport desktopPropsSupport = new PropertyChangeSupport(this);
 
     private static final DebugHelper dbg = DebugHelper.create(Toolkit.class);
     private static final int LONG_BITS = 64;
     private int[] calls = new int[LONG_BITS];
+    private static volatile long enabledOnToolkitMask;
     private AWTEventListener eventListener = null;
     private WeakHashMap listener2SelectiveListener = new WeakHashMap();
 
@@ -1773,6 +1852,9 @@ public abstract class  Toolkit {
             }
             // OR the eventMask into the selectiveListener's event mask.
             selectiveListener.orEventMasks(eventMask);
+            
+            enabledOnToolkitMask |= eventMask;
+            
             long mask = eventMask;
             for (int i=0; i<LONG_BITS; i++) {
                 // If no bits are set, break out of loop.
@@ -1835,8 +1917,10 @@ public abstract class  Toolkit {
                 int[] listenerCalls = selectiveListener.getCalls();
                 for (int i=0; i<LONG_BITS; i++) {
                     calls[i] -= listenerCalls[i];
-                    if (dbg.on) {
-                        dbg.assertion(calls[i] >= 0);
+                    assert calls[i] >= 0: "Negative Listeners count";
+                    
+                    if (calls[i] == 0) {
+                        enabledOnToolkitMask &= ~(1L<<i);
                     }
                 }
             }
@@ -1846,22 +1930,8 @@ public abstract class  Toolkit {
     }
 
     static boolean enabledOnToolkit(long eventMask) {
-        // Wonderfully disgusting hack for Solaris 9
-        //
-        // Solaris 9 makes unreasonable assumptions about the point at which
-        // the AWT is initialized. The fix for 4460376 broke one such
-        // assumption, preventing the Solaris 9 install from working in a
-        // headless environment. We (AWT) suggested that Solaris 9 use Headless
-        // AWT to avoid these sorts of problems, but they cannot because they
-        // use AWT peered Components (e.g., Checkbox) as models. (!)
-        Toolkit defaultToolkit;
-        synchronized (Toolkit.class) {
-            defaultToolkit = toolkit;
+        return (enabledOnToolkitMask & eventMask) != 0;
         }
-        return (defaultToolkit != null)
-            ? (defaultToolkit.countAWTEventListeners(eventMask) > 0)
-            : false;
-    }
 
     synchronized int countAWTEventListeners(long eventMask) {
         if (dbg.on) {
@@ -2151,7 +2221,9 @@ public abstract class  Toolkit {
      * @see       java.awt.GraphicsEnvironment#isHeadless
      * @since 1.3
      */
-    public abstract Map mapInputMethodHighlight(
-        InputMethodHighlight highlight) throws HeadlessException;
+    public abstract Map<java.awt.font.TextAttribute,?>
+	mapInputMethodHighlight(InputMethodHighlight highlight)
+	throws HeadlessException;
+
 }
 

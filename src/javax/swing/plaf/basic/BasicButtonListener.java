@@ -1,12 +1,14 @@
 /*
- * @(#)BasicButtonListener.java	1.59 03/01/23
+ * @(#)BasicButtonListener.java	1.63 04/01/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
 
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
@@ -19,7 +21,7 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 /**
  * Button Listener
  *
- * @version 1.59 01/23/03
+ * @version 1.63 01/19/04
  * @author Jeff Dinkins 
  * @author Arnaud Weber (keyboard UI support)
  */
@@ -27,27 +29,31 @@ import javax.swing.plaf.ComponentInputMapUIResource;
 public class BasicButtonListener implements MouseListener, MouseMotionListener, 
                                    FocusListener, ChangeListener, PropertyChangeListener
 {
-    /** Set to true when the WindowInputMap is installed. */
-    private boolean createdWindowInputMap;
+    private long lastPressedTimestamp = -1;
+    private boolean shouldDiscardRelease = false;
 
-    transient long lastPressedTimestamp = -1;
-    transient boolean shouldDiscardRelease = false;
-  
+    /**
+     * Populates Buttons actions.
+     */
+    static void loadActionMap(LazyActionMap map) {
+        map.put(new Actions(Actions.PRESS));
+	map.put(new Actions(Actions.RELEASE));
+    }
+
+
     public BasicButtonListener(AbstractButton b) {
     }
 
     public void propertyChange(PropertyChangeEvent e) {
 	String prop = e.getPropertyName();
-	if(prop.equals(AbstractButton.MNEMONIC_CHANGED_PROPERTY)) {
+	if(prop == AbstractButton.MNEMONIC_CHANGED_PROPERTY) {
 	    updateMnemonicBinding((AbstractButton)e.getSource());
 	}
-
-	if(prop.equals(AbstractButton.CONTENT_AREA_FILLED_CHANGED_PROPERTY)) {
+        else if(prop == AbstractButton.CONTENT_AREA_FILLED_CHANGED_PROPERTY) {
 	    checkOpacity((AbstractButton) e.getSource() );
 	}
-
-	if(prop.equals(AbstractButton.TEXT_CHANGED_PROPERTY) ||
-           "font".equals(prop) || "foreground".equals(prop)) {
+	else if(prop == AbstractButton.TEXT_CHANGED_PROPERTY ||
+                "font" == prop || "foreground" == prop) {
 	    AbstractButton b = (AbstractButton) e.getSource();
 	    BasicHTML.updateRenderer(b, b.getText());
 	}
@@ -66,10 +72,8 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 	// Update the mnemonic binding.
 	updateMnemonicBinding(b);
 
-	// Reset the ActionMap.
-	ActionMap map = getActionMap(b);
-
-	SwingUtilities.replaceUIActionMap(c, map);
+        LazyActionMap.installLazyActionMap(c, BasicButtonListener.class,
+                                           "Button.actionMap");
 
 	InputMap km = getInputMap(JComponent.WHEN_FOCUSED, c);
 
@@ -80,21 +84,10 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
      * Unregister's default key actions
      */
     public void uninstallKeyboardActions(JComponent c) {
-	if (createdWindowInputMap) {
-	    SwingUtilities.replaceUIInputMap(c, JComponent.
-					   WHEN_IN_FOCUSED_WINDOW, null);
-	    createdWindowInputMap = false;
-	}
+        SwingUtilities.replaceUIInputMap(c, JComponent.
+                                         WHEN_IN_FOCUSED_WINDOW, null);
 	SwingUtilities.replaceUIInputMap(c, JComponent.WHEN_FOCUSED, null);
 	SwingUtilities.replaceUIActionMap(c, null);
-    }
-
-    /**
-     * Returns the ActionMap to use for <code>b</code>. Called as part of
-     * <code>installKeyboardActions</code>.
-     */
-    ActionMap getActionMap(AbstractButton b) {
-	return createActionMap(b);
     }
 
     /**
@@ -103,24 +96,14 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
      */
     InputMap getInputMap(int condition, JComponent c) {
 	if (condition == JComponent.WHEN_FOCUSED) {
-	    ButtonUI ui = ((AbstractButton)c).getUI();
-	    if (ui != null && (ui instanceof BasicButtonUI)) {
-		return (InputMap)UIManager.get(((BasicButtonUI)ui).
-				       getPropertyPrefix() +"focusInputMap");
+            BasicButtonUI ui = (BasicButtonUI)BasicLookAndFeel.getUIOfType(
+                         ((AbstractButton)c).getUI(), BasicButtonUI.class);
+	    if (ui != null) {
+                return (InputMap)DefaultLookup.get(
+                             c, ui, ui.getPropertyPrefix() + "focusInputMap");
 	    }
 	}
 	return null;
-    }
-
-    /**
-     * Creates and returns the ActionMap to use for the button.
-     */
-    ActionMap createActionMap(AbstractButton c) {
-	ActionMap retValue = new javax.swing.plaf.ActionMapUIResource();
-
-	retValue.put("pressed", new PressedAction((AbstractButton)c));
-	retValue.put("released", new ReleasedAction((AbstractButton)c));
-	return retValue;
     }
 
     /**
@@ -130,27 +113,22 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     void updateMnemonicBinding(AbstractButton b) {
 	int m = b.getMnemonic();
 	if(m != 0) {
-	    InputMap map;
-	    if (!createdWindowInputMap) {
+	    InputMap map = SwingUtilities.getUIInputMap(
+                                b, JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+            if (map == null) {
 		map = new ComponentInputMapUIResource(b);
 		SwingUtilities.replaceUIInputMap(b,
 			       JComponent.WHEN_IN_FOCUSED_WINDOW, map);
-		createdWindowInputMap = true;
 	    }
-	    else {
-		map = SwingUtilities.getUIInputMap(b, JComponent.
-						 WHEN_IN_FOCUSED_WINDOW);
-	    }
-	    if (map != null) {
-		map.clear();
-		map.put(KeyStroke.getKeyStroke(m, ActionEvent.ALT_MASK, false),
-			"pressed");
-		map.put(KeyStroke.getKeyStroke(m, ActionEvent.ALT_MASK, true),
-		       "released");
-		map.put(KeyStroke.getKeyStroke(m, 0, true), "released");
-	    }
+            map.clear();
+            map.put(KeyStroke.getKeyStroke(m, InputEvent.ALT_MASK, false),
+                    "pressed");
+            map.put(KeyStroke.getKeyStroke(m, InputEvent.ALT_MASK, true),
+                    "released");
+            map.put(KeyStroke.getKeyStroke(m, 0, true), "released");
 	} 
-	else if (createdWindowInputMap) {
+        else {
 	    InputMap map = SwingUtilities.getUIInputMap(b, JComponent.
 					     WHEN_IN_FOCUSED_WINDOW);
 	    if (map != null) {
@@ -169,9 +147,15 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
         if (b instanceof JButton && ((JButton)b).isDefaultCapable()) {
             JRootPane root = b.getRootPane();
             if (root != null) {
-                root.putClientProperty("temporaryDefaultButton", b);
-                root.setDefaultButton((JButton)b);
-                root.putClientProperty("temporaryDefaultButton", null);
+               BasicButtonUI ui = (BasicButtonUI)BasicLookAndFeel.getUIOfType(
+                         ((AbstractButton)b).getUI(), BasicButtonUI.class);
+               if (ui != null && DefaultLookup.getBoolean(b, ui,
+                                   ui.getPropertyPrefix() +
+                                   "defaultButtonFollowsFocus", true)) {
+                   root.putClientProperty("temporaryDefaultButton", b);
+                   root.setDefaultButton((JButton)b);
+                   root.putClientProperty("temporaryDefaultButton", null);
+               }
             }
         }
 	b.repaint();
@@ -179,12 +163,17 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
 
     public void focusLost(FocusEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
-
 	JRootPane root = b.getRootPane();
 	if (root != null) {
 	   JButton initialDefault = (JButton)root.getClientProperty("initialDefaultButton");
 	   if (b != initialDefault) {
-	       root.setDefaultButton(initialDefault);
+               BasicButtonUI ui = (BasicButtonUI)BasicLookAndFeel.getUIOfType(
+                         ((AbstractButton)b).getUI(), BasicButtonUI.class);
+               if (ui != null && DefaultLookup.getBoolean(b, ui,
+                                   ui.getPropertyPrefix() +
+                                   "defaultButtonFollowsFocus", true)) {
+                   root.setDefaultButton(initialDefault);
+               }
 	   }
 	}
 
@@ -194,14 +183,14 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     }
 
     public void mouseMoved(MouseEvent e) {
-    };
+    }
 
 
     public void mouseDragged(MouseEvent e) {
-    };
+    }
 
     public void mouseClicked(MouseEvent e) {
-    };
+    }
  
     public void mousePressed(MouseEvent e) {
        if (SwingUtilities.isLeftMouseButton(e) ) {
@@ -250,7 +239,7 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
     public void mouseEntered(MouseEvent e) {
 	AbstractButton b = (AbstractButton) e.getSource();
         ButtonModel model = b.getModel();
-        if(b.isRolloverEnabled()) {
+        if (b.isRolloverEnabled() && !SwingUtilities.isLeftMouseButton(e)) {
             model.setRollover(true);
         }
         if (model.isPressed())
@@ -266,50 +255,45 @@ public class BasicButtonListener implements MouseListener, MouseMotionListener,
         model.setArmed(false);
     };
 
-    static class PressedAction extends AbstractAction {
-	AbstractButton b = null;
-        PressedAction(AbstractButton b) {
-	    this.b = b;
-	}
-	
-	public void actionPerformed(ActionEvent e) {
-	    ButtonModel model = b.getModel();
-	    model.setArmed(true);
-	    model.setPressed(true);
-	    if(!b.hasFocus()) {
-		b.requestFocus();
-	    }
+
+    /**
+     * Actions for Buttons. Two type of action are supported:
+     * pressed: Moves the button to a pressed state
+     * released: Disarms the button.
+     */
+    private static class Actions extends UIAction {
+        private static final String PRESS = "pressed";
+        private static final String RELEASE = "released";
+
+        Actions(String name) {
+            super(name);
         }
 
-	public boolean isEnabled() {
-	    if(!b.getModel().isEnabled()) {
+	public void actionPerformed(ActionEvent e) {
+            AbstractButton b = (AbstractButton)e.getSource();
+            String key = getName();
+            if (key == PRESS) {
+                ButtonModel model = b.getModel();
+                model.setArmed(true);
+                model.setPressed(true);
+                if(!b.hasFocus()) {
+                    b.requestFocus();
+                }
+            }
+            else if (key == RELEASE) {
+                ButtonModel model = b.getModel();
+                model.setPressed(false);
+                model.setArmed(false);
+            }
+        }
+
+        public boolean isEnabled(Object sender) {
+	    if(sender != null && (sender instanceof AbstractButton) &&
+                      !((AbstractButton)sender).getModel().isEnabled()) {
 		return false;
 	    } else {
 		return true;
 	    }
-	}
-    }
-
-   static class ReleasedAction extends AbstractAction {
-	AbstractButton b = null;
-        ReleasedAction(AbstractButton b) {
-	    this.b = b;
-	}
-	
-	public void actionPerformed(ActionEvent e) {
-            ButtonModel model = b.getModel();
-            model.setPressed(false);
-            model.setArmed(false);
         }
-
-	public boolean isEnabled() {
-	    if(!b.getModel().isEnabled()) {
-		return false;
-	    } else {
-		return true;
-	    }
-	}
     }
-
 }
-

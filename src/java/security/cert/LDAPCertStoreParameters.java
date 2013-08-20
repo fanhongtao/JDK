@@ -1,7 +1,7 @@
 /*
- * @(#)LDAPCertStoreParameters.java	1.7 03/01/23
+ * @(#)LDAPCertStoreParameters.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.security.cert;
  * provide the necessary locking. Multiple threads each manipulating
  * separate objects need not synchronize.
  *
- * @version 	1.7 01/23/03
+ * @version 	1.8 12/19/03
  * @since	1.4
  * @author	Steve Hanna
  * @see         CertStore

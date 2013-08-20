@@ -1,7 +1,7 @@
 /*
- * @(#)Charset-X-Coder.java	1.39 05/02/10
+ * @(#)Charset-X-Coder.java	1.40 04/06/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -105,7 +105,7 @@ import java.nio.charset.CoderMalfunctionError;			// javadoc
  * threads.  </p>
  *
  *
- * @version 1.39, 05/02/10
+ * @version 1.40, 04/06/19
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4
@@ -174,6 +174,12 @@ public abstract class CharsetEncoder {
 	if (maxBytesPerChar <= 0.0f)
 	    throw new IllegalArgumentException("Non-positive "
 					       + "maxBytesPerChar");
+	if (!Charset.atBugLevel("1.4")) {
+	    if (averageBytesPerChar > maxBytesPerChar)
+		throw new IllegalArgumentException("averageBytesPerChar"
+						   + " exceeds "
+						   + "maxBytesPerChar");
+	}
 	this.replacement = replacement;
 	this.averageBytesPerChar = averageBytesPerChar;
 	this.maxBytesPerChar = maxBytesPerChar;
@@ -310,10 +316,8 @@ public abstract class CharsetEncoder {
 	    dec.reset();
 	}
 	ByteBuffer bb = ByteBuffer.wrap(repl);
-	// We need to perform double, not float, arithmetic; otherwise
-	// we lose low order bits when src is larger than 2**24.
 	CharBuffer cb = CharBuffer.allocate((int)(bb.remaining()
-						  * (double)dec.maxCharsPerByte()));
+						  * dec.maxCharsPerByte()));
 	CoderResult cr = dec.decode(bb, cb, true);
 	return !cr.isError();
     }
@@ -511,7 +515,7 @@ public abstract class CharsetEncoder {
      * @return  A coder-result object describing the reason for termination
      *
      * @throws  IllegalStateException
-     *          If a encoding operation is already in progress and the previous
+     *          If an encoding operation is already in progress and the previous
      *          step was an invocation neither of the {@link #reset reset}
      *          method, nor of this method with a value of <tt>false</tt> for
      *          the <tt>endOfInput</tt> parameter, nor of this method with a
@@ -673,7 +677,7 @@ public abstract class CharsetEncoder {
      *
      * <p> This method encapsulates the basic encoding loop, encoding as many
      * characters as possible until it either runs out of input, runs out of room
-     * in the output buffer, or encounters a encoding error.  This method is
+     * in the output buffer, or encounters an encoding error.  This method is
      * invoked by the {@link #encode encode} method, which handles result
      * interpretation and error recovery.
      *
@@ -713,7 +717,7 @@ public abstract class CharsetEncoder {
      * <p> This method implements an entire <a href="#steps">encoding
      * operation</a>; that is, it resets this encoder, then it encodes the
      * characters in the given character buffer, and finally it flushes this
-     * encoder.  This method should therefore not be invoked if a encoding
+     * encoder.  This method should therefore not be invoked if an encoding
      * operation is already in progress.  </p>
      *
      * @param  in

@@ -1,11 +1,12 @@
 /*
- * @(#)Finishings.java	1.7 03/01/23
+ * @(#)Finishings.java	1.10 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.EnumSyntax;
 import javax.print.attribute.DocAttribute;
 import javax.print.attribute.PrintRequestAttribute;
@@ -203,6 +204,8 @@ import javax.print.attribute.PrintJobAttribute;
  */
 public class Finishings extends EnumSyntax
     implements DocAttribute, PrintRequestAttribute, PrintJobAttribute {
+
+    private static final long serialVersionUID = -627840419548391754L;
 
     /**
      * Perform no binding.
@@ -436,7 +439,7 @@ public class Finishings extends EnumSyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return Finishings.class;
     }
 

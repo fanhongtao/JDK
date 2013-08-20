@@ -1,7 +1,7 @@
 /*
- * @(#)MessageDigestSpi.java	1.13 03/01/23
+ * @(#)MessageDigestSpi.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,6 +14,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
+
+import java.nio.ByteBuffer;
+
+import sun.security.jca.JCAUtil;
 
 /**
  * This class defines the <i>Service Provider Interface</i> (<b>SPI</b>)
@@ -30,7 +34,7 @@ import java.io.ByteArrayInputStream;
  *
  * @author Benjamin Renaud 
  *
- * @version 1.13, 01/23/03
+ * @version 1.15, 12/19/03
  *
  * @see MessageDigest
  */
@@ -75,6 +79,39 @@ public abstract class MessageDigestSpi {
      * <code>offset</code>.
      */
     protected abstract void engineUpdate(byte[] input, int offset, int len);
+
+    /**
+     * Update the digest using the specified ByteBuffer. The digest is
+     * updated using the <code>input.remaining()</code> bytes starting
+     * at <code>input.position()</code>.
+     * Upon return, the buffer's position will be equal to its limit;
+     * its limit will not have changed.
+     *
+     * @param input the ByteBuffer
+     * @since 1.5
+     */
+    protected void engineUpdate(ByteBuffer input) {
+	if (input.hasRemaining() == false) {
+	    return;
+	}
+	if (input.hasArray()) {
+	    byte[] b = input.array();
+	    int ofs = input.arrayOffset();
+	    int pos = input.position();
+	    int lim = input.limit();
+	    engineUpdate(b, ofs + pos, lim - pos);
+	    input.position(lim);
+	} else {
+	    int len = input.remaining();
+	    byte[] b = new byte[JCAUtil.getTempArraySize(len)];
+	    while (len > 0) {
+		int chunk = Math.min(len, b.length);
+		input.get(b, 0, chunk);
+		engineUpdate(b, 0, chunk);
+		len -= chunk;
+	    }
+	}
+    }
 
     /**
      * Completes the hash computation by performing final

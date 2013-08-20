@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedReader.java	1.29 03/01/23
+ * @(#)BufferedReader.java	1.33 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ package java.io;
  * @see FileReader
  * @see InputStreamReader
  *
- * @version 	1.29, 03/01/23
+ * @version 	1.33, 04/01/12
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -120,7 +120,7 @@ public class BufferedReader extends Reader {
 		    markedChar = 0;
 		    dst = delta;
 		} else {
-		    /* Reallocate buffer to accomodate read-ahead limit */
+		    /* Reallocate buffer to accommodate read-ahead limit */
 		    char ncb[] = new char[readAheadLimit];
 		    System.arraycopy(cb, markedChar, ncb, 0, delta);
 		    cb = ncb;

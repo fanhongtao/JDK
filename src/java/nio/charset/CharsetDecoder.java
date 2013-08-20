@@ -1,7 +1,7 @@
 /*
- * @(#)Charset-X-Coder.java	1.39 05/02/10
+ * @(#)Charset-X-Coder.java	1.40 04/06/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -105,7 +105,7 @@ import java.nio.charset.CoderMalfunctionError;			// javadoc
  * threads.  </p>
  *
  *
- * @version 1.39, 05/02/10
+ * @version 1.40, 04/06/19
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4
@@ -174,6 +174,12 @@ public abstract class CharsetDecoder {
 	if (maxCharsPerByte <= 0.0f)
 	    throw new IllegalArgumentException("Non-positive "
 					       + "maxCharsPerByte");
+	if (!Charset.atBugLevel("1.4")) {
+	    if (averageCharsPerByte > maxCharsPerByte)
+		throw new IllegalArgumentException("averageCharsPerByte"
+						   + " exceeds "
+						   + "maxCharsPerByte");
+	}
 	this.replacement = replacement;
 	this.averageCharsPerByte = averageCharsPerByte;
 	this.maxCharsPerByte = maxCharsPerByte;
@@ -277,8 +283,6 @@ public abstract class CharsetDecoder {
      */
     protected void implReplaceWith(String newReplacement) {
     }
-
-
 
 
 

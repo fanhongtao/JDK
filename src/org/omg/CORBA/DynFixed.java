@@ -1,7 +1,7 @@
 /*
- * @(#)DynFixed.java	1.12 03/01/23
+ * @(#)DynFixed.java	1.15 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,8 +11,9 @@ package org.omg.CORBA;
 /**
  *  Represents a <code>DynAny</code> object that is associated
  *  with an IDL fixed type.
+ * @deprecated Use the new <a href="../DynamicAny/DynFixed.html">DynFixed</a> instead
  */
-
+@Deprecated
 public interface DynFixed extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**

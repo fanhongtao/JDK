@@ -1,7 +1,7 @@
 /*
- * @(#)InitialContextFactory.java	1.7 03/01/23
+ * @(#)InitialContextFactory.java	1.10 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import javax.naming.*;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 03/01/23
+  * @version 1.10 04/07/16
   *
   * @see InitialContextFactoryBuilder
   * @see NamingManager#getInitialContext
@@ -50,6 +50,6 @@ public interface InitialContextFactory {
 	  *		interface.
           * @exception NamingException If cannot create an initial context.
 	  */
-	public Context getInitialContext(Hashtable environment)
+	public Context getInitialContext(Hashtable<?,?> environment)
 	    throws NamingException;
 }

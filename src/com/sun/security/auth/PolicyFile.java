@@ -1,7 +1,7 @@
 /*
- * @(#)PolicyFile.java	1.30 03/01/23
+ * @(#)PolicyFile.java	1.34 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -223,6 +223,7 @@ import sun.security.util.PropertyExpander;
  * @see java.security.Permissions
  * @see java.security.ProtectionDomain 
  */
+@Deprecated
 public class PolicyFile extends javax.security.auth.Policy {
 
     static final java.util.ResourceBundle rb =
@@ -469,10 +470,10 @@ public class PolicyFile extends javax.security.auth.Policy {
 	    isr.close();
 	    KeyStore keyStore = initKeyStore(policy, pp.getKeyStoreUrl(),
 					     pp.getKeyStoreType());
-	    Enumeration enum = pp.grantElements();
-	    while (enum.hasMoreElements()) {
+	    Enumeration enum_ = pp.grantElements();
+	    while (enum_.hasMoreElements()) {
 		PolicyParser.GrantEntry ge =
-		    (PolicyParser.GrantEntry) enum.nextElement();
+		    (PolicyParser.GrantEntry) enum_.nextElement();
 		addGrantEntry(ge, keyStore);
 	    }
 	} catch (PolicyParser.ParsingException pe) {
@@ -577,10 +578,10 @@ public class PolicyFile extends javax.security.auth.Policy {
 	    if (codesource == null) return;
 
 	    PolicyEntry entry = new PolicyEntry(codesource);
-	    Enumeration enum = ge.permissionElements();
-	    while (enum.hasMoreElements()) {
+	    Enumeration enum_ = ge.permissionElements();
+	    while (enum_.hasMoreElements()) {
 		PolicyParser.PermissionEntry pe =
-		    (PolicyParser.PermissionEntry) enum.nextElement();
+		    (PolicyParser.PermissionEntry) enum_.nextElement();
 		try { 
 		    // XXX special case PrivateCredentialPermission-SELF
 		    Permission perm;
@@ -1381,6 +1382,8 @@ public class PolicyFile extends javax.security.auth.Policy {
 }
 
 class PolicyPermissions extends PermissionCollection {
+
+    private static final long serialVersionUID = -1954188373270545523L;
 
     private CodeSource codesource;
     private Permissions perms;

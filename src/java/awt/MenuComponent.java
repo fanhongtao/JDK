@@ -1,7 +1,7 @@
 /*
- * @(#)MenuComponent.java	1.70 03/01/23
+ * @(#)MenuComponent.java	1.77 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -23,7 +23,7 @@ import javax.accessibility.*;
  * Menu components receive and process AWT events, just as components do,
  * through the method <code>processEvent</code>.
  *
- * @version 	1.70, 01/23/03
+ * @version 	1.77, 05/18/04
  * @author 	Arthur van Hoff
  * @since       JDK1.0
  */
@@ -56,6 +56,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      * @see #getFont()
      */
     Font font;
+
     /**
      * The menu component's name, which defaults to <code>null</code>.
      * @serial
@@ -63,6 +64,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      * @see #setName(String)
      */
     private String name;
+
     /**
      * A variable to indicate whether a name is explicitly set.
      * If <code>true</code> the name will be set explicitly. 
@@ -71,6 +73,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      * @see #setName(String)
      */
     private boolean nameExplicitlySet = false;
+
     /**
      * Defaults to <code>false</code>.
      * @serial
@@ -104,7 +107,6 @@ public abstract class MenuComponent implements java.io.Serializable {
     public MenuComponent() throws HeadlessException {
         GraphicsEnvironment.checkHeadless();
 	appContext = AppContext.getAppContext();
-	SunToolkit.insertTargetMapping(this, appContext);
     }
 
     /**
@@ -168,6 +170,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      * @deprecated As of JDK version 1.1,
      * programs should not directly manipulate peers.
      */
+    @Deprecated
     public MenuComponentPeer getPeer() {
 	return peer;
     }
@@ -220,15 +223,24 @@ public abstract class MenuComponent implements java.io.Serializable {
      * Sets the font to be used for this menu component to the specified 
      * font. This font is also used by all subcomponents of this menu 
      * component, unless those subcomponents specify a different font. 
-     * <p>Some platforms may not support setting the font
-     * of a menu component; in this case, calling <code>setFont</code>
-     * will have no effect.
+     * <p>
+     * Some platforms may not support setting of all font attributes 
+     * of a menu component; in such cases, calling <code>setFont</code>
+     * will have no effect on the unsupported font attributes of this 
+     * menu component.  Unless subcomponents of this menu component 
+     * specify a different font, this font will be used by those 
+     * subcomponents if supported by the underlying platform.  
      *
      * @param     f   the font to be set
-     * @see       java.awt.MenuComponent#getFont
+     * @see       #getFont
+     * @see       Font#getAttributes
+     * @see       java.awt.font.TextAttribute
      */
     public void setFont(Font f) {
 	font = f;
+        if (peer != null) {
+            peer.setFont(f);
+        }
     }
 
     /**
@@ -257,6 +269,7 @@ public abstract class MenuComponent implements java.io.Serializable {
      * @deprecated As of JDK version 1.1, replaced by {@link
      * #dispatchEvent(AWTEvent) dispatchEvent}.
      */
+    @Deprecated
     public boolean postEvent(Event evt) {
 	MenuContainer parent = this.parent;
 	if (parent != null) {
@@ -362,7 +375,6 @@ public abstract class MenuComponent implements java.io.Serializable {
 
         privateKey = new Object();
 	appContext = AppContext.getAppContext();
-	SunToolkit.insertTargetMapping(this, appContext);
     }
 
     /**
@@ -408,7 +420,12 @@ public abstract class MenuComponent implements java.io.Serializable {
     protected abstract class AccessibleAWTMenuComponent 
 	extends AccessibleContext
         implements java.io.Serializable, AccessibleComponent,
-	AccessibleSelection {
+                   AccessibleSelection
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = -4269533416223798698L;
 
 	/**
 	 * Although the class is abstract, this should be called by
@@ -947,11 +964,28 @@ public abstract class MenuComponent implements java.io.Serializable {
     /**
      * Gets the index of this object in its accessible parent.
      *
-     * @return -1 of this object does not have an accessible parent;
+     * @return -1 if this object does not have an accessible parent;
      *      otherwise, the index of the child in its accessible parent.
      */
     int getAccessibleIndexInParent() {
-        return -1; // Overridden in subclasses
+        MenuContainer localParent = parent;
+        if (!(localParent instanceof MenuComponent)) {
+            // MenuComponents only have accessible index when inside MenuComponents
+            return -1; 
+        }
+        MenuComponent localParentMenu = (MenuComponent)localParent;
+        return localParentMenu.getAccessibleChildIndex(this);
+    }
+
+    /**
+     * Gets the index of the child within this MenuComponent.
+     *
+     * @param child MenuComponent whose index we are interested in.
+     * @return -1 if this object doesn't contain the child,
+     *      otherwise, index of the child.
+     */
+    int getAccessibleChildIndex(MenuComponent child) {
+        return -1; // Overridden in subclasses.
     }
 
     /**

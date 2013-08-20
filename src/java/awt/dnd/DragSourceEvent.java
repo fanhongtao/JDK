@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceEvent.java	1.17 03/01/23
+ * @(#)DragSourceEvent.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -77,6 +77,9 @@ public class DragSourceEvent extends EventObject {
      * <code>null</code> for this event.
      * 
      * @param dsc the <code>DragSourceContext</code>
+     *
+     * @throws <code>IllegalArgumentException</code> if <code>dsc</code> is <code>null</code>.
+     *
      * @see #getLocation
      */
 
@@ -95,6 +98,9 @@ public class DragSourceEvent extends EventObject {
      * @param dsc the <code>DragSourceContext</code>
      * @param x   the horizontal coordinate for the cursor location
      * @param y   the vertical coordinate for the cursor location
+     *
+     * @throws <code>IllegalArgumentException</code> if <code>dsc</code> is <code>null</code>.
+     *
      * @since 1.4
      */
     public DragSourceEvent(DragSourceContext dsc, int x, int y) { 

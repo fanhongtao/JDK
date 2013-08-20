@@ -1,7 +1,7 @@
 /*
- * @(#)EventDispatchThread.java	1.46 03/01/23
+ * @(#)EventDispatchThread.java	1.52 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package java.awt;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
@@ -36,7 +37,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.46, 01/23/03
+ * @version 1.52, 12/19/03
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -52,14 +53,14 @@ class EventDispatchThread extends Thread {
     }
 
     void stopDispatchingImpl(boolean wait) {
-	// Note: We stop dispatching via a flag rather than using
-	// Thread.interrupt() because we can't guarantee that the wait()
-	// we interrupt will be EventQueue.getNextEvent()'s.  -fredx 8-11-98
+        // Note: We stop dispatching via a flag rather than using
+        // Thread.interrupt() because we can't guarantee that the wait()
+        // we interrupt will be EventQueue.getNextEvent()'s.  -fredx 8-11-98
 
-        doDispatch = false;
+        StopDispatchEvent stopEvent = new StopDispatchEvent();
 
-	// wait for the dispatcher to complete
-	if (Thread.currentThread() != this) {
+        // wait for the dispatcher to complete
+        if (Thread.currentThread() != this) {
 
             // fix 4122683, 4128923
             // Post an empty event to ensure getNextEvent is unblocked
@@ -68,7 +69,7 @@ class EventDispatchThread extends Thread {
             // EventQueue.pop calls EventDispatchThread.stopDispatching.
             // Calling SunToolkit.flushPendingEvents in this case could
             // lead to deadlock.
-            theQueue.postEventPrivate(new EmptyEvent());
+            theQueue.postEventPrivate(stopEvent);
                 
             if (wait) {
                 try {
@@ -76,7 +77,14 @@ class EventDispatchThread extends Thread {
                 } catch(InterruptedException e) {
                 }
             }
-	}
+        } else {
+            stopEvent.dispatch();
+        }
+        synchronized (theQueue) {
+            if (theQueue.getDispatchThread() == this) {
+                theQueue.detachDispatchThread();
+            }
+        }
     }
 
     public void stopDispatching() {
@@ -87,12 +95,14 @@ class EventDispatchThread extends Thread {
         stopDispatchingImpl(false);
     }
 
-    class EmptyEvent extends AWTEvent implements ActiveEvent {
-	public EmptyEvent() {
-	    super(EventDispatchThread.this,0);
-	}
+    class StopDispatchEvent extends AWTEvent implements ActiveEvent {
+        public StopDispatchEvent() {
+            super(EventDispatchThread.this,0);
+        }
 
-	public void dispatch() {}
+        public void dispatch() {
+            doDispatch = false;
+        }
     }
 
     public void run() {
@@ -112,7 +122,9 @@ class EventDispatchThread extends Thread {
 	     * be valid at that point.
 	     */
 	    synchronized (theQueue) {
-		theQueue.detachDispatchThread();
+                if (theQueue.getDispatchThread() == this) {
+                    theQueue.detachDispatchThread();
+                }
                 /*
                  * Event dispatch thread dies in case of an uncaught exception. 
                  * A new event dispatch thread for this queue will be started
@@ -154,6 +166,21 @@ class EventDispatchThread extends Thread {
         }
     }
 
+    boolean checkMouseEventForModalJInternalFrame(MouseEvent me, Component modalComp) {
+        // Check if the MouseEvent is targeted to the HW parent of the
+        // LW component, if so, then return true. The job of distinguishing
+        // between the LW components is done by the LW dispatcher.
+        if (modalComp instanceof javax.swing.JInternalFrame) {
+            Container c;
+            synchronized (modalComp.getTreeLock()) {
+                c = ((Container)modalComp).getHeavyweightContainer();
+            }
+            if (me.getSource() == c) 
+                return true;
+        }
+        return false;
+    }
+
     boolean pumpOneEventForHierarchy(int id, Component modalComponent) {
         try {
             AWTEvent event;
@@ -172,12 +199,18 @@ class EventDispatchThread extends Thread {
                      * in Dialog.show
                      */
                     int eventID = event.getID();
-                    if ((eventID >= MouseEvent.MOUSE_FIRST &&
-                         eventID <= MouseEvent.MOUSE_LAST)      ||
-                        (eventID >= ActionEvent.ACTION_FIRST &&
-                         eventID <= ActionEvent.ACTION_LAST)) {
+                    if (((eventID >= MouseEvent.MOUSE_FIRST &&
+                            eventID <= MouseEvent.MOUSE_LAST) &&
+                            !(checkMouseEventForModalJInternalFrame((MouseEvent)
+                                event, modalComponent))) || 
+                            (eventID >= ActionEvent.ACTION_FIRST &&
+                            eventID <= ActionEvent.ACTION_LAST) ||
+                            eventID == WindowEvent.WINDOW_CLOSING) {
                         Object o = event.getSource();
-                        if (o instanceof Component) {
+                        if (o instanceof sun.awt.ModalExclude) {
+                            // Exclude this object from modality and
+                            // continue to pump it's events.
+                        } else if (o instanceof Component) {
                             Component c = (Component) o;
                             if (modalComponent instanceof Container) {
                                 while (c != modalComponent && c != null) {

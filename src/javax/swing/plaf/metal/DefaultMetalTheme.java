@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultMetalTheme.java	1.25 03/01/23
+ * @(#)DefaultMetalTheme.java	1.27 04/03/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -10,6 +10,8 @@ package javax.swing.plaf.metal;
 import javax.swing.plaf.*;
 import javax.swing.*;
 import java.awt.*;
+
+import sun.security.action.GetPropertyAction;
 
 /**
  * This class describes the default Metal Theme.
@@ -23,10 +25,16 @@ import java.awt.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.25 01/23/03
+ * @version 1.27 03/03/04
  * @author Steve Wilson
  */
 public class DefaultMetalTheme extends MetalTheme {
+    /**
+     * Whether or not fonts should be plain.  This is only used if
+     * the defaults property 'swing.boldMetal' == "false".
+     */
+    private static final boolean PLAIN_FONTS;
+
     /**
      * Names of the fonts to use.
      */
@@ -34,7 +42,8 @@ public class DefaultMetalTheme extends MetalTheme {
         "Dialog", "Dialog", "Dialog", "Dialog", "Dialog", "Dialog"
     };
     /**
-     * Styles for the fonts.
+     * Styles for the fonts.  This is ignored if the defaults property
+     * <code>swing.boldMetal</code> is false, or PLAIN_FONTS is true.
      */
     private static final int[] fontStyles = {
         Font.BOLD, Font.PLAIN, Font.PLAIN, Font.BOLD, Font.BOLD, Font.PLAIN
@@ -83,6 +92,17 @@ public class DefaultMetalTheme extends MetalTheme {
      * Returns the ideal font style for the font identified by key.
      */
     static int getDefaultFontStyle(int key) {
+        if (key != WINDOW_TITLE_FONT) {
+            Object boldMetal = UIManager.get("swing.boldMetal");
+            if (boldMetal != null) {
+                if (Boolean.FALSE.equals(boldMetal)) {
+                    return Font.PLAIN;
+                }
+            }
+            else if (PLAIN_FONTS) {
+                return Font.PLAIN;
+            }
+        }
         return fontStyles[key];
     }
 
@@ -91,6 +111,17 @@ public class DefaultMetalTheme extends MetalTheme {
      */
     static String getDefaultPropertyName(int key) {
         return defaultNames[key];
+    }
+
+    static {
+        Object boldProperty = java.security.AccessController.doPrivileged(
+            new GetPropertyAction("swing.boldMetal"));
+        if (boldProperty == null || !"false".equals(boldProperty)) {
+            PLAIN_FONTS = false;
+        }
+        else {
+            PLAIN_FONTS = true;
+        }
     }
 
     private static final ColorUIResource primary1 = new ColorUIResource(
@@ -187,9 +218,9 @@ public class DefaultMetalTheme extends MetalTheme {
         }
 
         public FontUIResource getFont(int type) {
-            type = defaultMapping[type];
+            int mappedType = defaultMapping[type];
             if (fonts[type] == null) {
-                Font f = getPrivilegedFont(type);
+                Font f = getPrivilegedFont(mappedType);
 
                 if (f == null) {
                     f = new Font(getDefaultFontName(type),

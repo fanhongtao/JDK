@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultSwatchChooserPanel.java	1.24 03/01/23
+ * @(#)DefaultSwatchChooserPanel.java	1.26 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.24 01/23/03
+ * @version 1.26 12/19/03
  * @author Steve Wilson
  */
 class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
@@ -119,7 +119,9 @@ class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
 
     protected void buildChooser() {
       
-        JPanel superHolder = new JPanel(new BorderLayout());
+        GridBagLayout gb = new GridBagLayout();
+        GridBagConstraints gbc = new GridBagConstraints();
+        JPanel superHolder = new JPanel(gb);
 
         swatchPanel =  new MainSwatchPanel();
 	swatchPanel.getAccessibleContext().setAccessibleName(getDisplayName());
@@ -133,30 +135,26 @@ class DefaultSwatchChooserPanel extends AbstractColorChooserPanel {
 	recentSwatchPanel.addMouseListener(recentSwatchListener);
 
 
-	JPanel mainHolder = new JPanel(new BorderLayout());
 	Border border = new CompoundBorder( new LineBorder(Color.black),
 					    new LineBorder(Color.white) );
-	mainHolder.setBorder(border);
-	mainHolder.add(swatchPanel, BorderLayout.CENTER);
-        superHolder.add( mainHolder, BorderLayout.CENTER );
+	swatchPanel.setBorder(border);
+        gbc.weightx = 1.0;
+        gbc.gridwidth = 2;
+        gbc.gridheight = 2;
+        gbc.weighty = 1.0;
+        superHolder.add( swatchPanel, gbc );
 
-	JPanel recentHolder = new JPanel( new BorderLayout() );
 	recentSwatchPanel.addMouseListener(recentSwatchListener);
-	recentHolder.setBorder(border);
-	recentHolder.add(recentSwatchPanel, BorderLayout.CENTER);
+	recentSwatchPanel.setBorder(border);
 	JPanel recentLabelHolder = new JPanel(new BorderLayout());
-	recentLabelHolder.add(recentHolder, BorderLayout.CENTER);
 	JLabel l = new JLabel(recentStr);
 	l.setLabelFor(recentSwatchPanel);
 	recentLabelHolder.add(l, BorderLayout.NORTH);
-	JPanel recentHolderHolder = new JPanel(new CenterLayout());
-        if (this.getComponentOrientation().isLeftToRight()) {
-	    recentHolderHolder.setBorder(new EmptyBorder(2,10,2,2));
-        } else {
-	    recentHolderHolder.setBorder(new EmptyBorder(2,2,2,10));
-        }
-	recentHolderHolder.add(recentLabelHolder);
-	superHolder.add( recentHolderHolder, BorderLayout.AFTER_LINE_ENDS );	
+        gbc.weighty = 0.0;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridheight = 1;
+	superHolder.add( recentLabelHolder, gbc );
+        superHolder.add( recentSwatchPanel, gbc );	
 
 	add(superHolder);
 	

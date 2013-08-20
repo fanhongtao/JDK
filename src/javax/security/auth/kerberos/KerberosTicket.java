@@ -1,7 +1,7 @@
 /*
- * @(#)KerberosTicket.java	1.14 06/06/22
+ * @(#)KerberosTicket.java	1.16 04/06/02
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
   
@@ -56,22 +56,24 @@ import sun.security.util.*;
  * @see org.ietf.jgss.GSSManager
  * 
  * @author Mayank Upadhyay
- * @version 1.14, 06/22/06
+ * @version 1.16, 06/02/04
  * @since 1.4
  */
 public class KerberosTicket implements Destroyable, Refreshable,
 	 java.io.Serializable {
 
-    // TBD: Make these flag indices public
-    private static int FORWARDABLE_TICKET_FLAG = 1;
-    private static int FORWARDED_TICKET_FLAG   = 2;
-    private static int PROXIABLE_TICKET_FLAG   = 3;
-    private static int PROXY_TICKET_FLAG       = 4;
-    private static int POSTDATED_TICKET_FLAG   = 6;
-    private static int RENEWABLE_TICKET_FLAG   = 8;
-    private static int INITIAL_TICKET_FLAG     = 9;
+    private static final long serialVersionUID = 7395334370157380539L;
 
-    private static int NUM_FLAGS = 32;
+    // TBD: Make these flag indices public
+    private static final int FORWARDABLE_TICKET_FLAG = 1;
+    private static final int FORWARDED_TICKET_FLAG   = 2;
+    private static final int PROXIABLE_TICKET_FLAG   = 3;
+    private static final int PROXY_TICKET_FLAG       = 4;
+    private static final int POSTDATED_TICKET_FLAG   = 6;
+    private static final int RENEWABLE_TICKET_FLAG   = 8;
+    private static final int INITIAL_TICKET_FLAG     = 9;
+
+    private static final int NUM_FLAGS = 32;
 
     /**
      * 
@@ -83,26 +85,26 @@ public class KerberosTicket implements Destroyable, Refreshable,
 
     private byte[] asn1Encoding;
 
-   /**
-    *<code>KeyImpl</code> is serialized by writing out the ASN1 Encoded bytes 
-    * of the encryption key. The ASN1 encoding is defined in RFC1510 and as
-    * follows:
-    * <pre>		
-    *			EncryptionKey ::=   SEQUENCE {
-    *				keytype[0]    INTEGER,
-    *				keyvalue[1]   OCTET STRING    	
-    *				}
-    * </pre>
-    *
-    * @serial
-    */
+    /**
+     *<code>KeyImpl</code> is serialized by writing out the ASN1 Encoded bytes 
+     * of the encryption key. The ASN1 encoding is defined in RFC1510 and as
+     * follows:
+     * <pre>		
+     *			EncryptionKey ::=   SEQUENCE {
+     *				keytype[0]    INTEGER,
+     *				keyvalue[1]   OCTET STRING    	
+     *				}
+     * </pre>
+     *
+     * @serial
+     */
 
     private KeyImpl sessionKey;
 
     /**
      * 
      * Ticket Flags as defined in the Kerberos Protocol Specification RFC1510.
-
+     *
      * @serial
      */
 
@@ -207,7 +209,7 @@ public class KerberosTicket implements Destroyable, Refreshable,
      * used by the client. This field may be null when the ticket is usable 
      * from any address.
      */
-   public KerberosTicket(byte[] asn1Encoding, 
+    public KerberosTicket(byte[] asn1Encoding, 
 			 KerberosPrincipal client,
 			 KerberosPrincipal server,
 			 byte[] sessionKey,
@@ -219,9 +221,9 @@ public class KerberosTicket implements Destroyable, Refreshable,
 			 Date renewTill,
 			 InetAddress[] clientAddresses) {
        
-       init(asn1Encoding, client, server, sessionKey, keyType, flags,
+	init(asn1Encoding, client, server, sessionKey, keyType, flags,
 	    authTime, startTime, endTime, renewTill, clientAddresses);
-   }
+    }
     
     private void init(byte[] asn1Encoding, 
 			 KerberosPrincipal client,
@@ -235,58 +237,61 @@ public class KerberosTicket implements Destroyable, Refreshable,
 			 Date renewTill,
 			 InetAddress[] clientAddresses) {
 
-       if (asn1Encoding == null)
+	if (asn1Encoding == null)
 	   throw new IllegalArgumentException("ASN.1 encoding of ticket"
 					      + " cannot be null");
-       this.asn1Encoding = asn1Encoding;
+	this.asn1Encoding = asn1Encoding.clone();
 
-       if (client == null)
+	if (client == null)
 	   throw new IllegalArgumentException("Client name in ticket"
 					      + " cannot be null");
-       this.client = client;
+	this.client = client;
 
-       if (server == null)
+	if (server == null)
 	   throw new IllegalArgumentException("Server name in ticket"
 					      + " cannot be null");
-       this.server = server;
+	this.server = server;
 
-       if (sessionKey == null)
+	if (sessionKey == null)
 	   throw new IllegalArgumentException("Session key for ticket"
 					      + " cannot be null");
-       this.sessionKey = new KeyImpl(sessionKey, keyType);
+	this.sessionKey = new KeyImpl(sessionKey, keyType);
 
-       if (flags != null) {
+	if (flags != null) {
 	   if (flags.length >= NUM_FLAGS)
-	       this.flags = (boolean[]) flags.clone();
+		this.flags = (boolean[]) flags.clone();
 	   else {
-	       this.flags = new boolean[NUM_FLAGS];
-	       // Fill in whatever we have
-	       for (int i = 0; i < flags.length; i++)
-		   this.flags[i] = flags[i];
+		this.flags = new boolean[NUM_FLAGS];
+		// Fill in whatever we have
+		for (int i = 0; i < flags.length; i++)
+		    this.flags[i] = flags[i];
 	   }
-       } else
+	} else
 	   this.flags = new boolean[NUM_FLAGS];
 
-       if (flags[RENEWABLE_TICKET_FLAG]) {
+	if (this.flags[RENEWABLE_TICKET_FLAG]) {
 	   if (renewTill == null)
-	       throw new IllegalArgumentException("The renewable period "
+		throw new IllegalArgumentException("The renewable period "
 		       + "end time cannot be null for renewable tickets.");
 
 	   this.renewTill = renewTill;
-       }
+	}
 
-       this.authTime = authTime;
+	if (authTime == null)
+	   throw new IllegalArgumentException("Authentication time of ticket"
+					      + " cannot be null");
+	this.authTime = authTime;
 
-       this.startTime = (startTime != null? startTime: authTime);
+	this.startTime = (startTime != null? startTime: authTime);
 
-       if (endTime == null)
+	if (endTime == null)
 	   throw new IllegalArgumentException("End time for ticket validity"
 					      + " cannot be null");
-       this.endTime = endTime;
+	this.endTime = endTime;
 
-       if (clientAddresses != null)
+	if (clientAddresses != null)
 	   this.clientAddresses = (InetAddress[]) clientAddresses.clone();
-   }
+    }
 
     /**
      * Returns the client principal associated with this ticket.
@@ -332,7 +337,8 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	return sessionKey.getKeyType();
     }
 
-    /** Determines if this ticket is forwardable.
+    /** 
+     * Determines if this ticket is forwardable.
      *
      * @return true if this ticket is forwardable, false if not.
      */
@@ -352,7 +358,8 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	return flags[FORWARDED_TICKET_FLAG];
     }
 
-    /** Determines if this ticket is proxiable.
+    /** 
+     * Determines if this ticket is proxiable.
      *
      * @return true if this ticket is proxiable, false if not.
      */
@@ -360,7 +367,8 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	return flags[PROXIABLE_TICKET_FLAG];
     }
 
-    /** Determines is this ticket is a proxy-ticket.
+    /** 
+     * Determines is this ticket is a proxy-ticket.
      *
      * @return true if this ticket is a proxy-ticket, false if not.
      */
@@ -369,7 +377,8 @@ public class KerberosTicket implements Destroyable, Refreshable,
     }
 
 
-    /** Determines is this ticket is post-dated.
+    /** 
+     * Determines is this ticket is post-dated.
      *
      * @return true if this ticket is post-dated, false if not.
      */
@@ -413,21 +422,19 @@ public class KerberosTicket implements Destroyable, Refreshable,
     /**
      * Returns the time that the client was authenticated.
      *
-     * @return the time that the client was authenticated
-     *         or null if not set.
+     * @return the time that the client was authenticated.
      */
     public final java.util.Date getAuthTime() {
-	return authTime;
+	return (authTime == null) ? null : new Date(authTime.getTime());
     }
 
     /**
      * Returns the start time for this ticket's validity period.
      *
-     * @return the start time for this ticket's validity period 
-     *         or null if not set.
+     * @return the start time for this ticket's validity period.
      */
     public final java.util.Date getStartTime() {
-	return startTime;
+	return (startTime == null) ? null : new Date(startTime.getTime());
     }
 
     /**
@@ -436,7 +443,7 @@ public class KerberosTicket implements Destroyable, Refreshable,
      * @return the expiration time for this ticket's validity period.
      */
     public final java.util.Date getEndTime() {
-	return endTime;
+	return (endTime == null) ? null : new Date(endTime.getTime());
     }
 
     /**
@@ -446,7 +453,7 @@ public class KerberosTicket implements Destroyable, Refreshable,
      * @return the latest expiration time for this ticket.
      */
     public final java.util.Date getRenewTill() {
-	return renewTill;
+	return (renewTill == null) ? null: new Date(renewTill.getTime());
     }
     
     /**
@@ -583,18 +590,19 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	}
     }
 
-    /** Determines if this ticket has been destroyed.*/
+    /** 
+     * Determines if this ticket has been destroyed.
+     */
     public boolean isDestroyed() {
 	return destroyed;
     }
 
     public String toString() {
-
 	if (destroyed)
 	    throw new IllegalStateException("This ticket is no longer valid");
 	StringBuffer caddrBuf = new StringBuffer();
 	if (clientAddresses != null) {
-	    for (int i =0;i < clientAddresses.length; i++) {
+	    for (int i = 0; i < clientAddresses.length; i++) {
 		caddrBuf.append("clientAddresses[" + i + "] = " + 
 				 clientAddresses[i].toString());
 	    }
@@ -611,13 +619,14 @@ public class KerberosTicket implements Destroyable, Refreshable,
 	        "Postdated Ticket " + flags[POSTDATED_TICKET_FLAG] + "\n" +
 	        "Renewable Ticket " + flags[RENEWABLE_TICKET_FLAG] + "\n" +
 	        "Initial Ticket " + flags[RENEWABLE_TICKET_FLAG] + "\n" +
-		"Auth Time = " + String.valueOf(authTime) + "\n" +
-		"Start Time = " + String.valueOf(startTime) + "\n" +
+		"Auth Time = " + authTime.toString() + "\n" +
+		"Start Time = " + startTime.toString() + "\n" +
 		"End Time = " + endTime.toString() + "\n" +
-		"Renew Till = " + String.valueOf(renewTill) + "\n" +
-		"Client Addresses " + 
-		(clientAddresses == null ? " Null ":caddrBuf.toString() + "\n")
-		); 
+		"Renew Till = " +
+		  (renewTill == null ? "Null " : renewTill.toString()) + "\n" +
+		"Client Addresses " +
+		(clientAddresses == null ? " Null " : caddrBuf.toString() +
+		"\n"));
     }
 
 }

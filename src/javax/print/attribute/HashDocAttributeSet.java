@@ -1,7 +1,7 @@
 /*
- * @(#)HashDocAttributeSet.java	1.4 03/01/23
+ * @(#)HashDocAttributeSet.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,8 @@ import java.io.Serializable;
  */
 public class HashDocAttributeSet extends HashAttributeSet
     implements DocAttributeSet, Serializable {
+
+    private static final long serialVersionUID = -1128534486061432528L;
 
     /**
      * Construct a new, empty hash doc attribute set. 

@@ -1,7 +1,7 @@
 /*
- * @(#)JPEGMetadata.java	1.26 08/05/08
+ * @(#)JPEGMetadata.java	1.27 03/12/19
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

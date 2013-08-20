@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleAttributeSet.java	1.39 03/01/23
+ * @(#)SimpleAttributeSet.java	1.41 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.39 01/23/03
+ * @version 1.41 05/05/04
  * @author Tim Prinzing
  */
 public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cloneable
@@ -114,7 +114,7 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
      *
      * @return the names as an <code>Enumeration</code>
      */
-    public Enumeration getAttributeNames() {
+    public Enumeration<?> getAttributeNames() {
         return table.keys();
     }
 
@@ -203,7 +203,7 @@ public class SimpleAttributeSet implements MutableAttributeSet, Serializable, Cl
      *
      * @param names the set of names to remove
      */
-    public void removeAttributes(Enumeration names) {
+    public void removeAttributes(Enumeration<?> names) {
         while (names.hasMoreElements())
             removeAttribute(names.nextElement());
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)LineNumberReader.java	1.16 03/01/23
+ * @(#)LineNumberReader.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ package java.io;
  * A line is considered to be terminated by any one of a line feed ('\n'), a carriage
  * return ('\r'), or a carriage return followed immediately by a linefeed.
  *
- * @version 	1.16, 03/01/23
+ * @version 	1.20, 03/12/19
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -34,7 +34,7 @@ public class LineNumberReader extends BufferedReader {
     private int lineNumber = 0;
 
     /** The line number of the mark, if any */
-    private int markedLineNumber;
+    private int markedLineNumber; // Defaults to 0
 
     /** If the next character is a line feed, skip it */
     private boolean skipLF;
@@ -182,6 +182,8 @@ public class LineNumberReader extends BufferedReader {
      * @return    The number of characters actually skipped
      *
      * @exception  IOException  If an I/O error occurs
+     * @exception  IllegalArgumentException if <CODE>n</CODE>
+     *             is negative
      */
     public long skip(long n) throws IOException {
 	if (n < 0) 

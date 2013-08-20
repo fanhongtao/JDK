@@ -1,7 +1,7 @@
 /*
- * @(#)ListDataEvent.java	1.16 03/01/23
+ * @(#)ListDataEvent.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.EventObject;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.16 01/23/03
+ * @version 1.18 12/19/03
  * @author Hans Muller
  */
 public class ListDataEvent extends EventObject 
@@ -67,19 +67,21 @@ public class ListDataEvent extends EventObject
     public int getIndex1() { return index1; }
 
     /**
-     * Constructs a ListDataEvent object.
+     * Constructs a ListDataEvent object. If index0 is >
+     * index1, index0 and index1 will be swapped such that
+     * index0 will always be <= index1.
      *
      * @param source  the source Object (typically <code>this</code>)
      * @param type    an int specifying {@link #CONTENTS_CHANGED},
      *                {@link #INTERVAL_ADDED}, or {@link #INTERVAL_REMOVED}
-     * @param index0  an int specifying the bottom of a range
-     * @param index1  an int specifying the top of a range
+     * @param index0  one end of the new interval
+     * @param index1  the other end of the new interval
      */
     public ListDataEvent(Object source, int type, int index0, int index1) {
         super(source);
 	this.type = type;
-	this.index0 = index0;
-	this.index1 = index1;
+	this.index0 = Math.min(index0, index1);
+	this.index1 = Math.max(index0, index1);
     }
 
     /**

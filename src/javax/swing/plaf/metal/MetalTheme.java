@@ -1,7 +1,7 @@
 /*
- * @(#)MetalTheme.java	1.23 03/01/23
+ * @(#)MetalTheme.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -11,11 +11,11 @@ import javax.swing.plaf.*;
 import javax.swing.*;
 
 /**
- * This interface acts as a generic way to describe the colors
- * used by Metal.  Classes which implement this interface can
+ * This abstract class acts as a generic way to describe the colors
+ * used by Metal.  Subclasses of <code>MetalTheme</code> can
  * be used to swap the colors in a Metal application.
  *
- * @version 1.23 01/23/03
+ * @version 1.27 12/19/03
  * @author Steve Wilson
  */
 
@@ -29,7 +29,7 @@ public abstract class MetalTheme {
     static final int WINDOW_TITLE_FONT = 4;
     static final int SUB_TEXT_FONT = 5;
 
-    private static ColorUIResource white = new ColorUIResource( 255, 255, 255 );
+    static ColorUIResource white = new ColorUIResource( 255, 255, 255 );
     private static ColorUIResource black = new ColorUIResource( 0, 0, 0 );
 
     public abstract String getName();

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextPaneUI.java	1.67 03/01/23
+ * @(#)BasicTextPaneUI.java	1.69 04/07/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -28,7 +28,7 @@ import javax.swing.border.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.67 01/23/03
+ * @version 1.69 07/23/04
  */
 public class BasicTextPaneUI extends BasicEditorPaneUI {
 
@@ -62,8 +62,6 @@ public class BasicTextPaneUI extends BasicEditorPaneUI {
 
     public void installUI(JComponent c) {
         super.installUI(c);
-        updateForeground(c.getForeground());
-        updateFont(c.getFont());
     }
 
     /**
@@ -79,66 +77,5 @@ public class BasicTextPaneUI extends BasicEditorPaneUI {
      */
     protected void propertyChange(PropertyChangeEvent evt) {
 	super.propertyChange(evt);
-
-	String name = evt.getPropertyName();
-
-	if (name.equals("foreground")) {
-            updateForeground((Color)evt.getNewValue());
-	} else if (name.equals("font")) {
-            updateFont((Font)evt.getNewValue());
-	} else if (name.equals("document")) {
-            JComponent comp = getComponent();
-            updateForeground(comp.getForeground());
-            updateFont(comp.getFont());
-        }
     }
-
-    /**
-     * Update the color in the default style of the document.
-     *
-     * @param color the new color to use or null to remove the color attribute
-     *              from the document's style
-     */
-    private void updateForeground(Color color) {
-        StyledDocument doc = (StyledDocument)getComponent().getDocument();
-        Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
-
-        if (style == null) {
-            return;
-        }
-
-        if (color == null) {
-            style.removeAttribute(StyleConstants.Foreground);
-        } else {
-            StyleConstants.setForeground(style, color);
-        }
-    }
-    
-    /**
-     * Update the font in the default style of the document.
-     *
-     * @param font the new font to use or null to remove the font attribute
-     *             from the document's style
-     */
-    private void updateFont(Font font) {
-        StyledDocument doc = (StyledDocument)getComponent().getDocument();
-        Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
-
-        if (style == null) {
-            return;
-        }
-
-        if (font == null) {
-            style.removeAttribute(StyleConstants.FontFamily);
-            style.removeAttribute(StyleConstants.FontSize);
-            style.removeAttribute(StyleConstants.Bold);
-            style.removeAttribute(StyleConstants.Italic);
-        } else {
-            StyleConstants.setFontFamily(style, font.getName());
-            StyleConstants.setFontSize(style, font.getSize());
-            StyleConstants.setBold(style, font.isBold());
-            StyleConstants.setItalic(style, font.isItalic());
-        }
-    }
-
 }

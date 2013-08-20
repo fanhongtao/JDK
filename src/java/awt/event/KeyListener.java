@@ -1,7 +1,7 @@
 /*
- * @(#)KeyListener.java	1.16 03/01/23
+ * @(#)KeyListener.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,11 +19,11 @@ import java.util.EventListener;
  * The listener object created from that class is then registered with a
  * component using the component's <code>addKeyListener</code> 
  * method. A keyboard event is generated when a key is pressed, released,
- * or typed (pressedn and released). The relevant method in the listener 
+ * or typed. The relevant method in the listener 
  * object is then invoked, and the <code>KeyEvent</code> is passed to it.
  *
  * @author Carl Quinn
- * @version 1.16 01/23/03
+ * @version 1.18 12/19/03
  *
  * @see KeyAdapter
  * @see KeyEvent

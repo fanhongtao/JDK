@@ -1,7 +1,7 @@
 /*
- * @(#)WindowConstants.java	1.18 03/01/28
+ * @(#)WindowConstants.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,13 +25,13 @@ package javax.swing;
  * @see JInternalFrame#setDefaultCloseOperation(int)
  * 
  *
- * @version 1.18 01/28/03
+ * @version 1.21 12/19/03
  * @author Amy Fowler
  */
 public interface WindowConstants
 {
     /**
-     * The do-nothing default window close operation
+     * The do-nothing default window close operation.
      */
     public static final int DO_NOTHING_ON_CLOSE = 0;
 

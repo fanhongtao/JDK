@@ -1,7 +1,7 @@
 /*
- * @(#)VerifyError.java	1.12 03/01/23
+ * @(#)VerifyError.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.lang;
  * or security problem. 
  *
  * @author  unascribed
- * @version 1.12, 01/23/03
+ * @version 1.13, 12/19/03
  * @since   JDK1.0
  */
 public

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFocusTraversalPolicy.java	1.3 03/01/23
+ * @(#)DefaultFocusTraversalPolicy.java	1.5 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -34,9 +34,16 @@ import java.awt.peer.ComponentPeer;
  * peers. These recommendations are used in the Sun AWT implementations. Note
  * that the focusability of a Component's peer is different from, and does not
  * impact, the focusability of the Component itself.
+ * <p>
+ * Please see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/focus.html">
+ * How to Use the Focus Subsystem</a>,
+ * a section in <em>The Java Tutorial</em>, and the
+ * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
+ * for more information.
  *
  * @author David Mendenhall
- * @version 1.3, 01/23/03
+ * @version 1.5, 12/19/03
  *
  * @see Container#getComponents
  * @see Component#isFocusable

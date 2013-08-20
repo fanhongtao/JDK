@@ -1,7 +1,7 @@
 /*
- * @(#)Socket.java	1.100 06/08/15
+ * @(#)Socket.java	1.108 04/05/18
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,6 @@ import java.io.InterruptedIOException;
 import java.nio.channels.SocketChannel;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
-import java.security.PrivilegedAction;
 
 /**
  * This class implements client sockets (also called just
@@ -28,7 +27,7 @@ import java.security.PrivilegedAction;
  * firewall.
  *
  * @author  unascribed
- * @version 1.100, 08/15/06
+ * @version 1.108, 05/18/04
  * @see     java.net.Socket#setSocketImplFactory(java.net.SocketImplFactory)
  * @see     java.net.SocketImpl
  * @see     java.nio.channels.SocketChannel
@@ -66,6 +65,60 @@ class Socket {
      */
     public Socket() {
 	setImpl();
+    }
+
+    /**
+     * Creates an unconnected socket, specifying the type of proxy, if any,
+     * that should be used regardless of any other settings.
+     * <P>
+     * If there is a security manager, its <code>checkConnect</code> method
+     * is called with the proxy host address and port number
+     * as its arguments. This could result in a SecurityException.
+     * <P>
+     * Examples: 
+     * <UL> <LI><code>Socket s = new Socket(Proxy.NO_PROXY);</code> will create
+     * a plain socket ignoring any other proxy configuration.</LI>
+     * <LI><code>Socket s = new Socket(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("socks.mydom.com", 1080)));</code>
+     * will create a socket connecting through the specified SOCKS proxy
+     * server.</LI>
+     * </UL>
+     *
+     * @param proxy a {@link java.net.Proxy Proxy} object specifying what kind
+     *		    of proxying should be used.
+     * @throws IllegalArgumentException if the proxy is of an invalid type 
+     *		or <code>null</code>.
+     * @throws SecurityException if a security manager is present and
+     *				 permission to connect to the proxy is
+     *				 denied.
+     * @see java.net.ProxySelector
+     * @see java.net.Proxy
+     *
+     * @since   1.5
+     */
+    public Socket(Proxy proxy) {
+	if (proxy != null && proxy.type() == Proxy.Type.SOCKS) {
+	    SecurityManager security = System.getSecurityManager();
+	    InetSocketAddress epoint = (InetSocketAddress) proxy.address();
+	    if (security != null) {
+		if (epoint.isUnresolved())
+		    security.checkConnect(epoint.getHostName(),
+					  epoint.getPort());
+		else
+		    security.checkConnect(epoint.getAddress().getHostAddress(),
+					  epoint.getPort());
+	    }
+	    impl = new SocksSocketImpl(proxy);
+	    impl.setSocket(this);
+	} else {
+	    if (proxy == Proxy.NO_PROXY) {
+		if (factory == null) {
+		    impl = new PlainSocketImpl();
+		    impl.setSocket(this);
+		} else
+		    setImpl();
+	    } else
+		throw new IllegalArgumentException("Invalid Proxy");
+	}
     }
 
     /**
@@ -250,6 +303,7 @@ class Socket {
      * @see        SecurityManager#checkConnect
      * @deprecated Use DatagramSocket instead for UDP transport.
      */
+    @Deprecated
     public Socket(String host, int port, boolean stream) throws IOException {
 	this(host != null ? new InetSocketAddress(host, port) :
 	       new InetSocketAddress(InetAddress.getByName(null), port),
@@ -288,6 +342,7 @@ class Socket {
      * @see        SecurityManager#checkConnect
      * @deprecated Use DatagramSocket instead for UDP transport.
      */
+    @Deprecated
     public Socket(InetAddress host, int port, boolean stream) throws IOException {
 	this(host != null ? new InetSocketAddress(host, port) : null, 
 	     new InetSocketAddress(0), stream);
@@ -308,7 +363,7 @@ class Socket {
 	    bind(localAddr);
 	    if (address != null)
 		connect(address);
-	} catch (SocketException e) {
+	} catch (IOException e) {
 	    close();
 	    throw e;
 	}
@@ -334,34 +389,23 @@ class Socket {
     }
 
     private void checkOldImpl() {
-        if (impl == null)
-            return;
-        // SocketImpl.connect() is a protected method, therefore we need to use
-        // getDeclaredMethod, therefore we need permission to access the member
-
-        Boolean tmpBool = (Boolean) AccessController.doPrivileged (new PrivilegedAction() {
-            public Object run() {
-                Class[] cl = new Class[2];
-                cl[0] = SocketAddress.class;
-                cl[1] = Integer.TYPE;
-                Class clazz = impl.getClass();
-                while (true) {
-                    try {
-                        clazz.getDeclaredMethod("connect", cl);
-                        return Boolean.FALSE;
-                    } catch (NoSuchMethodException e) {
-                        clazz = clazz.getSuperclass();
-                        // java.net.SocketImpl class will always have this abstract method. 
-                        // If we have not found it by now in the hierarchy then it does not 
-                        // exist, we are an old style impl. 
-                        if (clazz.equals(java.net.SocketImpl.class)) {
-                            return Boolean.TRUE;
-                        }
-                    }
-                }
-            }
-        });
-        oldImpl = tmpBool.booleanValue();
+	if (impl == null)
+	    return;
+	// SocketImpl.connect() is a protected method, therefore we need to use
+	// getDeclaredMethod, therefore we need permission to access the member
+	try {
+	    AccessController.doPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws NoSuchMethodException {
+			Class[] cl = new Class[2];
+			cl[0] = SocketAddress.class;
+			cl[1] = Integer.TYPE;
+			impl.getClass().getDeclaredMethod("connect", cl);
+			return null;
+		    }
+		});
+	} catch (java.security.PrivilegedActionException e) {
+	    oldImpl = true;
+	}
     }
 
     /**
@@ -369,14 +413,13 @@ class Socket {
      * @since 1.4
      */
     void setImpl() {
-	checkSocks();
 	if (factory != null) {
 	    impl = factory.createSocketImpl();
 	    checkOldImpl();
 	} else {
 	    // No need to do a checkOldImpl() here, we know it's an up to date
 	    // SocketImpl!
-	    impl = new PlainSocketImpl();
+	    impl = new SocksSocketImpl();
 	}
 	if (impl != null)
 	    impl.setSocket(this);
@@ -780,7 +823,7 @@ class Socket {
     public void setTcpNoDelay(boolean on) throws SocketException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
-	getImpl().setOption(SocketOptions.TCP_NODELAY, new Boolean(on));
+	getImpl().setOption(SocketOptions.TCP_NODELAY, Boolean.valueOf(on));
     }
 
     /**
@@ -893,7 +936,7 @@ class Socket {
     public void setOOBInline(boolean on) throws SocketException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
-	getImpl().setOption(SocketOptions.SO_OOBINLINE, new Boolean(on));
+	getImpl().setOption(SocketOptions.SO_OOBINLINE, Boolean.valueOf(on));
     }
 
     /**
@@ -1096,7 +1139,7 @@ class Socket {
     public void setKeepAlive(boolean on) throws SocketException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
-        getImpl().setOption(SocketOptions.SO_KEEPALIVE, new Boolean(on));
+        getImpl().setOption(SocketOptions.SO_KEEPALIVE, Boolean.valueOf(on));
     }
 
     /**
@@ -1164,15 +1207,15 @@ class Socket {
      * for packets sent from this Socket
      * <p>
      * As the underlying network implementation may ignore the
-     * traffic class or type-of-service set using {@link #setTrafficClass()}
+     * traffic class or type-of-service set using {@link #setTrafficClass(int)}
      * this method may return a different value than was previously
-     * set using the {@link #setTrafficClass()} method on this Socket.
+     * set using the {@link #setTrafficClass(int)} method on this Socket.
      *
      * @return the traffic class or type-of-service already set
      * @throws SocketException if there is an error obtaining the
      * traffic class or type-of-service value.
      * @since 1.4
-     * @see #setTrafficClass
+     * @see #setTrafficClass(int)
      */
     public int getTrafficClass() throws SocketException {
         return ((Integer) (getImpl().getOption(SocketOptions.IP_TOS))).intValue();
@@ -1215,7 +1258,7 @@ class Socket {
     public void setReuseAddress(boolean on) throws SocketException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
-        getImpl().setOption(SocketOptions.SO_REUSEADDR, new Boolean(on));
+        getImpl().setOption(SocketOptions.SO_REUSEADDR, Boolean.valueOf(on));
     }
 
     /**
@@ -1373,7 +1416,7 @@ class Socket {
     }
 
     /**
-     * Returns wether the read-half of the socket connection is closed.
+     * Returns whether the read-half of the socket connection is closed.
      *
      * @return true if the input of the socket has been shutdown
      * @since 1.4
@@ -1384,7 +1427,7 @@ class Socket {
     }
 
     /**
-     * Returns wether the write-half of the socket connection is closed.
+     * Returns whether the write-half of the socket connection is closed.
      *
      * @return true if the output of the socket has been shutdown
      * @since 1.4
@@ -1398,36 +1441,6 @@ class Socket {
      * The factory for all client sockets.
      */
     private static SocketImplFactory factory = null;
-    private static synchronized void checkSocks() {
-	int port = -1;
-	String socksPort = null;
-	String useSocks = null;
-
-	if (factory == null) {
-	    
-	    useSocks = (String) AccessController.doPrivileged(
-		   new sun.security.action.GetPropertyAction("socksProxyHost"));
-	    if (useSocks == null || useSocks.length() <= 0)
-		return;
-
-	    socksPort = (String) AccessController.doPrivileged(
-		       new sun.security.action.GetPropertyAction("socksProxyPort"));
-	    if (socksPort != null && socksPort.length() > 0) {
-		try {
-		    port = Integer.parseInt(socksPort);
-		} catch (Exception e) {
-		    port = -1;
-		}
-	    }
-	    if (useSocks != null)
-		factory = new SocksSocketImplFactory(useSocks, port);
-	} else if (factory instanceof SocksSocketImplFactory) {
-	    useSocks = (String) AccessController.doPrivileged(
-		   new sun.security.action.GetPropertyAction("socksProxyHost"));
-	    if (useSocks == null || useSocks.length() <= 0)
-		factory = null;
-	}
-    }
 
     /**
      * Sets the client socket implementation factory for the
@@ -1436,7 +1449,9 @@ class Socket {
      * When an application creates a new client socket, the socket
      * implementation factory's <code>createSocketImpl</code> method is
      * called to create the actual socket implementation.
-     * 
+     * <p>
+     * Passing <code>null</code> to the method is a no-op unless the factory
+     * was already set.
      * <p>If there is a security manager, this method first calls
      * the security manager's <code>checkSetFactory</code> method 
      * to ensure the operation is allowed. 
@@ -1462,5 +1477,50 @@ class Socket {
 	    security.checkSetFactory();
 	}
 	factory = fac;
+    }
+
+    /**
+     * Sets performance preferences for this socket.
+     *
+     * <p> Sockets use the TCP/IP protocol by default.  Some implementations
+     * may offer alternative protocols which have different performance
+     * characteristics than TCP/IP.  This method allows the application to
+     * express its own preferences as to how these tradeoffs should be made
+     * when the implementation chooses from the available protocols.
+     *
+     * <p> Performance preferences are described by three integers
+     * whose values indicate the relative importance of short connection time,
+     * low latency, and high bandwidth.  The absolute values of the integers
+     * are irrelevant; in order to choose a protocol the values are simply
+     * compared, with larger values indicating stronger preferences. Negative
+     * values represent a lower priority than positive values. If the
+     * application prefers short connection time over both low latency and high
+     * bandwidth, for example, then it could invoke this method with the values
+     * <tt>(1, 0, 0)</tt>.  If the application prefers high bandwidth above low
+     * latency, and low latency above short connection time, then it could
+     * invoke this method with the values <tt>(0, 1, 2)</tt>.
+     *
+     * <p> Invoking this method after this socket has been connected
+     * will have no effect.
+     *
+     * @param  connectionTime
+     *         An <tt>int</tt> expressing the relative importance of a short
+     *         connection time
+     *
+     * @param  latency
+     *         An <tt>int</tt> expressing the relative importance of low
+     *         latency
+     *
+     * @param  bandwidth
+     *         An <tt>int</tt> expressing the relative importance of high
+     *         bandwidth
+     *  
+     * @since 1.5
+     */
+    public void setPerformancePreferences(int connectionTime,
+                                          int latency,
+                                          int bandwidth)
+    {
+	/* Not implemented yet */
     }
 }

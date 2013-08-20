@@ -1,7 +1,7 @@
 /*
- * @(#)RectangularShape.java	1.17 03/01/23
+ * @(#)RectangularShape.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.awt.Rectangle;
  * query and modify the rectangular frame, which provides a reference
  * for the subclasses to define their geometry.
  *
- * @version 	1.17, 01/23/03
+ * @version 	1.18, 12/19/03
  * @author	Jim Graham
  */
 public abstract class RectangularShape implements Shape, Cloneable {

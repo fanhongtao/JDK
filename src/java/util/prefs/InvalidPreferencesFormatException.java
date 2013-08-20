@@ -1,7 +1,7 @@
 /*
- * @(#)InvalidPreferencesFormatException.java	1.5 03/01/23
+ * @(#)InvalidPreferencesFormatException.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,19 +13,13 @@ import java.io.NotSerializableException;
  * Thrown to indicate that an operation could not complete because
  * the input did not conform to the appropriate XML document type
  * for a collection of preferences, as per the {@link Preferences} 
- * specification.<p>
- * 
- * Note, that although InvalidPreferencesFormatException inherits Serializable
- * interface from Exception, it is not intended to be Serializable. Appropriate
- * serialization methods are implemented to throw NotSerializableException.
+ * specification.
  *
  * @author  Josh Bloch
- * @version 1.5, 01/23/03
+ * @version 1.7, 12/19/03
  * @see     Preferences
  * @since   1.4
- * @serial exclude
  */
-
 public class InvalidPreferencesFormatException extends Exception {
     /**
      * Constructs an InvalidPreferencesFormatException with the specified
@@ -62,22 +56,5 @@ public class InvalidPreferencesFormatException extends Exception {
         super(message, cause);
     }
 
-    /**
-     * Throws NotSerializableException, since InvalidPreferencesFormatException
-     * objects are not intended to be serializable.
-     */
-     private void writeObject(java.io.ObjectOutputStream out)
-                                               throws NotSerializableException {
-         throw new NotSerializableException("Not serializable.");
-     }
-
-    /**
-     * Throws NotSerializableException, since InvalidPreferencesFormatException
-     * objects are not intended to be serializable.
-     */
-     private void readObject(java.io.ObjectInputStream in)
-                                               throws NotSerializableException {
-         throw new NotSerializableException("Not serializable.");
-     }
-
+    private static final long serialVersionUID = -791715184232119669L;
 }

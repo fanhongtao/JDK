@@ -1,7 +1,7 @@
 /*
- * @(#)JarInputStream.java	1.31 05/08/30
+ * @(#)JarInputStream.java	1.33 04/04/21
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import sun.security.util.ManifestEntryVerifier;
  * can be used to store meta-information about the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.31, 08/30/05
+ * @version 1.33, 04/21/04
  * @see	    Manifest
  * @see	    java.util.zip.ZipInputStream
  * @since   1.2
@@ -67,7 +67,7 @@ class JarInputStream extends ZipInputStream {
             //man.read(new BufferedInputStream(this));
             closeEntry();
             if (verify) {
-                jv = new JarVerifier(bytes);
+                jv = new JarVerifier(man, bytes);
                 mev = new ManifestEntryVerifier(man);
             }
             first = getNextJarEntry();
@@ -103,10 +103,14 @@ class JarInputStream extends ZipInputStream {
     }
 
     /**
-     * Reads the next ZIP file entry and positions stream at the beginning
-     * of the entry data.
+     * Reads the next ZIP file entry and positions the stream at the
+     * beginning of the entry data. If verification has been enabled,
+     * any invalid signature detected while positioning the stream for
+     * the next entry will result in an exception.
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if any of the jar file entries
+     *         are incorrectly signed.
      */
     public ZipEntry getNextEntry() throws IOException {
 	JarEntry e;
@@ -132,11 +136,14 @@ class JarInputStream extends ZipInputStream {
 
     /**
      * Reads the next JAR file entry and positions the stream at the
-     * beginning of the entry data.
-     *
-     * @return the next JAR file entry
+     * beginning of the entry data. If verification has been enabled,
+     * any invalid signature detected while positioning the stream for
+     * the next entry will result in an exception.
+     * @return the next JAR file entry, or null if there are no more entries
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if any of the jar file entries
+     *         are incorrectly signed.
      */
     public JarEntry getNextJarEntry() throws IOException {
 	return (JarEntry)getNextEntry();
@@ -145,6 +152,9 @@ class JarInputStream extends ZipInputStream {
     /**
      * Reads from the current JAR file entry into an array of bytes.
      * Blocks until some input is available.
+     * If verification has been enabled, any invalid signature
+     * on the current entry will be reported at some point before the
+     * end of the entry is reached.
      * @param b the buffer into which the data is read
      * @param off the start offset of the data
      * @param len the maximum number of bytes to read
@@ -152,6 +162,8 @@ class JarInputStream extends ZipInputStream {
      *         entry is reached
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
+     * @exception SecurityException if any of the jar file entries
+     *         are incorrectly signed.
      */
     public int read(byte[] b, int off, int len) throws IOException {
 	int n;
@@ -168,7 +180,9 @@ class JarInputStream extends ZipInputStream {
 
     /**
      * Creates a new <code>JarEntry</code> (<code>ZipEntry</code>) for the
-     * specified JAR file entry name.
+     * specified JAR file entry name. The manifest attributes of
+     * the specified JAR file entry name will be copied to the new 
+     * <CODE>JarEntry</CODE>.
      *
      * @param name the name of the JAR/ZIP file entry
      * @return the <code>JarEntry</code> object just created

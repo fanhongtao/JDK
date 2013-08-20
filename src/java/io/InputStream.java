@@ -1,7 +1,7 @@
 /*
- * @(#)InputStream.java	1.40 03/01/23
+ * @(#)InputStream.java	1.45 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ package java.io;
  * must always provide a method that returns the next byte of input.
  *
  * @author  Arthur van Hoff
- * @version 1.40, 01/23/03
+ * @version 1.45, 02/19/04
  * @see     java.io.BufferedInputStream
  * @see     java.io.ByteArrayInputStream
  * @see     java.io.DataInputStream
@@ -25,7 +25,7 @@ package java.io;
  * @see     java.io.PushbackInputStream
  * @since   JDK1.0
  */
-public abstract class InputStream {
+public abstract class InputStream implements Closeable {
 
     // SKIP_BUFFER_SIZE is used to determine the size of skipBuffer
     private static final int SKIP_BUFFER_SIZE = 2048;
@@ -92,8 +92,8 @@ public abstract class InputStream {
     /**
      * Reads up to <code>len</code> bytes of data from the input stream into
      * an array of bytes.  An attempt is made to read as many as
-     * <code>len</code> bytes, but a smaller number may be read, possibly
-     * zero. The number of bytes actually read is returned as an integer.
+     * <code>len</code> bytes, but a smaller number may be read.
+     * The number of bytes actually read is returned as an integer.
      *
      * <p> This method blocks until input data is available, end of file is
      * detected, or an exception is thrown.
@@ -229,7 +229,7 @@ public abstract class InputStream {
     /**
      * Returns the number of bytes that can be read (or skipped over) from
      * this input stream without blocking by the next caller of a method for
-     * this input stream.  The next caller might be the same thread or or
+     * this input stream.  The next caller might be the same thread or
      * another thread.
      *
      * <p> The <code>available</code> method for class <code>InputStream</code>
@@ -319,8 +319,8 @@ public abstract class InputStream {
      *     to subsequent callers of the <code>read</code> method depend on the
      *     particular type of the input stream. </ul></ul>
      *
-     * <p> The method <code>reset</code> for class <code>InputStream</code>
-     * does nothing and always throws an <code>IOException</code>.
+     * <p>The method <code>reset</code> for class <code>InputStream</code>
+     * does nothing except throw an <code>IOException</code>.
      *
      * @exception  IOException  if this stream has not been marked or if the
      *               mark has been invalidated.

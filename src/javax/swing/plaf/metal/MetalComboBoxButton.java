@@ -1,7 +1,7 @@
 /*
- * @(#)MetalComboBoxButton.java	1.35 03/01/23
+ * @(#)MetalComboBoxButton.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see MetalComboBoxButton
- * @version 1.35 01/23/03
+ * @version 1.38 12/19/03
  * @author Tom Santos
  */
 public class MetalComboBoxButton extends JButton {
@@ -136,10 +136,16 @@ public class MetalComboBoxButton extends JButton {
             comboIcon.paintIcon( this, g, iconLeft, iconTop );
 
             // Paint the focus
-            if ( comboBox.hasFocus() ) {
+            if ( comboBox.hasFocus() && (!MetalLookAndFeel.usingOcean() ||
+                                         comboBox.isEditable())) {
                 g.setColor( MetalLookAndFeel.getFocusColor() );
                 g.drawRect( left - 1, top - 1, width + 3, height + 1 );
             }
+        }
+
+        if (MetalLookAndFeel.usingOcean()) {
+            // With Ocean the button only paints the arrow, bail.
+            return;
         }
 
         // Let the renderer paint

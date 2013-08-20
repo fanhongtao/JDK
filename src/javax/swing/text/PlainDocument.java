@@ -1,7 +1,7 @@
 /*
- * @(#)PlainDocument.java	1.40 03/01/23
+ * @(#)PlainDocument.java	1.43 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -36,7 +36,7 @@ import javax.swing.event.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.40 01/23/03
+ * @version 1.43 12/19/03
  * @see     Document
  * @see     AbstractDocument
  */
@@ -172,10 +172,13 @@ public class PlainDocument extends AbstractDocument {
 	int rmOffs1 = rmCandidate.getEndOffset();
 	int lastOffset = rmOffs0;
 	try {
-	    String str = getText(offset, length);
+            if (s == null) {
+                s = new Segment();
+            }
+            getContent().getChars(offset, length, s);
 	    boolean hasBreaks = false;
 	    for (int i = 0; i < length; i++) {
-		char c = str.charAt(i);
+                char c = s.array[s.offset + i];
 		if (c == '\n') {
 		    int breakOffset = offset + i + 1;
 		    added.addElement(createLeafElement(lineMap, null, lastOffset, breakOffset));
@@ -213,7 +216,7 @@ public class PlainDocument extends AbstractDocument {
 	}
 	super.insertUpdate(chng, attr);
     }
-    
+
     /**
      * Updates any document structure as a result of text removal.
      * This will happen within a write lock. Since the structure
@@ -300,4 +303,5 @@ public class PlainDocument extends AbstractDocument {
     private AbstractElement defaultRoot;
     private Vector added = new Vector();     // Vector<Element>
     private Vector removed = new Vector();   // Vector<Element>
+    private transient Segment s;
 }

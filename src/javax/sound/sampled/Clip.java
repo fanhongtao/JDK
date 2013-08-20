@@ -1,7 +1,7 @@
 /*
- * @(#)Clip.java	1.36 03/01/23
+ * @(#)Clip.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import java.io.IOException;
  * of the clip.
  *
  * @author Kara Kytle
- * @version 1.36, 03/01/23
+ * @version 1.38, 03/12/19
  * @since 1.3
  */
 public interface Clip extends DataLine {
@@ -70,7 +70,8 @@ public interface Clip extends DataLine {
      * @throws LineUnavailableException if the line cannot be
      * opened due to resource restrictions
      * @throws IllegalArgumentException if the buffer size does not represent
-     * an integral number of sample frames
+     * an integral number of sample frames,
+     * or if <code>format</code> is not fully specified or invalid
      * @throws IllegalStateException if the line is already open
      * @throws SecurityException if the line cannot be
      * opened due to security restrictions
@@ -103,6 +104,8 @@ public interface Clip extends DataLine {
      * opened due to resource restrictions
      * @throws IOException if an I/O exception occurs during reading of
      * the stream
+     * @throws IllegalArgumentException if the stream's audio format
+     * is not fully specified or invalid
      * @throws IllegalStateException if the line is already open
      * @throws SecurityException if the line cannot be
      * opened due to security restrictions

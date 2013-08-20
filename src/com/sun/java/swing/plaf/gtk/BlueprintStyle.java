@@ -1,7 +1,7 @@
 /*
- * @(#)BlueprintStyle.java	1.10 03/07/25
+ * @(#)BlueprintStyle.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -10,11 +10,13 @@ import java.awt.*;
 import java.util.*;
 import javax.swing.*;
 import java.security.*;
+import javax.swing.plaf.synth.*;
+import sun.swing.plaf.synth.DefaultSynthStyle;
 
 /**
  * BlueprintStyle extends GTKStyle adding support for a set of <code>Info</code>s.
  *
- * @version 1.10 07/25/03
+ * @version 1.12 12/19/03
  * @author Scott Violet
  */
 class BlueprintStyle extends GTKStyle implements GTKConstants {
@@ -23,8 +25,8 @@ class BlueprintStyle extends GTKStyle implements GTKConstants {
      */
     private static final GTKEngine BLUEPRINT_ENGINE = new BlueprintEngine();
     
-    private static final BlueprintGraphics BLUEPRINT_GRAPHICS =
-            new BlueprintGraphics();
+    private static final BlueprintGraphicsUtils BLUEPRINT_GRAPHICS =
+            new BlueprintGraphicsUtils();
 
     /**
      * Set of Infos used to determine what to paint.
@@ -81,7 +83,7 @@ class BlueprintStyle extends GTKStyle implements GTKConstants {
         this.colorizeColor = colorizeColor;
     }
 
-    public SynthGraphics getSynthGraphics(SynthContext context) {
+    public SynthGraphicsUtils getGraphicsUtils(SynthContext context) {
         return BLUEPRINT_GRAPHICS;
     }
 

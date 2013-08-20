@@ -1,7 +1,7 @@
 /*
- * @(#)DynamicImplementation.java	1.21 03/01/23
+ * @(#)DynamicImplementation.java	1.23 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,13 +12,13 @@ import org.omg.CORBA.portable.ObjectImpl;
 /**
  * @deprecated org.omg.CORBA.DynamicImplementation
  */
-
+@Deprecated
 public class DynamicImplementation extends org.omg.CORBA.portable.ObjectImpl {
 
     /**
       * @deprecated Deprecated by Portable Object Adapter
       */
-
+    @Deprecated
     public void invoke(ServerRequest request) {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }

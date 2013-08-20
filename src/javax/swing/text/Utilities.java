@@ -1,13 +1,14 @@
 /*
- * @(#)Utilities.java	1.40 03/01/23
+ * @(#)Utilities.java	1.47 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
 
 import java.lang.reflect.Method;
 
+import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.Graphics;
 import java.awt.FontMetrics;
@@ -19,17 +20,32 @@ import java.awt.font.TextLayout;
 import java.awt.font.TextAttribute;
 
 import java.text.*;
+import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 
+import com.sun.java.swing.SwingUtilities2;
 
 /**
  * A collection of methods to deal with various text
  * related activities.
  * 
  * @author  Timothy Prinzing
- * @version 1.40 01/23/03
+ * @version 1.47 04/15/04
  */
 public class Utilities {
+    /**
+     * If <code>view</code>'s container is a <code>JComponent</code> it
+     * is returned, after casting.
+     */
+    static JComponent getJComponent(View view) {
+        if (view != null) {
+            Component component = view.getContainer();
+            if (component instanceof JComponent) {
+                return (JComponent)component;
+            }
+        }
+        return null;
+    }
 
     /**
      * Draws the given text, expanding any tabs that are contained
@@ -48,7 +64,30 @@ public class Utilities {
      */
     public static final int drawTabbedText(Segment s, int x, int y, Graphics g, 
 					   TabExpander e, int startOffset) {
-	FontMetrics metrics = g.getFontMetrics();
+        return drawTabbedText(null, s, x, y, g, e, startOffset);
+    }
+
+    /**
+     * Draws the given text, expanding any tabs that are contained
+     * using the given tab expansion technique.  This particular
+     * implementation renders in a 1.1 style coordinate system
+     * where ints are used and 72dpi is assumed.
+     * 
+     * @param view View requesting rendering, may be null.
+     * @param s  the source of the text
+     * @param x  the X origin >= 0
+     * @param y  the Y origin >= 0
+     * @param g  the graphics context
+     * @param e  how to expand the tabs.  If this value is null, 
+     *   tabs will be expanded as a space character.
+     * @param startOffset starting offset of the text in the document >= 0
+     * @return  the X location at the end of the rendered text
+     */
+    static final int drawTabbedText(View view,
+                                Segment s, int x, int y, Graphics g, 
+				TabExpander e, int startOffset) {
+        JComponent component = getJComponent(view);
+	FontMetrics metrics = SwingUtilities2.getFontMetrics(component, g);
 	int nextX = x;
 	char[] txt = s.array;
 	int txtOffset = s.offset;
@@ -58,7 +97,8 @@ public class Utilities {
 	for (int i = txtOffset; i < n; i++) {
 	    if (txt[i] == '\t') {
 		if (flushLen > 0) {
-		    g.drawChars(txt, flushIndex, flushLen, x, y);
+		    nextX = SwingUtilities2.drawChars(component, g, txt,
+                                                flushIndex, flushLen, x, y);
 		    flushLen = 0;
 		}
 		flushIndex = i + 1;
@@ -70,18 +110,19 @@ public class Utilities {
 		x = nextX;
 	    } else if ((txt[i] == '\n') || (txt[i] == '\r')) {
 		if (flushLen > 0) {
-		    g.drawChars(txt, flushIndex, flushLen, x, y);
+		    nextX = SwingUtilities2.drawChars(component, g, txt,
+                                                flushIndex, flushLen, x, y);
 		    flushLen = 0;
 		}
 		flushIndex = i + 1;
 		x = nextX;
 	    } else {
 		flushLen += 1;
-		nextX += metrics.charWidth(txt[i]);
 	    }
 	} 
 	if (flushLen > 0) {
-	    g.drawChars(txt, flushIndex, flushLen, x, y);
+	    nextX = SwingUtilities2.drawChars(component, g,txt, flushIndex,
+                                              flushLen, x, y);
 	}
 	return nextX;
     }
@@ -105,20 +146,27 @@ public class Utilities {
 	char[] txt = s.array;
 	int txtOffset = s.offset;
 	int n = s.offset + s.count;
+        int charCount = 0;
 	for (int i = txtOffset; i < n; i++) {
 	    if (txt[i] == '\t') {
+                nextX += metrics.charsWidth(txt, i-charCount, charCount);
+                charCount = 0;
 		if (e != null) {
 		    nextX = (int) e.nextTabStop((float) nextX,
 						startOffset + i - txtOffset);
 		} else {
 		    nextX += metrics.charWidth(' ');
 		}
-	    } else if(txt[i] != '\n') {
-		nextX += metrics.charWidth(txt[i]);
-	    }
+	    } else if(txt[i] == '\n') {
 	    // Ignore newlines, they take up space and we shouldn't be
 	    // counting them.
+                nextX += metrics.charsWidth(txt, i - charCount, charCount);
+                charCount = 0;
+	    } else {
+                charCount++;
 	}
+	}
+        nextX += metrics.charsWidth(txt, n - charCount, charCount);
 	return nextX - x;
     }
 
@@ -190,8 +238,7 @@ public class Utilities {
 
     /**
      * Determine where to break the given text to fit
-     * within the the given span.  This tries to find a
-     * whitespace boundary.
+     * within the given span. This tries to find a word boundary.
      * @param s  the source of the text
      * @param metrics the font metrics to use for the calculation
      * @param x0 the starting view location representing the start
@@ -211,15 +258,30 @@ public class Utilities {
 	int txtCount = s.count;
 	int index = Utilities.getTabbedTextOffset(s, metrics, x0, x, 
 						  e, startOffset, false);
-	for (int i = txtOffset + Math.min(index, txtCount - 1); 
-	     i >= txtOffset; i--) {
 	    
+
+        if (index >= txtCount - 1) {
+            return txtCount;
+        }
+
+	for (int i = txtOffset + index; i >= txtOffset; i--) {
 	    char ch = txt[i];
-	    if (Character.isWhitespace(ch)) {
-		// found whitespace, break here
-		index = i - txtOffset + 1;
-		break;
-	    }
+            if (ch < 256) {
+                // break on whitespace
+                if (Character.isWhitespace(ch)) {
+                    index = i - txtOffset + 1;
+                    break;
+                }
+            } else {
+                // a multibyte char found; use BreakIterator to find line break
+                BreakIterator bit = BreakIterator.getLineInstance();
+                bit.setText(s);
+                int breakPos = bit.preceding(i + 1);
+                if (breakPos > txtOffset) {
+                    index = breakPos - txtOffset;
+                }
+                break;
+            }
 	}
 	return index;
     }
@@ -297,7 +359,7 @@ public class Utilities {
 	if (lastOffs < 0) {
 	    return -1;
 	}
-	int bestSpan = Short.MAX_VALUE;
+	int bestSpan = Integer.MAX_VALUE;
 	int y = 0;
 	Rectangle r = null;
 	if (lastOffs >= 0) {
@@ -334,7 +396,7 @@ public class Utilities {
 	if (lastOffs <= 0) {
 	    return -1;
 	}
-	int bestSpan = Short.MAX_VALUE;
+	int bestSpan = Integer.MAX_VALUE;
 	int n = c.getDocument().getLength();
 	int y = 0;
 	Rectangle r = null;
@@ -372,17 +434,19 @@ public class Utilities {
 	int lineStart = line.getStartOffset();
 	int lineEnd = Math.min(line.getEndOffset(), doc.getLength());
 	
-	String s = doc.getText(lineStart, lineEnd - lineStart);
-	if(s != null && s.length() > 0) {
-	    BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
-	    words.setText(s);
-	    int wordPosition = offs - lineStart;
-	    if(wordPosition >= words.last()) {
-		wordPosition = words.last() - 1;
-	    } 
-	    words.following(wordPosition);
-	    offs = lineStart + words.previous();
-	}
+        Segment seg = SegmentCache.getSharedSegment();
+        doc.getText(lineStart, lineEnd - lineStart, seg);
+        if(seg.count > 0) {
+            BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
+            words.setText(seg);
+            int wordPosition = seg.offset + offs - lineStart;
+            if(wordPosition >= words.last()) {
+                wordPosition = words.last() - 1;
+            } 
+            words.following(wordPosition);
+            offs = lineStart + words.previous() - seg.offset;
+        }
+        SegmentCache.releaseSharedSegment(seg);
 	return offs;
     }
 
@@ -404,16 +468,18 @@ public class Utilities {
 	int lineStart = line.getStartOffset();
 	int lineEnd = Math.min(line.getEndOffset(), doc.getLength());
 	
-	String s = doc.getText(lineStart, lineEnd - lineStart);
-	if(s != null && s.length() > 0) {
+        Segment seg = SegmentCache.getSharedSegment();
+        doc.getText(lineStart, lineEnd - lineStart, seg);
+        if(seg.count > 0) {
             BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
-	    words.setText(s);
-	    int wordPosition = offs - lineStart;
+	    words.setText(seg);
+	    int wordPosition = offs - lineStart + seg.offset;
 	    if(wordPosition >= words.last()) {
 		wordPosition = words.last() - 1;
 	    } 
-	    offs = lineStart + words.following(wordPosition);
+	    offs = lineStart + words.following(wordPosition) - seg.offset;
 	}
+        SegmentCache.releaseSharedSegment(seg);
 	return offs;
     }
 
@@ -457,26 +523,27 @@ public class Utilities {
 	if ((offs >= lineEnd) || (offs < lineStart)) {
 	    throw new BadLocationException("No more words", offs);
 	}
-	String s = doc.getText(lineStart, lineEnd - lineStart);
+        Segment seg = SegmentCache.getSharedSegment();
+        doc.getText(lineStart, lineEnd - lineStart, seg);
         BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
-	words.setText(s);
-	if ((first && (words.first() == (offs - lineStart))) &&	
-	    (! Character.isWhitespace(s.charAt(words.first())))) {
+	words.setText(seg);
+	if ((first && (words.first() == (seg.offset + offs - lineStart))) &&	
+	    (! Character.isWhitespace(seg.array[words.first()]))) {
 
 	    return offs;
 	}
-	int wordPosition = words.following(offs - lineStart);
+	int wordPosition = words.following(seg.offset + offs - lineStart);
 	if ((wordPosition == BreakIterator.DONE) || 
-	    (wordPosition >= s.length())) {
+	    (wordPosition >= seg.offset + seg.count)) {
 		// there are no more words on this line.
 		return BreakIterator.DONE;
 	}
 	// if we haven't shot past the end... check to 
 	// see if the current boundary represents whitespace.
 	// if so, we need to try again
-	char ch = s.charAt(wordPosition);
+	char ch = seg.array[wordPosition];
 	if (! Character.isWhitespace(ch)) {
-	    return lineStart + wordPosition;
+	    return lineStart + wordPosition - seg.offset;
 	}
 
 	// it was whitespace, try again.  The assumption
@@ -484,11 +551,12 @@ public class Utilities {
 	// one had whitespace following it.
 	wordPosition = words.next();
 	if (wordPosition != BreakIterator.DONE) {
-	    offs = lineStart + wordPosition;
+	    offs = lineStart + wordPosition - seg.offset;
 	    if (offs != lineEnd) {
 		return offs;
 	    }
 	}
+        SegmentCache.releaseSharedSegment(seg);
 	return BreakIterator.DONE;
     }
 
@@ -533,14 +601,15 @@ public class Utilities {
 	if ((offs > lineEnd) || (offs < lineStart)) {
 	    throw new BadLocationException("No more words", offs);
 	}
-	String s = doc.getText(lineStart, lineEnd - lineStart);
+        Segment seg = SegmentCache.getSharedSegment();
+	doc.getText(lineStart, lineEnd - lineStart, seg);
         BreakIterator words = BreakIterator.getWordInstance(c.getLocale());
-	words.setText(s);
-	if (words.following(offs - lineStart) == BreakIterator.DONE) {
+	words.setText(seg);
+	if (words.following(seg.offset + offs - lineStart) == BreakIterator.DONE) {
 	    words.last();
 	}
 	int wordPosition = words.previous();
-	if (wordPosition == (offs - lineStart)) {
+	if (wordPosition == (seg.offset + offs - lineStart)) {
 	    wordPosition = words.previous();
 	}
 
@@ -551,9 +620,9 @@ public class Utilities {
 	// if we haven't shot past the end... check to 
 	// see if the current boundary represents whitespace.
 	// if so, we need to try again
-	char ch = s.charAt(wordPosition);
+	char ch = seg.array[wordPosition];
 	if (! Character.isWhitespace(ch)) {
-	    return lineStart + wordPosition;
+	    return lineStart + wordPosition - seg.offset;
 	}
 
 	// it was whitespace, try again.  The assumption
@@ -561,8 +630,9 @@ public class Utilities {
 	// one had whitespace following it.
 	wordPosition = words.previous();
 	if (wordPosition != BreakIterator.DONE) {
-	    return lineStart + wordPosition;
+	    return lineStart + wordPosition - seg.offset;
 	}
+        SegmentCache.releaseSharedSegment(seg);
 	return BreakIterator.DONE;
     }
 
@@ -608,6 +678,7 @@ public class Utilities {
     /**
      * Draws the given composed text passed from an input method.
      *
+     * @param view View hosting text
      * @param attr the attributes containing the composed text
      * @param g  the graphics context
      * @param x  the X origin
@@ -616,8 +687,9 @@ public class Utilities {
      * @param p1 ending offset in the composed text to be rendered
      * @return  the new insertion position
      */
-    static int drawComposedText(AttributeSet attr, Graphics g, int x, int y,
-    				int p0, int p1) throws BadLocationException {
+    static int drawComposedText(View view, AttributeSet attr, Graphics g,
+                                int x, int y, int p0, int p1)
+                                     throws BadLocationException {
         Graphics2D g2d = (Graphics2D)g;
         AttributedString as = (AttributedString)attr.getAttribute(
 	    StyleConstants.ComposedTextAttribute);
@@ -627,14 +699,8 @@ public class Utilities {
 	    return x;
 
 	AttributedCharacterIterator aci = as.getIterator(null, p0, p1);
-    
-	// Create text layout
-	TextLayout layout = new TextLayout(aci, g2d.getFontRenderContext());
-
-	// draw
-	layout.draw(g2d, x, y);
-
-	return x + (int)layout.getAdvance();
+        return x + (int)SwingUtilities2.drawString(
+                             getJComponent(view), g2d,aci,x,y);
     }
 
     /**
@@ -649,7 +715,7 @@ public class Utilities {
 	    AttributedString as = 
 		(AttributedString)attrSet.getAttribute(StyleConstants.ComposedTextAttribute);
 	    int start = v.getElement().getStartOffset();
-	    int y = alloc.y + (int) v.getGlyphPainter().getAscent(v);
+	    int y = alloc.y + alloc.height - (int)v.getGlyphPainter().getDescent(v);
 	    int x = alloc.x;
 	    
 	    //Add text attributes
@@ -676,8 +742,8 @@ public class Utilities {
 	
 	    // draw
 	    AttributedCharacterIterator aci = as.getIterator(null, p0 - start, p1 - start);
-	    TextLayout layout = new TextLayout(aci, g2d.getFontRenderContext());
-	    layout.draw(g2d, x, y);
+            SwingUtilities2.drawString(getJComponent(v),
+                                       g2d,aci,x,y);
 	}
     }
 
@@ -808,5 +874,4 @@ public class Utilities {
         }
         return retValue;
     }
-    
 }

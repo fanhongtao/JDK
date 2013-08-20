@@ -1,7 +1,7 @@
 /*
- * @(#)PNGImageWriter.java	1.32 03/01/23
+ * @(#)PNGImageWriter.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package com.sun.imageio.plugins.png;
 import java.awt.Rectangle;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.io.ByteArrayOutputStream;
@@ -773,8 +774,19 @@ public class PNGImageWriter extends ImageWriter {
                                       sourceBands);
             }
 
-            // TODO - need to divide out premultiplied alpha?
             ras.getPixels(minX, row, width, 1, samples);
+
+            if (image.getColorModel().isAlphaPremultiplied()) {
+                WritableRaster wr = ras.createCompatibleWritableRaster();
+                wr.setPixels(wr.getMinX(), wr.getMinY(),
+                             wr.getWidth(), wr.getHeight(),
+                             samples);
+
+                image.getColorModel().coerceData(wr, false);
+                wr.getPixels(wr.getMinX(), wr.getMinY(),
+                             wr.getWidth(), wr.getHeight(),
+                             samples);
+            }
 
             // Reorder palette data if necessary
             int[] paletteOrder = metadata.PLTE_order;

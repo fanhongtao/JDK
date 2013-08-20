@@ -1,7 +1,7 @@
 /*
- * @(#)ServerException.java	1.13 03/01/23
+ * @(#)ServerException.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,13 +10,13 @@ package java.rmi;
 /**
  * A <code>ServerException</code> is thrown as a result of a remote method
  * invocation when a <code>RemoteException</code> is thrown while processing
- * the invocation on the server, either while unmarshalling the arguments,
- * executing the remote method itself, or marshalling the return value.
+ * the invocation on the server, either while unmarshalling the arguments or
+ * executing the remote method itself.
  * 
  * A <code>ServerException</code> instance contains the original
  * <code>RemoteException</code> that occurred as its cause.
  *
- * @version 1.13, 01/23/03
+ * @version 1.15, 12/19/03
  * @author  Ann Wollrath
  * @since   JDK1.1
  */

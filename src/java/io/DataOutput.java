@@ -1,7 +1,7 @@
 /*
- * @(#)DataOutput.java	1.18 03/01/23
+ * @(#)DataOutput.java	1.21 04/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,8 +13,9 @@ package java.io;
  * primitive types to a series of bytes and
  * writing these bytes to a binary stream.
  * There is  also a facility for converting
- * a <code>String</code> into Java modified
- * UTF-8 format and writing the resulting series
+ * a <code>String</code> into
+ * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
+ * format and writing the resulting series
  * of bytes.
  * <p>
  * For all the methods in this interface that
@@ -23,7 +24,7 @@ package java.io;
  * an <code>IOException</code> is thrown.
  *
  * @author  Frank Yellin
- * @version 1.18, 01/23/03
+ * @version 1.21, 05/13/04
  * @see     java.io.DataInput
  * @see     java.io.DataOutputStream
  * @since   JDK1.0
@@ -133,7 +134,7 @@ interface DataOutput {
     void writeShort(int v) throws IOException;
 
     /**
-     * Writes a <code>char</code> value, wich
+     * Writes a <code>char</code> value, which
      * is comprised of two bytes, to the
      * output stream.
      * The byte values to be written, in the  order
@@ -283,7 +284,9 @@ interface DataOutput {
     /**
      * Writes two bytes of length information
      * to the output stream, followed
-     * by the Java modified UTF representation
+     * by the
+     * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
+     * representation
      * of  every character in the string <code>s</code>.
      * If <code>s</code> is <code>null</code>,
      * a <code>NullPointerException</code> is thrown.

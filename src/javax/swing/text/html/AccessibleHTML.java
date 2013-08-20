@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleHTML.java	1.11 03/01/23
+ * @(#)AccessibleHTML.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.text.BreakIterator;
  * The AccessibleHTML class provide information about the contents 
  * of a HTML document to assistive technologies.
  * 
- * @version 1.11 01/23/03
+ * @version 1.13 12/19/03
  * @author  Lynn Monsanto
  */
 class AccessibleHTML implements Accessible {
@@ -301,16 +301,20 @@ class AccessibleHTML implements Accessible {
 	public AccessibleStateSet getAccessibleStateSet() {
 	    AccessibleStateSet states = new AccessibleStateSet();
 	    Component comp = getTextComponent();
-	    if (comp != null && comp.isEnabled()) {
+
+	    if (comp.isEnabled()) {
 		states.add(AccessibleState.ENABLED);
 	    }
-	    if (comp != null && comp.isFocusTraversable()) {
+	    if (comp instanceof JTextComponent &&
+		((JTextComponent)comp).isEditable()) {
+		
+		states.add(AccessibleState.EDITABLE);
 		states.add(AccessibleState.FOCUSABLE);
 	    }
-	    if (comp != null && comp.isVisible()) {
+	    if (comp.isVisible()) {
 		states.add(AccessibleState.VISIBLE);
 	    }
-	    if (comp != null && comp.isShowing()) {
+	    if (comp.isShowing()) {
 		states.add(AccessibleState.SHOWING);
 	    }
 	    return states;
@@ -627,7 +631,6 @@ class AccessibleHTML implements Accessible {
 	 * @see #getBounds
 	 */
 	public void setBounds(Rectangle r) {
-	    getTextComponent().setBounds(r);
 	}
 	
 	/** 
@@ -656,7 +659,8 @@ class AccessibleHTML implements Accessible {
 	 * @see #getSize
 	 */
 	public void setSize(Dimension d) {
-	    getTextComponent().setSize(d);
+	    Component comp = getTextComponent();
+	    comp.setSize(d);
 	}
 	
 	/**
@@ -721,7 +725,13 @@ class AccessibleHTML implements Accessible {
 	 * @see AccessibleStateSet
 	 */
 	public boolean isFocusTraversable() {
-	    return getTextComponent().isFocusTraversable();
+	    Component comp = getTextComponent();
+	    if (comp instanceof JTextComponent) {
+		if (((JTextComponent)comp).isEditable()) {
+		    return true;
+		}
+	    }
+	    return false;
 	}
 	
 	/**
@@ -731,7 +741,35 @@ class AccessibleHTML implements Accessible {
 	 * @see #isFocusTraversable
 	 */
 	public void requestFocus() {
-	    getTextComponent().requestFocus();
+            // TIGER - 4856191
+            if (! isFocusTraversable()) {
+                return;
+            }
+
+	    Component comp = getTextComponent();
+	    if (comp instanceof JTextComponent) {
+
+		comp.requestFocusInWindow();
+
+		try {
+		    if (elementInfo.validateIfNecessary()) {
+			// set the caret position to the start of this component
+			Element elem = elementInfo.getElement();
+			((JTextComponent)comp).setCaretPosition(elem.getStartOffset());
+			
+			// fire a AccessibleState.FOCUSED property change event
+			AccessibleContext ac = editor.getAccessibleContext();
+			PropertyChangeEvent pce = new PropertyChangeEvent(this,
+			    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+			    null, AccessibleState.FOCUSED);
+			ac.firePropertyChange(
+			    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+			    null, pce);
+		    }
+		} catch (IllegalArgumentException e) {
+		    // don't fire property change event
+		}
+	    }
 	}
 	
 	/**
@@ -1247,11 +1285,7 @@ class AccessibleHTML implements Accessible {
 	     * @see #setAccessibleName
 	     */
 	    public String getAccessibleName() {
-		if (model != null) {
-		    return (String)model.getProperty(Document.TitleProperty);
-		} else {
-		    return null;
-		}
+		return getAccessibleIconDescription();
 	    }
 	    
 	    /**

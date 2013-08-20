@@ -1,7 +1,7 @@
 /*
- * @(#)RegistryHandler.java	1.12 03/01/23
+ * @(#)RegistryHandler.java	1.14 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,11 +15,12 @@ import java.rmi.UnknownHostException;
  * runtime in previous implementation versions.  It should never be accessed
  * by application code.
  *
- * @version 1.12, 01/23/03
+ * @version 1.14, 05/18/04
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement
  */
+@Deprecated
 public interface RegistryHandler {
 
     /**
@@ -35,6 +36,7 @@ public interface RegistryHandler {
      * @throws RemoteException if a remote error occurs
      * @throws UnknownHostException if unable to resolve given hostname
      */
+    @Deprecated
     Registry registryStub(String host, int port)
 	throws RemoteException, UnknownHostException;
 
@@ -49,5 +51,6 @@ public interface RegistryHandler {
      * @return registry stub
      * @throws RemoteException if a remote error occurs
      */
+    @Deprecated
     Registry registryImpl(int port) throws RemoteException;
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)InitialContext.java	1.10 03/01/23
+ * @(#)InitialContext.java	1.13 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -103,7 +103,7 @@ import com.sun.naming.internal.ResourceManager;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.10 03/01/23
+ * @version 1.13 04/07/16
  *
  * @see Context
  * @see NamingManager#setInitialContextFactoryBuilder
@@ -121,7 +121,7 @@ public class InitialContext implements Context {
      * @see #removeFromEnvironment
      * @see #getEnvironment
      */
-    protected Hashtable myProps = null;
+    protected Hashtable<Object,Object> myProps = null;
 
     /**
      * Field holding the result of calling NamingManager.getInitialContext().
@@ -188,7 +188,9 @@ public class InitialContext implements Context {
      *
      * @throws	NamingException if a naming exception is encountered
      */
-    public InitialContext(Hashtable environment) throws NamingException {
+    public InitialContext(Hashtable<?,?> environment)
+	throws NamingException
+    {
 	if (environment != null) {
 	    environment = (Hashtable)environment.clone();
 	}
@@ -211,7 +213,9 @@ public class InitialContext implements Context {
      * @see #InitialContext(boolean)
      * @since 1.3
      */
-    protected void init(Hashtable environment) throws NamingException {
+    protected void init(Hashtable<?,?> environment)
+	throws NamingException
+    {
 	myProps = ResourceManager.getInitialEnvironment(environment);
 
 	if (myProps.get(Context.INITIAL_CONTEXT_FACTORY) != null) {
@@ -379,24 +383,30 @@ public class InitialContext implements Context {
 	getURLOrDefaultInitCtx(oldName).rename(oldName, newName);
     }
 
-    public void rename(Name oldName, Name newName) throws NamingException  {
+    public void rename(Name oldName, Name newName)
+	throws NamingException
+    {
 	getURLOrDefaultInitCtx(oldName).rename(oldName, newName);
     }
 
-    public NamingEnumeration list(String name) throws NamingException {
+    public NamingEnumeration<NameClassPair> list(String name)
+	throws NamingException
+    {
 	return (getURLOrDefaultInitCtx(name).list(name));
     }
 
-    public NamingEnumeration list(Name name) throws NamingException  {
+    public NamingEnumeration<NameClassPair> list(Name name)
+	throws NamingException
+    {
 	return (getURLOrDefaultInitCtx(name).list(name));
     }
 
-    public NamingEnumeration listBindings(String name)
+    public NamingEnumeration<Binding> listBindings(String name)
 	    throws NamingException  {
 	return getURLOrDefaultInitCtx(name).listBindings(name);
     }
 
-    public NamingEnumeration listBindings(Name name)
+    public NamingEnumeration<Binding> listBindings(Name name)
 	    throws NamingException  {
 	return getURLOrDefaultInitCtx(name).listBindings(name);
     }
@@ -452,7 +462,9 @@ public class InitialContext implements Context {
      * to any context other than itself, the value of the
      * <tt>prefix</tt> parameter must be an empty name.
      */
-    public Name composeName(Name name, Name prefix) throws NamingException {
+    public Name composeName(Name name, Name prefix)
+	throws NamingException
+    {
 	return (Name)name.clone();
     }
 
@@ -468,7 +480,7 @@ public class InitialContext implements Context {
 	return getDefaultInitCtx().removeFromEnvironment(propName);
     }
 
-    public Hashtable getEnvironment() throws NamingException {
+    public Hashtable<?,?> getEnvironment() throws NamingException {
 	return getDefaultInitCtx().getEnvironment();
     }
 

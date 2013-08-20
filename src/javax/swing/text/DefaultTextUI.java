@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTextUI.java	1.86 03/01/23
+ * @(#)DefaultTextUI.java	1.88 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -17,6 +17,7 @@ import javax.swing.plaf.basic.BasicTextUI;
  *
  * @deprecated
  */
+@Deprecated
 public abstract class DefaultTextUI extends BasicTextUI {
 
 

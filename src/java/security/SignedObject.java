@@ -1,7 +1,7 @@
 /*
- * @(#)SignedObject.java	1.41 05/05/26
+ * @(#)SignedObject.java	1.43 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -95,11 +95,13 @@ import java.io.*;
  *
  * @see Signature
  *
- * @version 	1.41, 05/26/05
+ * @version 	1.43, 12/19/03
  * @author Li Gong
  */
 
 public final class SignedObject implements Serializable {
+
+    private static final long serialVersionUID = 720502720485447167L;
 
     /*
      * The original content is "deep copied" in its serialized format
@@ -168,10 +170,10 @@ public final class SignedObject implements Serializable {
      * Retrieves the signature on the signed object, in the form of a
      * byte array.
      * 
-     * @return the signature.
+     * @return the signature. Returns a new array each time this 
+     * method is called.
      */
     public byte[] getSignature() {
-	// return only a clone, for integrity reasons
 	byte[] sig = (byte[])this.signature.clone();
 	return sig;
     }

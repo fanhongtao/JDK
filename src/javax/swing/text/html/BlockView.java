@@ -1,7 +1,7 @@
 /*
- * @(#)BlockView.java	1.34 03/01/23
+ * @(#)BlockView.java	1.36 04/03/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -18,7 +18,7 @@ import javax.swing.text.*;
  * with CSS specifications.
  *
  * @author  Timothy Prinzing
- * @version 1.34 01/23/03
+ * @version 1.36 03/05/04
  */
 public class BlockView extends BoxView  {
 
@@ -222,7 +222,7 @@ public class BlockView extends BoxView  {
 	for (int i = 0; i < n; i++) {
 	    View v = getView(i);
 	    int min = (int) v.getMinimumSpan(axis);
-	    int max = (int) v.getMaximumSpan(axis);
+	    int max;
 
 	    // check for percentage span
 	    AttributeSet a = v.getAttributes();
@@ -231,6 +231,8 @@ public class BlockView extends BoxView  {
 		// bound the span to the percentage specified
 		min = Math.max((int) lv.getValue(targetSpan), min);
 		max = min;
+	    } else {
+                max = (int)v.getMaximumSpan(axis);
 	    }
 
 	    // assign the offset and span for the child

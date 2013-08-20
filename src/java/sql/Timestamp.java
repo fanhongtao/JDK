@@ -1,7 +1,7 @@
 /*
- * @(#)Timestamp.java	1.53 03/01/27
+ * @(#)Timestamp.java	1.58 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ package java.sql;
  * method is not symmetric with respect to the
  * <code>java.util.Date.equals(Object)</code>
  * method.  Also, the <code>hashcode</code> method uses the underlying 
- * <code>java.util.Data</code> 
+ * <code>java.util.Date</code> 
  * implementation and therefore does not include nanos in its computation.  
  * <P>
  * Due to the differences between the <code>Timestamp</code> class
@@ -52,6 +52,7 @@ public class Timestamp extends java.util.Date {
      * @deprecated instead use the constructor <code>Timestamp(long millis)</code>
      * @exception IllegalArgumentException if the nano argument is out of bounds
      */
+    @Deprecated
     public Timestamp(int year, int month, int date, 
 		     int hour, int minute, int second, int nano) {
 	super(year, month, date, hour, minute, second);
@@ -406,19 +407,7 @@ public class Timestamp extends java.util.Date {
      *        <code>false</code> otherwise
      */
     public boolean before(Timestamp ts) {
-	if (super.before(ts)) {
-	    return true;
-	} else {
-	    if (super.equals(ts)) {
-		if (nanos < ts.nanos) {
-		    return true;
-		} else {
-		    return false;
-		}
-	    } else {
-		return false;
-	    }
-	}
+	return compareTo(ts) < 0;
     }
 
     /**
@@ -430,32 +419,20 @@ public class Timestamp extends java.util.Date {
      *        <code>false</code> otherwise
      */
     public boolean after(Timestamp ts) {
-	if (super.after(ts)) {
-	    return true;
-	} else {
-	    if (super.equals(ts)) {
-		if (nanos > ts.nanos) {
-		    return true;
-		} else {
-		    return false;
-		}
-	    } else {
-		return false;
-	    }
-	}
+	return compareTo(ts) > 0;
     }
 
     /**
      * Compares this <code>Timestamp</code> object to the given 
-	 * <code>Timestamp</code> object.
+     * <code>Timestamp</code> object.
      *
      * @param   ts   the <code>Timestamp</code> object to be compared to
-	 *                this <code>Timestamp</code> object
+     *                this <code>Timestamp</code> object
      * @return  the value <code>0</code> if the two <code>Timestamp</code>
-	 *          objects are equal; a value less than <code>0</code> if this 
+     *          objects are equal; a value less than <code>0</code> if this 
      *          <code>Timestamp</code> object is before the given argument;
-	 *          and a value greater than <code>0</code> if this 
-	 *          <code>Timestamp</code> object is after the given argument.
+     *          and a value greater than <code>0</code> if this 
+     *          <code>Timestamp</code> object is after the given argument.
      * @since   1.2
      */
     public int compareTo(Timestamp ts) {
@@ -473,24 +450,27 @@ public class Timestamp extends java.util.Date {
 
     /**
      * Compares this <code>Timestamp</code> object to the given 
-	 * <code>Object</code>, which must be a <code>Timestamp</code>
-	 * object. If the argument is not a <code>Timestamp</code> object,
+     * <code>Date</code>, which must be a <code>Timestamp</code>
+     * object. If the argument is not a <code>Timestamp</code> object,
      * this method throws a <code>ClassCastException</code> object.
-	 * (<code>Timestamp</code> objects are 
+     * (<code>Timestamp</code> objects are 
      * comparable only to other <code>Timestamp</code> objects.)
      *
-     * @param o the <code>Object</code> to be compared, which must be a
-	 *        <code>Timestamp</code> object
+     * @param o the <code>Date</code> to be compared, which must be a
+     *        <code>Timestamp</code> object
      * @return  the value <code>0</code> if this <code>Timestamp</code> object
-	 *          and the given object are equal; a value less than <code>0</code> 
-	 *          if this  <code>Timestamp</code> object is before the given argument;
-	 *          and a value greater than <code>0</code> if this 
-	 *          <code>Timestamp</code> object is after the given argument.
+     *          and the given object are equal; a value less than <code>0</code> 
+     *          if this  <code>Timestamp</code> object is before the given argument;
+     *          and a value greater than <code>0</code> if this 
+     *          <code>Timestamp</code> object is after the given argument.
      *
      * @exception ClassCastException if the argument is not a
      *        <code>Timestamp</code> object
+     * @since	1.5
      */
-    public int compareTo(Object o) {
+    // This forwarding method ensures that the compareTo(Date) method defined
+    // in java.util.Date is not invoked on a Timestamp
+    public int compareTo(java.util.Date o) {
         return compareTo((Timestamp)o);
     }
             

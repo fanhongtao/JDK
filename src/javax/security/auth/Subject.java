@@ -1,7 +1,7 @@
 /*
- * @(#)Subject.java	1.119 03/01/23
+ * @(#)Subject.java	1.123 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -77,7 +77,7 @@ import sun.security.util.SecurityConstants;
  * <code>Principal</code> implementations associated with Subjects
  * must implement <code>Serializable</code>.
  *
- * @version 1.119, 01/23/03
+ * @version 1.123, 05/05/04
  * @see java.security.Principal
  * @see java.security.DomainCombiner
  */
@@ -109,7 +109,7 @@ public final class Subject implements java.io.Serializable {
      *
      * @serial
      */
-    private boolean readOnly = false;
+    private volatile boolean readOnly = false;
 
     private static final int PRINCIPAL_SET = 1;
     private static final int PUB_CREDENTIAL_SET = 2;
@@ -123,26 +123,42 @@ public final class Subject implements java.io.Serializable {
      * <p> The newly constructed Sets check whether this <code>Subject</code>
      * has been set read-only before permitting subsequent modifications.
      * The newly created Sets also prevent illegal modifications
-     * by ensuring that callers have sufficient permissions
-     * (to modify the Principals Set, the caller must have
-     * <code>AuthPermission("modifyPrincipals")</code>, for example).
+     * by ensuring that callers have sufficient permissions.
+     *
+     * <p> To modify the Principals Set, the caller must have
+     * <code>AuthPermission("modifyPrincipals")</code>.
+     * To modify the public credential Set, the caller must have
+     * <code>AuthPermission("modifyPublicCredentials")</code>.
+     * To modify the private credential Set, the caller must have
+     * <code>AuthPermission("modifyPrivateCredentials")</code>.
      */
     public Subject() {
 
-	this.principals = new SecureSet(this, PRINCIPAL_SET);
-	this.pubCredentials = new SecureSet(this, PUB_CREDENTIAL_SET);
-	this.privCredentials = new SecureSet(this, PRIV_CREDENTIAL_SET);
+	this.principals = Collections.synchronizedSet
+				(new SecureSet(this, PRINCIPAL_SET));
+	this.pubCredentials = Collections.synchronizedSet
+				(new SecureSet(this, PUB_CREDENTIAL_SET));
+	this.privCredentials = Collections.synchronizedSet
+				(new SecureSet(this, PRIV_CREDENTIAL_SET));
     }
 
     /**
      * Create an instance of a <code>Subject</code> with
-     * the specified Sets of Principals and credentials.
+     * Principals and credentials.
      *
-     * <p> The specified Sets must check whether this <code>Subject</code>
+     * <p> The Principals and credentials from the specified Sets
+     * are copied into newly constructed Sets.
+     * These newly created Sets check whether this <code>Subject</code>
      * has been set read-only before permitting subsequent modifications.
-     * The specified Sets must also prevent illegal modifications
+     * The newly created Sets also prevent illegal modifications
      * by ensuring that callers have sufficient permissions.
      *
+     * <p> To modify the Principals Set, the caller must have
+     * <code>AuthPermission("modifyPrincipals")</code>.
+     * To modify the public credential Set, the caller must have
+     * <code>AuthPermission("modifyPublicCredentials")</code>.
+     * To modify the private credential Set, the caller must have
+     * <code>AuthPermission("modifyPrivateCredentials")</code>.
      * <p>
      *
      * @param readOnly true if the <code>Subject</code> is to be read-only,
@@ -161,8 +177,9 @@ public final class Subject implements java.io.Serializable {
      *		<code>principals</code>, <code>pubCredentials</code>,
      *		or <code>privCredentials</code> are <code>null</code>.
      */
-    public Subject(boolean readOnly, Set principals,
-		Set pubCredentials, Set privCredentials) {
+    public Subject(boolean readOnly, Set<? extends Principal> principals,
+		   Set<?> pubCredentials, Set<?> privCredentials)
+    {
 
 	if (principals == null ||
 	    pubCredentials == null ||
@@ -170,12 +187,12 @@ public final class Subject implements java.io.Serializable {
 	    throw new NullPointerException
 		(ResourcesMgr.getString("invalid null input(s)"));
 
-	this.principals = new SecureSet(this, PRINCIPAL_SET,
-					principals);
-	this.pubCredentials = new SecureSet(this, PUB_CREDENTIAL_SET,
-					pubCredentials);
-	this.privCredentials = new SecureSet(this, PRIV_CREDENTIAL_SET,
-					privCredentials);
+	this.principals = Collections.synchronizedSet(new SecureSet
+				(this, PRINCIPAL_SET, principals));
+	this.pubCredentials = Collections.synchronizedSet(new SecureSet
+				(this, PUB_CREDENTIAL_SET, pubCredentials));
+	this.privCredentials = Collections.synchronizedSet(new SecureSet
+				(this, PRIV_CREDENTIAL_SET, privCredentials));
 	this.readOnly = readOnly;
     }
 
@@ -535,7 +552,7 @@ public final class Subject implements java.io.Serializable {
      * @return	The <code>Set</code> of Principals associated with this
      *		<code>Subject</code>.
      */
-    public Set getPrincipals() {
+    public Set<Principal> getPrincipals() {
 
 	// always return an empty Set instead of null
 	// so LoginModules can add to the Set if necessary
@@ -564,7 +581,7 @@ public final class Subject implements java.io.Serializable {
      * @exception NullPointerException if the specified <code>Class</code> 
      *			is <code>null</code>.
      */
-    public Set getPrincipals(Class c) {
+    public <T extends Principal> Set<T> getPrincipals(Class<T> c) {
 
 	if (c == null)
 	    throw new NullPointerException
@@ -589,7 +606,7 @@ public final class Subject implements java.io.Serializable {
      * @return	A <code>Set</code> of public credentials held by this
      *		<code>Subject</code>.
      */
-    public Set getPublicCredentials() {
+    public Set<Object> getPublicCredentials() {
 
 	// always return an empty Set instead of null
 	// so LoginModules can add to the Set if necessary
@@ -621,7 +638,7 @@ public final class Subject implements java.io.Serializable {
      * @return	A <code>Set</code> of private credentials held by this
      *		<code>Subject</code>.
      */
-    public Set getPrivateCredentials() {
+    public Set<Object> getPrivateCredentials() {
 
 	// XXX
 	// we do not need a security check for
@@ -658,7 +675,7 @@ public final class Subject implements java.io.Serializable {
      * @exception NullPointerException if the specified <code>Class</code>
      *		is <code>null</code>.
      */
-    public Set getPublicCredentials(Class c) {
+    public <T> Set<T> getPublicCredentials(Class<T> c) {
 
 	if (c == null)
 	    throw new NullPointerException
@@ -666,7 +683,7 @@ public final class Subject implements java.io.Serializable {
 
 	// always return an empty Set instead of null
 	// so LoginModules can add to the Set if necessary
-	return new ClassSet(PUB_CREDENTIAL_SET, c);
+	return new ClassSet<T>(PUB_CREDENTIAL_SET, c);
     }
 
     /**
@@ -695,7 +712,7 @@ public final class Subject implements java.io.Serializable {
      * @exception NullPointerException if the specified <code>Class</code>
      *		is <code>null</code>.
      */
-    public Set getPrivateCredentials(Class c) {
+    public <T> Set<T> getPrivateCredentials(Class<T> c) {
 
 	// XXX
 	// we do not need a security check for
@@ -711,7 +728,7 @@ public final class Subject implements java.io.Serializable {
 
 	// always return an empty Set instead of null
 	// so LoginModules can add to the Set if necessary
-	return new ClassSet(PRIV_CREDENTIAL_SET, c);
+	return new ClassSet<T>(PRIV_CREDENTIAL_SET, c);
     }
 
     /**
@@ -748,13 +765,33 @@ public final class Subject implements java.io.Serializable {
 	    final Subject that = (Subject)o;
 
 	    // check the principal and credential sets
-	    if (!getPrincipals().equals(that.getPrincipals()) ||
-		!getPublicCredentials().equals(that.getPublicCredentials()) ||
-		!getPrivateCredentials().equals(that.getPrivateCredentials())) {
-		return false;
-	    } else {
-		return true;
+	    Set thatPrincipals;
+	    synchronized(that.principals) {
+		// avoid deadlock from dual locks
+		thatPrincipals = new HashSet(that.principals);
 	    }
+	    if (!principals.equals(thatPrincipals)) {
+		return false;
+	    }
+
+	    Set thatPubCredentials;
+	    synchronized(that.pubCredentials) {
+		// avoid deadlock from dual locks
+		thatPubCredentials = new HashSet(that.pubCredentials);
+	    }
+	    if (!pubCredentials.equals(thatPubCredentials)) {
+		return false;
+	    }
+
+	    Set thatPrivCredentials;
+	    synchronized(that.privCredentials) {
+		// avoid deadlock from dual locks
+		thatPrivCredentials = new HashSet(that.privCredentials);
+	    }
+	    if (!privCredentials.equals(thatPrivCredentials)) {
+		return false;
+	    }
+	    return true;
 	}
 	return false;
     }
@@ -778,45 +815,42 @@ public final class Subject implements java.io.Serializable {
     String toString(boolean includePrivateCredentials) {
 
 	String s = new String(ResourcesMgr.getString("Subject:\n"));
-
 	String suffix = new String();
-	Iterator principals = getPrincipals().iterator();
-	Iterator pubCreds = getPublicCredentials().iterator();
-	Iterator privCreds = null;
-		   
-	if (includePrivateCredentials) {
-	    try {
-		privCreds = getPrivateCredentials().iterator();
-	    } catch (SecurityException se) {
-		// ok
+
+	synchronized(principals) {
+	    Iterator pI = principals.iterator();
+	    while (pI.hasNext()) {
+		Principal p = (Principal)pI.next();
+		suffix = suffix + ResourcesMgr.getString("\tPrincipal: ") +
+			p.toString() + ResourcesMgr.getString("\n");
 	    }
 	}
 
-	while (principals.hasNext()) {
-	    Principal p = (Principal)principals.next();
-	    suffix = suffix + ResourcesMgr.getString("\tPrincipal: ") +
-			p.toString() + ResourcesMgr.getString("\n");
-	}
-
-	while (pubCreds.hasNext()) {
-	    Object o = pubCreds.next();
-	    suffix = suffix + ResourcesMgr.getString("\tPublic Credential: ") +
+	synchronized(pubCredentials) {
+	    Iterator pI = pubCredentials.iterator();
+	    while (pI.hasNext()) {
+		Object o = pI.next();
+		suffix = suffix +
+			ResourcesMgr.getString("\tPublic Credential: ") +
 			o.toString() + ResourcesMgr.getString("\n");
+	    }
 	}
-
-	if (privCreds == null) {
-	    suffix = suffix +
-		ResourcesMgr.getString("\tPrivate Credentials inaccessible\n");
-	} else {
-	    while (privCreds.hasNext()) {
-		try {
-		    Object o = privCreds.next();
-		    suffix += ResourcesMgr.getString("\tPrivate Credential: ") +
-			o.toString() + ResourcesMgr.getString("\n");
-		} catch (SecurityException se) {
-		    suffix += ResourcesMgr.getString
-			("\tPrivate Credential inaccessible\n");
-		    break;
+		   
+	if (includePrivateCredentials) {
+	    synchronized(privCredentials) {
+		Iterator pI = privCredentials.iterator();
+		while (pI.hasNext()) {
+		    try {
+			Object o = pI.next();
+			suffix += ResourcesMgr.getString
+					("\tPrivate Credential: ") +
+					o.toString() +
+					ResourcesMgr.getString("\n");
+		    } catch (SecurityException se) {
+			suffix += ResourcesMgr.getString
+				("\tPrivate Credential inaccessible\n");
+			break;
+		    }
 		}
 	    }
 	}
@@ -848,17 +882,19 @@ public final class Subject implements java.io.Serializable {
 
 	int hashCode = 0;
 
-	Iterator pIterator = getPrincipals().iterator();
-	Iterator pubCIterator = getPublicCredentials().iterator();
-	Iterator privCIterator = getPrivateCredentials().iterator();
-
-	while (pIterator.hasNext()) {
-	    Principal p = (Principal)pIterator.next();
-	    hashCode ^= p.hashCode();
+	synchronized(principals) {
+	    Iterator pIterator = principals.iterator();
+	    while (pIterator.hasNext()) {
+		Principal p = (Principal)pIterator.next();
+		hashCode ^= p.hashCode();
+	    }
 	}
 
-	while (pubCIterator.hasNext()) {
-	    hashCode ^= getCredHashCode(pubCIterator.next());
+	synchronized(pubCredentials) {
+	    Iterator pubCIterator = pubCredentials.iterator();
+	    while (pubCIterator.hasNext()) {
+		hashCode ^= getCredHashCode(pubCIterator.next());
+	    }
 	}
 	return hashCode;
     }
@@ -867,7 +903,6 @@ public final class Subject implements java.io.Serializable {
      * get a credential's hashcode
      */
     private int getCredHashCode(Object o) {
-
 	try {
 	    return o.hashCode();
 	} catch (IllegalStateException ise) {
@@ -875,54 +910,30 @@ public final class Subject implements java.io.Serializable {
 	}
     }
 
-    private void sort(int[] sortMe) {
- 
-	// bubble sort :)
- 
-	int i = 0;
-	boolean flipped = true;
-	int size = sortMe.length - 1;
- 
-	while (flipped) {
-	    i = 0;
-	    flipped = false;
-	    while (i < size) {
-		if (sortMe[i] < sortMe[i + 1]) {
-		    flipped = true;
-		    int tmp = sortMe[i];
-		    sortMe[i] = sortMe[i + 1];
-		    sortMe[i + 1] = tmp;
-		}
-		i++;
-	    }
-	    size--;
-	}
-    }
-
     /**
      * Writes this object out to a stream (i.e., serializes it).
      */
-    private synchronized void writeObject(java.io.ObjectOutputStream oos)
-    throws java.io.IOException {
-	
-	// XXX possibly add security checks in the future
-
-	oos.defaultWriteObject();
+    private void writeObject(java.io.ObjectOutputStream oos)
+		throws java.io.IOException {
+	synchronized(principals) {
+	    oos.defaultWriteObject();
+	}
     }
 
     /**
      * Reads this object from a stream (i.e., deserializes it)
      */
-    private void readObject(java.io.ObjectInputStream s) throws
-					java.io.IOException,
-					ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream s)
+		throws java.io.IOException, ClassNotFoundException {
 
 	s.defaultReadObject();
 
 	// The Credential <code>Set</code> is not serialized, but we do not
 	// want the default deserialization routine to set it to null.
-	this.pubCredentials = new SecureSet(this, PUB_CREDENTIAL_SET);
-	this.privCredentials = new SecureSet(this, PRIV_CREDENTIAL_SET);
+	this.pubCredentials = Collections.synchronizedSet
+				(new SecureSet(this, PUB_CREDENTIAL_SET));
+	this.privCredentials = Collections.synchronizedSet
+				(new SecureSet(this, PRIV_CREDENTIAL_SET));
     }
 
     /**
@@ -973,7 +984,7 @@ public final class Subject implements java.io.Serializable {
 	    this.elements = new LinkedList(set);
 	}
 
-	public synchronized int size() {
+	public int size() {
 	    return elements.size();
 	}
 
@@ -982,28 +993,19 @@ public final class Subject implements java.io.Serializable {
 	    return new Iterator() {
 		ListIterator i = list.listIterator(0);
 
-		public synchronized boolean hasNext() {return i.hasNext();}
+		public boolean hasNext() {return i.hasNext();}
 	    
-		public synchronized Object next() {
-		    if (which != Subject.PRIV_CREDENTIAL_SET) 
+		public Object next() {
+		    if (which != Subject.PRIV_CREDENTIAL_SET) {
 			return i.next();
+		    }
 
-		    java.lang.SecurityManager sm = System.getSecurityManager();
+		    SecurityManager sm = System.getSecurityManager();
 		    if (sm != null) {
 			try {
-			    if (subject.getPrincipals() == null ||
-				subject.getPrincipals().size() == 0) {
-				sm.checkPermission
-				    (new PrivateCredentialPermission
+			    sm.checkPermission(new PrivateCredentialPermission
 				(list.get(i.nextIndex()).getClass().getName(),
-				new java.util.HashSet()));
-			    } else {
-				sm.checkPermission
-				    (new PrivateCredentialPermission
-				(PrivateCredentialPermission.buildTarget
-				(list.get(i.nextIndex()).getClass().getName(),
-				subject.getPrincipals()), "read"));
-			    }
+				subject.getPrincipals()));
 			} catch (SecurityException se) {
 			    i.next();
 			    throw (se);
@@ -1012,7 +1014,7 @@ public final class Subject implements java.io.Serializable {
 		    return i.next();
 		}
 	    
-		public synchronized void remove() {
+		public void remove() {
 
 		    if (subject.isReadOnly()) {
 			throw new IllegalStateException(ResourcesMgr.getString
@@ -1041,7 +1043,7 @@ public final class Subject implements java.io.Serializable {
 	    };
 	}
 	  
-	public synchronized boolean add(Object o) {
+	public boolean add(Object o) {
 	
 	    if (subject.isReadOnly()) {
 		throw new IllegalStateException
@@ -1087,7 +1089,7 @@ public final class Subject implements java.io.Serializable {
 		return false;
 	}
 	  
-	public synchronized boolean remove(Object o) {
+	public boolean remove(Object o) {
 	
 	    final Iterator e = iterator();
 	    while (e.hasNext()) {
@@ -1116,35 +1118,26 @@ public final class Subject implements java.io.Serializable {
 	    return false;
 	}
 	
-	public synchronized boolean contains(Object o) {
-	
-	    // For private credentials:
-	    // If the caller does not have read permission for
-	    // for o.getClass(), we throw a SecurityException.
-	    // Otherwise we check the private cred set to see whether
-	    // it contains the Object
-	
-	    java.lang.SecurityManager sm = System.getSecurityManager();
-	    if (sm != null && which == Subject.PRIV_CREDENTIAL_SET) {
-		if (subject.getPrincipals() == null ||
-		    subject.getPrincipals().size() == 0) {
-		    sm.checkPermission(new PrivateCredentialPermission
-				(o.getClass().getName(),
-				new java.util.HashSet()));
-		} else {
-		    sm.checkPermission(new PrivateCredentialPermission
-				(PrivateCredentialPermission.buildTarget
-					(o.getClass().getName(),
-					subject.getPrincipals()), "read"));
-		}
-	    }
-	
+	public boolean contains(Object o) {
 	    final Iterator e = iterator();
 	    while (e.hasNext()) {
 		Object next;
 		if (which != Subject.PRIV_CREDENTIAL_SET) {
 		    next = e.next();
 		} else {
+
+		    // For private credentials:
+		    // If the caller does not have read permission for
+		    // for o.getClass(), we throw a SecurityException.
+		    // Otherwise we check the private cred set to see whether
+		    // it contains the Object
+	
+		    SecurityManager sm = System.getSecurityManager();
+		    if (sm != null) {
+			sm.checkPermission(new PrivateCredentialPermission
+						(o.getClass().getName(),
+						subject.getPrincipals()));
+		    }
 		    next = (Object)java.security.AccessController.doPrivileged
 			(new java.security.PrivilegedAction() {
 			public Object run() {
@@ -1272,7 +1265,7 @@ public final class Subject implements java.io.Serializable {
 	 *	the set is serialized.
 	 */
 	private synchronized void writeObject(java.io.ObjectOutputStream oos)
-	throws java.io.IOException {
+		throws java.io.IOException {
 	
 	    if (which == Subject.PRIV_CREDENTIAL_SET) {
 		// check permissions before serializing
@@ -1302,84 +1295,85 @@ public final class Subject implements java.io.Serializable {
      * This class implements a <code>Set</code> which returns only 
      * members that are an instance of a specified Class. 
      */
-    private class ClassSet extends AbstractSet {
+    private class ClassSet<T> extends AbstractSet<T> {
 
 	private int which;
-	private Set set;
 	private Class c;
+	private Set<T> set;
 
 	ClassSet(int which, Class c) {
+	    this.which = which;
+	    this.c = c;
+	    set = new HashSet();
 
-	    synchronized(this) {
+	    switch (which) {
+	    case Subject.PRINCIPAL_SET:
+		synchronized(principals) { populateSet(); }
+		break;
+	    case Subject.PUB_CREDENTIAL_SET:
+		synchronized(pubCredentials) { populateSet(); }
+		break;
+	    default:
+		synchronized(privCredentials) { populateSet(); }
+		break;
+	    }
+	}
 
-		this.which = which;
-		this.c = c;
+	private void populateSet() {
+	    final Iterator iterator;
+	    switch(which) {
+	    case Subject.PRINCIPAL_SET:
+		iterator = Subject.this.principals.iterator();
+		break;
+	    case Subject.PUB_CREDENTIAL_SET:
+		iterator = Subject.this.pubCredentials.iterator();
+		break;
+	    default:
+		iterator = Subject.this.privCredentials.iterator();
+		break;
+	    }
 
-		Iterator iterator = null;
-		switch(which) {
-		case Subject.PRINCIPAL_SET:
-		    iterator = Subject.this.principals.iterator();
-		    break;
-		case Subject.PUB_CREDENTIAL_SET:
-		    iterator = Subject.this.pubCredentials.iterator();
-		    break;
-		default:
-		    iterator = Subject.this.privCredentials.iterator();
-		    break;
-		}
-		final Iterator iterator_copy = iterator;
-		java.lang.SecurityManager sm = System.getSecurityManager();
-		set = new HashSet();
-
-		// Check whether the caller has permisson to get
-		// credentials of Class c 
+	    // Check whether the caller has permisson to get
+	    // credentials of Class c 
 	   
-		while (iterator_copy.hasNext()) {
-		    Object next =
-			(Object)java.security.AccessController.doPrivileged
+	    while (iterator.hasNext()) {
+		Object next;
+		if (which == Subject.PRIV_CREDENTIAL_SET) {
+		    next = (Object)java.security.AccessController.doPrivileged
 			(new java.security.PrivilegedAction() {
 			public Object run() {
-    			    return iterator_copy.next();
+    			    return iterator.next();
 			}
 		    });
-		    if (c.isAssignableFrom(next.getClass())) {
-			if (which != Subject.PRIV_CREDENTIAL_SET) {
-				set.add(next);
-			} else {
-			    // Check permission for private creds
-			    if (sm != null) {
-				if (Subject.this.getPrincipals() == null ||
-				    Subject.this.getPrincipals().size() == 0) {
-					sm.checkPermission
-					    (new PrivateCredentialPermission
+		} else {
+    		    next = iterator.next();
+		}
+		if (c.isAssignableFrom(next.getClass())) {
+		    if (which != Subject.PRIV_CREDENTIAL_SET) {
+			set.add((T)next);
+		    } else {
+			// Check permission for private creds
+			SecurityManager sm = System.getSecurityManager();
+			if (sm != null) {
+			    sm.checkPermission(new PrivateCredentialPermission
 						(next.getClass().getName(),
-						new java.util.HashSet()));
-				  } else {
-					sm.checkPermission
-					    (new PrivateCredentialPermission
-					(PrivateCredentialPermission.buildTarget
-						(next.getClass().getName(),
-						 Subject.this.getPrincipals()),
-						"read"));
-				  }
-				}
-				set.add(next);    
+						Subject.this.getPrincipals()));
 			}
+			set.add((T)next);
 		    }
 		}
 	    }
 	}
-    
-	
-	public synchronized int size() {
+
+	public int size() {
 	    return set.size();
 	}
 	
-	public Iterator iterator() {
+	public Iterator<T> iterator() {
 	    return set.iterator();
 	}
 	
-	public synchronized boolean add(Object o) {
+	public boolean add(T o) {
 	    
 	    if (!o.getClass().isAssignableFrom(c)) {
 		MessageFormat form = new MessageFormat(ResourcesMgr.getString

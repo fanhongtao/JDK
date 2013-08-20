@@ -1,17 +1,17 @@
 /*
- * @(#)Inflater.java	1.42 05/05/16
+ * @(#)Inflater.java	1.41 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.util.zip;
 
 /**
- * This class provides support for general purpose decompression using
+ * This class provides support for general purpose decompression using the
  * popular ZLIB compression library. The ZLIB compression library was
  * initially developed as part of the PNG graphics standard and is not
- * protected by patents. It is fully described in the specifications at
+ * protected by patents. It is fully described in the specifications at 
  * the <a href="package-summary.html#package_description">java.util.zip
  * package description</a>.
  *
@@ -43,7 +43,7 @@ package java.util.zip;
  * </pre></blockquote>
  *
  * @see		Deflater
- * @version 	1.42, 05/16/05
+ * @version 	1.41, 12/19/03
  * @author 	David Connelly
  *
  */
@@ -59,7 +59,8 @@ class Inflater {
      * Loads the ZLIB library.
      */
     static {
-	/* zip library is loaded by java.lang.System */
+	java.security.AccessController.doPrivileged(
+		  new sun.security.action.LoadLibraryAction("zip"));
 	initIDs();
     }
 
@@ -182,7 +183,7 @@ class Inflater {
     }
 
     /**
-     * Return true if the end of the compressed data stream has been
+     * Returns true if the end of the compressed data stream has been
      * reached.
      * @return true if the end of the compressed data stream has been
      * reached
@@ -240,41 +241,61 @@ class Inflater {
      * @return the ADLER-32 value of the uncompressed data
      */
     public synchronized int getAdler() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
+	ensureOpen();
 	return getAdler(strm);
     }
 
     /**
-     * Returns the total number of bytes input so far.
-     * @return the total number of bytes input so far
+     * Returns the total number of compressed bytes input so far.
+     *
+     * <p>Since the number of bytes may be greater than
+     * Integer.MAX_VALUE, the {@link #getBytesRead()} method is now
+     * the preferred means of obtaining this information.</p>
+     *
+     * @return the total number of compressed bytes input so far
      */
-    public synchronized int getTotalIn() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
-	return getTotalIn(strm);
+    public int getTotalIn() {
+	return (int) getBytesRead();
     }
 
     /**
-     * Returns the total number of bytes output so far.
-     * @return the total number of bytes output so far
+     * Returns the total number of compressed bytes input so far.</p>
+     *
+     * @return the total (non-negative) number of compressed bytes input so far
      */
-    public synchronized int getTotalOut() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
-	return getTotalOut(strm);
+    public synchronized long getBytesRead() {
+	ensureOpen();
+	return getBytesRead(strm);
+    }
+
+    /**
+     * Returns the total number of uncompressed bytes output so far.
+     *
+     * <p>Since the number of bytes may be greater than
+     * Integer.MAX_VALUE, the {@link #getBytesWritten()} method is now
+     * the preferred means of obtaining this information.</p>
+     *
+     * @return the total number of uncompressed bytes output so far
+     */
+    public int getTotalOut() {
+	return (int) getBytesWritten();
+    }
+
+    /**
+     * Returns the total number of uncompressed bytes output so far.</p>
+     *
+     * @return the total (non-negative) number of uncompressed bytes output so far
+     */
+    public synchronized long getBytesWritten() {
+	ensureOpen();
+	return getBytesWritten(strm);
     }
 
     /**
      * Resets inflater so that a new set of input data can be processed.
      */
     public synchronized void reset() {
-	if (strm == 0) {
-	    throw new NullPointerException();
-	}
+	ensureOpen();
 	reset(strm);
 	finished = false;
 	needDict = false;
@@ -292,7 +313,6 @@ class Inflater {
 	if (strm != 0) {
 	    end(strm);
 	    strm = 0;
-	    buf = null;
 	}
     }
 
@@ -303,6 +323,11 @@ class Inflater {
 	end();
     }
 
+    private void ensureOpen () {
+	if (strm == 0)
+	    throw new NullPointerException();
+    }
+
     private native static void initIDs();
     private native static long init(boolean nowrap);
     private native static void setDictionary(long strm, byte[] b, int off,
@@ -310,8 +335,8 @@ class Inflater {
     private native int inflateBytes(byte[] b, int off, int len)
 	    throws DataFormatException;
     private native static int getAdler(long strm);
-    private native static int getTotalIn(long strm);
-    private native static int getTotalOut(long strm);
+    private native static long getBytesRead(long strm);
+    private native static long getBytesWritten(long strm);
     private native static void reset(long strm);
     private native static void end(long strm);
 }

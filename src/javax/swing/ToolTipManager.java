@@ -1,7 +1,7 @@
 /*
- * @(#)ToolTipManager.java	1.65 03/01/23
+ * @(#)ToolTipManager.java	1.70 04/01/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,8 @@ import java.awt.event.*;
 import java.applet.*;
 import java.awt.*;
 import java.io.Serializable;
+import sun.swing.UIAction;
+
 /**
  * Manages all the <code>ToolTips</code> in the system.
  * <p>
@@ -30,7 +32,7 @@ import java.io.Serializable;
  * tooltip will be shown again after <code>initialDelay</code> milliseconds.
  *
  * @see JComponent#createToolTip
- * @version 1.65 01/23/03
+ * @version 1.70 01/16/04
  * @author Dave Moore
  * @author Rich Schiavi
  */
@@ -75,46 +77,9 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
 
 	// create accessibility actions 
 	postTip = KeyStroke.getKeyStroke(KeyEvent.VK_F1,Event.CTRL_MASK);
-	postTipAction = new AbstractAction(){
-	  public void actionPerformed(ActionEvent e){
-	    if (tipWindow != null) { // showing we unshow
-	      hideTipWindow();
-              insideComponent = null;
-            }
-	    else {
-	      hideTipWindow(); // be safe
-	      enterTimer.stop();
-	      exitTimer.stop();
-	      insideTimer.stop();
-	      insideComponent = (JComponent)e.getSource();
-	      if (insideComponent != null){
-		toolTipText = insideComponent.getToolTipText();
-		preferredLocation = new Point(10,insideComponent.getHeight()+10);  // manual set
-		showTipWindow();
-		// put a focuschange listener on to bring the tip down
-		if (focusChangeListener == null){
-		  focusChangeListener = createFocusChangeListener();
-		}
-		insideComponent.addFocusListener(focusChangeListener); 
-	      }
-	    }
-	  }
-	};
+	postTipAction = new Actions(Actions.SHOW);
 	hideTip = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0);
-	hideTipAction = new AbstractAction(){
-	  public void actionPerformed(ActionEvent e){
-	    hideTipWindow();
-	    JComponent jc = (JComponent)e.getSource();
-	    jc.removeFocusListener(focusChangeListener);
-	    preferredLocation = null;
-            insideComponent = null;
-	  }
-	  public boolean isEnabled() {
-	      // Only enable when the tooltip is showing, otherwise
-	      // we will get in the way of any UI actions.
-	      return tipShowing;
-	  }
-	};
+	hideTipAction = new Actions(Actions.HIDE);
 
 	moveBeforeEnterListener = new MoveBeforeEnterListener();
     }
@@ -242,6 +207,15 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
     void showTipWindow() {
         if(insideComponent == null || !insideComponent.isShowing())
             return;
+	for (Container p = insideComponent.getParent(); p != null; p = p.getParent()) {
+            if (p instanceof JPopupMenu) break;
+	    if (p instanceof Window) {
+		if (!((Window)p).isFocused()) {
+		    return;
+		}
+		break;
+	    }
+	}
         if (enabled) {
             Dimension size;
             Point screenLocation = insideComponent.getLocationOnScreen();
@@ -276,26 +250,12 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             }
 
 	    // we do not adjust x/y when using awt.Window tips
-	    if (!heavyWeightPopupEnabled){
-
-		if (popupRect == null){
-		  popupRect = new Rectangle();
-		}
-		popupRect.setBounds(location.x,location.y,
-				    size.width,size.height);
-
-		int y = getPopupFitHeight(popupRect, insideComponent);
-		int x = getPopupFitWidth(popupRect,insideComponent);
-
-		if (y > 0){
-		    location.y -= y;
-		}
-		if (x > 0){
-		    // adjust
-		    location.x -= x;
-		}
-	    }		
-
+	    if (popupRect == null){
+		popupRect = new Rectangle();
+	    }
+	    popupRect.setBounds(location.x,location.y,
+				size.width,size.height);
+	    
 	    // Fit as much of the tooltip on screen as possible
             if (location.x < sBounds.x) {
                 location.x = sBounds.x;
@@ -314,7 +274,13 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
 
             if (lightWeightPopupEnabled) {
-                popupFactory.setPopupType(PopupFactory.LIGHT_WEIGHT_POPUP);
+		int y = getPopupFitHeight(popupRect, insideComponent);
+		int x = getPopupFitWidth(popupRect,insideComponent);
+		if (x>0 || y>0) {
+		    popupFactory.setPopupType(PopupFactory.MEDIUM_WEIGHT_POPUP);
+		} else {
+		    popupFactory.setPopupType(PopupFactory.LIGHT_WEIGHT_POPUP);
+		}
             }
             else {
                 popupFactory.setPopupType(PopupFactory.MEDIUM_WEIGHT_POPUP);
@@ -817,6 +783,68 @@ public class ToolTipManager extends MouseAdapter implements MouseMotionListener 
       return (((b.x + b.width) - (a.x +a.width)) + 5);
     }
   }
-	
 
+
+    //
+    // Actions
+    //
+    private void show(JComponent source) {
+        if (tipWindow != null) { // showing we unshow
+            hideTipWindow();
+            insideComponent = null;
+        }
+        else {
+            hideTipWindow(); // be safe
+            enterTimer.stop();
+            exitTimer.stop();
+            insideTimer.stop();
+            insideComponent = source;
+            if (insideComponent != null){
+                toolTipText = insideComponent.getToolTipText();
+                preferredLocation = new Point(10,insideComponent.getHeight()+
+                                              10);  // manual set
+                showTipWindow();
+                // put a focuschange listener on to bring the tip down
+                if (focusChangeListener == null){
+                    focusChangeListener = createFocusChangeListener();
+                }
+                insideComponent.addFocusListener(focusChangeListener); 
+            }
+        }
+    }
+
+    private void hide(JComponent source) {
+        hideTipWindow();
+        source.removeFocusListener(focusChangeListener);
+        preferredLocation = null;
+        insideComponent = null;
+    }
+
+
+    private static class Actions extends UIAction {
+        private static String SHOW = "SHOW";
+        private static String HIDE = "HIDE";
+
+        Actions(String key) {
+            super(key);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            String key = getName();
+            JComponent source = (JComponent)e.getSource();
+            if (key == SHOW) {
+                ToolTipManager.sharedInstance().show(source);
+            }
+            else if (key == HIDE) {
+                ToolTipManager.sharedInstance().hide(source);
+            }
+        }
+
+        public boolean isEnabled(Object sender) {
+            if (getName() == SHOW) {
+                return true;
+            }
+            return ToolTipManager.sharedInstance().tipShowing;
+        }
+    }
 }

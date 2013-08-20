@@ -1,7 +1,7 @@
 /*
- * @(#)MarshalledObject.java	1.32 03/01/23
+ * @(#)MarshalledObject.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import sun.rmi.server.MarshalOutputStream;
  * <p><code>MarshalledObject</code> facilitates passing objects in RMI calls
  * that are not automatically deserialized immediately by the remote peer.
  *
- * @version 1.32, 01/23/03
+ * @version 1.33, 12/19/03
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2

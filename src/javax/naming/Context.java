@@ -1,7 +1,7 @@
 /*
- * @(#)Context.java	1.9 03/01/23
+ * @(#)Context.java	1.12 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -261,7 +261,7 @@ import java.util.Hashtable;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author R. Vasudevan
- * @version 1.9 03/01/23
+ * @version 1.12 04/07/16
  *
  * @since 1.3
  */
@@ -458,7 +458,8 @@ public interface Context {
      * @see #listBindings(Name)
      * @see NameClassPair
      */
-    public NamingEnumeration list(Name name) throws NamingException;
+    public NamingEnumeration<NameClassPair> list(Name name)
+	throws NamingException;
 
     /**
      * Enumerates the names bound in the named context, along with the
@@ -472,7 +473,8 @@ public interface Context {
      *		enumeration is of type <tt>NameClassPair</tt>.
      * @throws	NamingException if a naming exception is encountered
      */
-    public NamingEnumeration list(String name) throws NamingException;
+    public NamingEnumeration<NameClassPair> list(String name)
+	throws NamingException;
 
     /**
      * Enumerates the names bound in the named context, along with the
@@ -493,7 +495,8 @@ public interface Context {
      * @see #list(Name)
      * @see Binding
       */
-    public NamingEnumeration listBindings(Name name) throws NamingException;
+    public NamingEnumeration<Binding> listBindings(Name name)
+	throws NamingException;
 
     /**
      * Enumerates the names bound in the named context, along with the
@@ -507,7 +510,8 @@ public interface Context {
      *		<tt>Binding</tt>.
      * @throws	NamingException if a naming exception is encountered
      */
-    public NamingEnumeration listBindings(String name) throws NamingException;
+    public NamingEnumeration<Binding> listBindings(String name)
+	throws NamingException;
 
     /**
      * Destroys the named context and removes it from the namespace.
@@ -692,7 +696,8 @@ public interface Context {
      *
      * @see #composeName(String, String)
      */
-    public Name composeName(Name name, Name prefix) throws NamingException;
+    public Name composeName(Name name, Name prefix)
+	throws NamingException;
 
     /**
      * Composes the name of this context with a name relative to
@@ -760,7 +765,7 @@ public interface Context {
      * @see #addToEnvironment(String, Object)
      * @see #removeFromEnvironment(String)
      */
-    public Hashtable getEnvironment() throws NamingException;
+    public Hashtable<?,?> getEnvironment() throws NamingException;
 
     /**
      * Closes this context.

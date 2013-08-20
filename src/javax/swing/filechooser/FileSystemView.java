@@ -1,5 +1,5 @@
 /*
- * @(#)FileSystemView.java	1.43 04/01/13
+ * @(#)FileSystemView.java	1.46 04/04/27
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+
 
 import java.lang.reflect.*;
 
@@ -40,7 +43,7 @@ import sun.awt.shell.*;
  * Java Licensees may want to provide a different implementation of
  * FileSystemView to better handle a given operating system.
  *
- * @version 1.43 01/13/04
+ * @version 1.46 04/27/04
  * @author Jeff Dinkins
  */
 
@@ -54,8 +57,18 @@ public abstract class FileSystemView {
     static FileSystemView unixFileSystemView = null;
     //static FileSystemView macFileSystemView = null;
     static FileSystemView genericFileSystemView = null;
+    static boolean useSystemExtensionsHiding = false; 
 
     public static FileSystemView getFileSystemView() {
+        useSystemExtensionsHiding = UIManager.getDefaults().getBoolean("FileChooser.useSystemExtensionHiding");
+        UIManager.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent e) {
+               if (e.getPropertyName().equals("lookAndFeel")) {
+                   useSystemExtensionsHiding = UIManager.getDefaults().getBoolean("FileChooser.useSystemExtensionHiding");
+               }
+            }
+        });
+
 	if(File.separatorChar == '\\') {
 	    if(windowsFileSystemView == null) {
 		windowsFileSystemView = new WindowsFileSystemView();
@@ -138,6 +151,9 @@ public abstract class FileSystemView {
 	if (f != null) {
 	    name = f.getName();
 	    if (!name.equals("..") && !name.equals(".") &&
+                (useSystemExtensionsHiding ||
+                 !isFileSystem(f) ||
+                 isFileSystemRoot(f)) &&
 		((f instanceof ShellFolder) ||
 		 f.exists())) {
 
@@ -204,12 +220,10 @@ public abstract class FileSystemView {
 	if (folder == null || file == null) {
 	    return false;
 	} else if (folder instanceof ShellFolder) {
-	    if (!ShellFolder.disableFileChooserSpeedFix()) {
 		File parent = file.getParentFile();
 		if (parent != null && parent.equals(folder)) {
 		    return true;
 		}
-	    }
 	    File[] children = getFiles(folder, false);
 	    for (int i = 0; i < children.length; i++) {
 		if (file.equals(children[i])) {
@@ -254,7 +268,10 @@ public abstract class FileSystemView {
      */
     public boolean isFileSystem(File f) {
 	if (f instanceof ShellFolder) {
-	    return ((ShellFolder)f).isFileSystem();
+	    ShellFolder sf = (ShellFolder)f;
+	    // Shortcuts to directories are treated as not being file system objects,
+	    // so that they are never returned by JFileChooser.
+	    return sf.isFileSystem() && !(sf.isLink() && sf.isDirectory());
 	} else {
 	    return true;
 	}
@@ -398,19 +415,11 @@ public abstract class FileSystemView {
 
 	// add all files in dir
 	File[] names;
-	if (ShellFolder.disableFileChooserSpeedFix()) {
-	    if (dir instanceof ShellFolder) {
-		names = ((ShellFolder)dir).listFiles(!useFileHiding);
-	    } else {
-		names = dir.listFiles();
-	    }
-	} else {
 	    if (!(dir instanceof ShellFolder)) {
 		dir = getShellFolder(dir);
 	    }
 
 	    names = ((ShellFolder)dir).listFiles(!useFileHiding);
-	}
 	File f;
 
 	int nameCount = (names == null) ? 0 : names.length;

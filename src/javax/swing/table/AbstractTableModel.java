@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractTableModel.java	1.39 03/01/23
+ * @(#)AbstractTableModel.java	1.41 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.39 01/23/03
+ * @version 1.41 05/05/04
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -94,7 +94,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      *  @param columnIndex  the column being queried
      *  @return the Object.class
      */
-    public Class getColumnClass(int columnIndex) {
+    public Class<?> getColumnClass(int columnIndex) {
 	return Object.class;
     }
 
@@ -318,7 +318,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 } // End of class AbstractTableModel

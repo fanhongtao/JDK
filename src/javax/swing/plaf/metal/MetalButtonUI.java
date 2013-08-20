@@ -1,17 +1,19 @@
 /*
- * @(#)MetalButtonUI.java	1.29 03/01/23
+ * @(#)MetalButtonUI.java	1.37 04/04/02
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.metal;
 
+import com.sun.java.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.*;
 import javax.swing.plaf.*;
 
 /**
@@ -26,7 +28,7 @@ import javax.swing.plaf.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.29 01/23/03
+ * @version 1.37 04/02/04
  * @author Tom Santos
  */
 public class MetalButtonUI extends BasicButtonUI {
@@ -61,7 +63,7 @@ public class MetalButtonUI extends BasicButtonUI {
     //         Create Listeners
     // ********************************
     protected BasicButtonListener createButtonListener(AbstractButton b) {
-	return new MetalButtonListener(b);
+        return super.createButtonListener(b);
     }
 
     
@@ -87,6 +89,42 @@ public class MetalButtonUI extends BasicButtonUI {
     // ********************************
     //          Paint
     // ********************************
+    /**
+     * If necessary paints the background of the component, then
+     * invokes <code>paint</code>.
+     *
+     * @param g Graphics to paint to
+     * @param c JComponent painting on
+     * @throws NullPointerException if <code>g</code> or <code>c</code> is
+     *         null
+     * @see javax.swing.plaf.ComponentUI#update
+     * @see javax.swing.plaf.ComponentUI#paint
+     * @since 1.5
+     */
+    public void update(Graphics g, JComponent c) {
+        AbstractButton button = (AbstractButton)c;
+        if ((c.getBackground() instanceof UIResource) &&
+                  button.isContentAreaFilled() && c.isEnabled()) {
+            ButtonModel model = button.getModel();
+            if (!MetalUtils.isToolBarButton(c)) {
+                if (!model.isArmed() && !model.isPressed() &&
+                        MetalUtils.drawGradient(
+                        c, g, "Button.gradient", 0, 0, c.getWidth(),
+                        c.getHeight(), true)) {
+                    paint(g, c);
+                    return;
+                }
+            }
+            else if (model.isRollover() && MetalUtils.drawGradient(
+                        c, g, "Button.gradient", 0, 0, c.getWidth(),
+                        c.getHeight(), true)) {
+                paint(g, c);
+                return;
+            }
+        }
+        super.update(g, c);
+    }
+
     protected void paintButtonPressed(Graphics g, AbstractButton b) {
         if ( b.isContentAreaFilled() ) {
             Dimension size = b.getSize();
@@ -126,45 +164,19 @@ public class MetalButtonUI extends BasicButtonUI {
     protected void paintText(Graphics g, JComponent c, Rectangle textRect, String text) {
 	AbstractButton b = (AbstractButton) c;			     
 	ButtonModel model = b.getModel();
-	FontMetrics fm = g.getFontMetrics();
+	FontMetrics fm = SwingUtilities2.getFontMetrics(c, g);
         int mnemIndex = b.getDisplayedMnemonicIndex();
 
 	/* Draw the Text */
 	if(model.isEnabled()) {
 	    /*** paint the text normally */
 	    g.setColor(b.getForeground());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemIndex,
-					  textRect.x,
-					  textRect.y + fm.getAscent());
 	}
 	else {
 	    /*** paint the text disabled ***/
 	    g.setColor(getDisabledTextColor());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,mnemIndex,
-					  textRect.x, textRect.y + fm.getAscent());
-
-	}
-    }
-
-}
-
-class MetalButtonListener extends BasicButtonListener
-{
-
-    public MetalButtonListener(AbstractButton b) {
-      super(b);  
-    }
-
-    public void focusGained(FocusEvent e) { 
-        Component c = (Component)e.getSource();
-	c.repaint();
-    }
-    
-    public void focusLost(FocusEvent e) {
-        AbstractButton b = (AbstractButton)e.getSource();
-        b.getModel().setArmed(false);
-        b.repaint();
+        }
+        SwingUtilities2.drawStringUnderlineCharAt(c, g,text,mnemIndex,
+                                  textRect.x, textRect.y + fm.getAscent());
     }
 }
-   
-

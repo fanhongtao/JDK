@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSliderUI.java	1.95 03/01/23
+ * @(#)BasicSliderUI.java	1.100 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,15 +28,20 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 
 
 /**
  * A Basic L&F implementation of SliderUI.
  *
- * @version 1.95 01/23/03
+ * @version 1.100 12/19/03
  * @author Tom Santos
  */
 public class BasicSliderUI extends SliderUI{
+    // Old actions forward to an instance of this.
+    private static final Actions SHARED_ACTION = new Actions();
+
     public static final int POSITIVE_SCROLL = +1;
     public static final int NEGATIVE_SCROLL = -1;
     public static final int MIN_SCROLL = -2;
@@ -57,11 +62,6 @@ public class BasicSliderUI extends SliderUI{
 
     protected int trackBuffer = 0;  // The distance that the track is from the side of the control
 
-    private static final Dimension PREFERRED_HORIZONTAL_SIZE = new Dimension(200, 21);
-    private static final Dimension PREFERRED_VERTICAL_SIZE = new Dimension(21, 200);
-    private static final Dimension MINIMUM_HORIZONTAL_SIZE = new Dimension(36, 21);
-    private static final Dimension MINIMUM_VERTICAL_SIZE = new Dimension(21, 36);
-
     private transient boolean isDragging;
 
     protected TrackListener trackListener;
@@ -70,6 +70,7 @@ public class BasicSliderUI extends SliderUI{
     protected FocusListener focusListener;
     protected ScrollListener scrollListener;
     protected PropertyChangeListener propertyChangeListener;
+    private Handler handler;
 
     // Colors
     private Color shadowColor;
@@ -89,6 +90,16 @@ public class BasicSliderUI extends SliderUI{
         return focusColor;
     }
 
+    /**
+     * Returns true if the user is dragging the slider.
+     *
+     * @return true if the user is dragging the slider
+     * @since 1.5
+     */
+    protected boolean isDragging() {
+        return isDragging;
+    }
+
     /////////////////////////////////////////////////////////////////////////////
     // ComponentUI Interface Implementation methods
     /////////////////////////////////////////////////////////////////////////////
@@ -103,7 +114,7 @@ public class BasicSliderUI extends SliderUI{
         slider = (JSlider) c;
 
         slider.setEnabled(slider.isEnabled());
-        slider.setOpaque(true);
+        LookAndFeel.installProperty(slider, "opaque", Boolean.TRUE);
 
         isDragging = false;
         trackListener = createTrackListener( slider );
@@ -176,28 +187,36 @@ public class BasicSliderUI extends SliderUI{
 	focusInsets = (Insets)UIManager.get( "Slider.focusInsets" );
     }
 
-    protected TrackListener createTrackListener( JSlider slider ) {
+    protected TrackListener createTrackListener(JSlider slider) {
         return new TrackListener();
     }
 
-    protected ChangeListener createChangeListener( JSlider slider ) {
-        return new ChangeHandler();
+    protected ChangeListener createChangeListener(JSlider slider) {
+        return getHandler();
     }
 
-    protected ComponentListener createComponentListener( JSlider slider ) {
-        return new ComponentHandler();
+    protected ComponentListener createComponentListener(JSlider slider) {
+        return getHandler();
     }
 
-    protected FocusListener createFocusListener( JSlider slider ) {
-        return new FocusHandler();
+    protected FocusListener createFocusListener(JSlider slider) {
+        return getHandler();
     }
 
     protected ScrollListener createScrollListener( JSlider slider ) {
         return new ScrollListener();
     }
 
-    protected PropertyChangeListener createPropertyChangeListener( JSlider slider ) {
-        return new PropertyChangeHandler();
+    protected PropertyChangeListener createPropertyChangeListener(
+            JSlider slider) {
+        return getHandler();
+    }
+
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
     }
 
     protected void installListeners( JSlider slider ) {
@@ -216,60 +235,44 @@ public class BasicSliderUI extends SliderUI{
         slider.removeComponentListener(componentListener);
         slider.removePropertyChangeListener( propertyChangeListener );
         slider.getModel().removeChangeListener(changeListener);
+        handler = null;
     }
 
     protected void installKeyboardActions( JSlider slider ) {
-	InputMap km = getInputMap(JComponent.WHEN_FOCUSED);
-
-	SwingUtilities.replaceUIInputMap(slider, JComponent.WHEN_FOCUSED,
-				       km);
-	ActionMap am = getActionMap();
-
-	SwingUtilities.replaceUIActionMap(slider, am);
+	InputMap km = getInputMap(JComponent.WHEN_FOCUSED, slider);
+	SwingUtilities.replaceUIInputMap(slider, JComponent.WHEN_FOCUSED, km);
+        LazyActionMap.installLazyActionMap(slider, BasicSliderUI.class,
+                "Slider.actionMap");
     }
 
-    InputMap getInputMap(int condition) {
-	if (condition == JComponent.WHEN_FOCUSED) {
-	    InputMap keyMap = (InputMap)UIManager.get("Slider.focusInputMap");
-	    InputMap rtlKeyMap;
+    InputMap getInputMap(int condition, JSlider slider) {
+        if (condition == JComponent.WHEN_FOCUSED) {
+            InputMap keyMap = (InputMap)DefaultLookup.get(slider, this,
+                  "Slider.focusInputMap");
+            InputMap rtlKeyMap;
 
-	    if (slider.getComponentOrientation().isLeftToRight() ||
-		((rtlKeyMap = (InputMap)UIManager.get("Slider.focusInputMap.RightToLeft")) == null)) {
-		return keyMap;
-	    } else {
-		rtlKeyMap.setParent(keyMap);
-		return rtlKeyMap;
-	    }
-	}
-	return null;
+            if (slider.getComponentOrientation().isLeftToRight() ||
+                ((rtlKeyMap = (InputMap)DefaultLookup.get(slider, this,
+                          "Slider.focusInputMap.RightToLeft")) == null)) {
+                return keyMap;
+            } else {
+                rtlKeyMap.setParent(keyMap);
+                return rtlKeyMap;
+            }
+        }
+        return null;
     }
 
-    ActionMap getActionMap() {
-	ActionMap map = (ActionMap)UIManager.get("Slider.actionMap");
-
-	if (map == null) {
-	    map = createActionMap();
-	    if (map != null) {
-		UIManager.getLookAndFeelDefaults().put
-                          ("Slider.actionMap", map);
-	    }
-	}
-	return map;
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-        map.put("positiveUnitIncrement", new SharedActionScroller
-		(POSITIVE_SCROLL, false));
-        map.put("positiveBlockIncrement", new SharedActionScroller
-		(POSITIVE_SCROLL, true));
-        map.put("negativeUnitIncrement", new SharedActionScroller
-		(NEGATIVE_SCROLL, false));
-        map.put("negativeBlockIncrement", new SharedActionScroller
-		(NEGATIVE_SCROLL, true));
-        map.put("minScroll", new SharedActionScroller(MIN_SCROLL, true));
-        map.put("maxScroll", new SharedActionScroller(MAX_SCROLL, true));
-	return map;
+    /**
+     * Populates ComboBox's actions.
+     */
+    static void loadActionMap(LazyActionMap map) {
+        map.put(new Actions(Actions.POSITIVE_UNIT_INCREMENT));
+        map.put(new Actions(Actions.POSITIVE_BLOCK_INCREMENT));
+        map.put(new Actions(Actions.NEGATIVE_UNIT_INCREMENT));
+        map.put(new Actions(Actions.NEGATIVE_BLOCK_INCREMENT));
+        map.put(new Actions(Actions.MIN_SCROLL_INCREMENT));
+        map.put(new Actions(Actions.MAX_SCROLL_INCREMENT));
     }
 
     protected void uninstallKeyboardActions( JSlider slider ) {
@@ -279,19 +282,39 @@ public class BasicSliderUI extends SliderUI{
     }
 
     public Dimension getPreferredHorizontalSize() {
-        return PREFERRED_HORIZONTAL_SIZE;
+        Dimension horizDim = (Dimension)DefaultLookup.get(slider,
+                this, "Slider.horizontalSize");
+        if (horizDim == null) {
+            horizDim = new Dimension(200, 21);
+        }
+        return horizDim;
     }
 
     public Dimension getPreferredVerticalSize() {
-        return PREFERRED_VERTICAL_SIZE;
+        Dimension vertDim = (Dimension)DefaultLookup.get(slider,
+                this, "Slider.verticalSize");
+        if (vertDim == null) {
+            vertDim = new Dimension(21, 200);
+        }
+        return vertDim;
     }
 
     public Dimension getMinimumHorizontalSize() {
-        return MINIMUM_HORIZONTAL_SIZE;
+        Dimension minHorizDim = (Dimension)DefaultLookup.get(slider,
+                this, "Slider.minimumHorizontalSize");
+        if (minHorizDim == null) {
+            minHorizDim = new Dimension(36, 21);
+        }
+        return minHorizDim;
     }
 
     public Dimension getMinimumVerticalSize() {
-        return MINIMUM_VERTICAL_SIZE;
+        Dimension minVertDim = (Dimension)DefaultLookup.get(slider,
+                this, "Slider.minimumVerticalSize");
+        if (minVertDim == null) {
+            minVertDim = new Dimension(21, 36);
+        }
+        return minVertDim;
     }
 
     public Dimension getPreferredSize(JComponent c)    {
@@ -570,35 +593,13 @@ public class BasicSliderUI extends SliderUI{
     }
 
     public class PropertyChangeHandler implements PropertyChangeListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
         public void propertyChange( PropertyChangeEvent e ) {
-	    String propertyName = e.getPropertyName();
-             if (propertyName.equals( "orientation" ) ||
-                 propertyName.equals( "inverted" ) ||
-		 propertyName.equals( "labelTable" )  ||
-		 propertyName.equals( "majorTickSpacing" )  ||
-		 propertyName.equals( "minorTickSpacing" )  ||
-		 propertyName.equals( "paintTicks" )  ||
-		 propertyName.equals( "paintTrack" )  ||
-		 propertyName.equals( "paintLabels" ) ) {
-	      
-	        calculateGeometry();
-                slider.repaint();
-	    }
-	    else if (propertyName.equals( "componentOrientation" )) {
-		calculateGeometry();
-		slider.repaint();
-
-		InputMap km = getInputMap(JComponent.WHEN_FOCUSED);
-		SwingUtilities.replaceUIInputMap(slider,
-						 JComponent.WHEN_FOCUSED, km);
-	    }
-	    else if ( propertyName.equals( "model" ) ) {
-	        ((BoundedRangeModel)e.getOldValue()).removeChangeListener( changeListener );
-		((BoundedRangeModel)e.getNewValue()).addChangeListener( changeListener );
-	        calculateThumbLocation();
-		slider.repaint();
-	    }
-	}
+            getHandler().propertyChange(e);
+        }
     }
 
     protected int getWidthOfWidestLabel() {
@@ -835,9 +836,7 @@ public class BasicSliderUI extends SliderUI{
         int h = tickBounds.height;
         int centerEffect, tickHeight;
 
-        g.setColor(slider.getBackground());
-        g.fillRect(tickBounds.x, tickBounds.y, tickBounds.width, tickBounds.height);  
-        g.setColor(Color.black);
+        g.setColor(DefaultLookup.getColor(slider, this, "Slider.tickColor", Color.black));
 
         maj = slider.getMajorTickSpacing();
         min = slider.getMinorTickSpacing();
@@ -1002,7 +1001,11 @@ public class BasicSliderUI extends SliderUI{
             g.setColor(slider.getBackground().darker());
         }
 
-        if ( !slider.getPaintTicks() ) {
+	Boolean paintThumbArrowShape =
+	    (Boolean)slider.getClientProperty("Slider.paintThumbArrowShape");
+
+	if ((!slider.getPaintTicks() && paintThumbArrowShape == null) ||
+	    paintThumbArrowShape == Boolean.FALSE) {
 
 	    // "plain" version
             g.fillRect(0, 0, w, h);
@@ -1250,22 +1253,76 @@ public class BasicSliderUI extends SliderUI{
 	return value;
     }
 
+
+    private class Handler implements ChangeListener,
+            ComponentListener, FocusListener, PropertyChangeListener {
+        // Change Handler
+        public void stateChanged(ChangeEvent e) {
+	    if (!isDragging) {
+	        calculateThumbLocation();
+		slider.repaint();
+	    }
+        }
+
+        // Component Handler
+        public void componentHidden(ComponentEvent e) { }
+        public void componentMoved(ComponentEvent e) { }
+        public void componentResized(ComponentEvent e) {
+	    calculateGeometry();
+	    slider.repaint();
+        }
+        public void componentShown(ComponentEvent e) { }
+
+        // Focus Handler
+        public void focusGained(FocusEvent e) { slider.repaint(); }
+        public void focusLost(FocusEvent e) { slider.repaint(); }
+
+        // Property Change Handler
+        public void propertyChange(PropertyChangeEvent e) {
+            String propertyName = e.getPropertyName();
+            if (propertyName == "orientation" ||
+                    propertyName == "inverted" ||
+                    propertyName == "labelTable" ||
+                    propertyName == "majorTickSpacing" ||
+                    propertyName == "minorTickSpacing" ||
+                    propertyName == "paintTicks" ||
+                    propertyName == "paintTrack" ||
+                    propertyName == "paintLabels") {
+                calculateGeometry();
+                slider.repaint();
+            } else if (propertyName == "componentOrientation") {
+                calculateGeometry();
+                slider.repaint();
+                InputMap km = getInputMap(JComponent.WHEN_FOCUSED, slider);
+                SwingUtilities.replaceUIInputMap(slider,
+                    JComponent.WHEN_FOCUSED, km);
+            } else if (propertyName == "model") {
+                ((BoundedRangeModel)e.getOldValue()).removeChangeListener(
+                    changeListener);
+                ((BoundedRangeModel)e.getNewValue()).addChangeListener(
+                    changeListener);
+                calculateThumbLocation();
+                slider.repaint();
+            }
+        }
+    }
+
     /////////////////////////////////////////////////////////////////////////
     /// Model Listener Class
     /////////////////////////////////////////////////////////////////////////        
     /**
      * Data model listener.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
     public class ChangeHandler implements ChangeListener {
-        public void stateChanged(ChangeEvent e)                {
-	    if ( !isDragging ) {
-	        calculateThumbLocation();
-		slider.repaint();
-	    }
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void stateChanged(ChangeEvent e) {
+            getHandler().stateChanged(e);
         }
     }
 
@@ -1275,7 +1332,6 @@ public class BasicSliderUI extends SliderUI{
     /**
      * Track mouse movements.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
@@ -1283,19 +1339,21 @@ public class BasicSliderUI extends SliderUI{
         protected transient int offset;
         protected transient int currentMouseX, currentMouseY;
 
-        public void mouseReleased(MouseEvent e)                {
-            if ( !slider.isEnabled() )
+        public void mouseReleased(MouseEvent e) {
+            if (!slider.isEnabled()) {
                 return;
+            }
 
             offset = 0;
             scrollTimer.stop();
 
-            // This is the way we have to determine snap-to-ticks.  It's hard to explain
-            // but since ChangeEvents don't give us any idea what has changed we don't
-            // have a way to stop the thumb bounds from being recalculated.  Recalculating
-            // the thumb bounds moves the thumb over the current value (i.e., snapping
+            // This is the way we have to determine snap-to-ticks.  It's
+            // hard to explain but since ChangeEvents don't give us any
+            // idea what has changed we don't have a way to stop the thumb
+            // bounds from being recalculated.  Recalculating the thumb
+            // bounds moves the thumb over the current value (i.e., snapping
             // to the ticks).
-            if ( slider.getSnapToTicks() /*|| slider.getSnapToValue()*/ ) {
+            if (slider.getSnapToTicks() /*|| slider.getSnapToValue()*/ ) {
                 isDragging = false;
                 slider.setValueIsAdjusting(false);
             }
@@ -1303,8 +1361,7 @@ public class BasicSliderUI extends SliderUI{
                 slider.setValueIsAdjusting(false);
                 isDragging = false;
             }
-	    
-	    slider.repaint();
+            slider.repaint();
         }
 
         /**
@@ -1314,10 +1371,10 @@ public class BasicSliderUI extends SliderUI{
         * thumb then page up if the mouse is in the upper half
         * of the track.
         */
-        public void mousePressed(MouseEvent e)                {
-
-            if ( !slider.isEnabled() )
+        public void mousePressed(MouseEvent e) {
+            if (!slider.isEnabled()) {
                 return;
+            }
 
             currentMouseX = e.getX();
             currentMouseY = e.getY();
@@ -1327,8 +1384,8 @@ public class BasicSliderUI extends SliderUI{
             }
 
             // Clicked in the Thumb area?
-            if ( thumbRect.contains(currentMouseX, currentMouseY) ) {
-                switch ( slider.getOrientation() ) {
+            if (thumbRect.contains(currentMouseX, currentMouseY)) {
+                switch (slider.getOrientation()) {
                 case JSlider.VERTICAL:
                     offset = currentMouseY - thumbRect.y;
                     break;
@@ -1345,24 +1402,28 @@ public class BasicSliderUI extends SliderUI{
             Dimension sbSize = slider.getSize();
             int direction = POSITIVE_SCROLL;
 
-            switch ( slider.getOrientation() ) {
+            switch (slider.getOrientation()) {
             case JSlider.VERTICAL:
                 if ( thumbRect.isEmpty() ) {
                     int scrollbarCenter = sbSize.height / 2;
                     if ( !drawInverted() ) {
-                        direction = (currentMouseY < scrollbarCenter) ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
+                        direction = (currentMouseY < scrollbarCenter) ?
+                            POSITIVE_SCROLL : NEGATIVE_SCROLL;
                     }
                     else {
-                        direction = (currentMouseY < scrollbarCenter) ? NEGATIVE_SCROLL : POSITIVE_SCROLL;
+                        direction = (currentMouseY < scrollbarCenter) ?
+                            NEGATIVE_SCROLL : POSITIVE_SCROLL;
                     }
                 }
                 else {
                     int thumbY = thumbRect.y;
                     if ( !drawInverted() ) {
-                        direction = (currentMouseY < thumbY) ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
+                        direction = (currentMouseY < thumbY) ?
+                            POSITIVE_SCROLL : NEGATIVE_SCROLL;
                     }
                     else {
-                        direction = (currentMouseY < thumbY) ? NEGATIVE_SCROLL : POSITIVE_SCROLL;
+                        direction = (currentMouseY < thumbY) ?
+                            NEGATIVE_SCROLL : POSITIVE_SCROLL;
                     }
                 }
                 break;                    
@@ -1370,27 +1431,31 @@ public class BasicSliderUI extends SliderUI{
                 if ( thumbRect.isEmpty() ) {
                     int scrollbarCenter = sbSize.width / 2;
                     if ( !drawInverted() ) {
-                        direction = (currentMouseX < scrollbarCenter) ? NEGATIVE_SCROLL : POSITIVE_SCROLL;
+                        direction = (currentMouseX < scrollbarCenter) ?
+                            NEGATIVE_SCROLL : POSITIVE_SCROLL;
                     }
                     else {
-                        direction = (currentMouseX < scrollbarCenter) ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
+                        direction = (currentMouseX < scrollbarCenter) ?
+                            POSITIVE_SCROLL : NEGATIVE_SCROLL;
                     }
                 }
                 else {
                     int thumbX = thumbRect.x;
                     if ( !drawInverted() ) {
-                        direction = (currentMouseX < thumbX) ? NEGATIVE_SCROLL : POSITIVE_SCROLL;
+                        direction = (currentMouseX < thumbX) ?
+                            NEGATIVE_SCROLL : POSITIVE_SCROLL;
                     }
                     else {
-                        direction = (currentMouseX < thumbX) ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
+                        direction = (currentMouseX < thumbX) ?
+                            POSITIVE_SCROLL : NEGATIVE_SCROLL;
                     }
                 }
                 break;
             }
             scrollDueToClickInTrack(direction);
             Rectangle r = thumbRect;
-            if ( !r.contains(currentMouseX, currentMouseY) ) {
-                if ( shouldScroll(direction) ) {
+            if (!r.contains(currentMouseX, currentMouseY)) {
+                if (shouldScroll(direction)) {
                     scrollTimer.stop();
                     scrollListener.setDirection(direction);
                     scrollTimer.start();
@@ -1400,31 +1465,33 @@ public class BasicSliderUI extends SliderUI{
 
         public boolean shouldScroll(int direction) {
             Rectangle r = thumbRect;
-            if ( slider.getOrientation() == JSlider.VERTICAL ) {
-                if ( drawInverted() ? direction < 0 : direction > 0 ) {
-                    if ( r.y + r.height  <= currentMouseY ) {
+            if (slider.getOrientation() == JSlider.VERTICAL) {
+                if (drawInverted() ? direction < 0 : direction > 0) {
+                    if (r.y + r.height  <= currentMouseY) {
                         return false;
                     }
                 }
-                else if ( r.y >= currentMouseY ) {
+                else if (r.y >= currentMouseY) {
                     return false;
                 }
             }
             else {
-                if ( drawInverted() ? direction < 0 : direction > 0 ) {
-                    if ( r.x + r.width  >= currentMouseX ) {
+                if (drawInverted() ? direction < 0 : direction > 0) {
+                    if (r.x + r.width  >= currentMouseX) {
                         return false;
                     }
                 }
-                else if ( r.x <= currentMouseX ) {
+                else if (r.x <= currentMouseX) {
                     return false;
                 }
             }
 
-            if ( direction > 0 && slider.getValue() + slider.getExtent() >= slider.getMaximum() ) {
+            if (direction > 0 && slider.getValue() + slider.getExtent() >=
+                    slider.getMaximum()) {
                 return false;
             }
-            else if ( direction < 0 && slider.getValue() <= slider.getMinimum() ) {
+            else if (direction < 0 && slider.getValue() <=
+                    slider.getMinimum()) {
                 return false;
             }
 
@@ -1435,22 +1502,23 @@ public class BasicSliderUI extends SliderUI{
         * Set the models value to the position of the top/left
         * of the thumb relative to the origin of the track.
         */
-        public void mouseDragged( MouseEvent e ) {                    
-            BasicScrollBarUI ui;
+        public void mouseDragged(MouseEvent e) {
             int thumbMiddle = 0;
 
-            if ( !slider.isEnabled() )
+            if (!slider.isEnabled()) {
                 return;
+            }
 
             currentMouseX = e.getX();
             currentMouseY = e.getY();
 
-            if ( !isDragging )
+            if (!isDragging) {
                 return;
+            }
 
             slider.setValueIsAdjusting(true);
 
-            switch ( slider.getOrientation() ) {
+            switch (slider.getOrientation()) {
             case JSlider.VERTICAL:      
                 int halfThumbHeight = thumbRect.height / 2;
                 int thumbTop = e.getY() - offset;
@@ -1465,8 +1533,8 @@ public class BasicSliderUI extends SliderUI{
                 else {
                     trackTop = vMax;
                 }
-                thumbTop = Math.max( thumbTop, trackTop - halfThumbHeight );
-                thumbTop = Math.min( thumbTop, trackBottom - halfThumbHeight );
+                thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
+                thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
 
                 setThumbLocation(thumbRect.x, thumbTop);
 
@@ -1487,33 +1555,32 @@ public class BasicSliderUI extends SliderUI{
                 else {
                     trackRight = hMax;
                 }
-                thumbLeft = Math.max( thumbLeft, trackLeft - halfThumbWidth );
-                thumbLeft = Math.min( thumbLeft, trackRight - halfThumbWidth );
+                thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
+                thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
 
-                setThumbLocation( thumbLeft, thumbRect.y);
+                setThumbLocation(thumbLeft, thumbRect.y);
 
                 thumbMiddle = thumbLeft + halfThumbWidth;
-                slider.setValue( valueForXPosition( thumbMiddle ) );
+                slider.setValue(valueForXPosition(thumbMiddle));
                 break;
             default:
                 return;
             }
         }
 
-        public void mouseMoved(MouseEvent e)    {}     
-
+        public void mouseMoved(MouseEvent e) { }
     }
 
     /**
      * Scroll-event listener.
      *
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
     public class ScrollListener implements ActionListener {
-        // changed this class to public to avoid bogus IllegalAccessException bug i
-        // InternetExplorer browser.  It was protected.  Work around for 4109432
+        // changed this class to public to avoid bogus IllegalAccessException
+        // bug in InternetExplorer browser.  It was protected.  Work around
+        // for 4109432
         int direction = POSITIVE_SCROLL;
         boolean useBlockIncrement;
 
@@ -1527,47 +1594,62 @@ public class BasicSliderUI extends SliderUI{
             useBlockIncrement = block;
         }
 
-        public void setDirection(int direction) { this.direction = direction;}
-        public void setScrollByBlock(boolean block) { this.useBlockIncrement = block;}
+        public void setDirection(int direction) {
+            this.direction = direction;
+        }
+
+        public void setScrollByBlock(boolean block) {
+            this.useBlockIncrement = block;
+        }
 
         public void actionPerformed(ActionEvent e) {
-            if ( useBlockIncrement ) {
+            if (useBlockIncrement) {
                 scrollByBlock(direction);
             }
             else {
                 scrollByUnit(direction);
             }
-            if ( !trackListener.shouldScroll(direction) ) {
+            if (!trackListener.shouldScroll(direction)) {
                 ((Timer)e.getSource()).stop();
             }
         }
-    }; 
+    }
 
     /**
      * Listener for resizing events.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
     public class ComponentHandler extends ComponentAdapter {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
         public void componentResized(ComponentEvent e)  {
-	    calculateGeometry();
-	    slider.repaint();
+            getHandler().componentResized(e);
         }
     };  
 
     /**
      * Focus-change listener.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
     public class FocusHandler implements FocusListener {
-        public void focusGained(FocusEvent e) { slider.repaint();} 
-        public void focusLost(FocusEvent e) { slider.repaint();}
-    };
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+        public void focusGained(FocusEvent e) {
+            getHandler().focusGained(e);
+        }
+
+        public void focusLost(FocusEvent e) {
+            getHandler().focusLost(e);
+        }
+    }
 
     /**
      * As of Java 2 platform v1.3 this undocumented class is no longer used.
@@ -1579,11 +1661,14 @@ public class BasicSliderUI extends SliderUI{
      * <p>
      * Please refer to the key bindings specification for further details.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
      */
     public class ActionScroller extends AbstractAction {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Actions. If you need to add
+        // new functionality add it to the Actions, but make sure this
+        // class calls into the Actions.
         int dir;
         boolean block;
         JSlider slider;
@@ -1595,32 +1680,9 @@ public class BasicSliderUI extends SliderUI{
         }
 
         public void actionPerformed(ActionEvent e) {
-	    if ( dir == NEGATIVE_SCROLL || dir == POSITIVE_SCROLL ) {
-		int realDir = dir;
-		if ( drawInverted() ) {
-		    realDir = dir == NEGATIVE_SCROLL ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
-		}
-		
-		if ( block )
-		    scrollByBlock(realDir);
-		else
-		    scrollByUnit(realDir);
-	    }
-	    else {
-		if ( drawInverted() ) {
-		    if ( dir == MIN_SCROLL )
-			slider.setValue(slider.getMaximum());
-		    else if ( dir == MAX_SCROLL )
-			slider.setValue(slider.getMinimum());
-		}
-		else {
-		    if ( dir == MIN_SCROLL )
-			slider.setValue(slider.getMinimum());
-		    else if ( dir == MAX_SCROLL )
-			slider.setValue(slider.getMaximum());
-		}       
-	    }
+            SHARED_ACTION.scroll(slider, BasicSliderUI.this, dir, block);
 	}
+
 	public boolean isEnabled() { 
 	    boolean b = true;
 	    if (slider != null) {
@@ -1636,6 +1698,10 @@ public class BasicSliderUI extends SliderUI{
      * A static version of the above.
      */
     static class SharedActionScroller extends AbstractAction {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Actions. If you need to add
+        // new functionality add it to the Actions, but make sure this
+        // class calls into the Actions.
         int dir;
         boolean block;
 
@@ -1644,34 +1710,86 @@ public class BasicSliderUI extends SliderUI{
             this.block = block;
         }
 
-        public void actionPerformed(ActionEvent e) {
-	    JSlider slider = (JSlider)e.getSource();
-	    if ( dir == NEGATIVE_SCROLL || dir == POSITIVE_SCROLL ) {
-		int realDir = dir;
-		BasicSliderUI ui = (BasicSliderUI)slider.getUI();
-		if ( slider.getInverted() ) {
-		    realDir = dir == NEGATIVE_SCROLL ? POSITIVE_SCROLL : NEGATIVE_SCROLL;
-		}
-		
-		if ( block )
-		    ui.scrollByBlock(realDir);
-		else
-		    ui.scrollByUnit(realDir);
-	    }
-	    else {
-		if ( slider.getInverted() ) {
-		    if ( dir == MIN_SCROLL )
-			slider.setValue(slider.getMaximum());
-		    else if ( dir == MAX_SCROLL )
-			slider.setValue(slider.getMinimum());
-		}
-		else {
-		    if ( dir == MIN_SCROLL )
-			slider.setValue(slider.getMinimum());
-		    else if ( dir == MAX_SCROLL )
-			slider.setValue(slider.getMaximum());
-		}       
-	    }
+        public void actionPerformed(ActionEvent evt) {
+            JSlider slider = (JSlider)evt.getSource();
+            BasicSliderUI ui = (BasicSliderUI)BasicLookAndFeel.getUIOfType(
+                    slider.getUI(), BasicSliderUI.class);
+            if (ui == null) {
+                return;
+            }
+            SHARED_ACTION.scroll(slider, ui, dir, block);
 	}
+    }
+
+    private static class Actions extends UIAction {
+        public static final String POSITIVE_UNIT_INCREMENT =
+            "positiveUnitIncrement";
+        public static final String POSITIVE_BLOCK_INCREMENT =
+            "positiveBlockIncrement";
+        public static final String NEGATIVE_UNIT_INCREMENT =
+            "negativeUnitIncrement";
+        public static final String NEGATIVE_BLOCK_INCREMENT =
+            "negativeBlockIncrement";
+        public static final String MIN_SCROLL_INCREMENT = "minScroll";
+        public static final String MAX_SCROLL_INCREMENT = "maxScroll";
+
+
+        Actions() {
+            super(null);
+        }
+
+        public Actions(String name) {
+            super(name);
+        }
+
+        public void actionPerformed(ActionEvent evt) {
+            JSlider slider = (JSlider)evt.getSource();
+            BasicSliderUI ui = (BasicSliderUI)BasicLookAndFeel.getUIOfType(
+                     slider.getUI(), BasicSliderUI.class);
+            String name = getName();
+
+            if (ui == null) {
+                return;
+            }
+            if (POSITIVE_UNIT_INCREMENT == name) {
+                scroll(slider, ui, POSITIVE_SCROLL, false);
+            } else if (NEGATIVE_UNIT_INCREMENT == name) {
+                scroll(slider, ui, NEGATIVE_SCROLL, false);
+            } else if (POSITIVE_BLOCK_INCREMENT == name) {
+                scroll(slider, ui, POSITIVE_SCROLL, true);
+            } else if (NEGATIVE_BLOCK_INCREMENT == name) {
+                scroll(slider, ui, NEGATIVE_SCROLL, true);
+            } else if (MIN_SCROLL_INCREMENT == name) {
+                scroll(slider, ui, MIN_SCROLL, false);
+            } else if (MAX_SCROLL_INCREMENT == name) {
+                scroll(slider, ui, MAX_SCROLL, false);
+            }
+        }
+
+        private void scroll(JSlider slider, BasicSliderUI ui, int direction,
+                boolean isBlock) {
+            boolean invert = slider.getInverted();
+
+            if (direction == NEGATIVE_SCROLL || direction == POSITIVE_SCROLL) {
+                if (invert) {
+                    direction = (direction == POSITIVE_SCROLL) ?
+                        NEGATIVE_SCROLL : POSITIVE_SCROLL;
+                }
+
+                if (isBlock) {
+                    ui.scrollByBlock(direction);
+                } else {
+                    ui.scrollByUnit(direction);
+                }
+            } else {  // MIN or MAX
+                if (invert) {
+                    direction = (direction == MIN_SCROLL) ?
+                        MAX_SCROLL : MIN_SCROLL;
+                }
+
+                slider.setValue((direction == MIN_SCROLL) ?
+                    slider.getMinimum() : slider.getMaximum());
+            }
+        }
     }
 }

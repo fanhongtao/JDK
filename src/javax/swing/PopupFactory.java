@@ -1,7 +1,7 @@
 /*
- * @(#)PopupFactory.java	1.22 05/01/15
+ * @(#)PopupFactory.java	1.24 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @see Popup
  *
- * @version 1.22 01/15/05
+ * @version 1.24 12/19/03
  * @since 1.4
  */
 public class PopupFactory {
@@ -71,14 +71,23 @@ public class PopupFactory {
      */
     private int popupType = LIGHT_WEIGHT_POPUP;
 
+    /**
+     * Key used for client property to force heavy weight popups for a
+     * component.
+     */
+    static final StringBuffer forceHeavyWeightPopupKey =
+            new StringBuffer("__force_heavy_weight_popup__");
+
 
     /**
-     * Sets the <code>AppContext</code> specific <code>PopupFactory</code>.
+     * Sets the <code>PopupFactory</code> that will be used to obtain
+     * <code>Popup</code>s.
      * This will throw an <code>IllegalArgumentException</code> if
      * <code>factory</code> is null.
      *
      * @param factory Shared PopupFactory
      * @exception IllegalArgumentException if <code>factory</code> is null
+     * @see #getPopup
      */
     public static void setSharedInstance(PopupFactory factory) {
         if (factory == null) {
@@ -171,6 +180,22 @@ public class PopupFactory {
                  !(contents instanceof JPopupMenu)) {
             popupType = MEDIUM_WEIGHT_POPUP;
         }
+
+        // Check if the parent component is an option pane.  If so we need to
+        // force a heavy weight popup in order to have event dispatching work
+        // correctly.
+        Component c = owner;
+        while (c != null) {
+            if (c instanceof JComponent) {
+                if (((JComponent)c).getClientProperty(
+                            forceHeavyWeightPopupKey) == Boolean.TRUE) {
+                    popupType = HEAVY_WEIGHT_POPUP;
+                    break;
+                }
+            }
+            c = c.getParent();
+        }
+
 	return popupType;
     }
 
@@ -492,7 +517,7 @@ public class PopupFactory {
             Component component = getComponent();
             if(owner != null && component != null) {
                 Window w = SwingUtilities.getWindowAncestor(owner);
-                if(w == null) {
+                if (w == null) {
                     return false;
                 }
                 Window[] ownedWindows = w.getOwnedWindows();
@@ -502,6 +527,7 @@ public class PopupFactory {
                         Window owned = ownedWindows[i];
                         if (owned.isVisible() &&
                             bnd.intersects(owned.getBounds())) {
+
                             return true;
                         }
                     }
@@ -861,6 +887,11 @@ public class PopupFactory {
             Panel component = new Panel(new BorderLayout());
 
 	    rootPane = new JRootPane();
+            // NOTE: this uses setOpaque vs LookAndFeel.installProperty as
+            // there is NO reason for the RootPane not to be opaque. For
+            // painting to work the contentPane must be opaque, therefor the
+            // RootPane can also be opaque.
+            rootPane.setOpaque(true);
 	    component.add(rootPane, BorderLayout.CENTER);
             return component;
         }

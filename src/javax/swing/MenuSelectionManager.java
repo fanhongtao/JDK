@@ -1,7 +1,7 @@
 /*
- * @(#)MenuSelectionManager.java	1.34 03/01/23
+ * @(#)MenuSelectionManager.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -14,7 +14,7 @@ import javax.swing.event.*;
 /**
  * A MenuSelectionManager owns the selection in menu hierarchy.
  * 
- * @version 1.34 01/23/03
+ * @version 1.38 12/19/03
  * @author Arnaud Weber
  */
 public class MenuSelectionManager {
@@ -46,9 +46,15 @@ public class MenuSelectionManager {
     protected EventListenerList listenerList = new EventListenerList();
 
     /**
-     * Change the selection in the menu hierarchy.
+     * Changes the selection in the menu hierarchy.  The elements
+     * in the array are sorted in order from the root menu
+     * element to the currently selected menu element.
+     * <p>
+     * Note that this method is public but is used by the look and
+     * feel engine and should not be called by client applications.
      *
-     * @param path  an array of MenuElement objects specifying the selected path
+     * @param path  an array of <code>MenuElement</code> objects specifying
+     *        the selected path
      */
     public void setSelectedPath(MenuElement[] path) {
         int i,c;
@@ -382,42 +388,44 @@ public class MenuSelectionManager {
      * @param e  a KeyEvent object
      */
     public void processKeyEvent(KeyEvent e) {
-        Vector tmp;
-        int selectionSize;
-        int i,j,d;
-        MenuElement menuElement;
-        MenuElement subElements[];
-        MenuElement path[];
-        Component mc;
+        MenuElement[] sel2 = new MenuElement[0];
+        sel2 = (MenuElement[])selection.toArray(sel2);
+        int selSize = sel2.length;
+        MenuElement[] path;
 
-	if (DEBUG) {
-	    System.out.println("in MenuSelectionManager.processKeyEvent");
+        if (selSize < 1) {
+            return;
 	}
 
-        tmp = (Vector)selection.clone();
-        selectionSize = tmp.size();
-        for(i=selectionSize - 1 ; i >= 0 ; i--) {
-            menuElement = (MenuElement) tmp.elementAt(i);
-            subElements = menuElement.getSubElements();
-            
+        for (int i=selSize-1; i>=0; i--) {
+            MenuElement elem = sel2[i];
+            MenuElement[] subs = elem.getSubElements();
             path = null;
-            for(j = 0, d = subElements.length ; j < d ; j++) {
-		if (subElements[j] == null)
+
+            for (int j=0; j<subs.length; j++) {
+		if (subs[j] == null || !subs[j].getComponent().isShowing()
+                    || !subs[j].getComponent().isEnabled()) {
 		    continue;
-                mc = subElements[j].getComponent();
-                if(!mc.isShowing())
-                    continue;
+                }
+
                 if(path == null) {
-                    int k;
                     path = new MenuElement[i+2];
-                    for(k=0;k<=i;k++)
-                        path[k] = (MenuElement)tmp.elementAt(k);
+                    System.arraycopy(sel2, 0, path, 0, i+1);
                     }
-                path[i+1] = subElements[j];
-                subElements[j].processKeyEvent(e,path,this);
-                if(e.isConsumed())
+                path[i+1] = subs[j];
+                subs[j].processKeyEvent(e, path, this);
+                if (e.isConsumed()) {
                     return;
             }
+        }
+    }
+
+        // finally dispatch event to the first component in path
+        path = new MenuElement[1];
+        path[0] = sel2[0];
+        path[0].processKeyEvent(e, path, this);
+        if (e.isConsumed()) {
+            return;
         }
     }
     

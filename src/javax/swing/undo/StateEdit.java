@@ -1,7 +1,7 @@
 /*
- * @(#)StateEdit.java	1.12 03/01/23
+ * @(#)StateEdit.java	1.14 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.util.Vector;
  *
  * @see StateEditable
  *
- * @version 1.12 01/23/03
+ * @version 1.14 05/05/04
  * @author Ray Ryan
  */
 
@@ -56,12 +56,12 @@ public class StateEdit
     /**
      * The state information prior to the edit
      */
-    protected Hashtable preState;
+    protected Hashtable<Object,Object> preState;
 
     /**
      * The state information after the edit
      */
-    protected Hashtable postState;
+    protected Hashtable<Object,Object> postState;
 
     /**
      * The undo/redo presentation name

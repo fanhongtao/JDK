@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetDragEvent.java	1.21 03/01/23
+ * @(#)DropTargetDragEvent.java	1.24 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,6 +10,7 @@ package java.awt.dnd;
 import java.awt.Point;
 
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 
 import java.util.List;
 
@@ -48,7 +49,7 @@ import java.util.List;
  * first constant found. If no constant is found the <i>user drop action</i>
  * is <code>DnDConstants.ACTION_NONE</code>.
  *
- * @version 	1.21, 01/23/03
+ * @version 	1.24, 05/05/04
  * @since 1.2
  */
 
@@ -128,7 +129,7 @@ public class DropTargetDragEvent extends DropTargetEvent {
      * @return a <code>java.util.List</code> of the Current <code>DataFlavor</code>s
      */
 
-    public List getCurrentDataFlavorsAsList() {
+    public List<DataFlavor> getCurrentDataFlavorsAsList() {
 	return getDropTargetContext().getCurrentDataFlavorsAsList();
     }
 
@@ -158,6 +159,20 @@ public class DropTargetDragEvent extends DropTargetEvent {
      * @return the user drop action
      */
     public int getDropAction() { return dropAction; }
+
+    /**
+     * This method returns the Transferable object that represents
+     * the data associated with the current drag operation.
+     * 
+     * @return the Transferable associated with the drag operation
+     * @throws InvalidDnDOperationException if the data associated with the drag
+     *         operation is not available
+     *
+     * @since 1.5
+     */
+    public Transferable getTransferable() {
+	return getDropTargetContext().getTransferable();
+    }
 
     /**
      * Accepts the drag.

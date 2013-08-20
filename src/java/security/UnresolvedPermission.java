@@ -1,7 +1,7 @@
 /*
- * @(#)UnresolvedPermission.java	1.24 03/01/23
+ * @(#)UnresolvedPermission.java	1.29 04/02/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -68,12 +68,17 @@ import java.security.cert.*;
  * <p> The newly created permission object replaces the
  * UnresolvedPermission, which is removed.
  *
+ * <p> Note that the <code>getName</code> method for an
+ * <code>UnresolvedPermission</code> returns the
+ * <code>type</code> (class name) for the underlying permission
+ * that has not been resolved.
+ *
  * @see java.security.Permission
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  * @see java.security.Policy
  *
- * @version 1.24 03/01/23
+ * @version 1.29 04/02/03
  *
  * @author Roland Schemers
  */
@@ -81,6 +86,9 @@ import java.security.cert.*;
 public final class UnresolvedPermission extends Permission 
 implements java.io.Serializable
 {
+
+    private static final long serialVersionUID = -4821973115467008846L;
+
     private static final sun.security.util.Debug debug =
 	sun.security.util.Debug.getInstance
 	("policy,access", "UnresolvedPermission");
@@ -122,7 +130,9 @@ implements java.io.Serializable
      * This is a list of certificate chains, where each chain is composed of a
      * signer certificate and optionally its supporting certificate chain.
      * Each chain is ordered bottom-to-top (i.e., with the signer certificate
-     * first and the (root) certificate authority last).
+     * first and the (root) certificate authority last). The signer 
+     * certificates are copied from the array. Subsequent changes to
+     * the array will not affect this UnsolvedPermission.
      */
     public UnresolvedPermission(String type,
 				String name,
@@ -289,6 +299,10 @@ implements java.io.Serializable
      * Checks that <i>obj</i> is an UnresolvedPermission, and has 
      * the same type (class) name, permission name, actions, and
      * certificates as this object.
+     *
+     * <p> To determine certificate equality, this method only compares
+     * actual signer certificates.  Supporting certificate chains
+     * are not taken into consideration by this method.
      * 
      * @param obj the object we are testing for equality with this object.
      * 
@@ -392,6 +406,62 @@ implements java.io.Serializable
     public String getActions()
     {
 	return "";
+    }
+
+    /**
+     * Get the type (class name) of the underlying permission that
+     * has not been resolved.
+     *
+     * @return the type (class name) of the underlying permission that
+     *	has not been resolved
+     *
+     * @since 1.5
+     */
+    public String getUnresolvedType() {
+	return type;
+    }
+
+    /**
+     * Get the target name of the underlying permission that
+     * has not been resolved.
+     *
+     * @return the target name of the underlying permission that
+     *		has not been resolved, or <code>null</code>,
+     *		if there is no targe name
+     *
+     * @since 1.5
+     */
+    public String getUnresolvedName() {
+	return name;
+    }
+
+    /**
+     * Get the actions for the underlying permission that
+     * has not been resolved.
+     *
+     * @return the actions for the underlying permission that
+     *		has not been resolved, or <code>null</code>
+     *		if there are no actions
+     *
+     * @since 1.5
+     */
+    public String getUnresolvedActions() {
+	return actions;
+    }
+
+    /**
+     * Get the signer certificates (without any supporting chain)
+     * for the underlying permission that has not been resolved.
+     *
+     * @return the signer certificates for the underlying permission that
+     * has not been resolved, or null, if there are no signer certificates.
+     * Returns a new array each time this method is called.
+     *
+     * @since 1.5
+     */
+    public java.security.cert.Certificate[] getUnresolvedCerts() {
+        return (certs == null) ? null :
+                 (java.security.cert.Certificate[])certs.clone();
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)UnixPrincipal.java	1.7 03/01/23
+ * @(#)UnixPrincipal.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,6 +25,8 @@ import java.security.Principal;
  * @see javax.security.auth.Subject
  */
 public class UnixPrincipal implements Principal, java.io.Serializable {
+
+    private static final long serialVersionUID = -2951667807323493631L;
 
     /**
      * @serial

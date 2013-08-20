@@ -1,7 +1,7 @@
 /*
- * @(#)HierarchyEvent.java	1.10 03/01/23
+ * @(#)HierarchyEvent.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import java.awt.Container;
  * </code> when the event occurs.
  *
  * @author	David Mendenhall
- * @version	1.10, 01/23/03
+ * @version	1.12, 12/19/03
  * @see		HierarchyListener
  * @see		HierarchyBoundsAdapter
  * @see		HierarchyBoundsListener
@@ -135,7 +135,9 @@ public class HierarchyEvent extends AWTEvent {
      * Constructs an <code>HierarchyEvent</code> object to identify a
      * change in the <code>Component</code> hierarchy.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source          the <code>Component</code> object that
      *                        originated the event
@@ -145,6 +147,7 @@ public class HierarchyEvent extends AWTEvent {
      * @param changedParent   the parent of <code>changed</code>; this
      *                        may be the parent before or after the
      *                        change, depending on the type of change
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public HierarchyEvent(Component source, int id, Component changed,
 			  Container changedParent) {
@@ -157,7 +160,9 @@ public class HierarchyEvent extends AWTEvent {
      * Constructs an <code>HierarchyEvent</code> object to identify
      * a change in the <code>Component</code> hierarchy.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source          the <code>Component</code> object that
      *                        originated the event
@@ -170,6 +175,7 @@ public class HierarchyEvent extends AWTEvent {
      * @param changeFlags     a bitmask which indicates the type(s) of
      *                        <code>HIERARCHY_CHANGED</code> events
      *                        represented in this event object
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public HierarchyEvent(Component source, int id, Component changed,
 			  Container changedParent, long changeFlags) {

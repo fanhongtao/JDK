@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEvent.java	1.52 05/08/30
+ * @(#)AWTEvent.java	1.55 04/06/02
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -52,7 +52,7 @@ import java.lang.reflect.Field;
  *
  * @author Carl Quinn
  * @author Amy Fowler
- * @version 1.52 08/30/05
+ * @version 1.55 06/02/04
  * @since 1.1
  */
 public abstract class AWTEvent extends EventObject {
@@ -78,6 +78,7 @@ public abstract class AWTEvent extends EventObject {
     protected boolean consumed = false;
   
     transient boolean focusManagerIsDispatching = false;
+    transient boolean isPosted;
  
     /**
      * The event mask for selecting component events.
@@ -190,7 +191,7 @@ public abstract class AWTEvent extends EventObject {
      */
     public final static int RESERVED_ID_MAX = 1999;
 
-    //security stuff
+    // security stuff
     private static Field inputEvent_CanAccessSystemClipboard_Field = null;
 
     /*
@@ -500,29 +501,29 @@ public abstract class AWTEvent extends EventObject {
      */
     void copyPrivateDataInto(AWTEvent that) {
 	that.bdata = this.bdata;
-          // Copy canAccessSystemClipboard value from this into that.
-          if (this instanceof InputEvent && that instanceof InputEvent) {
-              Field field = get_InputEvent_CanAccessSystemClipboard();
-              if (field != null) { 
-                  try {
-                      boolean b = field.getBoolean(this);
-                      field.setBoolean(that, b);
-                  } catch(IllegalAccessException e) {
-                    } 
-              }
-          }
-      }
-    
-      void dispatched() {
-          if (this instanceof InputEvent) {
-              Field field = get_InputEvent_CanAccessSystemClipboard();
-              if (field != null) { 
-                  try {
-                      field.setBoolean(this, false);
-                  } catch(IllegalAccessException e) {
-                  } 
-              }
-          }
-      }         
+        // Copy canAccessSystemClipboard value from this into that.
+        if (this instanceof InputEvent && that instanceof InputEvent) {
+            Field field = get_InputEvent_CanAccessSystemClipboard();
+            if (field != null) { 
+                try {
+                    boolean b = field.getBoolean(this);
+                    field.setBoolean(that, b);
+                } catch(IllegalAccessException e) {
+                } 
+            }
+        }
+    }
+
+    void dispatched() {
+        if (this instanceof InputEvent) {
+            Field field = get_InputEvent_CanAccessSystemClipboard();
+            if (field != null) { 
+                try {
+                    field.setBoolean(this, false);
+                } catch(IllegalAccessException e) {
+                } 
+            }
+        }
+    }            
 } // class AWTEvent
 

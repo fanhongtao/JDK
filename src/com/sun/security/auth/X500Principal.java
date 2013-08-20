@@ -1,7 +1,7 @@
 /*
- * @(#)X500Principal.java	1.9 03/01/23
+ * @(#)X500Principal.java	1.12 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import sun.security.x509.X500Name;
  * on how to achieve this.  Authorization decisions can then be based upon 
  * the Principals associated with a <code>Subject</code>.
  * 
- * @version 1.9, 01/23/03
+ * @version 1.12, 05/18/04
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  * @deprecated A new X500Principal class is available in the Java 2 platform.
@@ -32,8 +32,10 @@ import sun.security.x509.X500Name;
  *             class.
  * @see javax.security.auth.x500.X500Principal
 */
-
+@Deprecated
 public class X500Principal implements Principal, java.io.Serializable {
+
+    private static final long serialVersionUID = -8222422609431628648L;
 
     private static final java.util.ResourceBundle rb =
           (java.util.ResourceBundle)java.security.AccessController.doPrivileged

@@ -1,7 +1,7 @@
 /*
- * @(#)JPanel.java	1.44 03/01/23
+ * @(#)JPanel.java	1.46 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -36,7 +36,7 @@ import java.io.IOException;
  * @beaninfo
  * description: A generic lightweight container.
  * 
- * @version 1.44 01/23/03
+ * @version 1.46 12/19/03
  * @author Arnaud Weber
  * @author Steve Wilson
  */
@@ -60,7 +60,7 @@ public class JPanel extends JComponent implements Accessible
     public JPanel(LayoutManager layout, boolean isDoubleBuffered) {
         setLayout(layout);
         setDoubleBuffered(isDoubleBuffered);
-        setOpaque(true);
+        setUIProperty("opaque", Boolean.TRUE);
         updateUI();
     }
 

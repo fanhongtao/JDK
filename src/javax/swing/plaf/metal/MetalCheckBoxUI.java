@@ -1,7 +1,7 @@
 /*
- * @(#)MetalCheckBoxUI.java	1.17 03/01/23
+ * @(#)MetalCheckBoxUI.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 01/23/03
+ * @version 1.18 12/19/03
  * @author Michael C. Albers
  *
  */

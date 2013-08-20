@@ -1,7 +1,7 @@
 /*
- * @(#)SolarisNumericGroupPrincipal.java	1.14 03/01/23
+ * @(#)SolarisNumericGroupPrincipal.java	1.17 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,13 +24,16 @@ import java.security.Principal;
  * 	       {@link UnixNumericGroupPrincipal}.
  *             This class is entirely deprecated.
  * 
- * @version 1.14, 01/23/03
+ * @version 1.17, 05/18/04
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */
+@Deprecated
 public class SolarisNumericGroupPrincipal implements
 					Principal,
 					java.io.Serializable {
+
+    private static final long serialVersionUID = 2345199581042573224L;
 
     private static final java.util.ResourceBundle rb =
           (java.util.ResourceBundle)java.security.AccessController.doPrivileged

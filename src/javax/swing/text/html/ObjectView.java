@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectView.java	1.11 03/01/23
+ * @(#)ObjectView.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -21,7 +21,7 @@ import java.lang.reflect.*;
  * <code>classid</code> attribute.  If possible, the Classloader
  * used to load the associated Document is used.
  * This would typically be the same as the ClassLoader
- * used to load the EditorKit.  If the documents
+ * used to load the EditorKit.  If the document's
  * ClassLoader is null, <code>Class.forName</code> is used.
  * <p>
  * If the class can successfully be loaded, an attempt will
@@ -40,17 +40,15 @@ import java.lang.reflect.*;
  * set the parameter.  Currently, this is limited to a very
  * simple single parameter of type String.
  * <p>
- * A simple example html invocation is:
- * <pre><code>
-
-       <object classid="javax.swing.JLabel">
-       <param name="text" value="sample text">
-       </object>
-
- * </code></pre>
+ * A simple example HTML invocation is:
+ * <pre>
+ *      &lt;object classid="javax.swing.JLabel"&gt;
+ *      &lt;param name="text" value="sample text"&gt;
+ *      &lt;/object&gt;
+ * </pre>
  *
  * @author Timothy Prinzing
- * @version 1.11 01/23/03
+ * @version 1.13 12/19/03
  */
 public class ObjectView extends ComponentView  {
 

@@ -1,7 +1,7 @@
 /*
- * @(#)JSpinner.java	1.29 03/01/23
+ * @(#)JSpinner.java	1.38 04/05/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,6 +20,9 @@ import java.beans.*;
 import java.text.*;
 import java.io.*;
 import java.util.HashMap;
+import sun.text.resources.LocaleData;
+
+import javax.accessibility.*;
 
 
 /**
@@ -45,7 +48,29 @@ import java.util.HashMap;
  * the model, which is called the <code>editor</code>.  The editor is created
  * by the <code>JSpinner</code>'s constructor and can be changed with the 
  * <code>editor</code> property.  The <code>JSpinner</code>'s editor stays
- * in sync with the model by listening for <code>ChangeEvent</code>s.
+ * in sync with the model by listening for <code>ChangeEvent</code>s. If the 
+ * user has changed the value displayed by the <code>editor</code> it is
+ * possible for the <code>model</code>'s value to differ from that of
+ * the <code>editor</code>. To make sure the <code>model</code> has the same
+ * value as the editor use the <code>commitEdit</code> method, eg:
+ * <pre>
+ *   try {
+ *       spinner.commitEdit();
+ *   }
+ *   catch (ParseException pe) {{
+ *       // Edited value is invalid, spinner.getValue() will return
+ *       // the last valid value, you could revert the spinner to show that:
+ *       JComponent editor = spinner.getEditor()
+ *       if (editor instanceof DefaultEditor) {
+ *           ((DefaultEditor)editor).getTextField().setValue(spinner.getValue();
+ *       }
+ *       // reset the value to some known value:
+ *       spinner.setValue(fallbackValue);
+ *       // or treat the last valid value as the current, in which
+ *       // case you don't need to do anything.
+ *   }
+ *   return spinner.getValue();
+ * </pre>
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -68,11 +93,12 @@ import java.util.HashMap;
  * @see SpinnerDateModel
  * @see JFormattedTextField
  * 
- * @version 1.29 01/23/03
+ * @version 1.38 05/12/04
  * @author Hans Muller
+ * @author Lynn Monsanto (accessibility)
  * @since 1.4
  */
-public class JSpinner extends JComponent
+public class JSpinner extends JComponent implements Accessible
 {
     /**
      * @see #getUIClassID
@@ -254,7 +280,11 @@ public class JSpinner extends JComponent
 
     /**
      * Returns the current value of the model, typically
-     * this value is displayed by the <code>editor</code>. 
+     * this value is displayed by the <code>editor</code>. If the 
+     * user has changed the value displayed by the <code>editor</code> it is
+     * possible for the <code>model</code>'s value to differ from that of
+     * the <code>editor</code>, refer to the class level javadoc for examples
+     * of how to deal with this.
      * <p>
      * This method simply delegates to the <code>model</code>.  
      * It is equivalent to:
@@ -575,9 +605,15 @@ public class JSpinner extends JComponent
 	    super(null);
 
 	    JFormattedTextField ftf = new JFormattedTextField();
+            ftf.setName("Spinner.formattedTextField");
 	    ftf.setValue(spinner.getValue());
 	    ftf.addPropertyChangeListener(this);
 	    ftf.setEditable(false);
+
+	    String toolTipText = spinner.getToolTipText();
+	    if (toolTipText != null) {
+		ftf.setToolTipText(toolTipText);
+	    }
 
 	    add(ftf);
 	    
@@ -853,6 +889,16 @@ public class JSpinner extends JComponent
     // PENDING(hmuller): more example javadoc
     public static class DateEditor extends DefaultEditor 
     {
+        // This is here until SimpleDateFormat gets a constructor that
+        // takes a Locale: 4923525
+        private static String getDefaultPattern(Locale loc) {
+            ResourceBundle r = LocaleData.getLocaleElements(loc);
+            String[] dateTimePatterns = r.getStringArray("DateTimePatterns");
+	    Object[] dateTimeArgs = {dateTimePatterns[DateFormat.SHORT],
+				     dateTimePatterns[DateFormat.SHORT + 4]};
+            return MessageFormat.format(dateTimePatterns[8], dateTimeArgs);
+        }
+
 	/**
 	 * Construct a <code>JSpinner</code> editor that supports displaying
 	 * and editing the value of a <code>SpinnerDateModel</code> 
@@ -870,7 +916,7 @@ public class JSpinner extends JComponent
 	 * @see SpinnerDateModel
 	 */
 	public DateEditor(JSpinner spinner) {
-            this(spinner, new SimpleDateFormat());
+            this(spinner, getDefaultPattern(spinner.getLocale()));
 	}
 
 
@@ -895,7 +941,8 @@ public class JSpinner extends JComponent
          * @see java.text.SimpleDateFormat
 	 */
 	public DateEditor(JSpinner spinner, String dateFormatPattern) {
-	    this(spinner, new SimpleDateFormat(dateFormatPattern));
+	    this(spinner, new SimpleDateFormat(dateFormatPattern,
+                                               spinner.getLocale()));
 	}
 
 	/**
@@ -1019,6 +1066,15 @@ public class JSpinner extends JComponent
     // PENDING(hmuller): more example javadoc
     public static class NumberEditor extends DefaultEditor 
     {
+        // This is here until DecimalFormat gets a constructor that
+        // takes a Locale: 4923525
+        private static String getDefaultPattern(Locale locale) {
+            // Get the pattern for the default locale.
+            ResourceBundle rb = LocaleData.getLocaleElements(locale);
+            String[] all = rb.getStringArray("NumberPatterns");
+            return all[0];
+        }
+
 	/**
 	 * Construct a <code>JSpinner</code> editor that supports displaying
 	 * and editing the value of a <code>SpinnerNumberModel</code> 
@@ -1036,7 +1092,7 @@ public class JSpinner extends JComponent
 	 * @see SpinnerNumberModel
 	 */
 	public NumberEditor(JSpinner spinner) {
-            this(spinner, new DecimalFormat());
+            this(spinner, getDefaultPattern(spinner.getLocale()));
         }
 
 	/**
@@ -1119,7 +1175,7 @@ public class JSpinner extends JComponent
 
 
 	/**
-	 * Returns the <code>java.text.NumberFormat</code> object the
+	 * Returns the <code>java.text.DecimalFormat</code> object the
 	 * <code>JFormattedTextField</code> uses to parse and format
 	 * numbers.  
 	 * 
@@ -1271,4 +1327,651 @@ public class JSpinner extends JComponent
         public void actionPerformed(ActionEvent ae) {
         }
     }
+
+    /////////////////
+    // Accessibility support
+    ////////////////
+	
+    /**
+     * Gets the <code>AccessibleContext<code> for the <code>JSpinner</code>
+     *
+     * @return the <code>AccessibleContext</code> for the <code>JSpinner</code>
+     * @since 1.5 
+     */
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessibleJSpinner();
+        }
+        return accessibleContext;
+    }
+    
+    /**
+     * <code>AccessibleJSpinner</code> implements accessibility 
+     * support for the <code>JSpinner</code> class. 
+     * @since 1.5 
+     */
+    protected class AccessibleJSpinner extends AccessibleJComponent
+        implements AccessibleValue, AccessibleAction, AccessibleText, 
+		   AccessibleEditableText, ChangeListener {
+
+	private Object oldModelValue = null;
+
+	/**
+	 * AccessibleJSpinner constructor
+	 */
+	protected AccessibleJSpinner() {
+	    // model is guaranteed to be non-null
+	    oldModelValue = model.getValue();
+	    JSpinner.this.addChangeListener(this);
+	}
+
+	/**
+         * Invoked when the target of the listener has changed its state.
+         *
+         * @param e  a <code>ChangeEvent</code> object. Must not be null.
+	 * @throws NullPointerException if the parameter is null.
+	 */  
+	public void stateChanged(ChangeEvent e) {
+	    if (e == null) {
+		throw new NullPointerException();
+	    }
+	    Object newModelValue = model.getValue();
+	    firePropertyChange(ACCESSIBLE_VALUE_PROPERTY, 
+			       oldModelValue, 
+			       newModelValue);
+	    firePropertyChange(ACCESSIBLE_TEXT_PROPERTY, 
+			       null, 
+			       0); // entire text may have changed
+	    
+	    oldModelValue = newModelValue;
+	}
+
+	/* ===== Begin AccessibleContext methods ===== */
+
+	/**
+	 * Gets the role of this object.  The role of the object is the generic
+	 * purpose or use of the class of this object.  For example, the role
+	 * of a push button is AccessibleRole.PUSH_BUTTON.  The roles in 
+	 * AccessibleRole are provided so component developers can pick from
+	 * a set of predefined roles.  This enables assistive technologies to
+	 * provide a consistent interface to various tweaked subclasses of 
+	 * components (e.g., use AccessibleRole.PUSH_BUTTON for all components
+	 * that act like a push button) as well as distinguish between sublasses
+	 * that behave differently (e.g., AccessibleRole.CHECK_BOX for check boxes
+	 * and AccessibleRole.RADIO_BUTTON for radio buttons).
+	 * <p>Note that the AccessibleRole class is also extensible, so 
+	 * custom component developers can define their own AccessibleRole's
+	 * if the set of predefined roles is inadequate.
+	 *
+	 * @return an instance of AccessibleRole describing the role of the object
+	 * @see AccessibleRole
+	 */
+	public AccessibleRole getAccessibleRole() {
+	    return AccessibleRole.SPIN_BOX;
+	}
+    
+	/**
+	 * Returns the number of accessible children of the object.
+	 *
+	 * @return the number of accessible children of the object.
+	 */
+	public int getAccessibleChildrenCount() {
+	    // the JSpinner has one child, the editor
+	    if (editor.getAccessibleContext() != null) {
+		return 1;
+	    }
+	    return 0;
+	}
+
+	/**
+	 * Returns the specified Accessible child of the object.  The Accessible
+	 * children of an Accessible object are zero-based, so the first child 
+	 * of an Accessible child is at index 0, the second child is at index 1,
+	 * and so on.
+	 *
+	 * @param i zero-based index of child
+	 * @return the Accessible child of the object
+	 * @see #getAccessibleChildrenCount
+	 */
+	public Accessible getAccessibleChild(int i) {
+	    // the JSpinner has one child, the editor
+	    if (i != 0) {
+		return null;
+	    }
+	    if (editor.getAccessibleContext() != null) {
+		return (Accessible)editor;
+	    } 
+	    return null;
+	}
+
+	/* ===== End AccessibleContext methods ===== */
+
+	/**
+	 * Gets the AccessibleAction associated with this object that supports
+	 * one or more actions. 
+	 *
+	 * @return AccessibleAction if supported by object; else return null
+	 * @see AccessibleAction
+	 */
+	public AccessibleAction getAccessibleAction() {
+	    return this;
+	}
+	
+	/**
+	 * Gets the AccessibleText associated with this object presenting 
+	 * text on the display.
+	 *
+	 * @return AccessibleText if supported by object; else return null
+	 * @see AccessibleText
+	 */
+	public AccessibleText getAccessibleText() {
+	    return this;
+	}
+
+	/*
+	 * Returns the AccessibleContext for the JSpinner editor
+	 */
+	private AccessibleContext getEditorAccessibleContext() {
+	    if (editor instanceof DefaultEditor) {
+		JTextField textField = ((DefaultEditor)editor).getTextField();
+		if (textField != null) {
+		    return textField.getAccessibleContext();
+		}
+	    } else if (editor instanceof Accessible) {
+		return ((Accessible)editor).getAccessibleContext();
+	    }
+	    return null;
+	}
+
+	/*
+	 * Returns the AccessibleText for the JSpinner editor
+	 */
+	private AccessibleText getEditorAccessibleText() {
+	    AccessibleContext ac = getEditorAccessibleContext();
+	    if (ac != null) {
+		return ac.getAccessibleText();
+	    }
+	    return null;
+	}
+
+	/*
+	 * Returns the AccessibleExtendedText for the JSpinner editor
+	 */
+	private AccessibleEditableText getEditorAccessibleEditableText() {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at instanceof AccessibleEditableText) {
+		return (AccessibleEditableText)at;
+	    }
+	    return null;
+	}
+
+	/**
+	 * Gets the AccessibleValue associated with this object. 
+	 * 
+	 * @return AccessibleValue if supported by object; else return null 
+	 * @see AccessibleValue
+	 *
+	 */
+	public AccessibleValue getAccessibleValue() {
+	    return this;
+	}
+
+	/* ===== Begin AccessibleValue impl ===== */
+
+	/**
+	 * Get the value of this object as a Number.  If the value has not been
+	 * set, the return value will be null.
+	 *
+	 * @return value of the object
+	 * @see #setCurrentAccessibleValue
+	 */
+	public Number getCurrentAccessibleValue() {
+	    Object o = model.getValue();
+	    if (o instanceof Number) {
+		return (Number)o;
+	    }
+	    return null;
+	}
+	
+	/**
+	 * Set the value of this object as a Number.
+	 *
+	 * @param n the value to set for this object
+	 * @return true if the value was set; else False
+	 * @see #getCurrentAccessibleValue
+	 */
+	public boolean setCurrentAccessibleValue(Number n) {
+	    // try to set the new value
+	    try {
+		model.setValue(n);
+		return true;
+	    } catch (IllegalArgumentException iae) {
+		// SpinnerModel didn't like new value
+	    }
+	    return false;
+	}
+	
+	/**
+	 * Get the minimum value of this object as a Number.
+	 *
+	 * @return Minimum value of the object; null if this object does not 
+	 * have a minimum value
+	 * @see #getMaximumAccessibleValue
+	 */
+	public Number getMinimumAccessibleValue() {
+	    if (model instanceof SpinnerNumberModel) {
+		SpinnerNumberModel numberModel = (SpinnerNumberModel)model;
+		Object o = numberModel.getMinimum();
+		if (o instanceof Number) {
+		    return (Number)o;
+		}
+	    }
+	    return null;		
+	}
+	
+	/**
+	 * Get the maximum value of this object as a Number.
+	 *
+	 * @return Maximum value of the object; null if this object does not 
+	 * have a maximum value
+	 * @see #getMinimumAccessibleValue
+	 */
+	public Number getMaximumAccessibleValue() {
+	    if (model instanceof SpinnerNumberModel) {
+		SpinnerNumberModel numberModel = (SpinnerNumberModel)model;
+		Object o = numberModel.getMaximum();
+		if (o instanceof Number) {
+		    return (Number)o;
+		}
+	    }
+	    return null;
+	}
+	
+	/* ===== End AccessibleValue impl ===== */
+
+	/* ===== Begin AccessibleAction impl ===== */
+
+	/**
+	 * Returns the number of accessible actions available in this object
+	 * If there are more than one, the first one is considered the "default"
+	 * action of the object.
+	 *
+	 * Two actions are supported: AccessibleAction.INCREMENT which
+	 * increments the spinner value and AccessibleAction.DECREMENT 
+	 * which decrements the spinner value
+	 *
+	 * @return the zero-based number of Actions in this object
+	 */
+	public int getAccessibleActionCount() {
+	    return 2;
+	}
+	
+	/**
+	 * Returns a description of the specified action of the object.
+	 *
+	 * @param i zero-based index of the actions
+	 * @return a String description of the action
+	 * @see #getAccessibleActionCount
+	 */
+	public String getAccessibleActionDescription(int i) {
+	    if (i == 0) {
+		return AccessibleAction.INCREMENT;
+	    } else if (i == 1) {
+		return AccessibleAction.DECREMENT;
+	    }
+	    return null;
+	}
+	
+	/**
+	 * Performs the specified Action on the object
+	 *
+	 * @param i zero-based index of actions. The first action
+	 * (index 0) is AccessibleAction.INCREMENT and the second
+	 * action (index 1) is AccessibleAction.DECREMENT.
+	 * @return true if the action was performed; otherwise false.
+	 * @see #getAccessibleActionCount
+	 */
+	public boolean doAccessibleAction(int i) {
+	    if (i < 0 || i > 1) {
+		return false;
+	    }
+	    Object o = null;
+	    if (i == 0) {
+		o = getNextValue(); // AccessibleAction.INCREMENT
+	    } else {
+		o = getPreviousValue();	// AccessibleAction.DECREMENT
+	    }
+	    // try to set the new value
+	    try {
+		model.setValue(o);
+		return true;
+	    } catch (IllegalArgumentException iae) {
+		// SpinnerModel didn't like new value
+	    }
+	    return false;
+	}
+
+	/* ===== End AccessibleAction impl ===== */
+
+	/* ===== Begin AccessibleText impl ===== */
+
+	/*
+	 * Returns whether source and destination components have the
+	 * same window ancestor
+	 */
+	private boolean sameWindowAncestor(Component src, Component dest) {
+	    if (src == null || dest == null) {
+		return false;
+	    }
+	    return SwingUtilities.getWindowAncestor(src) ==
+		SwingUtilities.getWindowAncestor(dest);
+	}
+
+	/**
+	 * Given a point in local coordinates, return the zero-based index
+	 * of the character under that Point.  If the point is invalid,
+	 * this method returns -1.
+	 *
+	 * @param p the Point in local coordinates
+	 * @return the zero-based index of the character under Point p; if 
+	 * Point is invalid return -1.
+	 */
+	public int getIndexAtPoint(Point p) {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null && sameWindowAncestor(JSpinner.this, editor)) {
+		// convert point from the JSpinner bounds (source) to 
+		// editor bounds (destination)
+		Point editorPoint = SwingUtilities.convertPoint(JSpinner.this,
+								p,
+								editor);
+		if (editorPoint != null) {
+		    return at.getIndexAtPoint(editorPoint);
+		}
+	    }
+	    return -1;
+	}
+
+	/**
+	 * Determines the bounding box of the character at the given 
+	 * index into the string.  The bounds are returned in local
+	 * coordinates.  If the index is invalid an empty rectangle is 
+	 * returned.
+	 *
+	 * @param i the index into the String
+	 * @return the screen coordinates of the character's bounding box,
+	 * if index is invalid return an empty rectangle.
+	 */
+	public Rectangle getCharacterBounds(int i) {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null ) {
+		Rectangle editorRect = at.getCharacterBounds(i);
+		if (editorRect != null && 
+		    sameWindowAncestor(JSpinner.this, editor)) {
+		    // return rectangle in the the JSpinner bounds
+		    return SwingUtilities.convertRectangle(editor,
+							   editorRect,
+							   JSpinner.this);
+		}
+	    }
+	    return null;
+	}
+
+	/**
+	 * Returns the number of characters (valid indicies) 
+	 *
+	 * @return the number of characters
+	 */
+	public int getCharCount() {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getCharCount();
+	    }
+	    return -1;
+	}
+
+	/**
+	 * Returns the zero-based offset of the caret.
+	 *
+	 * Note: That to the right of the caret will have the same index
+	 * value as the offset (the caret is between two characters).
+	 * @return the zero-based offset of the caret.
+	 */
+	public int getCaretPosition() {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getCaretPosition();
+	    }
+	    return -1;
+	}
+
+	/**
+	 * Returns the String at a given index. 
+	 *
+	 * @param part the CHARACTER, WORD, or SENTENCE to retrieve
+	 * @param index an index within the text
+	 * @return the letter, word, or sentence
+	 */
+	public String getAtIndex(int part, int index) {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getAtIndex(part, index);
+	    }
+	    return null;
+	}
+
+	/**
+	 * Returns the String after a given index.
+	 *
+	 * @param part the CHARACTER, WORD, or SENTENCE to retrieve
+	 * @param index an index within the text
+	 * @return the letter, word, or sentence
+	 */
+	public String getAfterIndex(int part, int index) {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getAfterIndex(part, index);
+	    }
+	    return null;
+	}
+
+	/**
+	 * Returns the String before a given index.
+	 *
+	 * @param part the CHARACTER, WORD, or SENTENCE to retrieve
+	 * @param index an index within the text
+	 * @return the letter, word, or sentence
+	 */
+	public String getBeforeIndex(int part, int index) {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getBeforeIndex(part, index);
+	    }
+	    return null;
+	}
+
+	/**
+	 * Returns the AttributeSet for a given character at a given index
+	 *
+	 * @param i the zero-based index into the text 
+	 * @return the AttributeSet of the character
+	 */
+	public AttributeSet getCharacterAttribute(int i) {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getCharacterAttribute(i);
+	    } 
+	    return null;
+	}
+
+	/**
+	 * Returns the start offset within the selected text.
+	 * If there is no selection, but there is
+	 * a caret, the start and end offsets will be the same.
+	 *
+	 * @return the index into the text of the start of the selection
+	 */
+	public int getSelectionStart() {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getSelectionStart();
+	    }
+	    return -1;
+	}
+
+	/**
+	 * Returns the end offset within the selected text.
+	 * If there is no selection, but there is
+	 * a caret, the start and end offsets will be the same.
+	 *
+	 * @return the index into teh text of the end of the selection
+	 */
+	public int getSelectionEnd() {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getSelectionEnd();
+	    } 
+	    return -1;
+	}
+
+	/**
+	 * Returns the portion of the text that is selected. 
+	 *
+	 * @return the String portion of the text that is selected
+	 */
+	public String getSelectedText() {
+	    AccessibleText at = getEditorAccessibleText();
+	    if (at != null) {
+		return at.getSelectedText();
+	    }
+	    return null;
+	}
+
+	/* ===== End AccessibleText impl ===== */
+
+
+	/* ===== Begin AccessibleEditableText impl ===== */
+
+	/**
+	 * Sets the text contents to the specified string.
+	 *
+	 * @param s the string to set the text contents
+	 */
+	public void setTextContents(String s) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.setTextContents(s);
+	    }
+	}
+
+	/**
+	 * Inserts the specified string at the given index/
+	 *
+	 * @param index the index in the text where the string will 
+	 * be inserted
+	 * @param s the string to insert in the text
+	 */
+	public void insertTextAtIndex(int index, String s) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.insertTextAtIndex(index, s);
+	    }
+	}
+
+	/**
+	 * Returns the text string between two indices.
+	 * 
+	 * @param startIndex the starting index in the text
+	 * @param endIndex the ending index in the text
+	 * @return the text string between the indices
+	 */
+	public String getTextRange(int startIndex, int endIndex) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		return at.getTextRange(startIndex, endIndex);
+	    }
+	    return null;
+	}
+
+	/**
+	 * Deletes the text between two indices
+	 *
+	 * @param startIndex the starting index in the text
+	 * @param endIndex the ending index in the text
+	 */
+	public void delete(int startIndex, int endIndex) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.delete(startIndex, endIndex);
+	    }
+	}
+
+	/**
+	 * Cuts the text between two indices into the system clipboard.
+	 *
+	 * @param startIndex the starting index in the text
+	 * @param endIndex the ending index in the text
+	 */
+	public void cut(int startIndex, int endIndex) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.cut(startIndex, endIndex);
+	    }
+	}
+
+	/**
+	 * Pastes the text from the system clipboard into the text
+	 * starting at the specified index.
+	 *
+	 * @param startIndex the starting index in the text
+	 */
+	public void paste(int startIndex) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.paste(startIndex);
+	    }
+	}
+
+	/**
+	 * Replaces the text between two indices with the specified
+	 * string.
+	 *
+	 * @param startIndex the starting index in the text
+	 * @param endIndex the ending index in the text
+	 * @param s the string to replace the text between two indices
+	 */
+	public void replaceText(int startIndex, int endIndex, String s) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.replaceText(startIndex, endIndex, s);
+	    }
+	}
+
+	/**
+	 * Selects the text between two indices.
+	 *
+	 * @param startIndex the starting index in the text
+	 * @param endIndex the ending index in the text
+	 */
+	public void selectText(int startIndex, int endIndex) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.selectText(startIndex, endIndex);
+	    }
+	}
+
+	/**
+	 * Sets attributes for the text between two indices.
+	 *
+	 * @param startIndex the starting index in the text
+	 * @param endIndex the ending index in the text
+	 * @param as the attribute set
+	 * @see AttributeSet
+	 */
+	public void setAttributes(int startIndex, int endIndex, AttributeSet as) {
+	    AccessibleEditableText at = getEditorAccessibleEditableText();
+	    if (at != null) {
+		at.setAttributes(startIndex, endIndex, as);
+	    }
+	}
+    }  /* End AccessibleJSpinner */
 }

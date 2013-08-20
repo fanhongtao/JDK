@@ -1,7 +1,7 @@
 /*
- * @(#)ResolutionSyntax.java	1.5 03/01/23
+ * @(#)ResolutionSyntax.java	1.7 04/01/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -66,6 +66,8 @@ import java.io.Serializable;
  * @author  Alan Kaminsky
  */
 public abstract class ResolutionSyntax implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = 2706743076526672017L;
 
     /**
      * Cross feed direction resolution in units of dots per 100 inches (dphi).

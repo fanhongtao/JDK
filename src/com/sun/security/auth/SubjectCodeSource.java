@@ -1,7 +1,7 @@
 /*
- * @(#)SubjectCodeSource.java	1.19 03/01/23
+ * @(#)SubjectCodeSource.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,9 +24,11 @@ import javax.security.auth.Subject;
  * or a linked list of Principals/PrincipalComparators
  * (that represent a "subject" in a <code>Policy</code>).
  *
- * @version 1.19, 01/23/03
+ * @version 1.21, 12/19/03
  */
 class SubjectCodeSource extends CodeSource implements java.io.Serializable {
+
+    private static final long serialVersionUID = 6039418085604715275L;
 
     private static final java.util.ResourceBundle rb =
           (java.util.ResourceBundle)java.security.AccessController.doPrivileged

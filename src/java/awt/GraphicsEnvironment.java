@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsEnvironment.java	1.55 03/01/23
+ * @(#)GraphicsEnvironment.java	1.62 04/04/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * <code>GraphicsDevice</code> can be used.  
  * @see GraphicsDevice
  * @see GraphicsConfiguration
- * @version 	1.55, 01/23/03
+ * @version 	1.62, 04/13/04
  */
 
 public abstract class GraphicsEnvironment {
@@ -40,6 +40,11 @@ public abstract class GraphicsEnvironment {
      * The headless state of the Toolkit and GraphicsEnvironment
      */
     private static Boolean headless;
+
+    /**
+     * The headless state assumed by default
+     */
+    private static Boolean defaultHeadless;
 
     /**
      * This is an abstract class and cannot be instantiated directly.
@@ -59,8 +64,11 @@ public abstract class GraphicsEnvironment {
 		 ("java.awt.graphicsenv", null));
 
 	    try {
+// 			long t0 = System.currentTimeMillis();
 		localEnv =
 		    (GraphicsEnvironment) Class.forName(nm).newInstance();
+// 		long t1 = System.currentTimeMillis();
+// 		System.out.println("GE creation took " + (t1-t0)+ "ms.");
                 if (isHeadless()) {
                     localEnv = new HeadlessGraphicsEnvironment(localEnv);
                 }
@@ -90,8 +98,22 @@ public abstract class GraphicsEnvironment {
      * @see java.awt.HeadlessException
      * @since 1.4
      */
-    public static boolean isHeadless() {
+    public static boolean isHeadless() {   
         return getHeadlessProperty();
+    }
+
+    /**
+     * @return warning message if headless state is assumed by default;
+     * null otherwise
+     * @since 1.5
+     */
+    static String getHeadlessMessage() {
+        if (headless == null) {
+            getHeadlessProperty(); // initialize the values 
+        }
+        return defaultHeadless != Boolean.TRUE ? null :
+            "\nNo X11 DISPLAY variable was set, " +
+            "but this program performed an operation which requires it.";
     }
 
     /**
@@ -100,14 +122,30 @@ public abstract class GraphicsEnvironment {
      */
     private static boolean getHeadlessProperty() {
         if (headless == null) {
-            String nm = (String)java.security.AccessController.doPrivileged(
-                new sun.security.action.GetPropertyAction(
-                    "java.awt.headless", "false"));
-            if (nm.equals("true")) {
-                headless = Boolean.TRUE;
-            } else {
-                headless = Boolean.FALSE;
-            }
+            java.security.AccessController.doPrivileged(
+            new java.security.PrivilegedAction() {
+                public Object run() {
+                    String nm = System.getProperty("java.awt.headless");
+                    
+                    if (nm == null) {
+                        /* No need to ask for DISPLAY when run in a browser */
+                        if (System.getProperty("javaplugin.version") != null) {
+                            headless = defaultHeadless = Boolean.FALSE; 
+                        } else {
+                            String osName = System.getProperty("os.name");                        
+                            headless = defaultHeadless =
+                                Boolean.valueOf(("Linux".equals(osName) || "SunOS".equals(osName)) &&
+                                                (System.getenv("DISPLAY") == null));
+                        }
+                    } else if (nm.equals("true")) {
+                        headless = Boolean.TRUE;
+                    } else {
+                        headless = Boolean.FALSE;
+                    }
+                    return null;
+                }
+                }
+            );
         }
         return headless.booleanValue();
     }
@@ -200,20 +238,19 @@ public abstract class GraphicsEnvironment {
     public abstract Font[] getAllFonts();
 
     /**
-     * Returns an array containing the names of all font families available
-     * in this <code>GraphicsEnvironment</code>.
-     * Typical usage would be to allow a user to select a particular family
-     * name and allow the application to choose related variants of the
-     * same family when the user specifies style attributes such
-     * as Bold or Italic.
+     * Returns an array containing the names of all font families in this
+     * <code>GraphicsEnvironment</code> localized for the default locale,
+     * as returned by <code>Locale.getDefault()</code>.
      * <p>
-     * This method provides for the application some control over which
-     * <code>Font</code> instance is used to render text, but allows the 
-     * <code>Font</code> object more flexibility in choosing its own best
+     * Typical usage would be for presentation to a user for selection of
+     * a particular family name. An application can then specify this name
+     * when creating a font, in conjunction with a style, such as bold or
+     * italic, giving the font system flexibility in choosing its own best
      * match among multiple fonts in the same font family.
      *
-     * @return an array of <code>String</code> containing names of font
-     * families
+     * @return an array of <code>String</code> containing font family names
+     * localized for the default locale, or a suitable alternative
+     * name if no name exists for this locale.
      * @see #getAllFonts
      * @see java.awt.Font
      * @see java.awt.Font#getFamily
@@ -222,31 +259,72 @@ public abstract class GraphicsEnvironment {
     public abstract String[] getAvailableFontFamilyNames();
 
     /**
-     * Returns an array containing the localized names of all font families
-     * available in this <code>GraphicsEnvironment</code>.
-     * Typical usage would be to allow a user to select a particular family
-     * name and allow the application to choose related variants of the
-     * same family when the user specifies style attributes such
-     * as Bold or Italic.
+     * Returns an array containing the names of all font families in this
+     * <code>GraphicsEnvironment</code> localized for the specified locale.
      * <p>
-     * This method provides for the application some control over which
-     * <code>Font</code> instance used to render text, but allows the 
-     * <code>Font</code> object more flexibility in choosing its own best
+     * Typical usage would be for presentation to a user for selection of
+     * a particular family name. An application can then specify this name
+     * when creating a font, in conjunction with a style, such as bold or
+     * italic, giving the font system flexibility in choosing its own best
      * match among multiple fonts in the same font family.
-     * If <code>l</code> is <code>null</code>, this method returns an 
-     * array containing all font family names available in this
-     * <code>GraphicsEnvironment</code>.
      *
      * @param l a {@link Locale} object that represents a
-     * particular geographical, political, or cultural region
-     * @return an array of <code>String</code> objects containing names of
-     * font families specific to the specified <code>Locale</code>
+     * particular geographical, political, or cultural region.
+     * Specifying <code>null</code> is equivalent to
+     * specifying <code>Locale.getDefault()</code>.
+     * @return an array of <code>String</code> containing font family names
+     * localized for the specified <code>Locale</code>, or a
+     * suitable alternative name if no name exists for the specified locale.
      * @see #getAllFonts
      * @see java.awt.Font
      * @see java.awt.Font#getFamily
      * @since 1.2
      */
     public abstract String[] getAvailableFontFamilyNames(Locale l);
+
+    /**
+     * Indicates a preference for locale-specific fonts in the mapping of
+     * logical fonts to physical fonts. Calling this method indicates that font
+     * rendering should primarily use fonts specific to the primary writing
+     * system (the one indicated by the default encoding and the initial
+     * default locale). For example, if the primary writing system is
+     * Japanese, then characters should be rendered using a Japanese font
+     * if possible, and other fonts should only be used for characters for
+     * which the Japanese font doesn't have glyphs.
+     * <p>
+     * The actual change in font rendering behavior resulting from a call
+     * to this method is implementation dependent; it may have no effect at
+     * all, or the requested behavior may already match the default behavior.
+     * The behavior may differ between font rendering in lightweight
+     * and peered components.  Since calling this method requests a
+     * different font, clients should expect different metrics, and may need
+     * to recalculate window sizes and layout. Therefore this method should
+     * be called before user interface initialisation.
+     * @since 1.5
+     */
+    public void preferLocaleFonts() {
+	sun.font.FontManager.preferLocaleFonts();
+    }
+
+    /**
+     * Indicates a preference for proportional over non-proportional (e.g.
+     * dual-spaced CJK fonts) fonts in the mapping of logical fonts to
+     * physical fonts. If the default mapping contains fonts for which
+     * proportional and non-proportional variants exist, then calling
+     * this method indicates the mapping should use a proportional variant.
+     * <p>
+     * The actual change in font rendering behavior resulting from a call to
+     * this method is implementation dependent; it may have no effect at all.
+     * The behavior may differ between font rendering in lightweight and
+     * peered components. Since calling this method requests a
+     * different font, clients should expect different metrics, and may need
+     * to recalculate window sizes and layout. Therefore this method should
+     * be called before user interface initialisation.
+     * @since 1.5
+     */
+    public void preferProportionalFonts() {
+	sun.font.FontManager.preferProportionalFonts();
+    }
 
     /**
      * Returns the Point where Windows should be centered.

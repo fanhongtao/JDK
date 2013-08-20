@@ -1,7 +1,7 @@
 /*
- * @(#)Buffer.java	1.31 07/01/12
+ * @(#)Buffer.java	1.34 04/06/14
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package java.nio;
  *
  *   <p> A buffer's <i>limit</i> is the index of the first element that should
  *   not be read or written.  A buffer's limit is never negative and is never
- *   greater than the its capacity.  </p>
+ *   greater than its capacity.  </p>
  *
  *   <p> A buffer's <i>position</i> is the index of the next element to be
  *   read or written.  A buffer's position is never negative and is never
@@ -150,7 +150,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.31, 07/01/12
+ * @version 1.34, 04/06/14
  * @since 1.4
  */
 
@@ -175,7 +175,7 @@ public abstract class Buffer {
 	this.capacity = cap;
 	limit(lim);
 	position(pos);
-	if (mark >= 0) {
+	if (mark > 0) {
 	    if (mark > pos)
 		throw new IllegalArgumentException();
 	    this.mark = mark;
@@ -400,7 +400,7 @@ public abstract class Buffer {
     }
 
     final int nextGetIndex(int nb) {			// package-private
-	if (position + nb > limit)
+        if (limit - position < nb)
 	    throw new BufferUnderflowException();
 	int p = position;
 	position += nb;
@@ -421,7 +421,7 @@ public abstract class Buffer {
     }
 
     final int nextPutIndex(int nb) {			// package-private
-	if (position + nb > limit)
+        if (limit - position < nb)
 	    throw new BufferOverflowException();
 	int p = position;
 	position += nb;
@@ -440,7 +440,7 @@ public abstract class Buffer {
     }
 
     final int checkIndex(int i, int nb) {		// package-private
-	if ((i < 0) || (i + nb > limit))
+	if ((i < 0) || (nb > limit - i))
 	    throw new IndexOutOfBoundsException();
 	return i;
     }

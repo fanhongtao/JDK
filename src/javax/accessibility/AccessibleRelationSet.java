@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRelationSet.java	1.11 03/01/27
+ * @(#)AccessibleRelationSet.java	1.13 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
  *
  * @see AccessibleRelation
  *
- * @version     1.11 01/27/03
+ * @version     1.13 05/05/04
  * @author      Lynn Monsanto
  */
 public class AccessibleRelationSet {
@@ -35,7 +35,7 @@ public class AccessibleRelationSet {
      * @see #toArray
      * @see #clear
      */
-    protected Vector relations = null;
+    protected Vector<AccessibleRelation> relations = null;
 
     /**
      * Creates a new empty relation set.

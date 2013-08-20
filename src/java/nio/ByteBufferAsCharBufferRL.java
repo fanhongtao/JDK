@@ -1,7 +1,7 @@
 /*
- * @(#)ByteBufferAs-X-Buffer.java	1.14 03/01/23
+ * @(#)ByteBufferAs-X-Buffer.java	1.17 04/05/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -57,6 +57,7 @@ class ByteBufferAsCharBufferRL			// package-private
 	assert (pos <= lim);
 	int rem = (pos <= lim ? lim - pos : 0);
 	int off = (pos << 1) + offset;
+        assert (off >= 0);
 	return new ByteBufferAsCharBufferRL(bb, -1, 0, rem, rem, off);
     }
 
@@ -168,15 +169,17 @@ class ByteBufferAsCharBufferRL			// package-private
     // --- Methods to support CharSequence ---
 
     public CharSequence subSequence(int start, int end) {
-	int len = length();
 	int pos = position();
-	assert (pos <= len);
-	pos = (pos <= len ? pos : len);
+	int lim = limit();
+	assert (pos <= lim);
+	pos = (pos <= lim ? pos : lim);
+	int len = lim - pos;
 
 	if ((start < 0) || (end > len) || (start > end))
 	    throw new IndexOutOfBoundsException();
 	int sublen = end - start;
  	int off = offset + ((pos + start) << 1);
+        assert (off >= 0);
 	return new ByteBufferAsCharBufferRL(bb, -1, 0, sublen, sublen, off);
     }
 

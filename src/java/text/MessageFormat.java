@@ -1,7 +1,7 @@
 /*
- * @(#)MessageFormat.java	1.51 03/01/23
+ * @(#)MessageFormat.java	1.56 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -210,87 +210,89 @@ import sun.text.Utility;
  * <h4>Usage Information</h4>
  *
  * <p>
- * Here are some examples of usage:
- * <blockquote>
- * <pre>
- * Object[] arguments = {
- *     new Integer(7),
- *     new Date(System.currentTimeMillis()),
- *     "a disturbance in the Force"
- * };
+ * Here are some examples of usage.
+ * In real internationalized programs, the message format pattern and other
+ * static strings will, of course, be obtained from resource bundles.
+ * Other parameters will be dynamically determined at runtime.
+ * <p>
+ * The first example uses the static method <code>MessageFormat.format</code>,
+ * which internally creates a <code>MessageFormat</code> for one-time use:
+ * <blockquote><pre>
+ * int planet = 7;
+ * String event = "a disturbance in the Force";
  *
  * String result = MessageFormat.format(
  *     "At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.",
- *     arguments);
- *
- * <em>output</em>: At 12:30 PM on Jul 3, 2053, there was a disturbance
- *           in the Force on planet 7.
- *
- * </pre>
- * </blockquote>
- * Typically, the message format will come from resources, and the
- * arguments will be dynamically set at runtime.
+ *     planet, new Date(), event);
+ * </pre></blockquote>
+ * The output is:
+ * <blockquote><pre>
+ * At 12:30 PM on Jul 3, 2053, there was a disturbance in the Force on planet 7.
+ * </pre></blockquote>
  *
  * <p>
- * Example 2:
- * <blockquote>
- * <pre>
- * Object[] testArgs = {new Long(3), "MyDisk"};
+ * The following example creates a <code>MessageFormat</code> instance that
+ * can be used repeatedly:
+ * <blockquote><pre>
+ * int fileCount = 1273;
+ * String diskName = "MyDisk";
+ * Object[] testArgs = {new Long(fileCount), diskName};
  *
  * MessageFormat form = new MessageFormat(
  *     "The disk \"{1}\" contains {0} file(s).");
  *
  * System.out.println(form.format(testArgs));
- *
- * // output, with different testArgs
- * <em>output</em>: The disk "MyDisk" contains 0 file(s).
- * <em>output</em>: The disk "MyDisk" contains 1 file(s).
- * <em>output</em>: The disk "MyDisk" contains 1,273 file(s).
- * </pre>
- * </blockquote>
+ * </pre></blockquote>
+ * The output with different values for <code>fileCount</code>:
+ * <blockquote><pre>
+ * The disk "MyDisk" contains 0 file(s).
+ * The disk "MyDisk" contains 1 file(s).
+ * The disk "MyDisk" contains 1,273 file(s).
+ * </pre></blockquote>
  *
  * <p>
- * For more sophisticated patterns, you can use a <code>ChoiceFormat</code> to get
- * output such as:
- * <blockquote>
- * <pre>
+ * For more sophisticated patterns, you can use a <code>ChoiceFormat</code>
+ * to produce correct forms for singular and plural:
+ * <blockquote><pre>
  * MessageFormat form = new MessageFormat("The disk \"{1}\" contains {0}.");
  * double[] filelimits = {0,1,2};
  * String[] filepart = {"no files","one file","{0,number} files"};
  * ChoiceFormat fileform = new ChoiceFormat(filelimits, filepart);
  * form.setFormatByArgumentIndex(0, fileform);
  *
- * Object[] testArgs = {new Long(12373), "MyDisk"};
+ * int fileCount = 1273;
+ * String diskName = "MyDisk";
+ * Object[] testArgs = {new Long(fileCount), diskName};
  *
  * System.out.println(form.format(testArgs));
+ * </pre></blockquote>
+ * The output with different values for <code>fileCount</code>:
+ * <blockquote><pre>
+ * The disk "MyDisk" contains no files.
+ * The disk "MyDisk" contains one file.
+ * The disk "MyDisk" contains 1,273 files.
+ * </pre></blockquote>
  *
- * // output, with different testArgs
- * output: The disk "MyDisk" contains no files.
- * output: The disk "MyDisk" contains one file.
- * output: The disk "MyDisk" contains 1,273 files.
- * </pre>
- * </blockquote>
- * You can either do this programmatically, as in the above example,
- * or by using a pattern (see
- * {@link ChoiceFormat}
- * for more information) as in:
- * <blockquote>
- * <pre>
+ * <p>
+ * You can create the <code>ChoiceFormat</code> programmatically, as in the
+ * above example, or by using a pattern. See {@link ChoiceFormat}
+ * for more information.
+ * <blockquote><pre>
  * form.applyPattern(
  *    "There {0,choice,0#are no files|1#is one file|1&lt;are {0,number,integer} files}.");
- * </pre>
- * </blockquote>
+ * </pre></blockquote>
+ *
  * <p>
  * <strong>Note:</strong> As we see above, the string produced
  * by a <code>ChoiceFormat</code> in <code>MessageFormat</code> is treated specially;
- * occurances of '{' are used to indicated subformats, and cause recursion.
+ * occurences of '{' are used to indicated subformats, and cause recursion.
  * If you create both a <code>MessageFormat</code> and <code>ChoiceFormat</code>
  * programmatically (instead of using the string patterns), then be careful not to
  * produce a format that recurses on itself, which will cause an infinite loop.
  * <p>
  * When a single argument is parsed more than once in the string, the last match
  * will be the final result of the parsing.  For example,
- * <pre>
+ * <blockquote><pre>
  * MessageFormat mf = new MessageFormat("{0,number,#.##}, {0,number,#.#}");
  * Object[] objs = {new Double(3.1415)};
  * String result = mf.format( objs );
@@ -298,17 +300,18 @@ import sun.text.Utility;
  * objs = null;
  * objs = mf.parse(result, new ParsePosition(0));
  * // objs now equals {new Double(3.1)}
- * </pre>
+ * </pre></blockquote>
+ *
  * <p>
  * Likewise, parsing with a MessageFormat object using patterns containing
- * multiple occurances of the same argument would return the last match.  For
+ * multiple occurences of the same argument would return the last match.  For
  * example,
- * <pre>
+ * <blockquote><pre>
  * MessageFormat mf = new MessageFormat("{0}, {0}, {0}");
  * String forParsing = "x, y, z";
  * Object[] objs = mf.parse(forParsing, new ParsePosition(0));
  * // result now equals {new String("z")}
- * </pre>
+ * </pre></blockquote>
  *
  * <h4><a name="synchronization">Synchronization</a></h4>
  *
@@ -323,7 +326,7 @@ import sun.text.Utility;
  * @see          NumberFormat
  * @see          DecimalFormat
  * @see          ChoiceFormat
- * @version      1.51, 01/23/03
+ * @version      1.56, 12/19/03
  * @author       Mark Davis
  */
 
@@ -796,7 +799,7 @@ public class MessageFormat extends Format {
      *            is not of the type expected by the format element(s)
      *            that use it.
      */
-    public static String format(String pattern, Object[] arguments) {
+    public static String format(String pattern, Object ... arguments) {
         MessageFormat temp = new MessageFormat(pattern);
         return temp.format(arguments);
     }
@@ -1083,6 +1086,10 @@ public class MessageFormat extends Format {
      * @since 1.4
      */
     public static class Field extends Format.Field {
+
+        // Proclaim serial compatibility with 1.4 FCS
+        private static final long serialVersionUID = 7899943957617360810L;
+
         /**
          * Creates a Field with the specified name.
          *

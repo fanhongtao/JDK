@@ -1,7 +1,7 @@
 /*
- * @(#)AudioFileWriter.java	1.22 03/01/27
+ * @(#)AudioFileWriter.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,11 +22,11 @@ import javax.sound.sampled.AudioInputStream;
  * stream.
  *
  * @author Kara Kytle
- * @version 1.22, 03/01/27
+ * @version 1.24, 03/12/19
  * @since 1.3
  */
 public abstract class AudioFileWriter {
-    
+
     /**
      * Obtains the file types for which file writing support is provided by this
      * audio file writer.
@@ -34,8 +34,8 @@ public abstract class AudioFileWriter {
      * an array of length 0 is returned.
      */
     public abstract AudioFileFormat.Type[] getAudioFileTypes();
-    
-    
+
+
     /**
      * Indicates whether file writing support for the specified file type is provided
      * by this audio file writer.
@@ -44,9 +44,9 @@ public abstract class AudioFileWriter {
      * otherwise <code>false</code>
      */
     public boolean isFileTypeSupported(AudioFileFormat.Type fileType) {
-	
+
 	AudioFileFormat.Type types[] = getAudioFileTypes();
-	
+
 	for(int i=0; i<types.length; i++) {
 	    if( fileType.equals( types[i] ) ) {
 		return true;
@@ -54,8 +54,8 @@ public abstract class AudioFileWriter {
 	}
 	return false;
     }
-    
-    
+
+
     /**
      * Obtains the file types that this audio file writer can write from the
      * audio input stream specified.
@@ -65,8 +65,8 @@ public abstract class AudioFileWriter {
      * an array of length 0 is returned.
      */
     public abstract AudioFileFormat.Type[] getAudioFileTypes(AudioInputStream stream);
-    
-    
+
+
     /**
      * Indicates whether an audio file of the type specified can be written
      * from the audio input stream indicated.
@@ -76,9 +76,9 @@ public abstract class AudioFileWriter {
      * otherwise <code>false</code>
      */
     public boolean isFileTypeSupported(AudioFileFormat.Type fileType, AudioInputStream stream) {
-	
+
 	AudioFileFormat.Type types[] = getAudioFileTypes( stream );
-	
+
 	for(int i=0; i<types.length; i++) {
 	    if( fileType.equals( types[i] ) ) {
 		return true;
@@ -86,8 +86,8 @@ public abstract class AudioFileWriter {
 	}
 	return false;
     }
-    
-    
+
+
     /**
      * Writes a stream of bytes representing an audio file of the file type
      * indicated to the output stream provided.  Some file types require that
@@ -105,11 +105,11 @@ public abstract class AudioFileWriter {
      * @throws IllegalArgumentException if the file type is not supported by
      * the system
      * @see #isFileTypeSupported(AudioFileFormat.Type, AudioInputStream)
-     * @see	#getAudioFileTypes
+     * @see #getAudioFileTypes
      */
     public abstract int write(AudioInputStream stream, AudioFileFormat.Type fileType, OutputStream out) throws IOException;
-    
-    
+
+
     /**
      * Writes a stream of bytes representing an audio file of the file format
      * indicated to the external file provided.
@@ -122,49 +122,9 @@ public abstract class AudioFileWriter {
      * @throws IllegalArgumentException if the file format is not supported by
      * the system
      * @see #isFileTypeSupported
-     * @see	#getAudioFileTypes
+     * @see #getAudioFileTypes
      */
     public abstract int write(AudioInputStream stream, AudioFileFormat.Type fileType, File out) throws IOException;
+
     
-    
-    /**
-     * Indicates whether an audio file of the file format specified can be written
-     * from the audio input stream indicated.
-     * @param fileFormat description of the file for which write capabilities are queried
-     * @param stream for which file writing support is queried
-     * @return <code>true</code> if the file format is supported for this audio input stream,
-     * otherwise <code>false</code>
-     */
-    //public abstract boolean isFileFormatSupported(AudioFileFormat fileFormat, AudioInputStream stream);
-    
-    /**
-     * Obtains the file formats of the indicated type that this audio file writer
-     * can write from the audio input stream specified.
-     * @param type desired audio file type
-     * @param stream the audio input stream for which audio file format support
-     * is queried
-     * @return array of audio file formats of the type indicated.  If no
-     * file formats of this type are supported, an array of length 0 is returned.
-     */
-    //public abstract AudioFileFormat[] getAudioFileFormats(AudioFileFormat.Type type, AudioInputStream stream);
-    
-    /**
-     * Writes a stream of bytes representing an audio file of the file format
-     * indicated to the output stream provided.  Some file types require that
-     * the length be written into the file header, and cannot be written from
-     * start to finish unless the length is known in advance.  An attempt
-     * to write such a file type will fail with an IOException if the length in
-     * the audio file format is
-     * {@link javax.sound.sampled.AudioSystem#NOT_SPECIFIED AudioSystem.NOT_SPECIFIED}.
-     * @param in stream containing audio data to be written to the file
-     * @param format format of the file to be written to the output stream
-     * @param out stream to which the file data should be written
-     * @return the number of bytes written to the output stream
-     * @throws IOException if an I/O exception occurs
-     * @throws IllegalArgumentException if the file format is not supported by
-     * the system
-     * @see #isFileFormatSupported
-     * @see	#getAudioFileFormats
-     */
-    //public abstract int write(InputStream in, AudioFileFormat format, OutputStream out) throws IOException;
 }

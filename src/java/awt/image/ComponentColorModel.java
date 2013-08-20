@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentColorModel.java	1.66 03/01/23
+ * @(#)ComponentColorModel.java	1.68 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -777,6 +777,7 @@ public class ComponentColorModel extends ColorModel {
         boolean needAlpha = (supportsAlpha && isAlphaPremultiplied);
         int alp = 0;
         int comp;
+        int mask = (1 << nBits[idx]) - 1;
 
         switch (transferType) {
             // Note: we do no clamping of the pixel data here - we
@@ -826,17 +827,17 @@ public class ComponentColorModel extends ColorModel {
             }
             case DataBuffer.TYPE_BYTE:
                byte bdata[] = (byte[])inData;
-               comp = bdata[idx] & 0xff;
+               comp = bdata[idx] & mask;
                precision = 8;
                if (needAlpha) {
-                   alp = bdata[numColorComponents] & 0xff;
+                   alp = bdata[numColorComponents] & mask;
                }
             break;
             case DataBuffer.TYPE_USHORT:
                short usdata[] = (short[])inData;
-               comp = usdata[idx]&0xffff;
+               comp = usdata[idx] & mask;
                if (needAlpha) {
-                   alp = usdata[numColorComponents] & 0xffff;
+                   alp = usdata[numColorComponents] & mask;
                }
             break;
             case DataBuffer.TYPE_INT:
@@ -854,7 +855,7 @@ public class ComponentColorModel extends ColorModel {
         if (needAlpha) {
             if (alp != 0) {
                 float scalefactor = (float) ((1 << precision) - 1);
-                float fcomp = ((float) comp) / ((float) ((1<<nBits[idx]) - 1));
+                float fcomp = ((float) comp) / ((float)mask);
                 float invalp = ((float) ((1<<nBits[numColorComponents]) - 1)) /
                                ((float) alp);
                 return (int) (fcomp * invalp * scalefactor + 0.5f);
@@ -864,7 +865,7 @@ public class ComponentColorModel extends ColorModel {
         } else {
             if (nBits[idx] != precision) {
                 float scalefactor = (float) ((1 << precision) - 1);
-                float fcomp = ((float) comp) / ((float) ((1<<nBits[idx]) - 1));
+                float fcomp = ((float) comp) / ((float)mask);
                 return (int) (fcomp * scalefactor + 0.5f);
             }
             return comp;
@@ -1030,6 +1031,8 @@ public class ComponentColorModel extends ColorModel {
 
         int alpha = 0;
         int aIdx = numColorComponents;
+        int mask = (1 << nBits[aIdx]) - 1;
+
         switch (transferType) {
             case DataBuffer.TYPE_SHORT:
                 short sdata[] = (short[])inData;
@@ -1045,11 +1048,11 @@ public class ComponentColorModel extends ColorModel {
                 return alpha;
             case DataBuffer.TYPE_BYTE:
                byte bdata[] = (byte[])inData;
-               alpha = bdata[aIdx] & 0xff;
+               alpha = bdata[aIdx] & mask;
             break;
             case DataBuffer.TYPE_USHORT:
                short usdata[] = (short[])inData;
-               alpha = usdata[aIdx]&0xffff;
+               alpha = usdata[aIdx] & mask;
             break;
             case DataBuffer.TYPE_INT:
                int idata[] = (int[])inData;

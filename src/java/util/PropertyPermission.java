@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyPermission.java	1.30 03/01/23
+ * @(#)PropertyPermission.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,7 +64,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.30 03/01/23
+ * @version 1.33 03/12/19
  *
  * @author Roland Schemers
  * @since 1.2
@@ -312,7 +312,7 @@ public final class PropertyPermission extends BasicPermission {
      */
     static String getActions(int mask)
     {
-	StringBuffer sb = new StringBuffer();
+	StringBuilder sb = new StringBuilder();
         boolean comma = false;
 
 	if ((mask & READ) == READ) {
@@ -369,12 +369,14 @@ public final class PropertyPermission extends BasicPermission {
 	return new PropertyPermissionCollection();
     }
 
+
+    private static final long serialVersionUID = 885438825399942851L;
+
     /**
      * WriteObject is called to save the state of the PropertyPermission
      * to a stream. The actions are serialized, and the superclass
      * takes care of the name.
      */
-
     private synchronized void writeObject(java.io.ObjectOutputStream s)
         throws IOException
     {
@@ -406,7 +408,7 @@ public final class PropertyPermission extends BasicPermission {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.30, 01/23/03
+ * @version 1.33, 12/19/03
  *
  * @author Roland Schemers
  *
@@ -427,6 +429,7 @@ implements Serializable
      *
      * @see #serialPersistentFields
      */
+    // No sync access; OK for this to be stale.
     private boolean all_allowed;
 
     /**
@@ -458,32 +461,30 @@ implements Serializable
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
 	if (isReadOnly())
-	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+	    throw new SecurityException(
+		"attempt to add a Permission to a readonly PermissionCollection");
 
 	PropertyPermission pp = (PropertyPermission) permission;
+	String propName = pp.getName();
 
-	PropertyPermission existing =
-	    (PropertyPermission) perms.get(pp.getName());
+	synchronized (this) {
+	    PropertyPermission existing = (PropertyPermission) perms.get(propName);
 
-        // No need to synchronize because all adds are done sequentially
-	// before any implies() calls
-
-	if (existing != null) {
-	    int oldMask = existing.getMask();
-	    int newMask = pp.getMask();
-	    if (oldMask != newMask) {
-		int effective = oldMask | newMask;
-		String actions = PropertyPermission.getActions(effective);
-		perms.put(pp.getName(),
-			new PropertyPermission(pp.getName(), actions));
-
+	    if (existing != null) {
+		int oldMask = existing.getMask();
+		int newMask = pp.getMask();
+		if (oldMask != newMask) {
+		    int effective = oldMask | newMask;
+		    String actions = PropertyPermission.getActions(effective);
+		    perms.put(propName,	new PropertyPermission(propName, actions));
+		}
+	    } else {
+		perms.put(propName, permission);
 	    }
-	} else {
-	    perms.put(pp.getName(), permission);
 	}
 
         if (!all_allowed) {
-	    if (pp.getName().equals("*"))
+	    if (propName.equals("*"))
 		all_allowed = true;
 	}
     }
@@ -511,7 +512,9 @@ implements Serializable
 
 	// short circuit if the "*" Permission was added
 	if (all_allowed) {
-	    x = (PropertyPermission) perms.get("*");
+	    synchronized (this) {
+		x = (PropertyPermission) perms.get("*");
+	    }
 	    if (x != null) {
 		effective |= x.getMask();
 		if ((effective & desired) == desired)
@@ -526,7 +529,9 @@ implements Serializable
 	String name = pp.getName();
 	//System.out.println("check "+name);
 
-	x = (PropertyPermission) perms.get(name);
+	synchronized (this) {
+	    x = (PropertyPermission) perms.get(name);
+	}
 
 	if (x != null) {
 	    // we have a direct hit!
@@ -544,7 +549,9 @@ implements Serializable
 
 	    name = name.substring(0, last+1) + "*";
 	    //System.out.println("check "+name);
-	    x = (PropertyPermission) perms.get(name);
+	    synchronized (this) {
+		x = (PropertyPermission) perms.get(name);
+	    }
 
 	    if (x != null) {
 		effective |= x.getMask();
@@ -568,7 +575,9 @@ implements Serializable
 
     public Enumeration elements() {
         // Convert Iterator of Map values into an Enumeration
-	return Collections.enumeration(perms.values());
+	synchronized (this) {
+	    return Collections.enumeration(perms.values());
+	}
     }
 
     private static final long serialVersionUID = 7015263904581634791L;
@@ -605,7 +614,9 @@ implements Serializable
 
 	// Copy perms into a Hashtable
 	Hashtable permissions = new Hashtable(perms.size()*2);
-	permissions.putAll(perms);
+	synchronized (this) {
+	    permissions.putAll(perms);
+	}
 
 	// Write out serializable fields
         ObjectOutputStream.PutField pfields = out.putFields();

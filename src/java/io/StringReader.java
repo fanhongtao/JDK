@@ -1,7 +1,7 @@
 /*
- * @(#)StringReader.java	1.17 03/01/23
+ * @(#)StringReader.java	1.24 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.io;
 /**
  * A character stream whose source is a string.
  *
- * @version 	1.17, 03/01/23
+ * @version 	1.24, 04/02/19
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -87,19 +87,32 @@ public class StringReader extends Reader {
     }
 
     /**
-     * Skip characters.
+     * Skips the specified number of characters in the stream. Returns
+     * the number of characters that were skipped.
+     *
+     * <p>The <code>ns</code> parameter may be negative, even though the
+     * <code>skip</code> method of the {@link Reader} superclass throws
+     * an exception in this case. Negative values of <code>ns</code> cause the
+     * stream to skip backwards. Negative return values indicate a skip
+     * backwards. It is not possible to skip backwards past the beginning of
+     * the string.
+     *
+     * <p>If the entire string has been read or skipped, then this method has
+     * no effect and always returns 0.
      *
      * @exception  IOException  If an I/O error occurs
      */
     public long skip(long ns) throws IOException {
 	synchronized (lock) {
-	    ensureOpen();
-	    if (next >= length)
-		return 0;
-	    long n = Math.min(length - next, ns);
-	    next += n;
-	    return n;
-	}
+            ensureOpen();
+            if (next >= length)
+                return 0;
+            // Bound skip by beginning and end of the source
+            long n = Math.min(length - next, ns);
+            n = Math.max(-next, n);
+            next += n;
+            return n;
+        }
     }
 
     /**

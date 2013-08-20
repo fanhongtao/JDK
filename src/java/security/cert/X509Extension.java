@@ -1,7 +1,7 @@
 /*
- * @(#)X509Extension.java	1.20 03/01/23
+ * @(#)X509Extension.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.util.Set;
  * be handled by a <em>Class</em> that understands the extension.
  *
  * @author Hemma Prafullchandra
- * @version 1.20 03/01/23
+ * @version 1.22 03/12/19
  */
 
 public interface X509Extension {
@@ -87,7 +87,7 @@ public interface X509Extension {
      * If there are no extensions present at all, then this method returns
      * null.
      */
-    public Set getCriticalExtensionOIDs();
+    public Set<String> getCriticalExtensionOIDs();
 
     /**
      * Gets a Set of the OID strings for the extension(s) marked
@@ -124,7 +124,7 @@ public interface X509Extension {
      * If there are no extensions present at all, then this method returns
      * null.
      */
-    public Set getNonCriticalExtensionOIDs();
+    public Set<String> getNonCriticalExtensionOIDs();
 
     /**
      * Gets the DER-encoded OCTET string for the extension value

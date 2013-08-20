@@ -1,12 +1,13 @@
 /*
- * @(#)BasicProgressBarUI.java	1.62 03/04/22
+ * @(#)BasicProgressBarUI.java	1.68 04/03/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.basic;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.event.*;
@@ -16,38 +17,28 @@ import javax.swing.plaf.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
-
-//PENDING (kwalrath): Convert to logging, add assertions.
-//PENDING (kwalrath): Make sure vertical is handled.
-//PENDING (kwalrath): Should right-to-left indeterminate progress bar be
-//                    handled differently?
-//PENDING (kwalrath): Make sure method overriding is safe (esp. for ivars).
-//PENDING (kwalrath): Support program-driven frame incrementation?
+import sun.swing.DefaultLookup;
 
 /**
  * A Basic L&F implementation of ProgressBarUI.
  *
- * @version 1.62 04/22/03
+ * @version 1.68 03/11/04
  * @author Michael C. Albers
  * @author Kathy Walrath
  */
 public class BasicProgressBarUI extends ProgressBarUI {
-    
-    private static final Dimension PREFERRED_INNER_HORIZONTAL = new Dimension(146, 12);
-    private static final Dimension PREFERRED_INNER_VERTICAL = new Dimension(12, 146);
     private int cachedPercent;
     private int cellLength, cellSpacing;
     // The "selectionForeground" is the color of the text when it is painted
     // over a filled area of the progress bar. The "selectionBackground"
     // is for the text over the unfilled progress bar area.
     private Color selectionForeground, selectionBackground;
-    private boolean isIndeterminate = false;
 
     private Animator animator; 
-    private PropertyChangeListener propertyListener;
 
     protected JProgressBar progressBar;
     protected ChangeListener changeListener;
+    private Handler handler;
 
     /** 
      * The current state of the indeterminate animation's cycle.
@@ -90,22 +81,13 @@ public class BasicProgressBarUI extends ProgressBarUI {
     					       //make this false for
 					       //performance tests
 
-    //debugging; PENDING (kwalrath): convert to logging API 
-    private static boolean DEBUGALL = false;  //severe performance impact
-    private static boolean DEBUGTIMER = false;  //severe performance impact
-    private static boolean BASICDEBUG = false;
-
-    //performance data collection
-    private static boolean LOGSTATS = false;
-    private long startTime = 0;
-    private long lastLoopTime = 0;
-    private int numLoops = 0;
-
     /**                                                             
      * Used to hold the location and size of the bouncing box (returned
-     * by getBox) to be painted.  
+     * by getBox) to be painted.
+     *
+     * @since 1.5
      */                                                             
-    private Rectangle boxRect;
+    protected Rectangle boxRect;
                                                                     
     /**                                                             
      * The rectangle to be updated the next time the         
@@ -137,17 +119,22 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	progressBar = (JProgressBar)c;
 	installDefaults();
 	installListeners();
+        if (progressBar.isIndeterminate()) {
+            initIndeterminateValues();
+        }
     }
     
     public void uninstallUI(JComponent c) {
+        if (progressBar.isIndeterminate()) {
+            cleanUpIndeterminateValues();
+        }
 	uninstallDefaults();
 	uninstallListeners();
-	stopAnimationTimer();
 	progressBar = null;
     }
     
     protected void installDefaults() {
-	progressBar.setOpaque(true);
+        LookAndFeel.installProperty(progressBar, "opaque", Boolean.TRUE);
  	LookAndFeel.installBorder(progressBar,"ProgressBar.border");	
 	LookAndFeel.installColorsAndFont(progressBar,
 					 "ProgressBar.background",
@@ -165,22 +152,36 @@ public class BasicProgressBarUI extends ProgressBarUI {
     
     protected void installListeners() {
 	//Listen for changes in the progress bar's data.
-	changeListener = new ChangeHandler();
+	changeListener = getHandler();
 	progressBar.addChangeListener(changeListener);
 
 	//Listen for changes between determinate and indeterminate state.
-	propertyListener = new PropertyChangeHandler();
-	progressBar.addPropertyChangeListener(propertyListener);
+	progressBar.addPropertyChangeListener(getHandler());
     }	
     
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
+    }
+
     /**
      * Starts the animation thread, creating and initializing
-     * it if necessary.  This method is invoked when
-     * the progress bar changes to indeterminate mode. 
+     * it if necessary. This method is invoked when an
+     * indeterminate progress bar should start animating.
+     * Reasons for this may include:
+     * <ul>
+     *    <li>The progress bar is determinate and becomes displayable
+     *    <li>The progress bar is displayable and becomes determinate
+     *    <li>The progress bar is displayable and determinate and this
+     *        UI is installed
+     * </ul>
      * If you implement your own animation thread,
      * you must override this method.
      *
      * @since 1.4
+     * @see #stopAnimationTimer
      */
     protected void startAnimationTimer() {
         if (animator == null) {
@@ -191,14 +192,19 @@ public class BasicProgressBarUI extends ProgressBarUI {
     }
 
     /**
-     * Stops the animation thread.  This method is invoked when
-     * the progress bar changes from 
-     * indeterminate to determinate mode
-     * and when this UI is uninstalled.
+     * Stops the animation thread.
+     * This method is invoked when the indeterminate
+     * animation should be stopped. Reasons for this may include:
+     * <ul>
+     *    <li>The progress bar changes to determinate
+     *    <li>The progress bar is no longer part of a displayable hierarchy
+     *    <li>This UI in uninstalled
+     * </ul>
      * If you implement your own animation thread,
      * you must override this method.
      *
      * @since 1.4
+     * @see #startAnimationTimer
      */
     protected void stopAnimationTimer() {
 	if (animator != null) {
@@ -211,7 +217,8 @@ public class BasicProgressBarUI extends ProgressBarUI {
      */
     protected void uninstallListeners() {
 	progressBar.removeChangeListener(changeListener);
-	progressBar.removePropertyChangeListener(propertyListener);
+	progressBar.removePropertyChangeListener(getHandler());
+        handler = null;
     }
 
     
@@ -225,11 +232,21 @@ public class BasicProgressBarUI extends ProgressBarUI {
     // protected void uninstallKeyboardActions()
 
     protected Dimension getPreferredInnerHorizontal() {
-	return PREFERRED_INNER_HORIZONTAL;
+        Dimension horizDim = (Dimension)DefaultLookup.get(progressBar, this,
+            "ProgressBar.horizontalSize");
+        if (horizDim == null) {
+            horizDim = new Dimension(146, 12);
+        }
+        return horizDim;
     }
     
     protected Dimension getPreferredInnerVertical() {
-	return PREFERRED_INNER_VERTICAL;
+        Dimension vertDim = (Dimension)DefaultLookup.get(progressBar, this,
+            "ProgressBar.vertictalSize");
+        if (vertDim == null) {
+            vertDim = new Dimension(12, 146);
+        }
+        return vertDim;
     }
     
     /**
@@ -329,7 +346,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
      * paintDeterminate or paintIndeterminate.
      */
     public void paint(Graphics g, JComponent c) {
-        if (isIndeterminate) {
+        if (progressBar.isIndeterminate()) {
             paintIndeterminate(g, c);
         } else {
             paintDeterminate(g, c);
@@ -364,13 +381,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
         int currentFrame = getAnimationIndex();
         int middleFrame = numFrames/2;
 
-        if (DEBUGALL) {
-            System.out.println("----begin getBox----");
-            System.out.println("    getBox argument: " + r);
-            System.out.println("    currentFrame = " + currentFrame);
-            System.out.println("    middleFrame = " + middleFrame);
-        }
-
         if (sizeChanged() || delta == 0.0 || maxPosition == 0.0) {
             updateSizes();
         }
@@ -378,15 +388,9 @@ public class BasicProgressBarUI extends ProgressBarUI {
         r = getGenericBox(r); 
 
         if (r == null) {
-            if (DEBUGALL) {
-                System.out.println("    Exiting because r is null");
-            }
             return null;
         }
         if (middleFrame <= 0) {
-            if (DEBUGALL) {
-                System.out.println("    Exiting because middleFrame <= 0.");
-            }
             return null;
         }
 
@@ -410,11 +414,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
                                         (currentFrame - middleFrame));
             }
         }
-
-        if (DEBUGALL) {
-            System.out.println("    getBox return value: " + r);
-            System.out.println("----end getBox----");
-        }
         return r;
     }
 
@@ -423,10 +422,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
      * Assumes componentInnards is correct (e.g. call after sizeChanged()).
      */
     private void updateSizes() {
-        if (DEBUGALL) {
-            System.out.println("----begin updateSizes----");
-        }
-
         int length = 0;
 
         if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
@@ -443,32 +438,13 @@ public class BasicProgressBarUI extends ProgressBarUI {
         }
 
         //If we're doing bouncing-box animation, update delta.
-        if (DEBUGALL) {
-            System.out.println("    Updating delta.");
-        }
-
         delta = 2.0 * (double)maxPosition/(double)numFrames;
-
-        if (BASICDEBUG) {
-            System.out.println("    delta: " + delta);
-            System.out.println("    maxPosition: " + maxPosition);
-        }
-        if (DEBUGALL) {
-            System.out.println("----end updateSizes----");
-        }
-
-        return; 
     }
 
     /**
      * Assumes that the component innards, max position, etc. are up-to-date.
      */
     private Rectangle getGenericBox(Rectangle r) {
-        if (DEBUGALL) {
-            System.out.println("----begin getGenericBox----");
-            System.out.println("    argument: " + r);
-        }
-
         if (r == null) {
             r = new Rectangle();
         }
@@ -495,10 +471,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
             }
         } // end of VERTICAL
 
-        if (DEBUGALL) {
-            System.out.println("    getGenericBox returns: " + r);
-            System.out.println("----end getGenericBox----");
-        }
         return r;
     }
 
@@ -517,20 +489,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
      * </pre>
      * </blockquote>
      *
-     * <p>
-     * By default, this method returns the available length
-     * divided by 6.  Another possibility might
-     * be to make the bouncing box a square, 
-     * which you could implement by overriding this method as follows:
-     * <blockquote>
-     * <pre>
-     *protected double getBoxLength(int availableLength,
-     *                              int otherDimension) {
-     *    return Math.min(availableLength, otherDimension);
-     *}
-     * </blockquote>
-     * </pre>
-     *
      * @param availableLength  the amount of space available
      *                         for the bouncing box to move in;
      *                         for a horizontal progress bar,
@@ -547,9 +505,9 @@ public class BasicProgressBarUI extends ProgressBarUI {
      *         must be no larger than <code>availableLength</code>
      *
      * @see javax.swing.SwingUtilities#calculateInnerArea
-     * @since 1.4
+     * @since 1.5
      */
-    private int getBoxLength(int availableLength, int otherDimension) {
+    protected int getBoxLength(int availableLength, int otherDimension) {
         return (int)Math.round(availableLength/6.0);
     }
 
@@ -573,10 +531,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	int barRectHeight = progressBar.getHeight() - (b.top + b.bottom);
 
         Graphics2D g2 = (Graphics2D)g;
-        if (DEBUGALL) {
-            System.out.println();
-            System.out.println("basic: paintIndeterminate");
-        }
 
         // Paint the bouncing box.
         boxRect = getBox(boxRect);
@@ -584,9 +538,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
             g2.setColor(progressBar.getForeground());
             g2.fillRect(boxRect.x, boxRect.y,
                        boxRect.width, boxRect.height);
-        } else if (DEBUGALL) {
-            //we're not initialized yet
-            System.out.println("boxRect == null; returning");
         }
 
 	// Deal with possible text painting
@@ -690,12 +641,13 @@ public class BasicProgressBarUI extends ProgressBarUI {
 			       int amountFull, Insets b) {
 	if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
             if (BasicGraphicsUtils.isLeftToRight(progressBar)) {
-		if (progressBar.isIndeterminate()) {
-		    boxRect = getBox(boxRect);
-		    paintString(g, x, y, width, height, boxRect.x, boxRect.width, b);
-		} else {
-		    paintString(g, x, y, width, height, x, amountFull, b);
-		}
+                if (progressBar.isIndeterminate()) {
+                    boxRect = getBox(boxRect);
+                    paintString(g, x, y, width, height,
+                            boxRect.x, boxRect.width, b);
+                } else {
+                    paintString(g, x, y, width, height, x, amountFull, b);
+                }
             }
             else {
                 paintString(g, x, y, width, height, x + width - amountFull,
@@ -703,13 +655,14 @@ public class BasicProgressBarUI extends ProgressBarUI {
             }
         }
         else {
-	    if (progressBar.isIndeterminate()) {
-		boxRect = getBox(boxRect);
-		paintString(g, x, y, width, height, boxRect.y, boxRect.height, b);
-	    } else {
-		paintString(g, x, y, width, height, y + height - amountFull,
-			    amountFull, b);
-	    }
+            if (progressBar.isIndeterminate()) {
+                boxRect = getBox(boxRect);
+                paintString(g, x, y, width, height,
+                        boxRect.y, boxRect.height, b);
+            } else {
+                paintString(g, x, y, width, height, y + height - amountFull,
+                        amountFull, b);
+            }
         }
     }
 
@@ -742,10 +695,12 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	
 	if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
 	    g2.setColor(getSelectionBackground());
-	    g2.drawString(progressString, renderLocation.x, renderLocation.y);
+	    SwingUtilities2.drawString(progressBar, g2, progressString,
+                                       renderLocation.x, renderLocation.y);
 	    g2.setColor(getSelectionForeground());
             g2.clipRect(fillStart, y, amountFull, height);
-	    g.drawString(progressString, renderLocation.x, renderLocation.y);
+	    SwingUtilities2.drawString(progressBar, g2, progressString,
+                                       renderLocation.x, renderLocation.y);
 	} else { // VERTICAL
 	    g2.setColor(getSelectionBackground());
             AffineTransform rotate =
@@ -753,10 +708,12 @@ public class BasicProgressBarUI extends ProgressBarUI {
             g2.setFont(progressBar.getFont().deriveFont(rotate));
 	    renderLocation = getStringPlacement(g2, progressString,
 						  x, y, width, height);
-	    g2.drawString(progressString, renderLocation.x, renderLocation.y);
+	    SwingUtilities2.drawString(progressBar, g2, progressString,
+                                       renderLocation.x, renderLocation.y);
 	    g2.setColor(getSelectionForeground());
 	    g2.clipRect(x, fillStart, width, amountFull);
-	    g2.drawString(progressString, renderLocation.x, renderLocation.y);
+	    SwingUtilities2.drawString(progressBar, g2, progressString,
+                                       renderLocation.x, renderLocation.y);
 	}
 	g2.setClip(oldClip);
     }
@@ -771,9 +728,10 @@ public class BasicProgressBarUI extends ProgressBarUI {
      */
     protected Point getStringPlacement(Graphics g, String progressString,
 				       int x,int y,int width,int height) {
-	FontMetrics fontSizer = progressBar.getFontMetrics(
+	FontMetrics fontSizer = SwingUtilities2.getFontMetrics(progressBar, g,
 	                                    progressBar.getFont());
-	int stringWidth = fontSizer.stringWidth(progressString);
+	int stringWidth = SwingUtilities2.stringWidth(progressBar, fontSizer,
+                                                      progressString);
 
 	if (progressBar.getOrientation() == JProgressBar.HORIZONTAL) {
 	    return new Point(x + Math.round(width/2 - stringWidth/2),
@@ -801,7 +759,8 @@ public class BasicProgressBarUI extends ProgressBarUI {
 	    if (progressBar.isStringPainted()) {
 		// I'm doing this for completeness.
 		String progString = progressBar.getString();
-		int stringWidth = fontSizer.stringWidth(progString);
+		int stringWidth = SwingUtilities2.stringWidth(
+                          progressBar, fontSizer, progString);
 		if (stringWidth > size.width) {
 		    size.width = stringWidth;
 		}
@@ -827,7 +786,8 @@ public class BasicProgressBarUI extends ProgressBarUI {
 		    size.width = stringHeight;
 		}
 		// This is also for completeness.
-		int stringWidth = fontSizer.stringWidth(progString);
+		int stringWidth = SwingUtilities2.stringWidth(
+                                       progressBar, fontSizer, progString);
 		if (stringWidth > size.height) {
 		    size.height = stringWidth;
 		}
@@ -888,22 +848,8 @@ public class BasicProgressBarUI extends ProgressBarUI {
      * @since 1.4
      */
     protected void setAnimationIndex(int newValue) {
-        if (DEBUGALL) {
-            System.out.println("----begin setAnimationIndex----");
-            System.out.println("    argument = " + newValue);
-        }
-
         if (animationIndex != newValue) {
-            if (DEBUGALL) {
-                System.out.println("    Changing animation index from "
-                                   + animationIndex + " to "
-                                   + newValue);
-            }
-            
             if (sizeChanged()) { 
-                if (DEBUGALL) {
-                    System.out.println("    size changed; resetting maxPosition, delta");
-                }
                 animationIndex = newValue;
                 maxPosition = 0;  //needs to be recalculated
                 delta = 0.0;      //needs to be recalculated
@@ -913,13 +859,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
 
             //Get the previous box drawn.
             nextPaintRect = getBox(nextPaintRect);
-
-            if (DEBUGALL) {
-                System.out.println("    previous paint rect =  "
-                                        + nextPaintRect);
-                System.out.println("    before setting, boxRect =  "
-                                        + boxRect);
-            }
 
             //Update the frame number.
             animationIndex = newValue;
@@ -931,18 +870,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
                     nextPaintRect.add(boxRect);
                 }
             }
-
-            if (DEBUGALL) {
-                System.out.println("    after setting, boxRect =  "
-                                        + boxRect);
-                System.out.println("    after setting, nextPaintRect =  "
-                                        + nextPaintRect);
-            }
         } else { //animationIndex == newValue
-            if (DEBUGALL) {
-                System.out.println("    No change in value");
-                System.out.println("----end setAnimationIndex----");
-            }
             return;
         }
 
@@ -950,13 +878,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
             progressBar.repaint(nextPaintRect);
         } else {
             progressBar.repaint();
-            if (DEBUGALL) {
-                System.out.println("    repaint without args");
-            }
-        }
-
-        if (DEBUGALL) {
-            System.out.println("----end setAnimationIndex----");
         }
     }
 
@@ -993,29 +914,11 @@ public class BasicProgressBarUI extends ProgressBarUI {
      */
     protected void incrementAnimationIndex() {
         int newValue = getAnimationIndex() + 1;
-        if (DEBUGALL) {
-            System.out.println();
-            System.out.println("----begin incrementAnimationIndex----");
-            System.out.println("    newValue = " + newValue);
-            System.out.println("    numFrames = " + numFrames);
-        }
 
         if (newValue < numFrames) {
             setAnimationIndex(newValue);
         } else {
             setAnimationIndex(0);
-            if (LOGSTATS) {
-                numLoops++;
-                long time = System.currentTimeMillis();
-                System.out.println("Loop #" + numLoops + ": "
-                                   + (time - lastLoopTime)
-                                   + " (" + (time - startTime)
-                                   + " total)");
-                lastLoopTime = time;
-            }
-        }
-        if (DEBUGALL) {
-            System.out.println("----end incrementAnimationIndex----");
         }
     }
 
@@ -1038,11 +941,8 @@ public class BasicProgressBarUI extends ProgressBarUI {
     }
 
     private int initRepaintInterval() {
-        repaintInterval = UIManager.getInt("ProgressBar.repaintInterval");
-        if (BASICDEBUG) {
-            System.out.println("    value of ProgressBar.repaintInterval is "
-                                   + repaintInterval);
-        }
+        repaintInterval = DefaultLookup.getInt(progressBar,
+                this, "ProgressBar.repaintInterval", 50);
         return repaintInterval;
     }
 
@@ -1065,20 +965,14 @@ public class BasicProgressBarUI extends ProgressBarUI {
     }
 
     private int initCycleTime() {
-        cycleTime = UIManager.getInt("ProgressBar.cycleTime");
-        if (BASICDEBUG) {
-            System.out.println("    value of ProgressBar.cycleTime is "
-                                   + cycleTime);
-        }
+        cycleTime = DefaultLookup.getInt(progressBar, this,
+                "ProgressBar.cycleTime", 3000);
         return cycleTime;
     }
 
 
     /** Initialize cycleTime, repaintInterval, numFrames, animationIndex. */
     private void initIndeterminateDefaults() {
-        if (DEBUGALL) {
-            System.out.println("----begin initIndeterminateDefaults----");
-        }
         initRepaintInterval(); //initialize repaint interval
         initCycleTime();       //initialize cycle length
 
@@ -1090,54 +984,22 @@ public class BasicProgressBarUI extends ProgressBarUI {
         // Make sure cycleTime is reasonable.
         if (repaintInterval > cycleTime) {
             cycleTime = repaintInterval * 20;
-            if (DEBUGALL) {
-                System.out.println("cycleTime changed to " + cycleTime);
-            }
         } else {
             // Force cycleTime to be a even multiple of repaintInterval.
             int factor = (int)Math.ceil(
                                  ((double)cycleTime)
                                / ((double)repaintInterval*2));
-            if (DEBUGALL) {
-                int newCycleTime = repaintInterval*factor*2; 
-                if (cycleTime != newCycleTime) {
-                    System.out.println("cycleTime being changed to "
-                                       + newCycleTime);
-                }
-            }
-    
             cycleTime = repaintInterval*factor*2;
-        }
-
-        if (BASICDEBUG) {
-            System.out.println("    cycle length: " + cycleTime);
-            System.out.println("    repaint interval: " + repaintInterval);
-        }
-        if (DEBUGALL) {
-            System.out.println("----end initIndeterminateDefaults----");
         }
     }
 
     /**
-     * Invoked by PropertyChangeHandler before startAnimationTimer().
+     * Invoked by PropertyChangeHandler.
      *
      *  NOTE: This might not be invoked until after the first
      *  paintIndeterminate call.
      */
     private void initIndeterminateValues() {
-        if (DEBUGALL) {
-            System.out.println();
-            System.out.println("----begin initIndeterminateValues----");
-        }
-        if (LOGSTATS) {
-            startTime = lastLoopTime = System.currentTimeMillis();
-            numLoops = 0;
-        }
-                                                                            
-        if (BASICDEBUG) {
-            System.out.println("ADJUSTTIMER = " + ADJUSTTIMER);
-        }
-    
         initIndeterminateDefaults();
         //assert cycleTime/repaintInterval is a whole multiple of 2.
         numFrames = cycleTime/repaintInterval;
@@ -1148,21 +1010,23 @@ public class BasicProgressBarUI extends ProgressBarUI {
         componentInnards = new Rectangle();
         oldComponentInnards = new Rectangle();
 
-        if (BASICDEBUG) {
-            System.out.println("    numFrames: " + numFrames);
-        }
-        if (DEBUGALL) {
-            System.out.println("----end initIndeterminateValues----");
+        // we only bother installing the HierarchyChangeListener if we
+        // are indeterminate
+        progressBar.addHierarchyListener(getHandler());
+
+        // start the animation thread if necessary
+        if (progressBar.isDisplayable()) {
+            startAnimationTimer();
         }
     }
 
-    /** Invoked by PropertyChangeHandler after stopAnimationTimer(). */
+    /** Invoked by PropertyChangeHandler. */
     private void cleanUpIndeterminateValues() {
-        if (DEBUGALL) {
-            System.out.println();
-            System.out.println("----begin cleanUpIndeterminateValues----");
+        // stop the animation thread if necessary
+        if (progressBar.isDisplayable()) {
+            stopAnimationTimer();
         }
-                                                                            
+
         cycleTime = repaintInterval = 0;
         numFrames = animationIndex = 0;
         maxPosition = 0;
@@ -1171,13 +1035,7 @@ public class BasicProgressBarUI extends ProgressBarUI {
         boxRect = nextPaintRect = null;
         componentInnards = oldComponentInnards = null;
 
-        if (LOGSTATS) {
-            startTime = lastLoopTime = numLoops = 0;
-        }
-
-        if (DEBUGALL) {
-            System.out.println("----end cleanUpIndeterminateValues----");
-        }
+        progressBar.removeHierarchyListener(getHandler());
     }
 
     // Called from initIndeterminateValues to initialize the animation index.
@@ -1261,12 +1119,6 @@ public class BasicProgressBarUI extends ProgressBarUI {
                     }
                     timer.setInitialDelay(nextDelay);
                     previousDelay = nextDelay;
-                    if (DEBUGTIMER) {
-                        System.out.println("---------------------");
-                        System.out.println("actual delay = "
-                                           + (time - lastCall));
-                        System.out.println("next delay = " + nextDelay);
-                    }
                 }
                 timer.start();
                 lastCall = time;
@@ -1277,47 +1129,24 @@ public class BasicProgressBarUI extends ProgressBarUI {
     }
 
 
-    //
-    // Property Change Events
-    //
-    /**
-     * [PENDING: add doc here]
-     * [PENDING: make this static?]
-     */
-    private class PropertyChangeHandler implements PropertyChangeListener {
-	public void propertyChange(PropertyChangeEvent e) {
-	    String prop = e.getPropertyName();
-	    if ("indeterminate".equals(prop)) {
-		isIndeterminate = progressBar.isIndeterminate();
-    
-		if (isIndeterminate) {
-                    initIndeterminateValues();
-
-		    //start the animation thread
-		    startAnimationTimer();
-	        } else {
-	            //stop the animation thread
-	            stopAnimationTimer();
-
-                    //clean up
-                    cleanUpIndeterminateValues();
-                }
-    
-                progressBar.repaint();
-            }
-        }
-    }
-
-
-    //
-    // Change Events
-    //
     /**
      * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicProgressBarUI.
      */
     public class ChangeHandler implements ChangeListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+	public void stateChanged(ChangeEvent e) {
+            getHandler().stateChanged(e);
+	}
+    }
+
+
+    private class Handler implements ChangeListener, PropertyChangeListener, HierarchyListener {
+        // ChangeListener
 	public void stateChanged(ChangeEvent e) {
 	    BoundedRangeModel model = progressBar.getModel();
 	    int newRange = model.getMaximum() - model.getMinimum();
@@ -1335,5 +1164,32 @@ public class BasicProgressBarUI extends ProgressBarUI {
 		progressBar.repaint();
 	    }
 	}
+
+        // PropertyChangeListener
+	public void propertyChange(PropertyChangeEvent e) {
+	    String prop = e.getPropertyName();
+	    if ("indeterminate" == prop) {
+		if (progressBar.isIndeterminate()) {
+                    initIndeterminateValues();
+	        } else {
+                    //clean up
+                    cleanUpIndeterminateValues();
+                }
+                progressBar.repaint();
+            }
+        }
+        
+        // we don't want the animation to keep running if we're not displayable
+        public void hierarchyChanged(HierarchyEvent he) {
+            if ((he.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0) {
+                if (progressBar.isIndeterminate()) {
+                    if (progressBar.isDisplayable()) {
+                        startAnimationTimer();
+                    } else {
+                        stopAnimationTimer();
+                    }
+                }
+            }
+        }
     }
 }

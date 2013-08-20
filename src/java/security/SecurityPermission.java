@@ -1,7 +1,7 @@
 /*
- * @(#)SecurityPermission.java	1.25 03/01/23
+ * @(#)SecurityPermission.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -245,13 +245,15 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.25 03/01/23
+ * @version 1.27 03/12/19
  *
  * @author Marianne Mueller
  * @author Roland Schemers
  */
 
 public final class SecurityPermission extends BasicPermission {
+
+    private static final long serialVersionUID = 5236109936224050470L;
 
     /**
      * Creates a new SecurityPermission with the specified name.

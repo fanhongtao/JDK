@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleDateFormat.java	1.75 08/08/21
+ * @(#)SimpleDateFormat.java	1.77 04/01/22
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,6 +34,8 @@ import java.lang.ClassNotFoundException;
 import java.util.Hashtable;
 import java.lang.StringIndexOutOfBoundsException;
 import sun.text.resources.LocaleData;
+import sun.util.calendar.CalendarUtils;
+import sun.util.calendar.ZoneInfoFile;
 
 /**
  * <code>SimpleDateFormat</code> is a concrete class for formatting and
@@ -288,6 +290,9 @@ import sun.text.resources.LocaleData;
  *     <tr bgcolor="#eeeeff">
  *         <td><code>"yyMMddHHmmssZ"</code>
  *         <td><code>010704120856-0700</code>
+ *     <tr>
+ *         <td><code>"yyyy-MM-dd'T'HH:mm:ss.SSSZ"</code>
+ *         <td><code>2001-07-04T12:08:56.235-0700</code>
  * </table>
  * </blockquote>
  *
@@ -304,7 +309,7 @@ import sun.text.resources.LocaleData;
  * @see          java.util.TimeZone
  * @see          DateFormat
  * @see          DateFormatSymbols
- * @version      1.75, 08/21/08
+ * @version      1.77, 01/22/04
  * @author       Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 public class SimpleDateFormat extends DateFormat {
@@ -383,8 +388,6 @@ public class SimpleDateFormat extends DateFormat {
 
     // For time zones that have no names, use strings GMT+minutes and
     // GMT-minutes. For instance, in France the time zone is GMT+60.
-    private static final String GMT_PLUS = "GMT+";
-    private static final String GMT_MINUS = "GMT-";
     private static final String GMT = "GMT";
 
     /**
@@ -580,8 +583,8 @@ public class SimpleDateFormat extends DateFormat {
     private char[] compile(String pattern) {
 	int length = pattern.length();
 	boolean inQuote = false;
-	StringBuffer compiledPattern = new StringBuffer(length * 2);
-	StringBuffer tmpBuffer = null;
+	StringBuilder compiledPattern = new StringBuilder(length * 2);
+	StringBuilder tmpBuffer = null;
 	int count = 0;
 	int lastTag = -1;
 
@@ -615,7 +618,7 @@ public class SimpleDateFormat extends DateFormat {
 			count = 0;
 		    }
 		    if (tmpBuffer == null) {
-			tmpBuffer = new StringBuffer(length);
+			tmpBuffer = new StringBuilder(length);
 		    } else {
 			tmpBuffer.setLength(0);
 		    }
@@ -703,7 +706,7 @@ public class SimpleDateFormat extends DateFormat {
     /**
      * Encodes the given tag and length and puts encoded char(s) into buffer.
      */
-    private static final void encode(int tag, int length, StringBuffer buffer) {
+    private static final void encode(int tag, int length, StringBuilder buffer) {
 	if (length < 255) {
 	    buffer.append((char)(tag << 8 | length));
 	} else {
@@ -941,69 +944,34 @@ public class SimpleDateFormat extends DateFormat {
 		zeroPaddingNumber(value, count, maxIntCount, buffer);
             break;
         case 17: // 'z' - ZONE_OFFSET
-            int zoneIndex
-                = formatData.getZoneIndex (calendar.getTimeZone().getID());
+            int zoneIndex =
+                formatData.getZoneIndex(calendar.getTimeZone().getID());
             if (zoneIndex == -1) {
-                // For time zones that have no names, use strings
-                // GMT+hours:minutes and GMT-hours:minutes.
-                // For instance, France time zone uses GMT+01:00.
-
                 value = calendar.get(Calendar.ZONE_OFFSET) +
-			calendar.get(Calendar.DST_OFFSET);
-
-                if (value < 0) {
-                    buffer.append(GMT_MINUS);
-                    value = -value; // suppress the '-' sign for text display.
-                } else {
-                    buffer.append(GMT_PLUS);
-                }
-                int num = value / millisPerHour;
-                if (num < 10) {
-                    buffer.append('0');
-                }
-                buffer.append(num);
-                buffer.append(':');
-                num = (value % millisPerHour) / millisPerMinute;
-                if (num < 10) {
-                    buffer.append('0');
-                }
-                buffer.append(num);
-            } else if (calendar.get(Calendar.DST_OFFSET) != 0) {
-                if (count >= 4) {
-                    current = formatData.zoneStrings[zoneIndex][3];
-                } else {
-                    // count < 4, use abbreviated form if exists
-                    current = formatData.zoneStrings[zoneIndex][4];
-                }
+                    calendar.get(Calendar.DST_OFFSET);
+		buffer.append(ZoneInfoFile.toCustomID(value));
             } else {
-                if (count >= 4) {
-                    current = formatData.zoneStrings[zoneIndex][1];
-                } else {
-                    current = formatData.zoneStrings[zoneIndex][2];
-                }
+		int index = (calendar.get(Calendar.DST_OFFSET) == 0) ? 1: 3;
+                if (count < 4) {
+		    // Use the short name
+		    index++;
+		}
+		buffer.append(formatData.zoneStrings[zoneIndex][index]);
             }
             break;
         case 18: // 'Z' - ZONE_OFFSET ("-/+hhmm" form)
-            value = calendar.get(Calendar.ZONE_OFFSET) +
-                    calendar.get(Calendar.DST_OFFSET);
+            value = (calendar.get(Calendar.ZONE_OFFSET) +
+		     calendar.get(Calendar.DST_OFFSET)) / 60000;
 
-            if (value < 0) {
-                buffer.append('-');
-                value = -value; // suppress the '-' sign for text display.
-            } else {
-                buffer.append('+');
+	    int width = 4;
+            if (value >= 0) {
+		buffer.append('+');
+	    } else {
+                width++;
             }
 
-            int num = value / millisPerHour;
-            if (num < 10) {
-                buffer.append('0');
-            }
-            buffer.append(num);
-            num = (value % millisPerHour) / millisPerMinute;
-            if (num < 10) {
-                 buffer.append('0');
-            }
-            buffer.append(num);
+            int num = (value / 60) * 100 + (value % 60);
+	    CalendarUtils.sprintf0d(buffer, num, width);
             break;
         default:
             // case 3: // 'd' - DATE
@@ -1162,16 +1130,6 @@ public class SimpleDateFormat extends DateFormat {
 	    }
 	}
 
-	// If only AM_PM has been set without any hour value, then
-	// HOUR is set to 0 to force calendar to take the HOUR and
-	// AM_PM fields. (bugid: 4736959) (Changing GregorianCalendar
-	// to take a look at both the HOUR and AM_PM stamp values
-	// breaks JCK GregorianCalendar2057.)
-	if (calendar.isSet(Calendar.AM_PM) && !calendar.isSet(Calendar.HOUR) &&
-	    !calendar.isSet(Calendar.HOUR_OF_DAY)) {
-	    calendar.set(Calendar.HOUR, 0); // force to update the stamp value
-	}
-
         // At this point the fields of Calendar have been set.  Calendar
         // will fill in default values for missing fields when the time
         // is computed.
@@ -1272,32 +1230,47 @@ public class SimpleDateFormat extends DateFormat {
     }
 
     private int matchZoneString(String text, int start, int zoneIndex) {
-	int j;
-	for (j = 1; j <= 4; ++j) {
+	for (int j = 1; j <= 4; ++j) {
 	    // Checking long and short zones [1 & 2],
 	    // and long and short daylight [3 & 4].
+	    String zoneName = formatData.zoneStrings[zoneIndex][j];
 	    if (text.regionMatches(true, start,
-				   formatData.zoneStrings[zoneIndex][j], 0,
-				   formatData.zoneStrings[zoneIndex][j].length())) {
-		break;
+				   zoneName, 0, zoneName.length())) {
+		return j;
 	    }
 	}
-	return (j > 4) ? -1 : j;
-    }	
+	return -1;
+    }
+
+    private boolean matchDSTString(String text, int start, int zoneIndex, int standardIndex) {
+	int index = standardIndex + 2;
+	String zoneName  = formatData.zoneStrings[zoneIndex][index];
+	if (text.regionMatches(true, start,
+			       zoneName, 0, zoneName.length())) {
+	    return true;
+	}
+	return false;
+    }
 
     /**
      * find time zone 'text' matched zoneStrings and set to internal
      * calendar.
      */
     private int subParseZoneString(String text, int start) {
+	boolean useSameName = false; // true if standard and daylight time use the same abbreviation.
+	TimeZone currentTimeZone = getTimeZone();
+
 	// At this point, check for named time zones by looking through
 	// the locale data from the DateFormatZoneData strings.
 	// Want to be able to parse both short and long forms.
 	int zoneIndex = 
-	    formatData.getZoneIndex (getTimeZone().getID());
+	    formatData.getZoneIndex (currentTimeZone.getID());
 	TimeZone tz = null;
 	int j = 0, i = 0;
 	if ((zoneIndex != -1) && ((j = matchZoneString(text, start, zoneIndex)) > 0)) {
+	    if (j <= 2) {
+		useSameName = matchDSTString(text, start, zoneIndex, j);
+	    }
 	    tz = TimeZone.getTimeZone(formatData.zoneStrings[zoneIndex][0]);
 	    i = zoneIndex;
 	}
@@ -1305,6 +1278,9 @@ public class SimpleDateFormat extends DateFormat {
 	    zoneIndex = 
 		formatData.getZoneIndex (TimeZone.getDefault().getID());
 	    if ((zoneIndex != -1) && ((j = matchZoneString(text, start, zoneIndex)) > 0)) {
+		if (j <= 2) {
+		    useSameName = matchDSTString(text, start, zoneIndex, j);
+		}
 		tz = TimeZone.getTimeZone(formatData.zoneStrings[zoneIndex][0]);
 		i = zoneIndex;
 	    }
@@ -1313,18 +1289,25 @@ public class SimpleDateFormat extends DateFormat {
 	if (tz == null) {
 	    for (i = 0; i < formatData.zoneStrings.length; i++) {
 		if ((j = matchZoneString(text, start, i)) > 0) {
+		    if (j <= 2) {
+			useSameName = matchDSTString(text, start, i, j);
+		    }
 		    tz = TimeZone.getTimeZone(formatData.zoneStrings[i][0]);
 		    break;
 		}
 	    }
 	}
 	if (tz != null) { // Matched any ?
-	    // if tz.getDSTSaving() returns 0 for DST, use tz to
-            // determine the local time. (6645292)
-	    int dstAmount = (j >= 3) ? tz.getDSTSavings() : 0;
-	    if(!(j >= 3 && dstAmount == 0))  {
-	        calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
-	        calendar.set(Calendar.DST_OFFSET, dstAmount);
+	    if (!tz.equals(currentTimeZone)) {
+		setTimeZone(tz);
+	    }
+	    // If the time zone matched uses the same name
+	    // (abbreviation) for both standard and daylight time,
+	    // let the time zone in the Calendar decide which one.
+	    if (!useSameName) {
+		calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
+		calendar.set(Calendar.DST_OFFSET, 
+			     j >= 3 ? tz.getDSTSavings() : 0);
 	    }
 	    return (start + formatData.zoneStrings[i][j].length());
 	}
@@ -1724,7 +1707,7 @@ public class SimpleDateFormat extends DateFormat {
      * @exception IllegalArgumentException if the given pattern is invalid
      */
     private String translatePattern(String pattern, String from, String to) {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         boolean inQuote = false;
         for (int i = 0; i < pattern.length(); ++i) {
             char c = pattern.charAt(i);

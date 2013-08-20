@@ -1,7 +1,7 @@
 /*
- * @(#)AffineTransformOp.java	1.60 03/01/23
+ * @(#)AffineTransformOp.java	1.62 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,14 +53,16 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * Nearest-neighbor interpolation type.
      */
     public static final int TYPE_NEAREST_NEIGHBOR = 1;
+
     /**
      * Bilinear interpolation type.
      */
     public static final int TYPE_BILINEAR = 2;
+
     /**
      * Bicubic interpolation type.
      */
-    private static final int TYPE_BICUBIC = 3;
+    public static final int TYPE_BICUBIC = 3;
 
     int interpolationType = TYPE_NEAREST_NEIGHBOR;
 
@@ -68,7 +70,7 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * Constructs an <CODE>AffineTransformOp</CODE> given an affine transform.
      * The interpolation type is determined from the 
      * <CODE>RenderingHints</CODE> object.  If the interpolation hint is 
-     * defined, it will be used. Otherwise, if the rendering quality hint is        
+     * defined, it will be used. Otherwise, if the rendering quality hint is
      * defined, the interpolation type is determined from its value.  If no 
      * hints are specified (<CODE>hints</CODE> is null),
      * the interpolation type is {@link #TYPE_NEAREST_NEIGHBOR 
@@ -122,8 +124,9 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * @param xform The <CODE>AffineTransform</CODE> to use for the operation.
      * @param interpolationType One of the integer
      * interpolation type constants defined by this class: 
-     * {@link #TYPE_NEAREST_NEIGHBOR TYPE_NEAREST_NEIGHBOR}, 
-     * {@link #TYPE_BILINEAR TYPE_BILINEAR}. 
+     * {@link #TYPE_NEAREST_NEIGHBOR TYPE_NEAREST_NEIGHBOR},
+     * {@link #TYPE_BILINEAR TYPE_BILINEAR},
+     * {@link #TYPE_BICUBIC TYPE_BICUBIC}. 
      * @throws ImagingOpException if the transform is non-invertible.
      */
     public AffineTransformOp(AffineTransform xform, int interpolationType) {
@@ -146,6 +149,7 @@ public class AffineTransformOp implements BufferedImageOp, RasterOp {
      * @return the interpolation type.
      * @see #TYPE_NEAREST_NEIGHBOR
      * @see #TYPE_BILINEAR
+     * @see #TYPE_BICUBIC
      */
     public final int getInterpolationType() {
         return interpolationType;

@@ -1,7 +1,7 @@
 /*
- * @(#)Parser.java	1.29 03/01/23
+ * @(#)Parser.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +56,7 @@ import sun.misc.MessageUtils;
  * @see DTD
  * @see TagElement
  * @see SimpleAttributeSet
- * @version 1.29, 01/23/03
+ * @version 1.38, 12/19/03
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
@@ -143,6 +143,43 @@ class Parser implements DTDConstants {
     private int currentBlockStartPos;
     /** Start position of the last block. */
     private int lastBlockStartPos;
+
+    /**
+     * array for mapping numeric references in range
+     * 130-159 to displayable Unicode characters.
+     */
+    private static final char[] cp1252Map = {
+        8218,  // &#130;
+        402,   // &#131;
+        8222,  // &#132;
+        8230,  // &#133;
+        8224,  // &#134;
+        8225,  // &#135;
+        710,   // &#136;
+        8240,  // &#137;
+        352,   // &#138;
+        8249,  // &#139;
+        338,   // &#140;
+        141,   // &#141;
+        142,   // &#142;
+        143,   // &#143;
+        144,   // &#144;
+        8216,  // &#145;
+        8217,  // &#146;
+        8220,  // &#147;
+        8221,  // &#148;
+        8226,  // &#149;
+        8211,  // &#150;
+        8212,  // &#151;
+        732,   // &#152;
+        8482,  // &#153;
+        353,   // &#154;
+        8250,  // &#155;
+        339,   // &#156;
+        157,   // &#157;
+        158,   // &#158;
+        376    // &#159;
+    };
 
     public Parser(DTD dtd) {
 	this.dtd = dtd;
@@ -292,7 +329,7 @@ class Parser implements DTDConstants {
 
                 // output pending space
                 text[textpos++] = ' ';
-                if (!strict) {
+                if (!strict && !tag.getElement().isEmpty()) {
                     ignoreSpace = true;
                 }
             }
@@ -304,7 +341,7 @@ class Parser implements DTDConstants {
 	// was getting lost when we did error recovery.
 	if (tag.getElement().getName().equals("title")) {
 	    handleTitle(newtext);
-	} else {
+        } else {
 	    handleText(newtext);
 	}
 	lastBlockStartPos = currentBlockStartPos;
@@ -431,7 +468,6 @@ class Parser implements DTDConstants {
 	    ((elemName.equals("font")) &&
 	     (stackElement.equals("ul") || stackElement.equals("ol"))) ||
 	    (elemName.equals("meta") && stack != null) ||
-	    elemName.equals("style") ||
 	    (stackElement.equals("table") && elemName.equals("a"))) {
 	    return true;
 	}
@@ -878,7 +914,7 @@ class Parser implements DTDConstants {
 		    ch = readCh();
 		    break;
 		}
-		char data[] = {(char)n};
+		char data[] = {mapNumericReference((char)n)};
 		return data;
 	    }
 	    addString('#');
@@ -939,6 +975,25 @@ class Parser implements DTDConstants {
 	    return b;
 	}
 	return ent.getData();
+    }
+
+    /**
+     * Converts numeric character reference to Unicode character.
+     *
+     * Normally the code in a reference should be always converted
+     * to the Unicode character with the same code, but due to
+     * wide usage of Cp1252 charset most browsers map numeric references
+     * in the range 130-159 (which are control chars in Unicode set)
+     * to displayable characters with other codes.
+     *
+     * @param c the code of numeric character reference.
+     * @return the character corresponding to the reference code.
+     */
+    private char mapNumericReference(char c) {
+        if (c < 130 || c > 159) {
+            return c;
+        }
+        return cp1252Map[c - 130];
     }
 
     /**
@@ -1363,6 +1418,9 @@ class Parser implements DTDConstants {
 		error("invalid.tagattval", attname, elem.getName());
 	    }
 	    HTML.Attribute attkey = HTML.getAttributeKey(attname);
+	    if (attkey == HTML.Attribute.CLASS) {
+		attvalue = attvalue.toLowerCase();
+	    }
 	    if (attkey == null) {
 		attributes.addAttribute(attname, attvalue);
 	    } else {
@@ -1482,6 +1540,7 @@ class Parser implements DTDConstants {
 				textpos = 0;
 			    }
 			    parseComment();
+			    last = makeTag(dtd.getElement("comment"), true);
 			    handleComment(getChars(0));
 			    continue;
 			} else if (!warned) {
@@ -1915,6 +1974,7 @@ class Parser implements DTDConstants {
 		}
 		System.arraycopy(data, 0, text, textpos, data.length);
 		textpos += data.length;
+                ignoreSpace = false;
 		continue;
 
 	      case '\n':

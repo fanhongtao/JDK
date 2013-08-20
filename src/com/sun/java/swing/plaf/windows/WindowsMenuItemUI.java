@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsMenuItemUI.java	1.19 03/01/23
+ * @(#)WindowsMenuItemUI.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,34 +39,21 @@ public class WindowsMenuItemUI extends BasicMenuItemUI {
      * @param textRect Bounding rectangle to render the text.
      * @param text String to render
      */
-    protected void paintText(Graphics g, JMenuItem menuItem, Rectangle textRect, String text) {
-	// Note: This method is almost identical to the same method in WindowsMenuUI
+    protected void paintText(Graphics g, JMenuItem menuItem,
+                             Rectangle textRect, String text) {
+
 	ButtonModel model = menuItem.getModel();
+        Color oldColor = g.getColor();
 
-	if(!model.isEnabled()) {
-	    // *** paint the text disabled
-	    WindowsGraphicsUtils.paintText(g, menuItem, textRect, text, 0);
-	} else {
-	    FontMetrics fm = g.getFontMetrics();
-	    int mnemonicIndex = menuItem.getDisplayedMnemonicIndex();
-	    // W2K Feature: Check to see if the Underscore should be rendered.
-	    if (WindowsLookAndFeel.isMnemonicHidden() == true) {
-		mnemonicIndex = -1;
-	    }
+        if(model.isEnabled() &&
+            (model.isArmed() || (menuItem instanceof JMenu &&
+             model.isSelected()))) {
+            g.setColor(selectionForeground); // Uses protected field.
+        }
 
-	    Color oldColor = g.getColor();
+        WindowsGraphicsUtils.paintText(g, menuItem, textRect, text, 0);
 
-	    // *** paint the text normally
-	    if (model.isArmed()|| (menuItem instanceof JMenu && model.isSelected())) {
-		g.setColor(selectionForeground); // Uses protected field.
-	    }
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
-                                          mnemonicIndex,
-					  textRect.x, 
-					  textRect.y + fm.getAscent());
-	    g.setColor(oldColor);
-	}
+        g.setColor(oldColor);
     }
-
 }
 

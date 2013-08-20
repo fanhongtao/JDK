@@ -1,7 +1,7 @@
 /*
- * @(#)ZipInputStream.java	1.35 07/05/17
+ * @(#)ZipInputStream.java	1.37 04/06/11
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.35, 05/17/07
+ * @version	1.37, 06/11/04
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -57,9 +57,9 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
     }
 
     /**
-     * Reads the next ZIP file entry and positions stream at the beginning
-     * of the entry data.
-     * @return the ZipEntry just read
+     * Reads the next ZIP file entry and positions the stream at the
+     * beginning of the entry data.
+     * @return the next ZIP file entry, or null if there are no more entries
      * @exception ZipException if a ZIP file error has occurred
      * @exception IOException if an I/O error has occurred
      */
@@ -160,11 +160,6 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    }
 	    crc.update(b, off, len);
 	    remaining -= len;
-	    if (remaining == 0 && entry.crc != crc.getValue()) {
-		throw new ZipException(
-		    "invalid entry CRC (expected 0x" + Long.toHexString(entry.crc) +
-		    " but got 0x" + Long.toHexString(crc.getValue()) + ")");
-	    }
 	    return len;
 	default:
 	    throw new InternalError("invalid compression method");
@@ -202,7 +197,8 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
     }
 
     /**
-     * Closes the ZIP input stream.
+     * Closes this input stream and releases any system resources associated
+     * with the stream.
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
@@ -368,15 +364,15 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
                 e.size = get32(tmpbuf, EXTLEN);
             }  
 	}
-	if (e.size != inf.getTotalOut()) {
+	if (e.size != inf.getBytesWritten()) {
 	    throw new ZipException(
-		"invalid entry size (expected " + e.size + " but got " +
-		inf.getTotalOut() + " bytes)");
+		"invalid entry size (expected " + e.size +
+		" but got " + inf.getBytesWritten() + " bytes)");
 	}
-	if (e.csize != inf.getTotalIn()) {
+	if (e.csize != inf.getBytesRead()) {
 	    throw new ZipException(
 		"invalid entry compressed size (expected " + e.csize +
-		" but got " + inf.getTotalIn() + " bytes)");
+		" but got " + inf.getBytesRead() + " bytes)");
 	}
 	if (e.crc != crc.getValue()) {
 	    throw new ZipException(

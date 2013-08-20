@@ -1,7 +1,7 @@
 /*
- * @(#)TextAttribute.java	1.44 03/01/23
+ * @(#)TextAttribute.java	1.46 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -554,7 +554,7 @@ public final class TextAttribute extends Attribute {
      * correct BIDI position of 'inline' components within a line. An optional
      * convenience method allows drawing for simple cases. Follows the 
      * Microsoft model: the character that this is applied to should be 
-     * \uFFFC.</TD></TR>
+     * <code>&#92;uFFFC</code>.</TD></TR>
      * </TABLE>
      */
     public static final TextAttribute CHAR_REPLACEMENT = new TextAttribute("char_replacement");

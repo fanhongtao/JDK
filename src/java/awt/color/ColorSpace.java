@@ -1,7 +1,7 @@
 /*
- * @(#)ColorSpace.java	1.38 05/08/30
+ * @(#)ColorSpace.java	1.39 03/12/19
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -249,8 +249,8 @@ public abstract class ColorSpace implements java.io.Serializable {
     /**
      * Constructs a ColorSpace object given a color space type
      * and the number of components.
-     * @param type One of the <CODE>ColorSpace</CODE> type constants.
-     * @param numcomponents The number of components in the color space.
+     * @param type one of the <CODE>ColorSpace</CODE> type constants
+     * @param numcomponents the number of components in the color space
      */
     protected ColorSpace (int type, int numcomponents) {
         this.type = type;
@@ -264,7 +264,7 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @param colorspace a specific color space identified by one of
      *        the predefined class constants (e.g. CS_sRGB, CS_LINEAR_RGB,
      *        CS_CIEXYZ, CS_GRAY, or CS_PYCC)
-     * @return The requested <CODE>ColorSpace</CODE> object. 
+     * @return the requested <CODE>ColorSpace</CODE> object
      */
     // NOTE: This method may be called by privileged threads.
     //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
@@ -274,67 +274,54 @@ public abstract class ColorSpace implements java.io.Serializable {
 
         switch (colorspace) {
         case CS_sRGB:
-	    synchronized(ColorSpace.class) {
-            	if (sRGBspace == null) {
-                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_sRGB);
-                    sRGBspace = new ICC_ColorSpace (theProfile);
-                }
+            if (sRGBspace == null) {
+                ICC_Profile theProfile = ICC_Profile.getInstance (CS_sRGB);
+                sRGBspace = new ICC_ColorSpace (theProfile);
+            }
 
-                theColorSpace = sRGBspace;
-	    }
+            theColorSpace = sRGBspace;
             break;
         
         case CS_CIEXYZ:
-	    synchronized(ColorSpace.class) {
-                if (XYZspace == null) {
-                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_CIEXYZ);
-                    XYZspace = new ICC_ColorSpace (theProfile);
-                }
+            if (XYZspace == null) {
+                ICC_Profile theProfile = ICC_Profile.getInstance (CS_CIEXYZ);
+                XYZspace = new ICC_ColorSpace (theProfile);
+            }
 
-                theColorSpace = XYZspace;
-  	    }
+            theColorSpace = XYZspace;
             break;
         
         case CS_PYCC:
-	    synchronized(ColorSpace.class) {
-                if (PYCCspace == null) {
-                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_PYCC);
-                    PYCCspace = new ICC_ColorSpace (theProfile);
-                }
+            if (PYCCspace == null) {
+                ICC_Profile theProfile = ICC_Profile.getInstance (CS_PYCC);
+                PYCCspace = new ICC_ColorSpace (theProfile);
+            }
 
-                theColorSpace = PYCCspace;
-	    }
+            theColorSpace = PYCCspace;
             break;
         
 
         case CS_GRAY:
-	    synchronized(ColorSpace.class) {
-            	if (GRAYspace == null) {
-                    ICC_Profile theProfile = ICC_Profile.getInstance (CS_GRAY);
-                    GRAYspace = new ICC_ColorSpace (theProfile);
-		    /* to allow access from java.awt.ColorModel */
-                    CMM.GRAYspace = GRAYspace; 
-                                          
-                }
+            if (GRAYspace == null) {
+                ICC_Profile theProfile = ICC_Profile.getInstance (CS_GRAY);
+                GRAYspace = new ICC_ColorSpace (theProfile);
+             CMM.GRAYspace = GRAYspace;   // to allow access from
+                                          // java.awt.ColorModel
+            }
 
-                theColorSpace = GRAYspace;
-	    }
+            theColorSpace = GRAYspace;
             break;
         
 
         case CS_LINEAR_RGB:
-	    synchronized(ColorSpace.class) {
-            	if (LINEAR_RGBspace == null) {
-                    ICC_Profile theProfile =
-			 ICC_Profile.getInstance(CS_LINEAR_RGB);
-                    LINEAR_RGBspace = new ICC_ColorSpace (theProfile);
-		    /* to allow access from java.awt.ColorModel */
-                    CMM.LINEAR_RGBspace = LINEAR_RGBspace;  
-                                                   
-                }
+            if (LINEAR_RGBspace == null) {
+                ICC_Profile theProfile = ICC_Profile.getInstance(CS_LINEAR_RGB);
+                LINEAR_RGBspace = new ICC_ColorSpace (theProfile);
+             CMM.LINEAR_RGBspace = LINEAR_RGBspace;   // to allow access from
+                                                      // java.awt.ColorModel
+            }
 
-                theColorSpace = LINEAR_RGBspace;
-	    }
+            theColorSpace = LINEAR_RGBspace;
             break;
         
 
@@ -349,7 +336,7 @@ public abstract class ColorSpace implements java.io.Serializable {
     /**
      * Returns true if the ColorSpace is CS_sRGB.
      * @return <CODE>true</CODE> if this is a <CODE>CS_sRGB</CODE> color 
-     * space, <code>false</code> if it is not.
+     *         space, <code>false</code> if it is not
      */
     public boolean isCS_sRGB () {
         /* REMIND - make sure we know sRGBspace exists already */
@@ -375,7 +362,7 @@ public abstract class ColorSpace implements java.io.Serializable {
      *        of components in this ColorSpace
      * @return a float array of length 3
      * @throws ArrayIndexOutOfBoundsException if array length is not
-     * at least the number of components in this ColorSpace.
+     *         at least the number of components in this ColorSpace
      */
     public abstract float[] toRGB(float[] colorvalue);
 
@@ -399,7 +386,7 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @return a float array with length equal to the number of
      *         components in this ColorSpace
      * @throws ArrayIndexOutOfBoundsException if array length is not
-     * at least 3.
+     *         at least 3
      */
     public abstract float[] fromRGB(float[] rgbvalue);
 
@@ -426,7 +413,7 @@ public abstract class ColorSpace implements java.io.Serializable {
      *        of components in this ColorSpace
      * @return a float array of length 3
      * @throws ArrayIndexOutOfBoundsException if array length is not
-     * at least the number of components in this ColorSpace.
+     *         at least the number of components in this ColorSpace.
      */
     public abstract float[] toCIEXYZ(float[] colorvalue);
 
@@ -454,7 +441,7 @@ public abstract class ColorSpace implements java.io.Serializable {
      * @return a float array with length equal to the number of
      *         components in this ColorSpace
      * @throws ArrayIndexOutOfBoundsException if array length is not
-     * at least 3.
+     *         at least 3
      */
     public abstract float[] fromCIEXYZ(float[] colorvalue);
 
@@ -466,8 +453,9 @@ public abstract class ColorSpace implements java.io.Serializable {
      * green, and blue.  It does not define the particular color
      * characteristics of the space, e.g. the chromaticities of the
      * primaries.
-     * @return The type constant that represents the type of this 
-     *         <CODE>ColorSpace</CODE>.
+     *
+     * @return the type constant that represents the type of this 
+     *         <CODE>ColorSpace</CODE>
      */
     public int getType() {
         return type;
@@ -483,11 +471,18 @@ public abstract class ColorSpace implements java.io.Serializable {
 
     /**
      * Returns the name of the component given the component index.
-     * @param idx The component index.
-     * @return The name of the component at the specified index.
+     *
+     * @param idx the component index
+     * @return the name of the component at the specified index
+     * @throws IllegalArgumentException if <code>idx</code> is
+     *         less than 0 or greater than numComponents - 1
      */
     public String getName (int idx) {
         /* REMIND - handle common cases here */
+        if ((idx < 0) || (idx > numComponents - 1)) {
+            throw new IllegalArgumentException(
+                "Component index out of range: " + idx);
+        }
         return new String("Unnamed color component("+idx+")");
     }
 
@@ -496,16 +491,17 @@ public abstract class ColorSpace implements java.io.Serializable {
      * specified component.  The default implementation in this abstract
      * class returns 0.0 for all components.  Subclasses should override
      * this method if necessary.
-     * @param component The component index.
-     * @return The minimum normalized component value.
+     *
+     * @param component the component index
+     * @return the minimum normalized component value
      * @throws IllegalArgumentException if component is less than 0 or
-     *         greater than numComponents - 1.
+     *         greater than numComponents - 1
      * @since 1.4
      */
     public float getMinValue(int component) {
         if ((component < 0) || (component > numComponents - 1)) {
             throw new IllegalArgumentException(
-                "Component index out of range: + component");
+                "Component index out of range: " + component);
         }
         return 0.0f;
     }
@@ -515,16 +511,17 @@ public abstract class ColorSpace implements java.io.Serializable {
      * specified component.  The default implementation in this abstract
      * class returns 1.0 for all components.  Subclasses should override
      * this method if necessary.
-     * @param component The component index.
-     * @return The maximum normalized component value.
+     *
+     * @param component the component index
+     * @return the maximum normalized component value
      * @throws IllegalArgumentException if component is less than 0 or
-     *         greater than numComponents - 1.
+     *         greater than numComponents - 1
      * @since 1.4
      */
     public float getMaxValue(int component) {
         if ((component < 0) || (component > numComponents - 1)) {
             throw new IllegalArgumentException(
-                "Component index out of range: + component");
+                "Component index out of range: " + component);
         }
         return 1.0f;
     }

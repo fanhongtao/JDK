@@ -1,7 +1,7 @@
 /*
- * @(#)MouseEvent.java	1.45 03/01/23
+ * @(#)MouseEvent.java	1.49 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -127,7 +127,7 @@ import java.io.ObjectInputStream;
  * </ul>
  *
  * @author Carl Quinn
- * 1.45, 01/23/03
+ * 1.49, 12/19/03
  *   
  * @see MouseAdapter
  * @see MouseListener
@@ -309,8 +309,14 @@ public class MouseEvent extends InputEvent {
      * Constructs a <code>MouseEvent</code> object with the
      * specified source component,
      * type, modifiers, coordinates, and click count.
-     * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * <p>
+     * Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior.  Creating an invalid event (such
+     * as by using more than one of the old _MASKs, or modifier/button
+     * values which don't match) results in unspecified behavior.
+     * This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source       the <code>Component</code> that originated the event
      * @param id           the integer that identifies the event
@@ -331,8 +337,9 @@ public class MouseEvent extends InputEvent {
      *                      <code>BUTTON1</code>,
      *                      <code>BUTTON2</code> or
      *                      <code>BUTTON3</code>.
-     * @exception IllegalArgumentException if if an invalid <code>button</code> 
-     *            value is passed in.
+     * @throws IllegalArgumentException if an invalid <code>button</code> 
+     *            value is passed in
+     * @throws IllegalArgumentException if <code>source</code> is null
      * @since 1.4
      */
     public MouseEvent(Component source, int id, long when, int modifiers,
@@ -363,7 +370,9 @@ public class MouseEvent extends InputEvent {
      * specified source component,
      * type, modifiers, coordinates, and click count.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source       the <code>Component</code> that originated the event
      * @param id           the integer that identifies the event
@@ -379,6 +388,7 @@ public class MouseEvent extends InputEvent {
      * @param clickCount   the number of mouse clicks associated with event
      * @param popupTrigger a boolean, true if this event is a trigger for a
      *                     popup menu 
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public MouseEvent(Component source, int id, long when, int modifiers,
                       int x, int y, int clickCount, boolean popupTrigger) {
@@ -479,14 +489,23 @@ public class MouseEvent extends InputEvent {
     }
 
     /**
-     * Returns a String describing the modifier keys and mouse buttons 
-     * that were down during the event, such as "Shift", or "Ctrl+Shift".  
-     * These strings can be localized by changing the awt.properties file.
+     * Returns a <code>String</code> describing the modifier keys and
+     * mouse buttons that were down during the event, such as "Shift",
+     * or "Ctrl+Shift". These strings can be localized by changing
+     * the <code>awt.properties</code> file.
+     * <p>
+     * Note that <code>InputEvent.ALT_MASK</code> and
+     * <code>InputEvent.BUTTON2_MASK</code> have the same value,
+     * so the string "Alt" is returned for both modifiers.  Likewise,
+     * <code>InputEvent.META_MASK</code> and
+     * <code>InputEvent.BUTTON3_MASK</code> have the same value,
+     * so the string "Meta" is returned for both modifiers.
      *
      * @param modifiers a modifier mask describing the modifier keys and 
      *                  mouse buttons that were down during the event
      * @return string   a text description of the combination of modifier
      *                  keys and mouse buttons that were down during the event
+     * @see InputEvent#getModifiersExText(int)
      * @since 1.4
      */
     public static String getMouseModifiersText(int modifiers) {

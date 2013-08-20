@@ -1,7 +1,7 @@
 /*
- * @(#)FlavorMap.java	1.17 03/01/23
+ * @(#)FlavorMap.java	1.19 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.util.Map;
  * platform-independent MIME types. FlavorMaps need not be symmetric, but
  * typically are.
  *
- * @version 1.17, 01/23/03
+ * @version 1.19, 05/05/04
  *
  * @since 1.2
  */
@@ -37,7 +37,7 @@ public interface FlavorMap {
      * @return a <code>java.util.Map</code> of <code>DataFlavor</code>s to
      *         <code>String</code> natives
      */
-    Map getNativesForFlavors(DataFlavor[] flavors);
+    Map<DataFlavor,String> getNativesForFlavors(DataFlavor[] flavors);
 
     /**
      * Returns a <code>Map</code> of the specified <code>String</code> natives
@@ -54,5 +54,5 @@ public interface FlavorMap {
      * @return a <code>java.util.Map</code> of <code>String</code> natives to
      *         <code>DataFlavor</code>s
      */
-    Map getFlavorsForNatives(String[] natives);
+    Map<String,DataFlavor> getFlavorsForNatives(String[] natives);
 }

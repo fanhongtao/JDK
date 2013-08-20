@@ -1,7 +1,7 @@
 /*
- * @(#)Group.java	1.17 03/01/23
+ * @(#)Group.java	1.19 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,6 +64,6 @@ public interface Group extends Principal {
      * 
      * @return an enumeration of the group members.
      */
-    public Enumeration members();
+    public Enumeration<? extends Principal> members();
 
 }

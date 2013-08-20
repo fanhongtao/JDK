@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPermission.java	1.37 03/01/23
+ * @(#)BasicPermission.java	1.40 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,7 +53,7 @@ import java.io.IOException;
  * @see java.net.NetPermission
  * @see java.lang.SecurityManager
  *
- * @version 1.37 03/01/23
+ * @version 1.40 03/12/19
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -62,6 +62,8 @@ import java.io.IOException;
 public abstract class BasicPermission extends Permission
 implements java.io.Serializable
 {
+
+    private static final long serialVersionUID = 6279438298436773498L;
 
     // does this permission have a wildcard at the end?
     private transient boolean wildcard;
@@ -272,7 +274,7 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.37 01/23/03
+ * @version 1.40 12/19/03
  *
  * @author Roland Schemers
  *
@@ -355,11 +357,12 @@ implements java.io.Serializable
 						permission);
 	}
 
-        // No need to synchronize because all adds are done sequentially
-	// before any implies() calls
+	synchronized (this) {
+	    perms.put(bp.getName(), permission);
+	}
 
-	perms.put(bp.getName(), permission);
-        if (!all_allowed) {
+	// No sync on all_allowed; staleness OK
+	if (!all_allowed) {
 	    if (bp.getName().equals("*"))
 		all_allowed = true;
 	}
@@ -397,7 +400,11 @@ implements java.io.Serializable
 	String path = bp.getName();
 	//System.out.println("check "+path);
 
-	Permission x = (Permission) perms.get(path);
+	Permission x;
+
+	synchronized (this) {
+	    x = (Permission) perms.get(path);
+	}
 
 	if (x != null) {
 	    // we have a direct hit!
@@ -413,7 +420,10 @@ implements java.io.Serializable
 
 	    path = path.substring(0, last+1) + "*";
 	    //System.out.println("check "+path);
-	    x = (Permission) perms.get(path);
+
+	    synchronized (this) {
+		x = (Permission) perms.get(path);
+	    }
 
 	    if (x != null) {
 		return x.implies(permission);
@@ -435,7 +445,9 @@ implements java.io.Serializable
 
     public Enumeration elements() {
         // Convert Iterator of Map values into an Enumeration
-	return Collections.enumeration(perms.values());
+	synchronized (this) {
+	    return Collections.enumeration(perms.values());
+	}
     }
 
     // Need to maintain serialization interoperability with earlier releases,
@@ -476,7 +488,10 @@ implements java.io.Serializable
 
 	// Copy perms into a Hashtable
 	Hashtable permissions = new Hashtable(perms.size()*2);
-	permissions.putAll(perms);
+
+	synchronized (this) {
+	    permissions.putAll(perms);
+	}
 
 	// Write out serializable fields
         ObjectOutputStream.PutField pfields = out.putFields();

@@ -1,7 +1,7 @@
 /*
- * @(#)VolatileImage.java	1.15 03/01/23
+ * @(#)VolatileImage.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,6 +15,7 @@ import java.awt.GraphicsDevice;
 import java.awt.Image;
 import java.awt.ImageCapabilities;
 import java.awt.Toolkit;
+import java.awt.Transparency;
 
 /**
  * VolatileImage is an image which can lose its 
@@ -90,7 +91,7 @@ import java.awt.Toolkit;
  * the <code>ImageObserver</code> used in such methods will never 
  * need to be recorded for an asynchronous callback notification.
  */
-public abstract class VolatileImage extends Image
+public abstract class VolatileImage extends Image implements Transparency
 {
 
     // Return codes for validate() method
@@ -306,5 +307,28 @@ public abstract class VolatileImage extends Image
      */
     public abstract ImageCapabilities getCapabilities();
 
+    /**
+     * The transparency value with which this image was created.
+     * @see java.awt.GraphicsConfiguration#createCompatibleVolatileImage(int,
+     *      int,int)
+     * @see java.awt.GraphicsConfiguration#createCompatibleVolatileImage(int,
+     *      int,ImageCapabilities,int)
+     * @see Transparency
+     * @since 1.5
+     */
+    protected int transparency = TRANSLUCENT;
+    
+    /**
+     * Returns the transparency.  Returns either OPAQUE, BITMASK,
+     * or TRANSLUCENT.
+     * @return the transparency of this <code>VolatileImage</code>.
+     * @see Transparency#OPAQUE
+     * @see Transparency#BITMASK
+     * @see Transparency#TRANSLUCENT
+     * @since 1.5
+     */
+    public int getTransparency() {
+	return transparency;
+    }
 }
 

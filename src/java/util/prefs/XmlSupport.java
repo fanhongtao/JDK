@@ -1,7 +1,7 @@
 /*
- * @(#)XmlSupport.java	1.11 02/02/06
+ * @(#)XmlSupport.java	1.7 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,16 +10,18 @@ package java.util.prefs;
 import java.util.*;
 import java.io.*;
 import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.*;
+import javax.xml.transform.stream.*;
 import org.xml.sax.*;
 import org.w3c.dom.*;
-import org.apache.crimson.tree.*;
 
 /**
  * XML Support for java.util.prefs. Methods to import and export preference
  * nodes and subtrees.
  *
  * @author  Josh Bloch and Mark Reinhold
- * @version 1.11, 02/06/02
+ * @version 1.7, 01/12/04
  * @see     Preferences
  * @since   1.4
  */
@@ -79,10 +81,8 @@ class XmlSupport {
         throws IOException, BackingStoreException {
         if (((AbstractPreferences)p).isRemoved()) 
             throw new IllegalStateException("Node has been removed");                
-        XmlDocument doc = new XmlDocument();
-        doc.setDoctype(null, PREFS_DTD_URI, null);
-        Element preferences =  (Element)
-            doc.appendChild(doc.createElement("preferences"));
+        Document doc = createPrefsDoc("preferences");
+        Element preferences =  doc.getDocumentElement() ;
         preferences.setAttribute("EXTERNAL_XML_VERSION", EXTERNAL_XML_VERSION);
         Element xmlRoot =  (Element)
         preferences.appendChild(doc.createElement("root"));
@@ -102,7 +102,8 @@ class XmlSupport {
             e.setAttribute("name", ((Preferences)ancestors.get(i)).name());
         }
         putPreferencesInXml(e, doc, p, subTree);
-        doc.write(os);
+
+        writeDoc(doc, os);
     }
 
     /**
@@ -151,7 +152,7 @@ class XmlSupport {
                 for (int i = 0; i <  kidNames.length; i++)
                     kidsCopy[i] = prefs.node(kidNames[i]);                
             }
-        // release lock
+            // release lock
         }
         
         if (subTree) {
@@ -178,7 +179,7 @@ class XmlSupport {
         throws IOException, InvalidPreferencesFormatException
     {
         try {
-            Document doc = load(is);
+            Document doc = loadPrefsDoc(is);
             String xmlVersion = 
             ((Element)doc.getChildNodes().item(1)).getAttribute("EXTERNAL_XML_VERSION");
             if (xmlVersion.compareTo(EXTERNAL_XML_VERSION) > 0)
@@ -200,26 +201,55 @@ class XmlSupport {
     }
 
     /**
+     * Create a new prefs XML document.
+     */
+    private static Document createPrefsDoc( String qname ) {
+        try {
+            DOMImplementation di = DocumentBuilderFactory.newInstance().
+                newDocumentBuilder().getDOMImplementation();
+            DocumentType dt = di.createDocumentType(qname, null, PREFS_DTD_URI);
+            return di.createDocument(null, qname, dt);
+        } catch(ParserConfigurationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    /**
      * Load an XML document from specified input stream, which must
      * have the requisite DTD URI.
      */
-    private static Document load(InputStream in)
+    private static Document loadPrefsDoc(InputStream in)
         throws SAXException, IOException
     {
         Resolver r = new Resolver();
-	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-	dbf.setIgnoringElementContentWhitespace(true);
-	dbf.setValidating(true);
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setIgnoringElementContentWhitespace(true);
+        dbf.setValidating(true);
         dbf.setCoalescing(true);
         dbf.setIgnoringComments(true);
-	try {
-	    DocumentBuilder db = dbf.newDocumentBuilder();
-	    db.setEntityResolver(new Resolver());
-	    db.setErrorHandler(new EH());
-	    return db.parse(new InputSource(in));
-	} catch (ParserConfigurationException x) {
-	    throw new Error(x);
-	}
+        try {
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            db.setEntityResolver(new Resolver());
+            db.setErrorHandler(new EH());
+            return db.parse(new InputSource(in));
+        } catch (ParserConfigurationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    /**
+     * Write XML document to the specified output stream.
+     */
+    private static final void writeDoc(Document doc, OutputStream out) 
+        throws IOException
+    {
+        try {
+            Transformer t = TransformerFactory.newInstance().newTransformer();
+            t.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, doc.getDoctype().getSystemId());
+            t.transform(new DOMSource(doc), new StreamResult(out));
+        } catch(TransformerException e) {
+            throw new AssertionError(e);
+        }
     }
 
     /**
@@ -282,9 +312,8 @@ class XmlSupport {
      *         results in an <tt>IOException</tt>.
      */
     static void exportMap(OutputStream os, Map map) throws IOException {
-        XmlDocument doc = new XmlDocument();
-        doc.setDoctype(null, PREFS_DTD_URI, null);
-        Element xmlMap = (Element) doc.appendChild(doc.createElement("map"));
+        Document doc = createPrefsDoc("map");
+        Element xmlMap = doc.getDocumentElement( ) ; 
         xmlMap.setAttribute("MAP_XML_VERSION", MAP_XML_VERSION);
 
         for (Iterator i = map.entrySet().iterator(); i.hasNext(); ) {
@@ -295,7 +324,7 @@ class XmlSupport {
             xe.setAttribute("value", (String) e.getValue());
         }
 
-        doc.write(os);
+        writeDoc(doc, os);
     }
 
     /**
@@ -315,7 +344,7 @@ class XmlSupport {
         throws IOException, InvalidPreferencesFormatException
     {
         try {
-            Document doc = load(is);
+            Document doc = loadPrefsDoc(is);
             Element xmlMap = (Element) doc.getChildNodes().item(1);
             // check version
             String mapVersion = xmlMap.getAttribute("MAP_XML_VERSION");

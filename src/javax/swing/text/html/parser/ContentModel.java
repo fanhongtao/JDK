@@ -1,7 +1,7 @@
 /*
- * @(#)ContentModel.java	1.9 03/01/23
+ * @(#)ContentModel.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.io.*;
  * See Annex H on page 556 of the SGML handbook for more information.
  *
  * @author   Arthur van Hoff
- * @version  1.9,01/23/03
+ * @version  1.11,05/05/04
  *
  */
 public final class ContentModel implements Serializable {
@@ -102,7 +102,7 @@ public final class ContentModel implements Serializable {
      * Update elemVec with the list of elements that are
      * part of the this contentModel.
      */
-     public void getElements(Vector elemVec) {
+     public void getElements(Vector<Element> elemVec) {
 	 switch (type) {
 	 case '*':
 	 case '?':
@@ -117,7 +117,7 @@ public final class ContentModel implements Serializable {
 	     }
 	     break;
 	 default:
-	     elemVec.addElement(content);
+	     elemVec.addElement((Element)content);
 	 }
      }
 

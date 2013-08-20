@@ -1,7 +1,7 @@
 /*
- * @(#)SysexMessage.java	1.25 03/01/23
+ * @(#)SysexMessage.java	1.26 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ package javax.sound.midi;
  * bytes used to indicate that a <code>SysexMessage</code> contains continuing system
  * exclusive data should not be propagated via MIDI wire protocol.
  *
- * @version 1.25, 03/01/23
+ * @version 1.26, 03/12/19
  * @author David Rivas
  * @author Kara Kytle
  * @author Florian Bomers

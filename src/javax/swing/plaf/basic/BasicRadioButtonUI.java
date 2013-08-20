@@ -1,7 +1,7 @@
 /*
- * @(#)BasicRadioButtonUI.java	1.66 03/01/23
+ * @(#)BasicRadioButtonUI.java	1.69 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,13 +13,13 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.View;
-
+import com.sun.java.swing.SwingUtilities2;
 
 
 /**
  * RadioButtonUI implementation for BasicRadioButtonUI
  *
- * @version 1.66 01/23/03
+ * @version 1.69 12/19/03
  * @author Jeff Dinkins
  */
 public class BasicRadioButtonUI extends BasicToggleButtonUI 
@@ -87,7 +87,7 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
 
         Font f = c.getFont();
         g.setFont(f);
-        FontMetrics fm = g.getFontMetrics();
+        FontMetrics fm = SwingUtilities2.getFontMetrics(c, g, f);
 
         Insets i = c.getInsets();
         size = b.getSize(size);
@@ -162,10 +162,10 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
 		v.paint(g, textRect);
             } else {
 		paintText(g, b, textRect, text);
-		if(b.hasFocus() && b.isFocusPainted() && 
-		   textRect.width > 0 && textRect.height > 0 ) {
-		    paintFocus(g, textRect, size);
-		}
+	    }
+	    if(b.hasFocus() && b.isFocusPainted() && 
+	       textRect.width > 0 && textRect.height > 0 ) {
+		paintFocus(g, textRect, size);
 	    }
         }
     }
@@ -203,9 +203,7 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
         }
 
         Font font = b.getFont();
-	// XXX - getFontMetrics has been deprecated but there isn't a 
-	// suitable replacement
-        FontMetrics fm = b.getToolkit().getFontMetrics(font);
+        FontMetrics fm = b.getFontMetrics(font);
 
         prefViewRect.x = prefViewRect.y = 0;
         prefViewRect.width = Short.MAX_VALUE;

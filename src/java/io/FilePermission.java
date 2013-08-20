@@ -1,7 +1,7 @@
 /*
- * @(#)FilePermission.java	1.73 03/01/23
+ * @(#)FilePermission.java	1.76 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -70,7 +70,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.73 03/01/23
+ * @version 1.76 04/01/12
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -318,7 +318,7 @@ public final class FilePermission extends Permission implements Serializable {
      * this FilePermission's path also implies that FilePermission's path.
      * 
      * @param that the FilePermission to check against.
-     * @param exact return immediatly if the masks are not equal
+     * @param exact return immediately if the masks are not equal
      * @return the effective mask
      */
     boolean impliesIgnoreMask(FilePermission that) {
@@ -527,7 +527,7 @@ public final class FilePermission extends Permission implements Serializable {
      */
     private static String getActions(int mask)
     {
-	StringBuffer sb = new StringBuffer();
+	StringBuilder sb = new StringBuilder();
         boolean comma = false;
 
 	if ((mask & READ) == READ) {
@@ -658,7 +658,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.73 01/23/03
+ * @version 1.76 01/12/04
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -701,11 +701,12 @@ implements Serializable {
 	    throw new IllegalArgumentException("invalid permission: "+
 					       permission);
 	if (isReadOnly())
-	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+	    throw new SecurityException(
+		"attempt to add a Permission to a readonly PermissionCollection");
 	    
-        // No need to synchronize because all adds are done sequentially
-	// before any implies() calls
-	perms.add(permission);
+	synchronized (this) {
+	    perms.add(permission);
+	}
     }
 
     /**
@@ -729,14 +730,16 @@ implements Serializable {
 	int effective = 0;
 	int needed = desired;
 
-	int len = perms.size();
-	for (int i = 0; i < len; i++) {
-    	    FilePermission x = (FilePermission) perms.get(i);
-	    if (((needed & x.getMask()) != 0) && x.impliesIgnoreMask(fp)) {
-		effective |=  x.getMask();
-		if ((effective & desired) == desired)
-		    return true;
-		needed = (desired ^ effective);
+	synchronized (this) {
+	    int len = perms.size();
+	    for (int i = 0; i < len; i++) {
+		FilePermission x = (FilePermission) perms.get(i);
+		if (((needed & x.getMask()) != 0) && x.impliesIgnoreMask(fp)) {
+		    effective |=  x.getMask();
+		    if ((effective & desired) == desired)
+			return true;
+		    needed = (desired ^ effective);
+		}
 	    }
 	}
 	return false;
@@ -751,7 +754,9 @@ implements Serializable {
 
     public Enumeration elements() {
         // Convert Iterator into Enumeration
-	return Collections.enumeration(perms);
+	synchronized (this) {
+	    return Collections.enumeration(perms);
+	}
     }
 
     private static final long serialVersionUID = 2202956749081564585L;
@@ -780,7 +785,9 @@ implements Serializable {
 
 	// Write out Vector
 	Vector permissions = new Vector(perms.size());
-	permissions.addAll(perms);
+	synchronized (this) {
+	    permissions.addAll(perms);
+	}
 
         ObjectOutputStream.PutField pfields = out.putFields();
         pfields.put("permissions", permissions);

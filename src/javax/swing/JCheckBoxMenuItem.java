@@ -1,7 +1,7 @@
 /*
- * @(#)JCheckBoxMenuItem.java	1.53 03/01/23
+ * @(#)JCheckBoxMenuItem.java	1.55 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -39,9 +39,6 @@ import javax.accessibility.*;
  * see <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
  * a section in <em>The Java Tutorial.</em>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JCheckBoxMenuItem"><code>JCheckBoxMenuItem</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -56,7 +53,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A menu item which can be selected or deselected.
  *
- * @version 1.53 01/23/03
+ * @version 1.55 12/19/03
  * @author Georges Saab
  * @author David Karlton
  */

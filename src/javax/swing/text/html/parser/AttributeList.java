@@ -1,7 +1,7 @@
 /*
- * @(#)AttributeList.java	1.9 03/01/23
+ * @(#)AttributeList.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,14 +24,14 @@ import java.io.*;
  *
  * @see		Element
  * @author      Arthur Van Hoff
- * @version 	1.9 01/23/03
+ * @version 	1.11 05/05/04
  *
  */
 public final
 class AttributeList implements DTDConstants, Serializable {
     public String name;
     public int type;
-    public Vector values;
+    public Vector<?> values;
     public int modifier;
     public String value;
     public AttributeList next;
@@ -49,7 +49,7 @@ class AttributeList implements DTDConstants, Serializable {
     /**
      * Create an attribute list element.
      */
-    public AttributeList(String name, int type, int modifier, String value, Vector values, AttributeList next) {
+    public AttributeList(String name, int type, int modifier, String value, Vector<?> values, AttributeList next) {
 	this.name = name;
 	this.type = type;
 	this.modifier = modifier;
@@ -84,7 +84,7 @@ class AttributeList implements DTDConstants, Serializable {
     /**
      * @return possible attribute values
      */
-    public Enumeration getValues() {
+    public Enumeration<?> getValues() {
 	return (values != null) ? values.elements() : null;
     }
 

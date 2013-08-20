@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)TransformAnim.java	1.38 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)TransformAnim.java	1.34 03/01/23
+ * @(#)TransformAnim.java	1.35 03/10/26
  */
 
 package java2d.demos.Transforms;
@@ -49,7 +50,7 @@ import javax.swing.border.*;
 import java.util.Vector;
 import java2d.AnimatingControlsSurface;
 import java2d.CustomControls;
-
+import javax.swing.plaf.metal.MetalBorders.ButtonBorder;
 
 /**
  * Animation of shapes, text and images rotating, scaling and translating
@@ -355,18 +356,17 @@ public class TransformAnim extends AnimatingControlsSurface {
 
         TransformAnim demo;
         JSlider shapeSlider, stringSlider, imageSlider;
-        Font font = new Font("serif", Font.PLAIN, 10);
+        Font font = new Font("serif", Font.BOLD, 10);
         JToolBar toolbar;
+        ButtonBorder buttonBorder = new ButtonBorder();
 
         public DemoControls(TransformAnim demo) {
             super(demo.name);
             this.demo = demo;
-            setBackground(Color.gray);
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             add(Box.createVerticalStrut(5));
 
             JToolBar bar = new JToolBar(JToolBar.VERTICAL);
-            bar.setBackground(Color.gray);
             bar.setFloatable(false);
             shapeSlider = new JSlider(JSlider.HORIZONTAL,0,20,demo.numShapes);
             shapeSlider.addChangeListener(this);
@@ -374,6 +374,7 @@ public class TransformAnim extends AnimatingControlsSurface {
             tb.setTitleFont(font);
             tb.setTitle(String.valueOf(demo.numShapes) + " Shapes");
             shapeSlider.setBorder(tb);
+            shapeSlider.setOpaque(true);
             shapeSlider.setPreferredSize(new Dimension(80,44));
             bar.add(shapeSlider);
             bar.addSeparator();
@@ -384,6 +385,7 @@ public class TransformAnim extends AnimatingControlsSurface {
             tb.setTitleFont(font);
             tb.setTitle(String.valueOf(demo.numStrings) + " Strings");
             stringSlider.setBorder(tb);
+            stringSlider.setOpaque(true);
             stringSlider.setPreferredSize(new Dimension(80,44));
             bar.add(stringSlider);
             bar.addSeparator();
@@ -394,13 +396,13 @@ public class TransformAnim extends AnimatingControlsSurface {
             tb.setTitleFont(font);
             tb.setTitle(String.valueOf(demo.numImages) + " Images");
             imageSlider.setBorder(tb);
+            imageSlider.setOpaque(true);
             imageSlider.setPreferredSize(new Dimension(80,44));
             bar.add(imageSlider);
             bar.addSeparator();
             add(bar);
 
             toolbar = new JToolBar();
-            toolbar.setBackground(Color.gray);
             toolbar.setFloatable(false);
             addButton("T", "translate", demo.doTranslate);
             addButton("R", "rotate", demo.doRotate);
@@ -411,19 +413,18 @@ public class TransformAnim extends AnimatingControlsSurface {
 
 
         public void addButton(String s, String tt, boolean state) {
-            JButton b = (JButton) toolbar.add(new JButton(s));
+            JToggleButton b = (JToggleButton) toolbar.add(new JToggleButton(s));
             b.setFont(font);
             b.setSelected(state);
             b.setToolTipText(tt);
-            b.setBackground(state ? Color.green : Color.lightGray);
+            b.setFocusPainted(false);
+            b.setBorder(buttonBorder);
             b.addActionListener(this);
         }
 
 
         public void actionPerformed(ActionEvent e) {
-            JButton b = (JButton) e.getSource();
-            b.setSelected(!b.isSelected());
-            b.setBackground(b.isSelected() ? Color.green : Color.lightGray);
+            JToggleButton b = (JToggleButton) e.getSource();
             if (b.getText().equals("T")) {
                 demo.doTranslate = b.isSelected();
             } else if (b.getText().equals("R")) {
@@ -461,7 +462,7 @@ public class TransformAnim extends AnimatingControlsSurface {
 
 
         public Dimension getPreferredSize() {
-            return new Dimension(80,36);
+            return new Dimension(80,38);
         }
 
 
@@ -472,7 +473,7 @@ public class TransformAnim extends AnimatingControlsSurface {
                     try {
                         thread.sleep(4444);
                     } catch (InterruptedException e) { return; }
-                    ((JButton) toolbar.getComponentAtIndex(i)).doClick();
+                    ((AbstractButton) toolbar.getComponentAtIndex(i)).doClick();
                 }
             }
             thread = null;

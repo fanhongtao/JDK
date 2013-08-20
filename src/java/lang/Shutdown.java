@@ -1,7 +1,7 @@
 /*
- * @(#)Shutdown.java	1.9 03/01/23
+ * @(#)Shutdown.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ import java.util.Iterator;
  * governing the virtual-machine shutdown sequence.
  *
  * @author   Mark Reinhold
- * @version  1.9, 03/01/23
+ * @version  1.11, 03/12/19
  * @since    1.3
  */
 
@@ -61,6 +61,8 @@ class Shutdown {
     private static class Lock { };
     private static Object lock = new Lock();
 
+    /* Lock object for the native halt method */
+    private static Object haltLock = new Lock();
 
     /* Invoked by Runtime.runFinalizersOnExit */
     static void setRunFinalizersOnExit(boolean run) {
@@ -134,11 +136,17 @@ class Shutdown {
 	}
     }
 
-
-    /* The true native halt method; also invoked by Runtime.halt
-     * after doing the necessary security checks
+    /* The halt method is synchronized on the halt lock
+     * to avoid corruption of the delete-on-shutdown file list.
+     * It invokes the true native halt method.
      */
-    static native void halt(int status);
+    static void halt(int status) {
+        synchronized (haltLock) {
+            halt0(status);
+        }
+    }
+
+    static native void halt0(int status);
 
     /* Wormhole for invoking java.lang.ref.Finalizer.runAllFinalizers */
     private static native void runAllFinalizers();

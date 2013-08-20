@@ -1,7 +1,7 @@
 /*
- * @(#)Properties.java	1.75 05/02/10
+ * @(#)Properties.java	1.84 04/05/18
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,12 +11,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.BufferedWriter;
-import java.util.Hashtable;
 
 /**
  * The <code>Properties</code> class represents a persistent set of
@@ -38,24 +35,53 @@ import java.util.Hashtable;
  * non-<code>String</code> key or value, the call will fail.
  * <p>
  * <a name="encoding"></a>
- * When saving properties to a stream or loading them from a stream, the
- * ISO 8859-1 character encoding is used. For characters that cannot be directly
- * represented in this encoding,
+ * <p> The {@link #load load} and {@link #store store} methods load and store
+ * properties in a simple line-oriented format specified below.  This format
+ * uses the ISO 8859-1 character encoding.  Characters that cannot be directly
+ * represented in this encoding can be written using
  * <a href="http://java.sun.com/docs/books/jls/html/3.doc.html#100850">Unicode escapes</a>
- * are used; however, only a single 'u' character is allowed in an escape sequence.
- * The native2ascii tool can be used to convert property files to and from
- * other character encodings.
+ * ; only a single 'u' character is allowed in an escape
+ * sequence. The native2ascii tool can be used to convert property files to and
+ * from other character encodings.
+ * <p>
+* <p> The {@link #loadFromXML(InputStream)} and {@link
+ * #storeToXML(OutputStream, String, String)} methods load and store properties
+ * in a simple XML format.  By default the UTF-8 character encoding is used,
+ * however a specific encoding may be specified if required.  An XML properties
+ * document has the following DOCTYPE declaration:
+ *
+ * <pre>
+ * &lt;!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd"&gt;
+ * </pre>
+ * Note that the system URI (http://java.sun.com/dtd/properties.dtd) is
+ * <i>not</i> accessed when exporting or importing properties; it merely
+ * serves as a string to uniquely identify the DTD, which is:
+ * <pre>
+ *    &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+ *
+ *    &lt;!-- DTD for properties --&gt;
+ *
+ *    &lt;!ELEMENT properties ( comment?, entry* ) &gt;
+ *
+ *    &lt;!ATTLIST properties version CDATA #FIXED "1.0"&gt;
+ *
+ *    &lt;!ELEMENT comment (#PCDATA) &gt;
+ *
+ *    &lt;!ELEMENT entry (#PCDATA) &gt;
+ *
+ *    &lt;!ATTLIST entry key CDATA #REQUIRED&gt;
+ * </pre>
  * 
  * @see <a href="../../../tooldocs/solaris/native2ascii.html">native2ascii tool for Solaris</a>
  * @see <a href="../../../tooldocs/windows/native2ascii.html">native2ascii tool for Windows</a>
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.64, 06/26/00
+ * @version 1.84, 05/18/04
  * @since   JDK1.0
  */
 public
-class Properties extends Hashtable {
+class Properties extends Hashtable<Object,Object> {
     /**
      * use serialVersionUID from JDK 1.1.X for interoperability
      */
@@ -101,14 +127,6 @@ class Properties extends Hashtable {
     public synchronized Object setProperty(String key, String value) {
         return put(key, value);
     }
-
-    private static final String keyValueSeparators = "=: \t\r\n\f";
-
-    private static final String strictKeyValueSeparators = "=:";
-
-    private static final String specialSaveChars = "=: \t\r\n\f#!";
-
-    private static final String whiteSpaceChars = " \t\r\n\f";
 
     /**
      * Reads a property list (key and element pairs) from the input
@@ -189,7 +207,7 @@ class Properties extends Hashtable {
      * appear on a single natural line after line continuation
      * characters have been removed.  Note that it is <i>not</i>
      * sufficient to only examine the character preceding a line
-     * terminator sequence to to see if the line terminator is
+     * terminator sequence to see if the line terminator is
      * escaped; there must be an odd number of contiguous backslashes
      * for the line terminator to be escaped.  Since the input is
      * processed from left to right, a non-zero even number of
@@ -262,114 +280,201 @@ class Properties extends Hashtable {
      * 		   malformed Unicode escape sequence.
      */
     public synchronized void load(InputStream inStream) throws IOException {
+        char[] convtBuf = new char[1024];
+        LineReader lr = new LineReader(inStream);
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(inStream, "8859_1"));
-	while (true) {
-            // Get next line
-            String line = in.readLine();
-            if (line == null)
-                return;
+        int limit;
+        int keyLen;
+        int valueStart;
+        char c;
+        boolean hasSep;
+        boolean precedingBackslash;
 
-            if (line.length() > 0) {
-                
-                // Find start of key
-                int len = line.length();
-                int keyStart;
-                for (keyStart=0; keyStart<len; keyStart++)
-                    if (whiteSpaceChars.indexOf(line.charAt(keyStart)) == -1)
-                        break;
+        while ((limit = lr.readLine()) >= 0) {
+            c = 0;
+            keyLen = 0;
+            valueStart = limit;
+            hasSep = false;
 
-                // Blank lines are ignored
-                if (keyStart == len)
-                    continue;
-
-                // Continue lines that end in slashes if they are not comments
-                char firstChar = line.charAt(keyStart);
-                if ((firstChar != '#') && (firstChar != '!')) {
-                    while (continueLine(line)) {
-                        String nextLine = in.readLine();
-                        if (nextLine == null)
-                            nextLine = "";
-                        String loppedLine = line.substring(0, len-1);
-                        // Advance beyond whitespace on new line
-                        int startIndex;
-                        for (startIndex=0; startIndex<nextLine.length(); startIndex++)
-                            if (whiteSpaceChars.indexOf(nextLine.charAt(startIndex)) == -1)
-                                break;
-                        nextLine = nextLine.substring(startIndex,nextLine.length());
-                        line = new String(loppedLine+nextLine);
-                        len = line.length();
-                    }
-
-                    // Find separation between key and value
-                    int separatorIndex;
-                    for (separatorIndex=keyStart; separatorIndex<len; separatorIndex++) {
-                        char currentChar = line.charAt(separatorIndex);
-                        if (currentChar == '\\')
-                            separatorIndex++;
-                        else if (keyValueSeparators.indexOf(currentChar) != -1)
-                            break;
-                    }
-
-                    // Skip over whitespace after key if any
-                    int valueIndex;
-                    for (valueIndex=separatorIndex; valueIndex<len; valueIndex++)
-                        if (whiteSpaceChars.indexOf(line.charAt(valueIndex)) == -1)
-                            break;
-
-                    // Skip over one non whitespace key value separators if any
-                    if (valueIndex < len)
-                        if (strictKeyValueSeparators.indexOf(line.charAt(valueIndex)) != -1)
-                            valueIndex++;
-
-                    // Skip over white space after other separators if any
-                    while (valueIndex < len) {
-                        if (whiteSpaceChars.indexOf(line.charAt(valueIndex)) == -1)
-                            break;
-                        valueIndex++;
-                    }
-                    String key = line.substring(keyStart, separatorIndex);
-                    String value = (separatorIndex < len) ? line.substring(valueIndex, len) : "";
-
-                    // Convert then store key and value
-                    key = loadConvert(key);
-                    value = loadConvert(value);
-                    put(key, value);
+	    //System.out.println("line=<" + new String(lineBuf, 0, limit) + ">");
+            precedingBackslash = false;
+            while (keyLen < limit) {
+                c = lr.lineBuf[keyLen];
+                //need check if escaped.
+                if ((c == '=' ||  c == ':') && !precedingBackslash) {
+                    valueStart = keyLen + 1;
+                    hasSep = true;
+                    break;
+                } else if ((c == ' ' || c == '\t' ||  c == '\f') && !precedingBackslash) {
+                    valueStart = keyLen + 1;
+                    break;
+                } 
+                if (c == '\\') {
+                    precedingBackslash = !precedingBackslash;
+                } else {
+                    precedingBackslash = false;
                 }
+                keyLen++;
             }
+            while (valueStart < limit) {
+                c = lr.lineBuf[valueStart];
+                if (c != ' ' && c != '\t' &&  c != '\f') {
+                    if (!hasSep && (c == '=' ||  c == ':')) {
+                        hasSep = true;
+                    } else {
+                        break;
+                    }
+                }
+                valueStart++;
+            }
+            String key = loadConvert(lr.lineBuf, 0, keyLen, convtBuf);
+            String value = loadConvert(lr.lineBuf, valueStart, limit - valueStart, convtBuf);
+	    put(key, value);
 	}
     }
 
-    /*
-     * Returns true if the given line is a line that must
-     * be appended to the next line
+    /* read in a "logical line" from input stream, skip all comment and
+     * blank lines and filter out those leading whitespace characters 
+     * (\u0020, \u0009 and \u000c) from the beginning of a "natural line". 
+     * Method returns the char length of the "logical line" and stores 
+     * the line in "lineBuf". 
      */
-    private boolean continueLine(String line) {
-        int slashCount = 0;
-        int index = line.length() - 1;
-        while ((index >= 0) && (line.charAt(index--) == '\\'))
-            slashCount++;
-        return (slashCount % 2 == 1);
-    }
+    class LineReader {
+        public LineReader(InputStream inStream) {
+            this.inStream = inStream;
+	}
+        byte[] inBuf = new byte[8192]; 
+        char[] lineBuf = new char[1024];
+        int inLimit = 0;
+        int inOff = 0;
+        InputStream inStream;
 
+        int readLine() throws IOException {
+            int len = 0;
+            char c = 0;
+
+            boolean skipWhiteSpace = true;
+            boolean isCommentLine = false;
+            boolean isNewLine = true;
+            boolean appendedLineBegin = false;
+            boolean precedingBackslash = false;
+	    boolean skipLF = false;
+
+            while (true) {
+                if (inOff >= inLimit) {
+                    inLimit = inStream.read(inBuf);
+		    inOff = 0;
+		    if (inLimit <= 0) {
+			if (len == 0 || isCommentLine) { 
+			    return -1; 
+			}
+			return len;
+		    }
+		}     
+                //The line below is equivalent to calling a 
+                //ISO8859-1 decoder.
+		c = (char) (0xff & inBuf[inOff++]);
+                if (skipLF) {
+                    skipLF = false;
+		    if (c == '\n') {
+		        continue;
+		    }
+		}
+		if (skipWhiteSpace) {
+		    if (c == ' ' || c == '\t' || c == '\f') {
+			continue;
+		    }
+		    if (!appendedLineBegin && (c == '\r' || c == '\n')) {
+			continue;
+		    }
+		    skipWhiteSpace = false;
+		    appendedLineBegin = false;
+		}
+		if (isNewLine) {
+		    isNewLine = false;
+		    if (c == '#' || c == '!') {
+			isCommentLine = true;
+			continue;
+		    }
+		}
+		
+		if (c != '\n' && c != '\r') {
+		    lineBuf[len++] = c;
+		    if (len == lineBuf.length) {
+		        int newLength = lineBuf.length * 2;
+		        if (newLength < 0) {
+		            newLength = Integer.MAX_VALUE;
+		        }
+			char[] buf = new char[newLength];
+			System.arraycopy(lineBuf, 0, buf, 0, lineBuf.length);
+			lineBuf = buf;
+		    }
+		    //flip the preceding backslash flag
+		    if (c == '\\') {
+			precedingBackslash = !precedingBackslash;
+		    } else {
+			precedingBackslash = false;
+		    }
+		}
+		else {
+		    // reached EOL
+		    if (isCommentLine || len == 0) {
+			isCommentLine = false;
+			isNewLine = true;
+			skipWhiteSpace = true;
+			len = 0;
+			continue;
+		    }
+		    if (inOff >= inLimit) {
+			inLimit = inStream.read(inBuf);
+			inOff = 0;
+			if (inLimit <= 0) {
+			    return len;
+			}
+		    }
+		    if (precedingBackslash) {
+			len -= 1;
+			//skip the leading whitespace characters in following line
+			skipWhiteSpace = true;
+			appendedLineBegin = true;
+			precedingBackslash = false;
+			if (c == '\r') {
+                            skipLF = true;
+			}
+		    } else {
+			return len;
+		    }
+		}
+	    }
+	}
+    }    
+    
     /*
      * Converts encoded &#92;uxxxx to unicode chars
      * and changes special saved chars to their original forms
      */
-    private String loadConvert(String theString) {
+    private String loadConvert (char[] in, int off, int len, char[] convtBuf) {
+        if (convtBuf.length < len) {
+            int newLen = len * 2;
+            if (newLen < 0) {
+	        newLen = Integer.MAX_VALUE;
+	    } 
+	    convtBuf = new char[newLen];
+        }
         char aChar;
-        int len = theString.length();
-        StringBuffer outBuffer = new StringBuffer(len);
+        char[] out = convtBuf; 
+        int outLen = 0;
+        int end = off + len;
 
-        for (int x=0; x<len; ) {
-            aChar = theString.charAt(x++);
+        while (off < end) {
+            aChar = in[off++];
             if (aChar == '\\') {
-                aChar = theString.charAt(x++);
-                if (aChar == 'u') {
+                aChar = in[off++];   
+                if(aChar == 'u') {
                     // Read the xxxx
                     int value=0;
 		    for (int i=0; i<4; i++) {
-		        aChar = theString.charAt(x++);
+		        aChar = in[off++];  
 		        switch (aChar) {
 		          case '0': case '1': case '2': case '3': case '4':
 		          case '5': case '6': case '7': case '8': case '9':
@@ -387,41 +492,52 @@ class Properties extends Hashtable {
                               throw new IllegalArgumentException(
                                            "Malformed \\uxxxx encoding.");
                         }
-                    }
-                    outBuffer.append((char)value);
+                     }
+                    out[outLen++] = (char)value;
                 } else {
-                    if (aChar == 't') aChar = '\t';
+                    if (aChar == 't') aChar = '\t'; 
                     else if (aChar == 'r') aChar = '\r';
                     else if (aChar == 'n') aChar = '\n';
-                    else if (aChar == 'f') aChar = '\f';
-                    outBuffer.append(aChar);
+                    else if (aChar == 'f') aChar = '\f'; 
+                    out[outLen++] = aChar;
                 }
-            } else
-                outBuffer.append(aChar);
+            } else {
+	        out[outLen++] = (char)aChar;
+            }
         }
-        return outBuffer.toString();
+        return new String (out, 0, outLen);
     }
 
     /*
-     * Converts unicodes to encoded &#92;uxxxx
-     * and writes out any of the characters in specialSaveChars
-     * with a preceding slash
+     * Converts unicodes to encoded &#92;uxxxx and escapes
+     * special characters with a preceding slash
      */
     private String saveConvert(String theString, boolean escapeSpace) {
         int len = theString.length();
-        StringBuffer outBuffer = new StringBuffer(len*2);
+        int bufLen = len * 2;
+        if (bufLen < 0) {
+            bufLen = Integer.MAX_VALUE;
+        }
+        StringBuffer outBuffer = new StringBuffer(bufLen);
 
         for(int x=0; x<len; x++) {
             char aChar = theString.charAt(x);
+            // Handle common case first, selecting largest block that
+            // avoids the specials below
+            if ((aChar > 61) && (aChar < 127)) {
+                if (aChar == '\\') {
+                    outBuffer.append('\\'); outBuffer.append('\\');
+                    continue;
+                }
+                outBuffer.append(aChar);
+                continue;
+            }
             switch(aChar) {
 		case ' ':
 		    if (x == 0 || escapeSpace) 
 			outBuffer.append('\\');
-
 		    outBuffer.append(' ');
 		    break;
-                case '\\':outBuffer.append('\\'); outBuffer.append('\\');
-                          break;
                 case '\t':outBuffer.append('\\'); outBuffer.append('t');
                           break;
                 case '\n':outBuffer.append('\\'); outBuffer.append('n');
@@ -430,6 +546,12 @@ class Properties extends Hashtable {
                           break;
                 case '\f':outBuffer.append('\\'); outBuffer.append('f');
                           break;
+                case '=': // Fall through
+                case ':': // Fall through
+                case '#': // Fall through
+                case '!':
+                    outBuffer.append('\\'); outBuffer.append(aChar);
+                    break;
                 default:
                     if ((aChar < 0x0020) || (aChar > 0x007e)) {
                         outBuffer.append('\\');
@@ -439,8 +561,6 @@ class Properties extends Hashtable {
                         outBuffer.append(toHex((aChar >>  4) & 0xF));
                         outBuffer.append(toHex( aChar        & 0xF));
                     } else {
-                        if (specialSaveChars.indexOf(aChar) != -1)
-                            outBuffer.append('\\');
                         outBuffer.append(aChar);
                     }
             }
@@ -449,22 +569,25 @@ class Properties extends Hashtable {
     }
 
     /**
-     * Calls the <code>store(OutputStream out, String header)</code> method
+     * Calls the <code>store(OutputStream out, String comments)</code> method
      * and suppresses IOExceptions that were thrown.
      *
      * @deprecated This method does not throw an IOException if an I/O error
-     * occurs while saving the property list.  As of the Java 2 platform v1.2, the preferred
-     * way to save a properties list is via the <code>store(OutputStream out,
-     * String header)</code> method.
+     * occurs while saving the property list.  The preferred way to save a
+     * properties list is via the <code>store(OutputStream out, 
+     * String comments)</code> method or the 
+     * <code>storeToXML(OutputStream os, String comment)</code> method.
      *
      * @param   out      an output stream.
-     * @param   header   a description of the property list.
+     * @param   comments   a description of the property list.
      * @exception  ClassCastException  if this <code>Properties</code> object
-     *             contains any keys or values that are not <code>Strings</code>.
+     *             contains any keys or values that are not 
+     *             <code>Strings</code>.
      */
-    public synchronized void save(OutputStream out, String header)  {
+    @Deprecated
+    public synchronized void save(OutputStream out, String comments)  {
         try {
-            store(out, header);
+            store(out, comments);
         } catch (IOException e) {
         }
     }
@@ -479,9 +602,9 @@ class Properties extends Hashtable {
      * Properties from the defaults table of this <code>Properties</code>
      * table (if any) are <i>not</i> written out by this method.
      * <p>
-     * If the header argument is not null, then an ASCII <code>#</code>
-     * character, the header string, and a line separator are first written
-     * to the output stream. Thus, the <code>header</code> can serve as an
+     * If the comments argument is not null, then an ASCII <code>#</code>
+     * character, the comments string, and a line separator are first written
+     * to the output stream. Thus, the <code>comments</code> can serve as an
      * identifying comment.
      * <p>
      * Next, a comment line is always written, consisting of an ASCII
@@ -513,7 +636,7 @@ class Properties extends Hashtable {
      * output stream remains open after this method returns.
      *
      * @param   out      an output stream.
-     * @param   header   a description of the property list.
+     * @param   comments   a description of the property list.
      * @exception  IOException if writing this property list to the specified
      *             output stream throws an <tt>IOException</tt>.
      * @exception  ClassCastException  if this <code>Properties</code> object
@@ -521,26 +644,24 @@ class Properties extends Hashtable {
      * @exception  NullPointerException  if <code>out</code> is null.
      * @since 1.2
      */
-    public void store(OutputStream out, String header)
+    public synchronized void store(OutputStream out, String comments)
     throws IOException
     {
         BufferedWriter awriter;
         awriter = new BufferedWriter(new OutputStreamWriter(out, "8859_1"));
-        if (header != null)
-            writeln(awriter, "#" + header);
+        if (comments != null)
+            writeln(awriter, "#" + comments);
         writeln(awriter, "#" + new Date().toString());
-        synchronized (this)  {
-            for (Enumeration e = keys(); e.hasMoreElements();) {
-                String key = (String)e.nextElement();
-                String val = (String)get(key);
-                key = saveConvert(key, true);
+        for (Enumeration e = keys(); e.hasMoreElements();) {
+            String key = (String)e.nextElement();
+            String val = (String)get(key);
+            key = saveConvert(key, true);
 
-	        /* No need to escape embedded and trailing spaces for value, hence
-	         * pass false to flag.
-	         */
-                val = saveConvert(val, false);
-                writeln(awriter, key + "=" + val);
-            }
+	    /* No need to escape embedded and trailing spaces for value, hence
+	     * pass false to flag.
+	     */
+            val = saveConvert(val, false);
+            writeln(awriter, key + "=" + val);
         }
         awriter.flush();
     }
@@ -548,6 +669,94 @@ class Properties extends Hashtable {
     private static void writeln(BufferedWriter bw, String s) throws IOException {
         bw.write(s);
         bw.newLine();
+    }
+
+    /**
+     * Loads all of the properties represented by the XML document on the
+     * specified input stream into this properties table.
+     *
+     * <p>The XML document must have the following DOCTYPE declaration:
+     * <pre>
+     * &lt;!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd"&gt;
+     * </pre>
+     * Furthermore, the document must satisfy the properties DTD described
+     * above.
+     *
+     * <p>The specified stream remains open after this method returns.
+     *
+     * @param in the input stream from which to read the XML document.
+     * @throws IOException if reading from the specified input stream
+     *         results in an <tt>IOException</tt>.
+     * @throws InvalidPropertiesFormatException Data on input stream does not
+     *         constitute a valid XML document with the mandated document type.
+     * @throws NullPointerException if <code>in</code> is null.
+     * @see    #storeToXML(OutputStream, String, String)
+     * @since 1.5
+     */
+    public synchronized void loadFromXML(InputStream in)
+        throws IOException, InvalidPropertiesFormatException 
+    {
+        if (in == null)
+            throw new NullPointerException();
+        XMLUtils.load(this, in);
+    }
+
+    /**
+     * Emits an XML document representing all of the properties contained
+     * in this table.
+     *
+     * <p> An invocation of this method of the form <tt>props.storeToXML(os,
+     * comment)</tt> behaves in exactly the same way as the invocation
+     * <tt>props.storeToXML(os, comment, "UTF-8");</tt>.
+     *
+     * @param os the output stream on which to emit the XML document.
+     * @param comment a description of the property list, or <code>null</code>
+     *        if no comment is desired.
+     * @throws IOException if writing to the specified output stream
+     *         results in an <tt>IOException</tt>.
+     * @throws NullPointerException if <code>os</code> is null.
+     * @see    #loadFromXML(InputStream)
+     * @since 1.5
+     */
+    public synchronized void storeToXML(OutputStream os, String comment)
+        throws IOException
+    {
+        if (os == null)
+            throw new NullPointerException();
+        storeToXML(os, comment, "UTF-8");
+    }
+
+    /**
+     * Emits an XML document representing all of the properties contained
+     * in this table, using the specified encoding.
+     *
+     * <p>The XML document will have the following DOCTYPE declaration:
+     * <pre>
+     * &lt;!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd"&gt;
+     * </pre>
+     *
+     *<p>If the specified comment is <code>null</code> then no comment
+     * will be stored in the document.
+     *
+     * <p>The specified stream remains open after this method returns.
+     *
+     * @param os the output stream on which to emit the XML document.
+     * @param comment a description of the property list, or <code>null</code>
+     *        if no comment is desired.
+     * @throws IOException if writing to the specified output stream
+     *         results in an <tt>IOException</tt>.
+     * @throws NullPointerException if <code>os</code> is <code>null</code>,
+     *         or if <code>encoding</code> is <code>null</code>.
+     * @see    #loadFromXML(InputStream)
+     * @since 1.5
+     */
+    public synchronized void storeToXML(OutputStream os, String comment, 
+                                       String encoding)
+        throws IOException
+    {
+        if (os == null)
+            throw new NullPointerException();
+        XMLUtils.save(this, os, comment, encoding);
     }
 
     /**
@@ -596,7 +805,7 @@ class Properties extends Hashtable {
      * @see     java.util.Enumeration
      * @see     java.util.Properties#defaults
      */
-    public Enumeration propertyNames() {
+    public Enumeration<?> propertyNames() {
 	Hashtable h = new Hashtable();
 	enumerate(h);
 	return h.keys();
@@ -649,7 +858,7 @@ class Properties extends Hashtable {
     }
 
     /**
-     * Enumerates all key/value pairs in the specified hastable.
+     * Enumerates all key/value pairs in the specified hashtable.
      * @param h the hashtable
      */
     private synchronized void enumerate(Hashtable h) {

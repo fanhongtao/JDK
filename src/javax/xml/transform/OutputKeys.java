@@ -1,10 +1,8 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)OutputKeys.java	1.15 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * @(#)OutputKeys.java	1.10 03/01/23
  */
 package javax.xml.transform;
 
@@ -12,9 +10,10 @@ package javax.xml.transform;
  * Provides string constants that can be used to set
  * output properties for a Transformer, or to retrieve
  * output properties from a Transformer or Templates object.
- * <p>A properties in this class are read-only.</p>
+ * <p>All the fields in this class are read-only.</p>
  *
- * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+ * @see <a href="http://www.w3.org/TR/xslt#output">
+ *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
  */
 public class OutputKeys {
 
@@ -22,12 +21,12 @@ public class OutputKeys {
      * Default constructor is private on purpose.  This class is
      * only for static variable access, and should never be constructed.
      */
-    private OutputKeys() {}
+    private OutputKeys() { }
 
     /**
      * method = "xml" | "html" | "text" | <var>expanded name</var>.
      *
-     * <p>The method attribute identifies the overall method that
+     * <p>The value of the method property identifies the overall method that
      * should be used for outputting the result tree.  Other non-namespaced
      * values may be used, such as "xhtml", but, if accepted, the handling
      * of such values is implementation defined.  If any of the method values
@@ -36,7 +35,8 @@ public class OutputKeys {
      * or {@link javax.xml.transform.Transformer#setOutputProperties} will
      * throw a {@link java.lang.IllegalArgumentException}.</p>
      *
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String METHOD = "method";
 
@@ -53,7 +53,8 @@ public class OutputKeys {
      * that the result should be output as HTML conforming to the HTML 4.0
      * Recommendation [HTML].  If the output method is "text", the version
      * property is ignored.</p>
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String VERSION = "version";
 
@@ -62,13 +63,14 @@ public class OutputKeys {
      *
      * <p><code>encoding</code> specifies the preferred character
      * encoding that the Transformer should use to encode sequences of
-     * characters as sequences of bytes. The value of the attribute should be
+     * characters as sequences of bytes. The value of the encoding property should be
      * treated case-insensitively. The value must only contain characters in
      * the range #x21 to #x7E (i.e., printable ASCII characters). The value
      * should either be a <code>charset</code> registered with the Internet
      * Assigned Numbers Authority <a href="#IANA">[IANA]</a>,
      * <a href="#RFC2278">[RFC2278]</a> or start with <code>X-</code>.</p>
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     * section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String ENCODING = "encoding";
 
@@ -78,7 +80,8 @@ public class OutputKeys {
      * <p><code>omit-xml-declaration</code> specifies whether the XSLT
      * processor should output an XML declaration; the value must be
      * <code>yes</code> or <code>no</code>.</p>
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String OMIT_XML_DECLARATION = "omit-xml-declaration";
 
@@ -88,7 +91,8 @@ public class OutputKeys {
      * <p><code>standalone</code> specifies whether the Transformer
      * should output a standalone document declaration; the value must be
      * <code>yes</code> or <code>no</code>.</p>
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String STANDALONE = "standalone";
 
@@ -97,13 +101,14 @@ public class OutputKeys {
      * <p>See the documentation for the {@link #DOCTYPE_SYSTEM} property
      * for a description of what the value of the key should be.</p>
      *
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String DOCTYPE_PUBLIC = "doctype-public";
 
     /**
      * doctype-system = <var>string</var>.
-     * <p><code>doctype-public</code> specifies the public identifier
+     * <p><code>doctype-system</code> specifies the system identifier
      * to be used in the document type declaration.</p>
      * <p>If the doctype-system property is specified, the xml output method
      * should output a document type declaration immediately before the first
@@ -112,22 +117,23 @@ public class OutputKeys {
      * output method should output PUBLIC followed by the public identifier
      * and then the system identifier; otherwise, it should output SYSTEM
      * followed by the system identifier. The internal subset should be empty.
-     * The doctype-public attribute should be ignored unless the doctype-system
-     * attribute is specified.</p>
-     * <p>If the doctype-public or doctype-system attributes are specified,
+     * The value of the doctype-public property should be ignored unless the doctype-system
+     * property is specified.</p>
+     * <p>If the doctype-public or doctype-system properties are specified,
      * then the html output method should output a document type declaration
      * immediately before the first element. The name following &lt;!DOCTYPE
-     * should be HTML or html. If the doctype-public attribute is specified,
+     * should be HTML or html. If the doctype-public property is specified,
      * then the output method should output PUBLIC followed by the specified
-     * public identifier; if the doctype-system attribute is also specified,
+     * public identifier; if the doctype-system property is also specified,
      * it should also output the specified system identifier following the
-     * public identifier. If the doctype-system attribute is specified but
-     * the doctype-public attribute is not specified, then the output method
+     * public identifier. If the doctype-system property is specified but
+     * the doctype-public property is not specified, then the output method
      * should output SYSTEM followed by the specified system identifier.</p>
      *
      * <p><code>doctype-system</code> specifies the system identifier
      * to be used in the document type declaration.</p>
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String DOCTYPE_SYSTEM = "doctype-system";
 
@@ -136,9 +142,12 @@ public class OutputKeys {
      *
      * <p><code>cdata-section-elements</code> specifies a whitespace delimited
      * list of the names of elements whose text node children should be output
-     * using CDATA sections.</p>
+     * using CDATA sections. Note that these names must use the format
+     * described in the section Qualfied Name Representation in
+     * {@link javax.xml.transform}.</p>
      *
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation.</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation.</a>
      */
     public static final String CDATA_SECTION_ELEMENTS =
         "cdata-section-elements";
@@ -149,7 +158,8 @@ public class OutputKeys {
      * <p><code>indent</code> specifies whether the Transformer may
      * add additional whitespace when outputting the result tree; the value
      * must be <code>yes</code> or <code>no</code>.  </p>
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">
+     *  section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String INDENT = "indent";
 
@@ -163,7 +173,8 @@ public class OutputKeys {
      * <code>text</code>, a <code>charset</code> parameter should be added
      * according to the character encoding actually used by the output
      * method.  </p>
-     * @see <a href="http://www.w3.org/TR/xslt#output">section 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
+     * @see <a href="http://www.w3.org/TR/xslt#output">s
+     * ection 16 of the XSL Transformations (XSLT) W3C Recommendation</a>
      */
     public static final String MEDIA_TYPE = "media-type";
 }

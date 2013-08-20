@@ -1,7 +1,7 @@
 /*
- * @(#)ControlFactory.java	1.9 03/01/23
+ * @(#)ControlFactory.java	1.12 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,7 +27,7 @@ import com.sun.naming.internal.ResourceManager;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.9 03/01/23
+  * @version 1.12 04/07/16
   *
   * @see Control
   * @since 1.3
@@ -115,7 +115,7 @@ public abstract class ControlFactory {
       * is wrapped inside a <tt>NamingException</tt> and then rethrown.
       */
     public static Control getControlInstance(Control ctl, Context ctx, 
-	Hashtable env) 
+					     Hashtable<?,?> env) 
 	throws NamingException {
 
 	// Get object factories list from environment properties or

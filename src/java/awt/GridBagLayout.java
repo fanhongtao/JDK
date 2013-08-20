@@ -1,7 +1,7 @@
 /*
- * @(#)GridBagLayout.java	1.49 03/01/23
+ * @(#)GridBagLayout.java	1.64 04/06/08
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -18,10 +18,11 @@ class GridBagLayoutInfo implements java.io.Serializable {
   double weightY[];		/* largest weight in each row */
 
   GridBagLayoutInfo () {
-    minWidth = new int[GridBagLayout.MAXGRIDSIZE];
-    minHeight = new int[GridBagLayout.MAXGRIDSIZE];
-    weightX = new double[GridBagLayout.MAXGRIDSIZE];
-    weightY = new double[GridBagLayout.MAXGRIDSIZE];
+      /* fix for 5055696 (avoiding AIOOBE by enlarging sizes) */
+      minWidth = new int[GridBagLayout.MAXGRIDSIZE];
+      minHeight = new int[GridBagLayout.MAXGRIDSIZE];
+      weightX = new double[GridBagLayout.MAXGRIDSIZE];
+      weightY = new double[GridBagLayout.MAXGRIDSIZE];
   }
 }
 
@@ -75,12 +76,17 @@ class GridBagLayoutInfo implements java.io.Serializable {
  * in the component's display area.
  * The default value is 1.
  * Use <code>GridBagConstraints.REMAINDER</code> to specify
- * that the component be the last one in its row (for <code>gridwidth</code>)
- * or column (for <code>gridheight</code>).
+ * that the component's display area will be from <code>gridx</code>
+ * to the last cell in the row (for <code>gridwidth</code>)
+ * or from <code>gridy</code> to the last cell in the column
+ * (for <code>gridheight</code>).
+ *
  * Use <code>GridBagConstraints.RELATIVE</code> to specify
- * that the component be the next to last one
- * in its row (for <code>gridwidth</code>)
- * or column (for <code>gridheight</code>).
+ * that the component's display area will be from <code>gridx</code>
+ * to the next to the last cell in its row (for <code>gridwidth</code>
+ * or from <code>gridy</code> to the next to the last cell in its
+ * column (for <code>gridheight</code>).
+ * 
  * <dt>{@link GridBagConstraints#fill}
  * <dd>Used when the component's display area
  * is larger than the component's requested size
@@ -100,10 +106,9 @@ class GridBagLayoutInfo implements java.io.Serializable {
  * <dd>Specifies the component's internal padding within the layout,
  * how much to add to the minimum size of the component.
  * The width of the component will be at least its minimum width
- * plus <code>(ipadx&nbsp;*&nbsp;2)</code> pixels (since the padding
- * applies to both sides of the component). Similarly, the height of
+ * plus <code>ipadx</code> pixels. Similarly, the height of
  * the component will be at least the minimum height plus
- * <code>(ipady&nbsp;*&nbsp;2)</code> pixels.
+ * <code>ipady</code> pixels.
  * <dt>{@link GridBagConstraints#insets}
  * <dd>Specifies the component's external padding, the minimum
  * amount of space between the component and the edges of its display area.
@@ -215,7 +220,7 @@ class GridBagLayoutInfo implements java.io.Serializable {
  *         GridBagLayout gridbag = new GridBagLayout();
  *         GridBagConstraints c = new GridBagConstraints();
  *
- *         setFont(new Font("Helvetica", Font.PLAIN, 14));
+ *         setFont(new Font("SansSerif", Font.PLAIN, 14));
  *         setLayout(gridbag);
  *
  *         c.fill = GridBagConstraints.BOTH;
@@ -264,7 +269,7 @@ class GridBagLayoutInfo implements java.io.Serializable {
  * }
  * </pre></blockquote><hr>
  * <p>
- * @version 1.5, 16 Nov 1995
+ * @version 	1.64, 06/08/04
  * @author Doug Stein
  * @see       java.awt.GridBagConstraints
  * @see       java.awt.ComponentOrientation
@@ -273,10 +278,7 @@ class GridBagLayoutInfo implements java.io.Serializable {
 public class GridBagLayout implements LayoutManager2,
 				      java.io.Serializable {
 
-    /**
-     * The maximum number of grid positions (both horizontally and
-     * vertically) that can be laid out by the grid bag layout.
-     */
+    /* Maximum number of grid positions */
   protected static final int MAXGRIDSIZE = 512;
 
     /**
@@ -297,7 +299,7 @@ public class GridBagLayout implements LayoutManager2,
      * @serial
      * @see java.awt.GridBagConstraints
      */
-  protected Hashtable comptable;
+  protected Hashtable<Component,GridBagConstraints> comptable;
 
     /**
      * This field holds a gridbag constraints instance
@@ -390,7 +392,7 @@ public class GridBagLayout implements LayoutManager2,
    * Creates a grid bag layout manager.
    */
   public GridBagLayout () {
-    comptable = new Hashtable();
+    comptable = new Hashtable<Component,GridBagConstraints>();
     defaultConstraints = new GridBagConstraints();
   }
 
@@ -400,7 +402,7 @@ public class GridBagLayout implements LayoutManager2,
    * @param       constraints the constraints to be applied
    */
   public void setConstraints(Component comp, GridBagConstraints constraints) {
-    comptable.put(comp, constraints.clone());
+    comptable.put(comp, (GridBagConstraints)constraints.clone());
   }
 
   /**
@@ -412,10 +414,10 @@ public class GridBagLayout implements LayoutManager2,
    *                  object is returned
    */
   public GridBagConstraints getConstraints(Component comp) {
-    GridBagConstraints constraints = (GridBagConstraints)comptable.get(comp);
+    GridBagConstraints constraints = comptable.get(comp);
     if (constraints == null) {
       setConstraints(comp, defaultConstraints);
-      constraints = (GridBagConstraints)comptable.get(comp);
+      constraints = comptable.get(comp);
     }
     return (GridBagConstraints)constraints.clone();
   }
@@ -424,14 +426,20 @@ public class GridBagLayout implements LayoutManager2,
    * Retrieves the constraints for the specified component.
    * The return value is not a copy, but is the actual
    * <code>GridBagConstraints</code> object used by the layout mechanism.
+   * <p>
+   * If <code>comp</code> is not in the <code>GridBagLayout</code>,
+   * a set of default <code>GridBagConstraints</code> are returned.
+   * A <code>comp</code> value of <code>null</code> is invalid
+   * and returns <code>null</code>.
+   *
    * @param       comp the component to be queried
    * @return      the contraints for the specified component
    */
   protected GridBagConstraints lookupConstraints(Component comp) {
-    GridBagConstraints constraints = (GridBagConstraints)comptable.get(comp);
+    GridBagConstraints constraints = comptable.get(comp);
     if (constraints == null) {
       setConstraints(comp, defaultConstraints);
-      constraints = (GridBagConstraints)comptable.get(comp);
+      constraints = comptable.get(comp);
     }
     return constraints;
   }
@@ -577,9 +585,7 @@ public class GridBagLayout implements LayoutManager2,
   }
 
   /**
-   * Adds the specified component with the specified name to the layout.
-   * @param      name         the name of the component
-   * @param      comp         the component to be added
+   * Has no effect, since this layout manager does not use a per-component string.
    */
   public void addLayoutComponent(String name, Component comp) {
   }
@@ -796,6 +802,10 @@ public class GridBagLayout implements LayoutManager2,
      *
      * This also caches the minsizes for all the children when they are
      * first encountered (so subsequent loops don't need to ask again).
+     * <p>
+     * This method should only be used internally by
+     * <code>GridBagLayout</code>.
+     *
      * @param parent  the layout container 
      * @param sizeflag either <code>PREFERREDSIZE</code> or
      *   <code>MINSIZE</code>
@@ -809,7 +819,10 @@ public class GridBagLayout implements LayoutManager2,
     /**
      * This method is obsolete and supplied for backwards
      * compatability only; new code should call {@link
-     * #getLayoutInfo(Container, int) getLayoutInfo} instead.
+     * #getLayoutInfo(java.awt.Container, int) getLayoutInfo} instead.
+     * This method is the same as <code>getLayoutInfo</code>;
+     * refer to <code>getLayoutInfo</code> for details on parameters
+     * and return value.
      */
   protected GridBagLayoutInfo GetLayoutInfo(Container parent, int sizeflag) {
    synchronized (parent.getTreeLock()) {
@@ -862,8 +875,9 @@ public class GridBagLayout implements LayoutManager2,
       }
       if (curX < 0) {
 	px = 0;
-	for (i = curY; i < (curY + curHeight); i++)
-	  px = Math.max(px, xMax[i]);
+        for (i = curY; i < (curY + curHeight); i++) { 
+          px = Math.max(px, xMax[i]); 
+        }
 
 	curX = px - curX - 1;
 	if(curX < 0)
@@ -871,8 +885,9 @@ public class GridBagLayout implements LayoutManager2,
       }
       else if (curY < 0) {
 	py = 0;
-	for (i = curX; i < (curX + curWidth); i++)
-	  py = Math.max(py, yMax[i]);
+	for (i = curX; i < (curX + curWidth); i++) {
+        py = Math.max(py, yMax[i]);
+    }
 
 	curY = py - curY - 1;
 	if(curY < 0)
@@ -880,12 +895,16 @@ public class GridBagLayout implements LayoutManager2,
       }
 
       /* Adjust the grid width and height */
-      for (px = curX + curWidth; r.width < px; r.width++);
+      for (px = curX + curWidth; r.width < px; r.width++); 
       for (py = curY + curHeight; r.height < py; r.height++);
 
-      /* Adjust the xMax and yMax arrays */
-      for (i = curX; i < (curX + curWidth); i++) { yMax[i] = py; }
-      for (i = curY; i < (curY + curHeight); i++) { xMax[i] = px; }
+      /* Adjust xMax and yMax */
+      for (i = curX; i < (curX + curWidth); i++) { 
+          yMax[i] = py; 
+      }
+      for (i = curY; i < (curY + curHeight); i++) {
+          xMax[i] = px;
+      }
 
       /* Cache the current slave's size. */
       if (sizeflag == PREFERREDSIZE)
@@ -913,9 +932,10 @@ public class GridBagLayout implements LayoutManager2,
      * Apply minimum row/column dimensions
      */
     if (columnWidths != null && r.width < columnWidths.length)
-      r.width = columnWidths.length;
+        r.width = columnWidths.length;
     if (rowHeights != null && r.height < rowHeights.length)
-      r.height = rowHeights.length;
+        r.height = rowHeights.length;
+
 
     /*
      * Pass #2
@@ -1023,9 +1043,9 @@ public class GridBagLayout implements LayoutManager2,
     if (rowHeights != null)
       System.arraycopy(rowHeights, 0, r.minHeight, 0, rowHeights.length);
     if (columnWeights != null)
-      System.arraycopy(columnWeights, 0, r.weightX, 0, columnWeights.length);
+      System.arraycopy(columnWeights, 0, r.weightX, 0,  Math.min(r.weightX.length, columnWeights.length));
     if (rowWeights != null)
-      System.arraycopy(rowWeights, 0, r.weightY, 0, rowWeights.length);
+      System.arraycopy(rowWeights, 0, r.weightY, 0,  Math.min(r.weightY.length, rowWeights.length));
 
     /*
      * Pass #3
@@ -1174,6 +1194,9 @@ public class GridBagLayout implements LayoutManager2,
     /**
      * Adjusts the x, y, width, and height fields to the correct
      * values depending on the constraint geometry and pads.
+     * This method should only be used internally by
+     * <code>GridBagLayout</code>.
+     *
      * @param constraints the constraints to be applied
      * @param r the <code>Rectangle</code> to be adjusted
      * @since 1.4
@@ -1186,8 +1209,11 @@ public class GridBagLayout implements LayoutManager2,
     /**
      * This method is obsolete and supplied for backwards
      * compatability only; new code should call {@link
-     * #adjustForGravity(GridBagConstraints, Rectangle)
+     * #adjustForGravity(java.awt.GridBagConstraints, java.awt.Rectangle)
      * adjustForGravity} instead.
+     * This method is the same as <code>adjustForGravity</code>;
+     * refer to <code>adjustForGravity</code> for details
+     * on parameters.
      */
   protected void AdjustForGravity(GridBagConstraints constraints,
 				  Rectangle r) {
@@ -1292,7 +1318,10 @@ public class GridBagLayout implements LayoutManager2,
 
     /**
      * Figures out the minimum size of the
-     * master based on the information from getLayoutInfo().
+     * master based on the information from <code>getLayoutInfo</code>.
+     * This method should only be used internally by
+     * <code>GridBagLayout</code>.
+     *
      * @param parent the layout container 
      * @param info the layout info for this parent
      * @return a <code>Dimension</code> object containing the
@@ -1306,7 +1335,10 @@ public class GridBagLayout implements LayoutManager2,
     /**
      * This method is obsolete and supplied for backwards
      * compatability only; new code should call {@link
-     * #getMinSize(Container, GridBagLayoutInfo) getMinSize} instead.
+     * #getMinSize(java.awt.Container, GridBagLayoutInfo) getMinSize} instead.
+     * This method is the same as <code>getMinSize</code>;
+     * refer to <code>getMinSize</code> for details on parameters
+     * and return value.
      */
   protected Dimension GetMinSize(Container parent, GridBagLayoutInfo info) {
     Dimension d = new Dimension();
@@ -1330,6 +1362,9 @@ public class GridBagLayout implements LayoutManager2,
 
     /**
      * Lays out the grid.
+     * This method should only be used internally by
+     * <code>GridBagLayout</code>.
+     *
      * @param parent the layout container
      * @since 1.4
      */
@@ -1341,6 +1376,9 @@ public class GridBagLayout implements LayoutManager2,
      * This method is obsolete and supplied for backwards
      * compatability only; new code should call {@link
      * #arrangeGrid(Container) arrangeGrid} instead.
+     * This method is the same as <code>arrangeGrid</code>;
+     * refer to <code>arrangeGrid</code> for details on the
+     * parameter.
      */
   protected void ArrangeGrid(Container parent) {
     Component comp;
@@ -1421,8 +1459,9 @@ public class GridBagLayout implements LayoutManager2,
       }
       diffw = parent.width - r.width;
     }
+    
     else {
-      diffw = 0;
+        diffw = 0;
     }
 
     diffh = parent.height - r.height;
@@ -1443,8 +1482,9 @@ public class GridBagLayout implements LayoutManager2,
       }
       diffh = parent.height - r.height;
     }
+    
     else {
-      diffh = 0;
+        diffh = 0;
     }
 
     /*
@@ -1499,13 +1539,14 @@ public class GridBagLayout implements LayoutManager2,
       adjustForGravity(constraints, r);
 
       /* fix for 4408108 - components were being created outside of the container */
+      /* fix for 4969409 "-" replaced by "+"  */
       if (r.x < 0) {
-          r.width -= r.x;
+          r.width += r.x;
           r.x = 0;
       }
           
       if (r.y < 0) {
-         r.height -= r.y;
+         r.height += r.y;
          r.y = 0;
       }
 

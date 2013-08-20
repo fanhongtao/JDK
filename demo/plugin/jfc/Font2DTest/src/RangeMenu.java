@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)RangeMenu.java	1.16 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)RangeMenu.java	1.13 03/01/23
+ * @(#)RangeMenu.java	1.16 04/07/26
  */
 
 import java.awt.BorderLayout;
@@ -58,117 +59,260 @@ import javax.swing.*;
 
 public final class RangeMenu extends JComboBox implements ActionListener {
 
-    /// Based on Unicode 3.0
+    /// Painfully extracted from java.lang.Character.UnicodeBlock.  Arrrgh!
+    /// Unicode 3.0 data.
 
     private final int[][] UNICODE_RANGES = {
-        { 0x0000, 0x007f }, /// Basic Latin
-        { 0x0080, 0x00ff }, /// Latin-1 Supplement
-        { 0x0100, 0x017f }, /// Latin Extended-A
-        { 0x0180, 0x024f }, /// Latin Extended-B
-        { 0x0250, 0x02af }, /// IPA Extensions
-        { 0x02b0, 0x02ff }, /// Spacing Modifier Letters
-        { 0x0300, 0x036f }, /// Combining Diacritical Marks
-        { 0x0370, 0x03ff }, /// Greek
-        { 0x0400, 0x04ff }, /// Cyrillic
-        { 0x0530, 0x058f }, /// Armenian
-        { 0x0590, 0x05ff }, /// Hebrew
-        { 0x0600, 0x06ff }, /// Arabic
-        { 0x0700, 0x074f }, /// Syriac
-        { 0x0780, 0x07bf }, /// Thaana
-        { 0x0900, 0x097f }, /// Devanagari
-        { 0x0980, 0x09ff }, /// Bengali
-        { 0x0a00, 0x0a7f }, /// Gurmukhi
-        { 0x0a80, 0x0aff }, /// Gujarati
-        { 0x0b00, 0x0b7f }, /// Oriya
-        { 0x0b80, 0x0bff }, /// Tamil
-        { 0x0c00, 0x0c7f }, /// Telugu
-        { 0x0c80, 0x0cff }, /// Kannada
-        { 0x0d00, 0x0d7f }, /// Malayalam
-        { 0x0d80, 0x0dff }, /// Sinhala
-        { 0x0e00, 0x0e7f }, /// Thai
-        { 0x0e80, 0x0eff }, /// Lao
-        { 0x0f00, 0x0fbf }, /// Tibetan
-        { 0x1000, 0x109f }, /// Myanmar
-        { 0x10a0, 0x10ff }, /// Georgian
-        { 0x1100, 0x11ff }, /// Hangul Jamo
-        { 0x1200, 0x137f }, /// Ethiopic
-        { 0x13a0, 0x13ff }, /// Cherokee
-        { 0x1400, 0x167f }, /// Canadian Aboriginal Syllabics
-        { 0x1680, 0x169f }, /// Ogham
-        { 0x16a0, 0x16f0 }, /// Runic
-        { 0x1780, 0x17ff }, /// Khmer
-        { 0x1800, 0x18af }, /// Mongolian
-        { 0x1e00, 0x1eff }, /// Latin Extended Additional
-        { 0x1f00, 0x1fff }, /// Greek Extended
-        { 0x2000, 0x206f }, /// General Punctuation
-        { 0x2070, 0x209f }, /// Superscripts and Supscripts
-        { 0x20a0, 0x20cf }, /// Currency Symbols
-        { 0x20d0, 0x20ff }, /// Combining Marks for Symbols
-        { 0x2100, 0x214f }, /// Letterlike Symbols
-        { 0x2150, 0x218f }, /// Number Forms
-        { 0x2190, 0x21ff }, /// Arrows
-        { 0x2200, 0x22ff }, /// Mathematical Operators
-        { 0x2300, 0x23ff }, /// Miscellaneous Technical
-        { 0x2400, 0x243f }, /// Control Pictures
-        { 0x2440, 0x245f }, /// Optical Character Recognition
-        { 0x2460, 0x24ff }, /// Enclosed Alphanumerics
-        { 0x2500, 0x257f }, /// Box Drawing
-        { 0x2580, 0x259f }, /// Block Elements
-        { 0x25a0, 0x25ff }, /// Geometric Shapes
-        { 0x2600, 0x26ff }, /// Miscellaneous Symbols
-        { 0x2700, 0x27bf }, /// Dingbats
-        { 0x2800, 0x28ff }, /// Braille
-        { 0x2e80, 0x2fdf }, /// CJK and KangXi Radicals
-        { 0x2ff0, 0x2fff }, /// Ideographic Description
-        { 0x3000, 0x303f }, /// CJK Symbols and Punctuation
-        { 0x3040, 0x309f }, /// Hiragana
-        { 0x30a0, 0x30ff }, /// Katakana
-        { 0x3100, 0x312f }, /// Bopomofo
-        { 0x3130, 0x318f }, /// Hangul Compatibility Jamo
-        { 0x3190, 0x319f }, /// Kanbun
-        { 0x31a0, 0x31bf }, /// Bopomofo Extended
-        { 0x3200, 0x32ff }, /// Enclosed CJK Letters and Months
-        { 0x3300, 0x33ff }, /// CJK Compatibility
-        { 0x3400, 0x4dbf }, /// CJK Unified Ideographs Extension A
-        { 0x4e00, 0x9faf }, /// CJK Unified Ideographs
-        { 0xa000, 0xa4cf }, /// Yi
-        { 0xac00, 0xd7af }, /// Hangul Syllables
-        { 0xe000, 0xf8ff }, /// Private Use Area
-        { 0xf900, 0xfaff }, /// CJK Compatibility Ideographs
-        { 0xfb00, 0xfb4f }, /// Alphabetic Presentation Forms
-        { 0xfb50, 0xfdff }, /// Arabic Presentation Forms-A
-        { 0xfe20, 0xfe2f }, /// Combining Half-Marks
-        { 0xfe30, 0xfe4f }, /// CJK Compatibility Forms
-        { 0xfe50, 0xfe6f }, /// Small Form Variants
-        { 0xfe70, 0xfeff }, /// Arabic Presentation Forms-B
-        { 0xff00, 0xffef }, /// Halfwidth and Fullwidth Forms
-        { 0xfff0, 0xffff }, /// Specials
-    };
+        { 0x000000, 0x00007f }, /// BASIC_LATIN
+        { 0x000080, 0x0000ff }, /// LATIN_1_SUPPLEMENT
+        { 0x000100, 0x00017f }, /// LATIN_EXTENDED_A
+        { 0x000180, 0x00024f }, /// LATIN_EXTENDED_B
+        { 0x000250, 0x0002af }, /// IPA_EXTENSIONS
+        { 0x0002b0, 0x0002ff }, /// SPACING_MODIFIER_LETTERS
+        { 0x000300, 0x00036f }, /// COMBINING_DIACRITICAL_MARKS
+        { 0x000370, 0x0003ff }, /// GREEK
+        { 0x000400, 0x0004ff }, /// CYRILLIC
+        { 0x000500, 0x00052f }, /// CYRILLIC_SUPPLEMENTARY
+        { 0x000530, 0x00058f }, /// ARMENIAN
+        { 0x000590, 0x0005ff }, /// HEBREW
+        { 0x000600, 0x0006ff }, /// ARABIC
+        { 0x000700, 0x00074f }, /// SYRIAC
+        { 0x000780, 0x0007bf }, /// THAANA
+        { 0x000900, 0x00097f }, /// DEVANAGARI
+        { 0x000980, 0x0009ff }, /// BENGALI
+        { 0x000a00, 0x000a7f }, /// GURMUKHI
+        { 0x000a80, 0x000aff }, /// GUJARATI
+        { 0x000b00, 0x000b7f }, /// ORIYA
+        { 0x000b80, 0x000bff }, /// TAMIL
+        { 0x000c00, 0x000c7f }, /// TELUGU
+        { 0x000c80, 0x000cff }, /// KANNADA
+        { 0x000d00, 0x000d7f }, /// MALAYALAM
+        { 0x000d80, 0x000dff }, /// SINHALA
+        { 0x000e00, 0x000e7f }, /// THAI
+        { 0x000e80, 0x000eff }, /// LAO
+        { 0x000f00, 0x000fff }, /// TIBETAN
+        { 0x001000, 0x00109f }, /// MYANMAR
+        { 0x0010a0, 0x0010ff }, /// GEORGIAN
+        { 0x001100, 0x0011ff }, /// HANGUL_JAMO
+        { 0x001200, 0x00137f }, /// ETHIOPIC
+        { 0x0013a0, 0x0013ff }, /// CHEROKEE
+        { 0x001400, 0x00167f }, /// UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS
+        { 0x001680, 0x00169f }, /// OGHAM
+        { 0x0016a0, 0x0016ff }, /// RUNIC
+        { 0x001700, 0x00171f }, /// TAGALOG
+        { 0x001720, 0x00173f }, /// HANUNOO
+        { 0x001740, 0x00175f }, /// BUHID
+        { 0x001760, 0x00177f }, /// TAGBANWA
+        { 0x001780, 0x0017ff }, /// KHMER
+        { 0x001800, 0x0018af }, /// MONGOLIAN
+        { 0x001900, 0x00194f }, /// LIMBU
+        { 0x001950, 0x00197f }, /// TAI_LE
+        { 0x0019e0, 0x0019ff }, /// KHMER_SYMBOLS
+        { 0x001d00, 0x001d7f }, /// PHONETIC_EXTENSIONS
+        { 0x001e00, 0x001eff }, /// LATIN_EXTENDED_ADDITIONAL
+        { 0x001f00, 0x001fff }, /// GREEK_EXTENDED
+        { 0x002000, 0x00206f }, /// GENERAL_PUNCTUATION
+        { 0x002070, 0x00209f }, /// SUPERSCRIPTS_AND_SUBSCRIPTS
+        { 0x0020a0, 0x0020cf }, /// CURRENCY_SYMBOLS
+        { 0x0020d0, 0x0020ff }, /// COMBINING_MARKS_FOR_SYMBOLS
+        { 0x002100, 0x00214f }, /// LETTERLIKE_SYMBOLS
+        { 0x002150, 0x00218f }, /// NUMBER_FORMS
+        { 0x002190, 0x0021ff }, /// ARROWS
+        { 0x002200, 0x0022ff }, /// MATHEMATICAL_OPERATORS
+        { 0x002300, 0x0023ff }, /// MISCELLANEOUS_TECHNICAL
+        { 0x002400, 0x00243f }, /// CONTROL_PICTURES
+        { 0x002440, 0x00245f }, /// OPTICAL_CHARACTER_RECOGNITION
+        { 0x002460, 0x0024ff }, /// ENCLOSED_ALPHANUMERICS
+        { 0x002500, 0x00257f }, /// BOX_DRAWING
+        { 0x002580, 0x00259f }, /// BLOCK_ELEMENTS
+        { 0x0025a0, 0x0025ff }, /// GEOMETRIC_SHAPES
+        { 0x002600, 0x0026ff }, /// MISCELLANEOUS_SYMBOLS
+        { 0x002700, 0x0027bf }, /// DINGBATS
+        { 0x0027c0, 0x0027ef }, /// MISCELLANEOUS_MATHEMATICAL_SYMBOLS_A
+        { 0x0027f0, 0x0027ff }, /// SUPPLEMENTAL_ARROWS_A
+        { 0x002800, 0x0028ff }, /// BRAILLE_PATTERNS
+        { 0x002900, 0x00297f }, /// SUPPLEMENTAL_ARROWS_B
+        { 0x002980, 0x0029ff }, /// MISCELLANEOUS_MATHEMATICAL_SYMBOLS_B
+        { 0x002a00, 0x002aff }, /// SUPPLEMENTAL_MATHEMATICAL_OPERATORS
+        { 0x002b00, 0x002bff }, /// MISCELLANEOUS_SYMBOLS_AND_ARROWS
+        { 0x002e80, 0x002eff }, /// CJK_RADICALS_SUPPLEMENT
+        { 0x002f00, 0x002fdf }, /// KANGXI_RADICALS
+        { 0x002ff0, 0x002fff }, /// IDEOGRAPHIC_DESCRIPTION_CHARACTERS
+        { 0x003000, 0x00303f }, /// CJK_SYMBOLS_AND_PUNCTUATION
+        { 0x003040, 0x00309f }, /// HIRAGANA
+        { 0x0030a0, 0x0030ff }, /// KATAKANA
+        { 0x003100, 0x00312f }, /// BOPOMOFO
+        { 0x003130, 0x00318f }, /// HANGUL_COMPATIBILITY_JAMO
+        { 0x003190, 0x00319f }, /// KANBUN
+        { 0x0031a0, 0x0031bf }, /// BOPOMOFO_EXTENDED
+        { 0x0031f0, 0x0031ff }, /// KATAKANA_PHONETIC_EXTENSIONS
+        { 0x003200, 0x0032ff }, /// ENCLOSED_CJK_LETTERS_AND_MONTHS
+        { 0x003300, 0x0033ff }, /// CJK_COMPATIBILITY
+        { 0x003400, 0x004dbf }, /// CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+        { 0x004dc0, 0x004dff }, /// YIJING_HEXAGRAM_SYMBOLS
+        { 0x004e00, 0x009fff }, /// CJK_UNIFIED_IDEOGRAPHS
+        { 0x00a000, 0x00a48f }, /// YI_SYLLABLES
+        { 0x00a490, 0x00a4cf }, /// YI_RADICALS
+        { 0x00ac00, 0x00d7af }, /// HANGUL_SYLLABLES
+        { 0x00d800, 0x00dfff }, /// SURROGATES_AREA
+        { 0x00e000, 0x00f8ff }, /// PRIVATE_USE_AREA
+        { 0x00f900, 0x00faff }, /// CJK_COMPATIBILITY_IDEOGRAPHS
+        { 0x00fb00, 0x00fb4f }, /// ALPHABETIC_PRESENTATION_FORMS
+        { 0x00fb50, 0x00fdff }, /// ARABIC_PRESENTATION_FORMS_A
+        { 0x00fe00, 0x00fe0f }, /// VARIATION_SELECTORS
+        { 0x00fe20, 0x00fe2f }, /// COMBINING_HALF_MARKS
+        { 0x00fe30, 0x00fe4f }, /// CJK_COMPATIBILITY_FORMS
+        { 0x00fe50, 0x00fe6f }, /// SMALL_FORM_VARIANTS
+        { 0x00fe70, 0x00feff }, /// ARABIC_PRESENTATION_FORMS_B
+        { 0x00ff00, 0x00ffef }, /// HALFWIDTH_AND_FULLWIDTH_FORMS
+        { 0x00fff0, 0x00ffff }, /// SPECIALS
+        { 0x010000, 0x01007f }, /// LINEAR_B_SYLLABARY
+        { 0x010080, 0x0100ff }, /// LINEAR_B_IDEOGRAMS
+        { 0x010100, 0x01013f }, /// AEGEAN_NUMBERS
+        { 0x010300, 0x01032f }, /// OLD_ITALIC
+        { 0x010330, 0x01034f }, /// GOTHIC
+        { 0x010380, 0x01039f }, /// UGARITIC
+        { 0x010400, 0x01044f }, /// DESERET
+        { 0x010450, 0x01047f }, /// SHAVIAN
+        { 0x010480, 0x0104af }, /// OSMANYA
+        { 0x010800, 0x01083f }, /// CYPRIOT_SYLLABARY
+        { 0x01d000, 0x01d0ff }, /// BYZANTINE_MUSICAL_SYMBOLS
+        { 0x01d100, 0x01d1ff }, /// MUSICAL_SYMBOLS
+        { 0x01d300, 0x01d35f }, /// TAI_XUAN_JING_SYMBOLS
+        { 0x01d400, 0x01d7ff }, /// MATHEMATICAL_ALPHANUMERIC_SYMBOLS
+        { 0x020000, 0x02a6df }, /// CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B
+        { 0x02f800, 0x02fa1f }, /// CJK_COMPATIBILITY_IDEOGRAPHS_SUPPLEMENT
+        { 0x0e0000, 0x0e007f }, /// TAGS
+        { 0x0e0100, 0x0e01ef }, /// VARIATION_SELECTORS_SUPPLEMENT
+        { 0x0f0000, 0x0fffff }, /// SUPPLEMENTARY_PRIVATE_USE_AREA_A
+        { 0x100000, 0x10ffff }, /// SUPPLEMENTARY_PRIVATE_USE_AREA_B
+     };
 
     private final String[] UNICODE_RANGE_NAMES = {
-        "Basic Latin", "Latin-1 Supplement", "Latin Extended-A", "Latin Extended-B",
-        "IPA Extensions", "Spacing Modifier Letters", "Combining Diacritical Marks",
-        "Greek", "Cyrillic", "Armenian", "Hebrew", "Arabic", "Syriac", "Thaana",
-        "Devanagari", "Bengali", "Gurmukhi", "Gujarati", "Oriya", "Tamil", "Telugu",
-        "Kannada", "Malayalam", "Sinhala", "Thai", "Lao", "Tibetan", "Myanmar",
-        "Georgian", "Hangul Jamo", "Ethiopic", "Cherokee",
-        "Canadian Aboriginal Syllabics", "Ogham", "Runic", "Khmer", "Mongolian",
-        "Latin Extended Additional", "Greek Extended", "General Punctuation",
-        "Superscripts and Supscripts", "Currency Symbols", "Combining Marks for Symbols",
-        "Letterlike Symbols", "Number Forms", "Arrows", "Mathematical Operators",
-        "Miscellaneous Technical", "Control Pictures", "Optical Character Recognition",
-        "Enclosed Alphanumerics", "Box Drawing", "Block Elements", "Geometric Shapes",
-        "Miscellaneous Symbols", "Dingbats", "Braille", "CJK and KangXi Radicals",
-        "Ideographic Description", "CJK Symbols and Punctuation", "Hiragana", "Katakana",
-        "Bopomofo", "Hangul Compatibility Jamo", "Kanbun", "Bopomofo Extended",
-        "Enclosed CJK Letters and Months", "CJK Compatibility",
-        "CJK Unified Ideographs Extension A", "CJK Unified Ideographs", "Yi",
-        "Hangul Syllables", "Private Use Area", "CJK Compatibility Ideographs",
-        "Alphabetic Presentation Forms", "Arabic Presentation Forms-A",
-        "CJK Compatibility Forms", "Small Form Variants", "Combining Half-Marks",
-        "Arabic Presentation Forms-B", "Halfwidth and Fullwidth Forms",
-        "Specials", "Other..."
-      };
+        "Basic Latin",
+        "Latin-1 Supplement",
+        "Latin Extended-A",
+        "Latin Extended-B",
+        "IPA Extensions",
+        "Spacing Modifier Letters",
+        "Combining Diacritical Marks",
+        "Greek",
+        "Cyrillic",
+        "Cyrillic Supplement",
+        "Armenian",
+        "Hebrew",
+        "Arabic",
+        "Syriac",
+        "Thaana",
+        "Devanagari",
+        "Bengali",
+        "Gurmukhi",
+        "Gujarati",
+        "Oriya",
+        "Tamil",
+        "Telugu",
+        "Kannada",
+        "Malayalam",
+        "Sinhala",
+        "Thai",
+        "Lao",
+        "Tibetan",
+        "Myanmar",
+        "Georgian",
+        "Hangul Jamo",
+        "Ethiopic",
+        "Cherokee",
+        "Unified Canadian Aboriginal Syllabics",
+        "Ogham",
+        "Runic",
+        "Tagalog",
+        "Hanunoo",
+        "Buhid",
+        "Tagbanwa",
+        "Khmer",
+        "Mongolian",
+        "Limbu",
+        "Tai Le",
+        "Khmer Symbols",
+        "Phonetic Extensions",
+        "Latin Extended Additional",
+        "Greek Extended",
+        "General Punctuation",
+        "Superscripts and Subscripts",
+        "Currency Symbols",
+        "Combining Marks for Symbols",
+        "Letterlike Symbols",
+        "Number Forms",
+        "Arrows",
+        "Mathematical Operators",
+        "Miscellaneous Technical",
+        "Control Pictures",
+        "Optical Character Recognition",
+        "Enclosed Alphanumerics",
+        "Box Drawing",
+        "Block Elements",
+        "Geometric Shapes",
+        "Miscellaneous Symbols",
+        "Dingbats",
+        "Miscellaneous Mathematical Symbols-A",
+        "Supplemental Arrows-A",
+        "Braille Patterns",
+        "Supplemental Arrows-B",
+        "Miscellaneous Mathematical Symbols-B",
+        "Supplemental Mathematical Operators",
+        "Miscellaneous Symbols and Arrows",
+        "CJK Radicals Supplement",
+        "Kangxi Radicals",
+        "Ideographic Description Characters",
+        "CJK Symbols and Punctuation",
+        "Hiragana",
+        "Katakana",
+        "Bopomofo",
+        "Hangul Compatibility Jamo",
+        "Kanbun",
+        "Bopomofo Extended",
+        "Katakana Phonetic Extensions",
+        "Enclosed CJK Letters and Months",
+        "CJK Compatibility",
+        "CJK Unified Ideographs Extension A",
+        "Yijing Hexagram Symbols",
+        "CJK Unified Ideographs",
+        "Yi Syllables",
+        "Yi Radicals",
+        "Hangul Syllables",
+        "Surrogates Area", // High Surrogates, High Private Use Surrogates, Low Surrogates
+        "Private Use Area",
+        "CJK Compatibility Ideographs",
+        "Alphabetic Presentation Forms",
+        "Arabic Presentation Forms-A",
+        "Variation Selectors",
+        "Combining Half Marks",
+        "CJK Compatibility Forms",
+        "Small Form Variants",
+        "Arabic Presentation Forms-B",
+        "Halfwidth and Fullwidth Forms",
+        "Specials",
+        "Linear B Syllabary",
+        "Linear B Ideograms",
+        "Aegean Numbers",
+        "Old Italic",
+        "Gothic",
+        "Ugaritic",
+        "Deseret",
+        "Shavian",
+        "Osmanya",
+        "Cypriot Syllabary",
+        "Byzantine Musical Symbols",
+        "Musical Symbols",
+        "Tai Xuan Jing Symbols",
+        "Mathematical Alphanumeric Symbols",
+        "CJK Unified Ideographs Extension B",
+        "CJK Compatibility Ideographs Supplement",
+        "Tags",
+        "Variation Selectors Supplement",
+        "Supplementary Private Use Area-A",
+        "Supplementary Private Use Area-B",
+    };
 
     private boolean useCustomRange = false;
     private int[] customRange = { 0x0000, 0x007f };

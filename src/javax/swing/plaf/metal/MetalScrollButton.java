@@ -1,7 +1,7 @@
 /*
- * @(#)MetalScrollButton.java	1.23 03/01/23
+ * @(#)MetalScrollButton.java	1.25 04/03/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -87,11 +87,9 @@ public class MetalScrollButton extends BasicArrowButton
 	        if ( !isFreeStanding ) {
                     height +=1;
                     g.translate( 0, -1 );
+                    width += 2;
                     if ( !leftToRight ) {
-                        width += 1;
                         g.translate( -1, 0 );
-		    } else {
-                        width += 2;
                     }
 		}
 
@@ -129,11 +127,9 @@ public class MetalScrollButton extends BasicArrowButton
 	        if ( !isFreeStanding ) {
                     height -= 1;
                     g.translate( 0, 1 );
+                    width -= 2;
                     if ( !leftToRight ) {
-                        width -= 1;
                         g.translate( 1, 0 );
-		    } else {
-                        width -= 2;
                     }
 		}
 	    }
@@ -141,11 +137,9 @@ public class MetalScrollButton extends BasicArrowButton
 	    {
 	        if ( !isFreeStanding ) {
 		    height += 1;
+                    width += 2;
                     if ( !leftToRight ) {
-                        width += 1;
                         g.translate( -1, 0 );
-		    } else {
-                        width += 2;
                     }
 		}
 
@@ -188,11 +182,9 @@ public class MetalScrollButton extends BasicArrowButton
 
 	        if ( !isFreeStanding ) {
 		    height -= 1;
+                    width -= 2;
                     if ( !leftToRight ) {
-                        width -= 1;
                         g.translate( 1, 0 );
-		    } else {
-                        width -= 2;
                     }
 		}
 	    }

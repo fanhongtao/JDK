@@ -1,7 +1,7 @@
 /*
- * @(#)TableView.java	1.33 06/06/14
+ * @(#)TableView.java	1.38 03/12/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -9,7 +9,6 @@ package javax.swing.text.html;
 import java.awt.*;
 import java.util.BitSet;
 import java.util.Vector;
-import java.util.Arrays;
 import javax.swing.SizeRequirements;
 import javax.swing.event.DocumentEvent;
 
@@ -19,7 +18,7 @@ import javax.swing.text.*;
  * HTML table view.  
  * 
  * @author  Timothy Prinzing
- * @version 1.33 06/14/06
+ * @version 1.38 12/19/03
  * @see     View
  */
 /*public*/ class TableView extends BoxView implements ViewFactory {
@@ -219,7 +218,7 @@ import javax.swing.text.*;
 		      (short) painter.getInset(LEFT, this), 
 			  (short) painter.getInset(BOTTOM, this), 
 		      (short) painter.getInset(RIGHT, this));
-/*
+
 	    CSS.LengthValue lv = (CSS.LengthValue) 
 		attr.getAttribute(CSS.Attribute.BORDER_SPACING);
 	    if (lv != null) {
@@ -227,8 +226,15 @@ import javax.swing.text.*;
 	    } else {
 		cellSpacing = 0;
 	    }
-	    */
-	}
+	    lv = (CSS.LengthValue)                                
+		    attr.getAttribute(CSS.Attribute.BORDER_TOP_WIDTH);
+	    if (lv != null) {                                     
+		    borderWidth = (int) lv.getValue();                
+	    } else {                                              
+		    borderWidth = 0;                                  
+	    }                                                     
+
+		}
     }
 
     /**
@@ -345,9 +351,6 @@ import javax.swing.text.*;
      */
     protected void layoutColumns(int targetSpan, int[] offsets, int[] spans, 
 				 SizeRequirements[] reqs) {
-        //clean offsets and spans
-        Arrays.fill(offsets, 0);
-        Arrays.fill(spans, 0);
 	colIterator.setLayoutArrays(offsets, spans, targetSpan);
 	CSS.calculateTiledLayout(colIterator, targetSpan);
     }
@@ -367,14 +370,14 @@ import javax.swing.text.*;
      * into consideration any constraining maximums.
      */
     void calculateColumnRequirements(int axis) {
-       // clean columnRequirements
-	SizeRequirements req; 
-	for(int count = 0;count < columnRequirements.length;count++) {
-	    req = columnRequirements[count];
-            req.minimum = 0;
-            req.preferred = 0;
-            req.maximum = Integer.MAX_VALUE;
-        }
+	Container host = getContainer();
+	if (host != null) {
+	    if (host instanceof JTextComponent) {
+		skipComments = !((JTextComponent)host).isEditable();
+	    } else {
+		skipComments = true;
+	    }
+	}
 	// pass 1 - single column cells
 	boolean hasMultiColumn = false;
 	int nrows = getRowCount();
@@ -382,8 +385,11 @@ import javax.swing.text.*;
 	    RowView row = getRow(i);
 	    int col = 0;
 	    int ncells = row.getViewCount();
-	    for (int cell = 0; cell < ncells; cell++, col++) {
+	    for (int cell = 0; cell < ncells; cell++) {
 		View cv = row.getView(cell);
+		if (skipComments && !(cv instanceof CellView)) {
+		    continue;
+		}
 		for (; row.isFilled(col); col++); // advance to a free column
 		int rowSpan = getRowsOccupied(cv);
 		int colSpan = getColumnsOccupied(cv);
@@ -393,6 +399,7 @@ import javax.swing.text.*;
 		    hasMultiColumn = true;
 		    col += colSpan - 1;
 		}
+		col++;
 	    }
 	}
 
@@ -402,14 +409,18 @@ import javax.swing.text.*;
 		RowView row = getRow(i);
 		int col = 0;
 		int ncells = row.getViewCount();
-		for (int cell = 0; cell < ncells; cell++, col++) {
+		for (int cell = 0; cell < ncells; cell++) {
 		    View cv = row.getView(cell);
+		    if (skipComments && !(cv instanceof CellView)) {
+			continue;
+		    }
 		    for (; row.isFilled(col); col++); // advance to a free column
 		    int colSpan = getColumnsOccupied(cv);
 		    if (colSpan > 1) {
 			checkMultiColumnCell(axis, col, colSpan, cv);
 			col += colSpan - 1;
 		    }
+		    col++;
 		}
 	    }
 	}
@@ -520,7 +531,7 @@ import javax.swing.text.*;
 	    min += req.minimum;
 	    pref += req.preferred;
 	}
-	int adjust = (n - 1) * cellSpacing;
+	int adjust = (n + 1) * cellSpacing + 2 * borderWidth;
 	min += adjust;
 	pref += adjust;
 	r.minimum = (int) min;
@@ -748,8 +759,9 @@ import javax.swing.text.*;
 		a.height -= getBottomInset() - bottom;
 	    }
 	}
-	painter.paint(g, a.x, a.y, a.width, a.height, this);
-
+	for (int i = borderWidth; i > 0; i--) {                                         
+	    painter.paint(g, a.x + i, a.y + i, a.width - 2 * i, a.height - 2 * i, this);
+	}                                                                               
 	// paint interior
 	int n = getViewCount();
 	for (int i = 0; i < n; i++) {
@@ -914,6 +926,7 @@ import javax.swing.text.*;
     private StyleSheet.BoxPainter painter;
 
     private int cellSpacing;
+    private int borderWidth;
 
     /**
      * The index of the caption view if there is a caption.
@@ -953,6 +966,9 @@ import javax.swing.text.*;
     ColumnIterator colIterator = new ColumnIterator();
 
     Vector rows;
+
+    // whether to display comments inside table or not.
+    boolean skipComments = false;
 
     boolean gridValid;
     static final private BitSet EMPTY = new BitSet();
@@ -999,9 +1015,9 @@ import javax.swing.text.*;
 			    if (lv.isPercentage()) {
 				// add a percentage requirement
 				percentages[col+i] = Math.max(percentages[col+i], len);
-				adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight);
+				adjustmentWeights[col+i] = WorstAdjustmentWeight;
 			    } else {
-			        adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight - 1);
+				adjustmentWeights[col+i] = WorstAdjustmentWeight - 1;
 			    }
 			}
 		    }
@@ -1046,25 +1062,27 @@ import javax.swing.text.*;
 	}
 
 	public float getMinimumSpan(float parentSpan) {
-	    if ((percentages != null) && (percentages[col] != 0)) {
-		return Math.max(percentages[col], columnRequirements[col].minimum);
-	    }
+	    // do not care for percentages, since min span can't 
+            // be less than columnRequirements[col].minimum,
+	    // but can be less than percentage value.
 	    return columnRequirements[col].minimum;
 	}
 
 	public float getPreferredSpan(float parentSpan) {
 	    if ((percentages != null) && (percentages[col] != 0)) {
-		return Math.max(percentages[col], columnRequirements[col].minimum);
+		return Math.max(percentages[col], columnRequirements[col].preferred);
 	    }
 	    return columnRequirements[col].preferred;
 	}
 
 	public float getMaximumSpan(float parentSpan) {
-	    if ((percentages != null) && (percentages[col] != 0)) {
-		return Math.max(percentages[col], columnRequirements[col].preferred);
-	    }
 	    return columnRequirements[col].maximum;
 	}
+
+	public float getBorderWidth() {
+	    return borderWidth;        
+	}                              
+
 
 	public float getLeadingCollapseSpan() {
 	    return cellSpacing;
@@ -1213,7 +1231,6 @@ import javax.swing.text.*;
 	    RowView rv = getRow(row);
 	    if (rv != null) {
 		int adjust = (adjustments != null) ? adjustments[row] : 0;
-		adjust += 2 * cellSpacing;
 		return rv.getPreferredSpan(TableView.this.getAxis()) + adjust;
 	    }
 	    return 0;
@@ -1222,6 +1239,10 @@ import javax.swing.text.*;
 	public float getMaximumSpan(float parentSpan) {
 	    return getPreferredSpan(parentSpan);
 	}
+
+	public float getBorderWidth() {
+	    return borderWidth;        
+	}                              
 
 	public float getLeadingCollapseSpan() {
 	    return cellSpacing;
@@ -1490,8 +1511,11 @@ import javax.swing.text.*;
         protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 	    int col = 0;
 	    int ncells = getViewCount();
-	    for (int cell = 0; cell < ncells; cell++, col++) {
+	    for (int cell = 0; cell < ncells; cell++) {
 		View cv = getView(cell);
+		if (skipComments && !(cv instanceof CellView)) {
+		    continue;
+		}
 		for (; isFilled(col); col++); // advance to a free column
 		int colSpan = getColumnsOccupied(cv);
 		spans[cell] = columnSpans[col];
@@ -1504,10 +1528,12 @@ import javax.swing.text.*;
 			// the bounds.
 			if ((col+j) < n) {
 			    spans[cell] += columnSpans[col+j];
+			    spans[cell] += cellSpacing;
 			}
 		    }
 		    col += colSpan - 1;
 		}
+		col++;
 	    }
 	}
 
@@ -1730,21 +1756,6 @@ import javax.swing.text.*;
 	    req.maximum = Integer.MAX_VALUE;
 	    return req;
 	}
-
-        protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
-            SizeRequirements rv = super.calculateMinorAxisRequirements(axis, r);
-            //for the cell the minimum should be derived from the child views 
-            //the parent behaviour is to use CSS for that
-            int n = getViewCount();
-            int min = 0;
-            for (int i = 0; i < n; i++) {
-                View v = getView(i);
-                min = Math.max((int) v.getMinimumSpan(axis), min);                
-            }            
-            rv.minimum = Math.min(rv.minimum, min);
-            return rv;
-        }
-
     }
 
 }

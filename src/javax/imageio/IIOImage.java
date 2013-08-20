@@ -1,7 +1,7 @@
 /*
- * @(#)IIOImage.java	1.19 03/01/23
+ * @(#)IIOImage.java	1.21 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -57,7 +57,7 @@ public class IIOImage {
      * or <code>null</code>.  Non-<code>BufferedImage</code> objects
      * must not be stored in this <code>List</code>.
      */
-    protected List thumbnails = null;
+    protected List<? extends BufferedImage> thumbnails = null;
 
     /**
      * An <code>IIOMetadata</code> object containing metadata
@@ -86,7 +86,7 @@ public class IIOImage {
      * <code>null</code>.
      */
     public IIOImage(RenderedImage image,
-                    List thumbnails,
+                    List<? extends BufferedImage> thumbnails,
                     IIOMetadata metadata) {
         if (image == null) {
             throw new IllegalArgumentException("image == null!");
@@ -114,7 +114,7 @@ public class IIOImage {
      * <code>null</code>.
      */
     public IIOImage(Raster raster,
-                    List thumbnails,
+                    List<? extends BufferedImage> thumbnails,
                     IIOMetadata metadata) {
         if (raster == null) {
             throw new IllegalArgumentException("raster == null!");
@@ -255,7 +255,7 @@ public class IIOImage {
      * @see #getThumbnail(int)
      * @see #setThumbnails
      */
-    public List getThumbnails() {
+    public List<? extends BufferedImage> getThumbnails() {
         return thumbnails;
     }
 
@@ -274,7 +274,7 @@ public class IIOImage {
      * @see #getThumbnail(int)
      * @see #getThumbnails
      */
-    public void setThumbnails(List thumbnails) {
+    public void setThumbnails(List<? extends BufferedImage> thumbnails) {
         this.thumbnails = thumbnails;
     }
 

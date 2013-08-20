@@ -1,31 +1,34 @@
 /*
- * @(#)GTKStyle.java	1.96 04/01/13
+ * @(#)GTKStyle.java	1.116 04/06/24
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import com.sun.java.swing.SwingUtilities2;
+import javax.swing.plaf.synth.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.RescaleOp;
 import java.lang.reflect.*;
 import javax.swing.*;
-import javax.swing.colorchooser.*;
 import javax.swing.plaf.*;
-import javax.swing.text.DefaultEditorKit;
 import java.util.*;
-import sun.awt.*;
 import java.security.*;
-import java.awt.RenderingHints;
+
+import sun.swing.plaf.synth.*;
+import sun.awt.AppContext;
 
 /**
- * @version 1.96, 01/13/04
+ * SynthStyle implementation used in GTK. All painting is mapped to
+ * a <code>GTKEngine</code>.
+ *
+ * @version 1.116, 06/24/04
  * @author Scott Violet
  */
-class GTKStyle extends DefaultSynthStyle implements GTKConstants {
-    private static final Object PENDING = new StringBuffer("Pending");
+public class GTKStyle extends DefaultSynthStyle implements GTKConstants {
+    private static final String ICON_PROPERTY_PREFIX = "gtk.icon.";
 
     static final Color BLACK_COLOR = new ColorUIResource(Color.BLACK);
     static final Color WHITE_COLOR = new ColorUIResource(Color.WHITE);
@@ -55,25 +58,7 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
      */
     private static final HashMap CLASS_SPECIFIC_MAP;
 
-    private static final GTKGraphics GTK_GRAPHICS = new GTKGraphics();
-
-    private static final Object ICON_SIZE_KEY = new StringBuffer("IconSize");
-
-    /**
-     * Default size for icons on dialogs (optionpane).
-     */
-    private static final Dimension DIALOG_ICON_SIZE        = new Dimension(48, 48);
-
-    /**
-     * Default size for icons on buttons.
-     */
-    private static final Dimension BUTTON_ICON_SIZE        = new Dimension(20, 20);
-
-    // These have been included for completeness, but currently are not used
-    private static final Dimension MENU_ICON_SIZE          = new Dimension(16, 16);
-    private static final Dimension SMALL_TOOLBAR_ICON_SIZE = new Dimension(18, 18);
-    private static final Dimension LARGE_TOOLBAR_ICON_SIZE = new Dimension(24, 24);
-    private static final Dimension DND_ICON_SIZE           = new Dimension(32, 32);
+    private static final GTKGraphicsUtils GTK_GRAPHICS =new GTKGraphicsUtils();
 
     /**
      * Indicates the thickness has not been set.
@@ -92,52 +77,11 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
      * CircularIdentityLists contains the actual key/value pairs.
      */
     private CircularIdentityList classSpecificValues;
-
-    /**
-     * GTK components have a single font which is used in all states.
-     */
-    private Font font;
-
+    
     /**
      * Icons.
      */
     private GTKStockIconInfo[] icons;
-
-
-    /**
-     * Sets the size of a particular icon type.
-     */
-    static void setIconSize(String key, int w, int h) {
-        getIconSizeMap().put(key, new Dimension(w, h));
-    }
-
-    /**
-     * Returns the size of a particular icon type. This should NOT
-     * modify the return value.
-     */
-    static Dimension getIconSize(String key) {
-        return (Dimension)getIconSizeMap().get(key);
-    }
-
-    private static Map getIconSizeMap() {
-        AppContext appContext = AppContext.getAppContext();
-        Map iconSizes = (Map)appContext.get(ICON_SIZE_KEY);
-
-        if (iconSizes == null) {
-            iconSizes = new HashMap();
-
-            iconSizes.put("gtk-dialog", DIALOG_ICON_SIZE);
-            iconSizes.put("gtk-button", BUTTON_ICON_SIZE);
-            iconSizes.put("gtk-menu", MENU_ICON_SIZE);
-            iconSizes.put("gtk-small-toolbar", SMALL_TOOLBAR_ICON_SIZE);
-            iconSizes.put("gtk-large-toolbar", LARGE_TOOLBAR_ICON_SIZE);
-            iconSizes.put("gtk-dnd", DND_ICON_SIZE);
-
-            appContext.put(ICON_SIZE_KEY, iconSizes);
-        }
-
-        return iconSizes;
-    }
 
     /**
      * Calculates the LIGHT color from the background color.
@@ -154,28 +98,28 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
     }
 
     /**
-      * Calculates the MID color from the light and dark colors.
-      */
-     static Color calculateMidColor(Color lightColor, Color darkColor) {
-         int light = lightColor.getRGB();
-         int dark = darkColor.getRGB();
-         int rLight = (light & 0xFF0000) >> 16;
-         int rDark = (dark & 0xFF0000) >> 16;
-         int gLight = (light & 0x00FF00) >> 8;
-         int gDark = (dark & 0x00FF00) >> 8;
-         int bLight = (light & 0xFF);
-         int bDark = (dark & 0xFF);
-         return new ColorUIResource((((rLight + rDark) / 2) << 16) |
-                                    (((gLight + gDark) / 2) << 8) |
-                                    ((bLight + bDark) / 2));
-     }
+     * Calculates the MID color from the light and dark colors.
+     */
+    static Color calculateMidColor(Color lightColor, Color darkColor) {
+        int light = lightColor.getRGB();
+        int dark = darkColor.getRGB();
+        int rLight = (light & 0xFF0000) >> 16;
+        int rDark = (dark & 0xFF0000) >> 16;
+        int gLight = (light & 0x00FF00) >> 8;
+        int gDark = (dark & 0x00FF00) >> 8;
+        int bLight = (light & 0xFF);
+        int bDark = (dark & 0xFF);
+        return new ColorUIResource((((rLight + rDark) / 2) << 16) |
+                                   (((gLight + gDark) / 2) << 8) |
+                                   ((bLight + bDark) / 2));
+    }
 
     /**
      * Calculates the MID color from the background color.
      */
     static Color calculateMidColor(Color bg) {
         return calculateMidColor(calculateLightColor(bg),
-                                  calculateDarkColor(bg));
+                                 calculateDarkColor(bg));
     }
 
     /**
@@ -189,7 +133,6 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         Color darkColor = calculateDarkColor(bg);
         Color midColor = calculateMidColor(lightColor, darkColor);
         Color[] colors = new Color[GTKColorType.MAX_COUNT];
-
         colors[GTKColorType.BACKGROUND.getID()] = bg;
         colors[GTKColorType.LIGHT.getID()] = lightColor;
         colors[GTKColorType.DARK.getID()] = darkColor;
@@ -203,11 +146,13 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return colors;
     }
 
+    /**
+     * Creates a new GTKStyle that is a copy of the passed in style.
+     */
     public GTKStyle(DefaultSynthStyle style) {
         super(style);
         if (style instanceof GTKStyle) {
             GTKStyle gStyle = (GTKStyle)style;
-            font = gStyle.font;
             xThickness = gStyle.xThickness;
             yThickness = gStyle.yThickness;
             icons = gStyle.icons;
@@ -216,32 +161,70 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         }
     }
 
+    /**
+     * Creates an empty GTKStyle.
+     */
     public GTKStyle() {
         super(new Insets(-1, -1, -1, -1), true, null, null);
     }
 
+    /**
+     * Creates a GTKStyle with the specified font.
+     *
+     * @param font Font to use in GTK.
+     */
     public GTKStyle(Font font) {
         this();
-        this.font = font;
+        setFont(font);
     }
 
-    public GTKStyle(StateInfo[] states,
+    /**
+     * Creates a GTKStyle with the specified parameters.
+     *
+     * @param states StateInfo specifying the colors and fonts to use for
+     *        a particular state.
+     * @param classSpecificValues Values that are specific to a particular
+     *        class
+     * @param font to use.
+     * @param xThickness X thickness
+     * @param yThickness Y thickness
+     * @param GTKStockIconInfo stock icons for this style.
+     */
+    GTKStyle(StateInfo[] states,
                     CircularIdentityList classSpecificValues,
                     Font font,
                     int xThickness, int yThickness,
                     GTKStockIconInfo[] icons) {
         super(new Insets(-1, -1, -1, -1), true, states, null);
-        this.font = font;
+        setFont(font);
         this.xThickness = xThickness;
         this.yThickness = yThickness;
         this.icons = icons;
         this.classSpecificValues = classSpecificValues;
     }
 
-    public SynthGraphics getSynthGraphics(SynthContext context) {
+    /**
+     * {@inheritDoc}
+     */
+    public void installDefaults(SynthContext context) {
+        super.installDefaults(context);
+        if (!context.getRegion().isSubregion()) {
+            context.getComponent().putClientProperty(
+                SwingUtilities2.AA_TEXT_PROPERTY_KEY,
+                GTKLookAndFeel.aaText);
+        }        
+    }
+
+    public SynthGraphicsUtils getGraphicsUtils(SynthContext context) {
         return GTK_GRAPHICS;
     }
 
+    /**
+     * Returns the object used to renderer the look.
+     *
+     * @param context SynthContext indentifying requestor
+     * @return GTKEngine used to provide the look
+     */
     public GTKEngine getEngine(SynthContext context) {
         GTKEngine engine = (GTKEngine)get(context, "engine");
 
@@ -251,24 +234,26 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return engine;
     }
 
-    public SynthPainter getBorderPainter(SynthContext state) {
-        SynthPainter painter = super.getBorderPainter(state);
-
-        if (painter == null) {
-            return GTKPainter.INSTANCE;
-        }
-        return painter;
+    /**
+     * Returns a <code>SynthPainter</code> that will route the appropriate
+     * calls to a <code>GTKEngine</code>.
+     *
+     * @param state SynthContext indentifying requestor
+     * @return SynthPainter
+     */
+    public SynthPainter getPainter(SynthContext state) {
+        return GTKPainter.INSTANCE;
     }
 
-    public SynthPainter getBackgroundPainter(SynthContext state) {
-        SynthPainter painter = super.getBackgroundPainter(state);
-
-        if (painter == null) {
-            return GTKPainter.INSTANCE;
-        }
-        return painter;
-    }
-
+    /**
+     * Returns the Insets. If <code>to</code> is non-null the resulting
+     * insets will be placed in it, otherwise a new Insets object will be
+     * created and returned.
+     *
+     * @param context SynthContext indentifying requestor
+     * @param to Where to place Insets
+     * @return Insets.
+     */
     public Insets getInsets(SynthContext state, Insets insets) {
         insets = super.getInsets(state, insets);
 
@@ -284,15 +269,19 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
      * is a value that will be picked up based on class hierarchy.
      * For example, a value specified for JComponent would be inherited on
      * JButtons and JTrees, but not Button.
-     *
+     * <p>
      * Note, the key used here should only contain the letters A-Z, a-z, the
      * digits 0-9, and the '-' character. If you need to request a value for
      * a key having characters outside this list, replace any other characters
      * with '-'. (ie. "default_border" should be "default-border").
+     *
+     * @param region Region requesting class specific value
+     * @param key Key identifying class specific value
+     * @return Value, or null if one has not been defined.
      */
-    public Object getClassSpecificValue(SynthContext context, String key) {
+    public Object getClassSpecificValue(Region region, String key) {
         if (classSpecificValues != null) {
-            String gtkClass = GTKStyleFactory.gtkClassFor(context.getRegion());
+            String gtkClass = GTKStyleFactory.gtkClassFor(region);
 
             while (gtkClass != null) {
                 CircularIdentityList classValues = (CircularIdentityList)
@@ -312,7 +301,32 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
     }
 
     /**
-     * Returns a class specific property.
+     * Returns the value for a class specific property. A class specific value
+     * is a value that will be picked up based on class hierarchy.
+     * For example, a value specified for JComponent would be inherited on
+     * JButtons and JTrees, but not Button.
+     * <p>
+     * Note, the key used here should only contain the letters A-Z, a-z, the
+     * digits 0-9, and the '-' character. If you need to request a value for
+     * a key having characters outside this list, replace any other characters
+     * with '-'. (ie. "default_border" should be "default-border").
+     *
+     * @param context SynthContext indentifying requestor
+     * @param key Key identifying class specific value
+     * @return Value, or null if one has not been defined.
+     */
+    public Object getClassSpecificValue(SynthContext context, String key) {
+        return getClassSpecificValue(context.getRegion(), key);
+    }
+    
+    /**
+     * Convenience method to get a class specific integer value.
+     *
+     * @param context SynthContext indentifying requestor
+     * @param key Key identifying class specific value
+     * @param defaultValue Returned if there is no value for the specified
+     *        type
+     * @return Value, or defaultValue if <code>key</code> is not defined
      */
     public int getClassSpecificIntValue(SynthContext context, String key,
                                            int defaultValue) {
@@ -325,7 +339,13 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
     }
 
     /**
-     * Returns a class specific property.
+     * Convenience method to get a class specific Insets value.
+     *
+     * @param context SynthContext indentifying requestor
+     * @param key Key identifying class specific value
+     * @param defaultValue Returned if there is no value for the specified
+     *        type
+     * @return Value, or defaultValue if <code>key</code> is not defined
      */
     public Insets getClassSpecificInsetsValue(SynthContext context, String key,
                                               Insets defaultValue) {
@@ -338,7 +358,13 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
     }
 
     /**
-     * Returns a class specific property.
+     * Convenience method to get a class specific Boolean value.
+     *
+     * @param context SynthContext indentifying requestor
+     * @param key Key identifying class specific value
+     * @param defaultValue Returned if there is no value for the specified
+     *        type
+     * @return Value, or defaultValue if <code>key</code> is not defined
      */
     public boolean getClassSpecificBoolValue(SynthContext context, String key,
                                              boolean defaultValue) {
@@ -350,68 +376,62 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return defaultValue;
     }
 
-    public Object get(SynthContext context, Object key) {
-        Object value = super.get(context, key);
+    public Object getDefaultValue(SynthContext context, Object key) {
+        // See if this is a class specific value.
+        Object classKey = CLASS_SPECIFIC_MAP.get(key);
+        Object value = null;
 
-        if (value == null) {
-	// See if this is a class specific value.
-	Object classKey = CLASS_SPECIFIC_MAP.get(key);
-
-	    if (classKey != null) {
-		value = getClassSpecificValue(context, (String)classKey);
-		if (value != null) {
-			return value;
-		}
-	    }
-            if (key == "foreground" || key == "focus" ||
-                      key == "SplitPane.dragPainter" ||
-                      key == "ScrollPane.viewportBorderPainter") {
-                return GTKPainter.INSTANCE;
+        if (classKey != null) {
+            value = getClassSpecificValue(context, (String)classKey);
+            if (value != null) {
+                return value;
             }
-            else if (key == "ScrollPane.viewportBorderInsets") {
-                return GTKPainter.INSTANCE.getScrollPaneInsets(context,
-                                           new Insets(0,0,0,0));
-            }
-            synchronized (DATA) {
-                value = DATA.get(key);
-                try {
-                    while (value == PENDING) {
-                        DATA.wait();
-                        value = DATA.get(key);
-                    }
-                } catch (InterruptedException ie) {
-                }
-                if (value instanceof UIDefaults.LazyValue) {
-                    DATA.put(key, PENDING);
-                }
-            }
-            if (value instanceof StyleSpecificValue) {
-                put(key, ((StyleSpecificValue)value).getValue(context));
-            }
-            else if (value instanceof UIDefaults.ActiveValue) {
-                value = ((UIDefaults.ActiveValue)value).
-                                             createValue(null);
-            }
-            else if (value instanceof UIDefaults.LazyValue) {
-                value = ((UIDefaults.LazyValue)value).
-                                             createValue(null);
-                synchronized(DATA) {
-                    DATA.put(key, value);
-                    DATA.notifyAll();
+        }
+            
+        if (key == "ScrollPane.viewportBorderInsets") {
+            return GTKPainter.INSTANCE.getScrollPaneInsets(context,
+                                                     new Insets(0,0,0,0));
+        } else if (key == "Slider.tickColor") {
+            return getColor(context.getComponent(), context.getRegion(),
+                            context.getComponentState(), ColorType.FOREGROUND);
+        }
+        synchronized (DATA) {
+            value = DATA.get(key);
+        }
+        if (value instanceof StyleSpecificValue) {
+            put(key, ((StyleSpecificValue)value).getValue(context));
+        }
+        if (value == null && key != "engine") {
+            // For backward compatability we'll fallback to the UIManager.
+            // We don't go to the UIManager for engine as the engine is GTK
+            // specific.
+            value = UIManager.get(key);
+            if (key == "Table.rowHeight") {
+                int focusLineWidth = getClassSpecificIntValue(
+                         context, "focus-line-width", 0);
+                if (value == null && focusLineWidth > 0) {
+                    value = new Integer(16 + 2 * focusLineWidth);
                 }
             }
         }
+        // Don't call super, we don't want to pick up defaults from
+        // SynthStyle.
         return value;
     }
 
-    protected Font _getFont(JComponent c, Region id, int state) {
-        if (font != null) {
-            return font;
-        }
-
+    /**
+     * Returns the font for the specified state. This should NOT callback
+     * to the JComponent.
+     *
+     * @param c JComponent the style is associated with
+     * @param id Region identifier
+     * @param state State of the region.
+     * @return Font to render with
+     */
+    protected Font getFontForState(JComponent c, Region id, int state) {
         state = GTKLookAndFeel.synthStateToGTKState(id, state);
 
-        Font f = super._getFont(c, id, state);
+        Font f = super.getFontForState(c, id, state);
 
         if (f == null) {
             return DEFAULT_FONT;
@@ -419,14 +439,55 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return f;
     }
 
+    Color getGTKColor(int state, ColorType type) {
+        return getGTKColor(null, null, state, type);
+    }
+
     /**
-     * This method is to be used inside the GTK package when we want a
-     * color for an explicit state, it will not attempt to remap the state
-     * as getColor will.
+     * This method is to be used from within GTK when do NOT want
+     * the component state to be mapped. It will NOT remap the state as
+     * the other various getters do.
+     *
+     * @param c JComponent the style is associated with
+     * @param id Region identifier
+     * @param state State of the region.
+     * @param type Type of color being requested.
+     * @return Color to render with
      */
-    Color getGTKColor(JComponent c, Region id,
+    public Color getGTKColor(JComponent c, Region id,
                       int state, ColorType type) {
-        Color color = super._getColor(c, id, state, type);
+        // NOTE: c and id are only ever null when this is called from
+        // GTKLookAndFeel.loadSystemColorDefaults.
+        if (c != null && id != null) {
+            if (!id.isSubregion() &&
+                (state & SynthConstants.ENABLED) == SynthConstants.ENABLED) {
+                if (type == ColorType.BACKGROUND) {
+                    Color bg = c.getBackground();
+                    if (!(bg instanceof UIResource)) {
+                        return bg;
+                    }
+                }
+                else if (type == ColorType.FOREGROUND) {
+                    Color fg = c.getForeground();
+                    if (!(fg instanceof UIResource)) {
+                        return fg;
+                    }
+                }
+                else if (type == ColorType.TEXT_FOREGROUND) {
+                    Color fg = c.getForeground();
+                    if (!(fg instanceof UIResource)) {
+                        return fg;
+                    }
+                }
+                else if (type == ColorType.TEXT_BACKGROUND) {
+                    Color bg = c.getBackground();
+                    if (!(bg instanceof UIResource)) {
+                        return bg;
+                    }
+                }
+            }
+        }
+        Color color = super.getColorForState(c, id, state, type);
         if (color != null) {
             return color;
         }
@@ -438,6 +499,12 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
      * GTK state, this should be not used when you have already mapped the
      * state. Additionally this will map TEXT_FOREGROUND to the
      * <code>c.getForeground()</code> if it is non-null and not a UIResource.
+     *
+     * @param c JComponent the style is associated with
+     * @param id Region identifier
+     * @param state State of the region.
+     * @param type Type of color being requested.
+     * @return Color to render with
      */
     public Color getColor(JComponent c, Region id, int state,
                           ColorType type) {
@@ -461,12 +528,23 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
                 }
             }
         }
-        return _getColor(c, id, state, type);
+        return getColorForState(c, id, state, type);
     }
 
-    protected Color _getColor(JComponent c, Region id, int state,
-                              ColorType type) {
-        Color color = super._getColor(c, id, state, type);
+    /**
+     * Returns the color for the specified state. This redirects to the
+     * JComponent <code>c</code> as necessary. If this does not redirect
+     * to the JComponent <code>getColorForState</code> is invoked.
+     *
+     * @param c JComponent the style is associated with
+     * @param id Region identifier
+     * @param state State of the region.
+     * @param type Type of color being requested.
+     * @return Color to render with
+     */
+    protected Color getColorForState(JComponent c, Region id, int state,
+                                     ColorType type) {
+        Color color = super.getColorForState(c, id, state, type);
 
         if (color != null) {
             return color;
@@ -503,6 +581,15 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return getDefaultColor(c, id, state, type);
     }
 
+    /**
+     * Returns the Color to use if the GTKStyle does not specify a color.
+     *
+     * @param c JComponent the style is associated with
+     * @param id Region identifier
+     * @param state State of the region.
+     * @param type Type of color being requested.
+     * @return Color to render with
+     */
     Color getDefaultColor(JComponent c, Region id, int state,
                           ColorType type) {
         if (type == ColorType.FOCUS) {
@@ -528,6 +615,14 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return null;
     }
 
+    /**
+     * Returns the value to initialize the opacity property of the Component
+     * to. A Style should NOT assume the opacity will remain this value, the
+     * developer may reset it or override it.
+     *
+     * @param context SynthContext indentifying requestor
+     * @return opaque Whether or not the JComponent is opaque.
+     */
     public boolean isOpaque(SynthContext context) {
         Region region = context.getRegion();
         if (region == Region.COMBO_BOX ||
@@ -538,7 +633,7 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
               region == Region.INTERNAL_FRAME ||
               region == Region.LIST ||
               region == Region.MENU_BAR ||
-              region == Region.PASSWORD_FIELD ||
+              region == Region.PASSWORD_FIELD || 
               region == Region.POPUP_MENU ||
               region == Region.PROGRESS_BAR ||
               region == Region.ROOT_PANE ||
@@ -554,23 +649,38 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
               region == Region.VIEWPORT) {
             return true;
         }
+        Component c = context.getComponent();
+        String name = c.getName();
+        if (name == "ComboBox.renderer" || name == "ComboBox.listRenderer") {
+            return true;
+        }
         return false;
     }
 
+    /**
+     * Returns the X thickness to use for this GTKStyle.
+     *
+     * @return x thickness.
+     */
     public int getXThickness() {
         return xThickness;
     }
 
+    /**
+     * Returns the Y thickness to use for this GTKStyle.
+     *
+     * @return x thickness.
+     */
     public int getYThickness() {
         return yThickness;
     }
 
-    private Icon getStockIcon(SynthContext context, String key, String size) {
+    private Icon getStockIcon(SynthContext context, String key, int type) {
         Icon icon = null;
         GTKStockIconInfo iconInfo = null;
         GTKIconSource bestSource = null;
         int direction = LTR;
-
+        
         if (context != null) {
             ComponentOrientation co = context.getComponent().
                                               getComponentOrientation();
@@ -591,82 +701,126 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
                     break;
                 }
             }
-
+            
             if (iconInfo != null) {
                 // PENDING(shannonh) - pass in actual state
                 bestSource = iconInfo.getBestIconSource(direction,
                                                         SynthConstants.ENABLED,
-                                                        size);
+                                                        type);
             }
-
+            
             if (bestSource != null) {
                 icon = bestSource.toIcon();
             }
         }
-
+        
         if (icon == null) {
             // Use a default icon
-            icon = (Icon)((UIDefaults.LazyValue)LookAndFeel.makeIcon(
-                              GTKStyle.class, "resources/" + key + "-" + size +
+            String propName = ICON_PROPERTY_PREFIX + key + '.' + type + '.' +
+                              (direction == RTL ? "rtl" : "ltr"); 
+            Image img = (Image)Toolkit.getDefaultToolkit().
+                                       getDesktopProperty(propName);
+            if (img != null) {
+                icon = new ImageIcon(img);
+                return icon;
+            } else {
+                icon = (Icon)((UIDefaults.LazyValue)LookAndFeel.makeIcon(
+                              GTKStyle.class, "resources/" + key + "-" + type +
                               ".png")).createValue(null);
-        }
-
-        // If we used a default, or if the stock icon we found had a wildcard size,
-        // we force the size to match that requested
-        if (icon != null && (bestSource == null || bestSource.getSize() == null)) {
-            Dimension iconSize = getIconSize(size);
-
-            if (iconSize != null && (icon.getIconWidth() != iconSize.width ||
-                                    icon.getIconHeight() != iconSize.height)) {
-                Image image = new BufferedImage(iconSize.width, iconSize.height,
-                                                BufferedImage.TYPE_INT_ARGB);
-
-                Graphics2D g2d = (Graphics2D)image.getGraphics();
-
-                // for nicer scaling
-                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-
-                Image oldImage = null;
-                if (icon instanceof ImageIcon) {
-                    oldImage = ((ImageIcon)icon).getImage();
-                } else {
-                    oldImage = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(),
-                                                 BufferedImage.TYPE_INT_ARGB);
-
-                    Graphics g = oldImage.getGraphics();
-                    icon.paintIcon(null, g, 0, 0);
-                    g.dispose();
-                }
-
-                g2d.drawImage(oldImage, 0, 0, iconSize.width, iconSize.height, null);
-                g2d.dispose();
-
-                icon = new ImageIcon(image);
             }
         }
+        
+        if (icon == null) {
+            return null;
+        }
+        BufferedImage image = null; 
 
+        // If the stock icon we found had a wildcard size, 
+        // we force the size to match that requested 
+        if (bestSource == null || bestSource.getSize() == UNDEFINED) { 
+            Dimension iconSize = GTKStockIconInfo.getIconSize(type); 
+            
+            if (iconSize != null && (icon.getIconWidth() != iconSize.width || 
+                    icon.getIconHeight() != iconSize.height)) { 
+                image = new BufferedImage(iconSize.width, iconSize.height, 
+                        BufferedImage.TYPE_INT_ARGB); 
+                
+                Graphics2D g2d = (Graphics2D)image.getGraphics(); 
+                
+                // for nicer scaling 
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR); 
+                
+                Image oldImage = getImageFromIcon(icon, false); 
+                g2d.drawImage(oldImage, 0, 0, iconSize.width, iconSize.height, null); 
+                g2d.dispose(); 
+            }
+        }
+/* This is not done for now. We cache icons and use cached copies regardless
+   of the component state, so we don't want to cache desaturated icons
+   
+        if (bestSource == null || bestSource.getState() == UNDEFINED) { 
+            // We may need to change saturation for some states
+            int state = context.getComponentState();
+            if (state == SynthConstants.DISABLED ||
+                state == SynthConstants.MOUSE_OVER) {
+                
+                if (image == null) {
+                    image = (BufferedImage)getImageFromIcon(icon, true);
+                }
+                float rescaleFactor =
+                        (state == SynthConstants.DISABLED ? 0.8f : 1.2f); 
+                RescaleOp op = new RescaleOp(rescaleFactor, 0, null);
+                // RescaleOp allows for in-place filtering
+                op.filter(image, image);
+            }
+        }
+*/        
+        if (image != null) {
+            icon = new ImageIcon(image);
+        }
         return icon;
     }
-
-    /**
+    
+    private Image getImageFromIcon(Icon icon, boolean requireBufferedImage) {
+        Image img = null;
+        
+        if (icon instanceof ImageIcon) { 
+            img = ((ImageIcon)icon).getImage();
+            if (requireBufferedImage && !(img instanceof BufferedImage)) {
+                img = null;
+            }
+        }
+        if (img == null) { 
+            img = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(),
+                                    BufferedImage.TYPE_INT_ARGB);                             
+            Graphics g = img.getGraphics(); 
+            icon.paintIcon(null, g, 0, 0); 
+            g.dispose(); 
+        } 
+        return img;
+    }
+    
+    /**          
      * Adds the specific label based properties from <code>style</code> to
      * this style.
      */
     void addLabelProperties(GTKStyle style) {
+        StateInfo[] states = getStateInfo();
+        StateInfo[] oStates = style.getStateInfo();
         // Take the font
-        this.font = style.font;
+        setFont(style.getFontForState(null, null, 0));
         // And TEXT_FOREGROUND
         if (states == null) {
-            if (style.states == null) {
+            if (oStates == null) {
                 return;
             }
-            states = new StateInfo[style.states.length];
-            for (int counter = 0; counter < style.states.length; counter++) {
-                Color color = style.states[counter].getColor(
+            states = new StateInfo[oStates.length];
+            for (int counter = 0; counter < oStates.length; counter++) {
+                Color color = oStates[counter].getColor(
                                      GTKColorType.FOREGROUND);
 
-                states[counter] = createStateInfo(style.states[counter].
+                states[counter] = createStateInfo(oStates[counter].
                      getComponentState(), GTKColorType.TEXT_FOREGROUND, color);
             }
         }
@@ -678,11 +832,11 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
                 ((GTKStateInfo)states[counter]).setColor(
                                GTKColorType.TEXT_FOREGROUND, null);
             }
-            if (style.states != null) {
-                for (int oCounter = style.states.length - 1; oCounter >= 0;
+            if (oStates != null) {
+                for (int oCounter = oStates.length - 1; oCounter >= 0;
                          oCounter--) {
                     boolean matched = false;
-                    StateInfo oState = style.states[oCounter];
+                    StateInfo oState = oStates[oCounter];
                     int componentState = oState.getComponentState();
                     Color color = oState.getColor(GTKColorType.FOREGROUND);
 
@@ -719,15 +873,17 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         Color[] colors = new Color[GTKColorType.MAX_COUNT];
 
         colors[type.getID()] = color;
-        return new GTKStateInfo(state, null, null, null, colors, null);
+        return new GTKStateInfo(state, null, colors, null);
     }
 
     /**
      * Adds a value specific to the style.
      */
     void put(Object key, Object value) {
-        if (data == null) {
+        Map data = getData();
+        if (data== null) {
             data = new HashMap();
+            setData(data);
         }
         data.put(key, value);
     }
@@ -768,7 +924,9 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
     }
 
     /**
-     * Creates a clone of the receiver.
+     * Creates a clone of this GTKStyle.
+     *
+     * @return Clone of this GTKStyle.
      */
     public Object clone() {
         GTKStyle style = (GTKStyle)super.clone();
@@ -778,6 +936,17 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return style;
     }
 
+    /**
+     * Merges the contents of this Style with that of the passed in Style,
+     * returning the resulting merged syle. Properties of this
+     * <code>GTKStyle</code> will take precedence over those of the
+     * passed in <code>DefaultSynthStyle</code>. For example, if this
+     * style specifics a non-null font, the returned style will have its
+     * font so to that regardless of the <code>style</code>'s font.
+     *
+     * @param style Style to add our styles to
+     * @return Merged style.
+     */
     public DefaultSynthStyle addTo(DefaultSynthStyle style) {
         if (!(style instanceof GTKStyle)) {
             style = new GTKStyle(style);
@@ -789,29 +958,26 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         if (yThickness != UNDEFINED_THICKNESS) {
             gtkStyle.yThickness = yThickness;
         }
-        if (font != null) {
-            gtkStyle.font = font;
-        }
         if (gtkStyle.icons == null) {
             gtkStyle.icons = icons;
         }
         else if (icons != null) {
             GTKStockIconInfo[] mergedIcons =
                 new GTKStockIconInfo[gtkStyle.icons.length + icons.length];
-
+                
             System.arraycopy(icons, 0, mergedIcons, 0, icons.length);
             System.arraycopy(gtkStyle.icons, 0, mergedIcons, icons.length, gtkStyle.icons.length);
-
+            
             gtkStyle.icons = mergedIcons;
         }
-
+        
         if (gtkStyle.classSpecificValues == null) {
             gtkStyle.classSpecificValues =
                 cloneClassSpecificValues(classSpecificValues);
         } else {
             addClassSpecificValues(classSpecificValues, gtkStyle.classSpecificValues);
         }
-
+            
         return gtkStyle;
     }
 
@@ -826,7 +992,7 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         if (to == null) {
             throw new IllegalArgumentException("to may not be null");
         }
-
+        
         if (from == null) {
             return;
         }
@@ -885,7 +1051,7 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         return clone;
     }
 
-    /**
+    /**    
      * GTKStockIconInfo mirrors the information from a stock declaration
      * in the rc file: stock icon id, and a set of icon source
      * specifications.
@@ -893,53 +1059,117 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
     static class GTKStockIconInfo {
         private String key;
         private GTKIconSource[] sources;
-
+        private static Map<String,Integer> ICON_TYPE_MAP;
+        private static final Object ICON_SIZE_KEY = new StringBuffer("IconSize");
+        
         GTKStockIconInfo(String key, GTKIconSource[] sources) {
             this.key = key.intern();
             this.sources = sources;
             Arrays.sort(this.sources);
         }
-
+        
         public String getKey() {
             return key;
         }
-
-        public GTKIconSource getBestIconSource(int direction, int state, String size) {
+        
+        public GTKIconSource getBestIconSource(int direction, int state, int size) {
             for (int i = 0; i < sources.length; i++) {
                 GTKIconSource src = sources[i];
-
+                
                 if ((src.direction == UNDEFINED || src.direction == direction)
                         && (src.state == UNDEFINED || src.state == state)
-                        && (src.size == null || sizesMatch(src.size, size))) {
+                        && (src.size == UNDEFINED || src.size == size)) {
                     return src;
                 }
             }
-
+            
             return null;
-        }
-
-        private static boolean sizesMatch(String sizeOne, String sizeTwo) {
-            //Dimension one = getIconSize(sizeOne);
-            //Dimension two = getIconSize(sizeTwo);
-
-            //return one.width == two.width && one.height == two.height;
-
-            // An earlier version of GTK compared the actual pixel sizes for
-            // equality. Now it just compares the logical sizes.
-            return sizeOne == sizeTwo;
         }
 
         public String toString() {
             StringBuffer buf = new StringBuffer("STOCK ICON " + key + ":\n");
-
+            
             for (int i = 0; i < sources.length; i++) {
                 buf.append("    ").append(sources[i].toString()).append('\n');
             }
-
+            
             // remove last newline
             buf.deleteCharAt(buf.length() - 1);
-
+            
             return buf.toString();
+        }
+        
+        /**
+         * Return icon type (GtkIconSize value) given a symbolic name which can
+         * occur in a theme file.
+         * 
+         * @param size symbolic name, e.g. gtk-button
+         * @return icon type. Valid types are 1 to 6 
+         */ 
+        public static int getIconType(String size) {
+            if (size == null) {
+                return UNDEFINED;
+            }
+            if (ICON_TYPE_MAP == null) {
+                initIconTypeMap();
+            }
+            Integer n = ICON_TYPE_MAP.get(size);
+            return n != null ? n.intValue() : UNDEFINED;
+        }
+        
+        private static void initIconTypeMap() {
+            ICON_TYPE_MAP = new HashMap<String,Integer>();
+            ICON_TYPE_MAP.put("gtk-menu", new Integer(1));
+            ICON_TYPE_MAP.put("gtk-small-toolbar", new Integer(2));
+            ICON_TYPE_MAP.put("gtk-large-toolbar", new Integer(3));
+            ICON_TYPE_MAP.put("gtk-button", new Integer(4));
+            ICON_TYPE_MAP.put("gtk-dnd", new Integer(5));
+            ICON_TYPE_MAP.put("gtk-dialog", new Integer(6));
+        }
+
+        /** 
+         * Return the size of a particular icon type (logical size)
+         * 
+         * @param type icon type (GtkIconSize value)
+         * @return a Dimension object, or null if lsize is invalid
+         */
+        public static Dimension getIconSize(int type) {
+            Dimension[] iconSizes = getIconSizesMap();
+            return type >= 0 && type < iconSizes.length ?
+                iconSizes[type] : null;  
+        }
+        
+        /**
+         * Change icon size in a type to size mapping. This is called by code
+         * that parses the gtk-icon-sizes setting
+         *  
+         * @param type icon type (GtkIconSize value)
+         * @param w the new icon width
+         * @param h the new icon height
+         */ 
+        public static void setIconSize(int type, int w, int h) {
+            Dimension[] iconSizes = getIconSizesMap();
+            if (type >= 0 && type < iconSizes.length) {
+                iconSizes[type] = new Dimension(w, h);
+            }
+        }
+        
+        private static Dimension[] getIconSizesMap() {
+            AppContext appContext = AppContext.getAppContext(); 
+            Dimension[] iconSizes = (Dimension[])appContext.get(ICON_SIZE_KEY); 
+
+            if (iconSizes == null) { 
+                iconSizes = new Dimension[7];
+                iconSizes[0] = null;                  // GTK_ICON_SIZE_INVALID
+                iconSizes[1] = new Dimension(16, 16); // GTK_ICON_SIZE_MENU
+                iconSizes[2] = new Dimension(18, 18); // GTK_ICON_SIZE_SMALL_TOOLBAR
+                iconSizes[3] = new Dimension(24, 24); // GTK_ICON_SIZE_LARGE_TOOLBAR
+                iconSizes[4] = new Dimension(20, 20); // GTK_ICON_SIZE_BUTTON
+                iconSizes[5] = new Dimension(32, 32); // GTK_ICON_SIZE_DND
+                iconSizes[6] = new Dimension(48, 48); // GTK_ICON_SIZE_DIALOG
+                appContext.put(ICON_SIZE_KEY, iconSizes);
+            }
+            return iconSizes;
         }
     }
 
@@ -953,32 +1183,30 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         private Object image;
         private int direction;
         private int state;
-        private String size;
-
+        private int size;
+        
         GTKIconSource(String image, int direction, int state, String size) {
             this.image = image;
             this.direction = direction;
             this.state = state;
-
-            if (size != null) {
-                this.size = size.intern();
-            }
+            
+            this.size = GTKStockIconInfo.getIconType(size);
         }
 
         public int getDirection() {
             return direction;
         }
-
+        
         public int getState() {
             return state;
         }
 
-        public String getSize() {
+        public int getSize() {
             return size;
         }
-
+        
         public int compareTo(Object o) {
-            GTKIconSource other = (GTKIconSource)o;
+            GTKIconSource other = (GTKIconSource)o;            
 
             if (direction != UNDEFINED && other.direction == UNDEFINED) {
                 return -1;
@@ -988,9 +1216,9 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
                 return -1;
             } else if (state == UNDEFINED && other.state != UNDEFINED) {
                 return 1;
-            } else if (size != null && other.size == null) {
+            } else if (size != UNDEFINED && other.size == UNDEFINED) {
                 return -1;
-            } else if (size == null && other.size != null) {
+            } else if (size == UNDEFINED && other.size != UNDEFINED) {
                 return 1;
             } else {
                 return 0;
@@ -1000,9 +1228,9 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         public String toString() {
             return "image=" + image + ", dir=" + getDirectionName(direction)
                    + ", state=" + getStateName(state, "*")
-                   + ", size=" + (size == null ? "*" : size);
+                   + ", size=" + (size == UNDEFINED ? "*" : ""+size);
         }
-
+        
         // used above by toString()
         private static String getDirectionName(int dir) {
             switch(dir) {
@@ -1013,12 +1241,12 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
 
             return "UNKNOWN";
         }
-
+        
         public Icon toIcon() {
             if (image == null || image instanceof Icon) {
                 return (Icon)image;
             }
-
+            
             ImageIcon ii = (ImageIcon)AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
                     return new ImageIcon((String)image);
@@ -1032,20 +1260,13 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
                 // it would be assigned to 'image' here
                 image = null;
             }
-
+            
             return (Icon)image;
         }
     }
 
     public String toString() {
-        StringBuffer buf = new StringBuffer();
-
-        buf.append("class=");
-        buf.append(getClass().getName()).append('\n');
-
-        if (font != null) {
-            buf.append("font=").append(font.toString()).append('\n');
-        }
+        StringBuffer buf = new StringBuffer(super.toString());
 
         if (xThickness != UNDEFINED_THICKNESS) {
             buf.append("xt=").append(String.valueOf(xThickness)).append('\n');
@@ -1053,13 +1274,6 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
 
         if (yThickness != UNDEFINED_THICKNESS) {
             buf.append("yt=").append(String.valueOf(yThickness)).append('\n');
-        }
-
-        if (states != null) {
-            buf.append("*** Colors and Pixmaps ***\n");
-            for (int i = 0; i < states.length; i++) {
-                buf.append(states[i].toString()).append('\n');
-            }
         }
 
         if (classSpecificValues != null) {
@@ -1085,7 +1299,7 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         StringBuffer buf = new StringBuffer();
 
         Object parentFirst = parent.next();
-
+            
         if (parentFirst == null) {
             return "";
         }
@@ -1098,18 +1312,18 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
             CircularIdentityList child = (CircularIdentityList)parent.get();
 
             Object childFirst = child.next();
-
+                
             if (childFirst == null) {
                 break;
             }
-
+                    
             Object childKey = childFirst;
-
+                    
             do {
                 buf.append("    ").append(childKey).append('=').append(child.get()).append('\n');
                 childKey = child.next();
             } while (childKey != childFirst);
-
+            
             parentKey = parent.next();
         } while (parentKey != parentFirst);
 
@@ -1128,13 +1342,27 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         // image: paint it.
         private Object backgroundImage;
 
-        public GTKStateInfo(int state, SynthPainter bPainter,
-                            SynthPainter bgPainter, Font font, Color[] colors,
+        /**
+         * Creates a new GTKStateInfo with the specified properties
+         *
+         * @param state Component state that this StateInfo should be used
+         * for
+         * @param font Font for this state
+         * @param colors Colors for this state
+         * @param backgroundImage Background image
+         */
+        public GTKStateInfo(int state, Font font, Color[] colors,
                             Object backgroundImage) {
-            super(state, bPainter, bgPainter, font, colors);
+            super(state, font, colors);
             this.backgroundImage = backgroundImage;
         }
 
+        /**
+         * Creates a GTKStateInfo that is a copy of the passed in
+         * <code>StateInfo</code>.
+         *
+         * @param info StateInfo to copy.
+         */
         public GTKStateInfo(StateInfo info) {
             super(info);
             if (info instanceof GTKStateInfo) {
@@ -1143,15 +1371,22 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
         }
 
         void setColor(ColorType type, Color color) {
+            Color[] colors = getColors();
             if (colors == null) {
                 if (color == null) {
                     return;
                 }
                 colors = new Color[GTKColorType.MAX_COUNT];
+                setColors(colors);
             }
             colors[type.getID()] = color;
         }
 
+        /**
+         * Returns the Color to used for the specified ColorType.
+         *
+         * @return Color.
+         */
         public Color getColor(ColorType type) {
             Color color = super.getColor(type);
 
@@ -1207,10 +1442,28 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
             return backgroundImage;
         }
 
+        /**
+         * Creates and returns a copy of this GTKStateInfo.
+         *
+         * @return Copy of this StateInfo.
+         */
         public Object clone() {
             return new GTKStateInfo(this);
         }
 
+        /**
+         * Merges the contents of this GTKStateInfo with that of the passed in
+         * GTKStateInfo, returning the resulting merged StateInfo. Properties
+         * of this <code>GTKStateInfo</code> will take precedence over those
+         * of the
+         * passed in <code>GTKStateInfo</code>. For example, if this
+         * GTKStateInfo specifics a non-null font, the returned GTKStateInfo
+         * will have its font so to that regardless of the
+         * <code>GTKStateInfo</code>'s font.
+         *
+         * @param info StateInfo to add our styles to
+         * @return Merged StateInfo.
+         */
         public StateInfo addTo(StateInfo info) {
             if (!(info instanceof GTKStateInfo)) {
                 info = new GTKStateInfo(info);
@@ -1228,36 +1481,36 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
 
         public String toString() {
             StringBuffer buf = new StringBuffer();
-
+            
             buf.append(getStateName(getComponentState(), "UNDEFINED")).append(":\n");
-
+            
             if (getColor(GTKColorType.FOREGROUND) != null) {
                 buf.append("    fg=").append(getColor(GTKColorType.FOREGROUND)).append('\n');
             }
-
+            
             if (getColor(GTKColorType.BACKGROUND) != null) {
                 buf.append("    bg=").append(getColor(GTKColorType.BACKGROUND)).append('\n');
             }
-
+            
             if (getColor(GTKColorType.TEXT_FOREGROUND) != null) {
                 buf.append("    text=").append(getColor(GTKColorType.TEXT_FOREGROUND)).append('\n');
             }
-
+            
             if (getColor(GTKColorType.TEXT_BACKGROUND) != null) {
                 buf.append("    base=").append(getColor(GTKColorType.TEXT_BACKGROUND)).append('\n');
             }
-
+            
             if (backgroundImage != null) {
                 buf.append("    pmn=").append(backgroundImage).append('\n');
             }
-
+            
             // remove last newline
             buf.deleteCharAt(buf.length() - 1);
 
             return buf.toString();
         }
     }
-
+    
     // used by toString() in some of our inner classes
     static String getStateName(int state, String undef) {
         switch(state) {
@@ -1268,10 +1521,10 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
             case SynthConstants.DISABLED: return "INSENSITIVE";
             case UNDEFINED: return undef;
         }
-
+        
         return "UNKNOWN";
     }
-
+    
     /**
      * A tagging interface indicating that a value coming from
      * DATA should be added to the Style's data after invoking getValue.
@@ -1289,14 +1542,14 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
     private static class GTKStockIcon extends SynthIcon implements Cloneable,
                                               StyleSpecificValue {
         private String key;
-        private String size;
+        private int size;
         private boolean loadedLTR;
         private boolean loadedRTL;
         private Icon ltrIcon;
         private Icon rtlIcon;
         private SynthStyle style;
 
-        GTKStockIcon(String key, String size) {
+        GTKStockIcon(String key, int size) {
             this.key = key;
             this.size = size;
         }
@@ -1423,770 +1676,99 @@ class GTKStyle extends DefaultSynthStyle implements GTKConstants {
 
         DEFAULT_COLORS = new Color[5][];
 
-     // 2.0 colors
-     //
-     if (!GTKLookAndFeel.is2_2()) {
-        DEFAULT_COLORS[0] = getColorsFrom(
+        // 2.0 colors
+        // 
+        if (!GTKLookAndFeel.is2_2()) {
+            DEFAULT_COLORS[0] = getColorsFrom(
                     new ColorUIResource(195, 195, 195), BLACK_COLOR);
-        DEFAULT_COLORS[1] = getColorsFrom(
+            DEFAULT_COLORS[1] = getColorsFrom(
                     new ColorUIResource(0, 0, 156), WHITE_COLOR);
-        DEFAULT_COLORS[2] = getColorsFrom(
+            DEFAULT_COLORS[2] = getColorsFrom(
                     new ColorUIResource(214, 214, 214), BLACK_COLOR);
-        DEFAULT_COLORS[3] = getColorsFrom(
+            DEFAULT_COLORS[3] = getColorsFrom(
                     new ColorUIResource(233, 233, 233), BLACK_COLOR);
-        DEFAULT_COLORS[4] = getColorsFrom(
+            DEFAULT_COLORS[4] = getColorsFrom(
                     new ColorUIResource(214, 214, 214),
                     new ColorUIResource(117, 117, 117));
-        DEFAULT_COLORS[0][GTKColorType.TEXT_BACKGROUND.getID()] = new
+            DEFAULT_COLORS[0][GTKColorType.TEXT_BACKGROUND.getID()] = new
                     ColorUIResource(188, 210, 238);
-        DEFAULT_COLORS[1][GTKColorType.TEXT_BACKGROUND.getID()] = new
+            DEFAULT_COLORS[1][GTKColorType.TEXT_BACKGROUND.getID()] = new
                     ColorUIResource(164, 223, 255);
-        DEFAULT_COLORS[1][GTKColorType.TEXT_FOREGROUND.getID()] =
-                     BLACK_COLOR;
-        DEFAULT_COLORS[2][GTKColorType.TEXT_FOREGROUND.getID()] =
-                     BLACK_COLOR;
-         DEFAULT_COLORS[4][GTKColorType.TEXT_FOREGROUND.getID()] =
+            DEFAULT_COLORS[1][GTKColorType.TEXT_FOREGROUND.getID()] =
+                    BLACK_COLOR;
+            DEFAULT_COLORS[2][GTKColorType.TEXT_FOREGROUND.getID()] =
+                    BLACK_COLOR;
+            DEFAULT_COLORS[4][GTKColorType.TEXT_FOREGROUND.getID()] =
                 DEFAULT_COLORS[2][GTKColorType.TEXT_FOREGROUND.getID()];
-     }
-     else {
-          // 2.2 colors
-             DEFAULT_COLORS[0] = getColorsFrom(
-                     new ColorUIResource(186, 181, 171), BLACK_COLOR);
-             DEFAULT_COLORS[1] = getColorsFrom(
-                     new ColorUIResource(75, 105, 131), WHITE_COLOR);
-             DEFAULT_COLORS[2] = getColorsFrom(
-                     new ColorUIResource(220, 218, 213), BLACK_COLOR);
-             DEFAULT_COLORS[3] = getColorsFrom(
-                     new ColorUIResource(238, 235, 231), BLACK_COLOR);
-             DEFAULT_COLORS[4] = getColorsFrom(
-                     new ColorUIResource(220, 218, 213),
-                     new ColorUIResource(117, 117, 117));
-             DEFAULT_COLORS[0][GTKColorType.TEXT_BACKGROUND.getID()] = new
-                     ColorUIResource(128, 125, 116);
-             DEFAULT_COLORS[1][GTKColorType.TEXT_BACKGROUND.getID()] = new
-                     ColorUIResource(75, 105, 131);
-             DEFAULT_COLORS[2][GTKColorType.TEXT_BACKGROUND.getID()] =
-                     WHITE_COLOR;
-             DEFAULT_COLORS[3][GTKColorType.TEXT_BACKGROUND.getID()] =
-                     WHITE_COLOR;
-             DEFAULT_COLORS[4][GTKColorType.TEXT_BACKGROUND.getID()] = new
-                     ColorUIResource(238, 235, 231);
-             DEFAULT_COLORS[0][GTKColorType.TEXT_FOREGROUND.getID()] =
-                     WHITE_COLOR;
-             DEFAULT_COLORS[1][GTKColorType.TEXT_FOREGROUND.getID()] =
-                     WHITE_COLOR;
-             DEFAULT_COLORS[2][GTKColorType.TEXT_FOREGROUND.getID()] =
-                     BLACK_COLOR;
-             DEFAULT_COLORS[3][GTKColorType.TEXT_FOREGROUND.getID()] =
-                     BLACK_COLOR;
-             DEFAULT_COLORS[4][GTKColorType.TEXT_FOREGROUND.getID()] = new
-                     ColorUIResource(117, 117, 117);
+        }
+        else {
+            // 2.2 colors
+            DEFAULT_COLORS[0] = getColorsFrom(
+                    new ColorUIResource(186, 181, 171), BLACK_COLOR);
+            DEFAULT_COLORS[1] = getColorsFrom(
+                    new ColorUIResource(75, 105, 131), WHITE_COLOR);
+            DEFAULT_COLORS[2] = getColorsFrom(
+                    new ColorUIResource(220, 218, 213), BLACK_COLOR);
+            DEFAULT_COLORS[3] = getColorsFrom(
+                    new ColorUIResource(238, 235, 231), BLACK_COLOR);
+            DEFAULT_COLORS[4] = getColorsFrom(
+                    new ColorUIResource(220, 218, 213),
+                    new ColorUIResource(117, 117, 117));
+            DEFAULT_COLORS[0][GTKColorType.TEXT_BACKGROUND.getID()] = new
+                    ColorUIResource(128, 125, 116);
+            DEFAULT_COLORS[1][GTKColorType.TEXT_BACKGROUND.getID()] = new
+                    ColorUIResource(75, 105, 131);
+            DEFAULT_COLORS[2][GTKColorType.TEXT_BACKGROUND.getID()] =
+                    WHITE_COLOR;
+            DEFAULT_COLORS[3][GTKColorType.TEXT_BACKGROUND.getID()] =
+                    WHITE_COLOR;
+            DEFAULT_COLORS[4][GTKColorType.TEXT_BACKGROUND.getID()] = new
+                    ColorUIResource(238, 235, 231);
+            DEFAULT_COLORS[0][GTKColorType.TEXT_FOREGROUND.getID()] =
+                    WHITE_COLOR;
+            DEFAULT_COLORS[1][GTKColorType.TEXT_FOREGROUND.getID()] =
+                    WHITE_COLOR;
+            DEFAULT_COLORS[2][GTKColorType.TEXT_FOREGROUND.getID()] =
+                    BLACK_COLOR;
+            DEFAULT_COLORS[3][GTKColorType.TEXT_FOREGROUND.getID()] =
+                    BLACK_COLOR;
+            DEFAULT_COLORS[4][GTKColorType.TEXT_FOREGROUND.getID()] = new
+                    ColorUIResource(117, 117, 117);
         }
 
         CLASS_SPECIFIC_MAP = new HashMap();
         CLASS_SPECIFIC_MAP.put("CheckBox.iconTextGap", "indicator-spacing");
         CLASS_SPECIFIC_MAP.put("Slider.thumbHeight", "slider-width");
         CLASS_SPECIFIC_MAP.put("Slider.trackBorder", "trough-border");
-        CLASS_SPECIFIC_MAP.put("SplitPaneDivider.size", "handle-size");
+        CLASS_SPECIFIC_MAP.put("SplitPane.size", "handle-size");
         CLASS_SPECIFIC_MAP.put("Tree.expanderSize", "expander-size");
         CLASS_SPECIFIC_MAP.put("ScrollBar.thumbHeight", "slider-width");
-
-
-        Integer caretBlinkRate = new Integer(500);
-        Insets zeroInsets = new InsetsUIResource(0, 0, 0, 0);
-
-        Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
-                       "ctrl C", DefaultEditorKit.copyAction,
-                       "ctrl V", DefaultEditorKit.pasteAction,
-                       "ctrl X", DefaultEditorKit.cutAction,
-                         "COPY", DefaultEditorKit.copyAction,
-                        "PASTE", DefaultEditorKit.pasteAction,
-                          "CUT", DefaultEditorKit.cutAction,
-                   "shift LEFT", DefaultEditorKit.selectionBackwardAction,
-                "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
-                  "shift RIGHT", DefaultEditorKit.selectionForwardAction,
-               "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
-                    "ctrl LEFT", DefaultEditorKit.previousWordAction,
-                 "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
-                   "ctrl RIGHT", DefaultEditorKit.nextWordAction,
-                "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
-              "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
-           "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
-             "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
-          "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
-                       "ctrl A", DefaultEditorKit.selectAllAction,
-                         "HOME", DefaultEditorKit.beginLineAction,
-                          "END", DefaultEditorKit.endLineAction,
-                   "shift HOME", DefaultEditorKit.selectionBeginLineAction,
-                    "shift END", DefaultEditorKit.selectionEndLineAction,
-                   "typed \010", DefaultEditorKit.deletePrevCharAction,
-                       "DELETE", DefaultEditorKit.deleteNextCharAction,
-                        "RIGHT", DefaultEditorKit.forwardAction,
-                         "LEFT", DefaultEditorKit.backwardAction,
-                     "KP_RIGHT", DefaultEditorKit.forwardAction,
-                      "KP_LEFT", DefaultEditorKit.backwardAction,
-                        "ENTER", JTextField.notifyAction,
-              "ctrl BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
-               "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
-            });
-
-        Object editorMargin = new InsetsUIResource(3,3,3,3);
-
-        Object multilineInputMap = new UIDefaults.LazyInputMap(new Object[] {
-                           "ctrl C", DefaultEditorKit.copyAction,
-                           "ctrl V", DefaultEditorKit.pasteAction,
-                           "ctrl X", DefaultEditorKit.cutAction,
-                             "COPY", DefaultEditorKit.copyAction,
-                            "PASTE", DefaultEditorKit.pasteAction,
-                              "CUT", DefaultEditorKit.cutAction,
-                       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
-                    "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
-                      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
-                   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
-                        "ctrl LEFT", DefaultEditorKit.previousWordAction,
-                     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
-                       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
-                    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
-                  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
-               "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
-                 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
-              "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
-                           "ctrl A", DefaultEditorKit.selectAllAction,
-                             "HOME", DefaultEditorKit.beginLineAction,
-                              "END", DefaultEditorKit.endLineAction,
-                       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
-                        "shift END", DefaultEditorKit.selectionEndLineAction,
-
-                               "UP", DefaultEditorKit.upAction,
-                            "KP_UP", DefaultEditorKit.upAction,
-                             "DOWN", DefaultEditorKit.downAction,
-                          "KP_DOWN", DefaultEditorKit.downAction,
-                          "PAGE_UP", DefaultEditorKit.pageUpAction,
-                        "PAGE_DOWN", DefaultEditorKit.pageDownAction,
-                    "shift PAGE_UP", "selection-page-up",
-                  "shift PAGE_DOWN", "selection-page-down",
-               "ctrl shift PAGE_UP", "selection-page-left",
-             "ctrl shift PAGE_DOWN", "selection-page-right",
-                         "shift UP", DefaultEditorKit.selectionUpAction,
-                      "shift KP_UP", DefaultEditorKit.selectionUpAction,
-                       "shift DOWN", DefaultEditorKit.selectionDownAction,
-                    "shift KP_DOWN", DefaultEditorKit.selectionDownAction,
-                            "ENTER", DefaultEditorKit.insertBreakAction,
-                       "typed \010", DefaultEditorKit.deletePrevCharAction,
-                           "DELETE", DefaultEditorKit.deleteNextCharAction,
-                            "RIGHT", DefaultEditorKit.forwardAction,
-                             "LEFT", DefaultEditorKit.backwardAction,
-                         "KP_RIGHT", DefaultEditorKit.forwardAction,
-                          "KP_LEFT", DefaultEditorKit.backwardAction,
-                              "TAB", DefaultEditorKit.insertTabAction,
-                  "ctrl BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
-                        "ctrl HOME", DefaultEditorKit.beginAction,
-                         "ctrl END", DefaultEditorKit.endAction,
-                  "ctrl shift HOME", DefaultEditorKit.selectionBeginAction,
-                   "ctrl shift END", DefaultEditorKit.selectionEndAction,
-                           "ctrl T", "next-link-action",
-                     "ctrl shift T", "previous-link-action",
-                       "ctrl SPACE", "activate-link-action",
-                   "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
-            });
+        CLASS_SPECIFIC_MAP.put("TextArea.caretForeground", "cursor-color");
+        CLASS_SPECIFIC_MAP.put("TextArea.caretAspectRatio", "cursor-aspect-ratio");
+        CLASS_SPECIFIC_MAP.put("TextField.caretForeground", "cursor-color");
+        CLASS_SPECIFIC_MAP.put("TextField.caretAspectRatio", "cursor-aspect-ratio");
+        CLASS_SPECIFIC_MAP.put("PasswordField.caretForeground", "cursor-color");
+        CLASS_SPECIFIC_MAP.put("PasswordField.caretAspectRatio", "cursor-aspect-ratio");
+        CLASS_SPECIFIC_MAP.put("FormattedTextField.caretForeground", "cursor-color");
+        CLASS_SPECIFIC_MAP.put("FormattedTextField.caretAspectRatio", "cursor-aspect-");
+        CLASS_SPECIFIC_MAP.put("TextPane.caretForeground", "cursor-color");
+        CLASS_SPECIFIC_MAP.put("TextPane.caretAspectRatio", "cursor-aspect-ratio");
+        CLASS_SPECIFIC_MAP.put("EditorPane.caretForeground", "cursor-color");
+        CLASS_SPECIFIC_MAP.put("EditorPane.caretAspectRatio", "cursor-aspect-ratio");
 
         Object[] defaults = {
-	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
-                         "SPACE", "pressed",
-                "released SPACE", "released",
-                         "ENTER", "pressed",
-                "released ENTER", "released"
-              }),
-
-
-	    "CheckBox.focusInputMap", new UIDefaults.LazyInputMap(new Object[]{
-                         "SPACE", "pressed",
-                "released SPACE", "released",
-              }),
-            "CheckBox.icon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getCheckBoxIcon"),
-
-
-            "CheckBoxMenuItem.arrowIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getCheckBoxMenuItemArrowIcon"),
-            "CheckBoxMenuItem.checkIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getCheckBoxMenuItemCheckIcon"),
-
-
-            "ColorChooser.panels", new UIDefaults.ActiveValue() {
-                public Object createValue(UIDefaults table) {
-                    return new AbstractColorChooserPanel[] {
-                                       new GTKColorChooserPanel() };
-                }
-            },
-
-
-	    "ComboBox.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "hidePopup",
-		    "PAGE_UP", "pageUpPassThrough",
-		  "PAGE_DOWN", "pageDownPassThrough",
-		       "HOME", "homePassThrough",
-		        "END", "endPassThrough",
-		       "DOWN", "selectNext",
-		    "KP_DOWN", "selectNext",
-		   "alt DOWN", "togglePopup",
-		"alt KP_DOWN", "togglePopup",
-		     "alt UP", "togglePopup",
-		  "alt KP_UP", "togglePopup",
-		      "SPACE", "spacePopup",
-                      "ENTER", "enterPressed",
-		         "UP", "selectPrevious",
-		      "KP_UP", "selectPrevious"
-
-		 }),
-
-
-            "EditorPane.caretBlinkRate", caretBlinkRate,
-            "EditorPane.margin", editorMargin,
-            "EditorPane.focusInputMap", multilineInputMap,
-
-
-            "EditorPane.caretForeground", BLACK_COLOR,
-            "EditorPane.caretBlinkRate", caretBlinkRate,
-            "EditorPane.margin", editorMargin,
-            "EditorPane.focusInputMap", multilineInputMap,
-
-
-	    "FileChooser.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "cancelSelection"
-		 }),
-            "FileChooser.cancelIcon", new GTKStockIcon("gtk-cancel", "gtk-button"),
-            "FileChooser.okIcon",     new GTKStockIcon("gtk-ok",     "gtk-button"),
-
-
-	    "FormattedTextField.focusInputMap",
-              new UIDefaults.LazyInputMap(new Object[] {
-                           "ctrl C", DefaultEditorKit.copyAction,
-                           "ctrl V", DefaultEditorKit.pasteAction,
-                           "ctrl X", DefaultEditorKit.cutAction,
-                             "COPY", DefaultEditorKit.copyAction,
-                            "PASTE", DefaultEditorKit.pasteAction,
-                              "CUT", DefaultEditorKit.cutAction,
-                       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
-                    "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
-                      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
-                   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
-                        "ctrl LEFT", DefaultEditorKit.previousWordAction,
-                     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
-                       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
-                    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
-                  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
-               "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
-                 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
-              "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
-                           "ctrl A", DefaultEditorKit.selectAllAction,
-                             "HOME", DefaultEditorKit.beginLineAction,
-                              "END", DefaultEditorKit.endLineAction,
-                       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
-                        "shift END", DefaultEditorKit.selectionEndLineAction,
-                       "typed \010", DefaultEditorKit.deletePrevCharAction,
-                           "DELETE", DefaultEditorKit.deleteNextCharAction,
-                            "RIGHT", DefaultEditorKit.forwardAction,
-                             "LEFT", DefaultEditorKit.backwardAction,
-                         "KP_RIGHT", DefaultEditorKit.forwardAction,
-                          "KP_LEFT", DefaultEditorKit.backwardAction,
-                            "ENTER", JTextField.notifyAction,
-                  "ctrl BACK_SLASH", "unselect",
-                  "control shift O", "toggle-componentOrientation",
-                           "ESCAPE", "reset-field-edit",
-                               "UP", "increment",
-                            "KP_UP", "increment",
-                             "DOWN", "decrement",
-                          "KP_DOWN", "decrement",
-              }),
-
-
-	    "InternalFrameTitlePane.titlePaneLayout",
-				new GTKLazyValue("com.sun.java.swing.plaf.gtk.Metacity",
-						 "getTitlePaneLayout"),
-            "InternalFrame.windowBindings", new Object[] {
-                  "shift ESCAPE", "showSystemMenu",
-                    "ctrl SPACE", "showSystemMenu",
-                        "ESCAPE", "hideSystemMenu" },
-
-
-	    "List.focusInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-                           "ctrl C", "copy",
-                           "ctrl V", "paste",
-                           "ctrl X", "cut",
-                             "COPY", "copy",
-                            "PASTE", "paste",
-                              "CUT", "cut",
-		               "UP", "selectPreviousRow",
-		            "KP_UP", "selectPreviousRow",
-		         "shift UP", "selectPreviousRowExtendSelection",
-		      "shift KP_UP", "selectPreviousRowExtendSelection",
-		             "DOWN", "selectNextRow",
-		          "KP_DOWN", "selectNextRow",
-		       "shift DOWN", "selectNextRowExtendSelection",
-		    "shift KP_DOWN", "selectNextRowExtendSelection",
-		             "LEFT", "selectPreviousColumn",
-		          "KP_LEFT", "selectPreviousColumn",
-		       "shift LEFT", "selectPreviousColumnExtendSelection",
-		    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
-		            "RIGHT", "selectNextColumn",
-		         "KP_RIGHT", "selectNextColumn",
-		      "shift RIGHT", "selectNextColumnExtendSelection",
-		   "shift KP_RIGHT", "selectNextColumnExtendSelection",
-		       "ctrl SPACE", "selectNextRowExtendSelection",
-		             "HOME", "selectFirstRow",
-		       "shift HOME", "selectFirstRowExtendSelection",
-		              "END", "selectLastRow",
-		        "shift END", "selectLastRowExtendSelection",
-		          "PAGE_UP", "scrollUp",
-		    "shift PAGE_UP", "scrollUpExtendSelection",
-		        "PAGE_DOWN", "scrollDown",
-		  "shift PAGE_DOWN", "scrollDownExtendSelection",
-		           "ctrl A", "selectAll",
-		       "ctrl SLASH", "selectAll",
-		  "ctrl BACK_SLASH", "clearSelection"
-		 }),
-	    "List.focusInputMap.RightToLeft",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		             "LEFT", "selectNextColumn",
-		          "KP_LEFT", "selectNextColumn",
-		       "shift LEFT", "selectNextColumnExtendSelection",
-		    "shift KP_LEFT", "selectNextColumnExtendSelection",
-		            "RIGHT", "selectPreviousColumn",
-		         "KP_RIGHT", "selectPreviousColumn",
-		      "shift RIGHT", "selectPreviousColumnExtendSelection",
-		   "shift KP_RIGHT", "selectPreviousColumnExtendSelection",
-		 }),
-
-
- 	    "Menu.shortcutKeys", new int[] {KeyEvent.ALT_MASK},
-            "Menu.arrowIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getMenuArrowIcon"),
-
-	    "MenuBar.windowBindings", new Object[] {
-		"F10", "takeFocus" },
-
-
-            "MenuItem.arrowIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getMenuItemArrowIcon"),
-
-            "OptionPane.minimumSize", new DimensionUIResource(262, 90),
-	    "OptionPane.windowBindings", new Object[] {
-		"ESCAPE", "close" },
-	    "OptionPane.buttonClickThreshhold", new Integer(500),
-            "OptionPane.errorIcon", new GTKStockIcon("gtk-dialog-error",
-                                        "gtk-dialog"),
-            "OptionPane.informationIcon", new GTKStockIcon("gtk-dialog-info",
-                                        "gtk-dialog"),
-            "OptionPane.warningIcon", new GTKStockIcon("gtk-dialog-warning",
-                                        "gtk-dialog"),
-            "OptionPane.questionIcon", new GTKStockIcon("gtk-dialog-question",
-                                        "gtk-dialog"),
-            "OptionPane.yesIcon", new GTKStockIcon("gtk-yes", "gtk-button"),
-            "OptionPane.noIcon", new GTKStockIcon("gtk-no", "gtk-button"),
-            "OptionPane.cancelIcon", new GTKStockIcon("gtk-cancel",
-                                                      "gtk-button"),
-            "OptionPane.okIcon", new GTKStockIcon("gtk-ok", "gtk-button"),
-
-
-            "PasswordField.caretForeground", BLACK_COLOR,
-            "PasswordField.caretBlinkRate", caretBlinkRate,
-            "PasswordField.margin", zeroInsets,
-            "PasswordField.focusInputMap", fieldInputMap,
-
-
-	    "PopupMenu.selectedWindowInputMapBindings", new Object[] {
-		  "ESCAPE", "cancel",
-                    "DOWN", "selectNext",
-		 "KP_DOWN", "selectNext",
-		      "UP", "selectPrevious",
-		   "KP_UP", "selectPrevious",
-		    "LEFT", "selectParent",
-		 "KP_LEFT", "selectParent",
-		   "RIGHT", "selectChild",
-		"KP_RIGHT", "selectChild",
-		   "ENTER", "return",
-		   "SPACE", "return"
-	    },
-	    "PopupMenu.selectedWindowInputMapBindings.RightToLeft",
-                  new Object[] {
-		    "LEFT", "selectChild",
-		 "KP_LEFT", "selectChild",
-		   "RIGHT", "selectParent",
-		"KP_RIGHT", "selectParent",
-	    },
-
-
-	    "RadioButton.focusInputMap",
-                   new UIDefaults.LazyInputMap(new Object[] {
-		            "SPACE", "pressed",
-                   "released SPACE", "released",
-                           "RETURN", "pressed"
-	           }),
-            "RadioButton.icon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getRadioButtonIcon"),
-
-
-            "RadioButtonMenuItem.arrowIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getRadioButtonMenuItemArrowIcon"),
-            "RadioButtonMenuItem.checkIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getRadioButtonMenuItemCheckIcon"),
-
-
-            // These bindings are only enabled when there is a default
-            // button set on the rootpane.
-            "RootPane.defaultButtonWindowKeyBindings", new Object[] {
-		               "ENTER", "press",
-		      "released ENTER", "release",
-		          "ctrl ENTER", "press",
-                 "ctrl released ENTER", "release"
-            },
-
-
-            "ScrollBar.thumbHeight", new Integer(14),
-            "ScrollBar.width", new Integer(16),
-            "ScrollBar.minimumThumbSize", new Dimension(8, 8),
-            "ScrollBar.maximumThumbSize", new Dimension(4096, 4096),
-            "ScrollBar.allowsAbsolutePositioning", Boolean.TRUE,
-            "ScrollBar.focusInputMap",
-	           new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "positiveUnitIncrement",
-		    "KP_RIGHT", "positiveUnitIncrement",
-		        "DOWN", "positiveUnitIncrement",
-		     "KP_DOWN", "positiveUnitIncrement",
-		   "PAGE_DOWN", "positiveBlockIncrement",
-		        "LEFT", "negativeUnitIncrement",
-		     "KP_LEFT", "negativeUnitIncrement",
-		          "UP", "negativeUnitIncrement",
-		       "KP_UP", "negativeUnitIncrement",
-		     "PAGE_UP", "negativeBlockIncrement",
-		        "HOME", "minScroll",
-		         "END", "maxScroll"
-                   }),
-            "ScrollBar.focusInputMap.RightToLeft",
-                    new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "negativeUnitIncrement",
-		    "KP_RIGHT", "negativeUnitIncrement",
-		        "LEFT", "positiveUnitIncrement",
-		     "KP_LEFT", "positiveUnitIncrement",
-                    }),
-
-
-            "ScrollPane.ancestorInputMap",
-                    new UIDefaults.LazyInputMap(new Object[] {
-		           "RIGHT", "unitScrollRight",
-		        "KP_RIGHT", "unitScrollRight",
-		            "DOWN", "unitScrollDown",
-		         "KP_DOWN", "unitScrollDown",
-		            "LEFT", "unitScrollLeft",
-		         "KP_LEFT", "unitScrollLeft",
-		              "UP", "unitScrollUp",
-		           "KP_UP", "unitScrollUp",
-		         "PAGE_UP", "scrollUp",
-		       "PAGE_DOWN", "scrollDown",
-		    "ctrl PAGE_UP", "scrollLeft",
-		  "ctrl PAGE_DOWN", "scrollRight",
-		       "ctrl HOME", "scrollHome",
-		        "ctrl END", "scrollEnd"
-                    }),
-            "ScrollPane.ancestorInputMap.RightToLeft",
-                    new UIDefaults.LazyInputMap(new Object[] {
-		    "ctrl PAGE_UP", "scrollRight",
-		  "ctrl PAGE_DOWN", "scrollLeft",
-                    }),
-
-
-            "Separator.insets", zeroInsets,
-            "Separator.thickness", new Integer(2),
-
-
-            "Slider.paintValue", Boolean.TRUE,
-            "Slider.thumbWidth", new Integer(30),
-            "Slider.thumbHeight", new Integer(14),
-            "Slider.focusInputMap",
-                    new UIDefaults.LazyInputMap(new Object[] {
-                            "RIGHT", "positiveUnitIncrement",
-                         "KP_RIGHT", "positiveUnitIncrement",
-                             "DOWN", "negativeUnitIncrement",
-                          "KP_DOWN", "negativeUnitIncrement",
-                        "PAGE_DOWN", "negativeBlockIncrement",
-                             "LEFT", "negativeUnitIncrement",
-                          "KP_LEFT", "negativeUnitIncrement",
-                               "UP", "positiveUnitIncrement",
-                            "KP_UP", "positiveUnitIncrement",
-                          "PAGE_UP", "positiveBlockIncrement",
-                             "HOME", "minScroll",
-                              "END", "maxScroll"
-                        }),
-            "Slider.focusInputMap.RightToLeft",
-                    new UIDefaults.LazyInputMap(new Object[] {
-                            "RIGHT", "negativeUnitIncrement",
-                         "KP_RIGHT", "negativeUnitIncrement",
-                             "LEFT", "positiveUnitIncrement",
-                          "KP_LEFT", "positiveUnitIncrement",
-                         }),
-
-
-            "Spinner.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-                               "UP", "increment",
-                            "KP_UP", "increment",
-                             "DOWN", "decrement",
-                          "KP_DOWN", "decrement",
-               }),
-
-
-            "SplitPane.ancestorInputMap",
-                    new UIDefaults.LazyInputMap(new Object[] {
-   		        "UP", "negativeIncrement",
-		      "DOWN", "positiveIncrement",
-		      "LEFT", "negativeIncrement",
-		     "RIGHT", "positiveIncrement",
-		     "KP_UP", "negativeIncrement",
-		   "KP_DOWN", "positiveIncrement",
-		   "KP_LEFT", "negativeIncrement",
-		  "KP_RIGHT", "positiveIncrement",
-		      "HOME", "selectMin",
-		       "END", "selectMax",
-		        "F8", "startResize",
-		        "F6", "toggleFocus",
-		  "ctrl TAB", "focusOutForward",
- 	    "ctrl shift TAB", "focusOutBackward"
-                    }),
-
-
-            "SplitPaneDivider.size", new Integer(7),
-            "SplitPaneDivider.oneTouchOffset", new Integer(2),
-            "SplitPaneDivider.oneTouchButtonSize", new Integer(5),
-
-
-	    "TabbedPane.focusInputMap",
-	      new UIDefaults.LazyInputMap(new Object[] {
-		         "RIGHT", "navigateRight",
-	              "KP_RIGHT", "navigateRight",
-	                  "LEFT", "navigateLeft",
-	               "KP_LEFT", "navigateLeft",
-	                    "UP", "navigateUp",
-	                 "KP_UP", "navigateUp",
-	                  "DOWN", "navigateDown",
-	               "KP_DOWN", "navigateDown",
-	             "ctrl DOWN", "requestFocusForVisibleComponent",
-	          "ctrl KP_DOWN", "requestFocusForVisibleComponent",
-			 "SPACE", "selectTabWithFocus"
-		}),
-	    "TabbedPane.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		         "ctrl TAB", "navigateNext",
-		   "ctrl shift TAB", "navigatePrevious",
-		   "ctrl PAGE_DOWN", "navigatePageDown",
-	             "ctrl PAGE_UP", "navigatePageUp",
-	                  "ctrl UP", "requestFocus",
-	               "ctrl KP_UP", "requestFocus",
-		 }),
-
-            "TabbedPane.selectionFollowsFocus", Boolean.FALSE,
-
-
-            "Table.ancestorInputMap",
-                    new UIDefaults.LazyInputMap(new Object[] {
-                               "ctrl C", "copy",
-                               "ctrl V", "paste",
-                               "ctrl X", "cut",
-                                 "COPY", "copy",
-                                "PASTE", "paste",
-                                  "CUT", "cut",
-		                "RIGHT", "selectNextColumn",
-		             "KP_RIGHT", "selectNextColumn",
-		                 "LEFT", "selectPreviousColumn",
-		              "KP_LEFT", "selectPreviousColumn",
-		                 "DOWN", "selectNextRow",
-		              "KP_DOWN", "selectNextRow",
-		                   "UP", "selectPreviousRow",
-		                "KP_UP", "selectPreviousRow",
-		          "shift RIGHT", "selectNextColumnExtendSelection",
-		       "shift KP_RIGHT", "selectNextColumnExtendSelection",
-		           "shift LEFT", "selectPreviousColumnExtendSelection",
-		        "shift KP_LEFT", "selectPreviousColumnExtendSelection",
-		           "shift DOWN", "selectNextRowExtendSelection",
-		        "shift KP_DOWN", "selectNextRowExtendSelection",
-		             "shift UP", "selectPreviousRowExtendSelection",
-		          "shift KP_UP", "selectPreviousRowExtendSelection",
-		              "PAGE_UP", "scrollUpChangeSelection",
-		            "PAGE_DOWN", "scrollDownChangeSelection",
-		                 "HOME", "selectFirstColumn",
-		                  "END", "selectLastColumn",
-		        "shift PAGE_UP", "scrollUpExtendSelection",
-		      "shift PAGE_DOWN", "scrollDownExtendSelection",
-		           "shift HOME", "selectFirstColumnExtendSelection",
-		            "shift END", "selectLastColumnExtendSelection",
-		         "ctrl PAGE_UP", "scrollLeftChangeSelection",
-		       "ctrl PAGE_DOWN", "scrollRightChangeSelection",
-		            "ctrl HOME", "selectFirstRow",
-		             "ctrl END", "selectLastRow",
-		   "ctrl shift PAGE_UP", "scrollRightExtendSelection",
-		 "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
-		      "ctrl shift HOME", "selectFirstRowExtendSelection",
-		       "ctrl shift END", "selectLastRowExtendSelection",
-		                  "TAB", "selectNextColumnCell",
-		            "shift TAB", "selectPreviousColumnCell",
-		                "ENTER", "selectNextRowCell",
-		          "shift ENTER", "selectPreviousRowCell",
-		               "ctrl A", "selectAll",
-		               "ESCAPE", "cancel",
-		                   "F2", "startEditing"
-                    }),
-            "Table.ancestorInputMap.RightToLeft",
-                    new UIDefaults.LazyInputMap(new Object[] {
-		                "RIGHT", "selectPreviousColumn",
-		             "KP_RIGHT", "selectPreviousColumn",
-		                 "LEFT", "selectNextColumn",
-		              "KP_LEFT", "selectNextColumn",
-		          "shift RIGHT", "selectPreviousColumnExtendSelection",
-		       "shift KP_RIGHT", "selectPreviousColumnExtendSelection",
-		           "shift LEFT", "selectNextColumnExtendSelection",
-		        "shift KP_LEFT", "selectNextColumnExtendSelection",
-		         "ctrl PAGE_UP", "scrollRightChangeSelection",
-		       "ctrl PAGE_DOWN", "scrollLeftChangeSelection",
-		   "ctrl shift PAGE_UP", "scrollRightExtendSelection",
-		 "ctrl shift PAGE_DOWN", "scrollLeftExtendSelection",
-                    }),
-
-            "TextArea.caretForeground", BLACK_COLOR,
-            "TextArea.caretBlinkRate", caretBlinkRate,
-            "TextArea.margin", zeroInsets,
-            "TextArea.focusInputMap", multilineInputMap,
-
-
-            "TextField.caretForeground", BLACK_COLOR,
-            "TextField.caretBlinkRate", caretBlinkRate,
-            "TextField.margin", zeroInsets,
-            "TextField.focusInputMap", fieldInputMap,
-
-
-            "TextPane.caretForeground", BLACK_COLOR,
-            "TextPane.caretBlinkRate", caretBlinkRate,
-            "TextPane.margin", editorMargin,
-            "TextPane.focusInputMap", multilineInputMap,
-
-
-	    "ToggleButton.focusInputMap",
-                   new UIDefaults.LazyInputMap(new Object[] {
-		            "SPACE", "pressed",
-                   "released SPACE", "released"
-	           }),
-
-
-            "ToolBar.separatorSize", new DimensionUIResource(10, 10),
-            "ToolBar.handleIcon", new UIDefaults.ActiveValue() {
-                public Object createValue(UIDefaults table) {
-                    return GTKIconFactory.getToolBarHandleIcon();
-                }
-            },
-	    "ToolBar.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		        "UP", "navigateUp",
-		     "KP_UP", "navigateUp",
-		      "DOWN", "navigateDown",
-		   "KP_DOWN", "navigateDown",
-		      "LEFT", "navigateLeft",
-		   "KP_LEFT", "navigateLeft",
-		     "RIGHT", "navigateRight",
-		  "KP_RIGHT", "navigateRight"
-		 }),
-
-
-            "Tree.drawHorizontalLegs", Boolean.FALSE,
-            "Tree.drawVerticalLegs", Boolean.FALSE,
-            "Tree.rowHeight", new Integer(-1),
-            "Tree.scrollsOnExpand", Boolean.FALSE,
-            "Tree.expanderSize", new Integer(10),
-            "Tree.expandedIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getTreeExpandedIcon"),
-            "Tree.collapsedIcon", new GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getTreeCollapsedIcon"),
-            "Tree.trailingControlOffset", new Integer(12),
-            "Tree.controlSize", new Integer(18),
-            "Tree.indent", new Integer(14),
-            "Tree.scrollsHorizontallyAndVertically", Boolean.FALSE,
-            "Tree.drawsFocusBorder", Boolean.TRUE,
-            "Tree.focusInputMap",
-                    new UIDefaults.LazyInputMap(new Object[] {
-                                 "ctrl C", "copy",
-                                 "ctrl V", "paste",
-                                 "ctrl X", "cut",
-                                   "COPY", "copy",
-                                  "PASTE", "paste",
-                                    "CUT", "cut",
-		                     "UP", "selectPrevious",
-		                  "KP_UP", "selectPrevious",
-		               "shift UP", "selectPreviousExtendSelection",
-		            "shift KP_UP", "selectPreviousExtendSelection",
-		                   "DOWN", "selectNext",
-		                "KP_DOWN", "selectNext",
-		             "shift DOWN", "selectNextExtendSelection",
-		          "shift KP_DOWN", "selectNextExtendSelection",
-		                  "RIGHT", "selectChild",
-		               "KP_RIGHT", "selectChild",
-		                   "LEFT", "selectParent",
-		                "KP_LEFT", "selectParent",
-                                "typed +", "expand",
-                                "typed -", "collapse",
-                             "BACK_SPACE", "moveSelectionToParent",
-		                "PAGE_UP", "scrollUpChangeSelection",
-		          "shift PAGE_UP", "scrollUpExtendSelection",
-		              "PAGE_DOWN", "scrollDownChangeSelection",
-		        "shift PAGE_DOWN", "scrollDownExtendSelection",
-		                   "HOME", "selectFirst",
-		             "shift HOME", "selectFirstExtendSelection",
-		                    "END", "selectLast",
-		              "shift END", "selectLastExtendSelection",
-		                     "F2", "startEditing",
-		                 "ctrl A", "selectAll",
-		             "ctrl SLASH", "selectAll",
-		        "ctrl BACK_SLASH", "clearSelection",
-		             "ctrl SPACE", "toggleSelectionPreserveAnchor",
-		            "shift SPACE", "extendSelection",
-		              "ctrl HOME", "selectFirstChangeLead",
-		               "ctrl END", "selectLastChangeLead",
-		                "ctrl UP", "selectPreviousChangeLead",
-		             "ctrl KP_UP", "selectPreviousChangeLead",
-		              "ctrl DOWN", "selectNextChangeLead",
-		           "ctrl KP_DOWN", "selectNextChangeLead",
-		         "ctrl PAGE_DOWN", "scrollDownChangeLead",
-		   "ctrl shift PAGE_DOWN", "scrollDownExtendSelection",
-		           "ctrl PAGE_UP", "scrollUpChangeLead",
-		     "ctrl shift PAGE_UP", "scrollUpExtendSelection",
-		              "ctrl LEFT", "scrollLeft",
-		           "ctrl KP_LEFT", "scrollLeft",
-		             "ctrl RIGHT", "scrollRight",
-		          "ctrl KP_RIGHT", "scrollRight",
-		                  "SPACE", "toggleSelectionPreserveAnchor",
-                    }),
-            "Tree.focusInputMap.RightToLeft",
-                    new UIDefaults.LazyInputMap(new Object[] {
-		                  "RIGHT", "selectParent",
-		               "KP_RIGHT", "selectParent",
-		                   "LEFT", "selectChild",
-		                "KP_LEFT", "selectChild",
-		 }),
-            "Tree.ancestorInputMap",
-                      new UIDefaults.LazyInputMap(new Object[] {
-		         "ESCAPE", "cancel"
-                      }),
-            };
+            "FileChooser.cancelIcon", new GTKStockIcon("gtk-cancel", 4),
+            "FileChooser.okIcon",     new GTKStockIcon("gtk-ok",     4),
+
+            "OptionPane.errorIcon", new GTKStockIcon("gtk-dialog-error", 6), 
+            "OptionPane.informationIcon", new GTKStockIcon("gtk-dialog-info", 6), 
+            "OptionPane.warningIcon", new GTKStockIcon("gtk-dialog-warning", 6),
+            "OptionPane.questionIcon", new GTKStockIcon("gtk-dialog-question", 6), 
+            "OptionPane.yesIcon", new GTKStockIcon("gtk-yes", 4),
+            "OptionPane.noIcon", new GTKStockIcon("gtk-no", 4),
+            "OptionPane.cancelIcon", new GTKStockIcon("gtk-cancel", 4),
+            "OptionPane.okIcon", new GTKStockIcon("gtk-ok", 4),
+        };
 
         for (int counter = 0, max = defaults.length; counter < max;
                  counter++) {

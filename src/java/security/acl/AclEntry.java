@@ -1,7 +1,7 @@
 /*
- * @(#)AclEntry.java	1.18 03/01/23
+ * @(#)AclEntry.java	1.20 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -118,7 +118,7 @@ public interface AclEntry extends Cloneable {
      *
      * @return an enumeration of the permissions in this ACL entry.
      */
-    public Enumeration permissions();
+    public Enumeration<Permission> permissions();
 
     /**
      * Returns a string representation of the contents of this ACL entry.

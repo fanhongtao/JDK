@@ -1,13 +1,14 @@
 /*
- * @(#)PrinterName.java	1.6 03/01/23
+ * @(#)PrinterName.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
 import java.util.Locale;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.TextSyntax;
 import javax.print.attribute.PrintServiceAttribute;
 
@@ -28,6 +29,8 @@ import javax.print.attribute.PrintServiceAttribute;
  */
 public final class PrinterName extends TextSyntax
 	implements PrintServiceAttribute {
+
+    private static final long serialVersionUID = 299740639137803127L;
 
     /**
      * Constructs a new printer name attribute with the given name and locale. 
@@ -80,7 +83,7 @@ public final class PrinterName extends TextSyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return PrinterName.class;
     }
 

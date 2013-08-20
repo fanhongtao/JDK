@@ -1,7 +1,7 @@
 /*
- * @(#)Port.java	1.24 03/01/23
+ * @(#)Port.java	1.26 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,7 +16,7 @@ package javax.sound.sampled;
  * object.
  *
  * @author Kara Kytle
- * @version 1.24, 03/01/23
+ * @version 1.26, 04/05/05
  * @since 1.3
  */
 public interface Port extends Line {
@@ -40,7 +40,7 @@ public interface Port extends Line {
      * lines matching the parameters specified in the <code>Port.Info</code> object.
      *
      * @author Kara Kytle
-     * @version 1.24, 03/01/23
+     * @version 1.26, 04/05/05
      * @since 1.3
      */
     public static class Info extends Line.Info {
@@ -111,7 +111,7 @@ public interface Port extends Line {
 	 * as a microphone), <code>false</code> if the port is a target port
 	 * (such as a speaker).
 	 */
-	public Info(Class lineClass, String name, boolean isSource) {
+	public Info(Class<?> lineClass, String name, boolean isSource) {
 
 	    super(lineClass);
 	    this.name = name;

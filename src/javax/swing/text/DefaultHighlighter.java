@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultHighlighter.java	1.37 03/07/23
+ * @(#)DefaultHighlighter.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -9,13 +9,14 @@ package javax.swing.text;
 import java.util.Vector;
 import java.awt.*;
 import javax.swing.plaf.*;
+import javax.swing.*;
 
 /**
  * Implements the Highlighter interfaces.  Implements a simple highlight
  * painter that renders in a solid color.
  * 
  * @author  Timothy Prinzing
- * @version 1.37 07/23/03
+ * @version 1.39 12/19/03
  * @see     Highlighter
  */
 public class DefaultHighlighter extends LayeredHighlighter {
@@ -96,7 +97,6 @@ public class DefaultHighlighter extends LayeredHighlighter {
      */
     public Object addHighlight(int p0, int p1, Highlighter.HighlightPainter p) throws BadLocationException {
 	Document doc = component.getDocument();
-	TextUI mapper = component.getUI();
 	HighlightInfo i = (getDrawsLayeredHighlights() &&
 			   (p instanceof LayeredHighlighter.LayerPainter)) ?
 	                  new LayeredHighlightInfo() : new HighlightInfo();
@@ -104,7 +104,7 @@ public class DefaultHighlighter extends LayeredHighlighter {
 	i.p0 = doc.createPosition(p0);
 	i.p1 = doc.createPosition(p1);
 	highlights.addElement(i);
-	mapper.damageRange(component, p0, p1);
+        safeDamageRange(p0, p1);
         return i;
     }
 
@@ -121,10 +121,8 @@ public class DefaultHighlighter extends LayeredHighlighter {
 	    }
 	}
 	else {
-	    TextUI mapper = component.getUI();
 	    HighlightInfo info = (HighlightInfo) tag;
-	    mapper.damageRange(component, info.p0.getOffset(),
-			       info.p1.getOffset());
+            safeDamageRange(info.p0, info.p1);
 	}
 	highlights.removeElement(tag);
     }
@@ -167,7 +165,9 @@ public class DefaultHighlighter extends LayeredHighlighter {
 		    component.repaint(minX, minY, maxX - minX, maxY - minY);
 		}
                 if (p0 != -1) {
-                    mapper.damageRange(component, p0, p1);
+                    try {
+                        safeDamageRange(p0, p1);
+                    } catch (BadLocationException e) {}
                 }
 		highlights.removeAllElements();
 	    }
@@ -182,7 +182,10 @@ public class DefaultHighlighter extends LayeredHighlighter {
 		    p0 = Math.min(p0, info.p0.getOffset());
 		    p1 = Math.max(p1, info.p1.getOffset());
 		}
-		mapper.damageRange(component, p0, p1);
+                try {
+                    safeDamageRange(p0, p1);
+                } catch (BadLocationException e) {}
+
 		highlights.removeAllElements();
 	    }
 	}
@@ -198,7 +201,6 @@ public class DefaultHighlighter extends LayeredHighlighter {
      */
     public void changeHighlight(Object tag, int p0, int p1) throws BadLocationException {
 	Document doc = component.getDocument();
-	TextUI mapper = component.getUI();
 	if (tag instanceof LayeredHighlightInfo) {
 	    LayeredHighlightInfo lhi = (LayeredHighlightInfo)tag;
 	    if (lhi.width > 0 && lhi.height > 0) {
@@ -209,21 +211,21 @@ public class DefaultHighlighter extends LayeredHighlighter {
 	    lhi.width = lhi.height = 0;
 	    lhi.p0 = doc.createPosition(p0);
 	    lhi.p1 = doc.createPosition(p1);
-	    mapper.damageRange(component, Math.min(p0, p1), Math.max(p0, p1));
+            safeDamageRange(Math.min(p0, p1), Math.max(p0, p1));
 	}
 	else {
 	    HighlightInfo info = (HighlightInfo) tag;
 	    int oldP0 = info.p0.getOffset();
 	    int oldP1 = info.p1.getOffset();
 	    if (p0 == oldP0) {
-		mapper.damageRange(component, Math.min(oldP1, p1),
+                safeDamageRange(Math.min(oldP1, p1),
 				   Math.max(oldP1, p1));
 	    } else if (p1 == oldP1) {
-		mapper.damageRange(component, Math.min(p0, oldP0),
+                safeDamageRange(Math.min(p0, oldP0),
 				   Math.max(p0, oldP0));
 	    } else {
-		mapper.damageRange(component, oldP0, oldP1);
-		mapper.damageRange(component, p0, p1);
+                safeDamageRange(oldP0, oldP1);
+                safeDamageRange(p0, p1);
 	    }
 	    info.p0 = doc.createPosition(p0);
 	    info.p1 = doc.createPosition(p1);
@@ -238,12 +240,11 @@ public class DefaultHighlighter extends LayeredHighlighter {
      * @see Highlighter#getHighlights
      */
     public Highlighter.Highlight[] getHighlights() {
-	int size = highlights.size();
+        int size = highlights.size();
         if (size == 0) {
             return noHighlights;
         }
 	Highlighter.Highlight[] h = new Highlighter.Highlight[size];
-
 	highlights.copyInto(h);
 	return h;
     }
@@ -279,6 +280,23 @@ public class DefaultHighlighter extends LayeredHighlighter {
     }
 
     /**
+     * Queues damageRange() call into event dispatch thread
+     * to be sure that views are in consistent state.
+     */
+    private void safeDamageRange(final Position p0, final Position p1) {
+        safeDamager.damageRange(p0, p1);
+    }
+
+    /**
+     * Queues damageRange() call into event dispatch thread
+     * to be sure that views are in consistent state.
+     */
+    private void safeDamageRange(int a0, int a1) throws BadLocationException {
+        Document doc = component.getDocument();
+        safeDamageRange(doc.createPosition(a0), doc.createPosition(a1));
+    }
+
+    /**
      * If true, highlights are drawn as the Views draw the text. That is
      * the Views will call into <code>paintLayeredHighlight</code> which
      * will result in a rectangle being drawn before the text is drawn
@@ -301,6 +319,7 @@ public class DefaultHighlighter extends LayeredHighlighter {
     private Vector highlights = new Vector();  // Vector<HighlightInfo>
     private JTextComponent component;
     private boolean drawsLayeredHighlights;
+    private SafeDamager safeDamager = new SafeDamager();
 
 
     /**
@@ -519,5 +538,77 @@ public class DefaultHighlighter extends LayeredHighlighter {
 	int y;
 	int width;
 	int height;
+    }
+
+    /**
+     * This class invokes <code>mapper.damageRange</code> in
+     * EventDispatchThread. The only one instance per Highlighter
+     * is cretaed. When a number of ranges should be damaged
+     * it collects them into queue and damages
+     * them in consecutive order in <code>run</code>
+     * call.
+     */
+    class SafeDamager implements Runnable {
+        private Vector p0 = new Vector(10);
+        private Vector p1 = new Vector(10);
+        private Document lastDoc = null;
+
+        /**
+         * Executes range(s) damage and cleans range queue.
+         */
+        public synchronized void run() {
+            if (component != null) {
+                TextUI mapper = component.getUI();
+                if (mapper != null && lastDoc == component.getDocument()) {
+                    // the Document should be the same to properly
+                    // display highlights
+                    int len = p0.size();
+                    for (int i = 0; i < len; i++){
+                        mapper.damageRange(component,
+                                ((Position)p0.get(i)).getOffset(),
+                                ((Position)p1.get(i)).getOffset());
+                    }
+                }
+            }
+            p0.clear();
+            p1.clear();
+
+            // release reference
+            lastDoc = null;
+        }
+
+        /**
+         * Adds the range to be damaged into the range queue. If the
+         * range queue is empty (the first call or run() was already
+         * invoked) then adds this class instance into EventDispatch
+         * queue.
+         *
+         * The method also tracks if the current document changed or
+         * component is null. In this case it removes all ranges added
+         * before from range queue.
+         */
+        public synchronized void damageRange(Position pos0, Position pos1) {
+            if (component == null) {
+                p0.clear();
+                lastDoc = null;
+                return;
+            }
+
+            boolean addToQueue = p0.isEmpty();
+            Document curDoc = component.getDocument();
+            if (curDoc != lastDoc) {
+                if (!p0.isEmpty()) {
+                    p0.clear();
+                    p1.clear();
+                }
+                lastDoc = curDoc;
+            }
+            p0.add(pos0);
+            p1.add(pos1);
+
+            if (addToQueue) {
+                SwingUtilities.invokeLater(this);
+            }
+        }
     }
 }

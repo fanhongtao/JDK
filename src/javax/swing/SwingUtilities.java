@@ -1,10 +1,13 @@
 /*
- * @(#)SwingUtilities.java	1.120 03/01/23
+ * @(#)SwingUtilities.java	1.134 04/06/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
+
+import com.sun.java.swing.SwingUtilities2;
+import sun.swing.UIAction;
 
 import java.applet.*;
 
@@ -17,6 +20,7 @@ import java.util.Hashtable;
 import java.lang.reflect.*;
 
 import javax.accessibility.*;
+import javax.swing.event.MenuDragMouseEvent;
 import javax.swing.plaf.UIResource;
 import javax.swing.text.View;
 
@@ -25,7 +29,7 @@ import sun.awt.AppContext;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.120 01/23/03
+ * @version 1.134 06/15/04
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -57,7 +61,14 @@ public class SwingUtilities implements SwingConstants
 
 
     /**
-     * @return the first Window ancestor of c, or null if component is not contained inside a window
+     * Returns the first <code>Window </code> ancestor of <code>c</code>, or
+     * null if <code>c</code> is not contained inside a <code>Window</code>.
+     *
+     * @param c <code>Component</code> to get <code>Window</code> ancestor
+     *        of.
+     * @return the first <code>Window </code> ancestor of <code>c</code>, or
+     *         null if <code>c</code> is not contained inside a
+     *         <code>Window</code>.
      */
     public static Window getWindowAncestor(Component c) {
         for(Container p = c.getParent(); p != null; p = p.getParent()) {
@@ -151,7 +162,8 @@ public class SwingUtilities implements SwingConstants
      * component hierarchy and returns the first object of class <code>c</code> it
      * finds. Can return null, if a class <code>c</code> cannot be found.
      */
-    public static Container getAncestorOfClass(Class c, Component comp) {
+    public static Container getAncestorOfClass(Class<?> c, Component comp)
+    {
         if(comp == null || c == null)
             return null;
 
@@ -239,13 +251,42 @@ public class SwingUtilities implements SwingConstants
         else
             newSource = source;
 
-        return new MouseEvent(newSource,
-                              sourceEvent.getID(),
-                              sourceEvent.getWhen(),
-                              sourceEvent.getModifiers(),
-                              p.x,p.y,
-                              sourceEvent.getClickCount(),
-                              sourceEvent.isPopupTrigger());
+	MouseEvent newEvent;
+	if (sourceEvent instanceof MouseWheelEvent) {
+	    MouseWheelEvent sourceWheelEvent = (MouseWheelEvent)sourceEvent;
+	    newEvent = new MouseWheelEvent(newSource,
+					   sourceWheelEvent.getID(),
+					   sourceWheelEvent.getWhen(),
+					   sourceWheelEvent.getModifiers(),
+					   p.x,p.y,
+					   sourceWheelEvent.getClickCount(),
+					   sourceWheelEvent.isPopupTrigger(),
+					   sourceWheelEvent.getScrollType(),
+					   sourceWheelEvent.getScrollAmount(),
+					   sourceWheelEvent.getWheelRotation());
+	}
+	else if (sourceEvent instanceof MenuDragMouseEvent) {
+	    MenuDragMouseEvent sourceMenuDragEvent = (MenuDragMouseEvent)sourceEvent;
+	    newEvent = new MenuDragMouseEvent(newSource,
+					      sourceMenuDragEvent.getID(),
+					      sourceMenuDragEvent.getWhen(),
+					      sourceMenuDragEvent.getModifiers(),
+					      p.x,p.y,
+					      sourceMenuDragEvent.getClickCount(),
+					      sourceMenuDragEvent.isPopupTrigger(),
+					      sourceMenuDragEvent.getPath(),
+					      sourceMenuDragEvent.getMenuSelectionManager());
+	}
+	else {
+	    newEvent = new MouseEvent(newSource,
+				      sourceEvent.getID(),
+				      sourceEvent.getWhen(),
+				      sourceEvent.getModifiers(),
+				      p.x,p.y,
+				      sourceEvent.getClickCount(),
+				      sourceEvent.isPopupTrigger());
+	}
+	return newEvent;
     }
 
 
@@ -327,14 +368,21 @@ public class SwingUtilities implements SwingConstants
         } while(c != null);
     }
 
-    /** Return <code>aComponent</code>'s window **/
-    public static Window windowForComponent(Component aComponent) {
-        for (Container p = aComponent.getParent(); p != null; p = p.getParent()) {
-            if (p instanceof Window) {
-                return (Window)p;
-            }
-        }
-        return null;
+    /**
+     * Returns the first <code>Window </code> ancestor of <code>c</code>, or
+     * null if <code>c</code> is not contained inside a <code>Window</code>.
+     * <p>
+     * Note: This method provides the same functionality as
+     * <code>getWindowAncestor</code>.
+     *
+     * @param c <code>Component</code> to get <code>Window</code> ancestor
+     *        of.
+     * @return the first <code>Window </code> ancestor of <code>c</code>, or
+     *         null if <code>c</code> is not contained inside a
+     *         <code>Window</code>.
+     */
+    public static Window windowForComponent(Component c) {
+        return getWindowAncestor(c);
     }
 
     /**
@@ -710,7 +758,7 @@ public class SwingUtilities implements SwingConstants
         // You can't assume that a string's width is the sum of its
         // characters' widths in Java2D -- it may be smaller due to
         // kerning, etc.
-        return fm.stringWidth(str);
+        return SwingUtilities2.stringWidth(null, fm, str);
     }
 
     /**
@@ -853,45 +901,20 @@ public class SwingUtilities implements SwingConstants
 
         boolean textIsEmpty = (text == null) || text.equals("");
         int lsb = 0;
+        /* Unless both text and icon are non-null, we effectively ignore
+         * the value of textIconGap.
+         */
+        int gap;
 
 	View v = null;
         if (textIsEmpty) {
             textR.width = textR.height = 0;
             text = "";
+            gap = 0;
         }
         else {
-	    v = (c != null) ? (View) c.getClientProperty("html") : null;
-	    if (v != null) {
-		textR.width = (int) v.getPreferredSpan(View.X_AXIS);
-		textR.height = (int) v.getPreferredSpan(View.Y_AXIS);
-	    } else {
-		textR.width = computeStringWidth(fm,text);
-                lsb = com.sun.java.swing.SwingUtilities2.getLeftSideBearing(
-                                         fm.getFont(), text);
-                if (lsb < 0) {
-                    // If lsb is negative, add it to the width, the
-                    // text bounds will later be adjusted accordingly.
-                    textR.width -= lsb;
-                }
-		textR.height = fm.getHeight();
-	    }
-        }
-
-        /* Unless both text and icon are non-null, we effectively ignore
-         * the value of textIconGap.  The code that follows uses the
-         * value of gap instead of textIconGap.
-         */
-
-        int gap = (textIsEmpty || (icon == null)) ? 0 : textIconGap;
-
-        if (!textIsEmpty) {
-
-            /* If the label text string is too wide to fit within the available
-             * space "..." and as many characters as will fit will be
-             * displayed instead.
-             */
-
             int availTextWidth;
+            gap = (icon == null) ? 0 : textIconGap;
 
             if (horizontalTextPosition == CENTER) {
                 availTextWidth = viewR.width;
@@ -899,25 +922,34 @@ public class SwingUtilities implements SwingConstants
             else {
                 availTextWidth = viewR.width - (iconR.width + gap);
             }
-
-
-            if (textR.width > availTextWidth) {
-		if (v != null) {
-		    textR.width = availTextWidth;
-		} else {
-		    String clipString = "...";
-		    int totalWidth = computeStringWidth(fm,clipString);
-		    int nChars;
-		    for(nChars = 0; nChars < text.length(); nChars++) {
-			totalWidth += fm.charWidth(text.charAt(nChars));
-			if (totalWidth > availTextWidth) {
-			    break;
-			}
-		    }
-		    text = text.substring(0, nChars) + clipString;
-		    textR.width = computeStringWidth(fm,text);
-		}
-            }
+	    v = (c != null) ? (View) c.getClientProperty("html") : null;
+	    if (v != null) {
+		textR.width = Math.min(availTextWidth,
+                                       (int) v.getPreferredSpan(View.X_AXIS));
+		textR.height = (int) v.getPreferredSpan(View.Y_AXIS);
+	    } else {
+                textR.width = SwingUtilities2.stringWidth(c, fm, text);
+                lsb = SwingUtilities2.getLeftSideBearing(c, fm, text);
+                if (lsb < 0) {
+                    // If lsb is negative, add it to the width and later
+                    // adjust the x location. This gives more space than is
+                    // actually needed.
+                    // This is done like this for two reasons:
+                    // 1. If we set the width to the actual bounds all
+                    //    callers would have to account for negative lsb
+                    //    (pref size calculations ONLY look at width of
+                    //    textR)
+                    // 2. You can do a drawString at the returned location
+                    //    and the text won't be clipped.
+                    textR.width -= lsb;
+                }
+                if (textR.width > availTextWidth) {
+                    text = SwingUtilities2.clipString(c, fm, text,
+                                                      availTextWidth);
+                    textR.width = SwingUtilities2.stringWidth(c, fm, text);
+                }
+		textR.height = fm.getHeight();
+	    }
         }
 
 
@@ -1002,12 +1034,8 @@ public class SwingUtilities implements SwingConstants
         iconR.y += dy;
 
         if (lsb < 0) {
-            // lsb is negative. We previously adjusted the bounds by lsb,
-            // we now need to shift the x location so that the text is
-            // drawn at the right location. The result is textR does not
-            // line up with the actual bounds (on the left side), but we will
-            // have provided enough space for the text.
-            textR.width += lsb;
+            // lsb is negative. Shift the x location so that the text is
+            // visually drawn at the right location.
             textR.x -= lsb;
         }
 
@@ -1172,14 +1200,14 @@ public class SwingUtilities implements SwingConstants
 
 
     /**
-     * Causes <i>doRun.run()</i> to be executed synchronously on the
-     * AWT event dispatching thread.  This call will block until
+     * Causes <code>doRun.run()</code> to be executed synchronously on the
+     * AWT event dispatching thread.  This call blocks until
      * all pending AWT events have been processed and (then)
-     * <i>doRun.run()</i> returns. This method should
+     * <code>doRun.run()</code> returns. This method should
      * be used when an application thread needs to update the GUI.
-     * It should not be called from the EventDispatchThread.
+     * It should'nt be called from the <code>EventDispatchThread</code>.
      * Here's an example that creates a new application thread
-     * that uses invokeAndWait() to print a string from the event
+     * that uses <code>invokeAndWait</code> to print a string from the event
      * dispatching thread and then, when that's finished, print
      * a string from the application thread.
      * <pre>
@@ -1202,20 +1230,24 @@ public class SwingUtilities implements SwingConstants
      * };
      * appThread.start();
      * </pre>
-     * Note that if the Runnable.run() method throws an uncaught exception
+     * Note that if the <code>Runnable.run</code> method throws an
+     * uncaught exception
      * (on the event dispatching thread) it's caught and rethrown, as
-     * an InvocationTargetException, on the callers thread.
+     * an <code>InvocationTargetException</code>, on the caller's thread.
      * <p>
      * Additional documentation and examples for this method can be
      * found in
      * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How to Use Threads</a>,
      * in <em>The Java Tutorial</em>.
      * <p>
-     * As of 1.3 this method is just a cover for <code>java.awt.EventQueue.invokeAndWait()</code>.
+     * As of 1.3 this method is just a cover for
+     * <code>java.awt.EventQueue.invokeAndWait()</code>.
      *
      * @exception  InterruptedException if we're interrupted while waiting for
-     *             the event dispatching thread to finish excecuting <i>doRun.run()</i>
-     * @exception  InvocationTargetException  if <i>doRun.run()</i> throws
+     *             the event dispatching thread to finish excecuting
+     *             <code>doRun.run()</code>
+     * @exception  InvocationTargetException  if an exception is thrown
+     *             while running <code>doRun</code>
      *
      * @see #invokeLater
      */
@@ -1359,6 +1391,7 @@ public class SwingUtilities implements SwingConstants
      * @deprecated As of 1.4, replaced by
      *   <code>KeyboardFocusManager.getFocusOwner()</code>.
      */
+    @Deprecated
     public static Component findFocusOwner(Component c) {
 	Component focusOwner = KeyboardFocusManager.
 	    getCurrentKeyboardFocusManager().getFocusOwner();
@@ -1496,9 +1529,17 @@ public class SwingUtilities implements SwingConstants
     public static boolean notifyAction(Action action, KeyStroke ks,
 				       KeyEvent event, Object sender,
 				       int modifiers) {
-	if (action == null || !action.isEnabled()) {
+	if (action == null) {
 	    return false;
 	}
+        if (action instanceof UIAction) {
+            if (!((UIAction)action).isEnabled(sender)) {
+                return false;
+            }
+        }
+        else if (!action.isEnabled()) {
+            return false;
+        }
 	Object commandO;
 	boolean stayNull;
 
@@ -1622,6 +1663,71 @@ public class SwingUtilities implements SwingConstants
     private static final Object sharedOwnerFrameKey =
        new StringBuffer("SwingUtilities.sharedOwnerFrame");
 
+    static class SharedOwnerFrame extends Frame implements WindowListener {
+        public void addNotify() {
+            super.addNotify();
+            installListeners();
+        }
+
+        /**
+         * Install window listeners on owned windows to watch for displayability changes
+         */
+        void installListeners() {
+            Window[] windows = getOwnedWindows();
+            for (int ind = 0; ind < windows.length; ind++){ 
+                Window window = windows[ind];
+                if (window != null) {
+                    window.removeWindowListener(this);
+                    window.addWindowListener(this);
+                }
+            }
+        }
+
+        /**
+         * Watches for displayability changes and disposes shared instance if there are no
+         * displayable children left.
+         */
+	public void windowClosed(WindowEvent e) {
+	    synchronized(getTreeLock()) {
+		Window[] windows = getOwnedWindows();
+		for (int ind = 0; ind < windows.length; ind++) {
+		    Window window = windows[ind];
+		    if (window != null) {
+			if (window.isDisplayable()) {
+			    return;
+			}
+			window.removeWindowListener(this);
+		    }
+		}
+		dispose();
+	    }
+        }
+	public void windowOpened(WindowEvent e) {
+	}
+	public void windowClosing(WindowEvent e) {
+	}
+	public void windowIconified(WindowEvent e) {
+	}
+	public void windowDeiconified(WindowEvent e) {
+	}
+	public void windowActivated(WindowEvent e) {
+	}
+	public void windowDeactivated(WindowEvent e) {
+	}
+
+        public void show() {
+            // This frame can never be shown
+        }
+        public void dispose() {
+            try {
+                getToolkit().getSystemEventQueue();
+                super.dispose();
+            } catch (Exception e) {
+                // untrusted code not allowed to dispose
+            }
+        }
+    }
+
     /**
      * Returns a toolkit-private, shared, invisible Frame
      * to be the owner for JDialogs and JWindows created with
@@ -1634,23 +1740,23 @@ public class SwingUtilities implements SwingConstants
         Frame sharedOwnerFrame =
             (Frame)SwingUtilities.appContextGet(sharedOwnerFrameKey);
         if (sharedOwnerFrame == null) {
-            sharedOwnerFrame = new Frame() {
-                public void show() {
-                    // This frame can never be shown
-                }
-                public synchronized void dispose() {
-                    try {
-                        getToolkit().getSystemEventQueue();
-                        super.dispose();
-                    } catch (Exception e) {
-                        // untrusted code not allowed to dispose
-                    }
-                }
-            };
+            sharedOwnerFrame = new SharedOwnerFrame();
             SwingUtilities.appContextPut(sharedOwnerFrameKey,
                                          sharedOwnerFrame);
         }
         return sharedOwnerFrame;
+    }
+
+    /**
+     * Returns a SharedOwnerFrame's shutdown listener to dispose the SharedOwnerFrame
+     * if it has no more displayable children.
+     * @exception HeadlessException if GraphicsEnvironment.isHeadless()
+     * returns true.
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     */
+    static WindowListener getSharedOwnerFrameShutdownListener() throws HeadlessException {
+        Frame sharedOwnerFrame = getSharedOwnerFrame();
+	return (WindowListener)sharedOwnerFrame;
     }
 
     /* Don't make these AppContext accessors public or protected --
@@ -1676,18 +1782,6 @@ public class SwingUtilities implements SwingConstants
     static Class loadSystemClass(String className) throws ClassNotFoundException {
 	return Class.forName(className, true, Thread.currentThread().
                              getContextClassLoader());
-    }
-
-
-    final static void doPrivileged(final Runnable doRun) {
-        java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction() {
-                public Object run() {
-                  doRun.run();
-                  return null;
-                }
-            }
-        );
     }
 
 

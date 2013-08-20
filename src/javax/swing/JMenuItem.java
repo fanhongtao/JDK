@@ -1,7 +1,7 @@
 /*
- * @(#)JMenuItem.java	1.110 03/01/23
+ * @(#)JMenuItem.java	1.118 04/03/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -34,9 +34,6 @@ import javax.accessibility.*;
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>
  * in <em>The Java Tutorial.</em>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JMenuItem"><code>JMenuItem</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -51,7 +48,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: An item which can be selected in a menu.
  *
- * @version 1.110 01/23/03
+ * @version 1.118 03/05/04
  * @author Georges Saab
  * @author David Karlton
  * @see JPopupMenu
@@ -166,7 +163,7 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
         
         // Listen for Focus events
         addFocusListener(new MenuItemFocusListener());
-	setBorderPainted(false);
+        setUIProperty("borderPainted", Boolean.FALSE);
         setFocusPainted(false);
         setHorizontalTextPosition(JButton.TRAILING);
         setHorizontalAlignment(JButton.LEADING);
@@ -240,19 +237,6 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
         ButtonModel model = (ButtonModel) getModel();
 
         boolean oldValue = model.isArmed();
-        if ((accessibleContext != null) && (oldValue != b)) {
-            if (b) {
-                accessibleContext.firePropertyChange(
-                        AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                        null, 
-                        AccessibleState.ARMED);
-            } else {
-                accessibleContext.firePropertyChange(
-                        AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                        AccessibleState.ARMED, 
-                        null);
-            }
-        }
         if(model.isArmed() != b) {
             model.setArmed(b);
         }
@@ -379,36 +363,46 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
      * @see Action
      */
     protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
-        return new AbstractActionPropertyChangeListener(this, a){
-	    public void propertyChange(PropertyChangeEvent e) {	    
-		String propertyName = e.getPropertyName();
-		JMenuItem mi = (JMenuItem)getTarget();
-		if (mi == null) {   //WeakRef GC'ed in 1.2
-		    Action action = (Action)e.getSource();
-		    action.removePropertyChangeListener(this);
-		} else {
-		    if (e.getPropertyName().equals(Action.NAME)) {
-			String text = (String) e.getNewValue();
-			mi.setText(text);
-			mi.repaint();
-		    } else if (propertyName.equals("enabled")) {
-			Boolean enabledState = (Boolean) e.getNewValue();
-			mi.setEnabled(enabledState.booleanValue());
-			mi.repaint();
-		    } else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
-			Icon icon = (Icon) e.getNewValue();
-			mi.setIcon(icon);
-			mi.invalidate();
-			mi.repaint();
-		    } else if (e.getPropertyName().equals(Action.MNEMONIC_KEY)) {
-			Integer mn = (Integer) e.getNewValue();
-			mi.setMnemonic(mn.intValue());
-			mi.invalidate();
-			mi.repaint();
-		    } 
-		}
-	    }
-	};
+        return new MenuItemPropertyChangeListener(this, a);
+    }
+
+    private static class MenuItemPropertyChangeListener
+                extends AbstractActionPropertyChangeListener
+                implements Serializable {
+
+        MenuItemPropertyChangeListener(JMenuItem m, Action a) {
+            super(m, a);
+        }
+
+        public void propertyChange(PropertyChangeEvent e) {	    
+            String propertyName = e.getPropertyName();
+            JMenuItem mi = (JMenuItem)getTarget();
+            if (mi == null) {   //WeakRef GC'ed in 1.2
+                Action action = (Action)e.getSource();
+                action.removePropertyChangeListener(this);
+            } else {
+                if (e.getPropertyName().equals(Action.NAME)) {
+                    String text = (String) e.getNewValue();
+                    mi.setText(text);
+                    mi.repaint();
+                } else if (propertyName.equals("enabled")) {
+                    Boolean enabledState = (Boolean) e.getNewValue();
+                    mi.setEnabled(enabledState.booleanValue());
+                    mi.repaint();
+                } else if (e.getPropertyName().equals(Action.SMALL_ICON)) {
+                    Icon icon = (Icon) e.getNewValue();
+                    mi.setIcon(icon);
+                    mi.invalidate();
+                    mi.repaint();
+                } else
+                    if (e.getPropertyName().equals(Action.MNEMONIC_KEY)) {
+                    Integer mn = (Integer) e.getNewValue();
+                    mi.setMnemonic(mn.intValue());
+                    mi.invalidate();
+                    mi.repaint();
+                } 
+            }
+        }
     }
 
     /**
@@ -852,6 +846,19 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
             return AccessibleRole.MENU_ITEM;
         }
 
+        private void fireAccessibilityFocusedEvent(JMenuItem toCheck) {
+            MenuElement [] path =
+                MenuSelectionManager.defaultManager().getSelectedPath();
+            if (path.length > 0) {
+                Object menuItem = path[path.length - 1];
+                if (toCheck == menuItem) {
+                    firePropertyChange(
+                        AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                        null, AccessibleState.FOCUSED);
+                }
+            }
+        }
+
         /**
          * Supports the change listener interface and fires property changes.
          */
@@ -864,6 +871,10 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 		    firePropertyChange(
 	                AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
                         null, AccessibleState.ARMED);
+                    // Fix for 4848220 moved here to avoid major memory leak
+                    // Here we will fire the event in case of JMenuItem 
+                    // See bug 4910323 for details [zav]
+                    fireAccessibilityFocusedEvent(JMenuItem.this);
 		}
             } else {
 		if (isArmed) {
@@ -909,7 +920,12 @@ public class JMenuItem extends AbstractButton implements Accessible,MenuElement 
 		    firePropertyChange(
 	                AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
                         null, AccessibleState.CHECKED);
-		}
+
+                    // Fix for 4848220 moved here to avoid major memory leak
+                    // Here we will fire the event in case of JMenu
+                    // See bug 4910323 for details [zav]
+                    fireAccessibilityFocusedEvent(JMenuItem.this);
+                }
             } else {
 		if (isSelected) {
 		    isSelected = false;

@@ -1,7 +1,7 @@
 /*
- * @(#)CellRendererPane.java	1.37 03/01/23
+ * @(#)CellRendererPane.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -43,7 +43,7 @@ import javax.accessibility.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.37 01/23/03
+ * @version 1.39 12/19/03
  * @author Hans Muller
  */
 public class CellRendererPane extends Container implements Accessible
@@ -129,7 +129,7 @@ public class CellRendererPane extends Container implements Accessible
 	    ((JComponent)c).setDoubleBuffered(false);
 	}
 
-	Graphics cg = SwingGraphics.createSwingGraphics(g, x, y, w, h);
+	Graphics cg = g.create(x, y, w, h);
 	try {
 	    c.paint(cg);
 	}

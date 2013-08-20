@@ -1,20 +1,25 @@
 /*
- * @(#)UTFDataFormatException.java	1.11 03/01/23
+ * @(#)UTFDataFormatException.java	1.13 04/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.io;
 
 /**
- * Signals that a malformed UTF-8 string has been read in a data
+ * Signals that a malformed string in
+ * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
+ * format has been read in a data
  * input stream or by any class that implements the data input
- * interface. See the <code>writeUTF</code> method for the format in
- * which UTF-8 strings are read and written.
+ * interface.
+ * See the
+ * <a href="DataInput.html#modified-utf-8"><code>DataInput</code></a>
+ * class description for the format in
+ * which modified UTF-8 strings are read and written.
  *
  * @author  Frank Yellin
- * @version 1.11, 01/23/03
+ * @version 1.13, 05/13/04
  * @see     java.io.DataInput
  * @see     java.io.DataInputStream#readUTF(java.io.DataInput)
  * @see     java.io.IOException

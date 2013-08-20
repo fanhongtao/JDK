@@ -1,7 +1,7 @@
 /*
- * @(#)BasicComboBoxRenderer.java	1.21 05/12/07
+ * @(#)BasicComboBoxRenderer.java	1.20 03/12/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -27,29 +27,19 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.21 12/07/05
+ * @version 1.20 12/19/03
  * @author Arnaud Weber
  */
 public class BasicComboBoxRenderer extends JLabel
 implements ListCellRenderer, Serializable {
-
     protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
-    private final static Border SAFE_NO_FOCUS_BORDER = 
-				new EmptyBorder(1, 1, 1, 1);
 
     public BasicComboBoxRenderer() {
         super();
         setOpaque(true);
-        setBorder(getNoFocusBorder());
+        setBorder(noFocusBorder);
     }
     
-    private static Border getNoFocusBorder() {
-        if (System.getSecurityManager() != null) {
-            return SAFE_NO_FOCUS_BORDER;
-        } else {
-            return noFocusBorder;
-        }
-    }
     
     public Dimension getPreferredSize() {
         Dimension size;

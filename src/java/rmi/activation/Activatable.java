@@ -1,7 +1,7 @@
 /*
- * @(#)Activatable.java	1.32 03/01/23
+ * @(#)Activatable.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,14 +18,19 @@ import java.rmi.NoSuchObjectException;
 
 import java.rmi.server.*;
 
+import sun.rmi.server.ActivatableServerRef;
 
 /**
  * The <code>Activatable</code> class provides support for remote
  * objects that require persistent access over time and that
  * can be activated by the system.
  *
+ * <p>For the constructors and static <code>exportObject</code> methods,
+ * the stub for a remote object being exported is obtained as described in
+ * {@link java.rmi.server.UnicastRemoteObject}.
+ *
  * @author	Ann Wollrath
- * @version	1.32, 03/01/23
+ * @version	1.34, 03/12/19
  * @since	1.2
  */
 public abstract class Activatable extends RemoteServer {
@@ -36,17 +41,6 @@ public abstract class Activatable extends RemoteServer {
     private ActivationID id;
     /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = -3120617863591563455L;
-    
-    /* parameter types for server ref constructor invocation used below */
-    private static Class[] idPortParamTypes = {
-	ActivationID.class, int.class
-    };
-    
-    /* parameter types for server ref constructor invocation used below */
-    private static Class[] idPortFactoryParamTypes = {
-	ActivationID.class, int.class, RMIClientSocketFactory.class,
-	RMIServerSocketFactory.class
-    };
     
     /**
      * Constructor used to register and export the object on a
@@ -395,9 +389,7 @@ public abstract class Activatable extends RemoteServer {
 				      int port)
 	throws RemoteException
     {
-	Object[] args = new Object[] { id, new Integer(port) }; 
-	return exportObject(obj, "ActivatableServerRef",
-			    idPortParamTypes, args);
+	return exportObject(obj, new ActivatableServerRef(id, port));
     }
 
     /** 
@@ -431,9 +423,7 @@ public abstract class Activatable extends RemoteServer {
 				      RMIServerSocketFactory ssf)
 	throws RemoteException
     {
-	Object[] args = new Object[] { id, new Integer(port), csf, ssf }; 
-	return exportObject(obj, "ActivatableServerRef",
-			    idPortFactoryParamTypes, args);
+	return exportObject(obj, new ActivatableServerRef(id, port, csf, ssf));
     }
     
     /**
@@ -460,50 +450,17 @@ public abstract class Activatable extends RemoteServer {
 	return sun.rmi.transport.ObjectTable.unexportObject(obj, force);
     }
 
-    /*
-     * Create an instance of given server ref type with constructor chosen
-     * by indicated paramters and supplied with given arguements, and
-     * export remote object with it.
-     *
-     * All this code needs to be duplicated from UnicastRemoteObject
-     * because java does not have "friends".
+    /**
+     * Exports the specified object using the specified server ref.
      */
-    private static Remote exportObject(Remote obj, String refType,
-				       Class[] params, Object[] args)
+    private static Remote exportObject(Remote obj, ActivatableServerRef sref)
 	throws RemoteException
     {
-	// compose name of server ref class and find it
-	String refClassName = RemoteRef.packagePrefix + "." + refType;
-	Class refClass;
-	try {
-	    refClass = Class.forName(refClassName);
-	} catch (ClassNotFoundException e) {
-	    throw new ExportException(
-		"No class found for server ref type: " + refType);
+	// if obj extends Activatable, set its ref.
+	if (obj instanceof Activatable) {
+	    ((Activatable) obj).ref = sref;
+
 	}
-
-	if (!ServerRef.class.isAssignableFrom(refClass)) {
-	    throw new ExportException(
-		"Server ref class not instance of " +
-		ServerRef.class.getName() + ": " + refClass.getName());
-	}
-
-	// create server ref instance using given constructor and arguments
-	ServerRef serverRef;
-	try {
-	    java.lang.reflect.Constructor cons =
-		refClass.getConstructor(params);
-	    serverRef = (ServerRef) cons.newInstance(args);
-	    // if impl does extend Activatable, set its ref
-	    if (obj instanceof Activatable)
-		((Activatable)obj).ref = serverRef;
-
-	} catch (Exception e) {
-	    throw new ExportException(
-		"Exception creating instance of server ref class: " +
-		refClass.getName(), e);
-	}
-
-	return serverRef.exportObject(obj, null);
+	return sref.exportObject(obj, null, false);
     }
 }

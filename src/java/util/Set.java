@@ -1,7 +1,7 @@
 /*
- * @(#)Set.java	1.29 03/01/23
+ * @(#)Set.java	1.35 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,8 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.29, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.35, 02/19/04
  * @see Collection
  * @see List
  * @see SortedSet
@@ -62,7 +63,7 @@ package java.util;
  * @since 1.2
  */
 
-public interface Set extends Collection {
+public interface Set<E> extends Collection<E> {
     // Query Operations
 
     /**
@@ -103,7 +104,7 @@ public interface Set extends Collection {
      *
      * @return an iterator over the elements in this set.
      */
-    Iterator iterator();
+    Iterator<E> iterator();
 
     /**
      * Returns an array containing all of the elements in this set.
@@ -127,7 +128,7 @@ public interface Set extends Collection {
      *            of the runtime type of every element in this set.
      * @throws NullPointerException if the specified array is <tt>null</tt>.
      */
-    Object[] toArray(Object a[]);
+    <T> T[] toArray(T[] a);
 
 
     // Modification Operations
@@ -146,7 +147,7 @@ public interface Set extends Collection {
      * elements; sets may refuse to add any particular element, including
      * <tt>null</tt>, and throwing an exception, as described in the
      * specification for <tt>Collection.add</tt>.  Individual set
-     * implementations should clearly document any restrictions on the the
+     * implementations should clearly document any restrictions on the
      * elements that they may contain.
      *
      * @param o element to be added to this set.
@@ -162,7 +163,7 @@ public interface Set extends Collection {
      * @throws IllegalArgumentException if some aspect of the specified element
      *         prevents it from being added to this set.
      */
-    boolean add(Object o);
+    boolean add(E o);
 
 
     /**
@@ -206,7 +207,7 @@ public interface Set extends Collection {
      *         <tt>null</tt>.
      * @see    #contains(Object)
      */
-    boolean containsAll(Collection c);
+    boolean containsAll(Collection<?> c);
 
     /**
      * Adds all of the elements in the specified collection to this set if
@@ -232,7 +233,7 @@ public interface Set extends Collection {
      *		  set.
      * @see #add(Object)
      */
-    boolean addAll(Collection c);
+    boolean addAll(Collection<? extends E> c);
 
     /**
      * Retains only the elements in this set that are contained in the
@@ -257,7 +258,7 @@ public interface Set extends Collection {
      *           <tt>null</tt>.
      * @see #remove(Object)
      */
-    boolean retainAll(Collection c);
+    boolean retainAll(Collection<?> c);
 
 
     /**
@@ -283,7 +284,7 @@ public interface Set extends Collection {
      *           <tt>null</tt>.
      * @see    #remove(Object)
      */
-    boolean removeAll(Collection c);
+    boolean removeAll(Collection<?> c);
 
     /**
      * Removes all of the elements from this set (optional operation).

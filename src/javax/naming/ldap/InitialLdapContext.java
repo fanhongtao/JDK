@@ -1,7 +1,7 @@
 /*
- * @(#)InitialLdapContext.java	1.9 03/01/23
+ * @(#)InitialLdapContext.java	1.12 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import java.util.Hashtable;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.9 03/01/23
+  * @version 1.12 04/07/16
   *
   * @see LdapContext
   * @see javax.naming.InitialContext
@@ -110,7 +110,8 @@ public class InitialLdapContext extends InitialDirContext implements LdapContext
      * @see #reconnect
      * @see LdapContext#reconnect
      */
-    public InitialLdapContext(Hashtable environment, Control[] connCtls) 
+    public InitialLdapContext(Hashtable<?,?> environment,
+			      Control[] connCtls) 
 	    throws NamingException {
 	super(true); // don't initialize yet
 

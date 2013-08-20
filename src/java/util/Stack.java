@@ -1,7 +1,7 @@
 /*
- * @(#)Stack.java	1.26 03/01/23
+ * @(#)Stack.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,11 +19,11 @@ package java.util;
  * When a stack is first created, it contains no items. 
  *
  * @author  Jonathan Payne
- * @version 1.26, 01/23/03
+ * @version 1.28, 12/19/03
  * @since   JDK1.0
  */
 public
-class Stack extends Vector {
+class Stack<E> extends Vector<E> {
     /**
      * Creates an empty Stack.
      */
@@ -40,7 +40,7 @@ class Stack extends Vector {
      * @return  the <code>item</code> argument.
      * @see     java.util.Vector#addElement
      */
-    public Object push(Object item) {
+    public E push(E item) {
 	addElement(item);
 
 	return item;
@@ -54,8 +54,8 @@ class Stack extends Vector {
      *             of the <tt>Vector</tt> object).
      * @exception  EmptyStackException  if this stack is empty.
      */
-    public synchronized Object pop() {
-	Object	obj;
+    public synchronized E pop() {
+	E	obj;
 	int	len = size();
 
 	obj = peek();
@@ -72,7 +72,7 @@ class Stack extends Vector {
      *             of the <tt>Vector</tt> object). 
      * @exception  EmptyStackException  if this stack is empty.
      */
-    public synchronized Object peek() {
+    public synchronized E peek() {
 	int	len = size();
 
 	if (len == 0)

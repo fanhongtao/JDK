@@ -1,7 +1,7 @@
 /*
- * @(#)DelegatingDefaultFocusManager.java	1.3 03/01/23
+ * @(#)DelegatingDefaultFocusManager.java	1.5 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -80,10 +80,13 @@ final class DelegatingDefaultFocusManager extends DefaultFocusManager {
             delegate.setDefaultFocusTraversalPolicy(defaultPolicy);
         }
     }
-    public void setDefaultFocusTraversalKeys(int id, Set keystrokes) {
+    public void
+	setDefaultFocusTraversalKeys(int id,
+				     Set<? extends AWTKeyStroke> keystrokes)
+    {
 	delegate.setDefaultFocusTraversalKeys(id, keystrokes);
     }
-    public Set getDefaultFocusTraversalKeys(int id) {
+    public Set<AWTKeyStroke> getDefaultFocusTraversalKeys(int id) {
 	return delegate.getDefaultFocusTraversalKeys(id);
     }
     public Container getCurrentFocusCycleRoot() {

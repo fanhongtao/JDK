@@ -1,7 +1,7 @@
 /*
- * @(#)ErrorManager.java	1.5 03/01/23
+ * @(#)ErrorManager.java	1.8 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.util.logging;
  * any error that occur on a Handler during Logging.
  * <p>
  * When processing logging output, if a Handler encounters problems
- * then rather than throwing an Exception back to the issuer of the
+ * then rather than throwing an Exception back to the issuer of
  * the logging call (who is unlikely to be interested) the Handler
  * should call its associated ErrorManager.
  */
@@ -27,7 +27,7 @@ public class ErrorManager {
 
     /**
      * GENERIC_FAILURE is used for failure that don't fit
-     * into one of the other catgories.
+     * into one of the other categories.
      */    
     public final static int GENERIC_FAILURE = 0;
     /**

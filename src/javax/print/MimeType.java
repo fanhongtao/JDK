@@ -1,7 +1,7 @@
 /*
- * @(#)MimeType.java	1.4 03/01/23
+ * @(#)MimeType.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,6 +63,8 @@ import java.util.Vector;
  * @author  Alan Kaminsky
  */
 class MimeType implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = -2785720609362367683L;
 
     /**
      * Array of strings that hold pieces of this MIME type's canonical form.  

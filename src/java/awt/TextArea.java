@@ -1,7 +1,7 @@
 /*
- * @(#)TextArea.java	1.75 03/01/23
+ * @(#)TextArea.java	1.78 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -32,7 +32,7 @@ import javax.accessibility.*;
  * new TextArea("Hello", 5, 40);
  * </pre></blockquote><hr>
  * <p>
- * @version	1.75, 01/23/03
+ * @version	1.78, 05/18/04
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -300,6 +300,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>insert(String, int)</code>.
      */
+    @Deprecated
     public synchronized void insertText(String str, int pos) {
 	TextAreaPeer peer = (TextAreaPeer)this.peer;
 	if (peer != null) {
@@ -327,6 +328,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>append(String)</code>.
      */
+    @Deprecated
     public synchronized void appendText(String str) {
 	if (peer != null) {
 	    insertText(str, getText().length());
@@ -362,6 +364,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>replaceRange(String, int, int)</code>.
      */
+    @Deprecated
     public synchronized void replaceText(String str, int start, int end) {
 	TextAreaPeer peer = (TextAreaPeer)this.peer;
 	if (peer != null) {
@@ -475,6 +478,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getPreferredSize(int, int)</code>.
      */
+    @Deprecated
     public Dimension preferredSize(int rows, int columns) {
         synchronized (getTreeLock()) {
 	    TextAreaPeer peer = (TextAreaPeer)this.peer;
@@ -498,6 +502,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getPreferredSize()</code>.
      */
+    @Deprecated
     public Dimension preferredSize() {
         synchronized (getTreeLock()) {
 	    return ((rows > 0) && (columns > 0)) ? 
@@ -525,6 +530,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getMinimumSize(int, int)</code>.
      */
+    @Deprecated
     public Dimension minimumSize(int rows, int columns) {
         synchronized (getTreeLock()) {
 	    TextAreaPeer peer = (TextAreaPeer)this.peer;
@@ -548,6 +554,7 @@ public class TextArea extends TextComponent {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getMinimumSize()</code>.
      */
+    @Deprecated
     public Dimension minimumSize() {
         synchronized (getTreeLock()) {
 	    return ((rows > 0) && (columns > 0)) ? 
@@ -663,7 +670,12 @@ public class TextArea extends TextComponent {
      * <code>TextArea</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to text area user-interface elements.
      */
-    protected class AccessibleAWTTextArea extends AccessibleAWTTextComponent {
+    protected class AccessibleAWTTextArea extends AccessibleAWTTextComponent
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 3472827823632144419L;
 
         /**
          * Gets the state set of this object.

@@ -1,7 +1,7 @@
 /*
- * @(#)DatagramPacket.java	1.42 03/01/23
+ * @(#)DatagramPacket.java	1.43 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.net;
  *
  * @author  Pavani Diwanji
  * @author  Benjamin Renaud
- * @version 1.42, 01/23/03
+ * @version 1.43, 12/19/03
  * @since   JDK1.0
  */
 public final 

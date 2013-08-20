@@ -1,7 +1,7 @@
 /*
- * @(#)Box.java	1.38 03/01/23
+ * @(#)Box.java	1.43 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,11 @@ import javax.accessibility.*;
  * even non-Box containers.
  *
  * <p>
- *
- * The Box class can create several kinds
+ * The <code>Box</code> class can create several kinds
  * of invisible components 
  * that affect layout:
  * glue, struts, and rigid areas.
- * If all the components your Box contains 
+ * If all the components your <code>Box</code> contains 
  * have a fixed size,
  * you might want to use a glue component
  * (returned by <code>createGlue</code>)
@@ -39,6 +38,12 @@ import javax.accessibility.*;
  * If you need an invisible component
  * that always takes up the same amount of space,
  * get it by invoking <code>createRigidArea</code>.
+ * <p>
+ * If you are implementing a <code>BoxLayout</code> you 
+ * can find further information and examples in
+ * <a
+ href="http://java.sun.com/docs/books/tutorial/uiswing/layout/box.html">How to Use BoxLayout</a>,
+ * a section in <em>The Java Tutorial.</em>
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -52,7 +57,7 @@ import javax.accessibility.*;
  * @see BoxLayout
  *
  * @author  Timothy Prinzing
- * @version 1.38 01/23/03
+ * @version 1.43 12/19/03
  */
 public class Box extends JComponent implements Accessible {
 
@@ -60,10 +65,11 @@ public class Box extends JComponent implements Accessible {
      * Creates a <code>Box</code> that displays its components
      * along the the specified axis.
      *
-     * @param axis  can be either <code>BoxLayout.X_AXIS</code>
-     *              (to display components from left to right) or
-     *              <code>BoxLayout.Y_AXIS</code>
-     *              (to display them from top to bottom)
+     * @param axis  can be {@link BoxLayout#X_AXIS},
+     *              {@link BoxLayout#Y_AXIS},
+     *              {@link BoxLayout#LINE_AXIS} or
+     *              {@link BoxLayout#PAGE_AXIS}.
+     * @throws AWTError if the <code>axis</code> is invalid
      * @see #createHorizontalBox
      * @see #createVerticalBox
      */
@@ -74,7 +80,13 @@ public class Box extends JComponent implements Accessible {
 
     /**
      * Creates a <code>Box</code> that displays its components
-     * from left to right.
+     * from left to right. If you want a <code>Box</code> that
+     * respects the component orientation you should create the
+     * <code>Box</code> using the constructor and pass in
+     * <code>BoxLayout.LINE_AXIS</code>, eg:
+     * <pre>
+     *   Box lineBox = new Box(BoxLayout.LINE_AXIS);
+     * </pre>
      *
      * @return the box
      */
@@ -84,7 +96,13 @@ public class Box extends JComponent implements Accessible {
 
     /**
      * Creates a <code>Box</code> that displays its components
-     * from top to bottom.
+     * from top to bottom. If you want a <code>Box</code> that
+     * respects the component orientation you should create the
+     * <code>Box</code> using the constructor and pass in
+     * <code>BoxLayout.PAGE_AXIS</code>, eg:
+     * <pre>
+     *   Box lineBox = new Box(BoxLayout.PAGE_AXIS);
+     * </pre>
      *
      * @return the box
      */
@@ -126,8 +144,6 @@ public class Box extends JComponent implements Accessible {
      * @see #createRigidArea
      */
     public static Component createHorizontalStrut(int width) {
-	// PENDING(jeff) change to Integer.MAX_VALUE. This hasn't been done
-	// to date because BoxLayout alignment breaks.
 	return new Filler(new Dimension(width,0), new Dimension(width,0), 
 			  new Dimension(width, Short.MAX_VALUE));
     }
@@ -152,8 +168,6 @@ public class Box extends JComponent implements Accessible {
      * @see #createRigidArea
      */
     public static Component createVerticalStrut(int height) {
-	// PENDING(jeff) change to Integer.MAX_VALUE. This hasn't been done
-	// to date because BoxLayout alignment breaks.
 	return new Filler(new Dimension(0,height), new Dimension(0,height), 
 			  new Dimension(Short.MAX_VALUE, height));
     }
@@ -203,8 +217,6 @@ public class Box extends JComponent implements Accessible {
      * @return the component
      */
     public static Component createGlue() {
-	// PENDING(jeff) change to Integer.MAX_VALUE. This hasn't been done
-	// to date because BoxLayout alignment breaks.
 	return new Filler(new Dimension(0,0), new Dimension(0,0), 
 			  new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
     }
@@ -215,8 +227,6 @@ public class Box extends JComponent implements Accessible {
      * @return the component
      */
     public static Component createHorizontalGlue() {
-	// PENDING(jeff) change to Integer.MAX_VALUE. This hasn't been done
-	// to date because BoxLayout alignment breaks.
 	return new Filler(new Dimension(0,0), new Dimension(0,0), 
 			  new Dimension(Short.MAX_VALUE, 0));
     }
@@ -227,8 +237,6 @@ public class Box extends JComponent implements Accessible {
      * @return the component
      */
     public static Component createVerticalGlue() {
-	// PENDING(jeff) change to Integer.MAX_VALUE. This hasn't been done
-	// to date because BoxLayout alignment breaks.
 	return new Filler(new Dimension(0,0), new Dimension(0,0), 
 			  new Dimension(0, Short.MAX_VALUE));
     }

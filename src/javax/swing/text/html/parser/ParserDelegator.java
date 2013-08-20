@@ -1,7 +1,7 @@
 /*
- * @(#)ParserDelegator.java	1.13 03/01/23
+ * @(#)ParserDelegator.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,30 +23,25 @@ import java.lang.reflect.Method;
  * reference to the dtd.
  *
  * @author  Sunita Mani
- * @version 1.13, 01/23/03
+ * @version 1.15, 12/19/03
  */
 
 public class ParserDelegator extends HTMLEditorKit.Parser implements Serializable {
 
     private static DTD dtd = null;
 
-    protected static void setDefaultDTD() {
+    protected static synchronized void setDefaultDTD() {
         if (dtd == null) {
-            synchronized(ParserDelegator.class) {
-                if (dtd == null) {
-                    DTD _dtd = null;
-                    // (PENDING) Hate having to hard code!
-                    String nm = "html32";
-                    try {
-                        _dtd = DTD.getDTD(nm);
-                    } catch (IOException e) {
-                        // (PENDING) UGLY!
-                        System.out.println("Throw an exception: could not get default dtd: " + nm);
-                    }
-                    _dtd = createDTD(_dtd, nm);
-                    dtd = _dtd;
-                }
-            }
+	    DTD _dtd = null;
+	    // (PENDING) Hate having to hard code!
+	    String nm = "html32";
+	    try {
+		_dtd = DTD.getDTD(nm);
+	    } catch (IOException e) {
+		// (PENDING) UGLY!
+		System.out.println("Throw an exception: could not get default dtd: " + nm);
+	    }
+	    dtd = createDTD(_dtd, nm);
         }
     }
 

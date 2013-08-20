@@ -1,7 +1,7 @@
 /*
- * @(#)InheritableThreadLocal.java	1.16 03/01/23
+ * @(#)InheritableThreadLocal.java	1.21 04/02/09
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,12 +23,12 @@ import java.lang.ref.*;
  * automatically transmitted to any child threads that are created.
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.16, 01/23/03
+ * @version 1.21, 02/09/04
  * @see     ThreadLocal
  * @since   1.2
  */
 
-public class InheritableThreadLocal extends ThreadLocal {
+public class InheritableThreadLocal<T> extends ThreadLocal<T> {
     /**
      * Computes the child's initial value for this inheritable thread-local
      * variable as a function of the parent's value at the time the child
@@ -41,7 +41,7 @@ public class InheritableThreadLocal extends ThreadLocal {
      * @param parentValue the parent thread's value
      * @return the child thread's initial value
      */
-    protected Object childValue(Object parentValue) {
+    protected T childValue(T parentValue) {
         return parentValue;
     }
 
@@ -61,7 +61,7 @@ public class InheritableThreadLocal extends ThreadLocal {
      * @param firstValue value for the initial entry of the table.
      * @param map the map to store.
      */
-    void createMap(Thread t, Object firstValue) {
+    void createMap(Thread t, T firstValue) {
         t.inheritableThreadLocals = new ThreadLocalMap(this, firstValue);
     }
 }

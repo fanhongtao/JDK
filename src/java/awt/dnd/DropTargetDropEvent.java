@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetDropEvent.java	1.26 03/01/23
+ * @(#)DropTargetDropEvent.java	1.28 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import java.util.List;
  * first constant found. If no constant is found the <i>user drop action</i>
  * is <code>DnDConstants.ACTION_NONE</code>.
  * 
- * @version 	1.26, 01/23/03
+ * @version 	1.28, 05/05/04
  * @since 1.2
  */
 
@@ -164,7 +164,7 @@ public class DropTargetDropEvent extends DropTargetEvent {
      * @return the currently available DataFlavors as a java.util.List
      */
 
-    public List getCurrentDataFlavorsAsList() {
+    public List<DataFlavor> getCurrentDataFlavorsAsList() {
 	return getDropTargetContext().getCurrentDataFlavorsAsList();
     }
 

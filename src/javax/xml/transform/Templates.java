@@ -1,16 +1,14 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Templates.java	1.15 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * @(#)Templates.java	1.9 03/01/23
  */
 package javax.xml.transform;
 
 import java.util.Properties;
 
-import javax.xml.transform.TransformerException;
+
 
 
 /**
@@ -33,7 +31,8 @@ public interface Templates {
     Transformer newTransformer() throws TransformerConfigurationException;
 
     /**
-     * Get the static properties for xsl:output.  The object returned will
+     * Get the properties corresponding to the effective xsl:output element.
+     * The object returned will
      * be a clone of the internal values. Accordingly, it can be mutated
      * without mutating the Templates object, and then handed in to
      * {@link javax.xml.transform.Transformer#setOutputProperties}.
@@ -56,9 +55,7 @@ public interface Templates {
      * Value Templates</a> attribute values will
      * be returned unexpanded (since there is no context at this point).  The
      * namespace prefixes inside Attribute Value Templates will be unexpanded,
-     * so that they remain valid XPath values.  (For XSLT 1.0, this is not
-     * a problem since Attribute Value Templates are not allowed for xsl:output
-     * attributes.  However, the will be allowed in versions after 1.1.)</p>
+     * so that they remain valid XPath values.</p>
      *
      * @return A Properties object, never null.
      */

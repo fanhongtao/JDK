@@ -1,7 +1,7 @@
 /*
- * @(#)DragGestureRecognizer.java	1.18 03/01/23
+ * @(#)DragGestureRecognizer.java	1.20 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -55,7 +55,7 @@ import java.io.Serializable;
  * appropriate). 
  * <P>
  * @author Laurence P. G. Cable
- * @version 1.18
+ * @version 1.20
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragGestureEvent
  * @see java.awt.dnd.DragSource
@@ -442,5 +442,5 @@ public abstract class DragGestureRecognizer implements Serializable {
     *
     * @serial
     */
-   protected ArrayList events = new ArrayList(1);
+   protected ArrayList<InputEvent> events = new ArrayList<InputEvent>(1);
 }

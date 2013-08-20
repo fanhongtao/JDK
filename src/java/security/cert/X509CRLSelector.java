@@ -1,7 +1,7 @@
 /*
- * @(#)X509CRLSelector.java	1.11 03/01/23
+ * @(#)X509CRLSelector.java	1.16 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,11 +9,10 @@ package java.security.cert;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
+
 import javax.security.auth.x500.X500Principal;
+
 import sun.security.util.Debug;
 import sun.security.util.DerInputStream;
 import sun.security.x509.CRLNumberExtension;
@@ -29,7 +28,7 @@ import sun.security.x509.X500Name;
  * enabled and each of the <code>get</code> methods return a default
  * value (<code>null</code>). Therefore, the {@link #match match} method 
  * would return <code>true</code> for any <code>X509CRL</code>. Typically, 
- * several criteria are enabled (by calling {@link #setIssuerNames setIssuerNames} 
+ * several criteria are enabled (by calling {@link #setIssuers setIssuers} 
  * or {@link #setDateAndTime setDateAndTime}, for instance) and then the
  * <code>X509CRLSelector</code> is passed to
  * {@link CertStore#getCRLs CertStore.getCRLs} or some similar
@@ -49,7 +48,7 @@ import sun.security.x509.X500Name;
  * @see CRLSelector
  * @see X509CRL
  *
- * @version 	1.11 01/23/03
+ * @version 	1.16 07/16/04
  * @since	1.4
  * @author	Steve Hanna
  */
@@ -60,8 +59,8 @@ public class X509CRLSelector implements CRLSelector {
     }
 
     private static final Debug debug = Debug.getInstance("certpath");
-    private HashSet issuerNames;
-    private HashSet issuerX500Principals;
+    private HashSet<Object> issuerNames;
+    private HashSet<X500Principal> issuerX500Principals;
     private BigInteger minCRL;
     private BigInteger maxCRL;
     private Date dateAndTime;
@@ -74,6 +73,51 @@ public class X509CRLSelector implements CRLSelector {
     public X509CRLSelector() {}
 
     /**
+     * Sets the issuerNames criterion. The issuer distinguished name in the
+     * <code>X509CRL</code> must match at least one of the specified
+     * distinguished names. If <code>null</code>, any issuer distinguished name
+     * will do.
+     * <p>
+     * This method allows the caller to specify, with a single method call,
+     * the complete set of issuer names which <code>X509CRLs</code> may contain.
+     * The specified value replaces the previous value for the issuerNames
+     * criterion.
+     * <p>
+     * The <code>names</code> parameter (if not <code>null</code>) is a
+     * <code>Collection</code> of <code>X500Principal</code>s.
+     * <p>
+     * Note that the <code>names</code> parameter can contain duplicate
+     * distinguished names, but they may be removed from the 
+     * <code>Collection</code> of names returned by the
+     * {@link #getIssuers getIssuers} method.
+     * <p>
+     * Note that a copy is performed on the <code>Collection</code> to
+     * protect against subsequent modifications.
+     *
+     * @param issuers a <code>Collection</code> of X500Principals 
+     *   (or <code>null</code>)
+     * @see #getIssuers
+     * @since 1.5
+     */
+    public void setIssuers(Collection<X500Principal> issuers) {
+        if ((issuers == null) || issuers.isEmpty()) {
+            issuerNames = null;
+            issuerX500Principals = null;
+        } else {
+	    // clone
+	    issuerX500Principals = new HashSet(issuers);
+	    issuerNames = new HashSet<Object>();
+	    for (X500Principal p : issuerX500Principals) {
+		issuerNames.add(p.getEncoded());
+	    }
+        }
+    }
+
+    /**
+     * <strong>Note:</strong> use {@linkplain #setIssuers(Collection)} instead
+     * or only specify the byte array form of distinguished names when using
+     * this method. See {@link #addIssuerName(String)} for more information.
+     * <p>
      * Sets the issuerNames criterion. The issuer distinguished name in the
      * <code>X509CRL</code> must match at least one of the specified
      * distinguished names. If <code>null</code>, any issuer distinguished name
@@ -130,12 +174,12 @@ public class X509CRLSelector implements CRLSelector {
      * @throws IOException if a parsing error occurs
      * @see #getIssuerNames
      */
-    public void setIssuerNames(Collection names) throws IOException {
+    public void setIssuerNames(Collection<?> names) throws IOException {
         if (names == null || names.size() == 0) {
             issuerNames = null;
             issuerX500Principals = null;
         } else {
-            HashSet tempNames = cloneAndCheckIssuerNames(names);
+            HashSet<Object> tempNames = cloneAndCheckIssuerNames(names);
             // Ensure that we either set both of these or neither
             issuerX500Principals = parseIssuerNames(tempNames);
             issuerNames = tempNames;
@@ -152,11 +196,35 @@ public class X509CRLSelector implements CRLSelector {
      * any previous value for the issuerNames criterion.
      * If the specified name is a duplicate, it may be ignored.
      *
+     * @param issuer the issuer as X500Principal
+     * @since 1.5
+     */
+    public void addIssuer(X500Principal issuer) {
+	addIssuerNameInternal(issuer.getEncoded(), issuer);
+    }
+
+    /**
+     * <strong>Denigrated</strong>, use 
+     * {@linkplain #addIssuer(X500Principal)} or 
+     * {@linkplain #addIssuerName(byte[])} instead. This method should not be 
+     * relied on as it can fail to match some CRLs because of a loss of 
+     * encoding information in the RFC 2253 String form of some distinguished 
+     * names.
+     * <p>
+     * Adds a name to the issuerNames criterion. The issuer distinguished
+     * name in the <code>X509CRL</code> must match at least one of the specified
+     * distinguished names.
+     * <p>
+     * This method allows the caller to add a name to the set of issuer names
+     * which <code>X509CRLs</code> may contain. The specified name is added to
+     * any previous value for the issuerNames criterion.
+     * If the specified name is a duplicate, it may be ignored.
+     *
      * @param name the name in RFC 2253 form
      * @throws IOException if a parsing error occurs
      */
     public void addIssuerName(String name) throws IOException {
-        addIssuerNameInternal(name, new X500Name(name, "RFC2253").asX500Principal());
+        addIssuerNameInternal(name, new X500Name(name).asX500Principal());
     }
 
     /**
@@ -183,21 +251,11 @@ public class X509CRLSelector implements CRLSelector {
      * @param name a byte array containing the name in ASN.1 DER encoded form
      * @throws IOException if a parsing error occurs
      */
-    public void addIssuerName(byte [] name) throws IOException {
+    public void addIssuerName(byte[] name) throws IOException {
         // clone because byte arrays are modifiable
         addIssuerNameInternal(name.clone(), new X500Name(name).asX500Principal());
     }
     
-    // called from CertPathHelper, to be made public in a future release
-    void addIssuer(X500Principal issuer) {
-	addIssuerNameInternal(issuer.getName(), issuer);
-    }
-    
-    // called from CertPathHelper
-    Collection getIssuers() {
-	return issuerX500Principals;
-    }
-
     /**
      * A private method that adds a name (String or byte array) to the
      * issuerNames criterion. The issuer distinguished
@@ -210,10 +268,10 @@ public class X509CRLSelector implements CRLSelector {
      */
     private void addIssuerNameInternal(Object name, X500Principal principal) {
         if (issuerNames == null) {
-            issuerNames = new HashSet();
+            issuerNames = new HashSet<Object>();
 	}
         if (issuerX500Principals == null) {
-            issuerX500Principals = new HashSet();
+            issuerX500Principals = new HashSet<X500Principal>();
 	}
         issuerNames.add(name);
         issuerX500Principals.add(principal);
@@ -230,10 +288,10 @@ public class X509CRLSelector implements CRLSelector {
      * @return a deep copy of the specified <code>Collection</code>
      * @throws IOException if a parsing error occurs
      */
-    private static HashSet cloneAndCheckIssuerNames(Collection names)
+    private static HashSet<Object> cloneAndCheckIssuerNames(Collection<?> names)
         throws IOException 
     {
-        HashSet namesCopy = new HashSet();
+        HashSet<Object> namesCopy = new HashSet<Object>();
         Iterator i = names.iterator();
         while (i.hasNext()) {
             Object nameObject = i.next();
@@ -263,7 +321,7 @@ public class X509CRLSelector implements CRLSelector {
      * @return a deep copy of the specified <code>Collection</code>
      * @throws RuntimeException if a parsing error occurs
      */
-    private static HashSet cloneIssuerNames(Collection names) {
+    private static HashSet<Object> cloneIssuerNames(Collection<Object> names) {
         try {
             return cloneAndCheckIssuerNames(names);
         } catch (IOException ioe) {
@@ -283,13 +341,13 @@ public class X509CRLSelector implements CRLSelector {
      * @return a HashSet of issuerX500Principals
      * @throws IOException if a parsing error occurs
      */
-    private static HashSet parseIssuerNames(Collection names) 
+    private static HashSet<X500Principal> parseIssuerNames(Collection<Object> names) 
     throws IOException {
-        HashSet x500Principals = new HashSet();
+        HashSet<X500Principal> x500Principals = new HashSet<X500Principal>();
 	for (Iterator t = names.iterator(); t.hasNext(); ) {
 	    Object nameObject = t.next();
 	    if (nameObject instanceof String) {
-		x500Principals.add(new X500Name((String)nameObject, "RFC2253").asX500Principal());
+		x500Principals.add(new X500Name((String)nameObject).asX500Principal());
 	    } else {
 		try {
 		    x500Principals.add(new X500Principal((byte[])nameObject));
@@ -363,6 +421,27 @@ public class X509CRLSelector implements CRLSelector {
     }
 
     /**
+     * Returns the issuerNames criterion. The issuer distinguished
+     * name in the <code>X509CRL</code> must match at least one of the specified
+     * distinguished names. If the value returned is <code>null</code>, any
+     * issuer distinguished name will do.
+     * <p>
+     * If the value returned is not <code>null</code>, it is a
+     * unmodifiable <code>Collection</code> of <code>X500Principal</code>s.
+     *
+     * @return an unmodifiable <code>Collection</code> of names 
+     *   (or <code>null</code>)
+     * @see #setIssuers
+     * @since 1.5
+     */
+    public Collection<X500Principal> getIssuers() {
+	if (issuerX500Principals == null) {
+	    return null;
+	}
+	return Collections.unmodifiableCollection(issuerX500Principals);
+    }
+
+    /**
      * Returns a copy of the issuerNames criterion. The issuer distinguished
      * name in the <code>X509CRL</code> must match at least one of the specified
      * distinguished names. If the value returned is <code>null</code>, any
@@ -385,10 +464,11 @@ public class X509CRLSelector implements CRLSelector {
      * @return a <code>Collection</code> of names (or <code>null</code>)
      * @see #setIssuerNames
      */
-    public Collection getIssuerNames() {
-        if (issuerNames == null)
+    public Collection<Object> getIssuerNames() {
+        if (issuerNames == null) {
             return null;
-        return(cloneIssuerNames(issuerNames));
+	}
+        return cloneIssuerNames(issuerNames);
     }
 
     /**
@@ -581,10 +661,12 @@ public class X509CRLSelector implements CRLSelector {
      */
     public Object clone() {
         try {
-            Object copy = super.clone();
+            X509CRLSelector copy = (X509CRLSelector)super.clone();
             if (issuerNames != null) {
-                issuerNames = new HashSet(issuerNames);
-                issuerX500Principals = new HashSet(issuerX500Principals);
+                copy.issuerNames = 
+			new HashSet<Object>(issuerNames);
+                copy.issuerX500Principals = 
+			new HashSet<X500Principal>(issuerX500Principals);
             }
             return copy;
         } catch (CloneNotSupportedException e) {

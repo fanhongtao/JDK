@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)FileChooserDemo.java	1.26 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)FileChooserDemo.java	1.22 03/01/23
+ * @(#)FileChooserDemo.java	1.26 04/07/26
  */
 
 import javax.swing.*;
@@ -50,7 +51,7 @@ import java.beans.*;
  *
  * A demo which makes extensive use of the file chooser.
  *
- * 1.22 01/23/03
+ * 1.26 07/26/04
  * @author Jeff Dinkins
  */
 public class FileChooserDemo extends JPanel implements ActionListener {
@@ -75,6 +76,7 @@ public class FileChooserDemo extends JPanel implements ActionListener {
     JCheckBox accessoryCheckBox;
     JCheckBox setHiddenCheckBox;
     JCheckBox useControlsCheckBox;
+    JCheckBox enableDragCheckBox;
 
     JRadioButton singleSelectionRadioButton;
     JRadioButton multiSelectionRadioButton;
@@ -181,6 +183,9 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	useControlsCheckBox = new JCheckBox("Show Control Buttons");
 	useControlsCheckBox.addActionListener(optionListener);
 	useControlsCheckBox.setSelected(true);
+        
+        enableDragCheckBox = new JCheckBox("Enable Dragging");
+        enableDragCheckBox.addActionListener(optionListener);
 
 	// File or Directory chooser options
 	ButtonGroup group3 = new ButtonGroup();
@@ -298,6 +303,8 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	control3.add(accessoryCheckBox);
 	control3.add(Box.createRigidArea(vpad7));
 	control3.add(useControlsCheckBox);
+        control3.add(Box.createRigidArea(vpad7));
+        control3.add(enableDragCheckBox);
 	control3.add(Box.createRigidArea(vpad20));
 	control3.add(Box.createGlue());
 
@@ -363,6 +370,9 @@ public class FileChooserDemo extends JPanel implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
+        if (customButton.isSelected()) {
+            chooser.setApproveButtonText(customField.getText());    
+        }        
 	if (chooser.isMultiSelectionEnabled()) {
 	    chooser.setSelectedFiles(null);
 	} else {
@@ -419,14 +429,16 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 	    } else if (c == useControlsCheckBox) {
 		boolean showButtons = ((JCheckBox)c).isSelected();
 		chooser.setControlButtonsAreShown(showButtons);
+            } else if (c == enableDragCheckBox) {
+                boolean enableDrag = ((JCheckBox)c).isSelected();
+                chooser.setDragEnabled(enableDrag);
 	    } else if (c == saveRadioButton) {
 		chooser.setDialogType(JFileChooser.SAVE_DIALOG);
 		customField.setEnabled(false);
 		repaint();
 	    } else if (c == customButton || c == customField) {
 		customField.setEnabled(true);
-		chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
-		chooser.setApproveButtonText(customField.getText());
+		chooser.setDialogType(JFileChooser.CUSTOM_DIALOG);		
 		repaint();
             } else if (c == showAllFilesFilterCheckBox) {
                 chooser.setAcceptAllFileFilterUsed(((JCheckBox)c).isSelected());

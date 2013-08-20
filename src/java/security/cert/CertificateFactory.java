@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateFactory.java	1.24 03/01/23
+ * @(#)CertificateFactory.java	1.28 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,8 +16,9 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+
+import sun.security.jca.*;
+import sun.security.jca.GetInstance.Instance;
 
 /**
  * This class defines the functionality of a certificate factory, which is
@@ -75,7 +76,7 @@ import java.lang.reflect.InvocationTargetException;
  * @author Jan Luehe
  * @author Sean Mullan
  *
- * @version 1.24, 01/23/03
+ * @version 1.28, 05/05/04
  *
  * @see Certificate
  * @see X509Certificate
@@ -87,36 +88,6 @@ import java.lang.reflect.InvocationTargetException;
  */
 
 public class CertificateFactory {
-    // for use with the reflection API
-    private static final Class cl = java.security.Security.class;
-    private static final Class[] GET_IMPL_PARAMS = { String.class,
-						     String.class,
-						     String.class };
-    private static final Class[] GET_IMPL_PARAMS2 = { String.class,
-						      String.class,
-						      Provider.class };
-    // Get the implMethod via the name of a provider. Note: the name could
-    // be null. 
-    private static Method implMethod;
-    // Get the implMethod2 via a Provider object. 
-    private static Method implMethod2;
-    private static Boolean implMethod2Set = new Boolean(false);
-
-    static {
-	implMethod = (Method)
-	    AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
-		Method m = null;
-		try {
-		    m = cl.getDeclaredMethod("getImpl", GET_IMPL_PARAMS);
-		    if (m != null)
-			m.setAccessible(true);
-		} catch (NoSuchMethodException nsme) {
-		}
-		return m;
-	    }
-	});
-    }
 
     // The certificate type
     private String type;
@@ -165,33 +136,14 @@ public class CertificateFactory {
      * provider packages that were searched.
      */
     public static final CertificateFactory getInstance(String type)
-	throws CertificateException
-    {
+	    throws CertificateException {
 	try {
-	    if (implMethod == null) {
-		throw new CertificateException(type + " not found");
-	    }
-
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod.invoke(null,
-					       new Object[]
-					       { type,
-						 "CertificateFactory",
-						 null
-					       } );
-	    return new CertificateFactory((CertificateFactorySpi)objs[0],
-					  (Provider)objs[1], type);
-	} catch (IllegalAccessException iae) {
-	    CertificateException ce = new
-	               CertificateException(type + " not found");
-	    ce.initCause(iae);
-	    throw ce;
-	} catch (InvocationTargetException ite) {
-	    CertificateException ce = new
-	               CertificateException(type + " not found");
-	    ce.initCause(ite);
-	    throw ce;
+	    Instance instance = GetInstance.getInstance("CertificateFactory", 
+	    	CertificateFactorySpi.class, type);
+	    return new CertificateFactory((CertificateFactorySpi)instance.impl,
+	    	instance.provider, type);
+	} catch (NoSuchAlgorithmException e) {
+	    throw new CertificateException(type + " not found", e);
 	}
     }
 
@@ -213,39 +165,15 @@ public class CertificateFactory {
      * @see Provider
      */
     public static final CertificateFactory getInstance(String type,
-					  	       String provider)
-	throws CertificateException, NoSuchProviderException
-    {
-	if (provider == null || provider.length() == 0)
-	    throw new IllegalArgumentException("missing provider");
+	    String provider) throws CertificateException,
+	    NoSuchProviderException {
 	try {
-	    if (implMethod == null) {
-		throw new CertificateException(type + " not found");
-	    }
-
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod.invoke(null,
-					       new Object[]
-					       { type,
-						 "CertificateFactory",
-						 provider
-					       } );
-	    return new CertificateFactory((CertificateFactorySpi)objs[0],
-					  (Provider)objs[1], type);
-	} catch (IllegalAccessException iae) {
-	    CertificateException ce = new
-	               CertificateException(type + " not found");
-	    ce.initCause(iae);
-	    throw ce;
-	} catch (InvocationTargetException ite) {
-	    Throwable t = ite.getTargetException();
-	    if (t != null && t instanceof NoSuchProviderException)
-		throw (NoSuchProviderException)t;
-	    CertificateException ce = new 
-                CertificateException(type + " not found");
-	    ce.initCause(ite);
-	    throw ce;
+	    Instance instance = GetInstance.getInstance("CertificateFactory",
+	    	CertificateFactorySpi.class, type, provider);
+	    return new CertificateFactory((CertificateFactorySpi)instance.impl,
+	    	instance.provider, type);
+	} catch (NoSuchAlgorithmException e) {
+	    throw new CertificateException(type + " not found", e);
 	}
     }
 
@@ -270,60 +198,14 @@ public class CertificateFactory {
      * @since 1.4
      */
     public static final CertificateFactory getInstance(String type,
-                                                       Provider provider)
-        throws CertificateException
-    {
-	if (provider == null)
-	    throw new IllegalArgumentException("missing provider");
-
-	if (implMethod2Set.booleanValue() == false) {
-	    synchronized (implMethod2Set) {
-		if (implMethod2Set.booleanValue() == false) {
-		    implMethod2 = (Method)
-			AccessController.doPrivileged(
-					   new PrivilegedAction() {
-			    public Object run() {
-				Method m = null;
-				try {
-				    m = cl.getDeclaredMethod("getImpl",
-							     GET_IMPL_PARAMS2);
-				    if (m != null)
-					m.setAccessible(true);
-				} catch (NoSuchMethodException nsme) {
-				}
-				return m;
-			    }
-			});
-		    implMethod2Set = new Boolean(true);
-		}		
-	    }
-	}
-
-	if (implMethod2 == null) {
-	    throw new CertificateException(type + " not found");
-	}
-
+	    Provider provider) throws CertificateException {
 	try {
-	    // The underlying method is static, so we set the object
-	    // argument to null.
-	    Object[] objs = (Object[])implMethod2.invoke(null,
-					       new Object[]
-					       { type,
-						 "CertificateFactory",
-						 provider
-					       } );
-	    return new CertificateFactory((CertificateFactorySpi)objs[0],
-					  (Provider)objs[1], type);
-	} catch (IllegalAccessException iae) {
-	    CertificateException ce = new 
-                       CertificateException(type + " not found");
-	    ce.initCause(iae);
-	    throw ce;
-	} catch (InvocationTargetException ite) {
-	    CertificateException ce = new 
-                       CertificateException(type + " not found");
-	    ce.initCause(ite);
-	    throw ce;
+	    Instance instance = GetInstance.getInstance("CertificateFactory",
+	    	CertificateFactorySpi.class, type, provider);
+	    return new CertificateFactory((CertificateFactorySpi)instance.impl, 
+	    	instance.provider, type);
+	} catch (NoSuchAlgorithmException e) {
+	    throw new CertificateException(type + " not found", e);
 	}
     }    
 	    
@@ -405,7 +287,7 @@ public class CertificateFactory {
      *         <code>CertPath</code> encodings (as <code>String</code>s)
      * @since 1.4
      */
-    public final Iterator getCertPathEncodings() {
+    public final Iterator<String> getCertPathEncodings() {
         return(certFacSpi.engineGetCertPathEncodings());
     }
 
@@ -464,7 +346,8 @@ public class CertificateFactory {
      * @exception CertificateException if an exception occurs
      * @since 1.4
      */
-    public final CertPath generateCertPath(List certificates)
+    public final CertPath
+	generateCertPath(List<? extends Certificate> certificates)
         throws CertificateException
     {
         return(certFacSpi.engineGenerateCertPath(certificates));
@@ -505,9 +388,8 @@ public class CertificateFactory {
      *
      * @exception CertificateException on parsing errors.
      */
-    public final Collection generateCertificates(InputStream inStream)
-        throws CertificateException
-    {
+    public final Collection<? extends Certificate> generateCertificates
+	    (InputStream inStream) throws CertificateException {
 	return certFacSpi.engineGenerateCertificates(inStream);
     }
 
@@ -579,9 +461,8 @@ public class CertificateFactory {
      *
      * @exception CRLException on parsing errors.
      */
-    public final Collection generateCRLs(InputStream inStream)
-        throws CRLException
-    {
+    public final Collection<? extends CRL> generateCRLs(InputStream inStream)
+	    throws CRLException {
 	return certFacSpi.engineGenerateCRLs(inStream);
     }
 }

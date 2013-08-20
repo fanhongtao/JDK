@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceListener.java	1.18 03/01/23
+ * @(#)DragSourceListener.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,8 +16,16 @@ import java.util.EventListener;
  * provide appropriate &quot;drag over&quot; 
  * feedback to the user throughout the
  * Drag and Drop operation.
+ * <p>
+ * The drop site is <i>associated with the previous <code>dragEnter()</code>
+ * invocation</i> if the latest invocation of <code>dragEnter()</code> on this
+ * listener:
+ * <ul>
+ * <li>corresponds to that drop site and
+ * <li> is not followed by a <code>dragExit()</code> invocation on this listener.
+ * </ul>
  *
- * @version 	1.18, 01/23/03
+ * @version 	1.20, 12/19/03
  * @since 1.2
  */
 
@@ -77,7 +85,8 @@ public interface DragSourceListener extends EventListener {
      * </UL>
      * OR
      * <UL>
-     * <LI> The current drop site has rejected the drag.
+     * <LI> The drop site associated with the previous dragEnter() invocation
+     * has rejected the drag.
      * </UL>
      * 
      * @param dse the <code>DragSourceEvent</code>

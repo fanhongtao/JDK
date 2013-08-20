@@ -1,7 +1,7 @@
 /*
- * @(#)AccessControlException.java	1.11 03/01/23
+ * @(#)AccessControlException.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -18,13 +18,15 @@ package java.security;
  * security policy.  Such information should be given whenever
  * possible at the time the exception is thrown.
  *
- * @version 	1.11, 01/23/03
+ * @version 	1.13, 12/19/03
  * @author Li Gong
  * @author Roland Schemers
  */
 
 public class AccessControlException extends SecurityException {
 
+    private static final long serialVersionUID = 5138225684096988535L;
+ 
     // the permission that caused the exeception to be thrown.
     private Permission perm; 
 

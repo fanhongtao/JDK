@@ -1,7 +1,7 @@
 /*
- * @(#)JToolTip.java	1.45 03/01/23
+ * @(#)JToolTip.java	1.47 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,10 +25,6 @@ import java.io.IOException;
  * display can override <code>JComponent</code>'s <code>createToolTip</code>
  * method and use a subclass of this class.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JToolTip"><code>JToolTip</code> key assignments</a>.
- * <p>
  * See <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/tooltip.html">How to Use Tool Tips</a>
  * in <em>The Java Tutorial</em>
  * for further documentation.
@@ -44,7 +40,7 @@ import java.io.IOException;
  *
  * @see JComponent#setToolTipText
  * @see JComponent#createToolTip
- * @version 1.45 01/23/03
+ * @version 1.47 12/19/03
  * @author Dave Moore
  * @author Rich Shiavi
  */

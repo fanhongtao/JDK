@@ -1,7 +1,7 @@
 /*
- * @(#)InputContext.java	1.32 03/01/23
+ * @(#)InputContext.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ import sun.awt.im.InputMethodContext;
  *
  * @see java.awt.Component#getInputContext
  * @see java.awt.Component#enableInputMethods
- * @version 	1.32, 01/23/03
+ * @version 	1.34, 12/19/03
  * @author JavaSoft Asia/Pacific
  * @since 1.2
  */
@@ -181,6 +181,13 @@ public class InputContext {
      * whether it is enabled or not, and that an input method that is disabled
      * for composition may still interpret events for control purposes,
      * including to enable or disable itself for composition.
+     * <p>
+     * For input methods provided by host operating systems, it is not always possible to 
+     * determine whether this operation is supported. For example, an input method may enable
+     * composition only for some locales, and do nothing for other locales. For such input 
+     * methods, it is possible that this method does not throw 
+     * {@link java.lang.UnsupportedOperationException UnsupportedOperationException},
+     * but also does not affect whether composition is enabled.
      *
      * @param enable whether to enable the current input method for composition
      * @throws UnsupportedOperationException if there is no current input

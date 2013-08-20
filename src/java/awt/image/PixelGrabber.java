@@ -1,7 +1,7 @@
 /*
- * @(#)PixelGrabber.java	1.22 03/01/23
+ * @(#)PixelGrabber.java	1.25 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +51,7 @@ import java.awt.Image;
  *
  * @see ColorModel#getRGBdefault
  *
- * @version 	1.22, 01/23/03
+ * @version 	1.25, 07/16/04
  * @author 	Jim Graham
  */
 public class PixelGrabber implements ImageConsumer {
@@ -390,7 +390,7 @@ public class PixelGrabber implements ImageConsumer {
      * with retrieving the requested pixels.
      * @param props the list of properties
      */
-    public void setProperties(Hashtable props) {
+    public void setProperties(Hashtable<?,?> props) {
 	return;
     }
 

@@ -1,7 +1,7 @@
 /*
  * @(#)BeanContextSupport.java	1.46 03/01/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -298,6 +298,9 @@ public class      BeanContextSupport extends BeanContextChildSupport
      */
 
     protected class BCSChild implements Serializable {
+
+    private static final long serialVersionUID = -5815286101609939109L;
+
 	BCSChild(Object bcc, Object peer) {
 	    super();
 
@@ -698,7 +701,7 @@ public class      BeanContextSupport extends BeanContextChildSupport
      */
     public synchronized void setLocale(Locale newLocale) throws PropertyVetoException {
 
-	if ((locale != null && !locale.equals(newLocale)) || newLocale != null) {
+	if ((locale != null && !locale.equals(newLocale)) && newLocale != null) {
 	    Locale old = locale;
 
 	    fireVetoableChange("locale", old, newLocale); // throws

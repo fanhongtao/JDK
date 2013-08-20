@@ -1,12 +1,13 @@
 /*
- * @(#)MotifBorders.java	1.34 03/01/23
+ * @(#)MotifBorders.java	1.36 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
 
+import com.sun.java.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
@@ -33,7 +34,7 @@ import java.io.Serializable;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.34 01/23/03
+ * @version 1.36 12/19/03
  * @author Amy Fowler
  */
 public class MotifBorders { 
@@ -674,20 +675,22 @@ public class MotifBorders {
 	    
 	    Font origFont = g.getFont();
 	    Color origColor = g.getColor();
+            JPopupMenu popup = (JPopupMenu)c;
 
-	    String title = ((JPopupMenu)c).getLabel();
+	    String title = popup.getLabel();
 	    if (title == null) {
 		return;
 	    }
 
 	    g.setFont(font);
 	    
-	    FontMetrics fm = g.getFontMetrics();
+	    FontMetrics fm = SwingUtilities2.getFontMetrics(popup, g, font);
 	    int         fontHeight = fm.getHeight();
 	    int         descent = fm.getDescent();
 	    int         ascent = fm.getAscent();
 	    Point       textLoc = new Point();
-	    int         stringWidth = fm.stringWidth(title);
+	    int         stringWidth = SwingUtilities2.stringWidth(popup, fm,
+                                                                  title);
 	    
 	    textLoc.y = y + ascent + TEXT_SPACING;
 	    textLoc.x = x + ((width - stringWidth) / 2);
@@ -696,7 +699,7 @@ public class MotifBorders {
 	    g.fillRect(textLoc.x - TEXT_SPACING, textLoc.y - (fontHeight-descent),
 		       stringWidth + (2 * TEXT_SPACING), fontHeight - descent);
 	    g.setColor(foreground);
-	    g.drawString(title, textLoc.x, textLoc.y);
+	    SwingUtilities2.drawString(popup, g, title, textLoc.x, textLoc.y);
 	    
 	    MotifGraphicsUtils.drawGroove(g, x, textLoc.y + TEXT_SPACING, 
 					  width, GROOVE_HEIGHT,

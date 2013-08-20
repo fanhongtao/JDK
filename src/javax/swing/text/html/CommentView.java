@@ -1,7 +1,7 @@
 /*
- * @(#)CommentView.java	1.10 03/01/23
+ * @(#)CommentView.java	1.13 04/03/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -24,7 +24,7 @@ import java.util.*;
  * not editable, the textarea will not be visible.
  *
  * @author  Scott Violet
- * @version 1.10, 01/23/03
+ * @version 1.13, 03/05/04
  */
 class CommentView extends HiddenTagView {
     CommentView(Element e) {
@@ -32,6 +32,10 @@ class CommentView extends HiddenTagView {
     }
 
     protected Component createComponent() {
+        Container host = getContainer();
+        if (host != null && !((JTextComponent)host).isEditable()) {
+            return null;
+        }
 	JTextArea ta = new JTextArea(getRepresentedText());
 	Document doc = getDocument();
 	Font font;
@@ -45,6 +49,7 @@ class CommentView extends HiddenTagView {
 	updateYAlign(font);
 	ta.setBorder(CBorder);
 	ta.getDocument().addDocumentListener(this);
+	ta.setFocusable(isVisible());
 	return ta;
     }
 

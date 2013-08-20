@@ -1,7 +1,7 @@
 /*
- * @(#)PropertyEditorSupport.java	1.17 03/01/27
+ * @(#)PropertyEditorSupport.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,28 +18,57 @@ import java.beans.*;
 public class PropertyEditorSupport implements PropertyEditor {
 
     /**
-     * Constructor for use by derived PropertyEditor classes.
+     * Constructs a <code>PropertyEditorSupport</code> object.
+     * 
+     * @since 1.5
      */
-
-    protected PropertyEditorSupport() {
-	source = this;
+    public PropertyEditorSupport() {
+	setSource(this);
     }
 
     /**
-     * Constructor for use when a PropertyEditor is delegating to us.
+     * Constructs a <code>PropertyEditorSupport</code> object.
      *
-     * @param source  The source to use for any events we fire.
+     * @param source the source used for event firing
+     * @since 1.5
      */
-
-    protected PropertyEditorSupport(Object source) {
+    public PropertyEditorSupport(Object source) {
 	if (source == null) {
 	   throw new NullPointerException();
 	}
+	setSource(source);
+    }
+
+    /**
+     * Returns the bean that is used as the
+     * source of events. If the source has not
+     * been explicitly set then this instance of
+     * <code>PropertyEditorSupport</code> is returned.
+     *
+     * @return the source object or this instance
+     * @since 1.5
+     */
+    public Object getSource() {
+	return source;
+    }
+
+    /**
+     * Sets the source bean.
+     * <p>
+     * The source bean is used as the source of events
+     * for the property changes. This source should be used for information
+     * purposes only and should not be modified by the PropertyEditor.
+     *
+     * @param source source object to be used for events
+     * @since 1.5
+     */
+    public void setSource(Object source) {
 	this.source = source;
     }
 
     /**
      * Set (or change) the object that is to be edited.
+     *
      * @param value The new target object to be edited.  Note that this
      *     object should not be modified by the PropertyEditor, rather 
      *     the PropertyEditor should create a new object to hold any
@@ -55,7 +84,6 @@ public class PropertyEditorSupport implements PropertyEditor {
      *
      * @return The value of the property.
      */
-
     public Object getValue() {
 	return value;
     }

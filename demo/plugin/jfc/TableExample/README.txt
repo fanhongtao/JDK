@@ -2,12 +2,12 @@ The four examples in this directory show how to use some of the
 features of the JTable component.
 
 TableExample:
-   Uses a JTable to show data from an SQL query input on the command
-   line.
+   This application includes a GUI for configuring the
+   database connection and specifying the query.
 TableExample2:
-   Is like the previous example, but has a UI for configuring the
-   database connection and query.
- TableExample3:
+   The query and database connection are specified at the command
+   line.  The results are displayed in a JTable.
+TableExample3:
    Is a minimal example showing how to plug a generic sorter into the
    JTable.
 TableExample4:
@@ -36,7 +36,7 @@ For example:
 
   java -classpath $(JDBCHOME):TableExample.jar TableExample
 
-These instructions assume that the 1.4 version of the java
+These instructions assume that this installation's version of the java
 command is in your path.  If it isn't, then you should either
 specify the complete path to the java command or update your
 PATH environment variable as described in the installation

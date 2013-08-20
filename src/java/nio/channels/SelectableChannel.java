@@ -1,7 +1,7 @@
 /*
- * @(#)SelectableChannel.java	1.33 03/01/23
+ * @(#)SelectableChannel.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ import java.nio.channels.spi.SelectorProvider;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.33, 03/01/23
+ * @version 1.34, 03/12/19
  * @since 1.4
  *
  * @see SelectionKey

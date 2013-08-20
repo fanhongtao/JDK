@@ -1,10 +1,10 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)InterruptibleChannel.java	1.4 03/01/23
+ * @(#)InterruptibleChannel.java	1.5 03/12/19
  */
 
 package java.nio.channels;
@@ -40,7 +40,7 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.4, 03/01/23
+ * @version 1.5, 03/12/19
  * @since 1.4
  */
 

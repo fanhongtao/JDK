@@ -1,7 +1,7 @@
 /*
- * @(#)CallableStatement.java	1.44 03/01/23
+ * @(#)CallableStatement.java	1.47 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -235,6 +235,7 @@ public interface CallableStatement extends PreparedStatement {
      *             or <code>getBigDecimal(String parameterName)</code>
      * @see #setBigDecimal
      */
+    @Deprecated
     BigDecimal getBigDecimal(int parameterIndex, int scale)
 	throws SQLException;
 
@@ -348,7 +349,8 @@ public interface CallableStatement extends PreparedStatement {
      * @see #setObject
      * @since 1.2
      */
-    Object  getObject (int i, java.util.Map map) throws SQLException;
+    Object getObject(int i, java.util.Map<String,Class<?>> map)
+	throws SQLException;
 
     /**
      * Retrieves the value of the designated JDBC <code>REF(&lt;structured-type&gt;)</code>
@@ -1272,7 +1274,8 @@ public interface CallableStatement extends PreparedStatement {
      * @see #setObject
      * @since 1.4
      */
-    Object  getObject (String parameterName, java.util.Map map) throws SQLException;
+    Object getObject(String parameterName, java.util.Map<String,Class<?>> map)
+	throws SQLException;
 
     /**
      * Retrieves the value of a JDBC <code>REF(&lt;structured-type&gt;)</code>

@@ -1,7 +1,7 @@
 /*
- * @(#)RenderableImageOp.java	1.14 03/01/23
+ * @(#)RenderableImageOp.java	1.16 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ public class RenderableImageOp implements RenderableImage {
      *
      * @return a (possibly empty) Vector of RenderableImages, or null.
      */
-    public Vector getSources() {
+    public Vector<RenderableImage> getSources() {
         return getRenderableSources();
     }
 

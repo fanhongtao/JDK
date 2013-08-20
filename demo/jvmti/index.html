@@ -1,0 +1,295 @@
+<html>
+<head> <title>JVMTI Demonstration Code</title> </head>
+
+<!-- @(#)index.html	1.19 04/06/23 -->
+
+<h1>JVMTI Demonstration Code</h1>
+
+<p>
+The 
+Java<sup><font size=-2>TM</font></sup> Virtual Machine Tools Interface (JVMTI)
+is a native tool interface provided in v1.5.
+Native libraries that use JVMTI and are loaded into the 
+Java<sup><font size=-2>TM</font></sup> Virtual Machine
+via the -agentlib, -agentpath, or -Xrun (deprecated) interfaces, are
+called Agents.
+<p>
+<A HREF="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti">JVMTI</A>
+was designed to work with the
+Java<sup><font size=-2>TM</font></sup> Native Interface 
+(<A HREF="http://java.sun.com/j2se/1.5.0/docs/guide/jni">JNI</A>),
+and eventually displace the 
+Java<sup><font size=-2>TM</font></sup> Virtual Machine Debugging Interface 
+(<A HREF="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/jvmdi-spec.html">JVMDI</A>)
+and the 
+Java<sup><font size=-2>TM</font></sup> Virtual Machine Profiling Interface 
+(<A HREF="http://java.sun.com/j2se/1.5.0/docs/guide/jvmpi/index.html">JVMPI</A>).
+
+<p>
+We have tried to create a set of demonstration agents that should
+help demonstrate many of the features and abilities of the
+interface. This list of demonstration agents will change over time.
+They are provided as educational tools and as starting
+points for 
+Java<sup><font size=-2>TM</font></sup> tool development.
+
+
+<h2>Agents</h2>
+
+<ul>
+
+<li>
+<A HREF="versionCheck">versionCheck</A>
+<br>
+This is a extremely small agent that does nothing but check the
+version string supplied in the jvmti.h file, with the version
+number supplied by the VM at runtime.
+</li>
+
+<li>
+<A HREF="mtrace">mtrace</A>
+<br>
+This is a small agent that does method tracing.
+It uses Bytecode Instrumentation (BCI) via the java_crw_demo library.
+</li>
+
+<li>
+<A HREF="gctest">gctest</A>
+<br>
+This is a small agent that does garbage collection counting.
+</li>
+
+<li>
+<A HREF="heapViewer">heapViewer</A>
+<br>
+This is a small agent that does some basic heap inspections.
+</li>
+
+<li>
+<A HREF="heapTracker">heapTracker</A>
+<br>
+This is a small agent that does BCI to capture object creation
+and track them.
+It uses Bytecode Instrumentation (BCI) via the java_crw_demo library.
+</li>
+
+<li>
+<A HREF="waiters">waiters</A>
+<br>
+This is a small agent that gets information about threads
+waiting on monitors.
+</li>
+
+<li>
+<A HREF="hprof">hprof</A>
+<br>
+This is a large agent that does heap and cpu profiling.
+This demo agent is actually built into the 
+
+Java<sup><font size=-2>TM</font></sup> Runtime Environment (JRE).
+It uses Bytecode Instrumentation (BCI) via the java_crw_demo library.
+<br>
+<b>Note:</b> hprof is NOT a small or simple agent, the other smaller demos
+should be looked at first.
+</li>
+
+</ul>
+
+
+
+<h2>Agent Support</h2>
+
+<ul>
+
+<li>
+<A HREF="java_crw_demo">java_crw_demo</A>
+<br>
+This is a demo C library that does class file to class file
+transformations or BCI (Bytecode Instrumentation).
+It is used by several of the above agents.
+</li>
+
+
+</ul>
+
+
+
+<h2>Native Library Build Hints</h2>
+
+<p>
+All libraries loaded into java are assumed to be MT-safe (Multi-thread safe).
+This means that multiple threads could be executing the code at the same
+time, and static or global data may need to be placed in critical
+sections. See the Raw Monitor interfaces for more information.
+
+<p>
+All native libraries loaded into the 
+Java<sup><font size=-2>TM</font></sup> Virtual Machine,
+including Agent libraries,
+need to be compiled and built in a compatible way.
+Certain native compilation options or optimizations should be avoided,
+and some are required.
+More information on this options is available in the man pages for
+the various compilers.
+
+<ul>
+
+
+
+
+<li>
+On Solaris and using the Sun C/C++ Compilers 5.5 (Studio 8 Compiler Collection):
+<ul>
+
+<li>
+Required: On SPARC, -xarch=v8 or -xarch=v9
+<br>
+This is to be specific as to the sparc architecture.
+Be careful when using -xarch and some of the other compiler optimization
+options that target specific processors, you can easily limit the types 
+of machines the library will run on,
+e.g. using -xarch=v9b will limit you to UltraSPARC III capable processor.
+</li>
+
+<li>
+Required: -mt
+<br>
+This should be used for compiles and links, it makes sure the library is
+built properly to be a MT-safe library.
+</li>
+
+<li>
+Required: On SPARC, -xregs=no%appl.
+<br>
+Certain registers should not be used by system libraries.
+</li>
+
+<li>
+Recommended: No higher than -xO2 on optimization.
+<br>
+It is important that these libraries have frame pointer register usage.
+Optimizations above -xO2 can remove the use of frame pointer registers
+and cause problems when doing stack frame walking.
+</li>
+
+<li>
+Recommended: ldd -r <i>LibraryName</i>
+<br>
+After the shared library has been built, the utility
+'ldd' (or 'ldd -r') can be used to verify that all dependent libraries 
+have been satisfied, and all externs can be found.
+If 'ldd' says anything is missing, it is very likely that the JVM will
+be unable to load this library.
+</li>
+
+</ul>
+</li>
+
+
+
+<li>
+On Linux (Using the gcc version 3.2):
+<ul>
+
+<li>
+Required: -fno-omit-frame-pointer
+<br>
+It is important that these libraries have frame pointer register usage.
+</li>
+
+<li>
+Recommended: -fno-strict-aliasing
+<br>
+Avoid this pointer optimization.
+</li>
+
+<li>
+Required: -Wl,-soname=<i>LibraryName</i>
+<br>
+When building the shared library (-shared option), 
+this option makes sure the library name is stored inside the library.
+</li>
+
+<li>
+Required: -static-libgcc
+<br>
+When building the shared library (-shared option), this option
+allows for maximum portability of the library between different
+flavors of Linux. 
+</li>
+
+<li>
+Recommended: ldd -r <i>LibraryName</i>
+<br>
+Provides the same checking as Solaris (see above).
+</li>
+
+</ul>
+</li>
+
+
+
+<li>
+On Windows and using the Microsoft C++ Compiler:
+<ul>
+
+<li>
+Recommended: -Op.
+<br>
+Avoid optimizations that change floating point precision.
+</li>
+
+<li>
+Required: -Gy.
+<br>
+Allow for function level linking.
+</li>
+
+<li>
+Recommended: VC++ dumpbin/exports and VC++ "Dependency Walker"
+<br>
+Provides dependency information similar to ldd.
+</li>
+
+
+</ul>
+</li>
+
+
+
+
+</ul>
+
+
+
+
+<h2>For More Information</h2>
+
+<p>
+For more detailed information on JVMTI, refer to 
+<A HREF="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti">
+http://java.sun.com/j2se/1.5.0/docs/guide/jvmti.</A>
+ 
+<p>
+More information on using JNI and building native libraries refer to:
+<A HREF="http://java.sun.com/j2se/1.5.0/docs/guide/jni">
+http://java.sun.com/j2se/1.5.0/docs/guide/jni</A>.
+
+<p>
+Additional information can also be found by doing a search on "JVMTI" at
+<A HREF="http://java.sun.com/j2se">http://java.sun.com/j2se</A>.
+Various technical articles are also available through this website.
+And don't forget the 
+Java<sup><font size=-2>TM</font></sup> Tutorials at 
+<A HREF="http://java.sun.com/docs/books/tutorial">http://java.sun.com/docs/books/tutorial</A>
+for getting a quick start on all the various interfaces.
+
+<h2>Comments and Feedback</h2>
+
+<p>
+Comments regarding JVMTI or on any of these demonstrations should be
+sent through 
+<A HREF="http://java.sun.com/mail">http://java.sun.com/mail/</A>
+
+
+</html>

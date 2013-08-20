@@ -1,7 +1,7 @@
 /*
- * @(#)MetalIconFactory.java	1.54 03/01/23
+ * @(#)MetalIconFactory.java	1.60 04/02/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.Vector;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.54 01/23/03
+ * @version 1.60 02/15/04
  * @author Michael C. Albers
  */
 public class MetalIconFactory implements Serializable {
@@ -65,6 +65,10 @@ public class MetalIconFactory implements Serializable {
     private static Icon radioButtonMenuItemIcon;
     private static Icon checkBoxIcon;
 
+
+    // Ocean icons
+    private static Icon oceanHorizontalSliderThumb;
+    private static Icon oceanVerticalSliderThumb;
 
     // Constants
     public static final boolean DARK = false;
@@ -219,12 +223,25 @@ public class MetalIconFactory implements Serializable {
     }
 
     public static Icon getHorizontalSliderThumbIcon() {
+        if (MetalLookAndFeel.usingOcean()) {
+            if (oceanHorizontalSliderThumb == null) {
+                oceanHorizontalSliderThumb =
+                               new OceanHorizontalSliderThumbIcon();
+            }
+            return oceanHorizontalSliderThumb;
+        }
       // don't cache these, bumps don't get updated otherwise
 	return new HorizontalSliderThumbIcon();
     }
 
     public static Icon getVerticalSliderThumbIcon() {
-      // don't cache these, bumps don't get updated otherwise
+        if (MetalLookAndFeel.usingOcean()) {
+            if (oceanVerticalSliderThumb == null) {
+                oceanVerticalSliderThumb = new OceanVerticalSliderThumbIcon();
+            }
+            return oceanVerticalSliderThumb;
+        }
+        // don't cache these, bumps don't get updated otherwise
 	return new VerticalSliderThumbIcon();
     }
 
@@ -1011,13 +1028,54 @@ public class MetalIconFactory implements Serializable {
 	
 	protected int getControlSize() { return 13; }
 	
+	private void paintOceanIcon(Component c, Graphics g, int x, int y) {
+	    ButtonModel model = ((JCheckBox)c).getModel();
+
+            g.translate(x, y);
+            int w = getIconWidth();
+            int h = getIconHeight();
+	    if ( model.isEnabled() ) {
+		if (model.isPressed() && model.isArmed()) {
+                    g.setColor(MetalLookAndFeel.getControlShadow());
+                    g.fillRect(0, 0, w, h);
+                    g.setColor(MetalLookAndFeel.getControlDarkShadow());
+                    g.fillRect(0, 0, w, 2);
+                    g.fillRect(0, 2, 2, h - 2);
+                    g.fillRect(w - 1, 1, 1, h - 1);
+                    g.fillRect(1, h - 1, w - 2, 1);
+		} else if (model.isRollover()) {
+                    MetalUtils.drawGradient(c, g, "CheckBox.gradient", 0, 0,
+                                            w, h, true);
+                    g.setColor(MetalLookAndFeel.getControlDarkShadow());
+                    g.drawRect(0, 0, w - 1, h - 1);
+                    g.setColor(MetalLookAndFeel.getPrimaryControl());
+                    g.drawRect(1, 1, w - 3, h - 3);
+                    g.drawRect(2, 2, w - 5, h - 5);
+                }
+                else {
+                    MetalUtils.drawGradient(c, g, "CheckBox.gradient", 0, 0,
+                                            w, h, true);
+                    g.setColor(MetalLookAndFeel.getControlDarkShadow());
+                    g.drawRect(0, 0, w - 1, h - 1);
+		}
+		g.setColor( MetalLookAndFeel.getControlInfo() );
+	    } else {
+                g.setColor(MetalLookAndFeel.getControlDarkShadow());
+                g.drawRect(0, 0, w - 1, h - 1);
+	    }
+            g.translate(-x, -y);
+	    if (model.isSelected()) {
+		drawCheck(c,g,x,y);
+	    }
+	}
+
 	public void paintIcon(Component c, Graphics g, int x, int y) {
-	    
-	    JCheckBox cb = (JCheckBox)c;
-	    ButtonModel model = cb.getModel();
+	    if (MetalLookAndFeel.usingOcean()) {
+                paintOceanIcon(c, g, x, y);
+                return;
+            }
+	    ButtonModel model = ((JCheckBox)c).getModel();
 	    int controlSize = getControlSize();
-	    
-	    boolean drawCheck = model.isSelected();
 	    
 	    if ( model.isEnabled() ) {
 		if (model.isPressed() && model.isArmed()) {
@@ -1057,7 +1115,99 @@ public class MetalIconFactory implements Serializable {
 
     // Radio button code
     private static class RadioButtonIcon implements Icon, UIResource, Serializable {
+        public void paintOceanIcon(Component c, Graphics g, int x, int y) {
+	    ButtonModel model = ((JRadioButton)c).getModel();
+            boolean enabled = model.isEnabled();
+            boolean pressed = (enabled && model.isPressed() &&
+                               model.isArmed());
+            boolean rollover = (enabled && model.isRollover());
+
+	    g.translate(x, y);
+            if (enabled && !pressed) {
+                // PENDING: this isn't quite right, when we're sure it won't
+                // change it needs to be cleaned.
+                MetalUtils.drawGradient(c, g, "RadioButton.gradient",
+                                        1, 1, 10, 10, true);
+                g.setColor(c.getBackground());
+                g.fillRect(1, 1, 1, 1);
+                g.fillRect(10, 1, 1, 1);
+                g.fillRect(1, 10, 1, 1);
+                g.fillRect(10, 10, 1, 1);
+            }
+            else if (pressed || !enabled) {
+                if (pressed) {
+                    g.setColor(MetalLookAndFeel.getPrimaryControl());
+                }
+                else {
+                    g.setColor(MetalLookAndFeel.getControl());
+                }
+                g.fillRect(2, 2, 8, 8);
+                g.fillRect(4, 1, 4, 1);
+                g.fillRect(4, 10, 4, 1);
+                g.fillRect(1, 4, 1, 4);
+                g.fillRect(10, 4, 1, 4);
+            }
+
+	    // draw Dark Circle (start at top, go clockwise)
+	    if (!enabled) {
+                g.setColor(MetalLookAndFeel.getInactiveControlTextColor());
+	    }
+	    else {
+                g.setColor(MetalLookAndFeel.getControlDarkShadow());
+	    }
+	    g.drawLine( 4, 0,  7, 0);
+	    g.drawLine( 8, 1,  9, 1);
+	    g.drawLine(10, 2, 10, 3);
+	    g.drawLine(11, 4, 11, 7);
+	    g.drawLine(10, 8, 10, 9);
+	    g.drawLine( 9,10,  8,10);
+	    g.drawLine( 7,11,  4,11);
+	    g.drawLine( 3,10,  2,10);
+	    g.drawLine( 1, 9,  1, 8);
+	    g.drawLine( 0, 7,  0, 4);
+	    g.drawLine( 1, 3,  1, 2);
+	    g.drawLine( 2, 1,  3, 1);
+
+            if (pressed) {
+                g.fillRect(1, 4, 1, 4);
+                g.fillRect(2, 2, 1, 2);
+                g.fillRect(3, 2, 1, 1);
+                g.fillRect(4, 1, 4, 1);
+            }
+            else if (rollover) {
+                g.setColor(MetalLookAndFeel.getPrimaryControl());
+                g.fillRect(4, 1, 4, 2);
+                g.fillRect(8, 2, 2, 2);
+                g.fillRect(9, 4, 2, 4);
+                g.fillRect(8, 8, 2, 2);
+                g.fillRect(4, 9, 4, 2);
+                g.fillRect(2, 8, 2, 2);
+                g.fillRect(1, 4, 2, 4);
+                g.fillRect(2, 2, 2, 2);
+            }
+
+            // selected dot
+            if (model.isSelected()) {
+                if (enabled) {
+                    g.setColor(c.getForeground());
+                } else {
+                    g.setColor(MetalLookAndFeel.getControlDarkShadow());
+                }
+                g.fillRect(4, 4, 4, 4);
+                g.drawLine(4, 3, 7, 3);
+                g.drawLine(8, 4, 8, 7);
+                g.drawLine(7, 8, 4, 8);
+                g.drawLine(3, 7, 3, 4);
+            }
+
+	    g.translate(-x, -y);
+	}
+
         public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (MetalLookAndFeel.usingOcean()) {
+                paintOceanIcon(c, g, x, y);
+                return;
+            }
 	    JRadioButton rb = (JRadioButton)c;
 	    ButtonModel model = rb.getModel();
 	    boolean drawDot = model.isSelected();
@@ -1331,6 +1481,9 @@ public class MetalIconFactory implements Serializable {
      * cache that image with the GC for later retrieval.
      */
     static class ImageCacher {
+
+        // PENDING: Replace this class with CachedPainter.
+
 	Vector images = new Vector(1, 1);
 	ImageGcPair currentImageGcPair;
 
@@ -1773,8 +1926,72 @@ public class MetalIconFactory implements Serializable {
 
     private static class CheckBoxMenuItemIcon implements Icon, UIResource, Serializable
     {
+	public void paintOceanIcon(Component c, Graphics g, int x, int y) {
+	    ButtonModel model = ((JMenuItem)c).getModel();
+	    boolean isSelected = model.isSelected();
+	    boolean isEnabled = model.isEnabled();
+	    boolean isPressed = model.isPressed();
+	    boolean isArmed = model.isArmed();
+	    
+	    g.translate(x, y);
+            if (isEnabled) {
+                MetalUtils.drawGradient(c, g, "CheckBoxMenuItem.gradient",
+                                        1, 1, 7, 7, true);
+	        if (isPressed || isArmed) {
+		    g.setColor(MetalLookAndFeel.getControlInfo());
+		    g.drawLine( 0, 0, 8, 0 );
+		    g.drawLine( 0, 0, 0, 8 );
+		    g.drawLine( 8, 2, 8, 8 );
+		    g.drawLine( 2, 8, 8, 8 );
+
+		    g.setColor(MetalLookAndFeel.getPrimaryControl());
+		    g.drawLine( 9, 1, 9, 9 );
+		    g.drawLine( 1, 9, 9, 9 );
+		}
+		else {
+		    g.setColor(MetalLookAndFeel.getControlDarkShadow());
+		    g.drawLine( 0, 0, 8, 0 );
+		    g.drawLine( 0, 0, 0, 8 );
+		    g.drawLine( 8, 2, 8, 8 );
+		    g.drawLine( 2, 8, 8, 8 );
+
+		    g.setColor(MetalLookAndFeel.getControlHighlight());
+		    g.drawLine( 9, 1, 9, 9 );
+		    g.drawLine( 1, 9, 9, 9 );
+		}
+	    }
+	    else {
+	        g.setColor(MetalLookAndFeel.getMenuDisabledForeground());
+		g.drawRect( 0, 0, 8, 8 );
+	    }
+	    if (isSelected) {
+	        if (isEnabled) {
+		    if (isArmed || ( c instanceof JMenu && isSelected)) {
+		        g.setColor(
+                            MetalLookAndFeel.getMenuSelectedForeground() );
+		    }
+		    else {
+		        g.setColor(c.getForeground());
+		    }
+		}
+		else {
+		    g.setColor( MetalLookAndFeel.getMenuDisabledForeground());
+		}
+
+		g.drawLine( 2, 2, 2, 6 );
+		g.drawLine( 3, 2, 3, 6 );
+		g.drawLine( 4, 4, 8, 0 );
+		g.drawLine( 4, 5, 9, 0 );
+	    }
+	    g.translate( -x, -y );
+	}
+
 	public void paintIcon( Component c, Graphics g, int x, int y )
 	{
+            if (MetalLookAndFeel.usingOcean()) {
+                paintOceanIcon(c, g, x, y);
+                return;
+            }
 	    JMenuItem b = (JMenuItem) c;
 	    ButtonModel model = b.getModel();
 
@@ -1857,8 +2074,76 @@ public class MetalIconFactory implements Serializable {
 
     private static class RadioButtonMenuItemIcon implements Icon, UIResource, Serializable
     {
+	public void paintOceanIcon(Component c, Graphics g, int x, int y) {
+	    ButtonModel model = ((JMenuItem)c).getModel();
+	    boolean isSelected = model.isSelected();
+	    boolean isEnabled = model.isEnabled();
+	    boolean isPressed = model.isPressed();
+	    boolean isArmed = model.isArmed();
+	    
+	    g.translate( x, y );
+
+            if (isEnabled) {
+                MetalUtils.drawGradient(c, g, "RadioButtonMenuItem.gradient",
+                                        1, 1, 7, 7, true);
+	        if (isPressed || isArmed) {
+		    g.setColor(MetalLookAndFeel.getPrimaryControl());
+                }
+                else {
+		    g.setColor(MetalLookAndFeel.getControlHighlight());
+                }
+                g.drawLine( 2, 9, 7, 9 );
+                g.drawLine( 9, 2, 9, 7 );
+                g.drawLine( 8, 8, 8, 8 );
+
+                if (isPressed || isArmed) {
+		    g.setColor(MetalLookAndFeel.getControlInfo());
+                }
+                else {
+		    g.setColor(MetalLookAndFeel.getControlDarkShadow());
+                }
+            }
+            else {
+	        g.setColor( MetalLookAndFeel.getMenuDisabledForeground()  );
+            }
+            g.drawLine( 2, 0, 6, 0 );
+            g.drawLine( 2, 8, 6, 8 );
+            g.drawLine( 0, 2, 0, 6 );
+            g.drawLine( 8, 2, 8, 6 );
+            g.drawLine( 1, 1, 1, 1 );
+            g.drawLine( 7, 1, 7, 1 );
+            g.drawLine( 1, 7, 1, 7 );
+            g.drawLine( 7, 7, 7, 7 );
+
+	    if (isSelected) {
+	        if (isEnabled) {
+		    if (isArmed || (c instanceof JMenu && model.isSelected())){
+		        g.setColor(MetalLookAndFeel.
+                                   getMenuSelectedForeground() );
+		    }
+		    else {
+		        g.setColor(c.getForeground());
+		    }
+		}
+		else {
+		    g.setColor(MetalLookAndFeel.getMenuDisabledForeground());
+		}
+		g.drawLine( 3, 2, 5, 2 );
+		g.drawLine( 2, 3, 6, 3 );
+		g.drawLine( 2, 4, 6, 4 );
+		g.drawLine( 2, 5, 6, 5 );
+		g.drawLine( 3, 6, 5, 6 );
+	    }
+
+	    g.translate( -x, -y );
+	}
+
 	public void paintIcon( Component c, Graphics g, int x, int y )
 	{
+            if (MetalLookAndFeel.usingOcean()) {
+                paintOceanIcon(c, g, x, y);
+                return;
+            }
 	    JMenuItem b = (JMenuItem) c;
 	    ButtonModel model = b.getModel();
 
@@ -2151,4 +2436,206 @@ private static class HorizontalSliderThumbIcon implements Icon, Serializable, UI
     }
 }
 
+    private static class OceanVerticalSliderThumbIcon extends CachedPainter
+                              implements Icon, Serializable, UIResource {
+        // Used for clipping when the orientation is left to right
+        private static Polygon LTR_THUMB_SHAPE;
+        // Used for clipping when the orientation is right to left
+        private static Polygon RTL_THUMB_SHAPE;
+
+        static {
+            LTR_THUMB_SHAPE = new Polygon(new int[] { 0,  8, 15,  8,  0},
+                                          new int[] { 0,  0,  7, 14, 14 }, 5);
+            RTL_THUMB_SHAPE = new Polygon(new int[] { 15, 15,  7,  0,  7},
+                                          new int[] {  0, 14, 14,  7,  0}, 5);
+        }
+
+        OceanVerticalSliderThumbIcon() {
+            super(3);
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (!(g instanceof Graphics2D)) {
+                return;
+            }
+            paint(c, g, x, y, getIconWidth(), getIconHeight(),
+                  MetalUtils.isLeftToRight(c), c.hasFocus(), c.isEnabled(),
+                  MetalLookAndFeel.getCurrentTheme());
+        }
+
+        protected void paintToImage(Component c, Graphics g2,
+                                    int w, int h, Object[] args) {
+            Graphics2D g = (Graphics2D)g2;
+            boolean leftToRight = ((Boolean)args[0]).booleanValue();
+            boolean hasFocus = ((Boolean)args[1]).booleanValue();
+            boolean enabled = ((Boolean)args[2]).booleanValue();
+
+            Rectangle clip = g.getClipBounds();
+            if (leftToRight) {
+                g.clip(LTR_THUMB_SHAPE);
+            }
+            else {
+                g.clip(RTL_THUMB_SHAPE);
+            }
+            if (!enabled) {
+                g.setColor(MetalLookAndFeel.getControl());
+                g.fillRect(1, 1, 14, 14);
+            }
+            else if (hasFocus) {
+                MetalUtils.drawGradient(c, g, "Slider.focusGradient",
+                                        1, 1, 14, 14, false);
+            }
+            else {
+                MetalUtils.drawGradient(c, g, "Slider.gradient",
+                                        1, 1, 14, 14, false);
+            }
+            g.setClip(clip);
+
+            // Draw the frame
+            if (hasFocus) {
+                g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
+            }
+            else {
+                g.setColor(enabled ? MetalLookAndFeel.getPrimaryControlInfo() :
+                           MetalLookAndFeel.getControlDarkShadow());
+            }
+
+            if (leftToRight) {
+                g.drawLine(  1,0  ,  8,0  ); // top
+                g.drawLine(  0,1  ,  0,13 ); // left
+                g.drawLine(  1,14 ,  8,14 ); // bottom
+                g.drawLine(  9,1  , 15,7  ); // top slant
+                g.drawLine(  9,13 , 15,7  ); // bottom slant
+            }
+            else {
+                g.drawLine(  7,0  , 14,0  ); // top
+                g.drawLine( 15,1  , 15,13 ); // right
+                g.drawLine(  7,14 , 14,14 ); // bottom
+                g.drawLine(  0,7  ,  6,1  ); // top slant
+                g.drawLine(  0,7  ,  6,13 ); // bottom slant
+            }
+
+            if (hasFocus && enabled) {
+                // Inner line.
+                g.setColor(MetalLookAndFeel.getPrimaryControl());
+                if (leftToRight) {
+                    g.drawLine(  1,1  ,  8,1  ); // top
+                    g.drawLine(  1,1  ,  1,13 ); // left
+                    g.drawLine(  1,13 ,  8,13 ); // bottom
+                    g.drawLine(  9,2  , 14,7  ); // top slant
+                    g.drawLine(  9,12 , 14,7  ); // bottom slant
+                }
+                else {
+                    g.drawLine(  7,1  , 14,1  ); // top
+                    g.drawLine( 14,1  , 14,13 ); // right
+                    g.drawLine(  7,13 , 14,13 ); // bottom
+                    g.drawLine(  1,7  ,  7,1  ); // top slant
+                    g.drawLine(  1,7  ,  7,13 ); // bottom slant
+                }
+            }
+        }
+
+        public int getIconWidth() {
+            return 16;
+        }
+
+        public int getIconHeight() {
+            return 15;
+        }
+
+        protected Image createImage(Component c, int w, int h,
+                                    GraphicsConfiguration config) {
+            return config.createCompatibleImage(
+                                w, h, Transparency.BITMASK);
+        }
+    }
+
+
+    private static class OceanHorizontalSliderThumbIcon extends CachedPainter
+                              implements Icon, Serializable, UIResource {
+        // Used for clipping
+        private static Polygon THUMB_SHAPE;
+
+        static {
+            THUMB_SHAPE = new Polygon(new int[] { 0, 14, 14,  7,  0 },
+                                      new int[] { 0,  0,  8, 15,  8 }, 5);
+        }
+
+        OceanHorizontalSliderThumbIcon() {
+            super(3);
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (!(g instanceof Graphics2D)) {
+                return;
+            }
+            paint(c, g, x, y, getIconWidth(), getIconHeight(), 
+                  c.hasFocus(), c.isEnabled(),
+                  MetalLookAndFeel.getCurrentTheme());
+        }
+
+
+        protected Image createImage(Component c, int w, int h,
+                                    GraphicsConfiguration config) {
+            return config.createCompatibleImage(
+                                w, h, Transparency.BITMASK);
+        }
+
+        protected void paintToImage(Component c, Graphics g2,
+                                    int w, int h, Object[] args) {
+            Graphics2D g = (Graphics2D)g2;
+            boolean hasFocus = ((Boolean)args[0]).booleanValue();
+            boolean enabled = ((Boolean)args[1]).booleanValue();
+
+            // Fill in the background
+            Rectangle clip = g.getClipBounds();
+            g.clip(THUMB_SHAPE);
+            if (!enabled) {
+                g.setColor(MetalLookAndFeel.getControl());
+                g.fillRect(1, 1, 13, 14);
+            }
+            else if (hasFocus) {
+                MetalUtils.drawGradient(c, g, "Slider.focusGradient",
+                                        1, 1, 13, 14, true);
+            }
+            else {
+                MetalUtils.drawGradient(c, g, "Slider.gradient",
+                                        1, 1, 13, 14, true);
+            }
+            g.setClip(clip);
+
+            // Draw the frame
+            if (hasFocus) {
+                g.setColor(MetalLookAndFeel.getPrimaryControlDarkShadow());
+            }
+            else {
+                g.setColor(enabled ? MetalLookAndFeel.getPrimaryControlInfo() :
+                           MetalLookAndFeel.getControlDarkShadow());
+            }
+
+            g.drawLine(  1,0  , 13,0 );  // top
+            g.drawLine(  0,1  ,  0,8 );  // left
+            g.drawLine( 14,1  , 14,8 );  // right
+            g.drawLine(  1,9  ,  7,15 ); // left slant
+            g.drawLine(  7,15 , 14,8 );  // right slant
+
+            if (hasFocus && enabled) {
+                // Inner line.
+                g.setColor(MetalLookAndFeel.getPrimaryControl());
+                g.fillRect(1, 1, 13, 1);
+                g.fillRect(1, 2, 1, 7);
+                g.fillRect(13, 2, 1, 7);
+                g.drawLine(2, 9, 7, 14);
+                g.drawLine(8, 13, 12, 9);
+            }
+        }
+
+        public int getIconWidth() {
+            return 15;
+        }
+
+        public int getIconHeight() {
+            return 16;
+        }
+    }
 }

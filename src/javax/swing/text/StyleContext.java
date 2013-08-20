@@ -1,7 +1,7 @@
 /*
- * @(#)StyleContext.java	1.74 03/01/23
+ * @(#)StyleContext.java	1.78 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -16,6 +16,8 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.ChangeEvent;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
+
+import sun.font.FontManager;
 
 /**
  * A pool of styles and their associated resources.  This class determines
@@ -41,7 +43,7 @@ import java.util.WeakHashMap;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.74 01/23/03
+ * @version 1.78 05/05/04
  */
 public class StyleContext implements Serializable, AbstractDocument.AttributeContext {
 
@@ -117,7 +119,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      *
      * @return the list of names as an enumeration
      */
-    public Enumeration getStyleNames() {
+    public Enumeration<?> getStyleNames() {
         return styles.getAttributeNames();
     }
 
@@ -231,6 +233,9 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
         if (f == null) {
             // haven't seen this one yet.
             f = new Font(family, style, size);
+            if (! FontManager.fontSupportsDefaultEncoding(f)) {
+                f = FontManager.getCompositeFontUIResource(f);
+            }
             FontKey key = new FontKey(family, style, size);
             fontTable.put(key, f);
         }
@@ -350,7 +355,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
      * @return the updated attribute set
      * @see MutableAttributeSet#removeAttributes
      */
-    public synchronized AttributeSet removeAttributes(AttributeSet old, Enumeration names) {
+    public synchronized AttributeSet removeAttributes(AttributeSet old, Enumeration<?> names) {
         if (old.getAttributeCount() <= getCompressionThreshold()) {
             // build a search key and find/create an immutable and unique
             // set.
@@ -570,10 +575,10 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
                 out.writeObject(ioFmt);
             }
             Object value = a.getAttribute(key);
+            Object ioFmt = freezeKeyMap.get(value);
             if (value instanceof Serializable) {
-                out.writeObject(value);
+                out.writeObject((ioFmt != null) ? ioFmt : value);
             } else {
-                Object ioFmt = freezeKeyMap.get(value);
 		if (ioFmt == null) {
 		    throw new NotSerializableException(value.getClass().
 			         getName() + " is not serializable as a value in an AttributeSet");
@@ -911,7 +916,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * @return the attribute names
          * @see AttributeSet#getAttributeNames
          */
-        public Enumeration getAttributeNames() {
+        public Enumeration<?> getAttributeNames() {
             return new KeyEnumeration(attributes);
         }
 
@@ -968,7 +973,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
     /**
      * An enumeration of the keys in a SmallAttributeSet.
      */
-    class KeyEnumeration implements Enumeration {
+    class KeyEnumeration implements Enumeration<Object> {
 
         KeyEnumeration(Object[] attr) {
             this.attr = attr;
@@ -1344,7 +1349,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
 	 * 
 	 * @since 1.3
 	 */
-	public EventListener[] getListeners(Class listenerType) { 
+	public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	    return listenerList.getListeners(listenerType); 
 	}
         
@@ -1412,7 +1417,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * @return the attribute names as an enumeration
          * @see AttributeSet#getAttributeNames
          */
-        public Enumeration getAttributeNames() {
+        public Enumeration<?> getAttributeNames() {
             return attributes.getAttributeNames();
         }
 
@@ -1499,7 +1504,7 @@ public class StyleContext implements Serializable, AbstractDocument.AttributeCon
          * @param names the attribute names
          * @see MutableAttributeSet#removeAttributes
          */
-        public void removeAttributes(Enumeration names) {
+        public void removeAttributes(Enumeration<?> names) {
             StyleContext context = StyleContext.this;
             attributes = context.removeAttributes(attributes, names);
             fireStateChanged();

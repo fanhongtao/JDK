@@ -1,5 +1,5 @@
 /*
- * @(#)JTable.java	1.210 04/05/06
+ * @(#)JTable.java	1.238 04/06/28
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,7 @@ import java.util.*;
 import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.*;
 
 import java.beans.*;
 
@@ -29,6 +30,9 @@ import javax.swing.border.*;
 
 import java.text.NumberFormat;
 import java.text.DateFormat;
+import java.text.MessageFormat;
+
+import javax.print.attribute.*;
 
 /**
  * The <code>JTable</code> is used to display and edit regular two-dimensional tables
@@ -99,14 +103,15 @@ import java.text.DateFormat;
  * use of exactly this technique to interpose yet another coordinate system
  * where the order of the rows is changed, rather than the order of the columns.
  * <p>
+ * J2SE 5 adds methods to <code>JTable</code> to provide convenient access to some
+ * common printing needs. Simple new {@link #print()} methods allow for quick
+ * and easy addition of printing support to your application. In addition, a new
+ * {@link #getPrintable} method is available for more advanced printing needs.
+ * <p>
  * As for all <code>JComponent</code> classes, you can use
  * {@link InputMap} and {@link ActionMap} to associate an
  * {@link Action} object with a {@link KeyStroke} and execute the
  * action under specified conditions.
- * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JTable"><code>JTable</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -122,8 +127,9 @@ import java.text.DateFormat;
  *   attribute: isContainer false
  * description: A component which displays data in a two dimensional grid.
  *
- * @version 1.210 05/06/04
+ * @version 1.238 06/28/04
  * @author Philip Milne
+ * @author Shannon Hickey (printing support)
  */
 /* The first versions of the JTable, contained in Swing-0.1 through
  * Swing-0.4, were written by Alan Chung.
@@ -157,6 +163,31 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
     /** During all resize operations, proportionately resize all columns. */
     public static final int     AUTO_RESIZE_ALL_COLUMNS = 4;
+
+
+    /**
+     * Printing modes, used in printing <code>JTable</code>s.
+     *
+     * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
+     *             boolean, PrintRequestAttributeSet, boolean)
+     * @see #getPrintable
+     * @since 1.5
+     */
+    public enum PrintMode {
+
+        /**
+         * Printing mode that prints the table at its current size,
+         * spreading both columns and rows across multiple pages if necessary.
+         */
+        NORMAL,
+        
+        /**
+         * Printing mode that scales the output smaller, if necessary,
+         * to fit the table's entire width (and thereby all columns) on each page;
+         * Rows are spread across multiple pages as necessary.
+         */
+        FIT_WIDTH
+    }
 
 
 //
@@ -277,6 +308,23 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * valueChanged notification. Used to test if a repaint is needed.
      */
     private boolean rowSelectionAdjusting;
+
+    /**
+     * A flag to indicate whether or not the table is currently being printed.
+     * Used by print() and prepareRenderer() to disable indication of the
+     * selection and focused cell while printing.
+     */
+    private boolean isPrinting = false;
+
+    /**
+     * To communicate errors between threads during printing.
+     */
+    private Throwable printError;
+
+    /**
+     * True when setRowHeight(int) has been invoked.
+     */
+    private boolean isRowHeightSet;
 
 //
 // Constructors
@@ -518,6 +566,17 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         }
     }
 
+    void setUIProperty(String propertyName, Object value) {
+        if (propertyName == "rowHeight") {
+            if (!isRowHeightSet) {
+                setRowHeight(((Number)value).intValue());
+                isRowHeightSet = false;
+            }
+            return;
+        }
+        super.setUIProperty(propertyName, value);
+    }
+
 //
 // Static Methods
 //
@@ -528,6 +587,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @deprecated As of Swing version 1.0.2,
      * replaced by <code>new JScrollPane(aTable)</code>.
      */
+    @Deprecated
     static public JScrollPane createScrollPaneForTable(JTable aTable) {
         return new JScrollPane(aTable);
     }
@@ -592,6 +652,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	int old = this.rowHeight;
         this.rowHeight = rowHeight;
 	rowModel = null;
+        isRowHeightSet = true;
         resizeAndRepaint();
 	firePropertyChange("rowHeight", old, rowHeight);
     }
@@ -951,7 +1012,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see     #getDefaultRenderer
      * @see     #setDefaultEditor
      */
-    public void setDefaultRenderer(Class columnClass, TableCellRenderer renderer) {
+    public void setDefaultRenderer(Class<?> columnClass, TableCellRenderer renderer) {
 	if (renderer != null) {
 	    defaultRenderersByColumnClass.put(columnClass, renderer);
 	}
@@ -975,7 +1036,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see     #setDefaultRenderer
      * @see     #getColumnClass
      */
-    public TableCellRenderer getDefaultRenderer(Class columnClass) {
+    public TableCellRenderer getDefaultRenderer(Class<?> columnClass) {
         if (columnClass == null) {
             return null;
         }
@@ -1005,7 +1066,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see     #getDefaultEditor
      * @see     #setDefaultRenderer
      */
-    public void setDefaultEditor(Class columnClass, TableCellEditor editor) {
+    public void setDefaultEditor(Class<?> columnClass, TableCellEditor editor) {
         if (editor != null) {
 	    defaultEditorsByColumnClass.put(columnClass, editor);
 	}
@@ -1028,7 +1089,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @see     #setDefaultEditor
      * @see     #getColumnClass
      */
-    public TableCellEditor getDefaultEditor(Class columnClass) {
+    public TableCellEditor getDefaultEditor(Class<?> columnClass) {
         if (columnClass == null) {
             return null;
         }
@@ -1249,8 +1310,27 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             removeEditor();
         }
 	if (getRowCount() > 0 && getColumnCount() > 0) {
-	    setRowSelectionInterval(0, getRowCount()-1);
-	    setColumnSelectionInterval(0, getColumnCount()-1);
+            int oldLead;
+            int oldAnchor;
+            ListSelectionModel selModel;
+
+            selModel = selectionModel;
+            selModel.setValueIsAdjusting(true);
+            oldLead = selModel.getLeadSelectionIndex();
+            oldAnchor = selModel.getAnchorSelectionIndex();
+            setRowSelectionInterval(0, getRowCount()-1);
+            // this is done only to restore the anchor and lead
+            selModel.addSelectionInterval(oldAnchor, oldLead);
+            selModel.setValueIsAdjusting(false);
+
+            selModel = columnModel.getSelectionModel();
+            selModel.setValueIsAdjusting(true);
+            oldLead = selModel.getLeadSelectionIndex();
+            oldAnchor = selModel.getAnchorSelectionIndex();
+            setColumnSelectionInterval(0, getColumnCount()-1);
+            // this is done only to restore the anchor and lead
+            selModel.addSelectionInterval(oldAnchor, oldLead);
+            selModel.setValueIsAdjusting(false);        
 	}
     }
 
@@ -1258,8 +1338,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Deselects all selected columns and rows.
      */
     public void clearSelection() {
-        columnModel.getSelectionModel().clearSelection();
         selectionModel.clearSelection();
+        columnModel.getSelectionModel().clearSelection();
     }
 
     private int boundRow(int row) throws IllegalArgumentException {
@@ -1440,39 +1520,37 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
     /**
-     * Returns true if the row at the specified index is selected.
+     * Returns true if the specified index is in the valid range of rows,
+     * and the row at that index is selected.
      *
-     * @return true if the row at index <code>row</code> is selected, where 0 is the
-     *              first row
-     * @exception IllegalArgumentException      if <code>row</code> is not in the
-     *                                          valid range
+     * @return true if <code>row</code> is a valid index and the row at
+     *              that index is selected (where 0 is the first row)
      */
     public boolean isRowSelected(int row) {
 	return selectionModel.isSelectedIndex(row);
     }
 
     /**
-     * Returns true if the column at the specified index is selected.
+     * Returns true if the specified index is in the valid range of columns,
+     * and the column at that index is selected.
      *
      * @param   column   the column in the column model
-     * @return true if the column at index <code>column</code> is selected, where
-     *              0 is the first column
-     * @exception IllegalArgumentException      if <code>column</code> is not in the
-     *                                          valid range
+     * @return true if <code>column</code> is a valid index and the column at
+     *              that index is selected (where 0 is the first column)
      */
     public boolean isColumnSelected(int column) {
         return columnModel.getSelectionModel().isSelectedIndex(column);
     }
 
     /**
-     * Returns true if the cell at the specified position is selected.
+     * Returns true if the specified indices are in the valid range of rows
+     * and columns and the cell at the specified position is selected.
      * @param row   the row being queried
      * @param column  the column being queried
      *
-     * @return true if the cell at index <code>(row, column)</code> is selected,
+     * @return true if <code>row</code> and <code>column</code> are valid indices
+     *              and the cell at index <code>(row, column)</code> is selected,
      *              where the first row and first column are at index 0
-     * @exception IllegalArgumentException      if <code>row</code> or <code>column</code>
-     *                                          are not in the valid range
      */
     public boolean isCellSelected(int row, int column) {
 	if (!getRowSelectionAllowed() && !getColumnSelectionAllowed()) {
@@ -1489,7 +1567,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 		sm.setAnchorSelectionIndex(index);
 	    }
 	    else {
-		sm.setLeadSelectionIndex(index);
+		sm.setSelectionInterval(sm.getAnchorSelectionIndex(), index);
 	    }
         }
 	else {
@@ -1509,17 +1587,20 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
     /**
      * Updates the selection models of the table, depending on the state of the
-     * two flags: <code>toggle</code> and <code>extend</code>. All changes
+     * two flags: <code>toggle</code> and <code>extend</code>. Most changes
      * to the selection that are the result of keyboard or mouse events received
      * by the UI are channeled through this method so that the behavior may be
-     * overridden by a subclass.
+     * overridden by a subclass. Some UIs may need more functionality than
+     * this method provides, such as when manipulating the lead for discontiguous
+     * selection, and may not call into this method for some selection changes.
      * <p>
      * This implementation uses the following conventions:
      * <ul>
      * <li> <code>toggle</code>: <em>false</em>, <code>extend</code>: <em>false</em>.
      *      Clear the previous selection and ensure the new cell is selected.
      * <li> <code>toggle</code>: <em>false</em>, <code>extend</code>: <em>true</em>.
-     *      Extend the previous selection to include the specified cell.
+     *      Extend the previous selection from the anchor to the specified cell,
+     *      clearing all other selections.
      * <li> <code>toggle</code>: <em>true</em>, <code>extend</code>: <em>false</em>.
      *      If the specified cell is selected, deselect it. If it is not selected, select it.
      * <li> <code>toggle</code>: <em>true</em>, <code>extend</code>: <em>true</em>.
@@ -1748,7 +1829,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * @return the type of the column at position <code>column</code>
      * 		in the view where the first column is column 0
      */
-    public Class getColumnClass(int column) {
+    public Class<?> getColumnClass(int column) {
         return getModel().getColumnClass(convertColumnIndexToModel(column));
     }
 
@@ -2176,13 +2257,37 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             setWidthsFromPreferredWidths(false);
 	}
         else {
+            // JTable behaves like a layout manger - but one in which the
+            // user can come along and dictate how big one of the children
+            // (columns) is supposed to be.
+
+            // A column has been resized and JTable may need to distribute
+            // any overall delta to other columns, according to the resize mode.
 	    int columnIndex = viewIndexForColumn(resizingColumn);
 	    int delta = getWidth() - getColumnModel().getTotalColumnWidth();
 	    accommodateDelta(columnIndex, delta);
 	    delta = getWidth() - getColumnModel().getTotalColumnWidth();
+            
+            // If the delta cannot be completely accomodated, then the
+            // resizing column will have to take any remainder. This means
+            // that the column is not being allowed to take the requested
+            // width. This happens under many circumstances: For example,
+            // AUTO_RESIZE_NEXT_COLUMN specifies that any delta be distributed
+            // to the column after the resizing column. If one were to attempt
+            // to resize the last column of the table, there would be no
+            // columns after it, and hence nowhere to distribute the delta.
+            // It would then be given entirely back to the resizing column,
+            // preventing it from changing size.
 	    if (delta != 0) {
 		resizingColumn.setWidth(resizingColumn.getWidth() + delta);
 	    }
+
+            // At this point the JTable has to work out what preferred sizes
+            // would have resulted in the layout the user has chosen.
+            // Thereafter, during window resizing etc. it has to work off
+            // the preferred sizes as usual - the idea being that, whatever
+            // the user does, everything stays in synch and things don't jump
+            // around.
             setWidthsFromPreferredWidths(true);
 	}
 
@@ -2200,6 +2305,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * replaced by <code>doLayout()</code>.
      * @see #doLayout
      */
+    @Deprecated
     public void sizeColumnsToFit(boolean lastColumnOnly) {
         int oldAutoResizeMode = autoResizeMode;
         setAutoResizeMode(lastColumnOnly ? AUTO_RESIZE_LAST_COLUMN
@@ -2475,15 +2581,15 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
     /**
      * Programmatically starts editing the cell at <code>row</code> and
-     * <code>column</code>, if the cell is editable.  Note that this is
-     * a convenience method for <code>editCellAt(int, int, null)</code>.
+     * <code>column</code>, if those indices are in the valid range, and
+     * the cell at those indices is editable.
+     * Note that this is a convenience method for
+     * <code>editCellAt(int, int, null)</code>.
      *
      * @param   row                             the row to be edited
      * @param   column                          the column to be edited
-     * @exception IllegalArgumentException      if <code>row</code> or
-     *                                          <code>column</code>
-     *                                          is not in the valid range
-     * @return  false if for any reason the cell cannot be edited
+     * @return  false if for any reason the cell cannot be edited,
+     *                or if the indices are invalid
      */
     public boolean editCellAt(int row, int column) {
         return editCellAt(row, column, null);
@@ -2491,20 +2597,20 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 
     /**
      * Programmatically starts editing the cell at <code>row</code> and
-     * <code>column</code>, if the cell is editable.
-     * To prevent the <code>JTable</code> from editing a particular table,
-     * column or cell value, return false from the <code>isCellEditable</code>
-     * method in the <code>TableModel</code> interface.
+     * <code>column</code>, if those indices are in the valid range, and
+     * the cell at those indices is editable.
+     * To prevent the <code>JTable</code> from
+     * editing a particular table, column or cell value, return false from
+     * the <code>isCellEditable</code> method in the <code>TableModel</code>
+     * interface.
      *
      * @param   row     the row to be edited
      * @param   column  the column to be edited
      * @param   e       event to pass into <code>shouldSelectCell</code>;
      *                  note that as of Java 2 platform v1.2, the call to
      *                  <code>shouldSelectCell</code> is no longer made
-     * @exception IllegalArgumentException      if <code>row</code> or
-     *                                          <code>column</code>
-     *                                          is not in the valid range
-     * @return  false if for any reason the cell cannot be edited
+     * @return  false if for any reason the cell cannot be edited,
+     *                or if the indices are invalid
      */
     public boolean editCellAt(int row, int column, EventObject e){
         if (cellEditor != null && !cellEditor.stopCellEditing()) {
@@ -2669,6 +2775,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             updateSubComponentUI(defaultEditors.nextElement());
         }
 
+        // Update the UI of the table header
+        if (tableHeader != null && tableHeader.getParent() == null) {
+            tableHeader.updateUI();
+        }
+        
         setUI((TableUI)UIManager.getUI(this));
         resizeAndRepaint();
     }
@@ -2712,14 +2823,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    }
             this.dataModel = dataModel;
             dataModel.addTableModelListener(this);
-            // If this method is called from the JTable constructor,
-            // the column model will be null. In this case we can't use
-            // the usual methods to update the internal state. In all other
-            // cases, use the usual tableChanged() method to reconfigure
-            // the JTable for the new model.
-            if (getColumnModel() != null) {
-                tableChanged(new TableModelEvent(dataModel, TableModelEvent.HEADER_ROW));
-            }
+
+            tableChanged(new TableModelEvent(dataModel, TableModelEvent.HEADER_ROW));
+
 	    firePropertyChange("model", old, dataModel);
         }
     }
@@ -2804,12 +2910,12 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             }
 
             selectionModel = newModel;
+            newModel.addListSelectionListener(this);
 
-            if (newModel != null) {
-                newModel.addListSelectionListener(this);
-            }
 	    firePropertyChange("selectionModel", oldModel, newModel);
             repaint();
+
+            checkLeadAnchor();
         }
     }
 
@@ -2823,6 +2929,43 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      */
     public ListSelectionModel getSelectionModel() {
         return selectionModel;
+    }
+
+    /**
+     * Initialize the lead and anchor of the selection model
+     * based on what the table model contains.
+     */
+    private void checkLeadAnchor() {
+        TableModel model = getModel();
+
+        // Setting the selection model in the constructor will cause
+        // this to be invoked before the data model has been set.
+        // Bail in this case.
+        if (model == null) {
+            return;
+        }
+
+        int lead = selectionModel.getLeadSelectionIndex();
+        int count = model.getRowCount();
+        if (count == 0) {
+            if (lead != -1) {
+                // no rows left, set the lead and anchor to -1
+                selectionModel.setValueIsAdjusting(true);
+                selectionModel.setAnchorSelectionIndex(-1);
+                selectionModel.setLeadSelectionIndex(-1);
+                selectionModel.setValueIsAdjusting(false);
+            }
+        } else {
+            if (lead == -1) {
+                // set the lead and anchor to the first row
+                // (without changing the selection)
+                if (selectionModel.isSelectedIndex(0)) {
+                    selectionModel.addSelectionInterval(0, 0);
+                } else {
+                    selectionModel.removeSelectionInterval(0, 0);
+                }
+            }
+        }
     }
 
 //
@@ -2846,6 +2989,9 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         if (e == null || e.getFirstRow() == TableModelEvent.HEADER_ROW) {
             // The whole thing changed
             clearSelection();
+
+            checkLeadAnchor();
+
             rowModel = null;
 
             if (getAutoCreateColumnsFromModel()) {
@@ -2932,6 +3078,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	int length = end - start + 1;
 	selectionModel.insertIndexInterval(start, length, true);
 
+        checkLeadAnchor();
+
 	// If we have variable height rows, adjust the row model.
 	if (rowModel != null) {
 	    rowModel.insertEntries(start, length, getRowHeight());
@@ -2969,6 +3117,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         int previousRowCount = getRowCount() + deletedCount;
         // Adjust the selection to account for the new rows
 	selectionModel.removeIndexInterval(start, end);
+
+        checkLeadAnchor();
 
 	// If we have variable height rows, adjust the row model.
 	if (rowModel != null) {
@@ -3099,8 +3249,24 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         if (getRowSelectionAllowed()) {
             minRow = selectionModel.getMinSelectionIndex();
             maxRow = selectionModel.getMaxSelectionIndex();
+            int leadRow = selectionModel.getLeadSelectionIndex();
+
             if (minRow == -1 || maxRow == -1) {
-                return;
+                if (leadRow == -1) {
+                    // nothing to repaint, return
+                    return;
+                }
+
+                // only thing to repaint is the lead
+                minRow = maxRow = leadRow;
+            } else {
+                // We need to consider more than just the range between
+                // the min and max selected index. The lead row, which could
+                // be outside this range, should be considered also.
+                if (leadRow != -1) {
+                    minRow = Math.min(minRow, leadRow);
+                    maxRow = Math.max(maxRow, leadRow);
+                }
             }
         }
         Rectangle firstColumnRect = getCellRect(minRow, firstIndex, false);
@@ -3310,11 +3476,11 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 		    return false;
 		}
 		// Try to install the editor
-		int anchorRow = getSelectionModel().getAnchorSelectionIndex();
-		int anchorColumn = getColumnModel().getSelectionModel().
-		                   getAnchorSelectionIndex();
-		if (anchorRow != -1 && anchorColumn != -1 && !isEditing()) {
-		    if (!editCellAt(anchorRow, anchorColumn)) {
+		int leadRow = getSelectionModel().getLeadSelectionIndex();
+		int leadColumn = getColumnModel().getSelectionModel().
+		                   getLeadSelectionIndex();
+		if (leadRow != -1 && leadColumn != -1 && !isEditing()) {
+		    if (!editCellAt(leadRow, leadColumn)) {
 			return false;
 		    }
 		}
@@ -3356,7 +3522,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         defaultRenderersByColumnClass = new UIDefaults();
 
         // Objects
-        setLazyRenderer(Object.class, "javax.swing.table.DefaultTableCellRenderer");
+        setLazyRenderer(Object.class, "javax.swing.table.DefaultTableCellRenderer$UIResource");
 
 	// Numbers
         setLazyRenderer(Number.class, "javax.swing.JTable$NumberRenderer");
@@ -3379,7 +3545,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     /**
      * Default Renderers
      **/
-    static class NumberRenderer extends DefaultTableCellRenderer {
+    static class NumberRenderer extends DefaultTableCellRenderer.UIResource {
 	public NumberRenderer() {
 	    super();
 	    setHorizontalAlignment(JLabel.RIGHT);
@@ -3398,7 +3564,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	}
     }
 
-    static class DateRenderer extends DefaultTableCellRenderer {
+    static class DateRenderer extends DefaultTableCellRenderer.UIResource {
 	DateFormat formatter;
 	public DateRenderer() { super(); }
 
@@ -3410,7 +3576,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	}
     }
 
-    static class IconRenderer extends DefaultTableCellRenderer {
+    static class IconRenderer extends DefaultTableCellRenderer.UIResource {
 	public IconRenderer() {
 	    super();
 	    setHorizontalAlignment(JLabel.CENTER);
@@ -3419,11 +3585,14 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
 
-    static class BooleanRenderer extends JCheckBox implements TableCellRenderer
+    static class BooleanRenderer extends JCheckBox implements TableCellRenderer, UIResource
     {
+        private static final Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+
 	public BooleanRenderer() {
 	    super();
 	    setHorizontalAlignment(JLabel.CENTER);
+            setBorderPainted(true);
 	}
 
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -3437,6 +3606,13 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	        setBackground(table.getBackground());
 	    }
             setSelected((value != null && ((Boolean)value).booleanValue()));
+
+            if (hasFocus) {
+                setBorder(UIManager.getBorder("Table.focusCellHighlightBorder"));
+            } else {
+                setBorder(noFocusBorder);
+            }
+
             return this;
         }
     }
@@ -3471,7 +3647,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	java.lang.reflect.Constructor constructor;
 	Object value;
 
-	public GenericEditor() { super(new JTextField()); }
+	public GenericEditor() {
+            super(new JTextField());
+            getComponent().setName("Table.editor");
+        }
 
 	public boolean stopCellEditing() {
 	    String s = (String)super.getCellEditorValue();
@@ -3502,7 +3681,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 						 boolean isSelected,
 						 int row, int column) {
 	    this.value = null;
-	    ((JComponent)getComponent()).setBorder(new LineBorder(Color.black));
+            ((JComponent)getComponent()).setBorder(new LineBorder(Color.black));
 	    try {
 		Class type = table.getColumnClass(column);
 		// Since our obligation is to produce a value which is
@@ -3544,8 +3723,6 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      * Initializes table properties to their default values.
      */
     protected void initializeLocalVars() {
-	getSelectionModel().setAnchorSelectionIndex(0);
-
         setOpaque(true);
         createDefaultRenderers();
         createDefaultEditors();
@@ -3555,6 +3732,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         setShowGrid(true);
         setAutoResizeMode(AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         setRowHeight(16);
+        isRowHeightSet = false;
         setRowMargin(1);
         setRowSelectionAllowed(true);
         setCellEditor(null);
@@ -3722,11 +3900,21 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
      */
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
         Object value = getValueAt(row, column);
-	boolean isSelected = isCellSelected(row, column);
-	boolean rowIsAnchor = (selectionModel.getAnchorSelectionIndex() == row);
-	boolean colIsAnchor =
-	    (columnModel.getSelectionModel().getAnchorSelectionIndex() == column);
-	boolean hasFocus = (rowIsAnchor && colIsAnchor) && isFocusOwner();
+
+        boolean isSelected = false;
+        boolean hasFocus = false;
+
+        // Only indicate the selection and focused cell if not printing
+        if (!isPrinting) {
+            isSelected = isCellSelected(row, column);
+
+            boolean rowIsLead =
+                (selectionModel.getLeadSelectionIndex() == row);
+            boolean colIsLead =
+                (columnModel.getSelectionModel().getLeadSelectionIndex() == column);
+
+            hasFocus = (rowIsLead && colIsLead) && isFocusOwner();
+        }
 
 	return renderer.getTableCellRendererComponent(this, value,
 	                                              isSelected, hasFocus,
@@ -3968,6 +4156,681 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
     }
 
 /////////////////
+// Printing Support
+/////////////////
+
+    /**
+     * A convenience method that displays a printing dialog, and then prints
+     * this <code>JTable</code> in mode <code>PrintMode.FIT_WIDTH</code>,
+     * with no header or footer text. A modal progress dialog, with an abort
+     * option, will be shown for the duration of printing.
+     * <p>
+     * Note: In headless mode, no dialogs will be shown.
+     *
+     * @return true, unless printing is cancelled by the user
+     * @throws PrinterException if an error in the print system causes the job
+     *                          to be aborted
+     * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
+     *             boolean, PrintRequestAttributeSet, boolean)
+     * @see #getPrintable
+     *
+     * @since 1.5
+     */
+    public boolean print() throws PrinterException {
+
+        return print(PrintMode.FIT_WIDTH);
+    }
+
+    /**
+     * A convenience method that displays a printing dialog, and then prints
+     * this <code>JTable</code> in the given printing mode,
+     * with no header or footer text. A modal progress dialog, with an abort
+     * option, will be shown for the duration of printing.
+     * <p>
+     * Note: In headless mode, no dialogs will be shown.
+     *
+     * @param  printMode        the printing mode that the printable should use
+     * @return true, unless printing is cancelled by the user
+     * @throws PrinterException if an error in the print system causes the job
+     *                          to be aborted
+     * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
+     *             boolean, PrintRequestAttributeSet, boolean)
+     * @see #getPrintable
+     *
+     * @since 1.5
+     */
+    public boolean print(PrintMode printMode) throws PrinterException {
+
+        return print(printMode, null, null);
+    }
+
+    /**
+     * A convenience method that displays a printing dialog, and then prints
+     * this <code>JTable</code> in the given printing mode,
+     * with the specified header and footer text. A modal progress dialog,
+     * with an abort option, will be shown for the duration of printing.
+     * <p>
+     * Note: In headless mode, no dialogs will be shown.
+     *
+     * @param  printMode        the printing mode that the printable should use
+     * @param  headerFormat     a <code>MessageFormat</code> specifying the text
+     *                          to be used in printing a header,
+     *                          or null for none
+     * @param  footerFormat     a <code>MessageFormat</code> specifying the text
+     *                          to be used in printing a footer,
+     *                          or null for none
+     * @return true, unless printing is cancelled by the user
+     * @throws PrinterException if an error in the print system causes the job
+     *                          to be aborted
+     * @see #print(JTable.PrintMode, MessageFormat, MessageFormat,
+     *             boolean, PrintRequestAttributeSet, boolean)
+     * @see #getPrintable
+     *
+     * @since 1.5
+     */
+    public boolean print(PrintMode printMode,
+                         MessageFormat headerFormat,
+                         MessageFormat footerFormat) throws PrinterException {
+
+        boolean showDialogs = !GraphicsEnvironment.isHeadless();
+        return print(printMode, headerFormat, footerFormat,
+                     showDialogs, null, showDialogs);
+    }
+
+    /**
+     * Print this <code>JTable</code>. Takes steps that the majority of
+     * developers would take in order to print a <code>JTable</code>.
+     * In short, it prepares the table, calls <code>getPrintable</code> to
+     * fetch an appropriate <code>Printable</code>, and then sends it to the
+     * printer.
+     * <p>
+     * A <code>boolean</code> parameter allows you to specify whether or not
+     * a printing dialog is displayed to the user. When it is, the user may
+     * use the dialog to change printing attributes or even cancel the print.
+     * Another parameter allows for printing attributes to be specified
+     * directly. This can be used either to provide the initial values for the
+     * print dialog, or to supply any needed attributes when the dialog is not
+     * shown.
+     * <p>
+     * A second <code>boolean</code> parameter allows you to specify whether
+     * or not to perform printing in an interactive mode. If <code>true</code>,
+     * a modal progress dialog, with an abort option, is displayed for the
+     * duration of printing . This dialog also prevents any user action which
+     * may affect the table. However, it can not prevent the table from being
+     * modified by code (for example, another thread that posts updates using
+     * <code>SwingUtilities.invokeLater</code>). It is therefore the
+     * responsibility of the developer to ensure that no other code modifies
+     * the table in any way during printing (invalid modifications include
+     * changes in: size, renderers, or underlying data). Printing behavior is
+     * undefined when the table is changed during printing.
+     * <p>
+     * If <code>false</code> is specified for this parameter, no dialog will
+     * be displayed and printing will begin immediately on the event-dispatch
+     * thread. This blocks any other events, including repaints, from being
+     * processed until printing is complete. Although this effectively prevents
+     * the table from being changed, it doesn't provide a good user experience.
+     * For this reason, specifying <code>false</code> is only recommended when
+     * printing from an application with no visible GUI.
+     * <p>
+     * Note: Attempting to show the printing dialog or run interactively, while
+     * in headless mode, will result in a <code>HeadlessException</code>.
+     * <p>
+     * Before fetching the printable, this method prepares the table in order
+     * to get the most desirable printed result. If the table is currently
+     * in an editing mode, it terminates the editing as gracefully as
+     * possible. It also ensures that the the table's current selection and
+     * focused cell are not indicated in the printed output. This is handled on
+     * the view level, and only for the duration of the printing, thus no
+     * notification needs to be sent to the selection models.
+     * <p>
+     * See {@link #getPrintable} for further description on how the
+     * table is printed.
+     *
+     * @param  printMode        the printing mode that the printable should use
+     * @param  headerFormat     a <code>MessageFormat</code> specifying the text
+     *                          to be used in printing a header,
+     *                          or null for none
+     * @param  footerFormat     a <code>MessageFormat</code> specifying the text
+     *                          to be used in printing a footer,
+     *                          or null for none
+     * @param  showPrintDialog  whether or not to display a print dialog
+     * @param  attr             a <code>PrintRequestAttributeSet</code>
+     *                          specifying any printing attributes,
+     *                          or null for none
+     * @param  interactive      whether or not to print in an interactive mode
+     * @return true, unless printing is cancelled by the user
+     * @throws PrinterException if an error in the print system causes the job
+     *                          to be aborted
+     * @throws HeadlessException if the method is asked to show a printing
+     *                           dialog or run interactively, and
+     *                           <code>GraphicsEnvironment.isHeadless</code>
+     *                           returns true
+     * @see #getPrintable
+     * @see java.awt.GraphicsEnvironment#isHeadless
+     *
+     * @since 1.5
+     */
+    public boolean print(PrintMode printMode,
+                         MessageFormat headerFormat,
+                         MessageFormat footerFormat,
+                         boolean showPrintDialog,
+                         PrintRequestAttributeSet attr,
+                         boolean interactive) throws PrinterException,
+                                                     HeadlessException {
+
+        // complain early if an invalid parameter is specified for headless mode
+        boolean isHeadless = GraphicsEnvironment.isHeadless();
+        if (isHeadless) {
+            if (showPrintDialog) {
+                throw new HeadlessException("Can't show print dialog.");
+            }
+            
+            if (interactive) {
+                throw new HeadlessException("Can't run interactively.");
+            }
+        }
+
+        if (isEditing()) {
+            // try to stop cell editing, and failing that, cancel it
+            if (!getCellEditor().stopCellEditing()) {
+                getCellEditor().cancelCellEditing();
+            }
+        }
+
+        if (attr == null) {
+            attr = new HashPrintRequestAttributeSet();
+        }
+
+        // get a PrinterJob
+        final PrinterJob job = PrinterJob.getPrinterJob();
+
+        // fetch the Printable
+        Printable printable =
+            getPrintable(printMode, headerFormat, footerFormat);
+
+        if (interactive) {
+            // wrap the Printable so that we can print on another thread
+            printable = new ThreadSafePrintable(printable);
+        }
+
+        // set the printable on the PrinterJob
+        job.setPrintable(printable);
+
+        // if requested, show the print dialog
+        if (showPrintDialog && !job.printDialog(attr)) {
+            // the user cancelled the print dialog
+            return false;
+        }
+
+        // if not interactive, just print on this thread (no dialog)
+        if (!interactive) {
+            // set a flag to hide the selection and focused cell
+            isPrinting = true;
+
+            try {
+                // do the printing
+                job.print(attr);
+            } finally {
+                // restore the flag
+                isPrinting = false;
+            }
+
+            // we're done
+            return true;
+        }
+
+        // interactive, drive printing from another thread
+        // and show a modal status dialog for the duration
+
+        // prepare the status JOptionPane
+        String progressTitle =
+            UIManager.getString("PrintingDialog.titleProgressText");
+
+        String dialogInitialContent =
+            UIManager.getString("PrintingDialog.contentInitialText");
+
+        // this one's a MessageFormat since it must include the page
+        // number in its text
+        MessageFormat statusFormat =
+            new MessageFormat(
+                UIManager.getString("PrintingDialog.contentProgressText"));
+
+        String abortText =
+            UIManager.getString("PrintingDialog.abortButtonText");
+        String abortTooltip =
+            UIManager.getString("PrintingDialog.abortButtonToolTipText");
+        int abortMnemonic =
+            UIManager.getInt("PrintingDialog.abortButtonMnemonic", -1);
+        int abortMnemonicIndex =
+            UIManager.getInt("PrintingDialog.abortButtonDisplayedMnemonicIndex", -1);
+
+        final JButton abortButton = new JButton(abortText);
+        abortButton.setToolTipText(abortTooltip);
+        if (abortMnemonic != -1) {
+            abortButton.setMnemonic(abortMnemonic);
+        }
+        if (abortMnemonicIndex != -1) {
+            abortButton.setDisplayedMnemonicIndex(abortMnemonicIndex);
+        }
+
+        final JLabel statusLabel = new JLabel(dialogInitialContent);
+
+        JOptionPane abortPane = new JOptionPane(statusLabel,
+                                                JOptionPane.INFORMATION_MESSAGE,
+                                                JOptionPane.DEFAULT_OPTION,
+                                                null, new Object[] {abortButton},
+                                                abortButton);
+
+        // need a final reference to the printable for later
+        final ThreadSafePrintable wrappedPrintable =
+            (ThreadSafePrintable)printable;
+
+        // set the label which the wrapped printable will update
+        wrappedPrintable.startUpdatingStatus(statusFormat, statusLabel);
+
+        // The dialog should be centered over the viewport if the table is in one
+        Container parentComp = getParent() instanceof JViewport ? getParent() : this;
+
+        // create the dialog to display the JOptionPane
+        final JDialog abortDialog = abortPane.createDialog(parentComp, progressTitle);
+        // clicking the X button should not hide the dialog
+        abortDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+
+        // the action that will abort printing
+        final Action abortAction = new AbstractAction() {
+            boolean isAborted = false;
+            public void actionPerformed(ActionEvent ae) {
+                if (!isAborted) {
+                    isAborted = true;
+
+                    // update the status dialog to indicate aborting
+                    abortButton.setEnabled(false);
+                    abortDialog.setTitle(
+                        UIManager.getString("PrintingDialog.titleAbortingText"));
+                    statusLabel.setText(
+                        UIManager.getString("PrintingDialog.contentAbortingText"));
+
+                    // we don't want the aborting status message to be clobbered
+                    wrappedPrintable.stopUpdatingStatus();
+
+                    // cancel the PrinterJob
+                    job.cancel();
+                }
+            }
+        };
+
+        // clicking the abort button should abort printing
+        abortButton.addActionListener(abortAction);
+
+        // the look and feels set up a close action (typically bound
+        // to ESCAPE) that also needs to be modified to simply abort
+        // printing
+        abortPane.getActionMap().put("close", abortAction);
+
+        // clicking the X button should also abort printing
+        final WindowAdapter closeListener = new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                abortAction.actionPerformed(null);
+            }
+        };
+        abortDialog.addWindowListener(closeListener);
+
+        // make sure this is clear since we'll check it after
+        printError = null;
+
+        // to synchronize on
+        final Object lock = new Object();
+
+        // copied so we can access from the inner class
+        final PrintRequestAttributeSet copyAttr = attr;
+
+        // this runnable will be used to do the printing
+        // (and save any throwables) on another thread
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try {
+                    // do the printing
+                    job.print(copyAttr);
+                } catch (Throwable t) {
+                    // save any Throwable to be rethrown
+                    synchronized(lock) {
+                        printError = t;
+                    }
+                } finally {
+                    // we're finished - hide the dialog, allowing
+                    // processing in the original EDT to continue
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            // don't want to notify the abort action
+                            abortDialog.removeWindowListener(closeListener);
+                            abortDialog.dispose();
+                        }
+                    });
+                }
+            }
+        };
+
+        // start printing on another thread
+        Thread th = new Thread(runnable);
+        th.start();
+
+        // show the modal status dialog (and wait for it to be hidden)
+        abortDialog.setVisible(true);
+
+        // dialog has been hidden
+
+        // look for any error that the printing may have generated
+        Throwable pe;
+        synchronized(lock) {
+            pe = printError;
+            printError = null;
+        }
+
+        // check the type of error and handle it
+        if (pe != null) {
+            // a subclass of PrinterException meaning the job was aborted,
+            // in this case, by the user
+            if (pe instanceof PrinterAbortException) {
+                return false;
+            } else if (pe instanceof PrinterException) {
+                throw (PrinterException)pe;
+            } else if (pe instanceof RuntimeException) {
+                throw (RuntimeException)pe;
+            } else if (pe instanceof Error) {
+                throw (Error)pe;
+            }
+
+            // can not happen
+            throw new AssertionError(pe);
+        }
+
+        return true;
+    }
+
+    /**
+     * Return a <code>Printable</code> for use in printing this JTable.
+     * <p>
+     * The <code>Printable</code> can be requested in one of two printing modes.
+     * In both modes, it spreads table rows naturally in sequence across
+     * multiple pages, fitting as many rows as possible per page.
+     * <code>PrintMode.NORMAL</code> specifies that the table be
+     * printed at its current size. In this mode, there may be a need to spread
+     * columns across pages in a similar manner to that of the rows. When the
+     * need arises, columns are distributed in an order consistent with the
+     * table's <code>ComponentOrientation</code>.
+     * <code>PrintMode.FIT_WIDTH</code> specifies that the output be
+     * scaled smaller, if necessary, to fit the table's entire width
+     * (and thereby all columns) on each page. Width and height are scaled
+     * equally, maintaining the aspect ratio of the output.
+     * <p>
+     * The <code>Printable</code> heads the portion of table on each page
+     * with the appropriate section from the table's <code>JTableHeader</code>,
+     * if it has one.
+     * <p>
+     * Header and footer text can be added to the output by providing
+     * <code>MessageFormat</code> arguments. The printing code requests
+     * Strings from the formats, providing a single item which may be included
+     * in the formatted string: an <code>Integer</code> representing the current
+     * page number.
+     * <p>
+     * You are encouraged to read the documentation for
+     * <code>MessageFormat</code> as some characters, such as single-quote,
+     * are special and need to be escaped.
+     * <p>
+     * Here's an example of creating a <code>MessageFormat</code> that can be
+     * used to print "Duke's Table: Page - " and the current page number:
+     * <p>
+     * <pre>
+     *     // notice the escaping of the single quote
+     *     // notice how the page number is included with "{0}"
+     *     MessageFormat format = new MessageFormat("Duke''s Table: Page - {0}");
+     * </pre>
+     * <p>
+     * The <code>Printable</code> constrains what it draws to the printable
+     * area of each page that it prints. Under certain circumstances, it may
+     * find it impossible to fit all of a page's content into that area. In
+     * these cases the output may be clipped, but the implementation
+     * makes an effort to do something reasonable. Here are a few situations
+     * where this is known to occur, and how they may be handled by this
+     * particular implementation:
+     * <ul>
+     *   <li>In any mode, when the header or footer text is too wide to fit
+     *       completely in the printable area -- print as much of the text as
+     *       possible starting from the beginning, as determined by the table's
+     *       <code>ComponentOrientation</code>.
+     *   <li>In any mode, when a row is too tall to fit in the
+     *       printable area -- print the upper-most portion of the row
+     *       and paint no lower border on the table.
+     *   <li>In <code>PrintMode.NORMAL</code> when a column
+     *       is too wide to fit in the printable area -- print the center
+     *       portion of the column and leave the left and right borders
+     *       off the table.
+     * </ul>
+     * <p>
+     * It is entirely valid for this <code>Printable</code> to be wrapped
+     * inside another in order to create complex reports and documents. You may
+     * even request that different pages be rendered into different sized
+     * printable areas. The implementation must be prepared to handle this
+     * (possibly by doing its layout calculations on the fly). However,
+     * providing different heights to each page will likely not work well
+     * with <code>PrintMode.NORMAL</code> when it has to spread columns
+     * across pages.
+     * <p>
+     * It is important to note that this <code>Printable</code> prints the
+     * table at its current visual state, using the table's existing renderers.
+     * <i>Before</i> calling this method, you may wish to <i>first</i> modify
+     * the state of the table (such as to change the renderers, cancel editing,
+     * or hide the selection).
+     * <p>
+     * You must not, however, modify the table in any way <i>after</i>
+     * this <code>Printable</code> is fetched (invalid modifications include
+     * changes in: size, renderers, or underlying data). The behavior of the
+     * returned <code>Printable</code> is undefined once the table has been
+     * changed.
+     * <p>
+     * Here's a simple example that calls this method to fetch a
+     * <code>Printable</code>, shows a cross-platform print dialog, and then
+     * prints the <code>Printable</code> unless the user cancels the dialog:
+     * <p>
+     * <pre>
+     *     // prepare the table for printing here first (for example, hide selection)
+     *
+     *     // wrap in a try/finally so table can be restored even if something fails
+     *     try {
+     *         // fetch the printable
+     *         Printable printable = table.getPrintable(JTable.PrintMode.FIT_WIDTH,
+     *                                                  new MessageFormat("My Table"),
+     *                                                  new MessageFormat("Page - {0}"));
+     *
+     *         // fetch a PrinterJob
+     *         PrinterJob job = PrinterJob.getPrinterJob();
+     *
+     *         // set the Printable on the PrinterJob
+     *         job.setPrintable(printable);
+     *
+     *         // create an attribute set to store attributes from the print dialog
+     *         PrintRequestAttributeSet attr = new HashPrintRequestAttributeSet();
+     *
+     *         // display a print dialog and record whether or not the user cancels it
+     *         boolean printAccepted = job.printDialog(attr);
+     *
+     *         // if the user didn't cancel the dialog
+     *         if (printAccepted) {
+     *             // do the printing (may need to handle PrinterException)
+     *             job.print(attr);
+     *         }
+     *     } finally {
+     *         // restore the original table state here (for example, restore selection)
+     *     }
+     * </pre>
+     *
+     * @param  printMode     the printing mode that the printable should use
+     * @param  headerFormat  a <code>MessageFormat</code> specifying the text to
+     *                       be used in printing a header, or null for none
+     * @param  footerFormat  a <code>MessageFormat</code> specifying the text to
+     *                       be used in printing a footer, or null for none
+     * @return a <code>Printable</code> for printing this JTable
+     * @see Printable
+     * @see PrinterJob
+     *
+     * @since 1.5
+     */
+    public Printable getPrintable(PrintMode printMode,
+                                  MessageFormat headerFormat,
+                                  MessageFormat footerFormat) {
+
+        return new TablePrintable(this, printMode, headerFormat, footerFormat);
+    }
+
+
+    /**
+     * A <code>Printable</code> implementation that wraps another
+     * <code>Printable</code>, making it safe for printing on another thread.
+     * <p>
+     * Also performs steps that are specific to this table printing
+     * implementation, such as hiding the selection and focus in the table,
+     * and updating the given <code>JLabel</code> with the page number
+     * based on the specified message format.
+     */
+    private class ThreadSafePrintable implements Printable {
+
+        /** The delegate <code>Printable</code>. */
+        private Printable printDelegate;
+
+        /** The formatter to prepare the status message. */
+        private MessageFormat statusFormat;
+
+        /** The <code>JLabel</code> to update with the status. */
+        private JLabel statusLabel;
+
+        /**
+         * To communicate any return value when delegating.
+         */
+        private int retVal;
+
+        /**
+         * To communicate any <code>Throwable</code> when delegating.
+         */
+        private Throwable retThrowable;
+
+        /**
+         * Construct a <code>ThreadSafePrintable</code> around the given
+         * delegate.
+         *
+         * @param printDelegate the <code>Printable</code> to delegate to
+         */
+        public ThreadSafePrintable(Printable printDelegate) {
+            this.printDelegate = printDelegate;
+        }
+
+        /**
+         * Provide the <code>MessageFormat</code> and <code>JLabel</code>
+         * to use in updating the status.
+         *
+         * @param statusFormat the format to prepare the status message
+         * @param statusPane the JOptionPane to set the status message on
+         */
+        public void startUpdatingStatus(MessageFormat statusFormat,
+                                        JLabel statusLabel) {
+            this.statusFormat = statusFormat;
+            this.statusLabel = statusLabel;
+        }
+
+        /**
+         * Indicate that the <code>JLabel</code> should not be updated
+         * any more.
+         */
+        public void stopUpdatingStatus() {
+            statusFormat = null;
+            statusLabel = null;
+        }
+
+        /**
+         * Prints the specified page into the given {@link Graphics}
+         * context, in the specified format.
+         * <p>
+         * Regardless of what thread this method is called on, all calls into
+         * the delegate will be done on the event-dispatch thread.
+         *
+         * @param   graphics    the context into which the page is drawn
+         * @param   pageFormat  the size and orientation of the page being drawn
+         * @param   pageIndex   the zero based index of the page to be drawn
+         * @return  PAGE_EXISTS if the page is rendered successfully, or
+         *          NO_SUCH_PAGE if a non-existent page index is specified
+         * @throws  PrinterException if an error causes printing to be aborted
+         */
+        public int print(final Graphics graphics,
+                         final PageFormat pageFormat,
+                         final int pageIndex) throws PrinterException {
+
+            // We'll use this Runnable
+            Runnable runnable = new Runnable() {
+                public synchronized void run() {
+                    // set a flag to hide the selection and focused cell
+                    isPrinting = true;
+
+                    try {
+                        if (statusLabel != null) {
+                            // set the status message on the JOptionPane with
+                            // the current page number
+                            Object[] pageNumber = new Object[]{
+                                new Integer(pageIndex + 1)};
+                            statusLabel.setText(statusFormat.format(pageNumber));
+                        }
+
+                        // call into the delegate and save the return value
+                        retVal = printDelegate.print(graphics, pageFormat, pageIndex);
+                    } catch (Throwable throwable) {
+                        // save any Throwable to be rethrown
+                        retThrowable = throwable;
+                    } finally {
+                        // restore the flag
+                        isPrinting = false;
+
+                        // notify the caller that we're done
+                        notifyAll();
+                    }
+                }
+            };
+
+            synchronized(runnable) {
+                // make sure these are initialized
+                retVal = -1;
+                retThrowable = null;
+
+                // call into the EDT
+                SwingUtilities.invokeLater(runnable);
+
+                // wait for the runnable to finish
+                while (retVal == -1 && retThrowable == null) {
+                    try {
+                        runnable.wait();
+                    } catch (InterruptedException ie) {
+                        // short process, safe to ignore interrupts
+                    }
+                }
+
+                // if the delegate threw a throwable, rethrow it here
+                if (retThrowable != null) {
+                    if (retThrowable instanceof PrinterException) {
+                        throw (PrinterException)retThrowable;
+                    } else if (retThrowable instanceof RuntimeException) {
+                        throw (RuntimeException)retThrowable;
+                    } else if (retThrowable instanceof Error) {
+                        throw (Error)retThrowable;
+                    }
+
+                    // can not happen
+                    throw new AssertionError(retThrowable);
+                }
+
+                return retVal;
+            }
+        }
+    }
+
+
+/////////////////
 // Accessibility support
 ////////////////
 
@@ -4013,7 +4876,12 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
         int lastSelectedRow;
         int lastSelectedCol;
 
-        AccessibleJTable() {
+        /**
+         * AccessibleJTable constructor
+         *
+         * @since 1.5
+         */
+        protected AccessibleJTable() {
             super();
 	    JTable.this.addPropertyChangeListener(this);
             JTable.this.getSelectionModel().addListSelectionListener(this);
@@ -4410,7 +5278,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 TableColumn aColumn = getColumnModel().getColumn(column);
                 TableCellRenderer renderer = aColumn.getCellRenderer();
                 if (renderer == null) {
-                    Class columnClass = getColumnClass(column);
+                    Class<?> columnClass = getColumnClass(column);
                     renderer = getDefaultRenderer(columnClass);
                 }
                 Component component = renderer.getTableCellRendererComponent(
@@ -4451,7 +5319,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 TableColumn aColumn = getColumnModel().getColumn(column);
                 TableCellRenderer renderer = aColumn.getCellRenderer();
                 if (renderer == null) {
-                    Class columnClass = getColumnClass(column);
+                    Class<?> columnClass = getColumnClass(column);
                     renderer = getDefaultRenderer(columnClass);
                 }
                 Component component = renderer.getTableCellRendererComponent(
@@ -4660,12 +5528,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
          * @see AccessibleContext#getAccessibleChild
          */
         public void addAccessibleSelection(int i) {
-            if (JTable.this.cellSelectionEnabled) {
-                int column = getAccessibleColumnAtIndex(i);
-                int row = getAccessibleRowAtIndex(i);
-                JTable.this.addRowSelectionInterval(row, row);
-                JTable.this.addColumnSelectionInterval(column, column);
-            }
+	    // TIGER - 4495286
+	    int column = getAccessibleColumnAtIndex(i);
+	    int row = getAccessibleRowAtIndex(i);
+	    JTable.this.changeSelection(row, column, true, false);
         }
 
         /**
@@ -4881,15 +5747,17 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	    // row headers are not supported
 	}
 
-	/**
-	 * Returns the column headers as an <code>AccessibleTable</code>.
-	 *
-	 * @return an <code>AccessibleTable</code> representing the column
-	 *      headers
-	 */
+        /**
+         * Returns the column headers as an <code>AccessibleTable</code>.
+         *
+         *  @return an <code>AccessibleTable</code> representing the column
+         *          headers, or <code>null</code> if the table header is
+         *          <code>null</code>
+         */
         public AccessibleTable getAccessibleColumnHeader() {
-	    return new AccessibleTableHeader(JTable.this.getTableHeader());
-        }
+            JTableHeader header = JTable.this.getTableHeader();
+            return header == null ? null : new AccessibleTableHeader(header);
+        } 
 	
         /*
          * Private class representing a table column header
@@ -4958,6 +5826,8 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
 	     */
 	    public Accessible getAccessibleAt(int row, int column) {
 
+
+		// TIGER - 4715503 
                 TableColumn aColumn = headerModel.getColumn(column);
                 TableCellRenderer renderer = aColumn.getHeaderRenderer();
                 if (renderer == null) {
@@ -4967,11 +5837,10 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                                   header.getTable(),
                                   aColumn.getHeaderValue(), false, false,
                                   -1, column);
-                if (component instanceof Accessible) {
-                    return ((Accessible) component);
-                } else {
-                    return null;
-                }
+
+                return new AccessibleJTableHeaderCell(row, column, 
+						      JTable.this.getTableHeader(),
+						      component);
             }
 
 	    /**
@@ -5323,7 +6192,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 TableColumn aColumn = getColumnModel().getColumn(column);
                 TableCellRenderer renderer = aColumn.getCellRenderer();
                 if (renderer == null) {
-                    Class columnClass = getColumnClass(column);
+                    Class<?> columnClass = getColumnClass(column);
                     renderer = getDefaultRenderer(columnClass);
                 }
                 Component component = renderer.getTableCellRendererComponent(
@@ -5340,7 +6209,7 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
                 TableColumn aColumn = getColumnModel().getColumn(column);
                 TableCellRenderer renderer = aColumn.getCellRenderer();
                 if (renderer == null) {
-                    Class columnClass = getColumnClass(column);
+                    Class<?> columnClass = getColumnClass(column);
                     renderer = getDefaultRenderer(columnClass);
                 }
                 return renderer.getTableCellRendererComponent(
@@ -6093,6 +6962,878 @@ public class JTable extends JComponent implements TableModelListener, Scrollable
             }
 
         } // inner class AccessibleJTableCell
+
+	// Begin AccessibleJTableHeader ========== // TIGER - 4715503 
+
+        /**
+         * This class implements accessibility for JTable header cells.
+         */
+        private class AccessibleJTableHeaderCell extends AccessibleContext
+            implements Accessible, AccessibleComponent {
+
+            private int row;
+            private int column;
+	    private JTableHeader parent;
+            private Component rendererComponent;
+
+            /**
+             * Constructs an <code>AccessibleJTableHeaderEntry</code> instance.
+	     *
+	     * @param row header cell row index
+	     * @param column header cell column index
+	     * @param parent header cell parent
+	     * @param rendererComponent component that renders the header cell
+             */
+            public AccessibleJTableHeaderCell(int row, int column, 
+					      JTableHeader parent,
+					      Component rendererComponent) {
+                this.row = row;
+                this.column = column;
+		this.parent = parent;
+		this.rendererComponent = rendererComponent;
+                this.setAccessibleParent(parent);
+            }
+
+            /**
+             * Gets the <code>AccessibleContext</code> associated with this
+	     * component. In the implementation of the Java Accessibility
+	     * API for this class, return this object, which is its own
+	     * <code>AccessibleContext</code>.
+             *
+             * @return this object
+             */
+            public AccessibleContext getAccessibleContext() {
+                return this;
+            }
+
+	    /*
+	     * Returns the AccessibleContext for the header cell
+	     * renderer.
+	     */
+            private AccessibleContext getCurrentAccessibleContext() {
+		return rendererComponent.getAccessibleContext();
+            }
+
+	    /*
+	     * Returns the component that renders the header cell.
+	     */
+            private Component getCurrentComponent() {
+		return rendererComponent;
+            }
+
+	    // AccessibleContext methods ==========
+
+            /**
+             * Gets the accessible name of this object.
+             *
+             * @return the localized name of the object; <code>null</code>
+             *     if this object does not have a name
+             */
+            public String getAccessibleName() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    String name = ac.getAccessibleName();
+                    if ((name != null) && (name != "")) {
+                        return ac.getAccessibleName();
+                    }
+                }
+                if ((accessibleName != null) && (accessibleName != "")) {
+                    return accessibleName;
+                } else {
+		    return null;
+                }
+            }
+
+            /**
+             * Sets the localized accessible name of this object.
+             *
+             * @param s the new localized name of the object
+             */
+            public void setAccessibleName(String s) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    ac.setAccessibleName(s);
+                } else {
+                    super.setAccessibleName(s);
+                }
+            }
+
+            /**
+             * Gets the accessible description of this object.
+             *
+             * @return the localized description of the object;
+             *     <code>null</code> if this object does not have
+             *     a description
+             */
+            public String getAccessibleDescription() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    return ac.getAccessibleDescription();
+                } else {
+                    return super.getAccessibleDescription();
+                }
+            }
+
+            /**
+             * Sets the accessible description of this object.
+             *
+             * @param s the new localized description of the object
+             */
+            public void setAccessibleDescription(String s) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    ac.setAccessibleDescription(s);
+                } else {
+                    super.setAccessibleDescription(s);
+                }
+            }
+
+            /**
+             * Gets the role of this object.
+             *
+             * @return an instance of <code>AccessibleRole</code>
+             *      describing the role of the object
+             * @see AccessibleRole
+             */
+            public AccessibleRole getAccessibleRole() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    return ac.getAccessibleRole();
+                } else {
+                    return AccessibleRole.UNKNOWN;
+                }
+            }
+
+            /**
+             * Gets the state set of this object.
+             *
+             * @return an instance of <code>AccessibleStateSet</code>
+             *     containing the current state set of the object
+             * @see AccessibleState
+             */
+            public AccessibleStateSet getAccessibleStateSet() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+		AccessibleStateSet as = null;
+
+                if (ac != null) {
+                    as = ac.getAccessibleStateSet();
+                }
+		if (as == null) {
+                    as = new AccessibleStateSet();
+                }
+		Rectangle rjt = JTable.this.getVisibleRect();
+                Rectangle rcell = JTable.this.getCellRect(row, column, false);
+		if (rjt.intersects(rcell)) {
+		    as.add(AccessibleState.SHOWING);
+                } else {
+                    if (as.contains(AccessibleState.SHOWING)) {
+			 as.remove(AccessibleState.SHOWING);
+		    }
+		}
+                if (JTable.this.isCellSelected(row, column)) {
+	            as.add(AccessibleState.SELECTED);
+                } else if (as.contains(AccessibleState.SELECTED)) {
+		    as.remove(AccessibleState.SELECTED);
+                }
+		if ((row == getSelectedRow()) && (column == getSelectedColumn())) {
+		    as.add(AccessibleState.ACTIVE);
+		}
+	        as.add(AccessibleState.TRANSIENT);
+                return as;
+            }
+
+            /**
+             * Gets the <code>Accessible</code> parent of this object.
+             *
+             * @return the Accessible parent of this object;
+             *     <code>null</code> if this object does not
+             *     have an <code>Accessible</code> parent
+             */
+            public Accessible getAccessibleParent() {
+                return parent;
+            }
+
+            /**
+             * Gets the index of this object in its accessible parent.
+             *
+             * @return the index of this object in its parent; -1 if this
+             *     object does not have an accessible parent
+             * @see #getAccessibleParent
+             */
+            public int getAccessibleIndexInParent() {
+                return column;
+            }
+
+            /**
+             * Returns the number of accessible children in the object.
+             *
+             * @return the number of accessible children in the object
+             */
+            public int getAccessibleChildrenCount() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    return ac.getAccessibleChildrenCount();
+                } else {
+                    return 0;
+                }
+            }
+
+            /**
+             * Returns the specified <code>Accessible</code> child of the
+             * object.
+             *
+             * @param i zero-based index of child
+             * @return the <code>Accessible</code> child of the object
+             */
+            public Accessible getAccessibleChild(int i) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    Accessible accessibleChild = ac.getAccessibleChild(i);
+                    ac.setAccessibleParent(this);
+                    return accessibleChild;
+                } else {
+                    return null;
+                }
+            }
+
+            /**
+             * Gets the locale of the component. If the component
+             * does not have a locale, then the locale of its parent
+             * is returned.
+             *
+             * @return this component's locale; if this component does
+             *    not have a locale, the locale of its parent is returned
+             * @exception IllegalComponentStateException if the
+             *    <code>Component</code> does not have its own locale
+             *    and has not yet been added to a containment hierarchy
+             *    such that the locale can be determined from the
+             *    containing parent
+             * @see #setLocale
+             */
+            public Locale getLocale() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    return ac.getLocale();
+                } else {
+                    return null;
+                }
+            }
+
+            /**
+             * Adds a <code>PropertyChangeListener</code> to the listener list.
+             * The listener is registered for all properties.
+             *
+             * @param l  the <code>PropertyChangeListener</code>
+             *     to be added
+             */
+            public void addPropertyChangeListener(PropertyChangeListener l) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    ac.addPropertyChangeListener(l);
+                } else {
+                    super.addPropertyChangeListener(l);
+                }
+            }
+
+            /**
+             * Removes a <code>PropertyChangeListener</code> from the
+             * listener list. This removes a <code>PropertyChangeListener</code>
+             * that was registered for all properties.
+             *
+             * @param l  the <code>PropertyChangeListener</code>
+             *    to be removed
+             */
+            public void removePropertyChangeListener(PropertyChangeListener l) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    ac.removePropertyChangeListener(l);
+                } else {
+                    super.removePropertyChangeListener(l);
+                }
+            }
+
+            /**
+             * Gets the <code>AccessibleAction</code> associated with this
+             * object if one exists.  Otherwise returns <code>null</code>.
+             *
+             * @return the <code>AccessibleAction</code>, or <code>null</code>
+             */
+            public AccessibleAction getAccessibleAction() {
+                return getCurrentAccessibleContext().getAccessibleAction();
+            }
+
+            /**
+             * Gets the <code>AccessibleComponent</code> associated with
+             * this object if one exists.  Otherwise returns <code>null</code>.
+             *
+             * @return the <code>AccessibleComponent</code>, or
+             *    <code>null</code>
+             */
+            public AccessibleComponent getAccessibleComponent() {
+                return this; // to override getBounds()
+            }
+
+            /**
+             * Gets the <code>AccessibleSelection</code> associated with
+             * this object if one exists.  Otherwise returns <code>null</code>.
+             *
+             * @return the <code>AccessibleSelection</code>, or
+             *    <code>null</code>
+             */
+            public AccessibleSelection getAccessibleSelection() {
+                return getCurrentAccessibleContext().getAccessibleSelection();
+            }
+
+            /**
+             * Gets the <code>AccessibleText</code> associated with this
+             * object if one exists.  Otherwise returns <code>null</code>.
+             *
+             * @return the <code>AccessibleText</code>, or <code>null</code>
+             */
+            public AccessibleText getAccessibleText() {
+                return getCurrentAccessibleContext().getAccessibleText();
+            }
+
+            /**
+             * Gets the <code>AccessibleValue</code> associated with
+             * this object if one exists.  Otherwise returns <code>null</code>.
+             *
+             * @return the <code>AccessibleValue</code>, or <code>null</code>
+             */
+            public AccessibleValue getAccessibleValue() {
+                return getCurrentAccessibleContext().getAccessibleValue();
+            }
+
+
+	    // AccessibleComponent methods ==========
+
+            /**
+             * Gets the background color of this object.
+             *
+             * @return the background color, if supported, of the object;
+             *     otherwise, <code>null</code>
+             */
+            public Color getBackground() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).getBackground();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.getBackground();
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+            /**
+             * Sets the background color of this object.
+             *
+             * @param c the new <code>Color</code> for the background
+             */
+            public void setBackground(Color c) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setBackground(c);
+                } else {
+                    Component cp = getCurrentComponent();
+                    if (cp != null) {
+                        cp.setBackground(c);
+                    }
+                }
+            }
+
+            /**
+             * Gets the foreground color of this object.
+             *
+             * @return the foreground color, if supported, of the object;
+             *     otherwise, <code>null</code>
+             */
+            public Color getForeground() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).getForeground();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.getForeground();
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+            /**
+             * Sets the foreground color of this object.
+             *
+             * @param c the new <code>Color</code> for the foreground
+             */
+            public void setForeground(Color c) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setForeground(c);
+                } else {
+                    Component cp = getCurrentComponent();
+                    if (cp != null) {
+                        cp.setForeground(c);
+                    }
+                }
+            }
+
+            /**
+             * Gets the <code>Cursor</code> of this object.
+             *
+             * @return the <code>Cursor</code>, if supported,
+             *    of the object; otherwise, <code>null</code>
+             */
+            public Cursor getCursor() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).getCursor();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.getCursor();
+                    } else {
+                        Accessible ap = getAccessibleParent();
+                        if (ap instanceof AccessibleComponent) {
+                            return ((AccessibleComponent) ap).getCursor();
+                        } else {
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            /**
+             * Sets the <code>Cursor</code> of this object.
+             *
+             * @param c the new <code>Cursor</code> for the object
+             */
+            public void setCursor(Cursor c) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setCursor(c);
+                } else {
+                    Component cp = getCurrentComponent();
+                    if (cp != null) {
+                        cp.setCursor(c);
+                    }
+                }
+            }
+
+            /**
+             * Gets the <code>Font</code> of this object.
+             *
+             * @return the <code>Font</code>,if supported,
+             *   for the object; otherwise, <code>null</code>
+             */
+            public Font getFont() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).getFont();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.getFont();
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+            /**
+             * Sets the <code>Font</code> of this object.
+             *
+             * @param f the new <code>Font</code> for the object
+             */
+            public void setFont(Font f) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setFont(f);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.setFont(f);
+                    }
+                }
+            }
+
+            /**
+             * Gets the <code>FontMetrics</code> of this object.
+             *
+             * @param f the <code>Font</code>
+             * @return the <code>FontMetrics</code> object, if supported;
+             *    otherwise <code>null</code>
+             * @see #getFont
+             */
+            public FontMetrics getFontMetrics(Font f) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).getFontMetrics(f);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.getFontMetrics(f);
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+            /**
+             * Determines if the object is enabled.
+             *
+             * @return true if object is enabled; otherwise, false
+             */
+            public boolean isEnabled() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).isEnabled();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.isEnabled();
+                    } else {
+                        return false;
+                    }
+                }
+            }
+
+            /**
+             * Sets the enabled state of the object.
+             *
+             * @param b if true, enables this object; otherwise, disables it
+             */
+            public void setEnabled(boolean b) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setEnabled(b);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.setEnabled(b);
+                    }
+                }
+            }
+
+            /**
+             * Determines if this object is visible.  Note: this means that the
+             * object intends to be visible; however, it may not in fact be
+             * showing on the screen because one of the objects that this object
+             * is contained by is not visible.  To determine if an object is
+             * showing on the screen, use <code>isShowing</code>.
+             *
+             * @return true if object is visible; otherwise, false
+             */
+            public boolean isVisible() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).isVisible();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.isVisible();
+                    } else {
+                        return false;
+                    }
+                }
+            }
+
+            /**
+             * Sets the visible state of the object.
+             *
+             * @param b if true, shows this object; otherwise, hides it
+             */
+            public void setVisible(boolean b) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setVisible(b);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.setVisible(b);
+                    }
+                }
+            }
+
+            /**
+             * Determines if the object is showing.  This is determined
+             * by checking the visibility of the object and ancestors
+             * of the object.  Note: this will return true even if the
+             * object is obscured by another (for example,
+             * it happens to be underneath a menu that was pulled down).
+             *
+             * @return true if the object is showing; otherwise, false
+             */
+            public boolean isShowing() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    if (ac.getAccessibleParent() != null) {
+                        return ((AccessibleComponent) ac).isShowing();
+                    } else {
+                        // Fixes 4529616 - AccessibleJTableCell.isShowing()
+                        // returns false when the cell on the screen
+                        // if no parent
+                        return isVisible();
+                    }
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.isShowing();
+                    } else {
+                        return false;
+                    }
+                }
+            }
+
+            /**
+             * Checks whether the specified point is within this
+             * object's bounds, where the point's x and y coordinates
+             * are defined to be relative to the coordinate system of
+             * the object.
+             *
+             * @param p the <code>Point</code> relative to the
+             *    coordinate system of the object
+             * @return true if object contains <code>Point</code>;
+             *    otherwise false
+             */
+            public boolean contains(Point p) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    Rectangle r = ((AccessibleComponent) ac).getBounds();
+                    return r.contains(p);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        Rectangle r = c.getBounds();
+                        return r.contains(p);
+                    } else {
+                        return getBounds().contains(p);
+                    }
+                }
+            }
+
+            /**
+             * Returns the location of the object on the screen.
+             *
+             * @return location of object on screen -- can be
+             *    <code>null</code> if this object is not on the screen
+             */
+            public Point getLocationOnScreen() {
+                if (parent != null) {
+                    Point parentLocation = parent.getLocationOnScreen();
+                    Point componentLocation = getLocation();
+                    componentLocation.translate(parentLocation.x, parentLocation.y);
+                    return componentLocation;
+                } else {
+                    return null;
+                }
+            }
+
+            /**
+             * Gets the location of the object relative to the parent
+             * in the form of a point specifying the object's
+             * top-left corner in the screen's coordinate space.
+             *
+             * @return an instance of <code>Point</code> representing
+             *    the top-left corner of the object's bounds in the
+             *    coordinate space of the screen; <code>null</code> if
+             *    this object or its parent are not on the screen
+             */
+            public Point getLocation() {
+                if (parent != null) {
+                    Rectangle r = parent.getHeaderRect(column);
+                    if (r != null) {
+                        return r.getLocation();
+                    }
+                }
+                return null;
+            }
+
+	    /** 
+	     * Sets the location of the object relative to the parent.
+	     * @param p the new position for the top-left corner
+	     * @see #getLocation
+	     */
+            public void setLocation(Point p) {
+            }
+
+	    /** 
+	     * Gets the bounds of this object in the form of a Rectangle object. 
+	     * The bounds specify this object's width, height, and location
+	     * relative to its parent. 
+	     *
+	     * @return A rectangle indicating this component's bounds; null if 
+	     * this object is not on the screen.
+	     * @see #contains
+	     */
+            public Rectangle getBounds() {
+                if (parent != null) {
+                    return parent.getHeaderRect(column);
+                } else {
+                    return null;
+                }
+            }
+
+	    /** 
+	     * Sets the bounds of this object in the form of a Rectangle object. 
+	     * The bounds specify this object's width, height, and location
+	     * relative to its parent.
+	     *	
+	     * @param r rectangle indicating this component's bounds
+	     * @see #getBounds
+	     */
+            public void setBounds(Rectangle r) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setBounds(r);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.setBounds(r);
+                    }
+                }
+            }
+
+	    /** 
+	     * Returns the size of this object in the form of a Dimension object. 
+	     * The height field of the Dimension object contains this object's
+	     * height, and the width field of the Dimension object contains this 
+	     * object's width. 
+	     *
+	     * @return A Dimension object that indicates the size of this component; 
+	     * null if this object is not on the screen
+	     * @see #setSize
+	     */
+            public Dimension getSize() {
+                if (parent != null) {
+                    Rectangle r = parent.getHeaderRect(column);
+                    if (r != null) {
+                        return r.getSize();
+                    }
+                }
+                return null;
+            }
+
+	    /** 
+	     * Resizes this object so that it has width and height. 
+	     *	
+	     * @param d The dimension specifying the new size of the object. 
+	     * @see #getSize
+	     */
+            public void setSize (Dimension d) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).setSize(d);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.setSize(d);
+                    }
+                }
+            }
+
+	    /**
+	     * Returns the Accessible child, if one exists, contained at the local 
+	     * coordinate Point.
+	     *
+	     * @param p The point relative to the coordinate system of this object.
+	     * @return the Accessible, if it exists, at the specified location; 
+	     * otherwise null
+	     */
+            public Accessible getAccessibleAt(Point p) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).getAccessibleAt(p);
+                } else {
+                    return null;
+                }
+            }
+
+	    /**
+	     * Returns whether this object can accept focus or not.   Objects that 
+	     * can accept focus will also have the AccessibleState.FOCUSABLE state 
+	     * set in their AccessibleStateSets.
+	     *
+	     * @return true if object can accept focus; otherwise false
+	     * @see AccessibleContext#getAccessibleStateSet
+	     * @see AccessibleState#FOCUSABLE
+	     * @see AccessibleState#FOCUSED
+	     * @see AccessibleStateSet
+	     */
+            public boolean isFocusTraversable() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    return ((AccessibleComponent) ac).isFocusTraversable();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        return c.isFocusTraversable();
+                    } else {
+                        return false;
+                    }
+                }
+            }
+
+	    /**
+	     * Requests focus for this object.  If this object cannot accept focus,
+	     * nothing will happen.  Otherwise, the object will attempt to take
+	     * focus.
+	     * @see #isFocusTraversable
+	     */
+            public void requestFocus() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).requestFocus();
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.requestFocus();
+                    }
+                }
+            }
+
+	    /**
+	     * Adds the specified focus listener to receive focus events from this 
+	     * component. 
+	     *
+	     * @param l the focus listener
+	     * @see #removeFocusListener
+	     */
+            public void addFocusListener(FocusListener l) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).addFocusListener(l);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.addFocusListener(l);
+                    }
+                }
+            }
+
+	    /**
+	     * Removes the specified focus listener so it no longer receives focus 
+	     * events from this component.
+	     *
+	     * @param l the focus listener
+	     * @see #addFocusListener
+	     */
+            public void removeFocusListener(FocusListener l) {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac instanceof AccessibleComponent) {
+                    ((AccessibleComponent) ac).removeFocusListener(l);
+                } else {
+                    Component c = getCurrentComponent();
+                    if (c != null) {
+                        c.removeFocusListener(l);
+                    }
+                }
+            }
+
+        } // inner class AccessibleJTableHeaderCell
 
     }  // inner class AccessibleJTable
 

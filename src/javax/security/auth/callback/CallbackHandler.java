@@ -1,7 +1,7 @@
 /*
- * @(#)CallbackHandler.java	1.15 03/01/23
+ * @(#)CallbackHandler.java	1.17 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ package javax.security.auth.callback;
  * security property.  The security property can be set
  * in the Java security properties file located in the file named
  * &lt;JAVA_HOME&gt;/lib/security/java.security, where &lt;JAVA_HOME&gt;
- * refers to the directory where the SDK was installed.
+ * refers to the directory where the JDK was installed.
  *
  * <p> If the security property is set to the fully qualified name of a
  * <code>CallbackHandler</code> implementation class,
@@ -48,7 +48,7 @@ package javax.security.auth.callback;
  * <p> All default handler implementations must provide a public
  * zero-argument constructor.
  *
- * @version 1.15, 01/23/03
+ * @version 1.17, 06/28/04
  */
 public interface CallbackHandler {
 

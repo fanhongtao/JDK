@@ -1,20 +1,22 @@
 /*
- * @(#)PixmapStyle.java	1.17 03/01/23
+ * @(#)PixmapStyle.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import javax.swing.plaf.synth.*;
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
 import java.security.*;
+import sun.swing.plaf.synth.*;
 
 /**
  * PixmapStyle extends GTKStyle adding support for a set of <code>Info</code>s.
  *
- * @version 1.17, 01/23/03
+ * @version 1.19, 12/19/03
  * @author Scott Violet
  */
 class PixmapStyle extends GTKStyle implements GTKConstants {

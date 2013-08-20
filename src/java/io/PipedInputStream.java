@@ -1,7 +1,7 @@
 /*
- * @(#)PipedInputStream.java	1.32 03/01/23
+ * @(#)PipedInputStream.java	1.35 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,14 +23,14 @@ package java.io;
  * within limits.
  *
  * @author  James Gosling
- * @version 1.32, 01/23/03
+ * @version 1.35, 12/19/03
  * @see     java.io.PipedOutputStream
  * @since   JDK1.0
  */
 public
 class PipedInputStream extends InputStream {
     boolean closedByWriter = false;
-    boolean closedByReader = false;
+    volatile boolean closedByReader = false;
     boolean connected = false;
 
 	/* REMIND: identification of the read and write sides needs to be
@@ -130,27 +130,10 @@ class PipedInputStream extends InputStream {
      * @since     JDK1.1
      */
     protected synchronized void receive(int b) throws IOException {
-        if (!connected) {
-            throw new IOException("Pipe not connected");
-        } else if (closedByWriter || closedByReader) {
-	    throw new IOException("Pipe closed");
-	} else if (readSide != null && !readSide.isAlive()) {
-            throw new IOException("Read end dead");
-        }
-
-	writeSide = Thread.currentThread();
-	while (in == out) {
-	    if ((readSide != null) && !readSide.isAlive()) {
-		throw new IOException("Pipe broken");
-	    }
-	    /* full: kick any waiting readers */
-	    notifyAll();
-	    try {
-	        wait(1000);
-	    } catch (InterruptedException ex) {
-		throw new java.io.InterruptedIOException();
-	    }
-	}
+        checkStateForReceive();
+        writeSide = Thread.currentThread();
+        if (in == out)
+            awaitSpace();
 	if (in < 0) {
 	    in = 0;
 	    out = 0;
@@ -167,13 +150,61 @@ class PipedInputStream extends InputStream {
      * @param b the buffer into which the data is received
      * @param off the start offset of the data
      * @param len the maximum number of bytes received
-     * @return the actual number of bytes received, -1 is
-     *          returned when the end of the stream is reached.
      * @exception IOException If an I/O error has occurred.
      */
     synchronized void receive(byte b[], int off, int len)  throws IOException {
-	while (--len >= 0) {
-	    receive(b[off++]);
+        checkStateForReceive();
+        writeSide = Thread.currentThread();
+        int bytesToTransfer = len;
+        while (bytesToTransfer > 0) {
+            if (in == out)
+                awaitSpace();
+            int nextTransferAmount = 0;
+            if (out < in) {
+                nextTransferAmount = buffer.length - in;
+            } else if (in < out) {
+                if (in == -1) {
+                    in = out = 0;
+                    nextTransferAmount = buffer.length - in;
+                } else {
+                    nextTransferAmount = out - in;
+                }
+            }
+            if (nextTransferAmount > bytesToTransfer)
+                nextTransferAmount = bytesToTransfer;
+            assert(nextTransferAmount > 0);
+            System.arraycopy(b, off, buffer, in, nextTransferAmount);
+            bytesToTransfer -= nextTransferAmount;
+            off += nextTransferAmount;
+            in += nextTransferAmount;
+            if (in >= buffer.length) {
+                in = 0;
+            }
+        }
+    }
+
+    private void checkStateForReceive() throws IOException {
+        if (!connected) {
+            throw new IOException("Pipe not connected");
+        } else if (closedByWriter || closedByReader) {
+	    throw new IOException("Pipe closed");
+	} else if (readSide != null && !readSide.isAlive()) {
+            throw new IOException("Read end dead");
+        }
+    }
+
+    private void awaitSpace() throws IOException {
+	while (in == out) {
+	    if ((readSide != null) && !readSide.isAlive()) {
+		throw new IOException("Pipe broken");
+	    }
+	    /* full: kick any waiting readers */
+	    notifyAll();
+	    try {
+	        wait(1000);
+	    } catch (InterruptedException ex) {
+		throw new java.io.InterruptedIOException();
+	    }
 	}
     }
 
@@ -319,7 +350,9 @@ class PipedInputStream extends InputStream {
      * @exception  IOException  if an I/O error occurs.
      */
     public void close()  throws IOException {
-	in = -1;
 	closedByReader = true;
+        synchronized (this) {
+            in = -1;
+        }
     }
 }

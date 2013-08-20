@@ -1,7 +1,7 @@
 /*
- * @(#)TransformerFactoryConfigurationError.java	1.9 03/01/23
- *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)TransformerFactoryConfigurationError.java	1.13 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.xml.transform;
@@ -14,6 +14,10 @@ package javax.xml.transform;
  */
 public class TransformerFactoryConfigurationError extends Error {
 
+    /**
+     * <code>Exception</code> for the
+     *  <code>TransformerFactoryConfigurationError</code>.
+     */
     private Exception exception;
 
     /**
@@ -61,7 +65,6 @@ public class TransformerFactoryConfigurationError extends Error {
      * @param e The exception to be encapsulated in a
      * TransformerFactoryConfigurationError
      * @param msg The detail message.
-     * @param e The exception to be wrapped in a TransformerFactoryConfigurationError
      */
     public TransformerFactoryConfigurationError(Exception e, String msg) {
 

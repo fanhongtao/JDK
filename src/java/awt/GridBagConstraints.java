@@ -1,7 +1,7 @@
 /*
- * @(#)GridBagConstraints.java	1.31 03/01/23
+ * @(#)GridBagConstraints.java	1.34 04/03/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -11,7 +11,7 @@ package java.awt;
  * for components that are laid out using the 
  * <code>GridBagLayout</code> class.
  *
- * @version 	1.31, 01/23/03
+ * @version 	1.34, 03/15/04
  * @author Doug Stein
  * @see java.awt.GridBagLayout
  * @since JDK1.0
@@ -214,9 +214,12 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * Specifies the number of cells in a row for the component's 
      * display area. 
      * <p>
-     * Use <code>REMAINDER</code> to specify that the component be the 
-     * last one in its row. Use <code>RELATIVE</code> to specify that the 
-     * component be the next-to-last one in its row. 
+     * Use <code>REMAINDER</code> to specify that the component's
+     * display area will be from <code>gridx</code> to the last
+     * cell in the row.
+     * Use <code>RELATIVE</code> to specify that the component's
+     * display area will be from <code>gridx</code> to the next
+     * to the last one in its row.
      * <p>
      * <code>gridwidth</code> should be non-negative and the default
      * value is 1.
@@ -230,9 +233,12 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * Specifies the number of cells in a column for the component's 
      * display area. 
      * <p>
-     * Use <code>REMAINDER</code> to specify that the component be the 
-     * last one in its column. Use <code>RELATIVE</code> to specify that 
-     * the component be the next-to-last one in its column. 
+     * Use <code>REMAINDER</code> to specify that the component's
+     * display area will be from <code>gridy</code> to the last
+     * cell in the column.
+     * Use <code>RELATIVE</code> to specify that the component's
+     * display area will be from <code>gridy</code> to the next
+     * to the last one in its column.
      * <p>
      * <code>gridheight</code> should be a non-negative value and the
      * default value is 1.
@@ -349,7 +355,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * This field specifies the internal padding of the component, how much 
      * space to add to the minimum width of the component. The width of 
      * the component is at least its minimum width plus 
-     * <code>(ipadx&nbsp;*&nbsp;2)</code> pixels. 
+     * <code>ipadx</code> pixels. 
      * <p>
      * The default value is <code>0</code>. 
      * @serial
@@ -362,7 +368,7 @@ public class GridBagConstraints implements Cloneable, java.io.Serializable {
      * This field specifies the internal padding, that is, how much 
      * space to add to the minimum height of the component. The height of 
      * the component is at least its minimum height plus 
-     * <code>(ipady&nbsp;*&nbsp;2)</code> pixels. 
+     * <code>ipady</code> pixels. 
      * <p>
      * The default value is 0. 
      * @serial

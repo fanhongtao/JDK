@@ -1,7 +1,7 @@
 /*
- * @(#)ImageReadParam.java	1.56 03/01/23
+ * @(#)ImageReadParam.java	1.58 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -98,6 +98,11 @@ import java.awt.image.BufferedImage;
  * Also, they may ignore any optional features that they normally
  * disable when creating their own <code>ImageReadParam</code>
  * instances via <code>getDefaultReadParam</code>.
+ *
+ * <p> Note that unless a query method exists for a capability, it must
+ * be supported by all <code>ImageReader</code> implementations
+ * (<i>e.g.</i> source render size is optional, but subsampling must be
+ * supported).
  *
  * @version 0.5
  *

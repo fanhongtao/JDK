@@ -1,7 +1,7 @@
 /*
- * @(#)TableCellRenderer.java	1.17 03/01/23
+ * @(#)TableCellRenderer.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ import javax.swing.*;
  * This interface defines the method required by any object that
  * would like to be a renderer for cells in a <code>JTable</code>.
  *
- * @version 1.17 01/23/03
+ * @version 1.18 12/19/03
  * @author Alan Chung
  */
 

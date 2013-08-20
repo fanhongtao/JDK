@@ -1,7 +1,7 @@
 /*
- * @(#)SerializablePermission.java	1.17 03/01/23
+ * @(#)SerializablePermission.java	1.19 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ import java.util.StringTokenizer;
  * deserialize classes in a purposefully malfeasant manner. For example,
  * during serialization, malicious code can use this to
  * purposefully store confidential private field data in a way easily accessible
- * to attackers. Or, during deserializaiton it could, for example, deserialize
+ * to attackers. Or, during deserialization it could, for example, deserialize
  * a class with all its private fields zeroed out.</td>
  * </tr>
  *
@@ -64,7 +64,7 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.17, 01/23/03
+ * @version 1.19, 01/12/04
  *
  * @author Joe Fialli
  * @since 1.2

@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedWriter.java	1.24 03/01/23
+ * @(#)BufferedWriter.java	1.26 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ package java.io;
  * @see FileWriter
  * @see OutputStreamWriter
  *
- * @version 	1.24, 03/01/23
+ * @version 	1.26, 03/12/19
  * @author	Mark Reinhold
  * @since	JDK1.1
  */
@@ -185,6 +185,12 @@ public class BufferedWriter extends Writer {
 
     /**
      * Write a portion of a String.
+     *
+     * <p> If the value of the <tt>len</tt> parameter is negative then no
+     * characters are written.  This is contrary to the specification of this
+     * method in the {@linkplain java.io.Writer#write(java.lang.String,int,int)
+     * superclass}, which requires that an {@link IndexOutOfBoundsException} be
+     * thrown.
      *
      * @param  s     String to be written
      * @param  off   Offset from which to start reading characters

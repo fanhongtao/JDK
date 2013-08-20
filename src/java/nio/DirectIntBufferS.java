@@ -1,7 +1,7 @@
 /*
- * @(#)Direct-X-Buffer.java	1.45 03/04/23
+ * @(#)Direct-X-Buffer.java	1.48 04/05/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -165,6 +165,7 @@ class DirectIntBufferS
 	assert (pos <= lim);
 	int rem = (pos <= lim ? lim - pos : 0);
 	int off = (pos << 2);
+        assert (off >= 0);
 	return new DirectIntBufferS(this, -1, 0, rem, rem, off);
     }
 
@@ -197,7 +198,7 @@ class DirectIntBufferS
     }
 
     private long ix(int i) {
-	return address + (i << 2);
+        return address + (i << 2);
     }
 
     public int get() {
@@ -350,6 +351,8 @@ class DirectIntBufferS
     }
 
 
+
+
 
 
 

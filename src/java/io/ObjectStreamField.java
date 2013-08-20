@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectStreamField.java	1.40 03/01/23
+ * @(#)ObjectStreamField.java	1.45 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,11 +15,13 @@ import java.lang.reflect.Field;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.40, 03/01/23
+ * @version 1.45, 04/05/05
  * @see ObjectStreamClass
  * @since 1.2
  */
-public class ObjectStreamField implements Comparable {
+public class ObjectStreamField
+    implements Comparable<Object>
+{
 
     /** field name */
     private final String name;
@@ -41,7 +43,7 @@ public class ObjectStreamField implements Comparable {
      * @param	name the name of the serializable field
      * @param	type the <code>Class</code> object of the serializable field
      */
-    public ObjectStreamField(String name, Class type) {
+    public ObjectStreamField(String name, Class<?> type) {
 	this(name, type, false);
     }
     
@@ -61,7 +63,7 @@ public class ObjectStreamField implements Comparable {
      *          as writeObject/readObject; if true, write/read in the same
      *          manner as writeUnshared/readUnshared
      */
-    public ObjectStreamField(String name, Class type, boolean unshared) {
+    public ObjectStreamField(String name, Class<?> type, boolean unshared) {
 	if (name == null) {
 	    throw new NullPointerException();
 	}
@@ -128,11 +130,16 @@ public class ObjectStreamField implements Comparable {
     }
 
     /**
-     * Get the type of the field.
+     * Get the type of the field.  If the type is non-primitive and this
+     * <code>ObjectStreamField</code> was obtained from a deserialized {@link
+     * ObjectStreamClass} instance, then <code>Object.class</code> is returned.
+     * Otherwise, the <code>Class</code> object for the type of the field is
+     * returned.
      *
-     * @return	the <code>Class</code> object of the serializable field 
+     * @return	a <code>Class</code> object representing the type of the
+     * 		serializable field
      */
-    public Class getType() {
+    public Class<?> getType() {
 	return type;
     }
 

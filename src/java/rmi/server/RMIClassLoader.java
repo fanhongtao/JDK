@@ -1,7 +1,7 @@
 /*
- * @(#)RMIClassLoader.java	1.36 03/01/23
+ * @(#)RMIClassLoader.java	1.40 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -83,7 +83,7 @@ import sun.misc.Service;
  *
  * </ul>
  *
- * @version	1.36, 03/01/23
+ * @version	1.40, 04/05/18
  * @author	Ann Wollrath
  * @author	Peter Jones
  * @author	Laird Dornin
@@ -109,8 +109,7 @@ public class RMIClassLoader {
     private RMIClassLoader() {}
 
     /**
-     * Loads a class from the codebase URL path specified by the
-     * <code>java.rmi.server.codebase</code> property.
+     * Loads the class with the specified <code>name</code>.
      *
      * <p>This method delegates to {@link #loadClass(String,String)},
      * passing <code>null</code> as the first argument and
@@ -120,8 +119,8 @@ public class RMIClassLoader {
      *
      * @return	the <code>Class</code> object representing the loaded class
      *
-     * @throws	MalformedURLException if the system property
-     * <code>java.rmi.server.codebase</code> contains an invalid URL
+     * @throws MalformedURLException if a provider-specific URL used
+     * to load classes is invalid
      *
      * @throws	ClassNotFoundException if a definition for the class
      * could not be found at the codebase location
@@ -129,7 +128,8 @@ public class RMIClassLoader {
      * @deprecated replaced by <code>loadClass(String,String)</code> method
      * @see #loadClass(String,String)
      */
-    public static Class loadClass(String name)
+    @Deprecated
+    public static Class<?> loadClass(String name)
 	throws MalformedURLException, ClassNotFoundException
     {
 	return loadClass((String) null, name);
@@ -156,14 +156,14 @@ public class RMIClassLoader {
      *
      * @return	the <code>Class</code> object representing the loaded class
      *
-     * @throws	MalformedURLException if <code>codebase</code> is
-     * <code>null</code> and the system property
-     * <code>java.rmi.server.codebase</code> contains an invalid URL
+     * @throws MalformedURLException if <code>codebase</code> is
+     * <code>null</code> and a provider-specific URL used
+     * to load classes is invalid
      *
      * @throws	ClassNotFoundException if a definition for the class
      * could not be found at the specified URL
      */
-    public static Class loadClass(URL codebase, String name)
+    public static Class<?> loadClass(URL codebase, String name)
 	throws MalformedURLException, ClassNotFoundException
     {
 	return provider.loadClass(
@@ -172,10 +172,6 @@ public class RMIClassLoader {
 
     /**
      * Loads a class from a codebase URL path.
-     *
-     * If <code>codebase</code> is <code>null</code>, then the value of
-     * the system property <code>java.rmi.server.codebase</code> is used
-     * as the URL path.
      *
      * <p>This method delegates to the
      * {@link RMIClassLoaderSpi#loadClass(String,String,ClassLoader)}
@@ -190,18 +186,17 @@ public class RMIClassLoader {
      *
      * @return	the <code>Class</code> object representing the loaded class
      *
-     * @throws	MalformedURLException if <code>codebase</code> is
-     * non-<code>null</code> and contains an invalid URL, or
-     * if <code>codebase</code> is <code>null</code> and the system
-     * property <code>java.rmi.server.codebase</code> contains an
-     * invalid URL
+     * @throws MalformedURLException if <code>codebase</code> is
+     * non-<code>null</code> and contains an invalid URL, or if
+     * <code>codebase</code> is <code>null</code> and a provider-specific
+     * URL used to load classes is invalid
      *
      * @throws	ClassNotFoundException if a definition for the class
      * could not be found at the specified location
      *
      * @since	1.2
      */
-    public static Class loadClass(String codebase, String name)
+    public static Class<?> loadClass(String codebase, String name)
 	throws MalformedURLException, ClassNotFoundException
     {
 	return provider.loadClass(codebase, name, null);
@@ -210,10 +205,6 @@ public class RMIClassLoader {
     /**
      * Loads a class from a codebase URL path, optionally using the
      * supplied loader.
-     *
-     * If <code>codebase</code> is <code>null</code>, then the value of
-     * the system property <code>java.rmi.server.codebase</code> is used
-     * as the URL path.
      *
      * This method should be used when the caller would like to make
      * available to the provider implementation an additional contextual
@@ -239,19 +230,18 @@ public class RMIClassLoader {
      *
      * @return	the <code>Class</code> object representing the loaded class
      *
-     * @throws	MalformedURLException if <code>codebase</code> is
-     * non-<code>null</code> and contains an invalid URL, or
-     * if <code>codebase</code> is <code>null</code> and the system
-     * property <code>java.rmi.server.codebase</code> contains an
-     * invalid URL
+     * @throws MalformedURLException if <code>codebase</code> is
+     * non-<code>null</code> and contains an invalid URL, or if
+     * <code>codebase</code> is <code>null</code> and a provider-specific
+     * URL used to load classes is invalid
      *
      * @throws	ClassNotFoundException if a definition for the class
      * could not be found at the specified location
      *
      * @since	1.4
      */
-    public static Class loadClass(String codebase, String name,
-				  ClassLoader defaultLoader)
+    public static Class<?> loadClass(String codebase, String name,
+				     ClassLoader defaultLoader)
 	throws MalformedURLException, ClassNotFoundException
     {
 	return provider.loadClass(codebase, name, defaultLoader);
@@ -261,10 +251,6 @@ public class RMIClassLoader {
      * Loads a dynamic proxy class (see {@link java.lang.reflect.Proxy})
      * that implements a set of interfaces with the given names
      * from a codebase URL path.
-     *
-     * If <code>codebase</code> is <code>null</code>, then the value of
-     * the system property <code>java.rmi.server.codebase</code> is used
-     * as the URL path.
      *
      * <p>The interfaces will be resolved similar to classes loaded via
      * the {@link #loadClass(String,String)} method using the given
@@ -289,9 +275,8 @@ public class RMIClassLoader {
      *
      * @throws	MalformedURLException if <code>codebase</code> is
      * non-<code>null</code> and contains an invalid URL, or
-     * if <code>codebase</code> is <code>null</code> and the system
-     * property <code>java.rmi.server.codebase</code> contains an
-     * invalid URL
+     * if <code>codebase</code> is <code>null</code> and a provider-specific
+     * URL used to load classes is invalid
      *
      * @throws	ClassNotFoundException if a definition for one of
      * the named interfaces could not be found at the specified location,
@@ -302,8 +287,8 @@ public class RMIClassLoader {
      *
      * @since	1.4
      */
-    public static Class loadProxyClass(String codebase, String[] interfaces,
-				       ClassLoader defaultLoader)
+    public static Class<?> loadProxyClass(String codebase, String[] interfaces,
+					  ClassLoader defaultLoader)
 	throws ClassNotFoundException, MalformedURLException
     {
 	return provider.loadProxyClass(codebase, interfaces, defaultLoader);
@@ -337,9 +322,8 @@ public class RMIClassLoader {
      *
      * @throws	MalformedURLException if <code>codebase</code> is
      * non-<code>null</code> and contains an invalid URL, or
-     * if <code>codebase</code> is <code>null</code> and the system
-     * property <code>java.rmi.server.codebase</code> contains an
-     * invalid URL
+     * if <code>codebase</code> is <code>null</code> and a provider-specific
+     * URL used to identify the class loader is invalid
      *
      * @throws	SecurityException if there is a security manager and the
      * invocation of its <code>checkPermission</code> method fails, or
@@ -376,7 +360,7 @@ public class RMIClassLoader {
      * REMIND: Should we say that the returned class annotation will or
      * should be a (space-separated) list of URLs?
      */
-    public static String getClassAnnotation(Class cl) {
+    public static String getClassAnnotation(Class<?> cl) {
 	return provider.getClassAnnotation(cl);
     }
 
@@ -428,7 +412,8 @@ public class RMIClassLoader {
      * system class loader such as the loader used for installed
      * extensions, or the bootstrap class loader (which may be
      * represented by <code>null</code>), then the value of the
-     * <code>java.rmi.server.codebase</code> property is returned, or
+     * <code>java.rmi.server.codebase</code> property (or possibly an
+     * earlier cached value) is returned, or
      * <code>null</code> is returned if that property is not set.
      *
      * <p><li>Otherwise, if the class loader is an instance of
@@ -447,12 +432,13 @@ public class RMIClassLoader {
      * URL; if any of those invocations throws a
      * <code>SecurityException</code> or an <code>IOException</code>,
      * then the value of the <code>java.rmi.server.codebase</code>
-     * property is returned, or <code>null</code> is returned if that
-     * property is not set.
+     * property (or possibly an earlier cached value) is returned, or
+     * <code>null</code> is returned if that property is not set.
      *
      * <p><li>Finally, if the class loader is not an instance of
      * <code>URLClassLoader</code>, then the value of the
-     * <code>java.rmi.server.codebase</code> property is returned, or
+     * <code>java.rmi.server.codebase</code> property (or possibly an
+     * earlier cached value) is returned, or
      * <code>null</code> is returned if that property is not set.
      *
      * </ul>
@@ -468,7 +454,10 @@ public class RMIClassLoader {
      * class loader instances (which are at least instances of {@link
      * java.net.URLClassLoader}) keyed by the pair of their parent
      * class loader and their codebase URL path (an ordered list of
-     * URLs).  For a given codebase URL path passed as the
+     * URLs).  If the <code>codebase</code> argument is <code>null</code>,
+     * the codebase URL path is the value of the system property
+     * <code>java.rmi.server.codebase</code> or possibly an 
+     * earlier cached value.  For a given codebase URL path passed as the
      * <code>codebase</code> argument to an invocation of one of the
      * below methods in a given context, the codebase loader is the
      * loader in the table with the specified codebase URL path and
@@ -513,9 +502,8 @@ public class RMIClassLoader {
      *
      * <p>Next, the <code>loadClass</code> method attempts to load the
      * class with the specified <code>name</code> using the codebase
-     * loader for the specified codebase URL path; the supplied
-     * <code>codebase</code> string must be a space-separated list of
-     * URLs.  If there is a security manager, then the calling context
+     * loader for the specified codebase URL path.
+     * If there is a security manager, then the calling context
      * must have permission to connect to all of the URLs in the
      * codebase URL path; otherwise, the current thread's context
      * class loader will be used instead of the codebase loader.
@@ -614,6 +602,7 @@ public class RMIClassLoader {
      * longer uses this method to obtain a class loader's security context.
      * @see java.lang.SecurityManager#getSecurityContext()
      */
+    @Deprecated
     public static Object getSecurityContext(ClassLoader loader)
     {
 	return sun.rmi.server.LoaderHandler.getSecurityContext(loader);
@@ -646,7 +635,7 @@ public class RMIClassLoader {
 		return sun.rmi.server.LoaderHandler.getClassLoader(codebase);
 	    }
 
-	    public String getClassAnnotation(Class cl) {
+	    public String getClassAnnotation(Class<?> cl) {
 		return sun.rmi.server.LoaderHandler.getClassAnnotation(cl);
 	    }
 	};

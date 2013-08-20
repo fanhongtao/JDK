@@ -1,7 +1,7 @@
 /*
- * @(#)Throwable.java	1.51 03/01/23
+ * @(#)Throwable.java	1.53 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -90,9 +90,10 @@ import  java.io.*;
  * {@link java.lang.reflect.InvocationTargetException}, 
  * {@link java.io.WriteAbortedException},
  * {@link java.security.PrivilegedActionException},
- * {@link java.awt.print.PrinterIOException} and
- * {@link java.rmi.RemoteException}).
- * As of release 1.4, all of these throwables have been retrofitted to 
+ * {@link java.awt.print.PrinterIOException},
+ * {@link java.rmi.RemoteException} and
+ * {@link javax.naming.NamingException}).
+ * All of these throwables have been retrofitted to 
  * use the standard exception chaining mechanism, while continuing to
  * implement their "legacy" chaining mechanisms for compatibility.
  *
@@ -123,7 +124,7 @@ import  java.io.*;
  * @author  unascribed
  * @author  Josh Bloch (Added exception chaining and programmatic access to
  *          stack trace in 1.4.)
- * @version 1.51, 01/23/03
+ * @version 1.53, 12/19/03
  * @since JDK1.0
  */
 public class Throwable implements Serializable {

@@ -1,22 +1,26 @@
 /*
- * @(#)LineEvent.java	1.22 03/01/23
+ * @(#)LineEvent.java	1.26 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.sampled;	
 
 /**
- * The <code>LineEvent</code> class encapsulates information that a line sends its listeners 
- * whenever the line opens, closes, starts, or stops.  Each of these four state changes
- * is represented by a corresponding type of event.  A listener receives the event as a parameter to its
- * its {@link LineListener#update update} method.  By querying the event, the listener can learn
- * the type of event, the line responsible for the event, and how much data the line had processed
- * when the event occurred.
+ * The <code>LineEvent</code> class encapsulates information that a line
+ * sends its listeners whenever the line opens, closes, starts, or stops.
+ * Each of these four state changes is represented by a corresponding
+ * type of event.  A listener receives the event as a parameter to its
+ * {@link LineListener#update update} method.  By querying the event,
+ * the listener can learn the type of event, the line responsible for
+ * the event, and how much data the line had processed when the event occurred.
+ *
+ * <p>Although this class implements Serializable, attempts to
+ * serialize a <code>LineEvent</code> object will fail.
  *
  * @author Kara Kytle
- * @version 1.22, 03/01/23
+ * @version 1.26, 03/12/19
  *
  * @see Line
  * @see LineListener#update
@@ -55,6 +59,9 @@ public class LineEvent extends java.util.EventObject {
      * @param type the event type (<code>OPEN</code>, <code>CLOSE</code>, <code>START</code>, or <code>STOP</code>)
      * @param position the number of sample frames that the line had already processed when the event occurred,
      * or {@link AudioSystem#NOT_SPECIFIED}
+     *
+     * @throws IllegalArgumentException if <code>line</code> is
+     * <code>null</code>.
      */
     public LineEvent(Line line, Type type, long position) {
 
@@ -112,8 +119,15 @@ public class LineEvent extends java.util.EventObject {
      * @return a string describing the event.
      */	
     public String toString() {
-			
-	return new String(type.toString() + " event from line " + getLine().toString());
+	String sType = "";
+	if (type != null) sType = type.toString()+" ";
+	String sLine;
+	if (getLine() == null) {
+	    sLine = "null";
+	} else {
+	    sLine = getLine().toString();
+	}
+	return new String(sType + "event from line " + sLine);
     }	
 
 

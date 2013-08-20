@@ -1,7 +1,7 @@
 /*
- * @(#)DictionaryBasedBreakIterator.java	1.10 03/01/23
+ * @(#)DictionaryBasedBreakIterator.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -97,19 +97,22 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
      * passed through to RuleBasedBreakIterator's constructor.
      * @param dictionaryFilename The filename of the dictionary file to use
      */
-    public DictionaryBasedBreakIterator(String description,
-                                        InputStream dictionaryStream) throws IOException {
-        super(description);
-        dictionary = new BreakDictionary(dictionaryStream);
+    public DictionaryBasedBreakIterator(String dataFile, String dictionaryFile)
+                                        throws IOException {
+        super(dataFile);
+        byte[] tmp = super.getAdditionalData();
+        if (tmp != null) {
+            prepareCategoryFlags(tmp);
+            super.setAdditionalData(null);
+        }
+        dictionary = new BreakDictionary(dictionaryFile);
     }
 
-    /**
-     * Returns a Builder that is customized to build a DictionaryBasedBreakIterator.
-     * This is the same as RuleBasedBreakIterator.Builder, except for the extra code
-     * to handle the <dictionary> tag.
-     */
-    protected RuleBasedBreakIterator.Builder makeBuilder() {
-        return new Builder();
+    private void prepareCategoryFlags(byte[] data) {
+	categoryFlags = new boolean[data.length];
+        for (int i = 0; i < data.length; i++) {
+            categoryFlags[i] = (data[i] == (byte)1) ? true : false;
+        }
     }
 
     public void setText(CharacterIterator newText) {
@@ -165,8 +168,9 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
         else {
             cachedBreakPositions = null;
             int result = super.previous();
-            if (cachedBreakPositions != null)
+            if (cachedBreakPositions != null) {
                 positionInCache = cachedBreakPositions.length - 2;
+            } 
             return result;
         }
     }
@@ -197,8 +201,9 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
         else {
             positionInCache = 0;
             while (positionInCache < cachedBreakPositions.length
-                   && offset > cachedBreakPositions[positionInCache])
+                   && offset > cachedBreakPositions[positionInCache]) {
                 ++positionInCache;
+            }
             --positionInCache;
             text.setIndex(cachedBreakPositions[positionInCache]);
             return text.getIndex();
@@ -231,8 +236,9 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
         else {
             positionInCache = 0;
             while (positionInCache < cachedBreakPositions.length
-                   && offset >= cachedBreakPositions[positionInCache])
+                   && offset >= cachedBreakPositions[positionInCache]) {
                 ++positionInCache;
+            }
             text.setIndex(cachedBreakPositions[positionInCache]);
             return text.getIndex();
         }
@@ -286,7 +292,7 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
     /**
      * Looks up a character category for a character.
      */
-    protected int lookupCategory(char c) {
+    protected int lookupCategory(int c) {
         // this override of lookupCategory() exists only to keep track of whether we've
         // passed over any dictionary characters.  It calls the inherited lookupCategory()
         // to do the real work, and then checks whether its return value is one of the
@@ -315,10 +321,10 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
         // that needs to be kept with the word).  Seek from the beginning of the
         // range to the first dictionary character
         text.setIndex(startPos);
-        char c = text.current();
+        int c = getCurrent();
         int category = lookupCategory(c);
         while (category == IGNORE || !categoryFlags[category]) {
-            c = text.next();
+            c = getNext();
             category = lookupCategory(c);
         }
 
@@ -354,18 +360,18 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
         Stack bestBreakPositions = null;
 
         // initialize (we always exit the loop with a break statement)
-        c = text.current();
+        c = getCurrent();
         while (true) {
 
             // if we can transition to state "-1" from our current state, we're
             // on the last character of a legal word.  Push that position onto
             // the possible-break-positions stack
-            if (dictionary.at(state, 0) == -1) {
+            if (dictionary.getNextState(state, 0) == -1) {
                 possibleBreakPositions.push(new Integer(text.getIndex()));
             }
 
             // look up the new state to transition to in the dictionary
-            state = dictionary.at(state, c);
+            state = dictionary.getNextStateFromCharacter(state, c);
 
             // if the character we're sitting on causes us to transition to
             // the "end of word" state, then it was a non-dictionary character
@@ -429,7 +435,7 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
 			    && text.getIndex() != startPos) {
                             currentBreakPositions.push(new Integer(text.getIndex()));
                         }
-                        text.next();
+                        getNext();
                         currentBreakPositions.push(new Integer(text.getIndex()));
                     }
                 }
@@ -453,7 +459,7 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
 
                 // re-sync "c" for the next go-round, and drop out of the loop if
                 // we've made it off the end of the range
-                c = text.current();
+                c = getCurrent();
                 if (text.getIndex() >= endPos) {
                     break;
                 }
@@ -462,7 +468,7 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
             // if we didn't hit any exceptional conditions on this last iteration,
             // just advance to the next character and loop
             else {
-                c = text.next();
+                c = getNext();
             }
         }
 
@@ -487,72 +493,5 @@ class DictionaryBasedBreakIterator extends RuleBasedBreakIterator {
             cachedBreakPositions[i + 1] = ((Integer)currentBreakPositions.elementAt(i)).intValue();
         }
         positionInCache = 0;
-    }
-
-    /**
-     * The Builder class for DictionaryBasedBreakIterator inherits almost all of
-     * its functionality from the Builder class for RuleBasedBreakIterator, but
-     * extends it with extra logic to handle the "<dictionary>" token
-     */
-    protected class Builder extends RuleBasedBreakIterator.Builder {
-
-        /**
-         * A CharSet that contains all the characters represented in the dictionary
-         */
-        private CharSet dictionaryChars = new CharSet();
-        private String dictionaryExpression = "";
-
-        /**
-         * No special initialization
-         */
-        public Builder() {
-	    DictionaryBasedBreakIterator.this.super();
-        }
-
-        /**
-         * We override handleSpecialSubstitution() to add logic to handle
-         * the <dictionary> tag.  If we see a substitution named "<dictionary>",
-         * parse the substitution expression and store the result in
-         * dictionaryChars.
-         */
-        protected void handleSpecialSubstitution(String replace, String replaceWith,
-                                                 int startPos, String description) {
-            super.handleSpecialSubstitution(replace, replaceWith, startPos, description);
-
-            if (replace.equals("<dictionary>")) {
-                if (replaceWith.charAt(0) == '(') {
-                    error("Dictionary group can't be enclosed in (", startPos, description);
-                }
-                dictionaryExpression = replaceWith;
-                dictionaryChars = CharSet.parseString(replaceWith);
-            }
-        }
-
-        /**
-         * The other half of the logic to handle the dictionary characters happens here.
-         * After the inherited builder has derived the real character categories, we
-         * set up the categoryFlags array in the iterator.  This array contains "true"
-         * for every character category that includes a dictionary character.
-         */
-        protected void buildCharCategories(Vector tempRuleList) {
-            super.buildCharCategories(tempRuleList);
-
-            categoryFlags = new boolean[categories.size()];
-            for (int i = 0; i < categories.size(); i++) {
-                CharSet cs = (CharSet)categories.elementAt(i);
-                if (!(cs.intersection(dictionaryChars).empty())) {
-                    categoryFlags[i] = true;
-                }
-            }
-        }
-
-        // This function is actually called by
-	// RuleBasedBreakIterator.buildCharCategories(), which is called
-	// by the function above.  This gives us a way to create a separate
-        // character category for the dictionary characters even when 
-	// RuleBasedBreakIterator isn't making a distinction.
-        protected void mungeExpressionList(Hashtable expressions) {
-            expressions.put(dictionaryExpression, dictionaryChars);
-        }
     }
 }

@@ -1,12 +1,13 @@
 /*
- * @(#)WindowsCheckBoxMenuItemUI.java	1.14 03/01/23
+ * @(#)WindowsCheckBoxMenuItemUI.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
 
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
@@ -24,5 +25,34 @@ import javax.swing.plaf.basic.*;
  * long term persistence.
  */
 public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
+
+    public static ComponentUI createUI(JComponent b) {
+        return new WindowsCheckBoxMenuItemUI();
+    }
+
+    /**
+     * Method which renders the text of the current menu item.
+     * <p>
+     * @param g Graphics context
+     * @param menuItem Current menu item to render
+     * @param textRect Bounding rectangle to render the text.
+     * @param text String to render
+     * @since 1.4
+     */
+    protected void paintText(Graphics g, JMenuItem menuItem,
+                             Rectangle textRect, String text) {
+
+        ButtonModel model = menuItem.getModel();
+        Color oldColor = g.getColor();
+
+        if(model.isEnabled() && model.isArmed()) {
+            g.setColor(selectionForeground); // Uses protected field.
+        }
+
+        WindowsGraphicsUtils.paintText(g, menuItem, textRect, text, 0);
+
+        g.setColor(oldColor);
+    }
+
 }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)AttributeSetUtilities.java	1.8 03/01/23
+ * @(#)AttributeSetUtilities.java	1.10 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -69,7 +69,7 @@ public final class AttributeSetUtilities {
 	    attrset = attributeSet;
 	}
 
-	public Attribute get(Class key) {
+	public Attribute get(Class<?> key) {
 	    return attrset.get(key);
 	}
 
@@ -77,7 +77,7 @@ public final class AttributeSetUtilities {
 	    throw new UnmodifiableSetException();
 	}
 
-	public synchronized boolean remove(Class category) {
+	public synchronized boolean remove(Class<?> category) {
 	    throw new UnmodifiableSetException();
 	}
 
@@ -85,7 +85,7 @@ public final class AttributeSetUtilities {
 	    throw new UnmodifiableSetException();
 	}
 
-	public boolean containsKey(Class category) {
+	public boolean containsKey(Class<?> category) {
 	    return attrset.containsKey(category);
 	}
 	
@@ -280,7 +280,7 @@ public final class AttributeSetUtilities {
 	    attrset = attributeSet;
 	}
 
-	public synchronized Attribute get(Class category) {
+	public synchronized Attribute get(Class<?> category) {
 	    return attrset.get(category);
 	}
 
@@ -288,7 +288,7 @@ public final class AttributeSetUtilities {
 	    return attrset.add(attribute);
 	}
 
-	public synchronized boolean remove(Class category) {
+	public synchronized boolean remove(Class<?> category) {
 	    return attrset.remove(category);
 	}
 
@@ -296,7 +296,7 @@ public final class AttributeSetUtilities {
 	    return attrset.remove(attribute);
 	}
 
-	public synchronized boolean containsKey(Class category) {
+	public synchronized boolean containsKey(Class<?> category) {
 	    return attrset.containsKey(category);
 	}
 		
@@ -491,8 +491,8 @@ public final class AttributeSetUtilities {
      *     {@link java.lang.Class Class} that implements 
      *     <CODE>interfaceName</CODE>. 
      */
-    public static Class 
-	verifyAttributeCategory(Object object, Class interfaceName) { 
+    public static Class<?>
+	verifyAttributeCategory(Object object, Class<?> interfaceName) { 
 
 	Class result = (Class) object;
 	if (interfaceName.isAssignableFrom (result)) {
@@ -523,7 +523,7 @@ public final class AttributeSetUtilities {
      *     instance of <CODE>interfaceName</CODE>. 
      */
     public static Attribute
-	verifyAttributeValue(Object object, Class interfaceName) {
+	verifyAttributeValue(Object object, Class<?> interfaceName) {
 
 	if (object == null) {
 	    throw new NullPointerException();
@@ -551,7 +551,7 @@ public final class AttributeSetUtilities {
      *     equal to the category of the <CODE>attribute</CODE>. 
      */
     public static void 
-	verifyCategoryForValue(Class category, Attribute attribute) {
+	verifyCategoryForValue(Class<?> category, Attribute attribute) {
 
 	if (!category.equals (attribute.getCategory())) {
 	    throw new IllegalArgumentException();

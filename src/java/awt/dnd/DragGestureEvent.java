@@ -1,7 +1,7 @@
 /*
- * @(#)DragGestureEvent.java	1.21 03/01/23
+ * @(#)DragGestureEvent.java	1.23 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,7 +38,7 @@ import java.io.Serializable;
  * platform dependent drag initiating gesture has occurred 
  * on the <code>Component</code> that it is tracking.
  * 
- * @version 1.21
+ * @version 1.23
  * @see java.awt.dnd.DragGestureRecognizer
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragSource
@@ -65,7 +65,9 @@ public class DragGestureEvent extends EventObject {
      * input parameters are null
      */
 
-    public DragGestureEvent(DragGestureRecognizer dgr, int act, Point ori, List evs) {
+    public DragGestureEvent(DragGestureRecognizer dgr, int act, Point ori,
+			    List<? extends InputEvent> evs)
+    {
 	super(dgr);
 
 	if ((component = dgr.getComponent()) == null)
@@ -133,7 +135,7 @@ public class DragGestureEvent extends EventObject {
      * @return an Iterator for the events comprising the gesture
      */
 
-    public Iterator iterator() { return events.iterator(); }
+    public Iterator<InputEvent> iterator() { return events.iterator(); }
 
     /**
      * Returns an <code>Object</code> array of the 

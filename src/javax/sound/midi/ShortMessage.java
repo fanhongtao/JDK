@@ -1,7 +1,7 @@
 /*
- * @(#)ShortMessage.java	1.22 03/01/23
+ * @(#)ShortMessage.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ package javax.sound.midi;
  * @see SysexMessage
  * @see MetaMessage
  *
- * @version 1.22, 03/01/23
+ * @version 1.24, 03/12/19
  * @author David Rivas
  * @author Kara Kytle
  * @author Florian Bomers
@@ -206,14 +206,16 @@ public class ShortMessage extends MidiMessage {
 
     /**
      * Sets the  parameters for a MIDI message that takes one or two data
-     * bytes.  If the message takes only one data byte, the value passed in
-     * for the second data byte should be 0.
+     * bytes.  If the message takes only one data byte, the second data
+     * byte is ignored; if the message does not take any data bytes, both
+     * data bytes are ignored.
      *
      * @param status	the MIDI status byte
      * @param data1		the first data byte
      * @param data2		the second data byte
-     * @throws		<code>InvalidMidiDataException</code> if the
-     * the status or data bytes do not specify a valid MIDI message
+     * @throws	<code>InvalidMidiDataException</code> if the
+     * the status byte, or all data bytes belonging to the message, do
+     * not specify a valid MIDI message.
      * @see #setMessage(int, int, int, int)
      * @see #setMessage(int)
      */
@@ -252,16 +254,19 @@ public class ShortMessage extends MidiMessage {
 
     /**
      * Sets the short message parameters for a  channel message
-     * which takes one or two data bytes.  If the message
-     * only takes one data byte, the second data byte value
-     * passed should be 0.
+     * which takes up to two data bytes.  If the message only
+     * takes one data byte, the second data byte is ignored; if
+     * the message does not take any data bytes, both data bytes
+     * are ignored.
      *
      * @param command	the MIDI command represented by this message
      * @param channel	the channel associated with the message
      * @param data1		the first data byte
      * @param data2		the second data byte
      * @throws		<code>InvalidMidiDataException</code> if the
-     * parameter values do not specify a valid MIDI message
+     * status byte or all data bytes belonging to the message, do
+     * not specify a valid MIDI message
+     *
      * @see #setMessage(int, int, int)
      * @see #setMessage(int)
      * @see #getCommand

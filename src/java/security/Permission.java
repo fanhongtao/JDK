@@ -1,7 +1,7 @@
 /*
- * @(#)Permission.java	1.37 03/01/23
+ * @(#)Permission.java	1.39 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -39,13 +39,15 @@ package java.security;
  * @see Permissions
  * @see PermissionCollection
  *
- * @version 1.37 03/01/23
+ * @version 1.39 03/12/19
  *
  * @author Marianne Mueller
  * @author Roland Schemers 
  */
 
 public abstract class Permission implements Guard, java.io.Serializable {
+
+    private static final long serialVersionUID = -5636570222231596674L;
 
     private String name;
 

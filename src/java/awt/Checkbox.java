@@ -1,7 +1,7 @@
 /*
- * @(#)Checkbox.java	1.79 03/01/23
+ * @(#)Checkbox.java	1.84 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -50,7 +50,7 @@ import javax.accessibility.*;
  * forces any other check box in the same group that is on
  * into the "off" state.
  *
- * @version	1.79 01/23/03
+ * @version	1.84 05/05/04
  * @author 	Sami Shaio
  * @see         java.awt.GridLayout
  * @see         java.awt.CheckboxGroup
@@ -68,9 +68,8 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
 
     /**
      * The label of the Checkbox.
-	 * This field can be null. If a label is not specified it 
-	 * defaults to null or "".
-	 * @serial
+     * This field can be null.
+     * @serial
      * @see #getLabel()
      * @see #setLabel(label)
      */
@@ -117,9 +116,9 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Creates a check box with no label. The state of this
-     * check box is set to "off," and it is not part of any
-     * check box group.
+     * Creates a check box with an empty string for its label. 
+     * The state of this check box is set to "off," and it is not 
+     * part of any check box group. 
      * @exception HeadlessException if GraphicsEnvironment.isHeadless()
      * returns true
      * @see java.awt.GraphicsEnvironment#isHeadless
@@ -337,14 +336,19 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Sets this check box's group to be the specified check box group.
+     * Sets this check box's group to the specified check box group.
      * If this check box is already in a different check box group,
      * it is first taken out of that group.
+     * <p>
      * If the state of this check box is <code>true</code> and the new
      * group already has a check box selected, this check box's state
-     * is changed to <code>false</code>.
+     * is changed to <code>false</code>.  If the state of this check
+     * box is <code>true</code> and the new group has no check box
+     * selected, this check box becomes the selected checkbox for
+     * the new group and its state is <code>true</code>.
+     *
      * @param     g   the new check box group, or <code>null</code>
-     *                to remove this check box from any check box group.
+     *                to remove this check box from any check box group
      * @see       #getCheckboxGroup
      */
     public void setCheckboxGroup(CheckboxGroup g) {
@@ -481,7 +485,7 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * @see #getItemListeners
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
 	EventListener l = null; 
 	if  (listenerType == ItemListener.class) { 
 	    l = itemListener;
@@ -679,7 +683,12 @@ public class Checkbox extends Component implements ItemSelectable, Accessible {
      * Java Accessibility API appropriate to checkbox user-interface elements.
      */
     protected class AccessibleAWTCheckbox extends AccessibleAWTComponent
-        implements ItemListener, AccessibleAction, AccessibleValue {
+        implements ItemListener, AccessibleAction, AccessibleValue
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 7881579233144754107L;
 
 	public AccessibleAWTCheckbox() {
 	    super();

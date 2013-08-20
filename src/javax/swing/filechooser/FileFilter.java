@@ -1,7 +1,7 @@
 /*
- * @(#)FileFilter.java	1.17 03/01/23
+ * @(#)FileFilter.java	1.19 04/06/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import java.io.File;
  * can be set on a <code>JFileChooser</code> to
  * keep unwanted files from appearing in the directory listing.
  * For an example implementation of a simple file filter, see
- * <code><i>yourSDK</i>/demo/jfc/FileChooserDemo/ExampleFileFilter.java</code>.
+ * <code><i>yourJDK</i>/demo/jfc/FileChooserDemo/ExampleFileFilter.java</code>.
  * For more information and examples see 
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/filechooser.html">How to Use File Choosers</a>,
  * a section in <em>The Java Tutorial</em>.
@@ -23,7 +23,7 @@ import java.io.File;
  * @see javax.swing.JFileChooser#setFileFilter
  * @see javax.swing.JFileChooser#addChoosableFileFilter
  *
- * @version 1.17 01/23/03
+ * @version 1.19 06/28/04
  * @author Jeff Dinkins
  */
 public abstract class FileFilter {

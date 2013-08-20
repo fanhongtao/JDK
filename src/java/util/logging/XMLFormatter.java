@@ -1,7 +1,7 @@
 /*
- * @(#)XMLFormatter.java	1.17 03/01/23
+ * @(#)XMLFormatter.java	1.24 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.*;
  * but it is recommended that it normally be used with UTF-8.  The
  * character encoding can be set on the output Handler.
  *
- * @version 1.17, 01/23/03
+ * @version 1.24, 01/12/04
  * @since 1.4
  */
 
@@ -55,7 +55,7 @@ public class XMLFormatter extends Formatter {
 
     // Append to the given StringBuffer an escaped version of the
     // given text string where XML special characters have been escaped.
-    // For a null string we appebd "<null>"
+    // For a null string we append "<null>"
     private void escape(StringBuffer sb, String text) {
 	if (text == null) {
 	    text = "<null>";
@@ -142,20 +142,26 @@ public class XMLFormatter extends Formatter {
 	        sb.append("  <catalog>");
 	        escape(sb, record.getResourceBundleName());
 	        sb.append("</catalog>\n");
-		Object parameters[] = record.getParameters();
-	        for (int i = 0; i < parameters.length; i++) {
-	            sb.append("  <param>");
-		    try {
-	                escape(sb, parameters[i].toString());
-		    } catch (Exception ex) {
-		        sb.append("???");
-		    }
-	            sb.append("</param>\n");
-		}
 	    }
 	} catch (Exception ex) {
 	    // The message is not in the catalog.  Drop through.
 	}
+
+	Object parameters[] = record.getParameters();
+        //  Check to see if the parameter was not a messagetext format
+        //  or was not null or empty
+        if ( parameters != null && parameters.length != 0 
+                && record.getMessage().indexOf("{") == -1 ) {
+            for (int i = 0; i < parameters.length; i++) {
+                sb.append("  <param>");
+	        try {
+                    escape(sb, parameters[i].toString());
+	        } catch (Exception ex) {
+	            sb.append("???");
+	        }
+                sb.append("</param>\n");
+	    }
+        }
 
 	if (record.getThrown() != null) {
 	    // Report on the state of the throwable.
@@ -192,13 +198,20 @@ public class XMLFormatter extends Formatter {
     /**
      * Return the header string for a set of XML formatted records.
      * 
-     * @param   h  The target handler.
-     * @return  header string
+     * @param   h  The target handler (can be null)
+     * @return  a valid XML string
      */
     public String getHead(Handler h) {
 	StringBuffer sb = new StringBuffer();
+	String encoding;
 	sb.append("<?xml version=\"1.0\"");
-	String encoding = h.getEncoding();
+
+	if (h != null) {
+	    encoding = h.getEncoding();
+	} else {
+	    encoding = null;
+	}
+
 	if (encoding == null) {
 	    // Figure out the default encoding.
 	    encoding = sun.io.Converters.getDefaultEncodingName();
@@ -224,8 +237,8 @@ public class XMLFormatter extends Formatter {
     /**
      * Return the tail string for a set of XML formatted records.
      * 
-     * @param   h  The target handler.
-     * @return  tail string
+     * @param   h  The target handler (can be null)
+     * @return  a valid XML string
      */
     public String getTail(Handler h) {
 	return "</log>\n";

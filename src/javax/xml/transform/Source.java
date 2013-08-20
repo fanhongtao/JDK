@@ -1,18 +1,12 @@
+// $Id: Source.java,v 1.2 2003/09/07 23:02:09 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)Source.java	1.14 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-/*
- * @(#)Source.java	1.9 03/01/23
- */
 package javax.xml.transform;
-
-import java.lang.String;
-
-import java.io.InputStream;
-import java.io.Reader;
-
 
 /**
  * An object that implements this interface contains the information

@@ -1,7 +1,7 @@
 /*
- * @(#)CSS.java	1.41 03/01/23
+ * @(#)CSS.java	1.54 04/07/24
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
+import java.awt.HeadlessException;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -90,7 +91,7 @@ import javax.swing.text.*;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.41 01/23/03
+ * @version 1.54 07/24/04
  * @see StyleSheet
  */
 public class CSS implements Serializable {
@@ -389,7 +390,7 @@ public class CSS implements Serializable {
     }
 
     public CSS() {
-	baseFontSize = 4;
+	baseFontSize = baseFontSizeIndex + 1;
 	// setup the css conversion table
 	valueConvertor = new Hashtable();
 	valueConvertor.put(CSS.Attribute.FONT_SIZE, new FontSize());
@@ -415,7 +416,8 @@ public class CSS implements Serializable {
 	valueConvertor.put(CSS.Attribute.BORDER_BOTTOM_WIDTH, bv);
 	valueConvertor.put(CSS.Attribute.BORDER_LEFT_WIDTH, bv);
 	valueConvertor.put(CSS.Attribute.BORDER_RIGHT_WIDTH, bv);
-	valueConvertor.put(CSS.Attribute.TEXT_INDENT, lv);
+	Object nlv = new LengthValue(true);
+	valueConvertor.put(CSS.Attribute.TEXT_INDENT, nlv);
 	valueConvertor.put(CSS.Attribute.WIDTH, lv);
 	valueConvertor.put(CSS.Attribute.HEIGHT, lv);
 	valueConvertor.put(CSS.Attribute.BORDER_SPACING, lv);
@@ -526,7 +528,8 @@ public class CSS implements Serializable {
      */
     Object getInternalCSSValue(CSS.Attribute key, String value) {
 	CssValue conv = (CssValue) valueConvertor.get(key);
-	return conv.parseCssValue(value);
+        Object r = conv.parseCssValue(value);
+        return r != null ? r : conv.parseCssValue(key.getDefaultValue());
     }
 
     /**
@@ -567,8 +570,8 @@ public class CSS implements Serializable {
      * <code>sc</code> is the StyleContext that will be messaged to get
      * the font once the size, name and style have been determined.
      */
-    Font getFont(StyleContext sc, AttributeSet a, int defaultSize) {
-	int size = getFontSize(a, defaultSize);
+    Font getFont(StyleContext sc, AttributeSet a, int defaultSize, StyleSheet ss) {
+	int size = getFontSize(a, defaultSize, ss);
 
 	/*
 	 * If the vertical alignment is set to either superscirpt or
@@ -602,13 +605,13 @@ public class CSS implements Serializable {
 	return f;
     }
 
-    static int getFontSize(AttributeSet attr, int defaultSize) {
+    static int getFontSize(AttributeSet attr, int defaultSize, StyleSheet ss) {
 	// PENDING(prinz) this is a 1.1 based implementation, need to also
 	// have a 1.2 version.
 	FontSize sizeValue = (FontSize)attr.getAttribute(CSS.Attribute.
 							 FONT_SIZE);
 
-	return (sizeValue != null) ? (int)sizeValue.getValue(attr) :
+	return (sizeValue != null) ? (int)sizeValue.getValue(attr, ss) :
 	                             defaultSize;
     }
 
@@ -636,18 +639,18 @@ public class CSS implements Serializable {
      * @param size CSS string describing font size
      * @param baseFontSize size to use for relative units.
      */
-    float getPointSize(String size) {
+    float getPointSize(String size, StyleSheet ss) {
 	int relSize, absSize, diff, index;
 	if (size != null) {
 	    if (size.startsWith("+")) {
 		relSize = Integer.valueOf(size.substring(1)).intValue();
-		return getPointSize(baseFontSize + relSize);
+		return getPointSize(baseFontSize + relSize, ss);
 	    } else if (size.startsWith("-")) {
 		relSize = -Integer.valueOf(size.substring(1)).intValue();
-		return getPointSize(baseFontSize + relSize);
+		return getPointSize(baseFontSize + relSize, ss);
 	    } else {
 		absSize = Integer.valueOf(size).intValue();
-		return getPointSize(absSize);
+		return getPointSize(absSize, ss);
 	    }
 	}
 	return 0;
@@ -657,9 +660,9 @@ public class CSS implements Serializable {
      * Returns the length of the attribute in <code>a</code> with
      * key <code>key</code>.
      */
-    float getLength(AttributeSet a, CSS.Attribute key) {
+    float getLength(AttributeSet a, CSS.Attribute key, StyleSheet ss) {
 	LengthValue lv = (LengthValue) a.getAttribute(key);
-	float len = (lv != null) ? lv.getValue() : 0;
+	float len = (lv != null) ? lv.getValue(ss.isW3CLengthUnits()) : 0;
 	return len;
     }
 
@@ -683,7 +686,9 @@ public class CSS implements Serializable {
 	    translateAttribute(HTML.Attribute.BORDER, tableAttr, cssAttrSet);
 	    String pad = (String)tableAttr.getAttribute(HTML.Attribute.CELLPADDING);
 	    if (pad != null) {
-		Object v = getInternalCSSValue(CSS.Attribute.PADDING_TOP, pad);
+		LengthValue v = 
+		    (LengthValue)getInternalCSSValue(CSS.Attribute.PADDING_TOP, pad);
+		v.span = (v.span < 0) ? 0 : v.span;
 		cssAttrSet.addAttribute(CSS.Attribute.PADDING_TOP, v);
 		cssAttrSet.addAttribute(CSS.Attribute.PADDING_BOTTOM, v);
 		cssAttrSet.addAttribute(CSS.Attribute.PADDING_LEFT, v);
@@ -715,11 +720,6 @@ public class CSS implements Serializable {
 
     private static final Hashtable attributeMap = new Hashtable();
     private static final Hashtable valueMap = new Hashtable();
-    /**
-     * The HTML/CSS size model has seven slots
-     * that one can assign sizes to.
-     */
-    static int sizeMap[] = { 8, 10, 12, 14, 18, 24, 36 };
 
     /**
      * The hashtable and the static initalization block below,
@@ -745,8 +745,7 @@ public class CSS implements Serializable {
     private static final Hashtable cssValueToInternalValueMap = new Hashtable(13);
 
     /** Used to indicate if a font family name is valid. */
-    private static Hashtable fontMapping;
-    private static final Object fontMappingLock = new Object();
+    private static Hashtable fontMapping = new Hashtable();
 
     static {
 	// load the attribute map
@@ -852,6 +851,7 @@ public class CSS implements Serializable {
 	htmlValueToCssValueMap.put("I", CSS.Value.UPPER_ROMAN);
 
 	// CSS-> internal CSS
+	cssValueToInternalValueMap.put("none", CSS.Value.NONE);
 	cssValueToInternalValueMap.put("disc", CSS.Value.DISC);
 	cssValueToInternalValueMap.put("square", CSS.Value.SQUARE);
 	cssValueToInternalValueMap.put("circle", CSS.Value.CIRCLE);
@@ -891,44 +891,6 @@ public class CSS implements Serializable {
 	} catch (Throwable e) {
 	    e.printStackTrace();
 	}
-    }
-
-    /**
-     * Returns a hashtable whose contents are used to indicate the valid
-     * fonts.
-     */
-    static Hashtable getValidFontNameMapping() {
-	if (fontMapping == null) {
-	    // This can get called from multiple threads, lock before setting
-	    synchronized(fontMappingLock) {
-		if (fontMapping == null) {
-		    String[]      names = null;
-                    GraphicsEnvironment ge = GraphicsEnvironment.
-                                               getLocalGraphicsEnvironment();
-
-                    if (ge != null) {
-                        names = ge.getAvailableFontFamilyNames();
-                    }
-		    if (names == null) {
-			names = Toolkit.getDefaultToolkit().getFontList();
-		    }
-		    if (names != null) {
-			fontMapping = new Hashtable(names.length * 2);
-			for (int counter = names.length - 1; counter >= 0;
-			     counter--) {
-			    // Put both lowercase and case value in table.
-			    fontMapping.put(names[counter].toLowerCase(),
-					    names[counter]);
-			    fontMapping.put(names[counter], names[counter]);
-			}
-		    }
-		    else {
-			fontMapping = new Hashtable(1);
-		    }
-		}
-	    }
-	}
-	return fontMapping;
     }
 
     /**
@@ -1191,12 +1153,17 @@ public class CSS implements Serializable {
         return 0;
     }
 
-    static int getIndexOfSize(float pt) {
+    static int getIndexOfSize(float pt, int[] sizeMap) {
         for (int i = 0; i < sizeMap.length; i ++ )
                 if (pt <= sizeMap[i])
                         return i + 1;
         return sizeMap.length;
     }
+
+    static int getIndexOfSize(float pt, StyleSheet ss) {
+        return getIndexOfSize(pt, ss.getSizeMap());
+    }
+
 
     /**
      * @return an array of all the strings in <code>value</code>
@@ -1233,7 +1200,9 @@ public class CSS implements Serializable {
      * Return the point size, given a size index. Legal HTML index sizes
      * are 1-7.
      */
-    float getPointSize(int index) {
+    float getPointSize(int index, StyleSheet ss) {
+        int[] sizeMap = (ss != null) ? ss.getSizeMap() : 
+            StyleSheet.sizeMapDefault;
         --index;
 	if (index < 0)
 	  return sizeMap[0];
@@ -1690,17 +1659,17 @@ public class CSS implements Serializable {
 	 *  requested from.  We may need to walk up the
 	 *  resolve hierarchy if it's relative.
 	 */
-	float getValue(AttributeSet a) {
+	float getValue(AttributeSet a, StyleSheet ss) {
 	    if (index) {
 		// it's an index, translate from size table
-		return getPointSize((int) value);
+		return getPointSize((int) value, ss);
 	    }
 	    else if (lu == null) {
 		return value;
 	    }
 	    else {
 		if (lu.type == 0) {
-		    return lu.value;
+		    return lu.getValue(ss.isW3CLengthUnits());
 		}
 		if (a != null) {
 		    AttributeSet resolveParent = a.getResolveParent();
@@ -1814,7 +1783,7 @@ public class CSS implements Serializable {
             if (value instanceof Number) {
                 FontSize fs = new FontSize();
 
-                fs.value = getIndexOfSize(((Number)value).floatValue());
+                fs.value = getIndexOfSize(((Number)value).floatValue(), StyleSheet.sizeMapDefault);
                 fs.svalue = Integer.toString((int)fs.value);
                 fs.index = true;
                 return fs;
@@ -1833,9 +1802,9 @@ public class CSS implements Serializable {
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
 	    if (v != null) {
-		return new Integer((int) getValue(v.getAttributes()));
+		return new Integer((int) getValue(v.getAttributes(), null));
 	    }
-	    return new Integer((int) getValue(null));
+	    return new Integer((int) getValue(null, null));
 	}
 
 	float value;
@@ -1855,13 +1824,12 @@ public class CSS implements Serializable {
 
 	Object parseCssValue(String value) {
 	    int cIndex = value.indexOf(',');
-	    Hashtable validNames = getValidFontNameMapping();
 	    FontFamily ff = new FontFamily();
 	    ff.svalue = value;
 	    ff.family = null;
 
 	    if (cIndex == -1) {
-		setFontName(validNames, ff, value);
+		setFontName(ff, value);
 	    }
 	    else {
 		boolean done = false;
@@ -1885,7 +1853,7 @@ public class CSS implements Serializable {
 			    if (cIndex > 0 && value.charAt(cIndex - 1) == ' '){
 				lastCharIndex--;
 			    }
-			    setFontName(validNames, ff, value.substring
+			    setFontName(ff, value.substring
 					(lastIndex, lastCharIndex));
 			    done = (ff.family != null);
 			}
@@ -1902,12 +1870,18 @@ public class CSS implements Serializable {
 	    return ff;
 	}
 
-	private void setFontName(Hashtable validNames, FontFamily ff,
-				 String fontName) {
-	    ff.family = (String)validNames.get(mapFontName(fontName));
-	    if (ff.family == null) {
-		ff.family = (String)validNames.get(fontName.toLowerCase());
+	private void setFontName(FontFamily ff, String fontName) {
+	    ff.family = (String)fontMapping.get(fontName);
+	    if (ff.family != null) {
+		return;
 	    }
+	    String lcFontName = mapFontName(fontName.toLowerCase());
+	    Font f = new Font(lcFontName, Font.PLAIN, 12);
+	    ff.family = f.getFamily();
+	    if (ff.family.equals("Dialog") && !lcFontName.equals("dialog")) {
+		ff.family = "SansSerif";
+	    }
+	    fontMapping.put(fontName, ff.family);
 	}
 
 	private String mapFontName(String name) {
@@ -2128,22 +2102,42 @@ public class CSS implements Serializable {
 
     static class LengthValue extends CssValue {
 
+        /**
+	 * if this length value may be negative.
+	 */
+	boolean mayBeNegative;
+
+	LengthValue() {
+	    this(false);
+	}
+
+	LengthValue(boolean mayBeNegative) {
+	    this.mayBeNegative = mayBeNegative;
+	}
+
 	/**
 	 * Returns the length (span) to use.
 	 */
-	float getValue() {
-	    return getValue(0);
-	}
+        float getValue() {
+            return getValue(false);
+        }
 
+	float getValue(boolean isW3CLengthUnits) {
+	    return getValue(0, isW3CLengthUnits);
+	}
+        
 	/**
 	 * Returns the length (span) to use. If the value represents
 	 * a percentage, it is scaled based on <code>currentValue</code>.
 	 */
 	float getValue(float currentValue) {
+            return getValue(currentValue, false);
+        }
+	float getValue(float currentValue, boolean isW3CLengthUnits) {
 	    if (percentage) {
 		return span * currentValue;
 	    }
-	    return span;
+	    return LengthUnit.getValue(span, units, isW3CLengthUnits);
 	}
 
 	/**
@@ -2173,7 +2167,9 @@ public class CSS implements Serializable {
 		case 0:
 		    // Absolute
 		    lv = new LengthValue();
-		    lv.span = Math.max(0, lu.value);
+		    lv.span = 
+			(mayBeNegative) ? lu.value : Math.max(0, lu.value);
+                    lv.units = lu.units;
 		    break;
 		case 1:
 		    // %
@@ -2223,7 +2219,7 @@ public class CSS implements Serializable {
 	 *   represents the CSS attribute value
 	 */
 	Object toStyleConstants(StyleConstants key, View v) {
- 	    return new Float(getValue());
+ 	    return new Float(getValue(false));
 	}
 
 	/** If true, span is a percentage value, and that to determine
@@ -2232,6 +2228,8 @@ public class CSS implements Serializable {
 	/** Either the absolute value (percentage == false) or 
 	 * a percentage value. */
 	float span;
+
+        String units = null;
     }
 
 
@@ -2492,15 +2490,27 @@ public class CSS implements Serializable {
      */
     static class LengthUnit implements Serializable {
 	static Hashtable lengthMapping = new Hashtable(6);
-
+        static Hashtable w3cLengthMapping = new Hashtable(6);
 	static {
-	    lengthMapping.put("pt", new Float(1f));
-	    // Not sure about 1.3, determined by experiementation.
-	    lengthMapping.put("px", new Float(1.3f));
-	    lengthMapping.put("mm", new Float(2.83464f));
-	    lengthMapping.put("cm", new Float(28.3464f));
-	    lengthMapping.put("pc", new Float(12f));
-	    lengthMapping.put("in", new Float(72f));
+            lengthMapping.put("pt", new Float(1f)); 
+            // Not sure about 1.3, determined by experiementation. 
+            lengthMapping.put("px", new Float(1.3f)); 
+            lengthMapping.put("mm", new Float(2.83464f)); 
+            lengthMapping.put("cm", new Float(28.3464f)); 
+            lengthMapping.put("pc", new Float(12f)); 
+            lengthMapping.put("in", new Float(72f)); 
+	    int res = 72;
+            try {
+                res = Toolkit.getDefaultToolkit().getScreenResolution();
+            } catch (HeadlessException e) {
+            }
+	    // mapping according to the CSS2 spec
+	    w3cLengthMapping.put("pt", new Float(res/72f));
+	    w3cLengthMapping.put("px", new Float(1f));
+	    w3cLengthMapping.put("mm", new Float(res/25.4f));
+	    w3cLengthMapping.put("cm", new Float(res/2.54f));
+	    w3cLengthMapping.put("pc", new Float(res/6f));
+	    w3cLengthMapping.put("in", new Float(res));
 	}
 
 	LengthUnit(String value, short defaultType, float defaultValue) {
@@ -2521,13 +2531,12 @@ public class CSS implements Serializable {
 		catch (NumberFormatException nfe) { }
 	    }
 	    if (length >= 2) {
-		String units = value.substring(length - 2, length);
+		units = value.substring(length - 2, length);
 		Float scale = (Float)lengthMapping.get(units);
-
 		if (scale != null) {
 		    try {
 			this.value = Float.valueOf(value.substring(0,
-			       length - 2)).floatValue() * scale.floatValue();
+                               length - 2)).floatValue();
 			type = 0;
 		    }
 		    catch (NumberFormatException nfe) { }
@@ -2566,6 +2575,31 @@ public class CSS implements Serializable {
             }
 	}
 
+        float getValue(boolean w3cLengthUnits) {
+            Hashtable mapping = (w3cLengthUnits) ? w3cLengthMapping : lengthMapping;
+            float scale = 1;
+            if (units != null) {
+                Float scaleFloat = (Float)mapping.get(units);
+                if (scaleFloat != null) {
+                    scale = scaleFloat.floatValue();
+                }
+            }
+            return this.value * scale;
+            
+        }
+        
+        static float getValue(float value, String units, Boolean w3cLengthUnits) {
+            Hashtable mapping = (w3cLengthUnits) ? w3cLengthMapping : lengthMapping;
+            float scale = 1;
+            if (units != null) {
+                Float scaleFloat = (Float)mapping.get(units);
+                if (scaleFloat != null) {
+                    scale = scaleFloat.floatValue();
+                }
+            }
+            return value * scale;
+        }
+        
 	public String toString() {
 	    return type + " " + value;
 	}
@@ -2578,6 +2612,8 @@ public class CSS implements Serializable {
 	//     font-size, which is relative to parent).
 	short type;
 	float value;
+        String units = null;
+        
 
 	static final short UNINITALIZED_LENGTH = (short)10;
     }
@@ -2883,34 +2919,33 @@ public class CSS implements Serializable {
     /**
      * Calculate the requirements needed to tile the requirements 
      * given by the iterator that would be tiled.  The calculation
-     * takes into consideration margin collapsing.
+     * takes into consideration margin and border spacing.
      */
     static SizeRequirements calculateTiledRequirements(LayoutIterator iter, SizeRequirements r) {
 	long minimum = 0;
 	long maximum = 0;
 	long preferred = 0;
 	int lastMargin = 0;
-	int collapsed = 0;
+	int totalSpacing = 0;
 	int n = iter.getCount();
 	for (int i = 0; i < n; i++) {
 	    iter.setIndex(i);
 	    int margin0 = lastMargin;
 	    int margin1 = (int) iter.getLeadingCollapseSpan();
-	    int offset = Math.max(margin0, margin1);
-	    if (offset != 0) {
-		// There is a collapse area
-		collapsed += offset - margin0;
-	    }
+	    totalSpacing += Math.max(margin0, margin1);;
 	    preferred += (int) iter.getPreferredSpan(0);
 	    minimum += iter.getMinimumSpan(0);
 	    maximum += iter.getMaximumSpan(0);
 
 	    lastMargin = (int) iter.getTrailingCollapseSpan();
 	}
-	// adjust for the collapsed area
-	minimum -= collapsed;
-	preferred -= collapsed;
-	maximum -= collapsed;
+	totalSpacing += lastMargin;
+	totalSpacing += 2 * iter.getBorderWidth();
+
+	// adjust for the spacing area
+	minimum += totalSpacing;
+	preferred += totalSpacing;
+	maximum += totalSpacing;
 
 	// set return value
 	if (r == null) {
@@ -2937,7 +2972,7 @@ public class CSS implements Serializable {
 	long preferred = 0;
 	long currentPreferred = 0;
 	int lastMargin = 0;
-	int collapsed = 0;
+	int totalSpacing = 0;
 	int n = iter.getCount();
 	int adjustmentWeightsCount = LayoutIterator.WorstAdjustmentWeight + 1;
 	//max gain we can get adjusting elements with adjustmentWeight <= i
@@ -2952,12 +2987,10 @@ public class CSS implements Serializable {
 	    iter.setIndex(i);
 	    int margin0 = lastMargin;
 	    int margin1 = (int) iter.getLeadingCollapseSpan();
+
 	    iter.setOffset(Math.max(margin0, margin1));
-	    if (iter.getOffset() != 0) {
-		// There is a collapse area
-		iter.setOffset(iter.getOffset() - margin0);
-		collapsed += iter.getOffset();
-	    }
+	    totalSpacing += iter.getOffset();
+
 	    currentPreferred = (long)iter.getPreferredSpan(targetSpan);
 	    iter.setSpan((int) currentPreferred);
 	    preferred += currentPreferred;
@@ -2967,7 +3000,9 @@ public class CSS implements Serializable {
 		currentPreferred - (long)iter.getMinimumSpan(targetSpan);
 	    lastMargin = (int) iter.getTrailingCollapseSpan();
 	}
-
+	totalSpacing += lastMargin;               
+	totalSpacing += 2 * iter.getBorderWidth();	
+	
 	for (int i = 1; i < adjustmentWeightsCount; i++) {
 	    gain[i] += gain[i - 1];
 	    loss[i] += loss[i - 1];
@@ -2980,7 +3015,7 @@ public class CSS implements Serializable {
 	 */
 
 	// determine the adjustment to be made
-	int allocated = targetSpan - collapsed;
+	int allocated = targetSpan - totalSpacing;
 	long desiredAdjustment = allocated - preferred;
 	long adjustmentsArray[] = (desiredAdjustment > 0) ? gain : loss;
 	desiredAdjustment = Math.abs(desiredAdjustment);
@@ -3007,7 +3042,7 @@ public class CSS implements Serializable {
 	    }
 	}
 	// make the adjustments
-	int totalOffset = 0;
+	int totalOffset = (int)iter.getBorderWidth();;
 	for (int i = 0; i < n; i++) {
 	    iter.setIndex(i);
 	    iter.setOffset( iter.getOffset() + totalOffset);
@@ -3022,11 +3057,44 @@ public class CSS implements Serializable {
 		int availableSpan = (allocated > preferred) ? 
 		    (int) iter.getMaximumSpan(targetSpan) - iter.getSpan() : 
 		    iter.getSpan() - (int) iter.getMinimumSpan(targetSpan);
-		int adj = (int) Math.floor(adjustmentFactor * availableSpan);
+		int adj = (int)Math.floor(adjustmentFactor * availableSpan);
 		iter.setSpan(iter.getSpan() + 
 			     ((allocated > preferred) ? adj : -adj));
 	    }
-	    totalOffset = (int) Math.min((long) totalOffset + (long) iter.getSpan(), Integer.MAX_VALUE);
+	    totalOffset = (int) Math.min((long) iter.getOffset() + 
+					 (long) iter.getSpan(), 
+					 Integer.MAX_VALUE);
+	}
+
+	// while rounding we could lose several pixels.
+        int roundError = targetSpan - totalOffset - 
+	    (int)iter.getTrailingCollapseSpan() - 
+	    (int)iter.getBorderWidth();
+	int adj = (roundError > 0) ? 1 : -1;
+	roundError *= adj;
+
+        boolean canAdjust = true;
+        while (roundError > 0 && canAdjust) {
+	    // check for infinite loop
+	    canAdjust = false;
+	    int offsetAdjust = 0;
+	    // try to distribute roundError. one pixel per cell
+	    for (int i = 0; i < n; i++) {
+		iter.setIndex(i);
+		iter.setOffset(iter.getOffset() + offsetAdjust);
+                int curSpan = iter.getSpan();
+                if (roundError > 0) {
+		    int boundGap = (adj > 0) ? 
+			(int)Math.floor(iter.getMaximumSpan(targetSpan)) - curSpan : 
+			curSpan - (int)Math.ceil(iter.getMinimumSpan(targetSpan));
+		    if (boundGap >= 1) {
+			canAdjust = true;
+			iter.setSpan(curSpan + adj);
+			offsetAdjust += adj;
+			roundError--;
+		    }
+                }
+	    }
 	}
     }
 
@@ -3058,10 +3126,12 @@ public class CSS implements Serializable {
 
 	//float getAlignment();
 
+	float getBorderWidth();
+
 	float getLeadingCollapseSpan();  
 
 	float getTrailingCollapseSpan();
-	public static final int WorstAdjustmentWeight = 1;
+	public static final int WorstAdjustmentWeight = 2;
     }
 
     //
@@ -3131,4 +3201,6 @@ public class CSS implements Serializable {
 
     /** Size used for relative units. */
     private int baseFontSize;
+
+    static int baseFontSizeIndex = 3;
 }

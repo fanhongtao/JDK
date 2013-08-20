@@ -1,7 +1,7 @@
 /*
- * @(#)KeyManagementException.java	1.15 03/01/23
+ * @(#)KeyManagementException.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ package java.security;
  * <li>ExpiredKeyException
  * </ul>
  *
- * @version 1.15 03/01/23
+ * @version 1.18 03/12/19
  * @author Benjamin Renaud
  *
  * @see Key
@@ -27,6 +27,8 @@ package java.security;
  */
 
 public class KeyManagementException extends KeyException {
+
+    private static final long serialVersionUID = 947674216157062695L;
 
     /**
      * Constructs a KeyManagementException with no detail message. A
@@ -46,5 +48,35 @@ public class KeyManagementException extends KeyException {
      */
    public KeyManagementException(String msg) {
 	super(msg);
+    }
+
+    /**
+     * Creates a <code>KeyManagementException</code> with the specified
+     * detail message and cause.
+     *
+     * @param message the detail message (which is saved for later retrieval
+     *        by the {@link #getMessage()} method).
+     * @param cause the cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A <tt>null</tt> value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     * @since 1.5
+     */
+    public KeyManagementException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * Creates a <code>KeyManagementException</code> with the specified cause
+     * and a detail message of <tt>(cause==null ? null : cause.toString())</tt>
+     * (which typically contains the class and detail message of
+     * <tt>cause</tt>).
+     *
+     * @param cause the cause (which is saved for later retrieval by the
+     *        {@link #getCause()} method).  (A <tt>null</tt> value is permitted,
+     *        and indicates that the cause is nonexistent or unknown.)
+     * @since 1.5
+     */
+    public KeyManagementException(Throwable cause) {
+        super(cause);
     }
 }

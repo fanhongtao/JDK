@@ -1,12 +1,13 @@
 /*
- * @(#)MotifDesktopIconUI.java	1.21 03/01/23
+ * @(#)MotifDesktopIconUI.java	1.24 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.motif;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -21,7 +22,7 @@ import java.io.Serializable;
 /**
  * Motif rendition of the component.
  *
- * @version 1.21 01/23/03
+ * @version 1.24 04/15/04
  * @author Thomas Ball
  * @author Rich Schiavi
  */
@@ -33,7 +34,11 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
     protected Icon       defaultIcon;
     protected IconButton iconButton;
     protected IconLabel  iconLabel;
-    
+
+    // This is only used for its system menu, but we need a reference to it so
+    // we can remove its listeners.
+    private MotifInternalFrameTitlePane sysMenuTitlePane;
+
     JPopupMenu systemMenu;
     EventListener mml;
 
@@ -53,10 +58,10 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
 	super.installDefaults();
 	setDefaultIcon(UIManager.getIcon("DesktopIcon.icon"));
 	iconButton = createIconButton(defaultIcon);
-        // An unhanded way of creating a system popup menu.
-	MotifInternalFrameTitlePane titlePane = 
-            new MotifInternalFrameTitlePane(frame);
-        systemMenu = titlePane.getSystemMenu();
+        // An underhanded way of creating a system popup menu.
+        sysMenuTitlePane =  new MotifInternalFrameTitlePane(frame);
+        systemMenu = sysMenuTitlePane.getSystemMenu();
+
         MotifBorders.FrameBorder border = new MotifBorders.FrameBorder(desktopIcon);
 	desktopIcon.setLayout(new BorderLayout());
         iconButton.setBorder(border);
@@ -131,9 +136,10 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
     }
 	
     protected void uninstallListeners(){
-	super.uninstallListeners();
-	iconButton.removeActionListener(desktopIconActionListener);
-	iconButton.removeMouseListener(desktopIconMouseListener);
+        super.uninstallListeners();
+        iconButton.removeActionListener(desktopIconActionListener);
+        iconButton.removeMouseListener(desktopIconMouseListener);
+        sysMenuTitlePane.uninstallListeners();
     }
 
     public Dimension getMinimumSize(JComponent c) {
@@ -228,10 +234,10 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
 
         public Dimension getPreferredSize() {
             String title = frame.getTitle();
-            FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(defaultTitleFont);
+            FontMetrics fm = frame.getFontMetrics(defaultTitleFont);
             int w = 4;
             if (title != null) {
-                w += fm.stringWidth(title);
+                w += SwingUtilities2.stringWidth(frame, fm, title);
             }
             return new Dimension(w, LABEL_HEIGHT + LABEL_DIVIDER);
         }
@@ -254,11 +260,12 @@ public class MotifDesktopIconUI extends BasicDesktopIconUI
 
             // draw text -- clipping to truncate text like CDE/Motif
             g.setClip(2, 1, maxX - 4, LABEL_HEIGHT);
-            int y = LABEL_HEIGHT - g.getFontMetrics().getDescent();
+            int y = LABEL_HEIGHT - SwingUtilities2.getFontMetrics(frame, g).
+                                                   getDescent();
             g.setColor(UIManager.getColor("inactiveCaptionText"));
             String title = frame.getTitle();
             if (title != null) {
-                g.drawString(title, 4, y);
+                SwingUtilities2.drawString(frame, g, title, 4, y);
             }
         }
     }

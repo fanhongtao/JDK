@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedOutputStream.java	1.31 03/01/23
+ * @(#)BufferedOutputStream.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package java.io;
  * system for each byte written.
  *
  * @author  Arthur van Hoff
- * @version 1.31, 01/23/03
+ * @version 1.33, 12/19/03
  * @since   JDK1.0
  */
 public 
@@ -33,14 +33,13 @@ class BufferedOutputStream extends FilterOutputStream {
     protected int count;
     
     /**
-     * Creates a new buffered output stream to write data to the 
-     * specified underlying output stream with a default 512-byte 
-     * buffer size.
+     * Creates a new buffered output stream to write data to the
+     * specified underlying output stream.
      *
      * @param   out   the underlying output stream.
      */
     public BufferedOutputStream(OutputStream out) {
-	this(out, 512);
+	this(out, 8192);
     }
 
     /**

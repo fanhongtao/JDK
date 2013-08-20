@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTreeUI.java	1.160 05/06/15
+ * @(#)BasicTreeUI.java	1.172 04/05/27
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,16 +28,22 @@ import javax.swing.plaf.TreeUI;
 import javax.swing.tree.*;
 import javax.swing.text.Position;
 
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
+
 /**
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.160 06/15/05
+ * @version 1.172 05/27/04
  * @author Scott Violet
  */
 
 public class BasicTreeUI extends TreeUI
 {
+    // Old actions forward to an instance of this.
+    static private final Actions SHARED_ACTION = new Actions();
+
     static private final Insets EMPTY_INSETS = new Insets(0, 0, 0, 0);
 
     transient protected Icon        collapsedIcon;
@@ -100,7 +106,7 @@ public class BasicTreeUI extends TreeUI
 
 
     /** Used for minimizing the drawing of vertical lines. */
-    protected Hashtable         drawingCache;
+    protected Hashtable<TreePath,Boolean> drawingCache;
 
     /** True if doing optimizations for a largeModel. Subclasses that
      * don't support this may wish to override createLayoutCache to not
@@ -169,9 +175,89 @@ public class BasicTreeUI extends TreeUI
     /** Updates the treestate as the nodes expand. */
     private TreeExpansionListener treeExpansionListener;
 
+    /** UI property indicating whether to paint lines */
+    private boolean paintLines = true;
+
+    /** UI property for painting dashed lines */
+    private boolean lineTypeDashed;
+
+    /**
+     * The time factor to treate the series of typed alphanumeric key
+     * as prefix for first letter navigation.
+     */
+    private long timeFactor = 1000L;
+
+    private Handler handler;
+
     public static ComponentUI createUI(JComponent x) {
 	return new BasicTreeUI();
     }
+
+
+    static void loadActionMap(LazyActionMap map) {
+	map.put(new Actions(Actions.SELECT_PREVIOUS));
+        map.put(new Actions(Actions.SELECT_PREVIOUS_CHANGE_LEAD));
+	map.put(new Actions(Actions.SELECT_PREVIOUS_EXTEND_SELECTION));
+
+	map.put(new Actions(Actions.SELECT_NEXT));
+	map.put(new Actions(Actions.SELECT_NEXT_CHANGE_LEAD));
+	map.put(new Actions(Actions.SELECT_NEXT_EXTEND_SELECTION));
+
+	map.put(new Actions(Actions.SELECT_CHILD));
+	map.put(new Actions(Actions.SELECT_CHILD_CHANGE_LEAD));
+
+	map.put(new Actions(Actions.SELECT_PARENT));
+	map.put(new Actions(Actions.SELECT_PARENT_CHANGE_LEAD));
+
+	map.put(new Actions(Actions.SCROLL_UP_CHANGE_SELECTION));
+	map.put(new Actions(Actions.SCROLL_UP_CHANGE_LEAD));
+	map.put(new Actions(Actions.SCROLL_UP_EXTEND_SELECTION));
+
+	map.put(new Actions(Actions.SCROLL_DOWN_CHANGE_SELECTION));
+	map.put(new Actions(Actions.SCROLL_DOWN_EXTEND_SELECTION));
+	map.put(new Actions(Actions.SCROLL_DOWN_CHANGE_LEAD));
+
+	map.put(new Actions(Actions.SELECT_FIRST));
+	map.put(new Actions(Actions.SELECT_FIRST_CHANGE_LEAD));
+	map.put(new Actions(Actions.SELECT_FIRST_EXTEND_SELECTION));
+
+	map.put(new Actions(Actions.SELECT_LAST));
+	map.put(new Actions(Actions.SELECT_LAST_CHANGE_LEAD));
+	map.put(new Actions(Actions.SELECT_LAST_EXTEND_SELECTION));
+
+	map.put(new Actions(Actions.TOGGLE));
+
+	map.put(new Actions(Actions.CANCEL_EDITING));
+
+	map.put(new Actions(Actions.START_EDITING));
+
+	map.put(new Actions(Actions.SELECT_ALL));
+
+	map.put(new Actions(Actions.CLEAR_SELECTION));
+
+	map.put(new Actions(Actions.SCROLL_LEFT));
+	map.put(new Actions(Actions.SCROLL_RIGHT));
+
+	map.put(new Actions(Actions.SCROLL_LEFT_EXTEND_SELECTION));
+	map.put(new Actions(Actions.SCROLL_RIGHT_EXTEND_SELECTION));
+
+	map.put(new Actions(Actions.SCROLL_RIGHT_CHANGE_LEAD));
+	map.put(new Actions(Actions.SCROLL_LEFT_CHANGE_LEAD));
+
+        map.put(new Actions(Actions.EXPAND));
+        map.put(new Actions(Actions.COLLAPSE));
+        map.put(new Actions(Actions.MOVE_SELECTION_TO_PARENT));
+
+        map.put(new Actions(Actions.ADD_TO_SELECTION));
+        map.put(new Actions(Actions.TOGGLE_AND_ANCHOR));
+        map.put(new Actions(Actions.EXTEND_TO));
+        map.put(new Actions(Actions.MOVE_SELECTION_TO));
+
+        map.put(TransferHandler.getCutAction());
+        map.put(TransferHandler.getCopyAction());
+        map.put(TransferHandler.getPasteAction());
+    }
+
 
     public BasicTreeUI() {
 	super();
@@ -528,9 +614,9 @@ public class BasicTreeUI extends TreeUI
 
 	// Boilerplate install block
 	installDefaults();
-	installListeners();
 	installKeyboardActions();
 	installComponents();
+	installListeners();
 
 	completeUIInstall();
     }
@@ -540,7 +626,7 @@ public class BasicTreeUI extends TreeUI
      * set, but before any defaults/listeners have been installed.
      */
     protected void prepareForUIInstall() {
-	drawingCache = new Hashtable(7);
+	drawingCache = new Hashtable<TreePath,Boolean>(7);
 
 	// Data member initializations
 	leftToRight = BasicGraphicsUtils.isLeftToRight(tree);
@@ -549,12 +635,6 @@ public class BasicTreeUI extends TreeUI
 	lastSelectedRow = -1;
 	leadRow = -1;
 	preferredSize = new Dimension();
-	tree.setRowHeight(UIManager.getInt("Tree.rowHeight"));
-
-	Object     b = UIManager.get("Tree.scrollsOnExpand");
-
-	if(b != null)
-	    tree.setScrollsOnExpand(((Boolean)b).booleanValue());
 
 	largeModel = tree.isLargeModel();
 	if(getRowHeight() <= 0)
@@ -588,12 +668,19 @@ public class BasicTreeUI extends TreeUI
 	if(tree.getBackground() == null ||
 	   tree.getBackground() instanceof UIResource) {
 	    tree.setBackground(UIManager.getColor("Tree.background"));
-	}
+	} 
 	if(getHashColor() == null || getHashColor() instanceof UIResource) {
 	    setHashColor(UIManager.getColor("Tree.hash"));
 	}
 	if (tree.getFont() == null || tree.getFont() instanceof UIResource)
 	    tree.setFont( UIManager.getFont("Tree.font") );
+        // JTree's original row height is 16.  To correctly display the
+        // contents on Linux we should have set it to 18, Windows 19 and
+        // Solaris 20.  As these values vary so much it's too hard to
+        // be backward compatable and try to update the row height, we're
+        // therefor NOT going to adjust the row height based on font.  If the
+        // developer changes the font, it's there responsibility to update
+        // the row height.
 
 	setExpandedIcon( (Icon)UIManager.get( "Tree.expandedIcon" ) );
 	setCollapsedIcon( (Icon)UIManager.get( "Tree.collapsedIcon" ) );
@@ -603,21 +690,27 @@ public class BasicTreeUI extends TreeUI
 	setRightChildIndent(((Integer)UIManager.get("Tree.rightChildIndent")).
 			   intValue());
 
-	TransferHandler th = tree.getTransferHandler();
-	if (th == null || th instanceof UIResource) {
-	    tree.setTransferHandler(defaultTransferHandler);
+	LookAndFeel.installProperty(tree, "rowHeight",
+				    UIManager.get("Tree.rowHeight"));
+
+        largeModel = (tree.isLargeModel() && tree.getRowHeight() > 0);
+
+	Object scrollsOnExpand = UIManager.get("Tree.scrollsOnExpand");
+	if (scrollsOnExpand != null) {
+	    LookAndFeel.installProperty(tree, "scrollsOnExpand", scrollsOnExpand);
 	}
-	DropTarget dropTarget = tree.getDropTarget();
-	if (dropTarget instanceof UIResource) {
-            if (defaultDropTargetListener == null) {
-                defaultDropTargetListener = new TreeDropTargetListener();
-            }
-	    try {
-		dropTarget.addDropTargetListener(defaultDropTargetListener);
-	    } catch (TooManyListenersException tmle) {
-		// should not happen... swing drop target is multicast
-	    }
-	}
+
+	paintLines = UIManager.getBoolean("Tree.paintLines");
+	lineTypeDashed = UIManager.getBoolean("Tree.lineTypeDashed");
+	
+ 	Long l = (Long)UIManager.get("Tree.timeFactor");
+ 	timeFactor = (l!=null) ? l.longValue() : 1000L;
+        
+        Object showsRootHandles = UIManager.get("Tree.showsRootHandles");
+        if (showsRootHandles != null) {
+            LookAndFeel.installProperty(tree, 
+                    JTree.SHOWS_ROOT_HANDLES_PROPERTY, showsRootHandles);
+        }
     }
 
     protected void installListeners() {
@@ -656,6 +749,23 @@ public class BasicTreeUI extends TreeUI
 	   treeSelectionModel != null) {
 	    treeSelectionModel.addTreeSelectionListener(treeSelectionListener);
 	}
+
+	TransferHandler th = tree.getTransferHandler();
+	if (th == null || th instanceof UIResource) {
+	    tree.setTransferHandler(defaultTransferHandler);
+	}
+	DropTarget dropTarget = tree.getDropTarget();
+	if (dropTarget instanceof UIResource) {
+            if (defaultDropTargetListener == null) {
+                defaultDropTargetListener = new TreeDropTargetListener();
+            }
+	    try {
+		dropTarget.addDropTargetListener(defaultDropTargetListener);
+	    } catch (TooManyListenersException tmle) {
+		// should not happen... swing drop target is multicast
+	    }
+	}
+        LookAndFeel.installProperty(tree, "opaque", Boolean.TRUE);
     }
 
     protected void installKeyboardActions() {
@@ -668,21 +778,23 @@ public class BasicTreeUI extends TreeUI
 	km = getInputMap(JComponent.WHEN_FOCUSED);
 	SwingUtilities.replaceUIInputMap(tree, JComponent.WHEN_FOCUSED, km);
 
-	ActionMap am = getActionMap();
-
-	SwingUtilities.replaceUIActionMap(tree, am);
+        LazyActionMap.installLazyActionMap(tree, BasicTreeUI.class,
+                                           "Tree.actionMap");
     }
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
-	    return (InputMap)UIManager.get("Tree.ancestorInputMap");
+	    return (InputMap)DefaultLookup.get(tree, this,
+                                               "Tree.ancestorInputMap");
 	}
 	else if (condition == JComponent.WHEN_FOCUSED) {
-	    InputMap keyMap = (InputMap)UIManager.get("Tree.focusInputMap");
+	    InputMap keyMap = (InputMap)DefaultLookup.get(tree, this,
+                                                      "Tree.focusInputMap");
 	    InputMap rtlKeyMap;
 
 	    if (tree.getComponentOrientation().isLeftToRight() ||
-		((rtlKeyMap = (InputMap)UIManager.get("Tree.focusInputMap.RightToLeft")) == null)) {
+		  ((rtlKeyMap = (InputMap)DefaultLookup.get(tree, this,
+                  "Tree.focusInputMap.RightToLeft")) == null)) {
 		return keyMap;
 	    } else {
 		rtlKeyMap.setParent(keyMap);
@@ -690,108 +802,6 @@ public class BasicTreeUI extends TreeUI
 	    }
 	}
 	return null;
-    }
-
-    ActionMap getActionMap() {
-	return createActionMap();
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-
-	map.put("selectPrevious", new TreeIncrementAction(-1, "selectPrevious",
-							  false, true));
-	map.put("selectPreviousChangeLead", new TreeIncrementAction
-		(-1, "selectPreviousLead", false, false));
-	map.put("selectPreviousExtendSelection", new TreeIncrementAction
-		(-1, "selectPreviousExtendSelection", true, true));
-
-	map.put("selectNext", new TreeIncrementAction
-		(1, "selectNext", false, true));
-	map.put("selectNextChangeLead", new TreeIncrementAction
-		(1, "selectNextLead", false, false));
-	map.put("selectNextExtendSelection", new TreeIncrementAction
-		(1, "selectNextExtendSelection", true, true));
-
-	map.put("selectChild", new TreeTraverseAction
-		(1, "selectChild", true));
-	map.put("selectChildChangeLead", new TreeTraverseAction
-		(1, "selectChildLead", false));
-
-	map.put("selectParent", new TreeTraverseAction
-		(-1, "selectParent", true));
-	map.put("selectParentChangeLead", new TreeTraverseAction
-		(-1, "selectParentLead", false));
-
-	map.put("scrollUpChangeSelection", new TreePageAction
-		(-1, "scrollUpChangeSelection", false, true));
-	map.put("scrollUpChangeLead", new TreePageAction
-		(-1, "scrollUpChangeLead", false, false));
-	map.put("scrollUpExtendSelection", new TreePageAction
-		(-1, "scrollUpExtendSelection", true, true));
-
-	map.put("scrollDownChangeSelection", new TreePageAction
-		(1, "scrollDownChangeSelection", false, true));
-	map.put("scrollDownExtendSelection", new TreePageAction
-		(1, "scrollDownExtendSelection", true, true));
-	map.put("scrollDownChangeLead", new TreePageAction
-		(1, "scrollDownChangeLead", false, false));
-
-	map.put("selectFirst", new TreeHomeAction
-		(-1, "selectFirst", false, true));
-	map.put("selectFirstChangeLead", new TreeHomeAction
-		(-1, "selectFirst", false, false));
-	map.put("selectFirstExtendSelection",new TreeHomeAction
-		(-1, "selectFirstExtendSelection", true, true));
-
-	map.put("selectLast", new TreeHomeAction
-		(1, "selectLast", false, true));
-	map.put("selectLastChangeLead", new TreeHomeAction
-		(1, "selectLast", false, false));
-	map.put("selectLastExtendSelection", new TreeHomeAction
-		(1, "selectLastExtendSelection", true, true));
-
-	map.put("toggle", new TreeToggleAction("toggle"));
-
-	map.put("cancel", new TreeCancelEditingAction("cancel"));
-
-	map.put("startEditing", new TreeEditAction("startEditing"));
-
-	map.put("selectAll", new TreeSelectAllAction("selectAll", true));
-
-	map.put("clearSelection", new TreeSelectAllAction
-		("clearSelection", false));
-
-	map.put("toggleSelectionPreserveAnchor",
-		new TreeAddSelectionAction("toggleSelectionPreserveAnchor",
-					   false));
-	map.put("toggleSelection",
-		new TreeAddSelectionAction("toggleSelection", true));
-
-	map.put("extendSelection", new TreeExtendSelectionAction
-		("extendSelection"));
-
-	map.put("scrollLeft", new ScrollAction
-		(tree, SwingConstants.HORIZONTAL, -10));
-	map.put("scrollLeftExtendSelection", new TreeScrollLRAction
-		(-1, "scrollLeftExtendSelection", true, true));
-	map.put("scrollRight", new ScrollAction
-		(tree, SwingConstants.HORIZONTAL, 10));
-	map.put("scrollRightExtendSelection", new TreeScrollLRAction
-		(1, "scrollRightExtendSelection", true, true));
-
-	map.put("scrollRightChangeLead", new TreeScrollLRAction
-		(1, "scrollRightChangeLead", false, false));
-	map.put("scrollLeftChangeLead", new TreeScrollLRAction
-		(-1, "scrollLeftChangeLead", false, false));
-
-        map.put(TransferHandler.getCutAction().getValue(Action.NAME),
-                TransferHandler.getCutAction());
-        map.put(TransferHandler.getCopyAction().getValue(Action.NAME),
-                TransferHandler.getCopyAction());
-        map.put(TransferHandler.getPasteAction().getValue(Action.NAME),
-                TransferHandler.getPasteAction());
-	return map;
     }
 
     /**
@@ -820,7 +830,14 @@ public class BasicTreeUI extends TreeUI
      * how the tree changes.
      */
     protected PropertyChangeListener createPropertyChangeListener() {
-        return new PropertyChangeHandler();
+        return getHandler();
+    }
+
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
     }
 
     /**
@@ -828,7 +845,7 @@ public class BasicTreeUI extends TreeUI
      * mouse events.
      */
     protected MouseListener createMouseListener() {
-        return new MouseHandler();
+        return getHandler();
     }
 
     /**
@@ -836,7 +853,7 @@ public class BasicTreeUI extends TreeUI
      * when focus is lost/gained.
      */
     protected FocusListener createFocusListener() {
-        return new FocusHandler();
+        return getHandler();
     }
 
     /**
@@ -844,7 +861,7 @@ public class BasicTreeUI extends TreeUI
      * the tree.
      */
     protected KeyListener createKeyListener() {
-        return new KeyHandler();
+        return getHandler();
     }
 
     /**
@@ -852,7 +869,7 @@ public class BasicTreeUI extends TreeUI
      * events from the selection model.
      */
     protected PropertyChangeListener createSelectionModelPropertyChangeListener() {
-	return new SelectionModelPropertyChangeHandler();
+	return getHandler();
     }
 
     /**
@@ -860,14 +877,14 @@ public class BasicTreeUI extends TreeUI
      * methods.
      */
     protected TreeSelectionListener createTreeSelectionListener() {
-	return new TreeSelectionHandler();
+	return getHandler();
     }
 
     /**
      * Creates a listener to handle events from the current editor.
      */
     protected CellEditorListener createCellEditorListener() {
-	return new CellEditorHandler();
+	return getHandler();
     }
 
     /**
@@ -884,7 +901,7 @@ public class BasicTreeUI extends TreeUI
      * when nodes expanded state changes.
      */
     protected TreeExpansionListener createTreeExpansionListener() {
-	return new TreeExpansionHandler();
+	return getHandler();
     }
 
     /**
@@ -931,7 +948,7 @@ public class BasicTreeUI extends TreeUI
      * Returns a listener that can update the tree when the model changes.
      */
     protected TreeModelListener createTreeModelListener() {
-	return new TreeModelHandler();
+	return getHandler();
     }
 
     //
@@ -1022,6 +1039,7 @@ public class BasicTreeUI extends TreeUI
 	    treeSelectionModel.removeTreeSelectionListener
 		               (treeSelectionListener);
 	}
+        handler = null;
     }
 
     protected void uninstallKeyboardActions() {
@@ -1164,7 +1182,7 @@ public class BasicTreeUI extends TreeUI
                     //This is the quick fix for bug 4259260.  Somewhere we
                     //are out by 4 pixels in the RTL layout.  Its probably
                     //due to built in right-side padding in some icons.  Rather
-                    //than ferret out problem at the source, this compensates.
+                    //than ferret out problem at the source, this compensates. 
             	    if (!leftToRight) {
                         bounds.x +=4;
                     }
@@ -1194,6 +1212,10 @@ public class BasicTreeUI extends TreeUI
 					    boolean isExpanded,
 					    boolean hasBeenExpanded, boolean
 					    isLeaf) {
+	if (!paintLines) {
+	    return;
+	}
+
         // Don't paint the legs for the root'ish node if the
         int depth = path.getPathCount() - 1;
 	if((depth == 0 || (depth == 1 && !isRootVisible())) &&
@@ -1210,7 +1232,7 @@ public class BasicTreeUI extends TreeUI
 	if (leftToRight) {
 	    int leftX = bounds.x - getRightChildIndent();
 	    int nodeX = bounds.x - getHorizontalLegBuffer();
-
+	
 	    if(lineY >= clipTop && lineY <= clipBottom && nodeX >= clipLeft &&
 	                                                 leftX <= clipRight ) {
 	        leftX = Math.max(Math.max(insets.left, leftX), clipLeft);
@@ -1224,7 +1246,7 @@ public class BasicTreeUI extends TreeUI
 	}
 	else {
 	    int leftX = bounds.x + bounds.width + getRightChildIndent();
-	    int nodeX = bounds.x + bounds.width +
+	    int nodeX = bounds.x + bounds.width + 
 	                                  getHorizontalLegBuffer() - 1;
 
 	    if(lineY >= clipTop && lineY <= clipBottom &&
@@ -1244,18 +1266,20 @@ public class BasicTreeUI extends TreeUI
      */
     protected void paintVerticalPartOfLeg(Graphics g, Rectangle clipBounds,
 					  Insets insets, TreePath path) {
+	if (!paintLines) {
+	    return;
+	}
+
         int depth = path.getPathCount() - 1;
 	if (depth == 0 && !getShowsRootHandles() && !isRootVisible()) {
 	    return;
         }
-	int lineX;
+	int lineX = getRowX(-1, depth + 1);
 	if (leftToRight) {
-	    lineX = ((depth + 1 + depthOffset) *
-		     totalChildIndent) - getRightChildIndent() + insets.left;
+            lineX = lineX - getRightChildIndent() + insets.left;
 	}
 	else {
-	    lineX = lastWidth - ((depth + depthOffset) *
-				                       totalChildIndent) - 9;
+	    lineX = lastWidth - getRowX(-1, depth) - 9;
 	}
 	int clipLeft = clipBounds.x;
 	int clipRight = clipBounds.x + (clipBounds.width - 1);
@@ -1376,9 +1400,9 @@ public class BasicTreeUI extends TreeUI
 	              (tree, path.getLastPathComponent(),
 		       tree.isRowSelected(row), isExpanded, isLeaf, row,
 		       (leadIndex == row));
-
+	
 	rendererPane.paintComponent(g, component, tree, bounds.x, bounds.y,
-				    bounds.width, bounds.height, true);
+				    bounds.width, bounds.height, true);	
     }
 
     /**
@@ -1405,7 +1429,11 @@ public class BasicTreeUI extends TreeUI
      */
     protected void paintVerticalLine(Graphics g, JComponent c, int x, int top,
 				    int bottom) {
-	g.drawLine(x, top, x, bottom);
+	if (lineTypeDashed) {
+	    drawDashedVerticalLine(g, x, top, bottom);
+	} else {
+	    g.drawLine(x, top, x, bottom);
+	}
     }
 
     /**
@@ -1413,7 +1441,11 @@ public class BasicTreeUI extends TreeUI
      */
     protected void paintHorizontalLine(Graphics g, JComponent c, int y,
 				      int left, int right) {
-	g.drawLine(left, y, right, y);
+	if (lineTypeDashed) {
+	    drawDashedHorizontalLine(g, y, left, right);
+	} else {
+	    g.drawLine(left, y, right, y);
+	}
     }
 
     /**
@@ -1422,7 +1454,7 @@ public class BasicTreeUI extends TreeUI
      */
     protected int getVerticalLegBuffer() {
 	return 0;
-    }
+    } 
 
     /**
      * The horizontal element of legs between nodes starts at the
@@ -1431,7 +1463,7 @@ public class BasicTreeUI extends TreeUI
      */
     protected int getHorizontalLegBuffer() {
 	return 0;
-    }
+    } 
 
     //
     // Generic painting methods
@@ -1475,6 +1507,22 @@ public class BasicTreeUI extends TreeUI
     //
 
     /**
+     * Returns the location, along the x-axis, to render a particular row
+     * at. The return value does not include any Insets specified on the JTree.
+     * This does not check for the validity of the row or depth, it is assumed
+     * to be correct and will not throw an Exception if the row or depth
+     * doesn't match that of the tree.
+     *
+     * @param row Row to return x location for
+     * @param depth Depth of the row
+     * @return amount to indent the given row.
+     * @since 1.5
+     */
+    protected int getRowX(int row, int depth) {
+        return totalChildIndent * (depth + depthOffset);
+    }
+
+    /**
      * Makes all the nodes that are expanded in JTree expanded in LayoutCache.
      * This invokes updateExpandedDescendants with the root path.
      */
@@ -1513,7 +1561,7 @@ public class BasicTreeUI extends TreeUI
 	if(treeModel != null) {
 	    int         childCount = treeModel.getChildCount
 		(parent.getLastPathComponent());
-
+	    
 	    if(childCount > 0)
 		return parent.pathByAddingChild(treeModel.getChild
 			   (parent.getLastPathComponent(), childCount - 1));
@@ -1537,7 +1585,7 @@ public class BasicTreeUI extends TreeUI
 	    depthOffset = 0;
     }
 
-    /**
+    /** 
       * Updates the cellEditor based on the editability of the JTree that
       * we're contained in.  If the tree is editable but doesn't have a
       * cellEditor, a basic one will be used.
@@ -1771,11 +1819,17 @@ public class BasicTreeUI extends TreeUI
       */
     protected void ensureRowsAreVisible(int beginRow, int endRow) {
 	if(tree != null && beginRow >= 0 && endRow < getRowCount(tree)) {
+            boolean scrollVert = DefaultLookup.getBoolean(tree, this,
+                              "Tree.scrollsHorizontallyAndVertically", false);
 	    if(beginRow == endRow) {
 		Rectangle     scrollBounds = getPathBounds(tree, getPathForRow
 							   (tree, beginRow));
 
 		if(scrollBounds != null) {
+                    if (!scrollVert) {
+                        scrollBounds.x = tree.getVisibleRect().x;
+                        scrollBounds.width = 1;
+                    }
 		    tree.scrollRectToVisible(scrollBounds);
 		}
 	    }
@@ -1900,7 +1954,7 @@ public class BasicTreeUI extends TreeUI
 	    TreePath              oldPath = editingPath;
 	    TreeCellEditor        oldEditor = cellEditor;
 	    Object                newValue = oldEditor.getCellEditorValue();
-	    Rectangle             editingBounds = getPathBounds(tree,
+	    Rectangle             editingBounds = getPathBounds(tree, 
 								editingPath);
 	    boolean               requestFocus = (tree != null &&
 		                   (tree.hasFocus() || SwingUtilities.
@@ -1939,99 +1993,86 @@ public class BasicTreeUI extends TreeUI
                                !stopEditing(tree)) {
             return false;
         }
-    completeEditing();
-    if(cellEditor != null && tree.isPathEditable(path)) {
-        int           row = getRowForPath(tree, path);
+	completeEditing();
+	if(cellEditor != null && tree.isPathEditable(path)) {
+	    int           row = getRowForPath(tree, path);
 
-        if(cellEditor.isCellEditable(event)) {
+	    if(cellEditor.isCellEditable(event)) {
                 editingComponent = cellEditor.getTreeCellEditorComponent
-              (tree, path.getLastPathComponent(),
-               tree.isPathSelected(path), tree.isExpanded(path),
-               treeModel.isLeaf(path.getLastPathComponent()), row);
+		      (tree, path.getLastPathComponent(),
+		       tree.isPathSelected(path), tree.isExpanded(path),
+		       treeModel.isLeaf(path.getLastPathComponent()), row);
 
-        Rectangle           nodeBounds = getPathBounds(tree, path);
+		Rectangle           nodeBounds = getPathBounds(tree, path);
 
-        editingRow = row;
+		editingRow = row;
 
-        Dimension editorSize = editingComponent.getPreferredSize();
+		Dimension editorSize = editingComponent.getPreferredSize();
 
-        // Only allow odd heights if explicitly set.
-        if(editorSize.height != nodeBounds.height &&
-           getRowHeight() > 0)
-            editorSize.height = getRowHeight();
+		// Only allow odd heights if explicitly set.
+		if(editorSize.height != nodeBounds.height &&
+		   getRowHeight() > 0)
+		    editorSize.height = getRowHeight();
 
-        if(editorSize.width != nodeBounds.width ||
-           editorSize.height != nodeBounds.height) {
-            // Editor wants different width or height, invalidate
-            // treeState and relayout.
-            editorHasDifferentSize = true;
-            treeState.invalidatePathBounds(path);
-            updateSize();
-        }
-        else
-            editorHasDifferentSize = false;
-        tree.add(editingComponent);
-        editingComponent.setBounds(nodeBounds.x, nodeBounds.y,
-                       editorSize.width,
-                       editorSize.height);
-        editingPath = path;
-        editingComponent.validate();
+		if(editorSize.width != nodeBounds.width ||
+		   editorSize.height != nodeBounds.height) {
+		    // Editor wants different width or height, invalidate 
+		    // treeState and relayout.
+		    editorHasDifferentSize = true;
+		    treeState.invalidatePathBounds(path);
+		    updateSize();
+		}
+		else
+		    editorHasDifferentSize = false;
+		tree.add(editingComponent);
+		editingComponent.setBounds(nodeBounds.x, nodeBounds.y,
+					   editorSize.width,
+					   editorSize.height);
+		editingPath = path;
+		editingComponent.validate();
 
-        Rectangle              visRect = tree.getVisibleRect();
+		Rectangle              visRect = tree.getVisibleRect();
 
-        tree.paintImmediately(nodeBounds.x, nodeBounds.y,
-                      visRect.width + visRect.x - nodeBounds.x,
-                      editorSize.height);
-        if(cellEditor.shouldSelectCell(event)) {
-            stopEditingInCompleteEditing = false;
-            try {
-            tree.setSelectionRow(row);
-            } catch (Exception e) {
-            System.err.println("Editing exception: " + e);
-            }
-            stopEditingInCompleteEditing = true;
-        }
+		tree.paintImmediately(nodeBounds.x, nodeBounds.y,
+				      visRect.width + visRect.x - nodeBounds.x,
+				      editorSize.height);
+		if(cellEditor.shouldSelectCell(event)) {
+		    stopEditingInCompleteEditing = false;
+		    try {
+			tree.setSelectionRow(row);
+		    } catch (Exception e) {
+			System.err.println("Editing exception: " + e);
+		    }
+		    stopEditingInCompleteEditing = true;
+		}
 
-        // While entering edit mode, if the container is having a
-        // text component - select all the text and high light it.
-        Component focusedComponent = null; // the contained component
+		BasicLookAndFeel.compositeRequestFocus(editingComponent);
+		
+		if(event != null && event instanceof MouseEvent) {
+		    /* Find the component that will get forwarded all the
+		       mouse events until mouseReleased. */
+		    Point          componentPoint = SwingUtilities.convertPoint
+			(tree, new Point(event.getX(), event.getY()),
+			 editingComponent);
 
-        boolean selectAll = true; // requires selection ?
-        focusedComponent = BasicLookAndFeel.compositeRequestFocus(
-                               editingComponent);
-
-        if(event != null && event instanceof MouseEvent) {
-            /* Find the component that will get forwarded all the
-               mouse events until mouseReleased. */
-            Point          componentPoint = SwingUtilities.convertPoint
-            (tree, new Point(event.getX(), event.getY()),
-             editingComponent);
-
-            /* Create an instance of BasicTreeMouseListener to handle
-            passing the mouse/motion events to the necessary
-            component. */
-            // We really want similar behavior to getMouseEventTarget,
-            // but it is package private.
-            Component activeComponent = SwingUtilities.
-                         getDeepestComponentAt(editingComponent,
-                            componentPoint.x, componentPoint.y);
-            if (activeComponent != null) {
-                new MouseInputHandler(tree, activeComponent,
-                                      event, focusedComponent);
-                // The MouseInputHandler is required to handle
-                // the mouse click events.
-                selectAll = false;
-            }
-        }
-        if (selectAll && focusedComponent instanceof JTextField) {
-            ((JTextField)focusedComponent).selectAll();
-        }
-        return true;
-        }
-        else
-        editingComponent = null;
-    }
-    return false;
+		    /* Create an instance of BasicTreeMouseListener to handle
+		       passing the mouse/motion events to the necessary
+		       component. */
+		    // We really want similar behavior to getMouseEventTarget,
+		    // but it is package private.
+		    Component activeComponent = SwingUtilities.
+			            getDeepestComponentAt(editingComponent,
+				       componentPoint.x, componentPoint.y);
+		    if (activeComponent != null) {
+			new MouseInputHandler(tree, activeComponent, event);
+		    }
+		}
+		return true;
+	    }
+	    else
+		editingComponent = null;
+	}
+	return false;
     }
 
     //
@@ -2055,7 +2096,7 @@ public class BasicTreeUI extends TreeUI
      * in the area of row that is used to expand/collapse the node and
      * the node at <code>row</code> does not represent a leaf.
      */
-    protected boolean isLocationInExpandControl(TreePath path,
+    protected boolean isLocationInExpandControl(TreePath path, 
 						int mouseX, int mouseY) {
 	if(path != null && !treeModel.isLeaf(path.getLastPathComponent())){
 	    int                     boxWidth;
@@ -2066,15 +2107,15 @@ public class BasicTreeUI extends TreeUI
 	    else
 		boxWidth = 8;
 
-	    int                     boxLeftX = (i != null) ? i.left : 0;
+	    int boxLeftX = getRowX(tree.getRowForPath(path),
+                   path.getPathCount() - 1) - getRightChildIndent() -
+                   boxWidth / 2;
 
 	    if (leftToRight) {
-	        boxLeftX += (((path.getPathCount() + depthOffset - 2) *
-			      totalChildIndent) + getLeftChildIndent()) -
-		              boxWidth / 2;
+                boxLeftX += i.left;
 	    }
 	    else {
-	        boxLeftX += lastWidth - 1 -
+	        boxLeftX = i.left + lastWidth - 1 - 
 		            ((path.getPathCount() - 2 + depthOffset) *
 			     totalChildIndent) - getLeftChildIndent() -
 		            boxWidth / 2;
@@ -2153,7 +2194,7 @@ public class BasicTreeUI extends TreeUI
 	if(clickCount <= 0) {
 	    return false;
 	}
-	return (event.getClickCount() % clickCount  ==  0);
+	return (event.getClickCount() == clickCount);
     }
 
     /**
@@ -2165,8 +2206,19 @@ public class BasicTreeUI extends TreeUI
      * specified a toggle event the row is expanded/collapsed.
      */
     protected void selectPathForEvent(TreePath path, MouseEvent event) {
+	// Should this event toggle the selection of this row?
+	/* Control toggles just this node. */
+	if(isToggleSelectionEvent(event)) {
+	    if(tree.isPathSelected(path))
+		tree.removeSelectionPath(path);
+	    else
+		tree.addSelectionPath(path);
+	    lastSelectedRow = getRowForPath(tree, path);
+	    setAnchorSelectionPath(path);
+	    setLeadSelectionPath(path);
+	}
 	/* Adjust from the anchor point. */
-	if(isMultiSelectEvent(event)) {
+	else if(isMultiSelectEvent(event)) {
 	    TreePath    anchor = getAnchorSelectionPath();
 	    int         anchorRow = (anchor == null) ? -1 :
 		                    getRowForPath(tree, anchor);
@@ -2180,36 +2232,15 @@ public class BasicTreeUI extends TreeUI
 		int          row = getRowForPath(tree, path);
 		TreePath     lastAnchorPath = anchor;
 
-		if (isToggleSelectionEvent(event)) {  
-                    if (tree.isRowSelected(anchorRow)) {  
-                        tree.addSelectionInterval(anchorRow, row);  
-                    } else {  
-                        tree.removeSelectionInterval(anchorRow, row);  
-                        tree.addSelectionInterval(row, row);  
-                    }  
-                } else if(row < anchorRow) {
+		if(row < anchorRow)
 		    tree.setSelectionInterval(row, anchorRow);
-		} else {
+		else
 		    tree.setSelectionInterval(anchorRow, row);
-                }
 		lastSelectedRow = row;
 		setAnchorSelectionPath(lastAnchorPath);
 		setLeadSelectionPath(path);
 	    }
 	}
-
-        // Should this event toggle the selection of this row?
-        /* Control toggles just this node. */
-        else if(isToggleSelectionEvent(event)) {
-            if(tree.isPathSelected(path))
-                tree.removeSelectionPath(path);
-            else
-                tree.addSelectionPath(path);
-            lastSelectedRow = getRowForPath(tree, path);
-            setAnchorSelectionPath(path);
-            setLeadSelectionPath(path);
-        }
-
 	/* Otherwise set the selection to just this interval. */
 	else if(SwingUtilities.isLeftMouseButton(event)) {
 	    tree.setSelectionPath(path);
@@ -2239,7 +2270,7 @@ public class BasicTreeUI extends TreeUI
 	ignoreLAChange = true;
 	try {
 	    tree.setAnchorSelectionPath(newPath);
-	} finally{
+	} finally{ 
 	    ignoreLAChange = false;
 	}
     }
@@ -2327,31 +2358,23 @@ public class BasicTreeUI extends TreeUI
      * Updates the TreeState in response to nodes expanding/collapsing.
      */
     public class TreeExpansionHandler implements TreeExpansionListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	/**
 	 * Called whenever an item in the tree has been expanded.
 	 */
 	public void treeExpanded(TreeExpansionEvent event) {
-	    if(event != null && tree != null) {
-		TreePath      path = event.getPath();
-
-		updateExpandedDescendants(path);
-	    }
+            getHandler().treeExpanded(event);
 	}
 
 	/**
 	 * Called whenever an item in the tree has been collapsed.
 	 */
 	public void treeCollapsed(TreeExpansionEvent event) {
-	    if(event != null && tree != null) {
-		TreePath        path = event.getPath();
-
-		completeEditing();
-		if(path != null && tree.isVisible(path)) {
-		    treeState.setExpandedState(path, false);
-		    updateLeadRow();
-		    updateSize();
-		}
-	    }
+            getHandler().treeCollapsed(event);
 	}
     } // BasicTreeUI.TreeExpansionHandler
 
@@ -2375,7 +2398,7 @@ public class BasicTreeUI extends TreeUI
 		    updateSize();
 		else {
 		    scrollBar = scrollPane.getVerticalScrollBar();
-		    if(scrollBar == null ||
+		    if(scrollBar == null || 
 			!scrollBar.getValueIsAdjusting()) {
 			// Try the horizontal scrollbar.
 			if((scrollBar = scrollPane.getHorizontalScrollBar())
@@ -2437,70 +2460,25 @@ public class BasicTreeUI extends TreeUI
      */
     public class TreeModelHandler implements TreeModelListener {
 
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	public void treeNodesChanged(TreeModelEvent e) {
-	    if(treeState != null && e != null) {
-		treeState.treeNodesChanged(e);
-
-		TreePath       pPath = e.getTreePath().getParentPath();
-
-		if(pPath == null || treeState.isExpanded(pPath))
-		    updateSize();
-	    }
+            getHandler().treeNodesChanged(e);
 	}
 
 	public void treeNodesInserted(TreeModelEvent e) {
-	    if(treeState != null && e != null) {
-		treeState.treeNodesInserted(e);
-
-		updateLeadRow();
-
-		TreePath       path = e.getTreePath();
-
-		if(treeState.isExpanded(path)) {
-		    updateSize();
-		}
-		else {
-		    // PENDING(sky): Need a method in TreeModelEvent
-		    // that can return the count, getChildIndices allocs
-		    // a new array!
-		    int[]      indices = e.getChildIndices();
-		    int        childCount = treeModel.getChildCount
-			                    (path.getLastPathComponent());
-
-		    if(indices != null && (childCount - indices.length) == 0)
-			updateSize();
-		}
-	    }
+            getHandler().treeNodesInserted(e);
 	}
 
 	public void treeNodesRemoved(TreeModelEvent e) {
-	    if(treeState != null && e != null) {
-		treeState.treeNodesRemoved(e);
-
-		updateLeadRow();
-
-		TreePath       path = e.getTreePath();
-
-		if(treeState.isExpanded(path) ||
-		   treeModel.getChildCount(path.getLastPathComponent()) == 0)
-		    updateSize();
-	    }
+            getHandler().treeNodesInserted(e);
 	}
 
 	public void treeStructureChanged(TreeModelEvent e) {
-	    if(treeState != null && e != null) {
-		treeState.treeStructureChanged(e);
-
-		updateLeadRow();
-
-		TreePath       pPath = e.getTreePath();
-
-                if (pPath != null) {
-                    pPath = pPath.getParentPath();
-                }
-                if(pPath == null || treeState.isExpanded(pPath))
-                    updateSize();
-	    }
+            getHandler().treeStructureChanged(e);
 	}
     } // End of BasicTreeUI.TreeModelHandler
 
@@ -2510,81 +2488,18 @@ public class BasicTreeUI extends TreeUI
      * accordingly.
      */
     public class TreeSelectionHandler implements TreeSelectionListener {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	/**
 	 * Messaged when the selection changes in the tree we're displaying
 	 * for.  Stops editing, messages super and displays the changed paths.
 	 */
 	public void valueChanged(TreeSelectionEvent event) {
-	    // Stop editing
-	    completeEditing();
-	    // Make sure all the paths are visible, if necessary.
-            // PENDING: This should be tweaked when isAdjusting is added
-	    if(tree.getExpandsSelectedPaths() && treeSelectionModel != null) {
-		TreePath[]           paths = treeSelectionModel
-		                         .getSelectionPaths();
-
-		if(paths != null) {
-		    for(int counter = paths.length - 1; counter >= 0;
-			counter--) {
-                        TreePath path = paths[counter].getParentPath();
-                        boolean expand = true;
-
-                        while (path != null) {
-                            // Indicates this path isn't valid anymore,
-                            // we shouldn't attempt to expand it then.
-                            if (treeModel.isLeaf(path.getLastPathComponent())){
-                                expand = false;
-                                path = null;
-                            }
-                            else {
-                                path = path.getParentPath();
-                            }
-                        }
-                        if (expand) {
-                            tree.makeVisible(paths[counter]);
-                        }
-		    }
-		}
-	    }
-
-	    TreePath oldLead = getLeadSelectionPath();
-	    lastSelectedRow = tree.getMinSelectionRow();
-	    TreePath lead = tree.getSelectionModel().getLeadSelectionPath();
-	    setAnchorSelectionPath(lead);
-	    setLeadSelectionPath(lead);
-
-	    TreePath[]       changedPaths = event.getPaths();
-	    Rectangle        nodeBounds;
-	    Rectangle        visRect = tree.getVisibleRect();
-	    boolean          paintPaths = true;
-	    int              nWidth = tree.getWidth();
-
-	    if(changedPaths != null) {
-		int              counter, maxCounter = changedPaths.length;
-
-		if(maxCounter > 4) {
-		    tree.repaint();
-		    paintPaths = false;
-		}
-		else {
-		    for (counter = 0; counter < maxCounter; counter++) {
-			nodeBounds = getPathBounds(tree,
-						   changedPaths[counter]);
-			if(nodeBounds != null &&
-			   visRect.intersects(nodeBounds))
-			    tree.repaint(0, nodeBounds.y, nWidth,
-					 nodeBounds.height);
-		    }
-		}
-	    }
-	    if(paintPaths) {
-		nodeBounds = getPathBounds(tree, oldLead);
-		if(nodeBounds != null && visRect.intersects(nodeBounds))
-		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
-		nodeBounds = getPathBounds(tree, lead);
-		if(nodeBounds != null && visRect.intersects(nodeBounds))
-		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
-	    }
+            getHandler().valueChanged(event);
 	}
     }// End of BasicTreeUI.TreeSelectionHandler
 
@@ -2594,14 +2509,20 @@ public class BasicTreeUI extends TreeUI
      * the tree accordingly.
      */
     public class CellEditorHandler implements CellEditorListener {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	/** Messaged when editing has stopped in the tree. */
 	public void editingStopped(ChangeEvent e) {
-	    completeEditing(false, false, true);
+            getHandler().editingStopped(e);
 	}
 
 	/** Messaged when editing has been canceled in the tree. */
 	public void editingCanceled(ChangeEvent e) {
-	    completeEditing(false, false, false);
+            getHandler().editingCanceled(e);
 	}
     } // BasicTreeUI.CellEditorHandler
 
@@ -2610,8 +2531,17 @@ public class BasicTreeUI extends TreeUI
      * This is used to get mutliple key down events to appropriately generate
      * events.
      */
-    // PENDING(sky): Is this still needed?
     public class KeyHandler extends KeyAdapter {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
+        // Also note these fields aren't use anymore, nor does Handler have
+        // the old functionality. This behavior worked around an old bug
+        // in JComponent that has long since been fixed.
+
 	/** Key code that is being generated for. */
 	protected Action              repeatKeyAction;
 
@@ -2620,81 +2550,24 @@ public class BasicTreeUI extends TreeUI
 
 	/**
 	 * Invoked when a key has been typed.
-	 *
+	 * 
 	 * Moves the keyboard focus to the first element
-	 * whose first letter matches the alphanumeric key
-	 * pressed by the user. Subsequent same key presses
-	 * move the keyboard focus to the next object that
+	 * whose first letter matches the alphanumeric key 
+	 * pressed by the user. Subsequent same key presses 
+	 * move the keyboard focus to the next object that 
 	 * starts with the same letter.
 	 */
 	public void keyTyped(KeyEvent e) {
-	    // handle first letter navigation
-	    if(tree != null && tree.getRowCount()>0 && tree.hasFocus() && tree.isEnabled()) {
-		if (e.isAltDown() || e.isControlDown() || e.isMetaDown()) {
-		    return;
-		}
-		boolean startingFromSelection = true;
-
-		char [] c = new char[1];
-		c[0] = e.getKeyChar();
-		String prefix = new String(c);
-
-		int startingRow = tree.getMinSelectionRow() + 1;
-		if (startingRow < 0 || startingRow >= tree.getRowCount()) {
-		    startingFromSelection = false;
-		    startingRow = 0;
-		}
-		TreePath path = tree.getNextMatch(prefix, startingRow,
-						  Position.Bias.Forward);
-		if (path != null) {
-                    tree.setSelectionPath(path);
-		} else if (startingFromSelection) {
-		    path = tree.getNextMatch(prefix, 0,
-					     Position.Bias.Forward);
-		    if (path != null) {
-			tree.setSelectionPath(path);
-		    }
-		}
-	    }
+            getHandler().keyTyped(e);
 	}
 
 	public void keyPressed(KeyEvent e) {
-	    if(tree != null && tree.hasFocus() && tree.isEnabled()) {
-		KeyStroke       keyStroke = KeyStroke.getKeyStroke
-		                     (e.getKeyCode(), e.getModifiers());
-
-		if(tree.getConditionForKeyStroke(keyStroke) ==
-		   JComponent.WHEN_FOCUSED) {
-		    ActionListener     listener = tree.
-		                           getActionForKeyStroke(keyStroke);
-
-		    if(listener instanceof Action) {
-			repeatKeyAction = (Action)listener;
-                        if (!repeatKeyAction.isEnabled()) {
-                            repeatKeyAction = null;
-                        }
-                    }
-		    else
-			repeatKeyAction = null;
-		}
-		else
-		    repeatKeyAction = null;
-		if(isKeyDown && repeatKeyAction != null) {
-		    repeatKeyAction.actionPerformed
-                        (new ActionEvent(tree, ActionEvent.ACTION_PERFORMED,
-                                         "" /* tree.getActionCommand() */,
-                                         e.getWhen(), e.getModifiers()));
-		    e.consume();
-		}
-		else
-		    isKeyDown = true;
-	    }
+            getHandler().keyPressed(e);
 	}
 
 	public void keyReleased(KeyEvent e) {
-	    isKeyDown = false;
+            getHandler().keyReleased(e);
 	}
-
     } // End of BasicTreeUI.KeyHandler
 
 
@@ -2702,21 +2575,17 @@ public class BasicTreeUI extends TreeUI
      * Repaints the lead selection row when focus is lost/gained.
      */
     public class FocusHandler implements FocusListener {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	/**
 	 * Invoked when focus is activated on the tree we're in, redraws the
 	 * lead row.
 	 */
 	public void focusGained(FocusEvent e) {
-	    if(tree != null) {
-		Rectangle                 pBounds;
-
-		pBounds = getPathBounds(tree, tree.getLeadSelectionPath());
-		if(pBounds != null)
-		    tree.repaint(pBounds);
-		pBounds = getPathBounds(tree, getLeadSelectionPath());
-		if(pBounds != null)
-		    tree.repaint(pBounds);
-	    }
+            getHandler().focusGained(e);
 	}
 
 	/**
@@ -2804,7 +2673,7 @@ public class BasicTreeUI extends TreeUI
 	 * @return amount to indent the given row.
 	 */
 	protected int getRowX(int row, int depth) {
-	    return totalChildIndent * (depth + depthOffset);
+            return BasicTreeUI.this.getRowX(row, depth);
 	}
 
     } // End of class BasicTreeUI.NodeDimensionsHandler
@@ -2816,63 +2685,20 @@ public class BasicTreeUI extends TreeUI
      */
     public class MouseHandler extends MouseAdapter implements MouseMotionListener
  {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	/**
 	 * Invoked when a mouse button has been pressed on a component.
 	 */
 	public void mousePressed(MouseEvent e) {
-	    if (! e.isConsumed()) {
-		handleSelection(e);
-		selectedOnPress = true;
-	    } else {
-		selectedOnPress = false;
-	    }
-	}
-
-        void handleSelection(MouseEvent e) {
-	    if(tree != null && tree.isEnabled()) {
-                if (isEditing(tree) && tree.getInvokesStopCellEditing() &&
-                                       !stopEditing(tree)) {
-                    return;
-                }
-
-                if (tree.isRequestFocusEnabled()) {
-		    tree.requestFocus();
-                }
-		TreePath     path = getClosestPathForLocation(tree, e.getX(),
-							      e.getY());
-
-		if(path != null) {
-		    Rectangle       bounds = getPathBounds(tree, path);
-
-		    if(e.getY() > (bounds.y + bounds.height)) {
-			return;
-		    }
-
-		    // Preferably checkForClickInExpandControl could take
-		    // the Event to do this it self!
-		    if(SwingUtilities.isLeftMouseButton(e))
-			checkForClickInExpandControl(path, e.getX(), e.getY());
-
-		    int x = e.getX();
-
-		    // Perhaps they clicked the cell itself. If so,
-		    // select it.
-		    if (x > bounds.x) {
-			if (x <= (bounds.x + bounds.width) &&
-			    !startEditing(path, e)) {
-			    selectPathForEvent(path, e);
-			}
-		    }
-		    // PENDING: Should select on mouse down, start a drag if
-		    // the mouse moves, and fire selection change notice on
-		    // mouse up. That is, the explorer highlights on mouse
-		    // down, but doesn't update the pane to the right (and
-		    // open the folder icon) until mouse up.
-		}
-	    }
+            getHandler().mousePressed(e);
 	}
 
         public void mouseDragged(MouseEvent e) {
+            getHandler().mouseDragged(e);
 	}
 
         /**
@@ -2880,15 +2706,12 @@ public class BasicTreeUI extends TreeUI
 	 * (with no buttons no down).
 	 */
         public void mouseMoved(MouseEvent e) {
+            getHandler().mouseMoved(e);
 	}
 
         public void mouseReleased(MouseEvent e) {
-	    if ((! e.isConsumed()) && (! selectedOnPress)) {
-		handleSelection(e);
-	    }
+            getHandler().mouseReleased(e);
         }
-
-        boolean selectedOnPress;
     } // End of BasicTreeUI.MouseHandler
 
 
@@ -2898,86 +2721,15 @@ public class BasicTreeUI extends TreeUI
      */
     public class PropertyChangeHandler implements
 	               PropertyChangeListener {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	public void propertyChange(PropertyChangeEvent event) {
-	    if(event.getSource() == tree) {
-		String              changeName = event.getPropertyName();
-
-		if (changeName.equals(JTree.LEAD_SELECTION_PATH_PROPERTY)) {
-		    if (!ignoreLAChange) {
-			updateLeadRow();
-			repaintPath((TreePath)event.getOldValue());
-			repaintPath((TreePath)event.getNewValue());
-		    }
-		}
-		else if (changeName.equals(JTree.
-					   ANCHOR_SELECTION_PATH_PROPERTY)) {
-		    if (!ignoreLAChange) {
-			repaintPath((TreePath)event.getOldValue());
-			repaintPath((TreePath)event.getNewValue());
-		    }
-		}
-		if(changeName.equals(JTree.CELL_RENDERER_PROPERTY)) {
-		    setCellRenderer((TreeCellRenderer)event.getNewValue());
-		    redoTheLayout();
-		}
-		else if(changeName.equals(JTree.TREE_MODEL_PROPERTY)) {
-		    setModel((TreeModel)event.getNewValue());
-		}
-		else if(changeName.equals(JTree.ROOT_VISIBLE_PROPERTY)) {
-		    setRootVisible(((Boolean)event.getNewValue()).
-				   booleanValue());
-		}
-		else if(changeName.equals(JTree.SHOWS_ROOT_HANDLES_PROPERTY)) {
-		    setShowsRootHandles(((Boolean)event.getNewValue()).
-					booleanValue());
-		}
-		else if(changeName.equals(JTree.ROW_HEIGHT_PROPERTY)) {
-		    setRowHeight(((Integer)event.getNewValue()).
-				 intValue());
-		}
-		else if(changeName.equals(JTree.CELL_EDITOR_PROPERTY)) {
-		    setCellEditor((TreeCellEditor)event.getNewValue());
-		}
-		else if(changeName.equals(JTree.EDITABLE_PROPERTY)) {
-		    setEditable(((Boolean)event.getNewValue()).booleanValue());
-		}
-		else if(changeName.equals(JTree.LARGE_MODEL_PROPERTY)) {
-		    setLargeModel(tree.isLargeModel());
-		}
-		else if(changeName.equals(JTree.SELECTION_MODEL_PROPERTY)) {
-		    setSelectionModel(tree.getSelectionModel());
-		}
-		else if(changeName.equals("font")) {
-		    completeEditing();
-		    if(treeState != null)
-			treeState.invalidateSizes();
-		    updateSize();
-		}
-		else if (changeName.equals("componentOrientation")) {
-		    if (tree != null) {
-			leftToRight = BasicGraphicsUtils.isLeftToRight(tree);
-			redoTheLayout();
-			tree.treeDidChange();
-
-			InputMap km = getInputMap(JComponent.WHEN_FOCUSED);
-			SwingUtilities.replaceUIInputMap(tree,
-						JComponent.WHEN_FOCUSED, km);
-		    }
-                } else if ("transferHandler".equals(changeName)) {
-                    DropTarget dropTarget = tree.getDropTarget();
-                    if (dropTarget instanceof UIResource) {
-                        if (defaultDropTargetListener == null) {
-                            defaultDropTargetListener = new TreeDropTargetListener();
-                        }
-                        try {
-                            dropTarget.addDropTargetListener(defaultDropTargetListener);
-                        } catch (TooManyListenersException tmle) {
-                            // should not happen... swing drop target is multicast
-                        }
-                    }
-		}
-	    }
-	}
+            getHandler().propertyChange(event);
+        }
     } // End of BasicTreeUI.PropertyChangeHandler
 
 
@@ -2987,9 +2739,14 @@ public class BasicTreeUI extends TreeUI
      */
     public class SelectionModelPropertyChangeHandler implements
 	              PropertyChangeListener {
+
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this      
+        // class calls into the Handler.
+
 	public void propertyChange(PropertyChangeEvent event) {
-	    if(event.getSource() == treeSelectionModel)
-		treeSelectionModel.resetRowSelection();
+            getHandler().propertyChange(event);
 	}
     } // End of BasicTreeUI.SelectionModelPropertyChangeHandler
 
@@ -3018,59 +2775,10 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	public void actionPerformed(ActionEvent e) {
-	    int                rowCount;
-
-	    if(tree != null && (rowCount = getRowCount(tree)) > 0) {
-		int               minSelIndex = getLeadSelectionRow();
-		int               newIndex;
-
-		if(minSelIndex == -1)
-		    newIndex = 0;
-		else {
-		    /* Try and expand the node, otherwise go to next
-		       node. */
-		    if(direction == 1) {
-			if(!isLeaf(minSelIndex) &&
-			   !tree.isExpanded(minSelIndex)) {
-			    toggleExpandState(getPathForRow
-					      (tree, minSelIndex));
-			    newIndex = -1;
-			}
-			else
-			    newIndex = Math.min(minSelIndex + 1, rowCount - 1);
-		    }
-		    /* Try to collapse node. */
-		    else {
-			if(!isLeaf(minSelIndex) &&
-			   tree.isExpanded(minSelIndex)) {
-			    toggleExpandState(getPathForRow
-					      (tree, minSelIndex));
-			    newIndex = -1;
-			}
-			else {
-			    TreePath         path = getPathForRow(tree,
-								  minSelIndex);
-
-			    if(path != null && path.getPathCount() > 1) {
-				newIndex = getRowForPath(tree, path.
-							 getParentPath());
-			    }
-			    else
-				newIndex = -1;
-			}
-		    }
-		}
-		if(newIndex != -1) {
-		    if(changeSelection) {
-			tree.setSelectionInterval(newIndex, newIndex);
-		    }
-		    else {
-			setLeadSelectionPath(getPathForRow(tree, newIndex),
-					     true);
-		    }
-		    ensureRowsAreVisible(newIndex, newIndex);
-		}
-	    }
+            if (tree != null) {
+                SHARED_ACTION.traverse(tree, BasicTreeUI.this, direction,
+                                       changeSelection);
+            }
 	}
 
 	public boolean isEnabled() { return (tree != null &&
@@ -3100,61 +2808,10 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	public void actionPerformed(ActionEvent e) {
-	    int           rowCount;
-
-	    if(tree != null && (rowCount = getRowCount(tree)) > 0 &&
-		treeSelectionModel != null) {
-		Dimension         maxSize = tree.getSize();
-		TreePath          lead = getLeadSelectionPath();
-		TreePath          newPath;
-		Rectangle         visRect = tree.getVisibleRect();
-
-		if(direction == -1) {
-		    // up.
-		    newPath = getClosestPathForLocation(tree, visRect.x,
-							 visRect.y);
-		    if(newPath.equals(lead)) {
-			visRect.y = Math.max(0, visRect.y - visRect.height);
-			newPath = tree.getClosestPathForLocation(visRect.x,
-								 visRect.y);
-		    }
-		}
-		else {
-		    // down
-		    visRect.y = Math.min(maxSize.height, visRect.y +
-					 visRect.height - 1);
-		    newPath = tree.getClosestPathForLocation(visRect.x,
-							     visRect.y);
-		    if(newPath.equals(lead)) {
-			visRect.y = Math.min(maxSize.height, visRect.y +
-					     visRect.height - 1);
-			newPath = tree.getClosestPathForLocation(visRect.x,
-								 visRect.y);
-		    }
-		}
-		Rectangle            newRect = getPathBounds(tree, newPath);
-
-		newRect.x = visRect.x;
-		newRect.width = visRect.width;
-		if(direction == -1) {
-		    newRect.height = visRect.height;
-		}
-		else {
-		    newRect.y -= (visRect.height - newRect.height);
-		    newRect.height = visRect.height;
-		}
-
-		if(addToSelection) {
-		    extendSelection(newPath);
-		}
-		else if(changeSelection) {
-		    tree.setSelectionPath(newPath);
-		}
-		else {
-		    setLeadSelectionPath(newPath, true);
-		}
-		tree.scrollRectToVisible(newRect);
-	    }
+            if (tree != null) {
+                SHARED_ACTION.page(tree, BasicTreeUI.this, direction,
+                                   addToSelection, changeSelection);
+            }
 	}
 
 	public boolean isEnabled() { return (tree != null &&
@@ -3162,62 +2819,6 @@ public class BasicTreeUI extends TreeUI
 
     } // BasicTreeUI.TreePageAction
 
-    /**
-     * Scrolls the tree left/right the visible width of the tree. Will select
-     * either the first/last visible node.
-     */
-    // Will be made public later.
-    private class TreeScrollLRAction extends AbstractAction {
-	/** Specifies the direction to adjust the selection by. */
-	protected int         direction;
-	private boolean       addToSelection;
-	private boolean       changeSelection;
-
-	TreeScrollLRAction(int direction, String name, boolean addToSelection,
-			   boolean changeSelection) {
-	    this.direction = direction;
-	    this.addToSelection = addToSelection;
-	    this.changeSelection = changeSelection;
-	}
-
-	public void actionPerformed(ActionEvent e) {
-	    int           rowCount;
-
-	    if(tree != null && (rowCount = getRowCount(tree)) > 0 &&
-		treeSelectionModel != null) {
-		TreePath          newPath;
-		Rectangle         visRect = tree.getVisibleRect();
-
-		if (direction == -1) {
-		    newPath = getClosestPathForLocation(tree, visRect.x,
-							visRect.y);
-		    visRect.x = Math.max(0, visRect.x - visRect.width);
-		}
-		else {
-		    visRect.x = Math.min(Math.max(0, tree.getWidth() -
-				   visRect.width), visRect.x + visRect.width);
-		    newPath = getClosestPathForLocation(tree, visRect.x,
-						 visRect.y + visRect.height);
-		}
-		// Scroll
-		tree.scrollRectToVisible(visRect);
-		// select
-		if (addToSelection) {
-		    extendSelection(newPath);
-		}
-		else if(changeSelection) {
-		    tree.setSelectionPath(newPath);
-		}
-		else {
-		    setLeadSelectionPath(newPath, true);
-		}
-	    }
-	}
-
-	public boolean isEnabled() { return (tree != null &&
-					     tree.isEnabled()); }
-
-    } // End of BasicTreeUI.TreeScrollLRAction
 
     /** TreeIncrementAction is used to handle up/down actions.  Selection
       * is moved up or down based on direction.
@@ -3243,35 +2844,9 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	public void actionPerformed(ActionEvent e) {
-	    int              rowCount;
-
-	    if(tree != null && treeSelectionModel != null &&
-		(rowCount = getRowCount(tree)) > 0) {
-		int                  selIndex = getLeadSelectionRow();
-		int                  newIndex;
-
-		if(selIndex == -1) {
-		    if(direction == 1)
-			newIndex = 0;
-		    else
-			newIndex = rowCount - 1;
-		}
-		else
-		    /* Aparently people don't like wrapping;( */
-		    newIndex = Math.min(rowCount - 1, Math.max
-					(0, (selIndex + direction)));
-		if(addToSelection && treeSelectionModel.getSelectionMode() !=
-                          TreeSelectionModel.SINGLE_TREE_SELECTION) {
-		    extendSelection(getPathForRow(tree, newIndex));
-		}
-		else if(changeSelection) {
-		    tree.setSelectionInterval(newIndex, newIndex);
-		}
-		else {
-		    setLeadSelectionPath(getPathForRow(tree, newIndex), true);
-		}
-		ensureRowsAreVisible(newIndex, newIndex);
-		lastSelectedRow = newIndex;
+            if (tree != null) {
+                SHARED_ACTION.increment(tree, BasicTreeUI.this, direction,
+                                        addToSelection, changeSelection);
 	    }
 	}
 
@@ -3304,59 +2879,10 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	public void actionPerformed(ActionEvent e) {
-	    int                   rowCount = getRowCount(tree);
-
-	    if(tree != null && rowCount > 0) {
-		if(direction == -1) {
-		    ensureRowsAreVisible(0, 0);
-		    if (addToSelection) {
-			TreePath        aPath = getAnchorSelectionPath();
-			int             aRow = (aPath == null) ? -1 :
-			                getRowForPath(tree, aPath);
-
-			if (aRow == -1) {
-			    tree.setSelectionInterval(0, 0);
-			}
-			else {
-			    tree.setSelectionInterval(0, aRow);
-			    setAnchorSelectionPath(aPath);
-			    setLeadSelectionPath(getPathForRow(tree, 0));
-			}
-		    }
-		    else if(changeSelection) {
-			tree.setSelectionInterval(0, 0);
-		    }
-		    else {
-			setLeadSelectionPath(getPathForRow(tree, 0), true);
-		    }
-		}
-		else {
-		    ensureRowsAreVisible(rowCount - 1, rowCount - 1);
-		    if (addToSelection) {
-			TreePath        aPath = getAnchorSelectionPath();
-			int             aRow = (aPath == null) ? -1 :
-			                getRowForPath(tree, aPath);
-
-			if (aRow == -1) {
-			    tree.setSelectionInterval(rowCount - 1,
-						      rowCount -1);
-			}
-			else {
-			    tree.setSelectionInterval(aRow, rowCount - 1);
-			    setAnchorSelectionPath(aPath);
-			    setLeadSelectionPath(getPathForRow(tree,
-							       rowCount -1));
-			}
-		    }
-		    else if(changeSelection) {
-			tree.setSelectionInterval(rowCount - 1, rowCount - 1);
-		    }
-		    else {
-			setLeadSelectionPath(getPathForRow(tree,
-							  rowCount - 1), true);
-		    }
-		}
-	    }
+            if (tree != null) {
+                SHARED_ACTION.home(tree, BasicTreeUI.this, direction,
+                                   addToSelection, changeSelection);
+            }
 	}
 
 	public boolean isEnabled() { return (tree != null &&
@@ -3374,16 +2900,7 @@ public class BasicTreeUI extends TreeUI
 
 	public void actionPerformed(ActionEvent e) {
 	    if(tree != null) {
-		int            selRow = getLeadSelectionRow();
-
-		if(selRow != -1 && !isLeaf(selRow)) {
-		    TreePath aPath = getAnchorSelectionPath();
-		    TreePath lPath = getLeadSelectionPath();
-
-		    toggleExpandState(getPathForRow(tree, selRow));
-		    setAnchorSelectionPath(aPath);
-		    setLeadSelectionPath(lPath);
-		}
+                SHARED_ACTION.toggle(tree, BasicTreeUI.this);
 	    }
 	}
 
@@ -3391,40 +2908,6 @@ public class BasicTreeUI extends TreeUI
 					     tree.isEnabled()); }
 
     } // End of class BasicTreeUI.TreeToggleAction
-
-    /**
-     * Scrolls the component it is created with a specified amount.
-     */
-    private static class ScrollAction extends AbstractAction {
-	private JComponent component;
-	private int direction;
-	private int amount;
-
-	public ScrollAction(JComponent component, int direction, int amount) {
-	    this.component = component;
-	    this.direction = direction;
-	    this.amount = amount;
-	}
-
-	public void actionPerformed(ActionEvent e) {
-	    Rectangle visRect = component.getVisibleRect();
-	    Dimension size = component.getSize();
-	    if (direction == SwingConstants.HORIZONTAL) {
-		visRect.x += amount;
-		visRect.x = Math.max(0, visRect.x);
-		visRect.x = Math.min(Math.max(0, size.width - visRect.width),
-				     visRect.x);
-	    }
-	    else {
-		visRect.y += amount;
-		visRect.y = Math.max(0, visRect.y);
-		visRect.y = Math.min(Math.max(0, size.width - visRect.height),
-				     visRect.y);
-	    }
-	    component.scrollRectToVisible(visRect);
-	}
-
-    }
 
 
     /**
@@ -3436,7 +2919,7 @@ public class BasicTreeUI extends TreeUI
 
 	public void actionPerformed(ActionEvent e) {
 	    if(tree != null) {
-		tree.cancelEditing();
+                SHARED_ACTION.cancelEditing(tree, BasicTreeUI.this);
 	    }
 	}
 
@@ -3444,149 +2927,6 @@ public class BasicTreeUI extends TreeUI
 					     tree.isEnabled() &&
                                              isEditing(tree)); }
     } // End of class BasicTreeUI.TreeCancelEditingAction
-
-
-    /**
-     * ActionListener invoked to start editing on the leadPath.
-     */
-    private class TreeEditAction extends AbstractAction {
-	public TreeEditAction(String name) {
-	}
-
-	public void actionPerformed(ActionEvent ae) {
-	    if(tree != null && tree.isEnabled()) {
-		TreePath   lead = getLeadSelectionPath();
-		int        editRow = (lead != null) ?
-		                     getRowForPath(tree, lead) : -1;
-
-		if(editRow != -1) {
-		    tree.startEditingAtPath(lead);
-		}
-	    }
-	}
-
-	public boolean isEnabled() { return (tree != null &&
-					     tree.isEnabled()); }
-    } // End of BasicTreeUI.TreeEditAction
-
-
-    /**
-     * Action to select everything in tree.
-     */
-    private class TreeSelectAllAction extends AbstractAction {
-	private boolean       selectAll;
-
-	public TreeSelectAllAction(String name, boolean selectAll) {
-	    this.selectAll = selectAll;
-	}
-
-	public void actionPerformed(ActionEvent ae) {
-	    int                   rowCount = getRowCount(tree);
-
-	    if(tree != null && rowCount > 0) {
-		if(selectAll) {
-		    TreePath      lastPath = getLeadSelectionPath();
-		    TreePath      aPath = getAnchorSelectionPath();
-
-		    if(lastPath != null && !tree.isVisible(lastPath)) {
-			lastPath = null;
-		    }
-		    tree.setSelectionInterval(0, rowCount - 1);
-		    if(lastPath != null) {
-			setLeadSelectionPath(lastPath);
-		    }
-		    if(aPath != null && tree.isVisible(aPath)) {
-			setAnchorSelectionPath(aPath);
-		    }
-		    else if(lastPath != null) {
-			setAnchorSelectionPath(lastPath);
-		    }
-		}
-		else {
-		    TreePath      lastPath = getLeadSelectionPath();
-		    TreePath      aPath = getAnchorSelectionPath();
-
-		    tree.clearSelection();
-		    setAnchorSelectionPath(aPath);
-		    setLeadSelectionPath(lastPath);
-		}
-	    }
-	}
-
-	public boolean isEnabled() { return (tree != null &&
-					     tree.isEnabled()); }
-    } // End of BasicTreeUI.TreeSelectAllAction
-
-    /**
-     * Action to select everything in tree.
-     */
-    private class TreeAddSelectionAction extends AbstractAction {
-	private boolean       changeAnchor;
-
-	public TreeAddSelectionAction(String name, boolean changeAnchor) {
-	    this.changeAnchor = changeAnchor;
-	}
-
-	public void actionPerformed(ActionEvent ae) {
-	    int                   rowCount = getRowCount(tree);
-
-	    if(tree != null && rowCount > 0) {
-		int       lead = getLeadSelectionRow();
-		TreePath  aPath = getAnchorSelectionPath();
-		TreePath  lPath = getLeadSelectionPath();
-
-		if(lead == -1) {
-		    lead = 0;
-		}
-		if(!changeAnchor) {
-		    if(tree.isRowSelected(lead)) {
-			tree.removeSelectionRow(lead);
-			setLeadSelectionPath(lPath);
-		    }
-		    else {
-			tree.addSelectionRow(lead);
-		    }
-		    setAnchorSelectionPath(aPath);
-		}
-		else {
-		    tree.setSelectionRow(lead);
-		}
-	    }
-	}
-
-	public boolean isEnabled() { return (tree != null &&
-					     tree.isEnabled()); }
-    } // End of BasicTreeUI.TreeAddSelectionAction
-
-
-    /**
-     * Action to select everything in tree.
-     */
-    private class TreeExtendSelectionAction extends AbstractAction {
-	public TreeExtendSelectionAction(String name) {
-	}
-
-	public void actionPerformed(ActionEvent ae) {
-	    if(tree != null && getRowCount(tree) > 0) {
-		int       lead = getLeadSelectionRow();
-
-		if(lead != -1) {
-		    TreePath      leadP = getLeadSelectionPath();
-		    TreePath      aPath = getAnchorSelectionPath();
-		    int           aRow = getRowForPath(tree, aPath);
-
-		    if(aRow == -1)
-			aRow = 0;
-		    tree.setSelectionInterval(aRow, lead);
-		    setLeadSelectionPath(leadP);
-		    setAnchorSelectionPath(aPath);
-		}
-	    }
-	}
-
-	public boolean isEnabled() { return (tree != null &&
-					     tree.isEnabled()); }
-    } // End of BasicTreeUI.TreeExtendSelectionAction
 
 
     /**
@@ -3604,19 +2944,11 @@ public class BasicTreeUI extends TreeUI
 	protected Component        source;
 	/** Destination that receives all events. */
 	protected Component        destination;
-	private Component          focusComponent;
-	private boolean            dispatchedEvent;
 
 	public MouseInputHandler(Component source, Component destination,
-	                         MouseEvent event){
-	    this(source, destination, event, null);
-	}
-
-	MouseInputHandler(Component source, Component destination,
-	                  MouseEvent event, Component focusComponent){
+	                              MouseEvent event){
 	    this.source = source;
 	    this.destination = destination;
-	    this.focusComponent = focusComponent;
 	    this.source.addMouseListener(this);
 	    this.source.addMouseMotionListener(this);
 	    /* Dispatch the editing event! */
@@ -3624,13 +2956,11 @@ public class BasicTreeUI extends TreeUI
 					  (source, event, destination));
 	}
 
-    public void mouseClicked(MouseEvent e) {
-        if(destination != null) {
-            dispatchedEvent = true;
-            destination.dispatchEvent(SwingUtilities.convertMouseEvent
-                                      (source, e, destination));
-        }
-    }
+	public void mouseClicked(MouseEvent e) {
+	    if(destination != null)
+		destination.dispatchEvent(SwingUtilities.convertMouseEvent
+					  (source, e, destination));
+	}
 
 	public void mousePressed(MouseEvent e) {
 	}
@@ -3647,36 +2977,30 @@ public class BasicTreeUI extends TreeUI
 		removeFromSource();
 	    }
 	}
-
+	
 	public void mouseExited(MouseEvent e) {
 	    if (!SwingUtilities.isLeftMouseButton(e)) {
 		removeFromSource();
 	    }
 	}
 
-    public void mouseDragged(MouseEvent e) {
-        if(destination != null) {
-            dispatchedEvent = true;
-            destination.dispatchEvent(SwingUtilities.convertMouseEvent
-                                      (source, e, destination));
-        }
-    }
+	public void mouseDragged(MouseEvent e) {
+	    if(destination != null)
+		destination.dispatchEvent(SwingUtilities.convertMouseEvent
+					  (source, e, destination));
+	}
 
 	public void mouseMoved(MouseEvent e) {
 	    removeFromSource();
 	}
 
-    protected void removeFromSource() {
-        if(source != null) {
-            source.removeMouseListener(this);
-            source.removeMouseMotionListener(this);
-            if (!dispatchedEvent && focusComponent == destination
-                && focusComponent instanceof JTextField) {
-                ((JTextField)focusComponent).selectAll();
-            }
-        }
-        source = destination = null;
-    }
+	protected void removeFromSource() {
+	    if(source != null) {
+		source.removeMouseListener(this);
+		source.removeMouseMotionListener(this);
+	    }
+	    source = destination = null;
+	}
 
     } // End of class BasicTreeUI.MouseInputHandler
 
@@ -3733,7 +3057,7 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	/**
-	 * called to restore the state of a component
+	 * called to restore the state of a component 
 	 * because a drop was not performed.
 	 */
         protected void restoreComponentState(JComponent comp) {
@@ -3760,7 +3084,7 @@ public class BasicTreeUI extends TreeUI
     private static final TransferHandler defaultTransferHandler = new TreeTransferHandler();
 
     static class TreeTransferHandler extends TransferHandler implements UIResource, Comparator {
-
+	
 	private JTree tree;
 
 	/**
@@ -3769,50 +3093,50 @@ public class BasicTreeUI extends TreeUI
 	 * @param c  The component holding the data to be transfered.  This
 	 *  argument is provided to enable sharing of TransferHandlers by
 	 *  multiple components.
-	 * @return  The representation of the data to be transfered.
-	 *
+	 * @return  The representation of the data to be transfered. 
+	 *  
 	 */
         protected Transferable createTransferable(JComponent c) {
 	    if (c instanceof JTree) {
 		tree = (JTree) c;
 		TreePath[] paths = tree.getSelectionPaths();
-
+		
 		if (paths == null || paths.length == 0) {
 		    return null;
 		}
-
+		
                 StringBuffer plainBuf = new StringBuffer();
                 StringBuffer htmlBuf = new StringBuffer();
-
+                
                 htmlBuf.append("<html>\n<body>\n<ul>\n");
-
+                
                 TreeModel model = tree.getModel();
                 TreePath lastPath = null;
                 TreePath[] displayPaths = getDisplayOrderPaths(paths);
 
                 for (int i = 0; i < displayPaths.length; i++) {
                     TreePath path = displayPaths[i];
-
+                    
                     Object node = path.getLastPathComponent();
                     boolean leaf = model.isLeaf(node);
                     String label = getDisplayString(path, true, leaf);
-
+                    
                     plainBuf.append(label + "\n");
                     htmlBuf.append("  <li>" + label + "\n");
                 }
-
+                
                 // remove the last newline
                 plainBuf.deleteCharAt(plainBuf.length() - 1);
                 htmlBuf.append("</ul>\n</body>\n</html>");
-
+                
                 tree = null;
-
+                
                 return new BasicTransferable(plainBuf.toString(), htmlBuf.toString());
 	    }
 
 	    return null;
 	}
-
+	
         public int compare(Object o1, Object o2) {
             int row1 = tree.getRowForPath((TreePath)o1);
             int row2 = tree.getRowForPath((TreePath)o2);
@@ -3823,10 +3147,10 @@ public class BasicTreeUI extends TreeUI
             int row = tree.getRowForPath(path);
             boolean hasFocus = tree.getLeadSelectionRow() == row;
             Object node = path.getLastPathComponent();
-            return tree.convertValueToText(node, selected, tree.isExpanded(row),
+            return tree.convertValueToText(node, selected, tree.isExpanded(row), 
                                            leaf, row, hasFocus);
         }
-
+        
         /**
          * Selection paths are in selection order.  The conversion to
          * HTML requires display order.  This method resorts the paths
@@ -3853,4 +3177,1136 @@ public class BasicTreeUI extends TreeUI
 
     }
 
+
+    private class Handler implements CellEditorListener, FocusListener,
+                  KeyListener, MouseListener, PropertyChangeListener,
+                  TreeExpansionListener, TreeModelListener,
+                  TreeSelectionListener {
+        //
+        // KeyListener
+        //
+ 	private String prefix = "";
+ 	private String typedString = "";
+ 	private long lastTime = 0L;
+	
+ 	/**
+ 	 * Invoked when a key has been typed.
+ 	 * 
+ 	 * Moves the keyboard focus to the first element whose prefix matches the
+ 	 * sequence of alphanumeric keys pressed by the user with delay less
+ 	 * than value of <code>timeFactor</code> property (or 1000 milliseconds
+ 	 * if it is not defined). Subsequent same key presses move the keyboard
+ 	 * focus to the next object that starts with the same letter until another
+ 	 * key is pressed, then it is treated as the prefix with appropriate number
+ 	 * of the same letters followed by first typed another letter.
+ 	 */
+	public void keyTyped(KeyEvent e) {
+	    // handle first letter navigation
+	    if(tree != null && tree.getRowCount()>0 && tree.hasFocus() &&
+               tree.isEnabled()) {
+		if (e.isAltDown() || e.isControlDown() || e.isMetaDown() ||
+		    isNavigationKey(e)) {
+		    return;
+		}
+		boolean startingFromSelection = true;
+
+ 		char c = e.getKeyChar();
+
+ 		long time = e.getWhen();
+ 		int startingRow = tree.getLeadSelectionRow();
+ 		if (time - lastTime < timeFactor) {
+ 		    typedString += c;
+ 		    if((prefix.length() == 1) && (c == prefix.charAt(0))) {
+ 			// Subsequent same key presses move the keyboard focus to the next
+ 			// object that starts with the same letter.
+ 			startingRow++;
+ 		    } else {
+ 			prefix = typedString;
+ 		    }
+ 		} else {
+ 		    startingRow++;
+ 		    typedString = "" + c;
+ 		    prefix = typedString;
+ 		}
+ 		lastTime = time;
+
+		if (startingRow < 0 || startingRow >= tree.getRowCount()) {
+		    startingFromSelection = false;
+		    startingRow = 0;
+		}
+		TreePath path = tree.getNextMatch(prefix, startingRow,
+						  Position.Bias.Forward);
+		if (path != null) {
+                    tree.setSelectionPath(path);
+		    int row = getRowForPath(tree, path);
+		    ensureRowsAreVisible(row, row);
+		} else if (startingFromSelection) {
+		    path = tree.getNextMatch(prefix, 0,
+					     Position.Bias.Forward);
+		    if (path != null) {
+			tree.setSelectionPath(path);
+			int row = getRowForPath(tree, path);
+			ensureRowsAreVisible(row, row);
+		    }
+		}
+	    }
+	}
+
+ 	/**
+ 	 * Invoked when a key has been pressed.
+ 	 *
+ 	 * Checks to see if the key event is a navigation key to prevent
+ 	 * dispatching these keys for the first letter navigation.
+ 	 */
+	public void keyPressed(KeyEvent e) {
+ 	    if ( isNavigationKey(e) ) {
+ 		prefix = "";
+ 		typedString = "";
+ 		lastTime = 0L;
+ 	    }
+	}
+
+	public void keyReleased(KeyEvent e) {
+	}
+
+ 	/**
+ 	 * Returns whether or not the supplied key event maps to a key that is used for
+ 	 * navigation.  This is used for optimizing key input by only passing non-
+ 	 * navigation keys to the first letter navigation mechanism.
+ 	 */
+ 	private boolean isNavigationKey(KeyEvent event) {
+ 	    InputMap inputMap = tree.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+ 	    KeyStroke key = KeyStroke.getKeyStrokeForEvent(event);
+
+ 	    if (inputMap != null && inputMap.get(key) != null) {
+ 		return true;
+ 	    }
+ 	    return false;
+ 	}  
+
+
+        //
+        // PropertyChangeListener
+        //
+	public void propertyChange(PropertyChangeEvent event) {
+            if (event.getSource() == treeSelectionModel) {
+		treeSelectionModel.resetRowSelection();
+            }
+	    else if(event.getSource() == tree) {
+		String              changeName = event.getPropertyName();
+
+		if (changeName == JTree.LEAD_SELECTION_PATH_PROPERTY) {
+		    if (!ignoreLAChange) {
+			updateLeadRow();
+			repaintPath((TreePath)event.getOldValue());
+			repaintPath((TreePath)event.getNewValue());
+		    }
+		}
+		else if (changeName == JTree.ANCHOR_SELECTION_PATH_PROPERTY) {
+		    if (!ignoreLAChange) {
+			repaintPath((TreePath)event.getOldValue());
+			repaintPath((TreePath)event.getNewValue());
+		    }
+		}
+		if(changeName == JTree.CELL_RENDERER_PROPERTY) {
+		    setCellRenderer((TreeCellRenderer)event.getNewValue());
+		    redoTheLayout();
+		}
+		else if(changeName == JTree.TREE_MODEL_PROPERTY) {
+		    setModel((TreeModel)event.getNewValue());
+		}
+		else if(changeName == JTree.ROOT_VISIBLE_PROPERTY) {
+		    setRootVisible(((Boolean)event.getNewValue()).
+				   booleanValue());
+		}
+		else if(changeName == JTree.SHOWS_ROOT_HANDLES_PROPERTY) {
+		    setShowsRootHandles(((Boolean)event.getNewValue()).
+					booleanValue());
+		}
+		else if(changeName == JTree.ROW_HEIGHT_PROPERTY) {
+		    setRowHeight(((Integer)event.getNewValue()).
+				 intValue());
+		}
+		else if(changeName == JTree.CELL_EDITOR_PROPERTY) {
+		    setCellEditor((TreeCellEditor)event.getNewValue());
+		}
+		else if(changeName == JTree.EDITABLE_PROPERTY) {
+		    setEditable(((Boolean)event.getNewValue()).booleanValue());
+		}
+		else if(changeName == JTree.LARGE_MODEL_PROPERTY) {
+		    setLargeModel(tree.isLargeModel());
+		}
+		else if(changeName == JTree.SELECTION_MODEL_PROPERTY) {
+		    setSelectionModel(tree.getSelectionModel());
+		}
+		else if(changeName == "font") {
+		    completeEditing();
+		    if(treeState != null)
+			treeState.invalidateSizes();
+		    updateSize();
+		}
+		else if (changeName == "componentOrientation") {
+		    if (tree != null) {
+			leftToRight = BasicGraphicsUtils.isLeftToRight(tree);
+			redoTheLayout();
+			tree.treeDidChange();
+
+			InputMap km = getInputMap(JComponent.WHEN_FOCUSED);
+			SwingUtilities.replaceUIInputMap(tree,
+						JComponent.WHEN_FOCUSED, km);
+		    }
+                } else if ("transferHandler" == changeName) {
+                    DropTarget dropTarget = tree.getDropTarget();
+                    if (dropTarget instanceof UIResource) {
+                        if (defaultDropTargetListener == null) {
+                            defaultDropTargetListener = new TreeDropTargetListener();
+                        }
+                        try {
+                            dropTarget.addDropTargetListener(defaultDropTargetListener);
+                        } catch (TooManyListenersException tmle) {
+                            // should not happen... swing drop target is multicast
+                        }
+                    }
+		}
+	    }
+	}
+
+        //
+        // MouseListener
+        //
+        private boolean selectedOnPress;
+
+        public void mouseClicked(MouseEvent e) {
+        }
+
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        public void mouseExited(MouseEvent e) {
+        }
+
+	/**
+	 * Invoked when a mouse button has been pressed on a component.
+	 */
+	public void mousePressed(MouseEvent e) {
+	    if (! e.isConsumed()) {
+		handleSelection(e);
+		selectedOnPress = true;
+	    } else {
+		selectedOnPress = false;
+	    }
+	}
+
+        void handleSelection(MouseEvent e) {
+	    if(tree != null && tree.isEnabled()) {
+                if (isEditing(tree) && tree.getInvokesStopCellEditing() &&
+                                       !stopEditing(tree)) {
+                    return;
+                }
+
+                if (tree.isRequestFocusEnabled()) {
+		    tree.requestFocus();
+                }
+		TreePath     path = getClosestPathForLocation(tree, e.getX(),
+							      e.getY());
+
+		if(path != null) {
+		    Rectangle       bounds = getPathBounds(tree, path);
+
+		    if(e.getY() > (bounds.y + bounds.height)) {
+			return;
+		    }
+
+		    // Preferably checkForClickInExpandControl could take
+		    // the Event to do this it self!
+		    if(SwingUtilities.isLeftMouseButton(e))
+			checkForClickInExpandControl(path, e.getX(), e.getY());
+		    
+		    int x = e.getX();
+		    
+		    // Perhaps they clicked the cell itself. If so,
+		    // select it.
+		    if (x > bounds.x) {
+			if (x <= (bounds.x + bounds.width) && 
+			    !startEditing(path, e)) {
+			    selectPathForEvent(path, e);
+			}
+		    }
+		    // PENDING: Should select on mouse down, start a drag if
+		    // the mouse moves, and fire selection change notice on
+		    // mouse up. That is, the explorer highlights on mouse
+		    // down, but doesn't update the pane to the right (and
+		    // open the folder icon) until mouse up.
+		}
+	    }
+	}
+
+        public void mouseDragged(MouseEvent e) {
+	}
+
+        /**
+	 * Invoked when the mouse button has been moved on a component
+	 * (with no buttons no down).
+	 */
+        public void mouseMoved(MouseEvent e) {
+	}
+
+        public void mouseReleased(MouseEvent e) {
+	    if ((! e.isConsumed()) && (! selectedOnPress)) {
+		handleSelection(e);
+	    }
+        }
+
+        //
+        // FocusListener
+        //
+	public void focusGained(FocusEvent e) {
+	    if(tree != null) {
+		Rectangle                 pBounds;
+
+		pBounds = getPathBounds(tree, tree.getLeadSelectionPath());
+		if(pBounds != null)
+		    tree.repaint(pBounds);
+		pBounds = getPathBounds(tree, getLeadSelectionPath());
+		if(pBounds != null)
+		    tree.repaint(pBounds);
+	    }
+	}
+
+	public void focusLost(FocusEvent e) {
+	    focusGained(e);
+	}
+
+
+        //
+        // CellEditorListener
+        // 
+	public void editingStopped(ChangeEvent e) {
+	    completeEditing(false, false, true);
+	}
+
+	/** Messaged when editing has been canceled in the tree. */
+	public void editingCanceled(ChangeEvent e) {
+	    completeEditing(false, false, false);
+	}
+
+
+        //
+        // TreeSelectionListener
+        // 
+	public void valueChanged(TreeSelectionEvent event) {
+	    // Stop editing
+	    completeEditing();
+	    // Make sure all the paths are visible, if necessary.
+            // PENDING: This should be tweaked when isAdjusting is added
+	    if(tree.getExpandsSelectedPaths() && treeSelectionModel != null) {
+		TreePath[]           paths = treeSelectionModel
+		                         .getSelectionPaths();
+
+		if(paths != null) {
+		    for(int counter = paths.length - 1; counter >= 0;
+			counter--) {
+                        TreePath path = paths[counter].getParentPath();
+                        boolean expand = true;
+
+                        while (path != null) {
+                            // Indicates this path isn't valid anymore,
+                            // we shouldn't attempt to expand it then.
+                            if (treeModel.isLeaf(path.getLastPathComponent())){
+                                expand = false;
+                                path = null;
+                            }
+                            else {
+                                path = path.getParentPath();
+                            }
+                        }
+                        if (expand) {
+                            tree.makeVisible(paths[counter]);
+                        }
+		    }
+		}
+	    }
+
+	    TreePath oldLead = getLeadSelectionPath();
+	    lastSelectedRow = tree.getMinSelectionRow();
+	    TreePath lead = tree.getSelectionModel().getLeadSelectionPath();
+	    setAnchorSelectionPath(lead);
+	    setLeadSelectionPath(lead);
+
+	    TreePath[]       changedPaths = event.getPaths();
+	    Rectangle        nodeBounds;
+	    Rectangle        visRect = tree.getVisibleRect();
+	    boolean          paintPaths = true;
+	    int              nWidth = tree.getWidth();
+
+	    if(changedPaths != null) {
+		int              counter, maxCounter = changedPaths.length;
+
+		if(maxCounter > 4) {
+		    tree.repaint();
+		    paintPaths = false;
+		}
+		else {
+		    for (counter = 0; counter < maxCounter; counter++) {
+			nodeBounds = getPathBounds(tree,
+						   changedPaths[counter]);
+			if(nodeBounds != null &&
+			   visRect.intersects(nodeBounds))
+			    tree.repaint(0, nodeBounds.y, nWidth,
+					 nodeBounds.height);
+		    }
+		}
+	    }
+	    if(paintPaths) {
+		nodeBounds = getPathBounds(tree, oldLead);
+		if(nodeBounds != null && visRect.intersects(nodeBounds))
+		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
+		nodeBounds = getPathBounds(tree, lead);
+		if(nodeBounds != null && visRect.intersects(nodeBounds))
+		    tree.repaint(0, nodeBounds.y, nWidth, nodeBounds.height);
+	    }
+	}
+
+
+        //
+        // TreeExpansionListener
+        //
+	public void treeExpanded(TreeExpansionEvent event) {
+	    if(event != null && tree != null) {
+		TreePath      path = event.getPath();
+
+		updateExpandedDescendants(path);
+	    }
+	}
+
+	public void treeCollapsed(TreeExpansionEvent event) {
+	    if(event != null && tree != null) {
+		TreePath        path = event.getPath();
+
+		completeEditing();
+		if(path != null && tree.isVisible(path)) {
+		    treeState.setExpandedState(path, false);
+		    updateLeadRow();
+		    updateSize();
+		}
+	    }
+	}
+
+        //
+        // TreeModelListener
+        //
+	public void treeNodesChanged(TreeModelEvent e) {
+	    if(treeState != null && e != null) {
+		treeState.treeNodesChanged(e);
+
+		TreePath       pPath = e.getTreePath().getParentPath();
+
+		if(pPath == null || treeState.isExpanded(pPath))
+		    updateSize();
+	    }
+	}
+
+	public void treeNodesInserted(TreeModelEvent e) {
+	    if(treeState != null && e != null) {
+		treeState.treeNodesInserted(e);
+
+		updateLeadRow();
+
+		TreePath       path = e.getTreePath();
+
+		if(treeState.isExpanded(path)) {
+		    updateSize();
+		}
+		else {
+		    // PENDING(sky): Need a method in TreeModelEvent
+		    // that can return the count, getChildIndices allocs
+		    // a new array!
+		    int[]      indices = e.getChildIndices();
+		    int        childCount = treeModel.getChildCount
+			                    (path.getLastPathComponent());
+
+		    if(indices != null && (childCount - indices.length) == 0)
+			updateSize();
+		}
+	    }
+	}
+
+	public void treeNodesRemoved(TreeModelEvent e) {
+	    if(treeState != null && e != null) {
+		treeState.treeNodesRemoved(e);
+
+		updateLeadRow();
+
+		TreePath       path = e.getTreePath();
+
+		if(treeState.isExpanded(path) ||
+		   treeModel.getChildCount(path.getLastPathComponent()) == 0)
+		    updateSize();
+	    }
+	}
+
+	public void treeStructureChanged(TreeModelEvent e) {
+	    if(treeState != null && e != null) {
+		treeState.treeStructureChanged(e);
+
+		updateLeadRow();
+
+		TreePath       pPath = e.getTreePath();
+
+                if (pPath != null) {
+                    pPath = pPath.getParentPath();
+                }
+                if(pPath == null || treeState.isExpanded(pPath))
+                    updateSize();
+	    }
+	}
+    }
+
+
+
+    private static class Actions extends UIAction {
+        private static final String SELECT_PREVIOUS = "selectPrevious";
+        private static final String SELECT_PREVIOUS_CHANGE_LEAD =
+                             "selectPreviousChangeLead";
+        private static final String SELECT_PREVIOUS_EXTEND_SELECTION =
+                             "selectPreviousExtendSelection";
+        private static final String SELECT_NEXT = "selectNext";
+        private static final String SELECT_NEXT_CHANGE_LEAD =
+                                    "selectNextChangeLead";
+        private static final String SELECT_NEXT_EXTEND_SELECTION =
+                                    "selectNextExtendSelection";
+        private static final String SELECT_CHILD = "selectChild";
+        private static final String SELECT_CHILD_CHANGE_LEAD = 
+                                    "selectChildChangeLead";
+        private static final String SELECT_PARENT = "selectParent";
+        private static final String SELECT_PARENT_CHANGE_LEAD =
+                                    "selectParentChangeLead";
+        private static final String SCROLL_UP_CHANGE_SELECTION =
+                                    "scrollUpChangeSelection";
+        private static final String SCROLL_UP_CHANGE_LEAD =
+                                    "scrollUpChangeLead";
+        private static final String SCROLL_UP_EXTEND_SELECTION =
+                                    "scrollUpExtendSelection";
+        private static final String SCROLL_DOWN_CHANGE_SELECTION =
+                                    "scrollDownChangeSelection";
+        private static final String SCROLL_DOWN_EXTEND_SELECTION =
+                                    "scrollDownExtendSelection";
+        private static final String SCROLL_DOWN_CHANGE_LEAD =
+                                    "scrollDownChangeLead";
+        private static final String SELECT_FIRST = "selectFirst";
+        private static final String SELECT_FIRST_CHANGE_LEAD =
+                                    "selectFirstChangeLead";
+        private static final String SELECT_FIRST_EXTEND_SELECTION =
+                                    "selectFirstExtendSelection";
+        private static final String SELECT_LAST = "selectLast";
+        private static final String SELECT_LAST_CHANGE_LEAD =
+                                    "selectLastChangeLead";
+        private static final String SELECT_LAST_EXTEND_SELECTION =
+                                    "selectLastExtendSelection";
+        private static final String TOGGLE = "toggle";
+        private static final String CANCEL_EDITING = "cancel";
+        private static final String START_EDITING = "startEditing";
+        private static final String SELECT_ALL = "selectAll";
+        private static final String CLEAR_SELECTION = "clearSelection";
+        private static final String SCROLL_LEFT = "scrollLeft";
+        private static final String SCROLL_RIGHT = "scrollRight";
+        private static final String SCROLL_LEFT_EXTEND_SELECTION = 
+                                    "scrollLeftExtendSelection";
+        private static final String SCROLL_RIGHT_EXTEND_SELECTION =
+                                    "scrollRightExtendSelection";
+        private static final String SCROLL_RIGHT_CHANGE_LEAD =
+                                    "scrollRightChangeLead";
+        private static final String SCROLL_LEFT_CHANGE_LEAD =
+                                    "scrollLeftChangeLead";
+        private static final String EXPAND = "expand";
+        private static final String COLLAPSE = "collapse";
+        private static final String MOVE_SELECTION_TO_PARENT =
+                                    "moveSelectionToParent";
+
+        // add the lead item to the selection without changing lead or anchor
+        private static final String ADD_TO_SELECTION = "addToSelection";
+
+        // toggle the selected state of the lead item and move the anchor to it
+        private static final String TOGGLE_AND_ANCHOR = "toggleAndAnchor";
+
+        // extend the selection to the lead item
+        private static final String EXTEND_TO = "extendTo";
+
+        // move the anchor to the lead and ensure only that item is selected
+        private static final String MOVE_SELECTION_TO = "moveSelectionTo";
+
+        Actions() {
+            super(null);
+        }
+
+        Actions(String key) {
+            super(key);
+        }
+
+        public boolean isEnabled(Object o) {
+            if (o instanceof JTree) {
+                if (getName() == CANCEL_EDITING) {
+                    return ((JTree)o).isEditing();
+                }
+            }
+            return true;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            JTree tree = (JTree)e.getSource();
+            BasicTreeUI ui = (BasicTreeUI)BasicLookAndFeel.getUIOfType(
+                             tree.getUI(), BasicTreeUI.class);
+            if (ui == null) {
+                return;
+            }
+            String key = getName();
+            if (key == SELECT_PREVIOUS) {
+                increment(tree, ui, -1, false, true);
+            }
+            else if (key == SELECT_PREVIOUS_CHANGE_LEAD) {
+                increment(tree, ui, -1, false, false);
+            }
+            else if (key == SELECT_PREVIOUS_EXTEND_SELECTION) {
+                increment(tree, ui, -1, true, true);
+            }
+            else if (key == SELECT_NEXT) {
+                increment(tree, ui, 1, false, true);
+            }
+            else if (key == SELECT_NEXT_CHANGE_LEAD) {
+                increment(tree, ui, 1, false, false);
+            }
+            else if (key == SELECT_NEXT_EXTEND_SELECTION) {
+                increment(tree, ui, 1, true, true);
+            }
+            else if (key == SELECT_CHILD) {
+                traverse(tree, ui, 1, true);
+            }
+            else if (key == SELECT_CHILD_CHANGE_LEAD) {
+                traverse(tree, ui, 1, false);
+            }
+            else if (key == SELECT_PARENT) {
+                traverse(tree, ui, -1, true);
+            }
+            else if (key == SELECT_PARENT_CHANGE_LEAD) {
+                traverse(tree, ui, -1, false);
+            }
+            else if (key == SCROLL_UP_CHANGE_SELECTION) {
+                page(tree, ui, -1, false, true);
+            }
+            else if (key == SCROLL_UP_CHANGE_LEAD) {
+                page(tree, ui, -1, false, false);
+            }
+            else if (key == SCROLL_UP_EXTEND_SELECTION) {
+                page(tree, ui, -1, true, true);
+            }
+            else if (key == SCROLL_DOWN_CHANGE_SELECTION) {
+                page(tree, ui, 1, false, true);
+            }
+            else if (key == SCROLL_DOWN_EXTEND_SELECTION) {
+                page(tree, ui, 1, true, true);
+            }
+            else if (key == SCROLL_DOWN_CHANGE_LEAD) {
+                page(tree, ui, 1, false, false);
+            }
+            else if (key == SELECT_FIRST) {
+                home(tree, ui, -1, false, true);
+            }
+            else if (key == SELECT_FIRST_CHANGE_LEAD) {
+                home(tree, ui, -1, false, false);
+            }
+            else if (key == SELECT_FIRST_EXTEND_SELECTION) {
+                home(tree, ui, -1, true, true);
+            }
+            else if (key == SELECT_LAST) {
+                home(tree, ui, 1, false, true);
+            }
+            else if (key == SELECT_LAST_CHANGE_LEAD) {
+                home(tree, ui, 1, false, false);
+            }
+            else if (key == SELECT_LAST_EXTEND_SELECTION) {
+                home(tree, ui, 1, true, true);
+            }
+            else if (key == TOGGLE) {
+                toggle(tree, ui);
+            }
+            else if (key == CANCEL_EDITING) {
+                cancelEditing(tree, ui);
+            }
+            else if (key == START_EDITING) {
+                startEditing(tree, ui);
+            }
+            else if (key == SELECT_ALL) {
+                selectAll(tree, ui, true);
+            }
+            else if (key == CLEAR_SELECTION) {
+                selectAll(tree, ui, false);
+            }
+            else if (key == ADD_TO_SELECTION) {
+                if (ui.getRowCount(tree) > 0) {
+                    int lead = ui.getLeadSelectionRow();
+                    if (!tree.isRowSelected(lead)) {
+                        TreePath aPath = ui.getAnchorSelectionPath();
+                        tree.addSelectionRow(lead);
+                        ui.setAnchorSelectionPath(aPath);
+                    }
+                }
+            }
+            else if (key == TOGGLE_AND_ANCHOR) {
+                if (ui.getRowCount(tree) > 0) {
+                    int lead = ui.getLeadSelectionRow();
+                    TreePath lPath = ui.getLeadSelectionPath();
+                    if (!tree.isRowSelected(lead)) {
+                        tree.addSelectionRow(lead);
+                    } else {
+                        tree.removeSelectionRow(lead);
+                        ui.setLeadSelectionPath(lPath);
+                    }
+                    ui.setAnchorSelectionPath(lPath);
+                }
+            }
+            else if (key == EXTEND_TO) {
+                extendSelection(tree, ui);
+            }
+            else if (key == MOVE_SELECTION_TO) {
+                if (ui.getRowCount(tree) > 0) {
+                    int lead = ui.getLeadSelectionRow();
+                    tree.setSelectionInterval(lead, lead);
+                }
+            }
+            else if (key == SCROLL_LEFT) {
+                scroll(tree, ui, SwingConstants.HORIZONTAL, -10);
+            }
+            else if (key == SCROLL_RIGHT) {
+                scroll(tree, ui, SwingConstants.HORIZONTAL, 10);
+            }
+            else if (key == SCROLL_LEFT_EXTEND_SELECTION) {
+                scrollChangeSelection(tree, ui, -1, true, true);
+            }
+            else if (key == SCROLL_RIGHT_EXTEND_SELECTION) {
+                scrollChangeSelection(tree, ui, 1, true, true);
+            }
+            else if (key == SCROLL_RIGHT_CHANGE_LEAD) {
+                scrollChangeSelection(tree, ui, 1, false, false);
+            }
+            else if (key == SCROLL_LEFT_CHANGE_LEAD) {
+                scrollChangeSelection(tree, ui, -1, false, false);
+            }
+            else if (key == EXPAND) {
+                expand(tree, ui);
+            }
+            else if (key == COLLAPSE) {
+                collapse(tree, ui);
+            }
+            else if (key == MOVE_SELECTION_TO_PARENT) {
+                moveSelectionToParent(tree, ui);
+            }
+        }
+
+        private void scrollChangeSelection(JTree tree, BasicTreeUI ui,
+                           int direction, boolean addToSelection,
+                           boolean changeSelection) {
+	    int           rowCount;
+
+	    if((rowCount = ui.getRowCount(tree)) > 0 &&
+		ui.treeSelectionModel != null) {
+		TreePath          newPath;
+		Rectangle         visRect = tree.getVisibleRect();
+
+		if (direction == -1) {
+		    newPath = ui.getClosestPathForLocation(tree, visRect.x,
+							visRect.y);
+		    visRect.x = Math.max(0, visRect.x - visRect.width);
+		}
+		else {
+		    visRect.x = Math.min(Math.max(0, tree.getWidth() -
+				   visRect.width), visRect.x + visRect.width);
+		    newPath = ui.getClosestPathForLocation(tree, visRect.x,
+						 visRect.y + visRect.height);
+		}
+		// Scroll
+		tree.scrollRectToVisible(visRect);
+		// select
+		if (addToSelection) {
+		    ui.extendSelection(newPath);
+		}
+		else if(changeSelection) {
+		    tree.setSelectionPath(newPath);
+		}
+		else {
+		    ui.setLeadSelectionPath(newPath, true);
+		}
+	    }
+	}
+
+        private void scroll(JTree component, BasicTreeUI ui, int direction,
+                            int amount) {
+	    Rectangle visRect = component.getVisibleRect();
+	    Dimension size = component.getSize();
+	    if (direction == SwingConstants.HORIZONTAL) {
+		visRect.x += amount;
+		visRect.x = Math.max(0, visRect.x);
+		visRect.x = Math.min(Math.max(0, size.width - visRect.width),
+				     visRect.x);
+	    }
+	    else {
+		visRect.y += amount;
+		visRect.y = Math.max(0, visRect.y);
+		visRect.y = Math.min(Math.max(0, size.width - visRect.height),
+				     visRect.y);
+	    }
+	    component.scrollRectToVisible(visRect);
+	}
+
+        private void extendSelection(JTree tree, BasicTreeUI ui) {
+	    if (ui.getRowCount(tree) > 0) {
+		int       lead = ui.getLeadSelectionRow();
+
+		if (lead != -1) {
+		    TreePath      leadP = ui.getLeadSelectionPath();
+		    TreePath      aPath = ui.getAnchorSelectionPath();
+		    int           aRow = ui.getRowForPath(tree, aPath);
+
+		    if(aRow == -1)
+			aRow = 0;
+		    tree.setSelectionInterval(aRow, lead);
+		    ui.setLeadSelectionPath(leadP);
+		    ui.setAnchorSelectionPath(aPath);
+		}
+	    }
+        }
+
+        private void selectAll(JTree tree, BasicTreeUI ui, boolean selectAll) {
+	    int                   rowCount = ui.getRowCount(tree);
+
+	    if(rowCount > 0) {
+		if(selectAll) {
+                    if (tree.getSelectionModel().getSelectionMode() ==
+                            TreeSelectionModel.SINGLE_TREE_SELECTION) {
+
+                        int lead = ui.getLeadSelectionRow();
+                        if (lead != -1) {
+                            tree.setSelectionRow(lead);
+                        } else if (tree.getMinSelectionRow() == -1) {
+                            tree.setSelectionRow(0);
+                            ui.ensureRowsAreVisible(0, 0);
+                        }
+                        return;
+                    }
+
+		    TreePath      lastPath = ui.getLeadSelectionPath();
+		    TreePath      aPath = ui.getAnchorSelectionPath();
+
+		    if(lastPath != null && !tree.isVisible(lastPath)) {
+			lastPath = null;
+		    }
+		    tree.setSelectionInterval(0, rowCount - 1);
+		    if(lastPath != null) {
+			ui.setLeadSelectionPath(lastPath);
+		    }
+		    if(aPath != null && tree.isVisible(aPath)) {
+			ui.setAnchorSelectionPath(aPath);
+		    }
+		}
+		else {
+		    TreePath      lastPath = ui.getLeadSelectionPath();
+		    TreePath      aPath = ui.getAnchorSelectionPath();
+
+		    tree.clearSelection();
+		    ui.setAnchorSelectionPath(aPath);
+		    ui.setLeadSelectionPath(lastPath);
+		}
+            }
+        }
+
+        private void startEditing(JTree tree, BasicTreeUI ui) {
+            TreePath   lead = ui.getLeadSelectionPath();
+            int        editRow = (lead != null) ?
+		                     ui.getRowForPath(tree, lead) : -1;
+
+            if(editRow != -1) {
+                tree.startEditingAtPath(lead);
+            }
+        }
+
+        private void cancelEditing(JTree tree, BasicTreeUI ui) {
+            tree.cancelEditing();
+        }
+
+        private void toggle(JTree tree, BasicTreeUI ui) {
+            int            selRow = ui.getLeadSelectionRow();
+
+            if(selRow != -1 && !ui.isLeaf(selRow)) {
+                TreePath aPath = ui.getAnchorSelectionPath();
+                TreePath lPath = ui.getLeadSelectionPath();
+
+                ui.toggleExpandState(ui.getPathForRow(tree, selRow));
+                ui.setAnchorSelectionPath(aPath);
+                ui.setLeadSelectionPath(lPath);
+            }
+        }
+
+        private void expand(JTree tree, BasicTreeUI ui) {
+            int selRow = ui.getLeadSelectionRow();
+            tree.expandRow(selRow);
+        }
+
+        private void collapse(JTree tree, BasicTreeUI ui) {
+            int selRow = ui.getLeadSelectionRow();
+            tree.collapseRow(selRow);
+        }
+
+        private void increment(JTree tree, BasicTreeUI ui, int direction,
+                               boolean addToSelection,
+                               boolean changeSelection) {
+
+            // disable moving of lead unless in discontiguous mode
+            if (!addToSelection && !changeSelection &&
+                    tree.getSelectionModel().getSelectionMode() !=
+                        TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION) {
+                changeSelection = true;
+            }
+
+	    int              rowCount;
+
+	    if(ui.treeSelectionModel != null &&
+                  (rowCount = tree.getRowCount()) > 0) {
+		int                  selIndex = ui.getLeadSelectionRow();
+		int                  newIndex;
+
+		if(selIndex == -1) {
+		    if(direction == 1)
+			newIndex = 0;
+		    else
+			newIndex = rowCount - 1;
+		}
+		else
+		    /* Aparently people don't like wrapping;( */
+		    newIndex = Math.min(rowCount - 1, Math.max
+					(0, (selIndex + direction)));
+		if(addToSelection && ui.treeSelectionModel.
+                        getSelectionMode() != TreeSelectionModel.
+                        SINGLE_TREE_SELECTION) {
+		    ui.extendSelection(tree.getPathForRow(newIndex));
+		}
+		else if(changeSelection) {
+		    tree.setSelectionInterval(newIndex, newIndex);
+		}
+		else {
+		    ui.setLeadSelectionPath(tree.getPathForRow(newIndex),true);
+		}
+		ui.ensureRowsAreVisible(newIndex, newIndex);
+		ui.lastSelectedRow = newIndex;
+	    }
+        }
+
+        private void traverse(JTree tree, BasicTreeUI ui, int direction,
+                              boolean changeSelection) {
+
+            // disable moving of lead unless in discontiguous mode
+            if (!changeSelection &&
+                    tree.getSelectionModel().getSelectionMode() !=
+                        TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION) {
+                changeSelection = true;
+            }
+
+	    int                rowCount;
+
+	    if((rowCount = tree.getRowCount()) > 0) {
+		int               minSelIndex = ui.getLeadSelectionRow();
+		int               newIndex;
+
+		if(minSelIndex == -1)
+		    newIndex = 0;
+		else {
+		    /* Try and expand the node, otherwise go to next
+		       node. */
+		    if(direction == 1) {
+			if(!ui.isLeaf(minSelIndex) &&
+			   !tree.isExpanded(minSelIndex)) {
+			    ui.toggleExpandState(ui.getPathForRow
+					      (tree, minSelIndex));
+			    newIndex = -1;
+			}
+			else
+			    newIndex = Math.min(minSelIndex + 1, rowCount - 1);
+		    }
+		    /* Try to collapse node. */
+		    else {
+			if(!ui.isLeaf(minSelIndex) &&
+			   tree.isExpanded(minSelIndex)) {
+			    ui.toggleExpandState(ui.getPathForRow
+					      (tree, minSelIndex));
+			    newIndex = -1;
+			}
+			else {
+			    TreePath         path = ui.getPathForRow(tree,
+								  minSelIndex);
+
+			    if(path != null && path.getPathCount() > 1) {
+				newIndex = ui.getRowForPath(tree, path.
+							 getParentPath());
+			    }
+			    else
+				newIndex = -1;
+			}
+		    }
+		}
+		if(newIndex != -1) {
+		    if(changeSelection) {
+			tree.setSelectionInterval(newIndex, newIndex);
+		    }
+		    else {
+			ui.setLeadSelectionPath(ui.getPathForRow(
+                                                    tree, newIndex), true);
+		    }
+		    ui.ensureRowsAreVisible(newIndex, newIndex);
+		}
+	    }
+        }
+
+        private void moveSelectionToParent(JTree tree, BasicTreeUI ui) {
+            int selRow = ui.getLeadSelectionRow();
+            TreePath path = ui.getPathForRow(tree, selRow);
+            if (path != null && path.getPathCount() > 1) {
+                int  newIndex = ui.getRowForPath(tree, path.getParentPath());
+                if (newIndex != -1) {
+                    tree.setSelectionInterval(newIndex, newIndex);
+                    ui.ensureRowsAreVisible(newIndex, newIndex);
+                }
+            }
+        }
+
+        private void page(JTree tree, BasicTreeUI ui, int direction,
+                          boolean addToSelection, boolean changeSelection) {
+
+            // disable moving of lead unless in discontiguous mode
+            if (!addToSelection && !changeSelection &&
+                    tree.getSelectionModel().getSelectionMode() !=
+                        TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION) {
+                changeSelection = true;
+            }
+
+	    int           rowCount;
+
+	    if((rowCount = ui.getRowCount(tree)) > 0 &&
+                           ui.treeSelectionModel != null) {
+		Dimension         maxSize = tree.getSize();
+		TreePath          lead = ui.getLeadSelectionPath();
+		TreePath          newPath;
+		Rectangle         visRect = tree.getVisibleRect();
+
+		if(direction == -1) {
+		    // up.
+		    newPath = ui.getClosestPathForLocation(tree, visRect.x,
+							 visRect.y);
+		    if(newPath.equals(lead)) {
+			visRect.y = Math.max(0, visRect.y - visRect.height);
+			newPath = tree.getClosestPathForLocation(visRect.x,
+								 visRect.y);
+		    }
+		}
+		else {
+		    // down
+		    visRect.y = Math.min(maxSize.height, visRect.y +
+					 visRect.height - 1);
+		    newPath = tree.getClosestPathForLocation(visRect.x,
+							     visRect.y);
+		    if(newPath.equals(lead)) {
+			visRect.y = Math.min(maxSize.height, visRect.y +
+					     visRect.height - 1);
+			newPath = tree.getClosestPathForLocation(visRect.x,
+								 visRect.y);
+		    }
+		}
+		Rectangle            newRect = ui.getPathBounds(tree, newPath);
+
+		newRect.x = visRect.x;
+		newRect.width = visRect.width;
+		if(direction == -1) {
+		    newRect.height = visRect.height;
+		}
+		else {
+		    newRect.y -= (visRect.height - newRect.height);
+		    newRect.height = visRect.height;
+		}
+
+		if(addToSelection) {
+		    ui.extendSelection(newPath);
+		}
+		else if(changeSelection) {
+		    tree.setSelectionPath(newPath);
+		}
+		else {
+		    ui.setLeadSelectionPath(newPath, true);
+		}
+		tree.scrollRectToVisible(newRect);
+	    }
+        }
+
+        private void home(JTree tree, BasicTreeUI ui, int direction,
+                          boolean addToSelection, boolean changeSelection) {
+
+            // disable moving of lead unless in discontiguous mode
+            if (!addToSelection && !changeSelection &&
+                    tree.getSelectionModel().getSelectionMode() !=
+                        TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION) {
+                changeSelection = true;
+            }
+
+	    int rowCount = ui.getRowCount(tree);
+
+	    if (rowCount > 0) {
+		if(direction == -1) {
+		    ui.ensureRowsAreVisible(0, 0);
+		    if (addToSelection) {
+			TreePath        aPath = ui.getAnchorSelectionPath();
+			int             aRow = (aPath == null) ? -1 :
+			                ui.getRowForPath(tree, aPath);
+
+			if (aRow == -1) {
+			    tree.setSelectionInterval(0, 0);
+			}
+			else {
+			    tree.setSelectionInterval(0, aRow);
+			    ui.setAnchorSelectionPath(aPath);
+			    ui.setLeadSelectionPath(ui.getPathForRow(tree, 0));
+			}
+		    }
+		    else if(changeSelection) {
+			tree.setSelectionInterval(0, 0);
+		    }
+		    else {
+			ui.setLeadSelectionPath(ui.getPathForRow(tree, 0),
+                                                true);
+		    }
+		}
+		else {
+		    ui.ensureRowsAreVisible(rowCount - 1, rowCount - 1);
+		    if (addToSelection) {
+			TreePath        aPath = ui.getAnchorSelectionPath();
+			int             aRow = (aPath == null) ? -1 :
+			                ui.getRowForPath(tree, aPath);
+
+			if (aRow == -1) {
+			    tree.setSelectionInterval(rowCount - 1,
+						      rowCount -1);
+			}
+			else {
+			    tree.setSelectionInterval(aRow, rowCount - 1);
+			    ui.setAnchorSelectionPath(aPath);
+			    ui.setLeadSelectionPath(ui.getPathForRow(tree,
+							       rowCount -1));
+			}
+		    }
+		    else if(changeSelection) {
+			tree.setSelectionInterval(rowCount - 1, rowCount - 1);
+		    }
+		    else {
+			ui.setLeadSelectionPath(ui.getPathForRow(tree,
+							  rowCount - 1), true);
+		    }
+		}
+	    }
+        }
+    }
 } // End of class BasicTreeUI

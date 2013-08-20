@@ -1,14 +1,14 @@
 /*
- * @(#)UnsupportedLookAndFeelException.java	1.15 03/01/23
+ * @(#)UnsupportedLookAndFeelException.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
 /**
- * An exception that indicates the request look & feel management classes
- * are not present on the user's system.
+ * An exception that indicates the requested look & feel
+ * management classes are not present on the user's system.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -20,7 +20,7 @@ package javax.swing;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author unattributed
- * @version 1.15 01/23/03
+ * @version 1.17 12/19/03
  */
 public class UnsupportedLookAndFeelException extends Exception
 {

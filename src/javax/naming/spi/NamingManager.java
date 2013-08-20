@@ -1,7 +1,7 @@
 /*
- * @(#)NamingManager.java	1.18 03/05/09
+ * @(#)NamingManager.java	1.21 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import com.sun.naming.internal.FactoryEnumeration;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.18 03/05/09
+ * @version 1.21 04/07/16
  * @since 1.3
  */
 
@@ -267,8 +267,11 @@ public class NamingManager {
      * @see ObjectFactory
      * @see ObjectFactory#getObjectInstance
      */
-    public static Object getObjectInstance(Object refInfo, Name name,
-	    Context nameCtx, Hashtable environment) throws Exception {
+    public static Object
+	getObjectInstance(Object refInfo, Name name, Context nameCtx,
+			  Hashtable<?,?> environment)
+	throws Exception
+    {
 
 	ObjectFactory factory;
 
@@ -520,8 +523,10 @@ public class NamingManager {
      * @see #getObjectInstance
      * @see ObjectFactory#getObjectInstance
      */
-    public static Context getURLContext(String scheme, 
-	Hashtable environment) throws NamingException {
+    public static Context getURLContext(String scheme,
+					Hashtable<?,?> environment)
+	throws NamingException
+    {
 	// pass in 'null' to indicate creation of generic context for scheme
 	// (i.e. not specific to a URL).
 
@@ -625,7 +630,7 @@ public class NamingManager {
      * @see javax.naming.InitialContext
      * @see javax.naming.directory.InitialDirContext
      */
-    public static Context getInitialContext(Hashtable env)
+    public static Context getInitialContext(Hashtable<?,?> env)
 	throws NamingException {
 	InitialContextFactory factory; 
 
@@ -826,8 +831,11 @@ public class NamingManager {
      * @see DirectoryManager#getStateToBind
      * @since 1.3
      */
-    public static Object getStateToBind(Object obj, Name name, Context nameCtx,
-	Hashtable environment) throws NamingException {
+    public static Object
+	getStateToBind(Object obj, Name name, Context nameCtx,
+		       Hashtable<?,?> environment)
+	throws NamingException
+    {
 
 	FactoryEnumeration factories = ResourceManager.getFactories(
 	    Context.STATE_FACTORIES, environment, nameCtx);

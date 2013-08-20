@@ -1,7 +1,7 @@
 /*
- * @(#)Security.java	1.123 05/01/15
+ * @(#)Security.java	1.126 04/05/18
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,71 +9,38 @@ package java.security;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.*;
 import java.net.URL;
-import java.security.InvalidParameterException;
 import sun.security.util.Debug;
 import sun.security.util.PropertyExpander;
+
+import java.security.Provider.Service;
+
+import sun.security.jca.*;
 
 /**
  * <p>This class centralizes all security properties and common security
  * methods. One of its primary uses is to manage providers.
  *
  * @author Benjamin Renaud
- * @version 1.123, 01/15/05
+ * @version 1.126, 05/18/04
  */
 
 public final class Security {
-
-    // Do providers need to be reloaded?
-    private static boolean reloadProviders = true;
-
+    
     /* Are we debugging? -- for developers */
-    static final boolean debug = false;
     private static final Debug sdebug =
 			Debug.getInstance("properties");
 
-    /* Are we displaying errors? -- for users */
-    static final boolean error = true;
-
     /* The java.security properties */
     private static Properties props; 
-
-    /* A vector of providers, in order of priority */
-    private static Vector providers;
-
-    // Where we cache provider properties
-    private static Hashtable providerPropertiesCache;
-
-    // Where we cache engine provider properties
-    private static Hashtable engineCache;
-
-    // Where we cache search results
-    private static Hashtable searchResultsCache;
-
-    // providers currently attempting to be loaded
-    private static Hashtable providerLoads;
 
     // An element in the cache
     private static class ProviderProperty {
 	String className;
 	Provider provider;
     }
-
-    // Number of statically registered security providers. No duplicates.
-    private static int numOfStaticProviders = 0;
-
-    /* A vector of statically registered providers' master class names,
-     * in order of priority. No duplicates.
-     */
-    private static Vector providerMasterClassNames = new Vector(6);
-
-    // Index for the vector providerMasterClassNames.
-    // It points to the next provider which we should try to load.
-    private static int indexStaticProviders = 0;
-
-    // Does the indexStaticProviders need to be reset?
-    private static boolean resetProviderIndex = false;
 
     static {
 	// doPrivileged here because there are multiple
@@ -88,104 +55,8 @@ public final class Security {
 	});
     }
     
-    // the nested class and the 3 methods below are reflectively accessed
-    // from the sun.security.util.SignatureFileVerifier class during signed
-    // JAR verification.
-    
-    private static final class State {
-	boolean reloadProviders;
-	Vector providers;
-	Hashtable providerLoads;
-	int numOfStaticProviders;
-	Vector providerMasterClassNames;
-	int indexStaticProviders;
-	boolean resetProviderIndex;
-    }
-    
-    private static Object saveProviders() throws Exception {
-	// save state
-	State state = new State();
-	state.reloadProviders = reloadProviders;
-	state.providers = providers;
-	state.providerLoads = providerLoads;
-	state.numOfStaticProviders = numOfStaticProviders;
-	state.providerMasterClassNames = providerMasterClassNames;
-	state.indexStaticProviders = indexStaticProviders;
-	state.resetProviderIndex = resetProviderIndex;
-
-	// change provider settings
-	Vector ps = new Vector();
-	Vector names = new Vector();
-	findProvider(ps, names, "sun.security.provider.Sun");
-	findProvider(ps, names, "com.sun.net.ssl.internal.ssl.Provider");
-	findProvider(ps, names, "com.sun.rsajca.Provider");
-	int n = ps.size();
-
-	reloadProviders = false;
-	providers = ps;
-	providerLoads = new Hashtable();
-	numOfStaticProviders = n;
-	providerMasterClassNames = names;
-	indexStaticProviders = n;
-	resetProviderIndex = false;
-
-	// clear caches
-	providerPropertiesCache.clear();
-	engineCache.clear();
-	searchResultsCache.clear();
-	
-	return state;
-    }
-    
-    // return the provider for the specified class, new instance if necessary.
-    private static void findProvider(Vector ps, Vector names, String className) {
-	for (Enumeration e = providers.elements(); e.hasMoreElements();) {
-	    Provider p = (Provider)e.nextElement();
-	    Class c = p.getClass();
-	    if ((c.getClassLoader() == null) && c.getName().equals(className)) {
-		ps.add(p);
-		names.add(className);
-		return;
-	    }
-	}
-	try {
-	    Class clazz = Class.forName(className);
-	    Provider p = (Provider)clazz.newInstance();
-	    ps.add(p);
-	    names.add(className);
-	    return;
-	} catch (Exception e) {
-	    if (sdebug != null) {
-		sdebug.println("Could not load provider: " + className);
-		e.printStackTrace();
-	    }
-	}
-    }
-    
-    private static void restoreProviders(Object obj) {
-	// restore state
-	State state = (State)obj;
-	reloadProviders = state.reloadProviders;
-	providers = state.providers;
-	providerLoads = state.providerLoads;
-	numOfStaticProviders = state.numOfStaticProviders;
-	providerMasterClassNames = state.providerMasterClassNames;
-	indexStaticProviders = state.indexStaticProviders;
-	resetProviderIndex = state.resetProviderIndex;
-
-	// clear caches
-	providerPropertiesCache.clear();
-	engineCache.clear();
-	searchResultsCache.clear();
-    }
-    
     private static void initialize() {
 	props = new Properties();
-	providers = new Vector();
-	providerPropertiesCache = new Hashtable();
-	engineCache = new Hashtable();
-	searchResultsCache = new Hashtable(5);
-	providerLoads = new Hashtable(1);
 	boolean loadedProps = false;
 	boolean overrideAll = false;
 
@@ -278,202 +149,25 @@ public final class Security {
 	    }
 	}
 
-	// Not loading providers here. Just counts how many providers
-	// are statically registered. This reduces the startup 
-	// footprint.
-	countProviders();
     }
-
+    
     /* 
      * Initialize to default values, if <java.home>/lib/java.security
      * is not found.
      */
     private static void initializeStatic() {
 	props.put("security.provider.1", "sun.security.provider.Sun");
+	props.put("security.provider.2", "sun.security.rsa.SunRsaSign");
+	props.put("security.provider.3", "com.sun.net.ssl.internal.ssl.Provider");
+	props.put("security.provider.4", "com.sun.crypto.provider.SunJCE");
+	props.put("security.provider.5", "sun.security.jgss.SunProvider");
+	props.put("security.provider.6", "com.sun.security.sasl.Provider");
     }
 
     /**
      * Don't let anyone instantiate this. 
      */
     private Security() {
-    }
-
-    /**
-     * Loops through provider declarations, which are expected to be
-     * of the form:
-     *
-     * security.provider.1=sun.security.provider.Sun
-     * security.provider.2=sun.security.jsafe.Jsafe
-     * etc.
-     *
-     * The order determines the default search order when looking for 
-     * an algorithm.
-     */
-    private static synchronized void countProviders() {
-
-	int i = 1;
-
-	while (true) {
-	    String name = props.getProperty("security.provider." + i);
-	    if (name == null) {
-		break;
-	    } else {
-		String fullClassName = name.trim();
-		if (fullClassName.length() == 0) {
-		    System.err.println("invalid entry for " +
-				       "security.provider." + i);
-		    break;
-		} else {
-		    // Get rid of duplicate providers.
-		    if (!providerMasterClassNames.contains(fullClassName)) {
-			providerMasterClassNames.add(fullClassName);
-		    }
-		    i++;
-		}
-	    }		   
-	}
-	
-	// Get the number of statically registered providers.
-	numOfStaticProviders = providerMasterClassNames.size();
- 
-    }
-
-    /*
-     * Reload the providers (provided as extensions) that could not be loaded 
-     * (because there was no system class loader available) when this class
-     * was initialized.
-     */
-    private static synchronized void reloadProviders() {
-	if (reloadProviders) {
-	    sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
-	    if (l != null) {
-		synchronized (Security.class) {		     
-		    reloadProviders = false;
-		    // We don't want loadOneMoreProvider() to do
-		    // anything from now on since this method will 
-		    // load all static providers.
-		    indexStaticProviders = numOfStaticProviders;
-		    resetProviderIndex = false;
-		    providers.removeAllElements();
-		    // i is an index for the vector 
-		    // providerMasterClassNames. So it starts from 0.
-		    int i = 0;
-		    while (i < numOfStaticProviders) {
-			final String name =
-			    (String)providerMasterClassNames.elementAt(i);
-			i++;			     
-			Provider prov =
-			    (Provider)AccessController.doPrivileged(
-					    new PrivilegedAction() {
-				public Object run() { 
-				    return Provider.loadProvider(name);
-				}
-			    });
-			if (prov != null) {
-			    providers.addElement(prov);
-			}
-		    }
-		    // empty provider-property cache
-		    providerPropertiesCache.clear();
-		    engineCache.clear();
-		    searchResultsCache.clear();
-		}
-	    }
-	}
-    }
-
-    /**
-     * Try our best to load one more statically registered provider.
-     * This is used by getEngineClassName(String algName, String engineType).
-     */
-    private static synchronized void loadOneMoreProvider() {
-	// suspend provider reloading inside this method
-	boolean restore = false;
-	if (reloadProviders) {
-	    restore = true;
-	    reloadProviders = false;
-	}
-	try {
-	sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
-	/* 
-	 * Even if the launcher l is null, we still want to
-	 * load providers if we can. See bug 4418903.
-	 * When we first see that the launcher isn't null, we
-	 * could be in one of the following situations:
-	 * a) some providers were loaded out of the priority order.
-	 *    For example, 6 providers are statically configured, and
-	 *    provider 2 and 4 are loaded. The field resetProviderIndex
-	 *    should be "true". So we can try to load providers
-	 *    according to the priority order when the launcher isn't null.
-	 * b) some providers were loaded, but not out of order.
-	 *    For example, 6 providers are statically configured, and
-	 *    provider 1 and 2 are loaded. The field resetProviderIndex
-	 *    should be "false". So we just try to load the next
-	 *    provider whose index is indexStaticProviders.
-	 * c) no providers were loaded. The field resetProviderIndex
-	 *    should be "false". So we just try to load the first
-	 *    provider. Note: indexStaticProviders is 0 in this case.
-	 */
-
-	if (indexStaticProviders >= numOfStaticProviders) {
-	    return;
-	}
-
-	Provider prov = null;
-
-	while (indexStaticProviders < numOfStaticProviders) {
-	    final String name = (String)providerMasterClassNames.elementAt(
-				     indexStaticProviders);
-
-	    // determine if the loadProvider call below is looping.
-	    // this may occur if the provider to be loaded is signed.
-	    // if looping, continue
-	    if (providerLoads.get(name) != null) {
-		indexStaticProviders++;
-		continue;
-	    } else {
-		providerLoads.put(name, name);
-	    }
-
-	    prov = (Provider)AccessController.doPrivileged(
-			                 new PrivilegedAction() {
-		public Object run() {
-		    return Provider.loadProvider(name);
-		}
-	    });
-
-	    // indexStaticProviders points to the next provider we
-	    // should try to load.
-	    indexStaticProviders++;
-	    providerLoads.remove(name);   
-
-	    if (prov != null) {
-		/* This must manipulate the datastructure
-		   directly, because going through addProviders
-		   causes a security check to happen, which
-		   sometimes will cause the security
-		   initialization to fail with bad
-		   consequences. */
-		providers.addElement(prov);
-		// empty provider-property cache
-		providerPropertiesCache.clear();
-		engineCache.clear();
-		searchResultsCache.clear();
-		break;
-	    } else {
-		if (l == null) {
-		    // Set resetProviderIndex to true since we may load
-		    // providers out of the priority order.
-		    resetProviderIndex = true;
-		}
-	    }
-	}
-	} finally {
-	    // resume provider reloading if necessary
-	    if (restore) {
-	        reloadProviders = true;
-	    }
-	}
     }
 
     private static File securityPropFile(String filename) {
@@ -492,24 +186,21 @@ public final class Security {
      * properties file.
      */
     private static ProviderProperty getProviderProperty(String key) {
-	ProviderProperty entry
-	    = (ProviderProperty)providerPropertiesCache.get(key);
-	if (entry != null) {
-	    return entry;
-	}
+	ProviderProperty entry = null;
 
+	List providers = Providers.getProviderList().providers();
 	for (int i = 0; i < providers.size(); i++) {
 
 	    String matchKey = null;
-	    Provider prov = (Provider)providers.elementAt(i);	    
+	    Provider prov = (Provider)providers.get(i);	    
 	    String prop = prov.getProperty(key);
 
 	    if (prop == null) {
 		// Is there a match if we do a case-insensitive property name
 		// comparison? Let's try ...
-		for (Enumeration enum = prov.keys();
-		     enum.hasMoreElements() && prop==null; ) {
-		    matchKey = (String)enum.nextElement();
+		for (Enumeration e = prov.keys();
+		     e.hasMoreElements() && prop == null; ) {
+		    matchKey = (String)e.nextElement();
 		    if (key.equalsIgnoreCase(matchKey)) {
 			prop = prov.getProperty(matchKey);
 			break;
@@ -521,12 +212,6 @@ public final class Security {
 		ProviderProperty newEntry = new ProviderProperty();
 		newEntry.className = prop;
 		newEntry.provider = prov;
-		providerPropertiesCache.put(key, newEntry);
-		if (matchKey != null) {
-		    // Store the property value in the cache under the exact
-		    // property name, as specified by the provider
-		    providerPropertiesCache.put(matchKey, newEntry);
-		}
 		return newEntry;
 	    }
 	}
@@ -542,9 +227,9 @@ public final class Security {
 	if (prop == null) {
 	    // Is there a match if we do a case-insensitive property name
 	    // comparison? Let's try ...
-	    for (Enumeration enum = provider.keys();
-		 enum.hasMoreElements() && prop==null; ) {
-		String matchKey = (String)enum.nextElement();
+	    for (Enumeration e = provider.keys();
+		 e.hasMoreElements() && prop == null; ) {
+		String matchKey = (String)e.nextElement();
 		if (key.equalsIgnoreCase(matchKey)) {
 		    prop = provider.getProperty(matchKey);
 		    break;
@@ -552,15 +237,6 @@ public final class Security {
 	    }
 	}
 	return prop;
-    }
-
-    /**
-     * We always map names to standard names
-     */
-    private static String getStandardName(String alias, String engineType,
-        Provider prov) {
-	return getProviderProperty("Alg.Alias." + engineType + "." + alias,
-				   prov);
     }
 
     /** 
@@ -586,9 +262,9 @@ public final class Security {
      * <code>AlgorithmParameters</code> and <code>KeyFactory</code> engine
      * classes (introduced in the Java 2 platform) instead.
      */
+    @Deprecated
     public static String getAlgorithmProperty(String algName,
 					      String propName) {
-	reloadProviders();
 	ProviderProperty entry = getProviderProperty("Alg." + propName
 						     + "." + algName);
 	if (entry != null) {
@@ -596,142 +272,6 @@ public final class Security {
 	} else {
 	    return null;
 	}
-    }
-
-    /*
-     * Lookup the algorithm in our list of providers. Process
-     * each provider in priority order one at a time looking for
-     * either the direct engine property or a matching alias.
-     */
-    private static synchronized ProviderProperty getEngineClassName
-	(String algName, String engineType) throws NoSuchAlgorithmException
-    {
-	ProviderProperty pp;
-	String key = engineType;
-
-	if (algName != null)
-	    key += "." + algName;
-	pp = (ProviderProperty)engineCache.get(key);
-	if (pp != null)
-	    return pp;
-
-	sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
-	/*
-	 * In case some providers have been loaded out of the
-	 * priority order when the launcher l is null, we should
-	 * clear the vector "providers" and reset the indexStaticProviders
-	 * to zero when the launcher l isn't null.
-	 *
-	 * We should only do the above if the "reloadProviders" is true
-	 * which means that the method reloadProviders() hasn't
-	 * load all statically registered providers yet.
-	 * Once the reloadProviders() method has loaded all statically
-	 * registered providers, we shouldn't clear the vector
-	 * "providers" in this getEngineClassName() method.
-	 */
-	if ((reloadProviders == true) &&
-	    (l != null) && (resetProviderIndex == true)) {
-	    resetProviderIndex = false;
-	    indexStaticProviders = 0;
-	    providers.removeAllElements();
-	    providerPropertiesCache.clear();
-	    engineCache.clear();
-	    searchResultsCache.clear();
-	    providerLoads.clear();
-	}
-	
-	// We should call loadOneMoreProvider() if no provider
-	// has been loaded yet. Otherwise, we may not be able to
-	// get in the following "for" loop.
-	if (providers.size() == 0) {
-	    loadOneMoreProvider();
-	}
-	for (int i = 0; i < providers.size(); i++) {
-	    Provider prov = (Provider)providers.elementAt(i);
-	    try {
-		pp = getEngineClassName(algName, prov,
-					engineType);
-	    } catch (NoSuchAlgorithmException e) {
-		if (i == providers.size() - 1) {
-		    // The requested algorithm may be available in
-		    // a registered provider which hasn't been loaded
-		    // yet. Let's try to load one more registered
-		    // provider. The method loadOneMoreProvider()
-		    // won't do anything if we have tried to load all
-		    // registered providers.
-		    loadOneMoreProvider();
-		}
-		continue;
-	    }
-	    
-	    /* Cache it */
-	    engineCache.put(key, pp);
-	    return pp;
-	}
-	
-	throw new NoSuchAlgorithmException(algName.toUpperCase() + " " +
-					   engineType + " not available");
-    }
-
-
-    private static ProviderProperty getEngineClassName(String algName,
-						       String provider, 
-						       String engineType) 
-	throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-	if (provider == null) {
-	    return getEngineClassName(algName, engineType);
-	}
-
-	// check if the provider is installed
-	Provider prov = getProvider(provider);
-	if (prov == null) {
-	    throw new NoSuchProviderException("no such provider: " +
-					      provider);
-	}
-
-	return getEngineClassName(algName, prov, engineType); 
-    }
-
-    /**
-     * The parameter provider cannot be null.
-     */
-    private static ProviderProperty getEngineClassName(String algName,
-						       Provider provider, 
-						       String engineType) 
-	throws NoSuchAlgorithmException
-    {
-	String key;
-	if (engineType.equalsIgnoreCase("SecureRandom") && algName == null)
-	    key = engineType;
-	else
-	    key = engineType + "." + algName;
-	
-	String className = getProviderProperty(key, provider);
-	if (className == null) {
-	    if (engineType.equalsIgnoreCase("SecureRandom") &&
-		algName == null)
-		throw new NoSuchAlgorithmException
-		    ("SecureRandom not available for provider " +
-		     provider.getName());
-	    else {
-		// try algName as alias name
-		String stdName = getStandardName(algName, engineType, provider);
-		if (stdName != null) key = engineType + "." + stdName;
-		if ((stdName == null)
-		    || (className = getProviderProperty(key, provider)) == null)
-		    throw new NoSuchAlgorithmException("no such algorithm: " +
-						       algName
-						       + " for provider " +
-						       provider.getName());
-	    }
-	}
-	
-	ProviderProperty entry = new ProviderProperty();
-	entry.className = className;
-	entry.provider = provider;
-
-	return entry;
     }
 
     /**
@@ -769,6 +309,7 @@ public final class Security {
      * added, or -1 if the provider was not added because it is
      * already installed.
      *
+     * @throws  NullPointerException if provider is null
      * @throws  SecurityException
      *          if a security manager exists and its <code>{@link
      *          java.lang.SecurityManager#checkSecurityAccess}</code> method
@@ -778,31 +319,17 @@ public final class Security {
      * @see #removeProvider 
      * @see java.security.SecurityPermission
      */
-    public static synchronized int insertProviderAt(Provider provider,
-						    int position) {
-	reloadProviders();
-
-	check("insertProvider."+provider.getName());
-
-	/* First check if the provider is already installed */
-	Provider already = getProvider(provider.getName());
-	if (already != null) {
+    public static synchronized int insertProviderAt(Provider provider, 
+	    int position) {
+	String providerName = provider.getName();
+	check("insertProvider." + providerName);
+	ProviderList list = Providers.getFullProviderList();
+	ProviderList newList = ProviderList.insertAt(list, provider, position - 1);
+	if (list == newList) {
 	    return -1;
-	}	
-		
-	int size = providers.size();
-	if (position > size || position <= 0) {
-	    position = size+1;
 	}
-
-	providers.insertElementAt(provider, position-1);
-
-	// empty provider-property cache
-	providerPropertiesCache.clear();
-	engineCache.clear();
-	searchResultsCache.clear();
-		
-	return position;
+	Providers.setProviderList(newList);
+	return newList.getIndex(providerName) + 1;
     }
 
     /**
@@ -826,6 +353,7 @@ public final class Security {
      * added, or -1 if the provider was not added because it is
      * already installed.
      *
+     * @throws  NullPointerException if provider is null
      * @throws  SecurityException
      *          if a security manager exists and its <code>{@link
      *          java.lang.SecurityManager#checkSecurityAccess}</code> method
@@ -853,7 +381,8 @@ public final class Security {
      * down one position (towards the head of the list of installed
      * providers).
      *
-     * <p>This method returns silently if the provider is not installed.
+     * <p>This method returns silently if the provider is not installed or
+     * if name is null.
      * 
      * <p>First, if there is a security manager, its
      * <code>checkSecurityAccess</code> 
@@ -877,39 +406,26 @@ public final class Security {
      * @see #addProvider
      */
     public static synchronized void removeProvider(String name) {
-	reloadProviders();
-	check("removeProvider."+name);
-	Provider provider = getProvider(name);
-	if (provider != null) {
-	    for (Iterator i=providers.iterator(); i.hasNext(); )
-		if (i.next()==provider)
-		    i.remove();
-
-	    // empty provider-property cache
-	    providerPropertiesCache.clear();
-	    engineCache.clear();
-	    searchResultsCache.clear();
-	}
+	check("removeProvider." + name);
+	ProviderList list = Providers.getFullProviderList();
+	ProviderList newList = ProviderList.remove(list, name);
+	Providers.setProviderList(newList);
     }
-    
+
     /**
      * Returns an array containing all the installed providers. The order of
      * the providers in the array is their preference order.
      * 
      * @return an array of all the installed providers.
      */
-    public static synchronized Provider[] getProviders() {
-	reloadProviders();
-	Provider[] result = new Provider[providers.size()];
-	providers.copyInto(result);
-	
-	return result;
+    public static Provider[] getProviders() {
+	return Providers.getFullProviderList().toArray();
     }
 
     /**
      * Returns the provider installed with the specified name, if
      * any. Returns null if no provider with the specified name is
-     * installed.
+     * installed or if name is null.
      * 
      * @param name the name of the provider to get.
      * 
@@ -918,79 +434,75 @@ public final class Security {
      * @see #removeProvider
      * @see #addProvider
      */
-    public static synchronized Provider getProvider(String name) {
-	reloadProviders();
-	Enumeration enum = providers.elements();
-	while (enum.hasMoreElements()) {
-	    Provider prov = (Provider)enum.nextElement();
-	    if (prov.getName().equals(name)) {
-		return prov;
-	    }
-	}
-	return null;
+    public static Provider getProvider(String name) {
+	return Providers.getProviderList().getProvider(name);
     }
 
     /**
-    * Returns an array containing all installed providers that satisfy the
-    * specified selection criterion, or null if no such providers have been
-    * installed. The returned providers are ordered
-    * according to their <a href=
-    * "#insertProviderAt(java.security.Provider, int)">preference order</a>. 
-    * 
-    * <p> A cryptographic service is always associated with a particular
-    * algorithm or type. For example, a digital signature service is
-    * always associated with a particular algorithm (e.g., DSA),
-    * and a CertificateFactory service is always associated with
-    * a particular certificate type (e.g., X.509).
-    *
-    * <p>The selection criterion must be specified in one of the following two formats:
-    * <ul>
-    * <li> <i>&lt;crypto_service>.&lt;algorithm_or_type></i> <p> The
-    * cryptographic service name must not contain any dots.
-    * <p> A 
-    * provider satisfies the specified selection criterion iff the provider implements the 
-    * specified algorithm or type for the specified cryptographic service.
-    * <p> For example, "CertificateFactory.X.509" 
-    * would be satisfied by any provider that supplied
-    * a CertificateFactory implementation for X.509 certificates.
-    * <li> <i>&lt;crypto_service>.&lt;algorithm_or_type> &lt;attribute_name>:&lt attribute_value></i>
-    * <p> The cryptographic service name must not contain any dots. There
-     * must be one or more space charaters between the the <i>&lt;algorithm_or_type></i>
-     * and the <i>&lt;attribute_name></i>.
-    * <p> A provider satisfies this selection criterion iff the
-    * provider implements the specified algorithm or type for the specified 
-    * cryptographic service and its implementation meets the
-    * constraint expressed by the specified attribute name/value pair.
-    * <p> For example, "Signature.SHA1withDSA KeySize:1024" would be
-    * satisfied by any provider that implemented
-    * the SHA1withDSA signature algorithm with a keysize of 1024 (or larger).
-    *  
-    * </ul>
-    *
-    * <p> See Appendix A in the <a href=
-    * "../../../guide/security/CryptoSpec.html#AppA">
-    * Java Cryptogaphy Architecture API Specification &amp; Reference </a>
-    * for information about standard cryptographic service names, standard
-    * algorithm names and standard attribute names.
-    *
-    * @param filter the criterion for selecting
-    * providers. The filter is case-insensitive.
-    *
-    * @return all the installed providers that satisfy the selection
-    * criterion, or null if no such providers have been installed.
-    *
-    * @throws InvalidParameterException
-    *         if the filter is not in the required format
-    *
-    * @see #getProviders(java.util.Map)
-    */
+     * Returns an array containing all installed providers that satisfy the
+     * specified selection criterion, or null if no such providers have been
+     * installed. The returned providers are ordered
+     * according to their <a href=
+     * "#insertProviderAt(java.security.Provider, int)">preference order</a>. 
+     *  
+     * <p> A cryptographic service is always associated with a particular
+     * algorithm or type. For example, a digital signature service is
+     * always associated with a particular algorithm (e.g., DSA),
+     * and a CertificateFactory service is always associated with
+     * a particular certificate type (e.g., X.509).
+     *
+     * <p>The selection criterion must be specified in one of the following two
+     * formats:
+     * <ul>
+     * <li> <i>&lt;crypto_service>.&lt;algorithm_or_type></i> <p> The
+     * cryptographic service name must not contain any dots.
+     * <p> A 
+     * provider satisfies the specified selection criterion iff the provider 
+     * implements the 
+     * specified algorithm or type for the specified cryptographic service.
+     * <p> For example, "CertificateFactory.X.509" 
+     * would be satisfied by any provider that supplied
+     * a CertificateFactory implementation for X.509 certificates.
+     * <li> <i>&lt;crypto_service>.&lt;algorithm_or_type> 
+     * &lt;attribute_name>:&lt attribute_value></i>
+     * <p> The cryptographic service name must not contain any dots. There
+     * must be one or more space charaters between the the
+     * <i>&lt;algorithm_or_type></i> and the <i>&lt;attribute_name></i>.
+     *  <p> A provider satisfies this selection criterion iff the
+     * provider implements the specified algorithm or type for the specified 
+     * cryptographic service and its implementation meets the
+     * constraint expressed by the specified attribute name/value pair.
+     * <p> For example, "Signature.SHA1withDSA KeySize:1024" would be
+     * satisfied by any provider that implemented
+     * the SHA1withDSA signature algorithm with a keysize of 1024 (or larger).
+     *
+     * </ul>
+     *
+     * <p> See Appendix A in the <a href=
+     * "../../../guide/security/CryptoSpec.html#AppA">
+     * Java Cryptogaphy Architecture API Specification &amp; Reference </a>
+     * for information about standard cryptographic service names, standard
+     * algorithm names and standard attribute names.
+     *
+     * @param filter the criterion for selecting
+     * providers. The filter is case-insensitive.
+     *
+     * @return all the installed providers that satisfy the selection
+     * criterion, or null if no such providers have been installed.
+     *
+     * @throws InvalidParameterException
+     *         if the filter is not in the required format
+     * @throws NullPointerException if filter is null
+     *
+     * @see #getProviders(java.util.Map)
+     */
     public static Provider[] getProviders(String filter) {
 	String key = null;
 	String value = null;
 	int index = filter.indexOf(':');
 
 	if (index == -1) {
-	    key = new String(filter);
+	    key = filter;
 	    value = "";
 	} else {
 	    key = filter.substring(0, index);
@@ -1004,9 +516,9 @@ public final class Security {
     }
 
     /**
-     * Returns an array containing all installed providers that satisfy the specified
-     * selection criteria, or null if no such providers have been installed. 
-     * The returned providers are ordered
+     * Returns an array containing all installed providers that satisfy the 
+     * specified* selection criteria, or null if no such providers have been
+     * installed. The returned providers are ordered
      * according to their <a href=
      * "#insertProviderAt(java.security.Provider, int)">preference order</a>. 
      * 
@@ -1047,10 +559,11 @@ public final class Security {
      *
      * @throws InvalidParameterException
      *         if the filter is not in the required format
+     * @throws NullPointerException if filter is null
      *
      * @see #getProviders(java.lang.String)
      */
-    public static Provider[] getProviders(Map filter) {
+    public static Provider[] getProviders(Map<String,String> filter) {
 	// Get all installed providers first.
 	// Then only return those providers who satisfy the selection criteria.
 	Provider[] allProviders = Security.getProviders();
@@ -1107,15 +620,28 @@ public final class Security {
 	
 	return result;
     }
-
-    private static boolean checkSuperclass(Class subclass, Class superclass) {
-	while(!subclass.equals(superclass)) {
-	    subclass = subclass.getSuperclass();
-	    if (subclass == null) {
-		return false;
-	    }
+    
+    // Map containing cached Spi Class objects of the specified type
+    private static final Map<String,Class> spiMap = 
+				new ConcurrentHashMap<String,Class>();
+    
+    /**
+     * Return the Class object for the given engine type 
+     * (e.g. "MessageDigest"). Works for Spis in the java.security package
+     * only.
+     */
+    private static Class getSpiClass(String type) {
+	Class clazz = spiMap.get(type);
+	if (clazz != null) {
+	    return clazz;
 	}
-	return true;
+	try {
+	    clazz = Class.forName("java.security." + type + "Spi");
+	    spiMap.put(type, clazz);
+	    return clazz;
+	} catch (ClassNotFoundException e) {
+	    throw (Error)new AssertionError("Spi class not found").initCause(e);
+	}
     }
 
     /*
@@ -1127,19 +653,26 @@ public final class Security {
      * configured providers will be searched in order of preference.
      */
     static Object[] getImpl(String algorithm, String type, String provider)
-	throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
-	return doGetImpl(algorithm, type, pp);
+	    throws NoSuchAlgorithmException, NoSuchProviderException {
+	if (provider == null) {
+	    return GetInstance.getInstance
+	    	(type, getSpiClass(type), algorithm).toArray();
+	} else {
+	    return GetInstance.getInstance
+	    	(type, getSpiClass(type), algorithm, provider).toArray();
+	}
     }
 
     static Object[] getImpl(String algorithm, String type, String provider,
-			    Object params)
-	throws NoSuchAlgorithmException, NoSuchProviderException,
-	       InvalidAlgorithmParameterException
-    {
-	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
-	return doGetImpl(algorithm, type, pp, params);
+	    Object params) throws NoSuchAlgorithmException, 
+	    NoSuchProviderException, InvalidAlgorithmParameterException {
+	if (provider == null) {
+	    return GetInstance.getInstance
+	    	(type, getSpiClass(type), algorithm, params).toArray();
+	} else {
+	    return GetInstance.getInstance
+	    	(type, getSpiClass(type), algorithm, params, provider).toArray();
+	}
     }
 
     /*
@@ -1150,128 +683,16 @@ public final class Security {
      * The <code>provider</code> argument cannot be null.
      */
     static Object[] getImpl(String algorithm, String type, Provider provider)
-	throws NoSuchAlgorithmException
-    {
-	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
-	return doGetImpl(algorithm, type, pp);
+	    throws NoSuchAlgorithmException {
+	return GetInstance.getInstance
+	    (type, getSpiClass(type), algorithm, provider).toArray();
     }
 
     static Object[] getImpl(String algorithm, String type, Provider provider,
-			    Object params)
-	throws NoSuchAlgorithmException, InvalidAlgorithmParameterException
-    {
-	ProviderProperty pp = getEngineClassName(algorithm, provider, type);
-	return doGetImpl(algorithm, type, pp, params);
-    }
-
-    private static Object[] doGetImpl(String algorithm, String type, 
-				      ProviderProperty pp)
-	throws NoSuchAlgorithmException
-    {
-	try {
-	    return doGetImpl(algorithm, type, pp, null);
-	} catch (InvalidAlgorithmParameterException e) {
-	    // should not occur
-	    throw new NoSuchAlgorithmException(e.getMessage());
-	}
-    }
-
-    private static Object[] doGetImpl(String algorithm, String type, 
-				      ProviderProperty pp, Object params)
-	throws NoSuchAlgorithmException, InvalidAlgorithmParameterException
-    { 
-	String className = pp.className;
-	String providerName = pp.provider.getName();
-
-	try {
-	    // java.security.<type>.Spi is a system class, therefore
-	    // Class.forName() always works
-	    Class typeClass;
-	    if (type.equals("CertificateFactory") ||
-		type.equals("CertPathBuilder") ||
-		type.equals("CertPathValidator") ||
-		type.equals("CertStore")) {
-		typeClass = Class.forName("java.security.cert." + type
-					  + "Spi");
-	    } else {
-		typeClass = Class.forName("java.security." + type + "Spi");
-	    }
-
-	    // Load the implementation class using the same class loader that
-	    // was used to load the associated provider.
-	    // In order to get the class loader of a class, the caller's class
-	    // loader must be the same as or an ancestor of the class loader
-	    // being returned.
-	    // Since java.security.Security is a system class, it can get the
-	    // class loader of any class (the system class loader is an
-	    // ancestor of all class loaders).
-	    ClassLoader cl = pp.provider.getClass().getClassLoader();
-	    Class implClass;
-	    if (cl != null) {
-		implClass = cl.loadClass(className);
-	    } else {
-		implClass = Class.forName(className);
-	    }
-
-	    if (checkSuperclass(implClass, typeClass)) {
-		Object obj;
-		if (type.equals("CertStore")) {
-		    Constructor cons = 
-			implClass.getConstructor(new Class[] 
-			    { Class.forName
-				("java.security.cert.CertStoreParameters") });
-		    obj = cons.newInstance(new Object[] {params});
-		} else
-		    obj = implClass.newInstance();
-		return new Object[] { obj, pp.provider };
-	    } else {
-		throw new NoSuchAlgorithmException("class configured for " + 
-						   type + ": " + className + 
-						   " not a " + type);
-	    }
-	} catch (ClassNotFoundException e) {
-	    throw new NoSuchAlgorithmException("class configured for " + 
-					       type + "(provider: " + 
-					       providerName + ")" + 
-					       "cannot be found.\n" + 
-					       e.getMessage());
-	} catch (InstantiationException e) {
-	    throw (NoSuchAlgorithmException) new NoSuchAlgorithmException("class " + className + 
-					       " configured for " + type +
-					       "(provider: " + providerName + 
-					       ") cannot be " +
-					       "instantiated.\n").initCause(e);
-	} catch (IllegalAccessException e) {
-	    throw new NoSuchAlgorithmException("class " + className + 
-					       " configured for " + type +
-					       "(provider: " + providerName +
-					       ") cannot be accessed.\n" + 
-					       e.getMessage());
-	} catch (SecurityException e) {
-	    throw new NoSuchAlgorithmException("class " + className + 
-					       " configured for " + type +
-					       "(provider: " + providerName +
-					       ") cannot be accessed.\n" + 
-					       e.getMessage());
-	} catch (NoSuchMethodException e) {
-	    throw new NoSuchAlgorithmException("constructor for " +
-					       "class " + className + 
-					       " configured for " + type +
-					       "(provider: " + providerName +
-					       ") cannot be instantiated.\n" + 
-					       e.getMessage());
-	} catch (InvocationTargetException e) {
-	    Throwable t = e.getCause();
-	    if (t != null && t instanceof InvalidAlgorithmParameterException)
-		throw (InvalidAlgorithmParameterException) t;
-	    else
-	        throw new InvalidAlgorithmParameterException("constructor " +
-					       "for class " + className + 
-					       " configured for " + type +
-					       "(provider: " + providerName +
-					       ") cannot be instantiated.\n" + 
-					       e.getMessage());
-	}
+	    Object params) throws NoSuchAlgorithmException, 
+	    InvalidAlgorithmParameterException {
+	return GetInstance.getInstance
+	    (type, getSpiClass(type), algorithm, params, provider).toArray();
     }
 
     /**
@@ -1292,6 +713,7 @@ public final class Security {
      *          java.lang.SecurityManager#checkPermission}</code> method
      *          denies
      *          access to retrieve the specified security property value
+     * @throws  NullPointerException is key is null
      * 
      * @see #setProperty
      * @see java.security.SecurityPermission
@@ -1325,6 +747,7 @@ public final class Security {
      *          if a security manager exists and its <code>{@link
      *          java.lang.SecurityManager#checkPermission}</code> method
      *          denies access to set the specified security property value
+     * @throws  NullPointerException if key or datum is null
      * 
      * @see #getProperty
      * @see java.security.SecurityPermission
@@ -1396,44 +819,6 @@ public final class Security {
 	}
     }
     
-    /**
-     * Print an error message that may be significant to a user.
-     */
-    static void error(String msg) {
-	if (debug) {
-	    System.err.println(msg);
-	}
-    }
-
-    /**
-     * Print an error message that may be significant to a user.
-     */
-    static void error(String msg, Throwable t) {
-	error(msg);
-	if (debug) {
-	    t.printStackTrace();
-	}
-    }
-	
-    /**
-     * Print an debugging message that may be significant to a developer.
-     */
-    static void debug(String msg) {
-	if (debug) {
-	    System.err.println(msg);
-	}
-    }
-
-    /**
-     * Print an debugging message that may be significant to a developer.
-     */
-    static void debug(String msg, Throwable t) {
-	if (debug) {
-	    t.printStackTrace();
-	    System.err.println(msg);
-	}
-    }
-
     /*
     * Returns all providers who satisfy the specified
     * criterion.
@@ -1451,62 +836,23 @@ public final class Security {
 	String algName = filterComponents[1];
 	String attrName = filterComponents[2];
 
-	// Check whether we can find anything in the cache
-	String cacheKey = serviceName + '.' + algName;
-	LinkedHashSet candidates = (LinkedHashSet)searchResultsCache.get(cacheKey);
-
-	// If there is no entry for the cacheKey in the cache,
-	// let's build an entry for it first.
-	LinkedHashSet forCache = getProvidersNotUsingCache(serviceName,
-						     algName,
-						     null,
-						     null,
-						     null,
-						     allProviders);
-
-	if ((forCache == null) || (forCache.isEmpty())) {
-	    return null;
-	} else {
-	    searchResultsCache.put(cacheKey, forCache);
-	    if (attrName == null) {
-		return forCache;
-	    }
-	    return getProvidersNotUsingCache(serviceName, algName, attrName,
-					     filterValue, candidates, 
-					     allProviders);
-	}
+	return getProvidersNotUsingCache(serviceName, algName, attrName,
+					 filterValue, allProviders);
     }
 	
     private static LinkedHashSet getProvidersNotUsingCache(String serviceName,
 						     String algName,
 						     String attrName,
 						     String filterValue,
-						     LinkedHashSet candidates,
 						     Provider[] allProviders) {
-	if ((attrName != null) && (candidates != null) &&
-	    (!candidates.isEmpty())) {
-	    for (Iterator cansIte = candidates.iterator();
-		 cansIte.hasNext(); ) {
-		Provider prov = (Provider)cansIte.next();
-		if (!isCriterionSatisfied(prov, serviceName, algName, 
-					  attrName, filterValue)) {
-		    cansIte.remove();
-		}
+	LinkedHashSet candidates = new LinkedHashSet(5);
+	for (int i = 0; i < allProviders.length; i++) {
+	    if (isCriterionSatisfied(allProviders[i], serviceName, 
+				     algName,
+				     attrName, filterValue)) {
+		candidates.add(allProviders[i]);
 	    }
 	}
-
-	if ((candidates == null) || (candidates.isEmpty())) {
-	    if (candidates == null)
-		candidates = new LinkedHashSet(5);
-	    for (int i = 0; i < allProviders.length; i++) {
-		if (isCriterionSatisfied(allProviders[i], serviceName, 
-					 algName,
-					 attrName, filterValue)) {
-		    candidates.add(allProviders[i]);
-		}
-	    }
-	}
-
 	return candidates;
     }
 
@@ -1574,7 +920,8 @@ public final class Security {
      * otherwise, returns false.
      */
     private static boolean isStandardAttr(String attribute) {
-	// For now, we just have two standard attributes: KeySize and ImplementedIn.
+	// For now, we just have two standard attributes: 
+	// KeySize and ImplementedIn.
 	if (attribute.equalsIgnoreCase("KeySize"))
 	    return true;
 	
@@ -1594,8 +941,8 @@ public final class Security {
 	// For KeySize, prop is the max key size the
 	// provider supports for a specific <crypto_service>.<algorithm>.
 	if (attribute.equalsIgnoreCase("KeySize")) {
-	    int requestedSize = (new Integer(value)).intValue();
-	    int maxSize = (new Integer(prop)).intValue();
+	    int requestedSize = Integer.parseInt(value);
+	    int maxSize = Integer.parseInt(prop);
 	    if (requestedSize <= maxSize) {
 		return true;
 	    } else {
@@ -1667,35 +1014,35 @@ public final class Security {
 	return result;
     }
 
-   /**
-    * Returns a Set of Strings containing the names of all available
-    * algorithms or types for the specified Java cryptographic service
-    * (e.g., Signature, MessageDigest, Cipher, Mac, KeyStore). Returns
-    * an empty Set if there is no provider that supports the  
-    * specified service. For a complete list of Java cryptographic
-    * services, please see the 
-    * <a href="../../../guide/security/CryptoSpec.html">Java 
-    * Cryptography Architecture API Specification &amp; Reference</a>.
-    * Note: the returned set is immutable.
-    *
-    * @param serviceName the name of the Java cryptographic 
-    * service (e.g., Signature, MessageDigest, Cipher, Mac, KeyStore).
-    * Note: this parameter is case-insensitive.
-    *
-    * @return a Set of Strings containing the names of all available 
-    * algorithms or types for the specified Java cryptographic service
-    * or an empty set if no provider supports the specified service.
-    *
-    * @since 1.4
-    **/
-    public static Set getAlgorithms(String serviceName) {
-	HashSet result = new HashSet();
+    /**
+     * Returns a Set of Strings containing the names of all available
+     * algorithms or types for the specified Java cryptographic service
+     * (e.g., Signature, MessageDigest, Cipher, Mac, KeyStore). Returns
+     * an empty Set if there is no provider that supports the  
+     * specified service or if serviceName is null. For a complete list 
+     * of Java cryptographic services, please see the 
+     * <a href="../../../guide/security/CryptoSpec.html">Java 
+     * Cryptography Architecture API Specification &amp; Reference</a>.
+     * Note: the returned set is immutable.
+     *
+     * @param serviceName the name of the Java cryptographic 
+     * service (e.g., Signature, MessageDigest, Cipher, Mac, KeyStore).
+     * Note: this parameter is case-insensitive.
+     *
+     * @return a Set of Strings containing the names of all available 
+     * algorithms or types for the specified Java cryptographic service
+     * or an empty set if no provider supports the specified service.
+     *
+     * @since 1.4
+     **/
+    public static Set<String> getAlgorithms(String serviceName) {
 
 	if ((serviceName == null) || (serviceName.length() == 0) ||
 	    (serviceName.endsWith("."))) {
-	    return result;
+	    return Collections.EMPTY_SET;
 	}
 
+	HashSet result = new HashSet();
 	Provider[] providers = Security.getProviders();
 
 	for (int i = 0; i < providers.length; i++) {
@@ -1718,5 +1065,4 @@ public final class Security {
 	return Collections.unmodifiableSet(result);
     }
 }
-	
 

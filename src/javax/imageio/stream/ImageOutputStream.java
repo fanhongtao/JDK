@@ -1,7 +1,7 @@
 /*
- * @(#)ImageOutputStream.java	1.22 03/01/23
+ * @(#)ImageOutputStream.java	1.24 04/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@ package javax.imageio.stream;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.UTFDataFormatException;
 
 /**
  * A seekable output stream interface for use by
@@ -350,7 +351,9 @@ public interface ImageOutputStream extends ImageInputStream, DataOutput {
 
     /**
      * Writes two bytes of length information to the output stream in
-     * netwrok byte order, followed by the Java modified UTF
+     * network byte order, followed by the
+     * <a href="../../../java/io/DataInput.html#modified-utf-8">modified
+     * UTF-8</a>
      * representation of every character in the string <code>s</code>.
      * If <code>s</code> is <code>null</code>, a
      * <code>NullPointerException</code> is thrown.  Each character in
@@ -401,13 +404,18 @@ public interface ImageOutputStream extends ImageInputStream, DataOutput {
      * and written out first.  The bit offset will be 0 after the
      * write.
      *
+     * <p><strong>Note:</strong> This method should not be used in
+     * the  implementation of image formats that use standard UTF-8,
+     * because  the modified UTF-8 used here is incompatible with
+     * standard UTF-8.
+     *
      * @param s a <code>String</code> containing the value to be
      * written.
      *
      * @exception NullPointerException if <code>s</code> is
      * <code>null</code>.
-     * @exception UTFDataFormatException if the UTF representation of
-     * <code>s</code> requires more than 65536 bytes.
+     * @exception UTFDataFormatException if the modified UTF-8
+     * representation of <code>s</code> requires more than 65536 bytes.
      * @exception IOException if an I/O error occurs.
      */
     void writeUTF(String s) throws IOException;

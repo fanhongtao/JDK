@@ -1,19 +1,25 @@
 /*
- * @(#)ActivationID.java	1.24 03/01/23
+ * @(#)ActivationID.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.rmi.activation;
 
-import java.rmi.*;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
+import java.rmi.MarshalledObject;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.UnmarshalException;
 import java.rmi.server.RemoteObject;
+import java.rmi.server.RemoteObjectInvocationHandler;
 import java.rmi.server.RemoteRef;
+import java.rmi.server.RemoteStub;
 import java.rmi.server.UID;
-
-import sun.rmi.server.RemoteProxy;
-import sun.security.action.GetPropertyAction;
 
 /**
  * Activation makes use of special identifiers to denote remote
@@ -38,7 +44,7 @@ import sun.security.action.GetPropertyAction;
  * this method both registers and exports the object. </ul>
  *
  * @author	Ann Wollrath
- * @version	1.24, 03/01/23
+ * @version	1.28, 03/12/19
  * @see		Activatable
  * @since	1.2
  */
@@ -88,13 +94,13 @@ public class ActivationID implements java.io.Serializable {
     {
  	try {
  	    MarshalledObject mobj =
- 		(MarshalledObject)(activator.activate(this, force));
- 	    return (Remote)mobj.get();
+		(MarshalledObject) activator.activate(this, force);
+ 	    return (Remote) mobj.get();
  	} catch (RemoteException e) {
  	    throw e;
- 	} catch (java.io.IOException e) {
+ 	} catch (IOException e) {
  	    throw new UnmarshalException("activation failed", e);
- 	} catch (java.lang.ClassNotFoundException e) {
+ 	} catch (ClassNotFoundException e) {
  	    throw new UnmarshalException("activation failed", e);
 	}
 	
@@ -125,7 +131,7 @@ public class ActivationID implements java.io.Serializable {
      */
     public boolean equals(Object obj) {
 	if (obj instanceof ActivationID) {
-	    ActivationID id = (ActivationID)obj;
+	    ActivationID id = (ActivationID) obj;
 	    return (uid.equals(id.uid) && activator.equals(id.activator));
 	} else {
 	    return false;
@@ -175,13 +181,27 @@ public class ActivationID implements java.io.Serializable {
      * names is specified in the {@link
      * java.rmi.server.RemoteObject RemoteObject}
      * <code>writeObject</code> method <b>serialData</b>
-     * specification.  */
+     * specification.
+     **/
     private void writeObject(java.io.ObjectOutputStream out)
-	throws java.io.IOException, java.lang.ClassNotFoundException
+	throws IOException, ClassNotFoundException
     {
 	out.writeObject(uid);
 
-	RemoteRef ref = ((RemoteObject)activator).getRef();
+	RemoteRef ref;
+	if (activator instanceof RemoteObject) {
+	    ref = ((RemoteObject) activator).getRef();
+	} else if (Proxy.isProxyClass(activator.getClass())) {
+	    InvocationHandler handler = Proxy.getInvocationHandler(activator);
+	    if (!(handler instanceof RemoteObjectInvocationHandler)) {
+		throw new InvalidObjectException(
+		    "unexpected invocation handler");
+	    }
+	    ref = ((RemoteObjectInvocationHandler) handler).getRef();
+	    
+	} else {
+	    throw new InvalidObjectException("unexpected activator type");
+	}
 	out.writeUTF(ref.getRefClass(out));
 	ref.writeExternal(out);
     }
@@ -210,8 +230,7 @@ public class ActivationID implements java.io.Serializable {
      * <p>Note: If the external ref type name is
      * <code>"UnicastRef"</code>, <code>"UnicastServerRef"</code>,
      * <code>"UnicastRef2"</code>, <code>"UnicastServerRef2"</code>,
-     * <code>"ActivatableRef"</code>, or
-     * <code>"ActivatableServerRef"</code>, a corresponding
+     * or <code>"ActivatableRef"</code>, a corresponding
      * implementation-specific class must be found, and its
      * <code>readExternal</code> method must read the serial data
      * for that external ref type name as specified to be written
@@ -224,32 +243,28 @@ public class ActivationID implements java.io.Serializable {
      * that implementation-specific class.
      */
     private void readObject(java.io.ObjectInputStream in) 
-	throws java.io.IOException, java.lang.ClassNotFoundException
+	throws IOException, ClassNotFoundException
     {
 	uid = (UID)in.readObject();
 	
 	try {
 	    Class refClass = Class.forName(RemoteRef.packagePrefix + "." +
 					   in.readUTF());
-	    RemoteRef ref = (RemoteRef)refClass.newInstance();
+	    RemoteRef ref = (RemoteRef) refClass.newInstance();
 	    ref.readExternal(in);
-	    activator =
-		(Activator)RemoteProxy.getStub(activatorClassName, ref);
+	    activator = (Activator)
+		Proxy.newProxyInstance(null,
+				       new Class[]{ Activator.class },
+				       new RemoteObjectInvocationHandler(ref));
 
 	} catch (InstantiationException e) {
-	    throw new UnmarshalException("Unable to create remote reference",
-					 e);
+	    throw (IOException)
+		new InvalidObjectException(
+		    "Unable to create remote reference").initCause(e);
 	} catch (IllegalAccessException e) {
-	    throw new UnmarshalException("Illegal access creating remote reference");
+	    throw (IOException)
+		new InvalidObjectException(
+		    "Unable to create remote reference").initCause(e);
 	}
-    }
-
-    private static String activatorClassName;
-    
-    static 
-    {
-	activatorClassName = (String) java.security.AccessController.doPrivileged(
-	      new GetPropertyAction("java.rmi.activation.activator.class",
-				    "sun.rmi.server.Activation$ActivatorImpl"));
     }
 }

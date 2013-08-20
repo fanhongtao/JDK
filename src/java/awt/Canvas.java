@@ -1,7 +1,7 @@
 /*
- * @(#)Canvas.java	1.33 03/01/23
+ * @(#)Canvas.java	1.35 04/03/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -20,7 +20,7 @@ import javax.accessibility.*;
  * component. The <code>paint</code> method must be overridden 
  * in order to perform custom graphics on the canvas.
  *
- * @version 	1.33 01/23/03
+ * @version 	1.35 03/16/04
  * @author 	Sami Shaio
  * @since       JDK1.0
  */
@@ -201,7 +201,9 @@ public class Canvas extends Component implements Accessible {
      * <code>Canvas</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to canvas user-interface elements.
      */
-    protected class AccessibleAWTCanvas extends AccessibleAWTComponent {
+    protected class AccessibleAWTCanvas extends AccessibleAWTComponent
+    {
+        private static final long serialVersionUID = -6325592262103146699L;
 
         /**
          * Get the role of this object.

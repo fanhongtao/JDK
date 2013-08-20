@@ -1,10 +1,12 @@
 /*
- * @(#)PixmapEngine.java	1.13 04/01/13
+ * @(#)PixmapEngine.java	1.14 03/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
+
+import javax.swing.plaf.synth.*;
 
 import java.awt.*;
 import java.security.AccessController;
@@ -16,7 +18,7 @@ import sun.security.action.GetPropertyAction;
  * GTKEngine implementation that renders using images. The images to render
  * are dictated by the <code>PixmapStyle.Info</code>.
  *
- * @version 1.13, 01/13/04
+ * @version 1.14, 12/19/03
  * @author Scott Violet
  */
 class PixmapEngine extends GTKEngine implements GTKConstants {
@@ -123,7 +125,7 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
         if (info != null) {
             // Yes, this appears to paint before the gap does.
             paintPixmap(g, x, y, w, h, info, true);
-            
+
             // Determine the size of the opposite axis of the gap.
             int size = 0;
             Image startImage = info.getGapStartImage();
@@ -229,12 +231,12 @@ class PixmapEngine extends GTKEngine implements GTKConstants {
 
     public void paintExtension(SynthContext context, Graphics g, int state,
                                int shadowType, String info, int x, int y,
-                               int w, int h, int placement) {
+                               int w, int h, int placement, int tabIndex) {
         if (!paintPixmap(g, x, y, w, h, ((PixmapStyle)context.getStyle()).
                          getInfo("EXTENSION", info, state, shadowType,
                                  UNDEFINED, placement, UNDEFINED), true)) {
             super.paintExtension(context, g, state, shadowType, info, x, y,
-                                 w, h, placement);
+                                 w, h, placement, tabIndex);
         }
     }
 

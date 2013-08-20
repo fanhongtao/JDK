@@ -1,7 +1,7 @@
 /*
- * @(#)TransferHandler.java	1.27 05/08/31
+ * @(#)TransferHandler.java	1.29 04/06/02
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -16,8 +16,8 @@ import java.io.*;
 import java.util.TooManyListenersException;
 import javax.swing.plaf.UIResource;
 import javax.swing.event.*;
+
 import com.sun.java.swing.SwingUtilities2;
-import sun.reflect.misc.MethodUtil;
 
 /**
  * This class is used to handle the transfer of a <code>Transferable</code>
@@ -40,10 +40,16 @@ import sun.reflect.misc.MethodUtil;
  * a <code>TransferHandler</code> can be constructed with the string "foreground".  The
  * built in support will use the color returned by <code>getForeground</code> as the source
  * of the transfer, and <code>setForeground</code> for the target of a transfer.  
+ * <p>
+ * Please see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/dnd.html">
+ * How to Use Drag and Drop and Data Transfer</a>,
+ * a section in <em>The Java Tutorial</em>, for more information.
  * 
  *
  * @author  Timothy Prinzing
- * @version 1.27 08/31/05
+ * @version 1.29 06/02/04
+ * @since 1.4
  */
 public class TransferHandler implements Serializable {
 
@@ -186,12 +192,16 @@ public class TransferHandler implements Serializable {
      * given clipboard.  This method is called by the default cut and
      * copy actions registered in a component's action map.  
      * <p>
-     * The transfer <em>will</em> have been completed at the
-     * return of this call.  The transfer will take place using the
-     * <code>java.awt.datatransfer</code> mechanism,
-     * requiring no further effort from the developer.
-     * The <code>exportDone</code> method will be called when the
-     * transfer has completed.
+     * The transfer will take place using the <code>java.awt.datatransfer</code>
+     * mechanism, requiring no further effort from the developer. Any data
+     * transfer <em>will</em> be complete and the <code>exportDone</code>
+     * method will be called with the action that occurred, before this method
+     * returns. Should the clipboard be unavailable when attempting to place
+     * data on it, the <code>IllegalStateException</code> thrown by
+     * {@link Clipboard#setContents(Transferable, ClipboardOwner)} will
+     * be propogated through this method. However, 
+     * <code>exportDone</code> will first be called with an action
+     * of <code>NONE</code> for consistency.
      *
      * @param comp  the component holding the data to be transferred; this
      *  argument is provided to enable sharing of <code>TransferHandler</code>s by
@@ -203,25 +213,28 @@ public class TransferHandler implements Serializable {
      *  capabilities given by getSourceActions and the requested action;
      *  the intersection may result in an action of <code>NONE</code>
      *  if the requested action isn't supported
+     * @throws IllegalStateException if the clipboard is currently unavailable
+     * @see Clipboard#setContents(Transferable, ClipboardOwner)
      */
-    public void exportToClipboard(JComponent comp, Clipboard clip, int action) {
-        boolean exportSuccess = false;
-        Transferable t = null;
+    public void exportToClipboard(JComponent comp, Clipboard clip, int action)
+                                                  throws IllegalStateException {
 
 	int clipboardAction = getSourceActions(comp) & action;
 	if (clipboardAction != NONE) {
-            t = createTransferable(comp);
+            Transferable t = createTransferable(comp);
             if (t != null) {
-                clip.setContents(t, null);
-                exportSuccess = true;
+                try {
+                    clip.setContents(t, null);
+                    exportDone(comp, t, clipboardAction);
+                    return;
+                } catch (IllegalStateException ise) {
+                    exportDone(comp, t, NONE);
+                    throw ise;
+                }
             }
         }
 
-        if (exportSuccess) {
-            exportDone(comp, t, clipboardAction);
-        } else {
-            exportDone(comp, null, NONE);
-        }
+        exportDone(comp, null, NONE);
     }
 
     /**
@@ -253,7 +266,7 @@ public class TransferHandler implements Serializable {
 		try {
 		    Object value = t.getTransferData(flavor);
 		    Object[] args = { value };
-		    MethodUtil.invoke(writer, comp, args);
+		    writer.invoke(comp, args);
 		    return true;
 		} catch (Exception ex) {
 		    System.err.println("Invocation failed");
@@ -506,7 +519,7 @@ public class TransferHandler implements Serializable {
 	    Method reader = property.getReadMethod();
 	    Object value = null;
 	    try {
-		value = MethodUtil.invoke(reader, component, null);
+		value = reader.invoke(component, null);
 	    } catch (Exception ex) {
 		throw new IOException("Property read failed: " + property.getName());
 	    }
@@ -721,7 +734,7 @@ public class TransferHandler implements Serializable {
                 }
 	    }
             
-            th.exportDone(c, null, NONE);
+            th.exportDone(c, t, NONE);
 	}
 
 	// --- DragSourceListener methods -----------------------------------
@@ -753,7 +766,7 @@ public class TransferHandler implements Serializable {
 	    if (dsde.getDropSuccess()) {
                 c.getTransferHandler().exportDone(c, dsc.getTransferable(), dsde.getDropAction());
 	    } else {
-                c.getTransferHandler().exportDone(c, null, NONE);
+                c.getTransferHandler().exportDone(c, dsc.getTransferable(), NONE);
             }
             c.setAutoscrolls(scrolls);
 	}
@@ -808,18 +821,30 @@ public class TransferHandler implements Serializable {
 		TransferHandler th = c.getTransferHandler();
 		Clipboard clipboard = getClipboard(c);
 		String name = (String) getValue(Action.NAME);
-		if ((clipboard != null) && (th != null) && (name != null)) {
-		    if ("cut".equals(name)) {
-			th.exportToClipboard(c, clipboard, MOVE);
-		    } else if ("copy".equals(name)) {
-			th.exportToClipboard(c, clipboard, COPY);
-		    } else if ("paste".equals(name)) {
-                        Transferable trans = clipboard.getContents(null);
-                        if (trans != null) {
-                            th.importData(c, trans);
+
+                Transferable trans = null;
+
+                // any of these calls may throw IllegalStateException
+                try {
+                    if ((clipboard != null) && (th != null) && (name != null)) {
+                        if ("cut".equals(name)) {
+                            th.exportToClipboard(c, clipboard, MOVE);
+                        } else if ("copy".equals(name)) {
+                            th.exportToClipboard(c, clipboard, COPY);
+                        } else if ("paste".equals(name)) {
+                            trans = clipboard.getContents(null);
                         }
-		    }
-		}
+                    }
+                } catch (IllegalStateException ise) {
+                    // clipboard was unavailable
+                    UIManager.getLookAndFeel().provideErrorFeedback(c);
+                    return;
+                }
+
+                // this is a paste action, import data into the component
+                if (trans != null) {
+                    th.importData(c, trans);
+                }
 	    }
 	}
 
@@ -849,3 +874,6 @@ public class TransferHandler implements Serializable {
     }
 
 }
+
+
+

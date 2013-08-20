@@ -1,7 +1,7 @@
 /*
- * @(#)JTextField.java	1.87 03/01/23
+ * @(#)JTextField.java	1.90 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -71,10 +71,6 @@ import java.io.Serializable;
  * and <code>getHorizontalAlignment</code> methods.  The default
  * is to be leading justified.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JTextField"><code>JTextField</code> key assignments</a>.
- * <p>
  * How the text field consumes VK_ENTER events depends
  * on whether the text field has any action listeners.
  * If so, then VK_ENTER results in the listeners
@@ -136,7 +132,7 @@ import java.io.Serializable;
  * description: A component which allows for the editing of a single line of text.
  *
  * @author  Timothy Prinzing
- * @version 1.87 01/23/03
+ * @version 1.90 12/19/03
  * @see #setActionCommand
  * @see JPasswordField
  * @see #addActionListener
@@ -718,13 +714,14 @@ public class JTextField extends JTextComponent implements SwingConstants {
     public void scrollRectToVisible(Rectangle r) {
         // convert to coordinate system of the bounded range
 	Insets i = getInsets();
-        int x = r.x + visibility.getValue() - i.left;
-        if (x < visibility.getValue()) {
+        int x0 = r.x + visibility.getValue() - i.left;
+        int x1 = x0 + r.width;
+        if (x0 < visibility.getValue()) {
             // Scroll to the left
-            visibility.setValue(x);
-        } else if(x > visibility.getValue() + visibility.getExtent()) {
+            visibility.setValue(x0);
+        } else if(x1 > visibility.getValue() + visibility.getExtent()) {
             // Scroll to the right
-            visibility.setValue(x - visibility.getExtent());
+            visibility.setValue(x1 - visibility.getExtent());
         }
     }
 

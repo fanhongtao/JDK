@@ -1,7 +1,7 @@
 /*
- * @(#)MetaData.java	1.33 05/04/29
+ * @(#)MetaData.java	1.39 04/05/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -23,7 +23,7 @@ import java.util.Enumeration;
  *
  * @see java.beans.Intropector
  *
- * @version 1.33 04/29/05
+ * @version 1.39 05/05/04
  * @author Philip Milne
  * @author Steve Langley
  */
@@ -31,7 +31,7 @@ import java.util.Enumeration;
 class NullPersistenceDelegate extends PersistenceDelegate {
     // Note this will be called by all classes when they reach the
     // top of their superclass chain.
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
     }
     protected Expression instantiate(Object oldInstance, Encoder out) { return null; }
 
@@ -66,7 +66,7 @@ class ArrayPersistenceDelegate extends PersistenceDelegate {
                                 new Integer(Array.getLength(oldInstance))});
         }
 
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         int n = Array.getLength(oldInstance);
         for (int i = 0; i < n; i++) {
             Object index = new Integer(i);
@@ -143,10 +143,10 @@ class java_lang_Class_PersistenceDelegate extends PersistenceDelegate {
         // so we have to generate different code for primitive types.
         // This is needed for arrays whose subtype may be primitive.
         if (c.isPrimitive()) {
-            Field field = null; 
-            try { 
-                field = ReflectionUtils.typeToClass(c).getDeclaredField("TYPE");
-            } catch (NoSuchFieldException ex) { 
+            Field field = null;
+	    try {
+		field = ReflectionUtils.typeToClass(c).getDeclaredField("TYPE");
+	    } catch (NoSuchFieldException ex) {
                 System.err.println("Unknown primitive type: " + c);
             }
             return new Expression(oldInstance, field, "get", new Object[]{null});
@@ -202,7 +202,7 @@ delegates to be registered with concrete classes.
 
 // Collection
 class java_util_Collection_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
 	java.util.Collection oldO = (java.util.Collection)oldInstance;
 	java.util.Collection newO = (java.util.Collection)newInstance;
 
@@ -217,7 +217,7 @@ class java_util_Collection_PersistenceDelegate extends DefaultPersistenceDelegat
 
 // List
 class java_util_List_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         java.util.List oldO = (java.util.List)oldInstance;
         java.util.List newO = (java.util.List)newInstance;
         int oldSize = oldO.size();
@@ -252,7 +252,7 @@ class java_util_List_PersistenceDelegate extends DefaultPersistenceDelegate {
 
 // Map
 class java_util_Map_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         // System.out.println("Initializing: " + newInstance);
         java.util.Map oldMap = (java.util.Map)oldInstance;
         java.util.Map newMap = (java.util.Map)newInstance;
@@ -303,7 +303,7 @@ class java_beans_beancontext_BeanContextSupport_PersistenceDelegate extends java
 // AWT
 
 class StaticFieldsPersistenceDelegate extends PersistenceDelegate {
-    protected void installFields(Encoder out, Class cls) {
+    protected void installFields(Encoder out, Class<?> cls) {
         Field fields[] = cls.getFields();
         for(int i = 0; i < fields.length; i++) { 
             Field field = fields[i]; 
@@ -345,7 +345,7 @@ class java_awt_MenuShortcut_PersistenceDelegate extends PersistenceDelegate {
 
 // Component
 class java_awt_Component_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         java.awt.Component c = (java.awt.Component)oldInstance;
         java.awt.Component c2 = (java.awt.Component)newInstance;
@@ -357,16 +357,10 @@ class java_awt_Component_PersistenceDelegate extends DefaultPersistenceDelegate 
             String[] fieldNames = new String[]{"background", "foreground", "font"};
             for(int i = 0; i < fieldNames.length; i++) {
                 String name = fieldNames[i];
-                Object oldValue = ReflectionUtils.getPrivateField (
-                                  oldInstance, java.awt.Component.class, name,
-                                  out.getExceptionListener()); 
-                Object newValue = (newInstance == null) ? null
-                                  : ReflectionUtils.getPrivateField(newInstance,
-                    java.awt.Component.class, name, out.getExceptionListener());
+                Object oldValue = ReflectionUtils.getPrivateField(oldInstance, java.awt.Component.class, name, out.getExceptionListener());
+                Object newValue = (newInstance == null) ? null : ReflectionUtils.getPrivateField(newInstance, java.awt.Component.class, name, out.getExceptionListener());
                 if (oldValue != null && !oldValue.equals(newValue)) {
-                    invokeStatement(oldInstance,
-                                    "set" + NameGenerator.capitalize(name),
-                                    new Object[]{oldValue}, out); 
+                    invokeStatement(oldInstance, "set" + NameGenerator.capitalize(name), new Object[]{oldValue}, out);
                 }
             }
         }
@@ -392,7 +386,7 @@ class java_awt_Component_PersistenceDelegate extends DefaultPersistenceDelegate 
 
 // Container
 class java_awt_Container_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         // Ignore the children of a JScrollPane.
         // Pending(milne) find a better way to do this.
@@ -412,7 +406,7 @@ class java_awt_Container_PersistenceDelegate extends DefaultPersistenceDelegate 
 
 // Choice
 class java_awt_Choice_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         java.awt.Choice m = (java.awt.Choice)oldInstance;
         java.awt.Choice n = (java.awt.Choice)newInstance;
@@ -424,7 +418,7 @@ class java_awt_Choice_PersistenceDelegate extends DefaultPersistenceDelegate {
 
 // Menu
 class java_awt_Menu_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         java.awt.Menu m = (java.awt.Menu)oldInstance;
         java.awt.Menu n = (java.awt.Menu)newInstance;
@@ -436,7 +430,7 @@ class java_awt_Menu_PersistenceDelegate extends DefaultPersistenceDelegate {
 
 // MenuBar
 class java_awt_MenuBar_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         java.awt.MenuBar m = (java.awt.MenuBar)oldInstance;
         java.awt.MenuBar n = (java.awt.MenuBar)newInstance;
@@ -448,7 +442,7 @@ class java_awt_MenuBar_PersistenceDelegate extends DefaultPersistenceDelegate {
 
 // List
 class java_awt_List_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         java.awt.List m = (java.awt.List)oldInstance;
         java.awt.List n = (java.awt.List)newInstance;
@@ -463,27 +457,26 @@ class java_awt_List_PersistenceDelegate extends DefaultPersistenceDelegate {
 
 // BorderLayout
 class java_awt_BorderLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance,  
-                              Object newInstance, Encoder out) { 
-
+    protected void initialize(Class<?> type, Object oldInstance, 
+			      Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         String[] locations = {"north", "south", "east", "west", "center"};
-        String[] names = {
-            java.awt.BorderLayout.NORTH, java.awt.BorderLayout.SOUTH,  
-            java.awt.BorderLayout.EAST, java.awt.BorderLayout.WEST,  
-            java.awt.BorderLayout.CENTER
-        }; 
+        String[] names = {java.awt.BorderLayout.NORTH, java.awt.BorderLayout.SOUTH, 
+			  java.awt.BorderLayout.EAST, java.awt.BorderLayout.WEST, 
+			  java.awt.BorderLayout.CENTER};
         for(int i = 0; i < locations.length; i++) {
-            Object oldC = ReflectionUtils.getPrivateField(oldInstance,  
-                               java.awt.BorderLayout.class,  
-                               locations[i], out.getExceptionListener()); 
-            Object newC = ReflectionUtils.getPrivateField(newInstance,  
-                               java.awt.BorderLayout.class,  
-                               locations[i], out.getExceptionListener()); 
+            Object oldC = ReflectionUtils.getPrivateField(oldInstance, 
+							  java.awt.BorderLayout.class, 
+							  locations[i], 
+							  out.getExceptionListener());
+            Object newC = ReflectionUtils.getPrivateField(newInstance, 
+							  java.awt.BorderLayout.class, 
+							  locations[i], 
+							  out.getExceptionListener());
             // Pending, assume any existing elements are OK.
             if (oldC != null && newC == null) {
-                invokeStatement(oldInstance, "addLayoutComponent",  
-                                new Object[]{oldC, names[i]}, out); 
+                invokeStatement(oldInstance, "addLayoutComponent", 
+				new Object[]{oldC, names[i]}, out);
             }
         }
     }
@@ -491,17 +484,18 @@ class java_awt_BorderLayout_PersistenceDelegate extends DefaultPersistenceDelega
 
 // CardLayout
 class java_awt_CardLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance,  
-                              Object newInstance, Encoder out) { 
+    protected void initialize(Class<?> type, Object oldInstance, 
+			      Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
-        Hashtable tab = (Hashtable)ReflectionUtils.getPrivateField(oldInstance,
-                             java.awt.CardLayout.class,  
-                             "tab", out.getExceptionListener()); 
+        Hashtable tab = (Hashtable)ReflectionUtils.getPrivateField(oldInstance, 
+								   java.awt.CardLayout.class, 
+								   "tab", 
+								   out.getExceptionListener());
         if (tab != null) {
             for(Enumeration e = tab.keys(); e.hasMoreElements();) {
                 Object child = e.nextElement();
                 invokeStatement(oldInstance, "addLayoutComponent",
-                     new Object[]{child, (String)tab.get(child)}, out);
+                                new Object[]{child, (String)tab.get(child)}, out);
             }
         }
     }
@@ -509,12 +503,13 @@ class java_awt_CardLayout_PersistenceDelegate extends DefaultPersistenceDelegate
 
 // GridBagLayout
 class java_awt_GridBagLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance,  
-                              Object newInstance, Encoder out) { 
+    protected void initialize(Class<?> type, Object oldInstance, 
+			      Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
-        Hashtable comptable = (Hashtable)ReflectionUtils.getPrivateField (
-                                  oldInstance, java.awt.GridBagLayout.class,  
-                                  "comptable", out.getExceptionListener()); 
+        Hashtable comptable = (Hashtable)ReflectionUtils.getPrivateField(oldInstance, 
+						 java.awt.GridBagLayout.class, 
+						 "comptable", 
+						 out.getExceptionListener());
         if (comptable != null) {
             for(Enumeration e = comptable.keys(); e.hasMoreElements();) {
                 Object child = e.nextElement();
@@ -531,7 +526,7 @@ class java_awt_GridBagLayout_PersistenceDelegate extends DefaultPersistenceDeleg
 // will be issued before we have added all the children to the JFrame and
 // will appear blank).
 class javax_swing_JFrame_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         java.awt.Window oldC = (java.awt.Window)oldInstance;
         java.awt.Window newC = (java.awt.Window)newInstance;
@@ -551,7 +546,7 @@ class javax_swing_JFrame_PersistenceDelegate extends DefaultPersistenceDelegate 
 
 // DefaultListModel
 class javax_swing_DefaultListModel_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         // Note, the "size" property will be set here.
         super.initialize(type, oldInstance, newInstance, out);
         javax.swing.DefaultListModel m = (javax.swing.DefaultListModel)oldInstance;
@@ -565,7 +560,7 @@ class javax_swing_DefaultListModel_PersistenceDelegate extends DefaultPersistenc
 
 // DefaultComboBoxModel
 class javax_swing_DefaultComboBoxModel_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         javax.swing.DefaultComboBoxModel m = (javax.swing.DefaultComboBoxModel)oldInstance;
         for (int i = 0; i < m.getSize(); i++) {
@@ -577,7 +572,7 @@ class javax_swing_DefaultComboBoxModel_PersistenceDelegate extends DefaultPersis
 
 // DefaultMutableTreeNode
 class javax_swing_tree_DefaultMutableTreeNode_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object
+    protected void initialize(Class<?> type, Object oldInstance, Object
 			      newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         javax.swing.tree.DefaultMutableTreeNode m =
@@ -599,39 +594,9 @@ class javax_swing_ToolTipManager_PersistenceDelegate extends PersistenceDelegate
     }
 }
 
-// JComponents
-
-// JComponent (minimumSize, preferredSize & maximumSize).
-// Note the "size" methods in JComponent calculate default values
-// when their values are null. In Kestrel the new "isPreferredSizeSet"
-// family of methods can be used to disambiguate this situation.
-// We use the private fields here so that the code will work with
-// Kestrel beta.
-class javax_swing_JComponent_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
-        super.initialize(type, oldInstance, newInstance, out);
-        int statementCount = 0;
-        javax.swing.JComponent c = (javax.swing.JComponent)oldInstance;
-        String[] fieldNames = new String[]{"minimumSize", "preferredSize", "maximumSize"};
-        for(int i = 0; i < fieldNames.length; i++) {
-            String name = fieldNames[i];
-            Object value = ReflectionUtils.getPrivateField (c,
-                               javax.swing.JComponent.class, name,
-                               out.getExceptionListener()); 
-
-            if (value != null) {
-                // System.out.println("Setting " + name);
-                invokeStatement(oldInstance, "set" +
-                  NameGenerator.capitalize(name), new Object[]{value}, out);
-
-            }
-        }
-    }
-}
-
 // JTabbedPane
 class javax_swing_JTabbedPane_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         javax.swing.JTabbedPane p = (javax.swing.JTabbedPane)oldInstance;
         for (int i = 0; i < p.getTabCount(); i++) {
@@ -644,6 +609,19 @@ class javax_swing_JTabbedPane_PersistenceDelegate extends DefaultPersistenceDele
     }
 }
 
+// Box
+class javax_swing_Box_PersistenceDelegate extends DefaultPersistenceDelegate {
+    protected Expression instantiate(Object oldInstance, Encoder out) {
+	javax.swing.BoxLayout lm = (javax.swing.BoxLayout)((javax.swing.Box)oldInstance).getLayout();
+	
+	Object value = ReflectionUtils.getPrivateField(lm, javax.swing.BoxLayout.class, "axis", 
+					   out.getExceptionListener());
+	String method = ((Integer)value).intValue() == javax.swing.BoxLayout.X_AXIS ?
+	    "createHorizontalBox" : "createVerticalBox";
+	return new Expression(oldInstance, oldInstance.getClass(), method, new Object[0]);
+    }
+}
+
 // JMenu
 // Note that we do not need to state the initialiser for
 // JMenuItems since the getComponents() method defined in
@@ -651,7 +629,7 @@ class javax_swing_JTabbedPane_PersistenceDelegate extends DefaultPersistenceDele
 // need to be added to the menu item.
 // Not so for JMenu apparently.
 class javax_swing_JMenu_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         javax.swing.JMenu m = (javax.swing.JMenu)oldInstance;
         java.awt.Component[] c = m.getMenuComponents();
@@ -663,7 +641,7 @@ class javax_swing_JMenu_PersistenceDelegate extends DefaultPersistenceDelegate {
 
 /* XXX - doens't seem to work. Debug later.
 class javax_swing_JMenu_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class type, Object oldInstance, Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         javax.swing.JMenu m = (javax.swing.JMenu)oldInstance;
         javax.swing.JMenu n = (javax.swing.JMenu)newInstance;
@@ -720,11 +698,14 @@ class MetaData {
         registerConstructor("javax.swing.plaf.FontUIResource", new String[]{"name", "style", "size"});
         registerConstructor("javax.swing.plaf.ColorUIResource", new String[]{"red", "green", "blue"});
 
-        // registerConstructor(javax.swing.tree.DefaultTreeModel", new String[]{"root"});
+        registerConstructor("javax.swing.tree.DefaultTreeModel", new String[]{"root"});
+        registerConstructor("javax.swing.JTree", new String[]{"model"});
         registerConstructor("javax.swing.tree.TreePath", new String[]{"path"});
 
         registerConstructor("javax.swing.OverlayLayout", new String[]{"target"});
         registerConstructor("javax.swing.BoxLayout", new String[]{"target", "axis"});
+        registerConstructor("javax.swing.Box$Filler", new String[]{"minimumSize", "preferredSize",
+								   "maximumSize"});
         registerConstructor("javax.swing.DefaultCellEditor", new String[]{"component"});
 
         /*
@@ -790,6 +771,12 @@ class MetaData {
         // This property throws an exception if accessed when there is no child. 
         removeProperty("java.awt.ScrollPane", "scrollPosition"); 
         
+	// 4917458 this should be removed for XAWT since it may throw
+	// an unsupported exception if there isn't any input methods.
+	// This shouldn't be a problem since these are added behind
+	// the scenes automatically.
+        removeProperty("java.awt.im.InputContext", "compositionEnabled"); 
+
   // swing
 
         // The size properties in JComponent need special treatment, see above.
@@ -860,18 +847,20 @@ class MetaData {
         return (o1 == null) ? (o2 == null) : o1.equals(o2);
     }
 
-    // Entry points for Encoder. 
 
-    public synchronized static void setPersistenceDelegate(Class type,  
-                                    PersistenceDelegate persistenceDelegate) { 
-        setBeanAttribute(type, "persistenceDelegate", persistenceDelegate);
+
+    // Entry points for Encoder.
+
+    public synchronized static void setPersistenceDelegate(Class type, 
+					 PersistenceDelegate persistenceDelegate) {
+	setBeanAttribute(type, "persistenceDelegate", persistenceDelegate);
     }
 
-    public synchronized static PersistenceDelegate getPersistenceDelegate(Class type) { 
+    public synchronized static PersistenceDelegate getPersistenceDelegate(Class type) {
         if (type == null) {
             return nullPersistenceDelegate;
         }
-        if (ReflectionUtils.isPrimitive(type)) { 
+        if (ReflectionUtils.isPrimitive(type)) {
             return primitivePersistenceDelegate;
         }
         // The persistence delegate for arrays is non-trivial; instantiate it lazily.
@@ -910,18 +899,17 @@ class MetaData {
 
         PersistenceDelegate pd = (PersistenceDelegate)getBeanAttribute(type, "persistenceDelegate");
         if (pd == null) {
-            pd = (PersistenceDelegate)internalPersistenceDelegates.get(typeName); 
+            pd = (PersistenceDelegate)internalPersistenceDelegates.get(typeName);
             if (pd != null) {
                 return pd;
             }
-            internalPersistenceDelegates.put (
-                typeName, defaultPersistenceDelegate); 
+            internalPersistenceDelegates.put(typeName, defaultPersistenceDelegate);
             try {
                 String name =  type.getName();
-                Class c = Class.forName("java.beans." + name.replace('.', '_')  
-                                        + "_PersistenceDelegate"); 
+                Class c = Class.forName("java.beans." + name.replace('.', '_') 
+					+ "_PersistenceDelegate");
                 pd = (PersistenceDelegate)c.newInstance();
-                internalPersistenceDelegates.put(typeName, pd); 
+                internalPersistenceDelegates.put(typeName, pd);
             }
             catch (ClassNotFoundException e) {}
             catch (Exception e) {
@@ -975,12 +963,12 @@ class MetaData {
 	return getBeanInfo(type).getBeanDescriptor().getValue(attribute);
     }
 
-// MetaData registration
+    // MetaData registration
 
-    private synchronized static void registerConstructor(String typeName,  
-                                                         String[] constructor) {
-        internalPersistenceDelegates.put(typeName,  
-                             new DefaultPersistenceDelegate(constructor)); 
+    private synchronized static void registerConstructor(String typeName, 
+							 String[] constructor) {
+        internalPersistenceDelegates.put(typeName, 
+					 new DefaultPersistenceDelegate(constructor));
     }
 
     private static void removeProperty(String typeName, String property) {

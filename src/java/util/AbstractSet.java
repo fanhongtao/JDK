@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSet.java	1.19 03/01/23
+ * @(#)AbstractSet.java	1.26 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ package java.util;
  * except that all of the methods and constructors in subclasses of this
  * class must obey the additional constraints imposed by the <tt>Set</tt>
  * interface (for instance, the add method must not permit addition of
- * multiple intances of an object to a set).<p>
+ * multiple instances of an object to a set).<p>
  *
  * Note that this class does not override any of the implementations from
  * the <tt>AbstractCollection</tt> class.  It merely adds implementations
@@ -28,14 +28,15 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.19, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.26, 02/19/04
  * @see Collection
  * @see AbstractCollection
  * @see Set
  * @since 1.2
  */
 
-public abstract class AbstractSet extends AbstractCollection implements Set {
+public abstract class AbstractSet<E> extends AbstractCollection<E> implements Set<E> {
     /**
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
@@ -56,7 +57,7 @@ public abstract class AbstractSet extends AbstractCollection implements Set {
      * This implementation first checks if the specified object is this
      * set; if so it returns <tt>true</tt>.  Then, it checks if the
      * specified object is a set whose size is identical to the size of
-     * this set; if not, it it returns false.  If so, it returns
+     * this set; if not, it returns false.  If so, it returns
      * <tt>containsAll((Collection) o)</tt>.
      *
      * @param o Object to be compared for equality with this set.
@@ -96,9 +97,9 @@ public abstract class AbstractSet extends AbstractCollection implements Set {
      */
     public int hashCode() {
 	int h = 0;
-	Iterator i = iterator();
+	Iterator<E> i = iterator();
 	while (i.hasNext()) {
-	    Object obj = i.next();
+	    E obj = i.next();
             if (obj != null)
                 h += obj.hashCode();
         }
@@ -134,15 +135,15 @@ public abstract class AbstractSet extends AbstractCollection implements Set {
      * @see #remove(Object)
      * @see #contains(Object)
      */
-    public boolean removeAll(Collection c) {
+    public boolean removeAll(Collection<?> c) {
         boolean modified = false;
 
         if (size() > c.size()) {
-            for (Iterator i = c.iterator(); i.hasNext(); )
+            for (Iterator<?> i = c.iterator(); i.hasNext(); )
                 modified |= remove(i.next());
         } else {
-            for (Iterator i = iterator(); i.hasNext(); ) {
-                if(c.contains(i.next())) {
+            for (Iterator<?> i = iterator(); i.hasNext(); ) {
+                if (c.contains(i.next())) {
                     i.remove();
                     modified = true;
                 }

@@ -1,7 +1,7 @@
 /*
- * @(#)DirContext.java	1.9 03/01/23
+ * @(#)DirContext.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -141,7 +141,7 @@ import javax.naming.*;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author R. Vasudevan
- * @version 1.9 03/01/23
+ * @version 1.11 04/05/05
  *
  * @see javax.naming.Context
  * @since 1.3
@@ -675,10 +675,11 @@ public interface DirContext extends Context {
      * @see SearchResult
      * @see #search(Name, String, Object[], SearchControls)
      */
-    public NamingEnumeration search(Name name,
-				    Attributes matchingAttributes,
-				    String[] attributesToReturn)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(Name name,
+	       Attributes matchingAttributes,
+	       String[] attributesToReturn)
+	throws NamingException;
 
     /**
      * Searches in a single context for objects that contain a
@@ -694,10 +695,11 @@ public interface DirContext extends Context {
      * @return	a non-null enumeration of <tt>SearchResult</tt> objects
      * @throws	NamingException if a naming exception is encountered
      */
-    public NamingEnumeration search(String name,
-				    Attributes matchingAttributes,
-				    String[] attributesToReturn)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(String name,
+	       Attributes matchingAttributes,
+	       String[] attributesToReturn)
+	throws NamingException;
 
     /**
      * Searches in a single context for objects that contain a
@@ -718,9 +720,9 @@ public interface DirContext extends Context {
      *
      * @see #search(Name, Attributes, String[])
      */
-    public NamingEnumeration search(Name name,
-				    Attributes matchingAttributes)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(Name name, Attributes matchingAttributes)
+	throws NamingException;
 
     /**
      * Searches in a single context for objects that contain a
@@ -734,9 +736,9 @@ public interface DirContext extends Context {
      * @return	an enumeration of <tt>SearchResult</tt> objects
      * @throws	NamingException if a naming exception is encountered
      */
-    public NamingEnumeration search(String name,
-				    Attributes matchingAttributes)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(String name, Attributes matchingAttributes)
+	throws NamingException;
 
     /**
      * Searches in the named context or object for entries that satisfy the
@@ -834,10 +836,11 @@ public interface DirContext extends Context {
      * @see SearchControls
      * @see SearchResult
      */
-    public NamingEnumeration search(Name name,
-				    String filter,
-				    SearchControls cons)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(Name name,
+	       String filter,
+	       SearchControls cons)
+	throws NamingException;
 
     /**
      * Searches in the named context or object for entries that satisfy the
@@ -862,10 +865,11 @@ public interface DirContext extends Context {
      * 		contain invalid settings
      * @throws	NamingException if a naming exception is encountered
      */
-    public NamingEnumeration search(String name,
-				    String filter,
-				    SearchControls cons)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(String name,
+	       String filter,
+	       SearchControls cons)
+	throws NamingException;
 
     /**
      * Searches in the named context or object for entries that satisfy the
@@ -967,11 +971,12 @@ public interface DirContext extends Context {
      * @see #search(Name, Attributes, String[])
      * @see java.text.MessageFormat
      */
-    public NamingEnumeration search(Name name,
-				    String filterExpr,
-				    Object[] filterArgs,
-				    SearchControls cons)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(Name name,
+	       String filterExpr,
+	       Object[] filterArgs,
+	       SearchControls cons)
+	throws NamingException;
 
     /**
      * Searches in the named context or object for entries that satisfy the
@@ -1008,9 +1013,10 @@ public interface DirContext extends Context {
      *		<tt>filterArgs</tt> represents an invalid search filter
      * @throws	NamingException if a naming exception is encountered
      */
-    public NamingEnumeration search(String name,
-				    String filterExpr,
-				    Object[] filterArgs,
-				    SearchControls cons)
-	    throws NamingException;
+    public NamingEnumeration<SearchResult>
+	search(String name,
+	       String filterExpr,
+	       Object[] filterArgs,
+	       SearchControls cons)
+	throws NamingException;
 }

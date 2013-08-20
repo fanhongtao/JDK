@@ -1,7 +1,7 @@
 /*
- * @(#)FactoryEnumeration.java	1.7 03/01/23
+ * @(#)FactoryEnumeration.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import javax.naming.NamingException;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 03/01/23
+  * @version 1.8 03/12/19
  */
 
 // no need to implement Enumeration since this is only for internal use

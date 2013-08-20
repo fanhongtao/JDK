@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleExtendedComponent.java	1.3 03/01/23
+ * @(#)AccessibleExtendedComponent.java	1.4 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ package javax.accessibility;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleComponent
  *
- * @version     1.3 01/23/03
+ * @version     1.4 12/19/03
  * @author	Lynn Monsanto
  */
 public interface AccessibleExtendedComponent extends AccessibleComponent {

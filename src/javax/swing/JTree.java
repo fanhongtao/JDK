@@ -1,7 +1,7 @@
 /*
- * @(#)JTree.java	1.165 03/01/23
+ * @(#)JTree.java	1.176 04/07/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -99,10 +99,6 @@ import javax.accessibility.*;
  * to associate an {@link Action} object with a {@link KeyStroke}
  * and execute the action under specified conditions.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JTree"><code>JTree</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -116,7 +112,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component that displays a set of hierarchical data as an outline.
  *
- * @version 1.165, 01/23/03
+ * @version 1.176, 07/13/04
  * @author Rob Davis
  * @author Ray Ryan
  * @author Scott Violet
@@ -156,6 +152,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * determines the height for each row.
      */
     protected int                         rowHeight;
+    private boolean                       rowHeightSet = false;
 
     /**
      * Maps from <code>TreePath</code> to <code>Boolean</code>
@@ -191,6 +188,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * @see #rootVisible
      */
     protected boolean           showsRootHandles;
+    private boolean             showsRootHandlesSet = false;
 
     /**
      * Creates a new event and passed it off the
@@ -242,6 +240,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * scrolled to be visible.
      */
     protected boolean                 scrollsOnExpand;
+    private boolean                   scrollsOnExpandSet = false;
 
     /**
      * Number of mouse clicks before a node is expanded.
@@ -435,7 +434,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * @param value  a <code>Vector</code>
      * @see DefaultTreeModel#asksAllowsChildren
      */
-    public JTree(Vector value) {
+    public JTree(Vector<?> value) {
         this(createTreeModel(value));
         this.setRootVisible(false);
         this.setShowsRootHandles(true);
@@ -452,7 +451,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * @param value  a <code>Hashtable</code>
      * @see DefaultTreeModel#asksAllowsChildren
      */
-    public JTree(Hashtable value) {
+    public JTree(Hashtable<?,?> value) {
         this(createTreeModel(value));
         this.setRootVisible(false);
         this.setShowsRootHandles(true);
@@ -678,6 +677,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
      *  description: The TreeModel that will provide the data.
      */
     public void setModel(TreeModel newModel) {
+        clearSelection();
+
         TreeModel oldModel = treeModel;
 
 	if(treeModel != null && treeModelListener != null)
@@ -708,8 +709,6 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	}
         firePropertyChange(TREE_MODEL_PROPERTY, oldModel, treeModel);
         invalidate();
-
-        clearSelection();
     }
 
     /**
@@ -765,6 +764,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	TreeModel              model = getModel();
 
         showsRootHandles = newValue;
+        showsRootHandlesSet = true;
         firePropertyChange(SHOWS_ROOT_HANDLES_PROPERTY, oldValue,
                            showsRootHandles);
         if (accessibleContext != null) {
@@ -799,6 +799,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
         int                oldValue = this.rowHeight;
 
         this.rowHeight = rowHeight;
+	rowHeightSet = true;
         firePropertyChange(ROW_HEIGHT_PROPERTY, oldValue, this.rowHeight);
         invalidate();
     }
@@ -913,6 +914,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	boolean           oldValue = scrollsOnExpand;
 
 	scrollsOnExpand = newValue;
+	scrollsOnExpandSet = true;
         firePropertyChange(SCROLLS_ON_EXPAND_PROPERTY, oldValue,
                            newValue);
     }
@@ -1133,8 +1135,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
     public String convertValueToText(Object value, boolean selected,
                                      boolean expanded, boolean leaf, int row,
                                      boolean hasFocus) {
-        if(value != null)
-            return value.toString();
+        if(value != null) {
+            String sValue = value.toString();
+            if (sValue != null) {
+                return sValue;
+            }
+        }
         return "";
     }
 
@@ -1468,7 +1474,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
      *		<code>parent</code>, or <code>null</code> if
      *		<code>parent</code> is not currently expanded
      */
-    public Enumeration getExpandedDescendants(TreePath parent) {
+    public Enumeration<TreePath> getExpandedDescendants(TreePath parent) {
 	if(!isExpanded(parent))
 	    return null;
 
@@ -1495,7 +1501,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	    }
 	}
 	if (elements == null) {
-	    return DefaultMutableTreeNode.EMPTY_ENUMERATION;
+	    Set<TreePath> empty = Collections.emptySet();
+	    return Collections.enumeration(empty);
 	}
 	return elements.elements();
     }
@@ -3011,7 +3018,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * that have been expanded that
      * are descendants of <code>parent</code>.
      */
-    protected Enumeration getDescendantToggledPaths(TreePath parent) {
+    protected Enumeration<TreePath>
+	getDescendantToggledPaths(TreePath parent)
+    {
 	if(parent == null)
 	    return null;
 
@@ -3032,7 +3041,9 @@ public class JTree extends JComponent implements Scrollable, Accessible
      * <code>toRemove</code>
      * that have been expanded.
      */
-     protected void removeDescendantToggledPaths(Enumeration toRemove) {
+     protected void
+	 removeDescendantToggledPaths(Enumeration<TreePath> toRemove)
+    {
 	 if(toRemove != null) {
 	     while(toRemove.hasMoreElements()) {
 		 Enumeration         descendants = getDescendantToggledPaths
@@ -3170,7 +3181,7 @@ public class JTree extends JComponent implements Scrollable, Accessible
 		}
 	    }
 	    else if(expandedState.get(parent) != null) {
-		Vector              toRemove = new Vector(1);
+		Vector<TreePath>    toRemove = new Vector<TreePath>(1);
 		boolean             isExpanded = isExpanded(parent);
 
 		toRemove.addElement(parent);
@@ -3199,8 +3210,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
 		return;
 
 	    TreePath            rPath;
-	    Vector              toRemove = new Vector(Math.max
-						      (1, children.length));
+	    Vector<TreePath>    toRemove
+		= new Vector<TreePath>(Math.max(1, children.length));
 
 	    for(int counter = children.length - 1; counter >= 0; counter--) {
 		rPath = parent.pathByAddingChild(children[counter]);
@@ -3374,6 +3385,27 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	}
     }
 
+    void setUIProperty(String propertyName, Object value) {
+        if (propertyName == "rowHeight") {
+	    if (!rowHeightSet) {
+		setRowHeight(((Number)value).intValue());
+		rowHeightSet = false;
+	    }
+	} else if (propertyName == "scrollsOnExpand") {
+	    if (!scrollsOnExpandSet) {
+		setScrollsOnExpand(((Boolean)value).booleanValue());
+		scrollsOnExpandSet = false;
+	    }
+	} else if (propertyName == "showsRootHandles") {
+            if (!showsRootHandlesSet) {
+                setShowsRootHandles(((Boolean)value).booleanValue());
+                showsRootHandlesSet = false;
+            }
+        } else {
+	    super.setUIProperty(propertyName, value);
+	}
+    }
+
 
     /**
      * Returns a string representation of this <code>JTree</code>.
@@ -3482,11 +3514,13 @@ public class JTree extends JComponent implements Scrollable, Accessible
             leadSelectionPath = e.getNewLeadSelectionPath();
 
 	    if (oldLeadSelectionPath != leadSelectionPath) {
+		// Set parent to null so AccessibleJTreeNode computes 
+		// its parent.
 		Accessible oldLSA = leadSelectionAccessible;
 		leadSelectionAccessible = (leadSelectionPath != null) 
 			? new AccessibleJTreeNode(JTree.this,
 						  leadSelectionPath,
-		                  		  JTree.this)
+		                  		  null) // parent
 			: null;
                 firePropertyChange(AccessibleContext.ACCESSIBLE_ACTIVE_DESCENDANT_PROPERTY,
                                    oldLSA, leadSelectionAccessible);
@@ -3556,9 +3590,11 @@ public class JTree extends JComponent implements Scrollable, Accessible
 	    fireVisibleDataPropertyChange();
 	    TreePath path = e.getPath();
 	    if (path != null) {
+		// Set parent to null so AccessibleJTreeNode computes 
+		// its parent.
 		AccessibleJTreeNode node = new AccessibleJTreeNode(JTree.this,
 								   path,
-								   JTree.this);
+								   null);
 		PropertyChangeEvent pce = new PropertyChangeEvent(node,
 		    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
                     AccessibleState.EXPANDED,
@@ -3577,9 +3613,12 @@ public class JTree extends JComponent implements Scrollable, Accessible
             fireVisibleDataPropertyChange();
 	    TreePath path = e.getPath();
 	    if (path != null) {
+                // TIGER - 4839971 
+		// Set parent to null so AccessibleJTreeNode computes 
+		// its parent.
 		AccessibleJTreeNode node = new AccessibleJTreeNode(JTree.this,
 								   path,
-								   JTree.this);
+								   null);
 		PropertyChangeEvent pce = new PropertyChangeEvent(node,
 		    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
 		    AccessibleState.COLLAPSED,
@@ -4792,7 +4831,8 @@ public class JTree extends JComponent implements Scrollable, Accessible
                 }
                 AccessibleContext ac = getCurrentAccessibleContext();
                 if (i == 0) {
-                    return "toggle expand";
+                    // TIGER - 4766636
+                    return AccessibleAction.TOGGLE_EXPAND;
                 } else if (ac != null) {
                     AccessibleAction aa = ac.getAccessibleAction();
                     if (aa != null) {

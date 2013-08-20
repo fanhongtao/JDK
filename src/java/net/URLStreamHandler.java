@@ -1,7 +1,7 @@
 /*
- * @(#)URLStreamHandler.java	1.61 03/01/23
+ * @(#)URLStreamHandler.java	1.68 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.Hashtable;
+import sun.net.util.IPAddressUtil;
 import sun.net.www.ParseUtil;
 
 /**
@@ -28,7 +29,7 @@ import sun.net.www.ParseUtil;
  * automatically loaded.
  *
  * @author  James Gosling
- * @version 1.61, 01/23/03
+ * @version 1.68, 05/18/04
  * @see     java.net.URL#URL(java.lang.String, java.lang.String, int, java.lang.String)
  * @since   JDK1.0
  */
@@ -52,6 +53,32 @@ public abstract class URLStreamHandler {
      *               connection.
      */
     abstract protected URLConnection openConnection(URL u) throws IOException;
+
+    /**
+     * Same as openConnection(URL), except that the connection will be
+     * made through the specified proxy; Protocol handlers that do not
+     * support proxing will ignore the proxy parameter and make a
+     * normal connection.
+     *
+     * Calling this method preempts the system's default ProxySelector
+     * settings.
+     * 
+     * @param      u   the URL that this connects to.
+     * @param      p   the proxy through which the connection will be made.
+     *                 If direct connection is desired, Proxy.NO_PROXY
+     *                 should be specified.
+     * @return     a <code>URLConnection</code> object for the <code>URL</code>.
+     * @exception  IOException  if an I/O error occurs while opening the
+     *               connection.
+     * @exception  IllegalArgumentException if either u or p is null,
+     *               or p has the wrong type.
+     * @exception  UnsupportedOperationException if the subclass that
+     *               implements the protocol doesn't support this method.
+     * @since      1.5
+     */
+    protected URLConnection openConnection(URL u, Proxy p) throws IOException {
+	throw new UnsupportedOperationException("Method not implemented.");
+    }
 
     /**
      * Parses the string representation of a <code>URL</code> into a
@@ -136,8 +163,8 @@ public abstract class URLStreamHandler {
 		    
 			String nhost = host ;
 			host = nhost.substring(0,ind+1);
-			if (Inet6Address.
-			    textToNumericFormat(host.substring(1, ind)) == null) {
+			if (!IPAddressUtil.
+			    isIPv6LiteralAddress(host.substring(1, ind))) {
 			    throw new IllegalArgumentException(
 				"Invalid host: "+ host);
 			}
@@ -220,8 +247,15 @@ public abstract class URLStreamHandler {
 	    }
             // Remove embedded /../ if possible
 	    i = 0;
-	    while ((i = path.indexOf("/../", i)) > 0) {
-	        if ((limit = path.lastIndexOf('/', i - 1)) >= 0) {
+	    while ((i = path.indexOf("/../", i)) >= 0) {
+		/* 
+		 * A "/../" will cancel the previous segment and itself, 
+		 * unless that segment is a "/../" itself
+		 * i.e. "/a/b/../c" becomes "/a/c"
+		 * but "/../../a" should stay unchanged
+		 */
+	        if (i > 0 && (limit = path.lastIndexOf('/', i - 1)) >= 0 &&
+		    (path.indexOf("/../", limit) != 0)) {
 		    path = path.substring(0, limit) + path.substring(i + 3);
 		    i = 0;
 	        } else {
@@ -492,6 +526,7 @@ public abstract class URLStreamHandler {
      * @deprecated Use setURL(URL, String, String, int, String, String, String,
      *             String);
      */
+    @Deprecated
     protected void setURL(URL u, String protocol, String host, int port,
                           String file, String ref) {
         /*

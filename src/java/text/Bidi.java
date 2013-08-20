@@ -1,12 +1,12 @@
 /*
- * @(#)Bidi.java	1.13 03/03/19
+ * @(#)Bidi.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * (C) Copyright IBM Corp. 1999-2000 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1999-2003 - All Rights Reserved
  *
  * The original version of this source code and documentation is
  * copyrighted and owned by IBM. These materials are provided
@@ -20,9 +20,10 @@ package java.text;
 import java.awt.Toolkit;
 import java.awt.font.TextAttribute;
 import java.awt.font.NumericShaper;
+import sun.text.CodePointIterator;
 
 /**
- * This class implements the Unicode Version 3.0 Bidirectional Algorithm.
+ * This class implements the Unicode Bidirectional Algorithm.
  * <p>
  * A Bidi object provides information on the bidirectional reordering of the text
  * used to create it.  This is required, for example, to properly display Arabic 
@@ -485,18 +486,15 @@ public final class Bidi {
      * @return true if the range of characters requires bidi analysis
      */
     public static boolean requiresBidi(char[] text, int start, int limit) {
-	for (int i = start; i < limit; ++i) {
-	    char c = text[i];
-
-	    if (c < '\u0591') continue;
-	    if (c > '\u202e') continue; // if contains arabic extended data, presume already ordered
-	    int dc = nativeGetDirectionCode(c);
-
-	    if ((RMASK & (1 << dc)) != 0) {
-		return true;
+	CodePointIterator cpi = CodePointIterator.create(text, start, limit);
+	for (int cp = cpi.next(); cp != CodePointIterator.DONE; cp = cpi.next()) {
+	    if (cp > 0x0590) {
+		int dc = nativeGetDirectionCode(cp);
+		if ((RMASK & (1 << dc)) != 0) {
+		    return true;
+		}
 	    }
 	}
-
 	return false;
     }
 
@@ -592,7 +590,7 @@ public final class Bidi {
 	(1 << 15 /* U_RIGHT_TO_LEFT_OVERRIDE */);
 
     /** Access native bidi implementation. */
-    private static native int nativeGetDirectionCode(char c);
+    private static native int nativeGetDirectionCode(int cp);
 
     /** Access native bidi implementation. */
     private static synchronized native void nativeBidiChars(Bidi bidi, char[] text, int textStart,

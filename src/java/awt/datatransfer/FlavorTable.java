@@ -1,7 +1,7 @@
 /*
- * @(#)FlavorTable.java	1.3 03/01/23
+ * @(#)FlavorTable.java	1.5 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.util.List;
  * symmetric, but typically are.
  *
  * @author David Mendenhall
- * @version 1.3, 01/23/03
+ * @version 1.5, 05/05/04
  *
  * @since 1.4
  */
@@ -40,7 +40,7 @@ public interface FlavorTable extends FlavorMap {
      *         objects which are platform-specific representations of platform-
      *         specific data formats
      */
-    List getNativesForFlavor(DataFlavor flav);
+    List<String> getNativesForFlavor(DataFlavor flav);
 
     /**
      * Returns a <code>List</code> of <code>DataFlavor</code>s to which the
@@ -61,5 +61,5 @@ public interface FlavorTable extends FlavorMap {
      *         objects into which platform-specific data in the specified,
      *         platform-specific native can be translated
      */
-    List getFlavorsForNative(String nat);
+    List<DataFlavor> getFlavorsForNative(String nat);
 }

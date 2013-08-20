@@ -1,7 +1,7 @@
 /*
- * @(#)CharArrayWriter.java	1.17 03/01/23
+ * @(#)CharArrayWriter.java	1.23 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,9 +11,13 @@ package java.io;
  * This class implements a character buffer that can be used as an Writer.
  * The buffer automatically grows when data is written to the stream.  The data
  * can be retrieved using toCharArray() and toString().
+ * <P>
+ * Note: Invoking close() on this class has no effect, and methods
+ * of this class can be called after the stream has closed
+ * without generating an IOException.
  *
  * @author	Herb Jellinek
- * @version 	1.17, 01/23/03
+ * @version 	1.23, 07/16/04
  * @since       JDK1.1
  */
 public
@@ -122,6 +126,95 @@ class CharArrayWriter extends Writer {
     }
 
     /**
+     * Appends the specified character sequence to this writer.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(csq)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.write(csq.toString()) </pre>
+     *
+     * <p> Depending on the specification of <tt>toString</tt> for the
+     * character sequence <tt>csq</tt>, the entire sequence may not be
+     * appended. For instance, invoking the <tt>toString</tt> method of a
+     * character buffer will return a subsequence whose content depends upon
+     * the buffer's position and limit.
+     *
+     * @param  csq
+     *         The character sequence to append.  If <tt>csq</tt> is
+     *         <tt>null</tt>, then the four characters <tt>"null"</tt> are
+     *         appended to this writer.
+     *
+     * @return  This writer
+     *
+     * @since  1.5
+     */
+    public CharArrayWriter append(CharSequence csq) {
+	String s = (csq == null ? "null" : csq.toString());
+	write(s, 0, s.length());
+	return this;
+    }
+
+    /**
+     * Appends a subsequence of the specified character sequence to this writer.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(csq, start,
+     * end)</tt> when <tt>csq</tt> is not <tt>null</tt>, behaves in
+     * exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.write(csq.subSequence(start, end).toString()) </pre>
+     *
+     * @param  csq
+     *         The character sequence from which a subsequence will be
+     *         appended.  If <tt>csq</tt> is <tt>null</tt>, then characters
+     *         will be appended as if <tt>csq</tt> contained the four
+     *         characters <tt>"null"</tt>.
+     *
+     * @param  start
+     *         The index of the first character in the subsequence
+     *
+     * @param  end
+     *         The index of the character following the last character in the
+     *         subsequence
+     *
+     * @return  This writer
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If <tt>start</tt> or <tt>end</tt> are negative, <tt>start</tt>
+     *          is greater than <tt>end</tt>, or <tt>end</tt> is greater than
+     *          <tt>csq.length()</tt>
+     *
+     * @since  1.5
+     */
+    public CharArrayWriter append(CharSequence csq, int start, int end) {
+	String s = (csq == null ? "null" : csq).subSequence(start, end).toString();
+	write(s, 0, s.length());
+	return this;
+    }
+
+    /**
+     * Appends the specified character to this writer.
+     *
+     * <p> An invocation of this method of the form <tt>out.append(c)</tt>
+     * behaves in exactly the same way as the invocation
+     *
+     * <pre>
+     *     out.write(c) </pre>
+     *
+     * @param  c
+     *         The 16-bit character to append
+     *
+     * @return  This writer
+     *
+     * @since 1.5
+     */
+    public CharArrayWriter append(char c) {
+	write(c);
+	return this;
+    }
+
+    /**
      * Resets the buffer so that you can use it again without
      * throwing away the already allocated buffer.
      */
@@ -168,7 +261,8 @@ class CharArrayWriter extends Writer {
 
     /**
      * Close the stream.  This method does not release the buffer, since its
-     * contents might still be required.
+     * contents might still be required. Note: Invoking this method in this class
+     * will have no effect.
      */
     public void close() { }
 

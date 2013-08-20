@@ -1,7 +1,7 @@
 /*
- * @(#)Area.java	1.14 03/01/23
+ * @(#)Area.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -190,9 +190,9 @@ public class Area implements Shape, Cloneable {
      * <code>false</code> otherwise.
      */
     public boolean isPolygonal() {
-	Enumeration enum = curves.elements();
-	while (enum.hasMoreElements()) {
-	    if (((Curve) enum.nextElement()).getOrder() > 1) {
+	Enumeration enum_ = curves.elements();
+	while (enum_.hasMoreElements()) {
+	    if (((Curve) enum_.nextElement()).getOrder() > 1) {
 		return false;
 	    }
 	}
@@ -242,10 +242,10 @@ public class Area implements Shape, Cloneable {
 	if (curves.size() < 3) {
 	    return true;
 	}
-	Enumeration enum = curves.elements();
-	enum.nextElement(); // First Order0 "moveto"
-	while (enum.hasMoreElements()) {
-	    if (((Curve) enum.nextElement()).getOrder() == 0) {
+	Enumeration enum_ = curves.elements();
+	enum_.nextElement(); // First Order0 "moveto"
+	while (enum_.hasMoreElements()) {
+	    if (((Curve) enum_.nextElement()).getOrder() == 0) {
 		return false;
 	    }
 	}
@@ -382,10 +382,10 @@ public class Area implements Shape, Cloneable {
 	if (!getCachedBounds().contains(x, y)) {
 	    return false;
 	}
-	Enumeration enum = curves.elements();
+	Enumeration enum_ = curves.elements();
 	int crossings = 0;
-	while (enum.hasMoreElements()) {
-	    Curve c = (Curve) enum.nextElement();
+	while (enum_.hasMoreElements()) {
+	    Curve c = (Curve) enum_.nextElement();
 	    crossings += c.crossingsFor(x, y);
 	}
 	return ((crossings & 1) == 1);

@@ -1,11 +1,16 @@
 /*
- * @(#)Float.java	1.80 03/01/23
+ * @(#)Float.java	1.94 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
+
+import sun.misc.FloatingDecimal;
+import sun.misc.FpUtils;
+import sun.misc.FloatConsts;
+import sun.misc.DoubleConsts;
 
 /**
  * The <code>Float</code> class wraps a value of primitive type
@@ -21,10 +26,11 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.80, 01/23/03
+ * @author  Joseph D. Darcy
+ * @version 1.94, 05/11/04
  * @since JDK1.0 
  */
-public final class Float extends Number implements Comparable {
+public final class Float extends Number implements Comparable<Float> {
     /**
      * A constant holding the positive infinity of type
      * <code>float</code>. It is equal to the value returned by
@@ -49,17 +55,26 @@ public final class Float extends Number implements Comparable {
     /**
      * A constant holding the largest positive finite value of type
      * <code>float</code>, (2-2<sup>-23</sup>)&middot;2<sup>127</sup>.
-     * It is equal to the value returned by
+     * It is equal to the hexadecimal floating-point literal
+     * <code>0x1.fffffeP+127f</code> and also equal to
      * <code>Float.intBitsToFloat(0x7f7fffff)</code>.
      */
-    public static final float MAX_VALUE = 3.4028235e+38f;
+    public static final float MAX_VALUE = 3.4028235e+38f; // 0x1.fffffeP+127f
 
     /**
      * A constant holding the smallest positive nonzero value of type
-     * <code>float</code>, 2<sup>-149</sup>. It is equal to the value
-     * returned by <code>Float.intBitsToFloat(0x1)</code>.
+     * <code>float</code>, 2<sup>-149</sup>. It is equal to the
+     * hexadecimal floating-point literal <code>0x0.000002P-126f</code>
+     * and also equal to <code>Float.intBitsToFloat(0x1)</code>.
      */
-    public static final float MIN_VALUE = 1.4e-45f;
+    public static final float MIN_VALUE = 1.4e-45f; // 0x0.000002P-126f
+
+    /**
+     * The number of bits used to represent a <tt>float</tt> value.
+     *
+     * @since 1.5
+     */
+    public static final int SIZE = 32;
 
     /**
      * The <code>Class</code> instance representing the primitive type
@@ -67,7 +82,7 @@ public final class Float extends Number implements Comparable {
      *
      * @since JDK1.1 
      */
-    public static final Class	TYPE = Class.getPrimitiveClass("float");
+    public static final Class<Float> TYPE = Class.getPrimitiveClass("float");
 
     /**
      * Returns a string representation of the <code>float</code>
@@ -140,40 +155,175 @@ public final class Float extends Number implements Comparable {
     }
 
     /**
+     * Returns a hexadecimal string representation of the
+     * <code>float</code> argument. All characters mentioned below are
+     * ASCII characters.
+     *
+     * <ul>
+     * <li>If the argument is NaN, the result is the string
+     *     &quot;<code>NaN</code>&quot;.
+     * <li>Otherwise, the result is a string that represents the sign and 
+     * magnitude (absolute value) of the argument. If the sign is negative, 
+     * the first character of the result is '<code>-</code>' 
+     * (<code>'&#92;u002D'</code>); if the sign is positive, no sign character 
+     * appears in the result. As for the magnitude <i>m</i>:
+     *
+     * <ul> 
+     * <li>If <i>m</i> is infinity, it is represented by the string
+     * <code>"Infinity"</code>; thus, positive infinity produces the
+     * result <code>"Infinity"</code> and negative infinity produces
+     * the result <code>"-Infinity"</code>.
+     *
+     * <li>If <i>m</i> is zero, it is represented by the string
+     * <code>"0x0.0p0"</code>; thus, negative zero produces the result
+     * <code>"-0x0.0p0"</code> and positive zero produces the result
+     * <code>"0x0.0p0"</code>.
+     *
+     * <li>If <i>m</i> is a <code>float</code> value with a
+     * normalized representation, substrings are used to represent the
+     * significand and exponent fields.  The significand is
+     * represented by the characters <code>&quot;0x1.&quot;</code>
+     * followed by a lowercase hexadecimal representation of the rest
+     * of the significand as a fraction.  Trailing zeros in the
+     * hexadecimal representation are removed unless all the digits
+     * are zero, in which case a single zero is used. Next, the
+     * exponent is represented by <code>&quot;p&quot;</code> followed
+     * by a decimal string of the unbiased exponent as if produced by
+     * a call to {@link Integer#toString(int) Integer.toString} on the
+     * exponent value.
+     *
+     * <li>If <i>m</i> is a <code>float</code> value with a subnormal
+     * representation, the significand is represented by the
+     * characters <code>&quot;0x0.&quot;</code> followed by a
+     * hexadecimal representation of the rest of the significand as a
+     * fraction.  Trailing zeros in the hexadecimal representation are
+     * removed. Next, the exponent is represented by
+     * <code>&quot;p-126&quot;</code>.  Note that there must be at
+     * least one nonzero digit in a subnormal significand.
+     *
+     * </ul>
+     * 
+     * </ul>
+     *
+     * <table border>
+     * <caption><h3>Examples</h3></caption>
+     * <tr><th>Floating-point Value</th><th>Hexadecimal String</th>
+     * <tr><td><code>1.0</code></td>	<td><code>0x1.0p0</code></td>
+     * <tr><td><code>-1.0</code></td>	<td><code>-0x1.0p0</code></td>
+     * <tr><td><code>2.0</code></td>	<td><code>0x1.0p1</code></td>
+     * <tr><td><code>3.0</code></td>	<td><code>0x1.8p1</code></td>
+     * <tr><td><code>0.5</code></td>	<td><code>0x1.0p-1</code></td>
+     * <tr><td><code>0.25</code></td>	<td><code>0x1.0p-2</code></td>
+     * <tr><td><code>Float.MAX_VALUE</code></td>
+     *     <td><code>0x1.fffffep127</code></td>
+     * <tr><td><code>Minimum Normal Value</code></td>
+     *     <td><code>0x1.0p-126</code></td>
+     * <tr><td><code>Maximum Subnormal Value</code></td>
+     *     <td><code>0x0.fffffep-126</code></td>
+     * <tr><td><code>Float.MIN_VALUE</code></td>
+     *     <td><code>0x0.000002p-126</code></td>
+     * </table>
+     * @param   f   the <code>float</code> to be converted.
+     * @return a hex string representation of the argument.
+     * @since 1.5
+     * @author Joseph D. Darcy
+     */
+    public static String toHexString(float f) {
+	if (Math.abs(f) < FloatConsts.MIN_NORMAL
+	    &&  f != 0.0f ) {// float subnormal
+	    // Adjust exponent to create subnormal double, then
+	    // replace subnormal double exponent with subnormal float
+	    // exponent
+	    String s = Double.toHexString(FpUtils.scalb((double)f,
+							/* -1022+126 */
+							DoubleConsts.MIN_EXPONENT- 
+							FloatConsts.MIN_EXPONENT));
+	    return s.replaceFirst("p-1022$", "p-126");
+	}
+	else // double string will be the same as float string
+	    return Double.toHexString(f);
+    }
+
+    /**
      * Returns a <code>Float</code> object holding the
      * <code>float</code> value represented by the argument string
      * <code>s</code>.
-     * <p>
-     * If <code>s</code> is <code>null</code>, then a 
-     * <code>NullPointerException</code> is thrown. 
-     * <p>
-     * Leading and trailing whitespace characters in <code>s</code>
-     * are ignored. The rest of <code>s</code> should constitute a
-     * <i>FloatValue</i> as described by the lexical syntax rules:
-     * <blockquote><i>
+     * 
+     * <p>If <code>s</code> is <code>null</code>, then a
+     * <code>NullPointerException</code> is thrown.
+     * 
+     * <p>Leading and trailing whitespace characters in <code>s</code>
+     * are ignored.  Whitespace is removed as if by the {@link
+     * String#trim} method; that is, both ASCII space and control
+     * characters are removed. The rest of <code>s</code> should
+     * constitute a <i>FloatValue</i> as described by the lexical
+     * syntax rules:
+     *
+     * <blockquote>
      * <dl>
-     * <dt>FloatValue:
+     * <dt><i>FloatValue:</i>
      * <dd><i>Sign<sub>opt</sub></i> <code>NaN</code>
      * <dd><i>Sign<sub>opt</sub></i> <code>Infinity</code>
-     * <dd>Sign<sub>opt</sub> FloatingPointLiteral
+     * <dd><i>Sign<sub>opt</sub> FloatingPointLiteral</i>
+     * <dd><i>Sign<sub>opt</sub> HexFloatingPointLiteral</i>
+     * <dd><i>SignedInteger</i>
      * </dl>
-     * </i></blockquote>
-     * where <i>Sign</i> and <i>FloatingPointLiteral</i> are as
-     * defined in <a href="http://java.sun.com/docs/books/jls/second_edition/html/lexical.doc.html#230798">&sect;3.10.2</a> 
-     * of the <a href="http://java.sun.com/docs/books/jls/html/">Java 
-     * Language Specification</a>. If <code>s</code> does not have the
-     * form of a <i>FloatValue</i>, then a
-     * <code>NumberFormatException</code> is thrown. Otherwise,
-     * <code>s</code> is regarded as representing an exact decimal
-     * value in the usual "computerized scientific notation"; this
-     * exact decimal value is then conceptually converted to an
-     * "infinitely precise" binary value that is then rounded to type
-     * <code>float</code> by the usual round-to-nearest rule of IEEE
-     * 754 floating-point arithmetic, which includes preserving the
-     * sign of a zero value.  Finally, a <code>Float</code> object
-     * representing this <code>float</code> value is returned.
+     *
      * <p>
-     * To interpret localized string representations of a
+     *
+     * <dl>
+     * <dt><i>HexFloatingPointLiteral</i>:
+     * <dd> <i>HexSignificand BinaryExponent FloatTypeSuffix<sub>opt</sub></i>
+     * </dl>
+     *
+     * <p>
+     *
+     * <dl>
+     * <dt><i>HexSignificand:</i>
+     * <dd><i>HexNumeral</i>
+     * <dd><i>HexNumeral</i> <code>.</code>
+     * <dd><code>0x</code> <i>HexDigits<sub>opt</sub> 
+     *     </i><code>.</code><i> HexDigits</i>
+     * <dd><code>0X</code><i> HexDigits<sub>opt</sub> 
+     *     </i><code>.</code> <i>HexDigits</i>
+     * </dl>
+     *
+     * <p>
+     *
+     * <dl>
+     * <dt><i>BinaryExponent:</i>
+     * <dd><i>BinaryExponentIndicator SignedInteger</i>
+     * </dl>
+     *
+     * <p>
+     *
+     * <dl>
+     * <dt><i>BinaryExponentIndicator:</i>
+     * <dd><code>p</code>
+     * <dd><code>P</code>
+     * </dl>
+     *
+     * </blockquote>
+     *
+     * where <i>Sign</i>, <i>FloatingPointLiteral</i>,
+     * <i>HexNumeral</i>, <i>HexDigits</i>, <i>SignedInteger</i> and
+     * <i>FloatTypeSuffix</i> are as defined in the lexical structure
+     * sections of the of the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>. If <code>s</code> does not have the form of
+     * a <i>FloatValue</i>, then a <code>NumberFormatException</code>
+     * is thrown. Otherwise, <code>s</code> is regarded as
+     * representing an exact decimal value in the usual
+     * &quot;computerized scientific notation&quot; or as an exact
+     * hexadecimal value; this exact numerical value is then
+     * conceptually converted to an &quot;infinitely precise&quot;
+     * binary value that is then rounded to type <code>float</code>
+     * by the usual round-to-nearest rule of IEEE 754 floating-point
+     * arithmetic, which includes preserving the sign of a zero
+     * value. Finally, a <code>Float</code> object representing this
+     * <code>float</code> value is returned.
+     * 
+     * <p>To interpret localized string representations of a
      * floating-point value, use subclasses of {@link
      * java.text.NumberFormat}.
      *
@@ -195,6 +345,11 @@ public final class Float extends Number implements Comparable {
      * <code>1.0000002f</code>; if the string is converted directly to
      * <code>float</code>, <code>1.000000<b>1</b>f</code> results.
      *
+     * <p>To avoid calling this method on a invalid string and having
+     * a <code>NumberFormatException</code> be thrown, the documentation
+     * for {@link Double#valueOf Double.valueOf} lists a regular
+     * expression which can be used to screen the input.
+     *
      * @param      s   the string to be parsed.
      * @return     a <code>Float</code> object holding the value
      *             represented by the <code>String</code> argument.
@@ -203,6 +358,23 @@ public final class Float extends Number implements Comparable {
      */
     public static Float valueOf(String s) throws NumberFormatException {
 	return new Float(FloatingDecimal.readJavaFormatString(s).floatValue());
+    }
+
+    /**
+     * Returns a <tt>Float</tt> instance representing the specified
+     * <tt>float</tt> value.
+     * If a new <tt>Float</tt> instance is not required, this method
+     * should generally be used in preference to the constructor
+     * {@link #Float(float)}, as this method is likely to yield
+     * significantly better space and time performance by caching
+     * frequently requested values.
+     *
+     * @param  f a float value.
+     * @return a <tt>Float</tt> instance representing <tt>f</tt>.
+     * @since  1.5
+     */
+    public static Float valueOf(float f) {
+        return new Float(f);
     }
 
     /**
@@ -251,7 +423,7 @@ public final class Float extends Number implements Comparable {
      *
      * @serial
      */
-    private float value;
+    private final float value;
 
     /**
      * Constructs a newly allocated <code>Float</code> object that
@@ -513,7 +685,7 @@ public final class Float extends Number implements Comparable {
 
     /**
      * Returns the <code>float</code> value corresponding to a given
-     * bit represention.
+     * bit representation.
      * The argument is considered to be a representation of a
      * floating-point value according to the IEEE 754 floating-point
      * "single format" bit layout.
@@ -585,11 +757,8 @@ public final class Float extends Number implements Comparable {
      *		<code>0.0f</code> is considered by this method to be greater
      *		than <code>-0.0f</code>.
      * </ul>
-     * This ensures that <code>Float.compareTo(Object)</code> (which
-     * forwards its behavior to this method) obeys the general
-     * contract for <code>Comparable.compareTo</code>, and that the
-     * <i>natural order</i> on <code>Float</code>s is <i>consistent
-     * with equals</i>.
+     * This ensures that the <i>natural ordering</i> of <tt>Float</tt>
+     * objects imposed by this method is <i>consistent with equals</i>.
      *
      * @param   anotherFloat   the <code>Float</code> to be compared.
      * @return  the value <code>0</code> if <code>anotherFloat</code> is
@@ -605,31 +774,6 @@ public final class Float extends Number implements Comparable {
      */
     public int compareTo(Float anotherFloat) {
         return Float.compare(value, anotherFloat.value);
-    }
-
-    /**
-     * Compares this <code>Float</code> object to another object.  If
-     * the object is a <code>Float</code>, this function behaves like
-     * <code>compareTo(Float)</code>.  Otherwise, it throws a
-     * <code>ClassCastException</code> (as <code>Float</code> objects
-     * are comparable only to other <code>Float</code> objects).
-     *
-     * @param   o the <code>Object</code> to be compared.
-     * @return the value <code>0</code> if the argument is a
-     *		<code>Float</code> numerically equal to this
-     *		<code>Float</code>; a value less than <code>0</code>
-     *		if the argument is a <code>Float</code> numerically
-     *		greater than this <code>Float</code>; and a value
-     *		greater than <code>0</code> if the argument is a
-     *		<code>Float</code> numerically less than this
-     *		<code>Float</code> .
-     * @exception <code>ClassCastException</code> if the argument is not a
-     *		  <code>Float</code>.
-     * @see     java.lang.Comparable
-     * @since 1.2
-     */
-    public int compareTo(Object o) {
-	return compareTo((Float)o);
     }
 
     /**

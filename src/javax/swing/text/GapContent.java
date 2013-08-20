@@ -1,7 +1,7 @@
 /*
  * @(#)GapContent.java	1.21 01/12/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -108,7 +108,7 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
      * @see AbstractDocument.Content#insertString
      */
     public UndoableEdit insertString(int where, String str) throws BadLocationException {
-	if (where >= length() || where < 0) {
+	if (where > length() || where < 0) {
 	    throw new BadLocationException("Invalid insert", length());
 	}
 	char[] chars = str.toCharArray();
@@ -314,6 +314,8 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 
     private transient ReferenceQueue queue;
 
+    final static int GROWTH_SIZE = 1024 * 512;
+
     // --- gap management -------------------------------
 
     /**
@@ -333,6 +335,18 @@ public class GapContent extends GapVector implements AbstractDocument.Content, S
 	    MarkData mark = marks.elementAt(i);
 	    mark.index += dg;
 	}
+    }
+
+    /**
+     * Overridden to make growth policy less agressive for large
+     * text amount.
+     */
+    int getNewArraySize(int reqSize) {
+        if (reqSize < GROWTH_SIZE) {
+            return super.getNewArraySize(reqSize);
+        } else {
+            return reqSize + GROWTH_SIZE;
+        }
     }
 
     /**

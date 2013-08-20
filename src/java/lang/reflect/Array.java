@@ -1,7 +1,7 @@
 /*
- * @(#)Array.java	1.14 03/01/23
+ * @(#)Array.java	1.21 04/04/20
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ class Array {
      * @exception NegativeArraySizeException if the specified <code>length</code> 
      * is negative
      */
-    public static Object newInstance(Class componentType, int length)
+    public static Object newInstance(Class<?> componentType, int length)
 	throws NegativeArraySizeException {
 	return newArray(componentType, length);
     }
@@ -85,7 +85,7 @@ class Array {
      * @exception NegativeArraySizeException if any of the components in
      * the specified <code>dimensions</code> argument is negative.
      */
-    public static Object newInstance(Class componentType, int[] dimensions)
+    public static Object newInstance(Class<?> componentType, int[] dimensions)
 	throws IllegalArgumentException, NegativeArraySizeException {
 	return multiNewArray(componentType, dimensions);
     }
@@ -281,12 +281,10 @@ class Array {
      * @param index the index into the array
      * @param value the new value of the indexed component
      * @exception NullPointerException If the specified object argument
-     * is null, or if the array component type is primitive and the specified
-     * value is null
+     * is null
      * @exception IllegalArgumentException If the specified object argument
      * is not an array, or if the array component type is primitive and
-     * the specified value cannot be converted to the primitive type by
-     * a combination of unwrapping and identity or widening conversions
+     * an unwrapping conversion fails
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -303,9 +301,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-     * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -323,9 +321,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-      * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -343,9 +341,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-     * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -363,9 +361,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-     * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -383,9 +381,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-     * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -403,9 +401,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-     * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -423,9 +421,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-     * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array
@@ -443,9 +441,9 @@ class Array {
      * @exception NullPointerException If the specified object argument
      * is null
      * @exception IllegalArgumentException If the specified object argument
-     * is not an array, or if the the specified value cannot be converted
+     * is not an array, or if the specified value cannot be converted
      * to the underlying array's component type by an identity or a
-     * primitive widening widening conversion
+     * primitive widening conversion
      * @exception ArrayIndexOutOfBoundsException If the specified <code>index</code> 
      * argument is negative, or if it is greater than or equal to
      * the length of the specified array

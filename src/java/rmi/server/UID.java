@@ -1,7 +1,7 @@
 /*
- * @(#)UID.java	1.20 03/01/23
+ * @(#)UID.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -12,6 +12,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.SecureRandom;
 
 /**
  * A <code>UID</code> represents an identifier that is unique over time
@@ -49,13 +50,14 @@ import java.io.OutputStream;
  *
  * @author	Ann Wollrath
  * @author	Peter Jones
- * @version	1.20, 03/01/23
+ * @version	1.22, 03/12/19
  * @since	JDK1.1
  */
 public final class UID implements java.io.Serializable {
 
-    private static long  ONE_SECOND = 1000; // in milliseconds
-    private static final int hostUnique = getHostUniqueNum();
+    private static final long  ONE_SECOND = 1000; // in milliseconds
+    private static int hostUnique;
+    private static boolean hostUniqueSet = false;
 
     private static final Object lock = new Object();
     private static long lastTime = System.currentTimeMillis();
@@ -86,21 +88,17 @@ public final class UID implements java.io.Serializable {
     private final short count;
 
     /**
-     * In the absence of an actual pid, just do something somewhat
-     * random.
-     */
-    private static int getHostUniqueNum() {
-	return (new Object()).hashCode();
-    }
-
-    /**
      * Generates a <code>UID</code> that is unique over time with
      * respect to the host that it was generated on.
      */
     public UID() {
-	unique = hostUnique;
-
+	
 	synchronized (lock) {
+	    if (!hostUniqueSet) {
+		hostUnique = (new SecureRandom()).nextInt();
+		hostUniqueSet = true;
+	    }
+	    unique = hostUnique;
 	    if (lastCount == Short.MAX_VALUE) {
 		boolean done = false;
 		while (!done) {
@@ -174,7 +172,7 @@ public final class UID implements java.io.Serializable {
      * this one, and <code>false</code> otherwise
      */
     public boolean equals(Object obj) {
-	if ((obj != null) && (obj instanceof UID)) {
+	if (obj instanceof UID) {
 	    UID uid = (UID)obj;
 	    return (unique == uid.unique &&
 		    count == uid.count &&

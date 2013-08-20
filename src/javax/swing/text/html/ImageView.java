@@ -1,7 +1,7 @@
 /*
- * @(#)ImageView.java	1.53 03/03/17
+ * @(#)ImageView.java	1.56 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * as of 1.4.
  *
  * @author  Scott Violet
- * @version 1.53 03/17/03
+ * @version 1.56 12/19/03
  * @see IconView
  * @since 1.4
  */
@@ -250,10 +250,6 @@ public class ImageView extends View {
         borderSize = (short)getIntAttr(HTML.Attribute.BORDER, isLink() ?
                                        DEFAULT_BORDER : 0);
 
-        if (borderSize == 0 && image == null) {
-            borderSize = 1;
-        }
-
         leftInset = rightInset = (short)(getIntAttr(HTML.Attribute.HSPACE,
                                                     0) + borderSize);
         topInset = bottomInset = (short)(getIntAttr(HTML.Attribute.VSPACE,
@@ -404,11 +400,12 @@ public class ImageView extends View {
     private void paintBorder(Graphics g, Rectangle rect) {
         Color color = borderColor;
 
-        if (borderSize > 0 && color != null) {
+        if ((borderSize > 0 || image == null) && color != null) {
             int xOffset = leftInset - borderSize;
             int yOffset = topInset - borderSize;
             g.setColor(color);
-	    for (int counter = 0; counter < borderSize; counter++) {
+            int n = (image == null) ? 1 : borderSize;
+	    for (int counter = 0; counter < n; counter++) {
 	        g.drawRect(rect.x + xOffset + counter,
                            rect.y + yOffset + counter,
                            rect.width - counter - counter - xOffset -xOffset-1,
@@ -732,7 +729,7 @@ public class ImageView extends View {
                 newImage = (Image)cache.get(src);
             }
             else {
-                newImage = Toolkit.getDefaultToolkit().getImage(src);
+                newImage = Toolkit.getDefaultToolkit().createImage(src);
                 if (newImage != null && getLoadsSynchronously()) {
                     // Force the image to be loaded by using an ImageIcon.
                     ImageIcon ii = new ImageIcon();
@@ -827,7 +824,6 @@ public class ImageView extends View {
 	}
         else {
             width = height = DEFAULT_HEIGHT;
-            updateBorderForNoImage();
             updateAltTextView();
         }
     }
@@ -869,17 +865,14 @@ public class ImageView extends View {
      */
     private void safePreferenceChanged() {
         if (SwingUtilities.isEventDispatchThread()) {
-            Document doc = getDocument();
-            try {
-                if (doc instanceof AbstractDocument) {
-                    ((AbstractDocument)doc).readLock();
-                }
-                preferenceChanged(null, true, true);
-            } finally {
-                if (doc instanceof AbstractDocument) {
-                    ((AbstractDocument)doc).readUnlock();
-                }
-            }
+	    Document doc = getDocument();
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readLock();
+	    }
+            preferenceChanged(null, true, true);
+	    if (doc instanceof AbstractDocument) {
+		((AbstractDocument)doc).readUnlock();
+	    }
         }
         else {
             SwingUtilities.invokeLater(new Runnable() {
@@ -889,21 +882,6 @@ public class ImageView extends View {
                 });
         }
     }
-
-    /**
-     * Invoked if no image is found, in which case a default border is
-     * used if one isn't specified.
-     */
-    private void updateBorderForNoImage() {
-        if (borderSize == 0) {
-            borderSize = 1;
-            leftInset += borderSize;
-            rightInset += borderSize;
-            bottomInset += borderSize;
-            topInset += borderSize;
-        }
-    }
-
 
     /**
      * ImageHandler implements the ImageObserver to correctly update the
@@ -917,7 +895,7 @@ public class ImageView extends View {
         // it will pick up the new height/width, if necessary.
         public boolean imageUpdate(Image img, int flags, int x, int y,
                                    int newWidth, int newHeight ) {
-            if (image == null || image != img) {
+            if (image == null || image != img || getParent() == null) {
                 return false;
             }
     	    
@@ -935,8 +913,6 @@ public class ImageView extends View {
                         if ((state & HEIGHT_FLAG) != HEIGHT_FLAG) {
                             height = DEFAULT_HEIGHT;
                         }
-                        // No image, use a default border.
-                        updateBorderForNoImage();
                     }
                     if ((state & LOADING_FLAG) == LOADING_FLAG) {
                         // No need to resize or repaint, still in the process
@@ -978,7 +954,7 @@ public class ImageView extends View {
             }
             if (changed != 0) {
                 // May need to resize myself, asynchronously:
-                safePreferenceChanged();
+		safePreferenceChanged();
                 return true;
             }
 

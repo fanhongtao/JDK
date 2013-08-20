@@ -1,7 +1,7 @@
 /*
- * @(#)AlgorithmParametersSpi.java	1.10 03/01/23
+ * @(#)AlgorithmParametersSpi.java	1.12 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -22,7 +22,7 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.10, 01/23/03
+ * @version 1.12, 05/05/04
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec
@@ -94,7 +94,8 @@ public abstract class AlgorithmParametersSpi {
      * specification is inappropriate for this parameter object.
      */
     protected abstract
-	AlgorithmParameterSpec engineGetParameterSpec(Class paramSpec)
+	<T extends AlgorithmParameterSpec>
+	T engineGetParameterSpec(Class<T> paramSpec)
 	throws InvalidParameterSpecException;
 
     /**

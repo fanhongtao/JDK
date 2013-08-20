@@ -1,7 +1,7 @@
 /*
- * @(#)AlgorithmParameters.java	1.22 03/01/23
+ * @(#)AlgorithmParameters.java	1.24 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -49,7 +49,7 @@ import java.security.spec.InvalidParameterSpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.22, 01/23/03
+ * @version 1.24, 05/05/04
  *
  * @see java.security.spec.AlgorithmParameterSpec
  * @see java.security.spec.DSAParameterSpec
@@ -293,7 +293,8 @@ public class AlgorithmParameters {
      * specification is inappropriate for this parameter object, or if this
      * parameter object has not been initialized.
      */
-    public final AlgorithmParameterSpec getParameterSpec(Class paramSpec)
+    public final <T extends AlgorithmParameterSpec>
+	T getParameterSpec(Class<T> paramSpec)
 	throws InvalidParameterSpecException
     {
 	if (this.initialized == false) {

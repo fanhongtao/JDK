@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFormatterFactory.java	1.6 03/01/23
+ * @(#)DefaultFormatterFactory.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -52,7 +52,7 @@ import javax.swing.JFormattedTextField;
  *
  * @see javax.swing.JFormattedTextField
  *
- * @version 1.6 01/23/03
+ * @version 1.8 12/19/03
  * @since 1.4
  */
 public class DefaultFormatterFactory extends JFormattedTextField.AbstractFormatterFactory implements Serializable {
@@ -291,9 +291,6 @@ public class DefaultFormatterFactory extends JFormattedTextField.AbstractFormatt
                 format = getDefaultFormatter();
             }
         }
-        if (format != null) {
-            return format;
-        }
-        return null;
+        return format;
     }
 }

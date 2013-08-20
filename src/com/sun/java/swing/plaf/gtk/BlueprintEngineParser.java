@@ -1,7 +1,7 @@
 /*
- * @(#)BlueprintEngineParser.java	1.10 03/07/25
+ * @(#)BlueprintEngineParser.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,12 +12,13 @@ import java.util.ArrayList;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Color;
+import javax.swing.plaf.synth.SynthConstants;
 
 /**
  * A parser for the "blueprint" engine sections in GTK rc theme files.
  *
  * @author  Shannon Hickey
- * @version 1.10 07/25/03
+ * @version 1.12 12/19/03
  */
 class BlueprintEngineParser extends GTKEngineParser {
 

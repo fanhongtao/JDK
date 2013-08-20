@@ -1,5 +1,5 @@
 /*
- * @(#)Bits.java	1.14 04/06/11
+ * @(#)Bits.java	1.18 04/05/24
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -589,7 +589,7 @@ class Bits {				// package-private
         PrivilegedAction pa
 	    = new sun.security.action.GetPropertyAction("os.arch");
         String arch = (String)AccessController.doPrivileged(pa);
-	unaligned = arch.equals("i386");
+	unaligned = arch.equals("i386") || arch.equals("x86");
 	unalignedKnown = true;
 	return unaligned;
     }
@@ -619,7 +619,7 @@ class Bits {				// package-private
 		return;
 	    }
 	}
-	
+
 	System.gc();
 	try {
 	    Thread.sleep(100);
@@ -627,13 +627,12 @@ class Bits {				// package-private
 	    // Restore interrupt status
 	    Thread.currentThread().interrupt();
 	}
-	
 	synchronized (Bits.class) {
-	    if (reservedMemory + size > maxMemory) { 
+	    if (reservedMemory + size > maxMemory)
 		throw new OutOfMemoryError("Direct buffer memory");
-	    }
 	    reservedMemory += size;
 	}
+
     }
 
     static synchronized void unreserveMemory(long size) {
@@ -643,6 +642,7 @@ class Bits {				// package-private
 	}
     }
 
+
     // -- Bulk get/put acceleration --
 
     // These numbers represent the point at which we have empirically

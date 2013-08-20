@@ -1,7 +1,7 @@
 /*
- * @(#)Handler.java	1.13 03/01/23
+ * @(#)Handler.java	1.17 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ package java.util.logging;
  * <tt>Handler</tt> class.
  *
  *
- * @version 1.13, 01/23/03
+ * @version 1.17, 01/12/04
  * @since 1.4
  */
 
@@ -58,7 +58,8 @@ public abstract class Handler {
      * The <tt>Handler</tt>  is responsible for formatting the message, when and
      * if necessary.  The formatting should include localization.
      *
-     * @param  record  description of the log event
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     public abstract void publish(LogRecord record);
 
@@ -249,7 +250,8 @@ public abstract class Handler {
      * This method checks if the <tt>LogRecord</tt> has an appropriate 
      * <tt>Level</tt> and  whether it satisfies any <tt>Filter</tt>.  It also
      * may make other <tt>Handler</tt> specific checks that might prevent a
-     * handler from logging the <tt>LogRecord</tt>.
+     * handler from logging the <tt>LogRecord</tt>. It will return false if 
+     * the <tt>LogRecord</tt> is Null.
      * <p>
      * @param record  a <tt>LogRecord</tt>
      * @return true if the <tt>LogRecord</tt> would be logged.
@@ -270,7 +272,7 @@ public abstract class Handler {
     // Package-private support method for security checks.
     // If "sealed" is true, we check that the caller has
     // appropriate security privileges to update Handler
-    // state and if not throw a SeucirtyException.
+    // state and if not throw a SecurityException.
     void checkAccess() throws SecurityException {
 	if (sealed) {
 	    manager.checkAccess();

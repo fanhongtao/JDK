@@ -1,7 +1,7 @@
 /*
- * @(#)NetworkInterface.java	1.15 03/01/23
+ * @(#)NetworkInterface.java	1.17 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -69,15 +69,15 @@ public final class NetworkInterface {
      * @return an Enumeration object with all or a subset of the InetAddresses
      * bound to this network interface
      */
-    public Enumeration getInetAddresses() {
+    public Enumeration<InetAddress> getInetAddresses() {
 
-	class checkedAddresses implements Enumeration {
+	class checkedAddresses implements Enumeration<InetAddress> {
     
 	    private int i=0, count=0;
-	    private Object local_addrs[];
+	    private InetAddress local_addrs[];
     
 	    checkedAddresses() {
-		local_addrs = new Object[addrs.length];
+		local_addrs = new InetAddress[addrs.length];
     	    
 		SecurityManager sec = System.getSecurityManager();
 		for (int j=0; j<addrs.length; j++) {
@@ -91,7 +91,7 @@ public final class NetworkInterface {
     	
 	    }
     
-	    public Object nextElement() {
+	    public InetAddress nextElement() {
 		if (i < count) {
 		    return local_addrs[i++];
 		} else {
@@ -199,7 +199,7 @@ public final class NetworkInterface {
      * @exception  SocketException  if an I/O error occurs.
      */
 
-    public static Enumeration getNetworkInterfaces() 
+    public static Enumeration<NetworkInterface> getNetworkInterfaces() 
 	throws SocketException {
 	final NetworkInterface[] netifs = getAll();
 
@@ -207,9 +207,9 @@ public final class NetworkInterface {
 	if (netifs == null) 
 	    return null;
 	
-	return new Enumeration() {
+	return new Enumeration<NetworkInterface>() {
 	    private int i = 0;
-	    public Object nextElement() {
+	    public NetworkInterface nextElement() {
 		if (netifs != null && i < netifs.length) {
 		    NetworkInterface netif = netifs[i++];
 		    return netif;

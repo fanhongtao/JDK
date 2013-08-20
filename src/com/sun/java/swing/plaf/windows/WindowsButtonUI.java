@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsButtonUI.java	1.29 03/04/21
+ * @(#)WindowsButtonUI.java	1.35 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.29 04/21/03
+ * @version 1.35 12/19/03
  * @author Jeff Dinkins
  *
  */
@@ -53,7 +53,7 @@ public class WindowsButtonUI extends BasicButtonUI
     //         Create Listeners
     // ********************************
     protected BasicButtonListener createButtonListener(AbstractButton b) {
-	return new WindowsButtonListener(b); 
+	return super.createButtonListener(b);
     }
 
     // ********************************
@@ -74,7 +74,7 @@ public class WindowsButtonUI extends BasicButtonUI
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    b.setBorder(xp.getBorder("button.pushbutton"));
-	    b.setRolloverEnabled(true);
+            LookAndFeel.installProperty(b, "rolloverEnabled", Boolean.TRUE);
 	}
     }
     
@@ -130,7 +130,7 @@ public class WindowsButtonUI extends BasicButtonUI
 	 * to allow for the focus line if focus is painted
 	 */
         AbstractButton b = (AbstractButton)c;
-	if (b.isFocusPainted()) {
+	if (d != null && b.isFocusPainted()) {
 	    if(d.width % 2 == 0) { d.width += 1; }
 	    if(d.height % 2 == 0) { d.height += 1; }
 	}
@@ -158,7 +158,7 @@ public class WindowsButtonUI extends BasicButtonUI
 	XPStyle xp = XPStyle.getXP();
 
 	if (b.isContentAreaFilled() && xp != null &&
-	    "imagefile".equalsIgnoreCase(xp.getString("button.pushbutton.bgtype"))) {
+	    "imagefile".equalsIgnoreCase(xp.getString("button.pushbutton", null, "bgtype"))) {
 
 	    ButtonModel model = b.getModel();
 	    boolean toolbar = (c.getParent() instanceof JToolBar);

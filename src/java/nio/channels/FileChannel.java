@@ -1,7 +1,7 @@
 /*
- * @(#)FileChannel.java	1.38 03/01/23
+ * @(#)FileChannel.java	1.40 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -128,7 +128,7 @@ import java.nio.channels.spi.AbstractInterruptibleChannel;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.38, 03/01/23
+ * @version 1.40, 04/01/12
  * @since 1.4
  */
 
@@ -185,7 +185,7 @@ public abstract class FileChannel
      * <p> Bytes are written starting at this channel's current file position
      * unless the channel is in append mode, in which case the position is
      * first advanced to the end of the file.  The file is grown, if necessary,
-     * to accomodate the written bytes, and then the file position is updated
+     * to accommodate the written bytes, and then the file position is updated
      * with the number of bytes actually written.  Otherwise this method
      * behaves exactly as specified by the {@link WritableByteChannel}
      * interface. </p>
@@ -199,7 +199,7 @@ public abstract class FileChannel
      * <p> Bytes are written starting at this channel's current file position
      * unless the channel is in append mode, in which case the position is
      * first advanced to the end of the file.  The file is grown, if necessary,
-     * to accomodate the written bytes, and then the file position is updated
+     * to accommodate the written bytes, and then the file position is updated
      * with the number of bytes actually written.  Otherwise this method
      * behaves exactly as specified in the {@link GatheringByteChannel}
      * interface.  </p>
@@ -213,7 +213,7 @@ public abstract class FileChannel
      * <p> Bytes are written starting at this channel's current file position
      * unless the channel is in append mode, in which case the position is
      * first advanced to the end of the file.  The file is grown, if necessary,
-     * to accomodate the written bytes, and then the file position is updated
+     * to accommodate the written bytes, and then the file position is updated
      * with the number of bytes actually written.  Otherwise this method
      * behaves exactly as specified in the {@link GatheringByteChannel}
      * interface.  </p>
@@ -247,7 +247,7 @@ public abstract class FileChannel
      * current size is legal but does not change the size of the file.  A later
      * attempt to read bytes at such a position will immediately return an
      * end-of-file indication.  A later attempt to write bytes at such a
-     * position will cause the file to be grown to accomodate the new bytes;
+     * position will cause the file to be grown to accommodate the new bytes;
      * the values of any bytes between the previous end-of-file and the
      * newly-written bytes are unspecified.  </p>
      *
@@ -549,7 +549,7 @@ public abstract class FileChannel
      * the given file position rather than at the channel's current position.
      * This method does not modify this channel's position.  If the given
      * position is greater than the file's current size then the file will be
-     * grown to accomodate the new bytes; the values of any bytes between the
+     * grown to accommodate the new bytes; the values of any bytes between the
      * previous end-of-file and the newly-written bytes are unspecified.  </p>
      *
      * @param  src
@@ -591,7 +591,7 @@ public abstract class FileChannel
     /**
      * A typesafe enumeration for file-mapping modes.
      *
-     * @version 1.38, 03/01/23
+     * @version 1.40, 04/01/12
      * @since 1.4
      *
      * @see java.nio.channels.FileChannel#map

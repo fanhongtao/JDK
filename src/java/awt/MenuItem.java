@@ -1,7 +1,7 @@
 /*
- * @(#)MenuItem.java	1.83 03/01/23
+ * @(#)MenuItem.java	1.88 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -48,7 +48,7 @@ import javax.accessibility.*;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.83, 01/23/03
+ * @version 1.88, 05/18/04
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent implements Accessible {
@@ -246,6 +246,7 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setEnabled(boolean)</code>.
      */
+    @Deprecated
     public synchronized void enable() {
 	enabled = true;
 	MenuItemPeer peer = (MenuItemPeer)this.peer;
@@ -258,6 +259,7 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setEnabled(boolean)</code>.
      */
+    @Deprecated
     public void enable(boolean b) {
     	if (b) {
 	    enable();
@@ -270,6 +272,7 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>setEnabled(boolean)</code>.
      */
+    @Deprecated
     public synchronized void disable() {
 	enabled = false;
 	MenuItemPeer peer = (MenuItemPeer)this.peer;
@@ -427,6 +430,11 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @since       JDK1.1
      */
     public String getActionCommand() {
+        return getActionCommandImpl();
+    }
+
+    // This is final so it can be called on the Toolkit thread.
+    final String getActionCommandImpl() {
         return (actionCommand == null? label : actionCommand);
     }
 
@@ -520,7 +528,7 @@ public class MenuItem extends MenuComponent implements Accessible {
      * @see #getActionListeners
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
 	EventListener l = null; 
 	if  (listenerType == ActionListener.class) { 
 	    l = actionListener;
@@ -713,7 +721,12 @@ public class MenuItem extends MenuComponent implements Accessible {
      * Java Accessibility API appropriate to menu item user-interface elements.
      */
     protected class AccessibleAWTMenuItem extends AccessibleAWTMenuComponent
-        implements AccessibleAction, AccessibleValue  {
+        implements AccessibleAction, AccessibleValue
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = -217847831945965825L;
 
         /**
          * Get the accessible name of this object.  

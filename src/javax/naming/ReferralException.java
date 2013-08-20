@@ -1,7 +1,7 @@
 /*
- * @(#)ReferralException.java	1.8 03/01/23
+ * @(#)ReferralException.java	1.11 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ import java.util.Hashtable;
  * 
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.8 03/01/23
+ * @version 1.11 04/07/16
  *
  * @since 1.3
  *
@@ -129,7 +129,9 @@ public abstract class ReferralException extends NamingException {
      * Call either <tt>retryReferral()</tt> or <tt>skipReferral()</tt>
      * to continue processing referrals.
      */
-    public abstract Context getReferralContext(Hashtable env) throws NamingException;
+    public abstract Context
+	getReferralContext(Hashtable<?,?> env)
+	throws NamingException;
 
     /**
      * Discards the referral about to be processed.

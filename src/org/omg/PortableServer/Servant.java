@@ -1,7 +1,7 @@
 /*
- * @(#)Servant.java	1.16 03/01/27
+ * @(#)Servant.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package org.omg.PortableServer;
@@ -28,14 +28,14 @@ abstract public class Servant {
      * Gets the ORB vendor-specific implementation of
      * <code>PortableServer::Servant</code>.
      * @return <code>_delegate</code> the ORB vendor-specific
-     * implementation o@throwf <code>PortableServer::Servant</code>.
+     * implementation of <code>PortableServer::Servant</code>.
      */
     final public Delegate _get_delegate() {
         if (_delegate == null) {
             throw 
                 new 
                 org.omg.CORBA.BAD_INV_ORDER
-                ("The Servant has not been associated with an ORBinstance");
+                ("The Servant has not been associated with an ORB instance");
         }
         return _delegate;
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)JViewport.java	1.108 03/08/26
+ * @(#)JViewport.java	1.114 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -74,7 +74,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.108 08/26/03
+ * @version 1.114 05/18/04
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -112,6 +112,7 @@ public class JViewport extends JComponent implements Accessible
      * @deprecated As of Java 2 platform v1.3
      * @see #setScrollMode
      */
+    @Deprecated
     protected boolean backingStore = false;
 
     /** The view image used for a backing store. */
@@ -231,12 +232,17 @@ public class JViewport extends JComponent implements Accessible
      */
     private transient Timer repaintTimer;
 
+    /**
+     * Whether or not a valid view has been installed.
+     */
+    private boolean hasHadValidView;
+
     /** Creates a <code>JViewport</code>. */
     public JViewport() {
         super();
-        updateUI();
         setLayout(createLayoutManager());
 	setOpaque(true);
+        updateUI();
     }
 
 
@@ -888,6 +894,7 @@ public class JViewport extends JComponent implements Accessible
      * @deprecated As of Java 2 platform v1.3, replaced by
      *             <code>getScrollMode()</code>.
      */
+    @Deprecated
     public boolean isBackingStoreEnabled() {
         return scrollMode == BACKINGSTORE_SCROLL_MODE;
     }
@@ -905,6 +912,7 @@ public class JViewport extends JComponent implements Accessible
      * @deprecated As of Java 2 platform v1.3, replaced by
      *             <code>setScrollMode()</code>.
      */
+    @Deprecated
     public void setBackingStoreEnabled(boolean enabled) {
         if (enabled) {
 	    setScrollMode(BACKINGSTORE_SCROLL_MODE);
@@ -960,6 +968,14 @@ public class JViewport extends JComponent implements Accessible
             super.addImpl(view, null, -1);
             viewListener = createViewListener();
             view.addComponentListener(viewListener);
+        }
+
+        if (hasHadValidView) {
+            // Only fire a change if a view has been installed.
+            fireStateChanged();
+        }
+        else if (view != null) {
+            hasHadValidView = true;
         }
 
 	revalidate();
@@ -1273,12 +1289,12 @@ public class JViewport extends JComponent implements Accessible
     /**
      * Subclassers can override this to install a different
      * layout manager (or <code>null</code>) in the constructor.  Returns
-     * a new <code>ViewportLayout</code> object.
+     * the <code>LayoutManager</code> to install on the <code>JViewport</code>.
      *
      * @return a <code>LayoutManager</code>
      */
     protected LayoutManager createLayoutManager() {
-        return new ViewportLayout();
+        return ViewportLayout.SHARED_INSTANCE;
     }
 
 
@@ -1540,9 +1556,10 @@ public class JViewport extends JComponent implements Accessible
 		if (rm.useVolatileDoubleBuffer() &&
 		    (off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight())) != null) {
 		    VolatileImage vImage = (java.awt.image.VolatileImage)off;
-		    GraphicsConfiguration gc = view.getGraphicsConfiguration();
+                    GraphicsConfiguration gc = view.getGraphicsConfiguration();
 		    for(int i = 0; !paintCompleted && i < RepaintManager.VOLATILE_LOOP_MAX; i++) {
-			if (vImage.validate(gc) == VolatileImage.IMAGE_INCOMPATIBLE)
+		        if (vImage.validate(gc) ==
+			    VolatileImage.IMAGE_INCOMPATIBLE)
 			{
 			    rm.resetVolatileDoubleBuffer(gc);
 			    off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight());
@@ -1617,9 +1634,10 @@ public class JViewport extends JComponent implements Accessible
 	if (rm.useVolatileDoubleBuffer() &&
 	    (off = rm.getVolatileOffscreenBuffer(this,r.width,r.height)) != null) {
 	    VolatileImage vImage = (java.awt.image.VolatileImage)off;
-	    GraphicsConfiguration gc = view.getGraphicsConfiguration();
+            GraphicsConfiguration gc = view.getGraphicsConfiguration();
 	    for(int i=0; !paintCompleted && i < RepaintManager.VOLATILE_LOOP_MAX; i++) {
-		if (vImage.validate(gc) == VolatileImage.IMAGE_INCOMPATIBLE)
+		if (vImage.validate(gc) ==
+		    VolatileImage.IMAGE_INCOMPATIBLE)
 		{
 		    rm.resetVolatileDoubleBuffer(gc);
 		    off = rm.getVolatileOffscreenBuffer(this,getWidth(),getHeight());
@@ -1683,6 +1701,12 @@ public class JViewport extends JComponent implements Accessible
 			     !(getView() instanceof JComponent))) {
 	    return false;
 	}
+        if (isPainting()) {
+            // We're in the process of painting, don't blit. If we were
+            // to blit we would draw on top of what we're already drawing,
+            // so bail.
+            return false;
+        }
 
         Rectangle dirtyRegion = RepaintManager.currentManager(this).
                                 getDirtyRegion((JComponent)getParent());
@@ -1695,20 +1719,19 @@ public class JViewport extends JComponent implements Accessible
 
 	Rectangle clip = new Rectangle(0,0,getWidth(),getHeight());
 	Rectangle oldClip = new Rectangle();
-	Rectangle tmp2;
-	Rectangle b;
+	Rectangle tmp2 = null;
 	Container parent;
 	Component lastParent = null;
+        int x, y, w, h;
 		
 	for(parent = this; parent != null && isLightweightComponent(parent); parent = parent.getParent()) {
-	    if(parent instanceof JComponent) {
-		b = ((JComponent)parent)._bounds;
-	    } else {
-		b = parent.getBounds();
-	    }
+            x = parent.getX();
+            y = parent.getY();
+            w = parent.getWidth();
+            h = parent.getHeight();
 
 	    oldClip.setBounds(clip);
-	    SwingUtilities.computeIntersection(0, 0, b.width, b.height, clip);
+	    SwingUtilities.computeIntersection(0, 0, w, h, clip);
 	    if(!clip.equals(oldClip))
 		return false;
 
@@ -1725,19 +1748,15 @@ public class JViewport extends JComponent implements Accessible
 		}
 
 		while(index >= 0) {
-		    if(comps[index] instanceof JComponent) {
-			tmp2 = ((JComponent)comps[index])._bounds;
-		    } else {
-			tmp2 = comps[index].getBounds();
-		    }		
+                    tmp2 = comps[index].getBounds(tmp2);
 					
 		    if(tmp2.intersects(clip))
 			return false;
 		    index--;
 		}
 	    }
-	    clip.x += b.x;
-	    clip.y += b.y;
+	    clip.x += x;
+	    clip.y += y;
 	    lastParent = parent;
 	}
 	if (parent == null) {

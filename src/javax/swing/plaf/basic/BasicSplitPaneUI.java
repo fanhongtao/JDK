@@ -1,7 +1,7 @@
 /*
- * @(#)BasicSplitPaneUI.java	1.73 03/01/23
+ * @(#)BasicSplitPaneUI.java	1.80 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,8 @@
 package javax.swing.plaf.basic;
 
 
+import sun.swing.DefaultLookup;
+import sun.swing.UIAction;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.*;
@@ -27,7 +29,7 @@ import javax.swing.plaf.UIResource;
 /**
  * A Basic L&F implementation of the SplitPaneUI.
  *
- * @version 1.73 01/23/03
+ * @version 1.80 05/18/04
  * @author Scott Violet
  * @author Steve Wilson
  * @author Ralph Kar
@@ -43,7 +45,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
 
 
     /**
-     * How far (relativ) the divider does move when it is moved around by
+     * How far (relative) the divider does move when it is moved around by
      * the cursor keys on the keyboard.
      */
     protected static int KEYBOARD_DIVIDER_MOVE_OFFSET = 3;
@@ -78,6 +80,8 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Instance of the FocusListener for this JSplitPane.
      */
     protected FocusListener focusListener;
+
+    private Handler handler;
 
 
     /**
@@ -127,6 +131,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke upKey;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -136,6 +141,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke downKey;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -145,6 +151,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke leftKey;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -154,6 +161,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke rightKey;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -163,6 +171,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke homeKey;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -172,6 +181,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke endKey;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -181,6 +191,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected KeyStroke dividerResizeToggleKey;
 
     /**
@@ -191,6 +202,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener keyboardUpLeftListener;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -200,6 +212,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener keyboardDownRightListener;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -209,6 +222,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener keyboardHomeListener;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -218,6 +232,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener keyboardEndListener;
     /**
      * As of Java 2 platform v1.3 this previously undocumented field is no
@@ -227,6 +242,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener keyboardResizeToggleListener;
 
 
@@ -238,10 +254,14 @@ public class BasicSplitPaneUI extends SplitPaneUI
     private boolean     dividerLocationIsSet;  // needed for tracking
                                                // the first occurrence of
                                                // setDividerLocation()
+    private Color dividerDraggingColor;
     private boolean rememberPaneSizes;
 
+    // Indicates wether the one of splitpane sides is expanded
+    private boolean keepHidden = false;
+
     /** Indicates that we have painted once. */
-    // This is used by the LayoutManger to determine when it should use
+    // This is used by the LayoutManager to determine when it should use
     // the divider location provided by the JSplitPane. This is used as there
     // is no way to determine when the layout process has completed.
     boolean             painted;
@@ -256,6 +276,18 @@ public class BasicSplitPaneUI extends SplitPaneUI
         return new BasicSplitPaneUI();
     }
 
+    static void loadActionMap(LazyActionMap map) {
+        map.put(new Actions(Actions.NEGATIVE_INCREMENT));
+	map.put(new Actions(Actions.POSITIVE_INCREMENT));
+	map.put(new Actions(Actions.SELECT_MIN));
+	map.put(new Actions(Actions.SELECT_MAX));
+	map.put(new Actions(Actions.START_RESIZE));
+	map.put(new Actions(Actions.TOGGLE_FOCUS));
+	map.put(new Actions(Actions.FOCUS_OUT_FORWARD));
+	map.put(new Actions(Actions.FOCUS_OUT_BACKWARD));
+    }
+
+
 
     /**
      * Installs the UI.
@@ -264,6 +296,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
         splitPane = (JSplitPane) c;
         dividerLocationIsSet = false;
         dividerKeyboardResize = false;
+        keepHidden = false;
         installDefaults();
         installListeners();
         installKeyboardActions();
@@ -278,6 +311,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
         LookAndFeel.installBorder(splitPane, "SplitPane.border");
         LookAndFeel.installColors(splitPane, "SplitPane.background",
                                   "SplitPane.foreground");
+        LookAndFeel.installProperty(splitPane, "opaque", Boolean.TRUE);
 
         if (divider == null) divider = createDefaultDivider();
         divider.setBasicSplitPaneUI(this);
@@ -288,13 +322,15 @@ public class BasicSplitPaneUI extends SplitPaneUI
 	    divider.setBorder(UIManager.getBorder("SplitPaneDivider.border"));
 	}
 
+	dividerDraggingColor = UIManager.getColor("SplitPaneDivider.draggingColor");
+
         setOrientation(splitPane.getOrientation());
 
 	// This plus 2 here is to provide backwards consistancy. Previously,
 	// the old size did not include the 2 pixel border around the divider,
 	// it now does.
-        splitPane.setDividerSize(((Integer) (UIManager.get(
-            "SplitPane.dividerSize"))).intValue());
+        LookAndFeel.installProperty(splitPane, "dividerSize", 
+				    UIManager.get("SplitPane.dividerSize"));
 
         divider.setDividerSize(splitPane.getDividerSize());
 	dividerSize = divider.getDividerSize();
@@ -358,42 +394,16 @@ public class BasicSplitPaneUI extends SplitPaneUI
 	SwingUtilities.replaceUIInputMap(splitPane, JComponent.
 				       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
 				       km);
-	ActionMap am = getActionMap();
-
-	SwingUtilities.replaceUIActionMap(splitPane, am);
+        LazyActionMap.installLazyActionMap(splitPane, BasicSplitPaneUI.class,
+                                           "SplitPane.actionMap");
     }
 
     InputMap getInputMap(int condition) {
 	if (condition == JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT) {
-	    return (InputMap)UIManager.get("SplitPane.ancestorInputMap");
+	    return (InputMap)DefaultLookup.get(splitPane, this,
+                                               "SplitPane.ancestorInputMap");
 	}
 	return null;
-    }
-
-    ActionMap getActionMap() {
-	ActionMap map = (ActionMap)UIManager.get("SplitPane.actionMap");
-
-	if (map == null) {
-	    map = createActionMap();
-	    if (map != null) {
-		UIManager.getLookAndFeelDefaults().put("SplitPane.actionMap",
-                                                       map);
-	    }
-	}
-	return map;
-    }
-
-    ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-        map.put("negativeIncrement", new KeyboardUpLeftAction());
-	map.put("positiveIncrement", new KeyboardDownRightAction());
-	map.put("selectMin", new KeyboardHomeAction());
-	map.put("selectMax", new KeyboardEndAction());
-	map.put("startResize", new KeyboardResizeToggleAction());
-	map.put("toggleFocus", new ToggleSideFocusAction());
-	map.put("focusOutForward", new MoveFocusOutAction(1));
-	map.put("focusOutBackward", new MoveFocusOutAction(-1));
-	return map;
     }
 
     /**
@@ -462,6 +472,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
         keyboardHomeListener = null;
         keyboardEndListener = null;
         keyboardResizeToggleListener = null;
+        handler = null;
     }
 
 
@@ -480,7 +491,14 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Creates a PropertyChangeListener for the JSplitPane UI.
      */
     protected PropertyChangeListener createPropertyChangeListener() {
-        return new PropertyHandler();
+        return getHandler();
+    }
+
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
     }
 
 
@@ -488,7 +506,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Creates a FocusListener for the JSplitPane UI.
      */
     protected FocusListener createFocusListener() {
-        return new FocusHandler();
+        return getHandler();
     }
 
 
@@ -505,6 +523,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener createKeyboardUpLeftListener() {
         return new KeyboardUpLeftHandler();
     }
@@ -523,6 +542,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener createKeyboardDownRightListener() {
         return new KeyboardDownRightHandler();
     }
@@ -541,6 +561,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener createKeyboardHomeListener() {
         return new KeyboardHomeHandler();
     }
@@ -559,6 +580,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener createKeyboardEndListener() {
         return new KeyboardEndHandler();
     }
@@ -577,6 +599,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      *
      * @deprecated As of Java 2 platform v1.3.
      */
+    @Deprecated
     protected ActionListener createKeyboardResizeToggleListener() {
         return new KeyboardResizeToggleHandler();
     }
@@ -640,46 +663,23 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Implementation of the PropertyChangeListener
      * that the JSplitPane UI uses.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
     public class PropertyHandler implements PropertyChangeListener
     {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this
+        // class calls into the Handler.
+
         /**
          * Messaged from the <code>JSplitPane</code> the receiver is
          * contained in.  May potentially reset the layout manager and cause a
          * <code>validate</code> to be sent.
          */
         public void propertyChange(PropertyChangeEvent e) {
-            if(e.getSource() == splitPane) {
-                String changeName = e.getPropertyName();
-
-                if(changeName.equals(JSplitPane.ORIENTATION_PROPERTY)) {
-                    orientation = splitPane.getOrientation();
-                    resetLayoutManager();
-                } else if(changeName.equals(
-                                    JSplitPane.CONTINUOUS_LAYOUT_PROPERTY)) {
-                    setContinuousLayout(splitPane.isContinuousLayout());
-                    if(!isContinuousLayout()) {
-                        if(nonContinuousLayoutDivider == null) {
-                            setNonContinuousLayoutDivider(
-                                createDefaultNonContinuousLayoutDivider(),
-                                true);
-                        } else if(nonContinuousLayoutDivider.getParent() ==
-                                  null) {
-                            setNonContinuousLayoutDivider(
-                                nonContinuousLayoutDivider,
-                                true);
-                        }
-                    }
-                } else if(changeName.equals(JSplitPane.DIVIDER_SIZE_PROPERTY)){
-                    divider.setDividerSize(splitPane.getDividerSize());
-		    dividerSize = divider.getDividerSize();
-                    splitPane.revalidate();
-		    splitPane.repaint();
-                }
-            }
+            getHandler().propertyChange(e);
         }
     }
 
@@ -687,20 +687,21 @@ public class BasicSplitPaneUI extends SplitPaneUI
     /**
      * Implementation of the FocusListener that the JSplitPane UI uses.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
     public class FocusHandler extends FocusAdapter
     {
+        // NOTE: This class exists only for backward compatability. All
+        // its functionality has been moved into Handler. If you need to add
+        // new functionality add it to the Handler, but make sure this
+        // class calls into the Handler.
         public void focusGained(FocusEvent ev) {
-            dividerKeyboardResize = true;
-            splitPane.repaint();
+            getHandler().focusGained(ev);
         }
 
         public void focusLost(FocusEvent ev) {
-            dividerKeyboardResize = false;
-            splitPane.repaint();
+            getHandler().focusLost(ev);
         }
     }
     
@@ -709,7 +710,6 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * Implementation of an ActionListener that the JSplitPane UI uses for
      * handling specific key presses.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
@@ -723,22 +723,10 @@ public class BasicSplitPaneUI extends SplitPaneUI
         }
     }
 
-    static class KeyboardUpLeftAction extends AbstractAction {
-        public void actionPerformed(ActionEvent ev) {
-	    JSplitPane splitPane = (JSplitPane)ev.getSource();
-	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
-            if (ui.dividerKeyboardResize) {
-		splitPane.setDividerLocation(Math.max(0,ui.getDividerLocation
-				  (splitPane) - ui.getKeyboardMoveIncrement()));
-            }
-        }
-    }
-
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
      * handling specific key presses.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
@@ -753,23 +741,10 @@ public class BasicSplitPaneUI extends SplitPaneUI
     }
 
 
-    static class KeyboardDownRightAction extends AbstractAction {
-        public void actionPerformed(ActionEvent ev) {
-	    JSplitPane splitPane = (JSplitPane)ev.getSource();
-	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
-            if (ui.dividerKeyboardResize) {
-                splitPane.setDividerLocation(ui.getDividerLocation(splitPane) +
-					     ui.getKeyboardMoveIncrement());
-            }
-        }
-    }
-    
-
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
      * handling specific key presses.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
@@ -781,23 +756,12 @@ public class BasicSplitPaneUI extends SplitPaneUI
             }
         }
     }
-
-    static class KeyboardHomeAction extends AbstractAction {
-        public void actionPerformed(ActionEvent ev) {
-	    JSplitPane splitPane = (JSplitPane)ev.getSource();
-	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
-            if (ui.dividerKeyboardResize) {
-                splitPane.setDividerLocation(0);
-            }
-        }
-    }
     
 
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
      * handling specific key presses.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
@@ -822,32 +786,10 @@ public class BasicSplitPaneUI extends SplitPaneUI
     }
 
 
-    static class KeyboardEndAction extends AbstractAction {
-        public void actionPerformed(ActionEvent ev) {
-	    JSplitPane splitPane = (JSplitPane)ev.getSource();
-	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
-            if (ui.dividerKeyboardResize) {
-		Insets   insets = splitPane.getInsets();
-		int      bottomI = (insets != null) ? insets.bottom : 0;
-		int      rightI = (insets != null) ? insets.right : 0;
-
-                if (ui.orientation == JSplitPane.VERTICAL_SPLIT) {
-                    splitPane.setDividerLocation(splitPane.getHeight() -
-                                       bottomI);
-                }
-                else {
-                    splitPane.setDividerLocation(splitPane.getWidth() -
-						 rightI);
-                }
-            }
-        }
-    }
-
     /**
      * Implementation of an ActionListener that the JSplitPane UI uses for
      * handling specific key presses.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
@@ -860,129 +802,6 @@ public class BasicSplitPaneUI extends SplitPaneUI
         }
     }
 
-
-    static class KeyboardResizeToggleAction extends AbstractAction {
-        public void actionPerformed(ActionEvent ev) {
-	    JSplitPane splitPane = (JSplitPane)ev.getSource();
-	    BasicSplitPaneUI ui = (BasicSplitPaneUI)splitPane.getUI();
-            if (!ui.dividerKeyboardResize) {
-                splitPane.requestFocus();
-	    } else {
-		JSplitPane parentSplitPane =
-		    (JSplitPane)SwingUtilities.getAncestorOfClass(JSplitPane.class, splitPane);
-		if (parentSplitPane!=null) {
-		    parentSplitPane.requestFocus();
-		}
-            }
-        }
-    }
-
-
-    /**
-     * ActionListener that will focus on the opposite component that
-     * has focus. EG if the left side has focus, this will transfer focus
-     * to the right component.
-     */
-    static class ToggleSideFocusAction extends AbstractAction {
-	public void actionPerformed(ActionEvent ae) {
-	    JSplitPane splitPane = (JSplitPane)ae.getSource();
-	    Component left = splitPane.getLeftComponent();
-	    Component right = splitPane.getRightComponent();
-
-	    KeyboardFocusManager manager =
-		KeyboardFocusManager.getCurrentKeyboardFocusManager();
-	    Component focus = manager.getFocusOwner();
-	    Component focusOn = getNextSide(splitPane, focus);
-	    if (focusOn != null) {
-		// don't change the focus if the new focused component belongs
-		// to the same splitpane and the same side
-		if ( focus!=null &&
-		     ( (SwingUtilities.isDescendingFrom(focus, left) &&
-			SwingUtilities.isDescendingFrom(focusOn, left)) ||
-		       (SwingUtilities.isDescendingFrom(focus, right) &&
-			SwingUtilities.isDescendingFrom(focusOn, right)) ) ) {
-		    return;
-		}
- 		BasicLookAndFeel.compositeRequestFocus(focusOn);
-	    }
-	}
-
-	private Component getNextSide(JSplitPane splitPane, Component focus) {
-	    Component left = splitPane.getLeftComponent();
-	    Component right = splitPane.getRightComponent();
-	    Component next = null;
-	    if (focus!=null && SwingUtilities.isDescendingFrom(focus, left) &&
-		right!=null) {
-		next = getFirstAvailableComponent(right);
-		if (next != null) {
-		    return next;
-		}
-	    }
-	    JSplitPane parentSplitPane = (JSplitPane)SwingUtilities.getAncestorOfClass(JSplitPane.class, splitPane);
-	    if (parentSplitPane!=null) {
-		// focus next side of the parent split pane
-		next = getNextSide(parentSplitPane, focus);
-	    } else {
-		next = getFirstAvailableComponent(left);
-		if (next == null) {
-		    next = getFirstAvailableComponent(right);
-		}
-	    }
-	    return next;
-	}
-
-	private Component getFirstAvailableComponent(Component c) {
-	    if (c!=null && c instanceof JSplitPane) {
-		JSplitPane sp = (JSplitPane)c;
-		Component left = getFirstAvailableComponent(sp.getLeftComponent());
-		if (left != null) {
-		    c = left;
-		} else {
-		    c = getFirstAvailableComponent(sp.getRightComponent());
-		}
-	    }
-	    return c;
-	}
-    }
-
-    /**
-     * Action that will move focus out of the splitpane to the next
-     * component (if present) if direction > 0 or to the previous
-     * component (if present) if direction < 0
-     */
-    static class MoveFocusOutAction extends AbstractAction {
-
-	private int direction;
-
-	public MoveFocusOutAction(int newDirection) {
-	    direction = newDirection;
-	}
-
-	public void actionPerformed(ActionEvent ae) {
-	    JSplitPane splitPane = (JSplitPane)ae.getSource();
-	    Container rootAncestor = splitPane.getFocusCycleRootAncestor();
-	    FocusTraversalPolicy policy = rootAncestor.getFocusTraversalPolicy();
-	    Component focusOn = (direction > 0) ?
-		policy.getComponentAfter(rootAncestor, splitPane) :
-		policy.getComponentBefore(rootAncestor, splitPane);
-	    HashSet focusFrom = new HashSet();
-	    if (splitPane.isAncestorOf(focusOn)) {
-		do {
-		    focusFrom.add(focusOn);
-		    rootAncestor = focusOn.getFocusCycleRootAncestor();
-		    policy = rootAncestor.getFocusTraversalPolicy();
-		    focusOn = (direction > 0) ?
-			policy.getComponentAfter(rootAncestor, focusOn) :
-			policy.getComponentBefore(rootAncestor, focusOn);
-		} while (splitPane.isAncestorOf(focusOn) &&
-			 !focusFrom.contains(focusOn));
-	    }
-	    if ( focusOn!=null && !splitPane.isAncestorOf(focusOn) ) {
-		focusOn.requestFocus();
-	    }
-	}
-    }
-    
     /**
      * Returns the divider between the top Components.
      */
@@ -1001,7 +820,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
                 if(!isContinuousLayout() && getLastDragLocation() != -1) {
                     Dimension      size = splitPane.getSize();
 
-                    g.setColor(Color.darkGray);
+                    g.setColor(dividerDraggingColor);
                     if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
                         g.fillRect(0, 0, dividerSize - 1, size.height - 1);
                     } else {
@@ -1101,7 +920,6 @@ public class BasicSplitPaneUI extends SplitPaneUI
         if(splitPane != null) {
             layoutManager.resetToPreferredSizes();
             splitPane.revalidate();
-            layoutManager.layoutContainer(splitPane);
 	    splitPane.repaint();
         }
     }
@@ -1115,6 +933,19 @@ public class BasicSplitPaneUI extends SplitPaneUI
 	    dividerLocationIsSet = true;
 	    splitPane.revalidate();
 	    splitPane.repaint();
+
+            if (keepHidden) {		
+		Insets insets = splitPane.getInsets();
+		int orientation = splitPane.getOrientation(); 
+		if ((orientation == JSplitPane.VERTICAL_SPLIT &&
+		     location != insets.top &&
+		     location != splitPane.getHeight()-divider.getHeight()-insets.top) ||
+		    (orientation == JSplitPane.HORIZONTAL_SPLIT &&
+		     location != insets.left &&
+		     location != splitPane.getWidth()-divider.getWidth()-insets.left)) {
+  		    setKeepHidden(false);
+		}
+	    }
 	}
 	else {
 	    ignoreDividerLocationChange = false;
@@ -1201,7 +1032,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
            !isContinuousLayout() && !draggingHW) {
             Dimension      size = splitPane.getSize();
 
-            g.setColor(Color.darkGray);
+            g.setColor(dividerDraggingColor);
             if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
                 g.fillRect(getLastDragLocation(), 0, dividerSize - 1,
                            size.height - 1);
@@ -1273,9 +1104,9 @@ public class BasicSplitPaneUI extends SplitPaneUI
      */
     protected void resetLayoutManager() {
         if(orientation == JSplitPane.HORIZONTAL_SPLIT) {
-            layoutManager = new BasicHorizontalLayoutManager();
+            layoutManager = new BasicHorizontalLayoutManager(0);
         } else {
-            layoutManager = new BasicVerticalLayoutManager();
+            layoutManager = new BasicHorizontalLayoutManager(1);
         }
         splitPane.setLayout(layoutManager);
         layoutManager.updateComponents();
@@ -1283,6 +1114,20 @@ public class BasicSplitPaneUI extends SplitPaneUI
         splitPane.repaint();
     }
 
+    /**
+     * Set the value to indicate if one of the splitpane sides is expanded.
+     */
+    void setKeepHidden(boolean keepHidden) {
+	this.keepHidden = keepHidden;
+    }
+
+    /**
+     * The value returned indicates if one of the splitpane sides is expanded.
+     * @return true if one of the splitpane sides is expanded, false otherwise.
+     */
+    private boolean getKeepHidden() {
+	return keepHidden;
+    }
 
     /**
      * Should be messaged before the dragging session starts, resets
@@ -1401,6 +1246,7 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * @deprecated As of Java 2 platform v1.3, instead set the border on the
      * divider.
      */
+    @Deprecated
     protected int getDividerBorderSize() {
         return 1;
     }
@@ -1409,10 +1255,6 @@ public class BasicSplitPaneUI extends SplitPaneUI
     /**
      * LayoutManager for JSplitPanes that have an orientation of
      * HORIZONTAL_SPLIT.
-     * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
     public class BasicHorizontalLayoutManager implements LayoutManager2
     {
@@ -1483,7 +1325,8 @@ public class BasicSplitPaneUI extends SplitPaneUI
 		dividerLocationIsSet = false;
 	    }
 	    else if (availableSize != lastSplitPaneSize) {
-		distributeSpace(availableSize - lastSplitPaneSize, true);
+		distributeSpace(availableSize - lastSplitPaneSize,
+                                getKeepHidden());
 	    }
 	    doReset = false;
 	    dividerLocationIsSet = false;
@@ -2158,15 +2001,231 @@ public class BasicSplitPaneUI extends SplitPaneUI
      * LayoutManager used for JSplitPanes with an orientation of
      * VERTICAL_SPLIT.
      * <p>
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
-     * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of BasicSplitPaneUI.
      */
     public class BasicVerticalLayoutManager extends
             BasicHorizontalLayoutManager
     {
 	public BasicVerticalLayoutManager() {
 	    super(1);
+	}
+    }
+
+
+    private class Handler implements FocusListener, PropertyChangeListener {
+        //
+        // PropertyChangeListener
+        //
+        /**
+         * Messaged from the <code>JSplitPane</code> the receiver is
+         * contained in.  May potentially reset the layout manager and cause a
+         * <code>validate</code> to be sent.
+         */
+        public void propertyChange(PropertyChangeEvent e) {
+            if(e.getSource() == splitPane) {
+                String changeName = e.getPropertyName();
+
+                if(changeName == JSplitPane.ORIENTATION_PROPERTY) {
+                    orientation = splitPane.getOrientation();
+                    resetLayoutManager();
+                } else if(changeName == JSplitPane.CONTINUOUS_LAYOUT_PROPERTY){
+                    setContinuousLayout(splitPane.isContinuousLayout());
+                    if(!isContinuousLayout()) {
+                        if(nonContinuousLayoutDivider == null) {
+                            setNonContinuousLayoutDivider(
+                                createDefaultNonContinuousLayoutDivider(),
+                                true);
+                        } else if(nonContinuousLayoutDivider.getParent() ==
+                                  null) {
+                            setNonContinuousLayoutDivider(
+                                nonContinuousLayoutDivider,
+                                true);
+                        }
+                    }
+                } else if(changeName == JSplitPane.DIVIDER_SIZE_PROPERTY){
+                    divider.setDividerSize(splitPane.getDividerSize());
+		    dividerSize = divider.getDividerSize();
+                    splitPane.revalidate();
+		    splitPane.repaint();
+                }
+            }
+        }
+
+        //
+        // FocusListener
+        //
+        public void focusGained(FocusEvent ev) {
+            dividerKeyboardResize = true;
+            splitPane.repaint();
+        }
+
+        public void focusLost(FocusEvent ev) {
+            dividerKeyboardResize = false;
+            splitPane.repaint();
+        }
+    }
+
+
+    private static class Actions extends UIAction {
+        private static final String NEGATIVE_INCREMENT = "negativeIncrement";
+        private static final String POSITIVE_INCREMENT = "positiveIncrement";
+        private static final String SELECT_MIN = "selectMin";
+        private static final String SELECT_MAX = "selectMax";
+        private static final String START_RESIZE = "startResize";
+        private static final String TOGGLE_FOCUS = "toggleFocus";
+        private static final String FOCUS_OUT_FORWARD = "focusOutForward";
+        private static final String FOCUS_OUT_BACKWARD = "focusOutBackward";
+
+        Actions(String key) {
+            super(key);
+        }
+
+        public void actionPerformed(ActionEvent ev) {
+	    JSplitPane splitPane = (JSplitPane)ev.getSource();
+	    BasicSplitPaneUI ui = (BasicSplitPaneUI)BasicLookAndFeel.
+                      getUIOfType(splitPane.getUI(), BasicSplitPaneUI.class);
+
+            if (ui == null) {
+                return;
+            }
+            String key = getName();
+            if (key == NEGATIVE_INCREMENT) {
+                if (ui.dividerKeyboardResize) {
+                    splitPane.setDividerLocation(Math.max(
+                              0, ui.getDividerLocation
+                              (splitPane) - ui.getKeyboardMoveIncrement()));
+                }
+            }
+            else if (key == POSITIVE_INCREMENT) {
+                if (ui.dividerKeyboardResize) {
+                    splitPane.setDividerLocation(
+                        ui.getDividerLocation(splitPane) +
+                        ui.getKeyboardMoveIncrement());
+                }
+            }
+            else if (key == SELECT_MIN) {
+                if (ui.dividerKeyboardResize) {
+                    splitPane.setDividerLocation(0);
+                }
+            }
+            else if (key == SELECT_MAX) {
+                if (ui.dividerKeyboardResize) {
+                    Insets   insets = splitPane.getInsets();
+                    int      bottomI = (insets != null) ? insets.bottom : 0;
+                    int      rightI = (insets != null) ? insets.right : 0;
+
+                    if (ui.orientation == JSplitPane.VERTICAL_SPLIT) {
+                        splitPane.setDividerLocation(splitPane.getHeight() -
+                                                     bottomI);
+                    }
+                    else {
+                        splitPane.setDividerLocation(splitPane.getWidth() -
+                                                     rightI);
+                    }
+                }
+            }
+            else if (key == START_RESIZE) {
+                if (!ui.dividerKeyboardResize) {
+                    splitPane.requestFocus();
+                } else {
+                    JSplitPane parentSplitPane =
+                        (JSplitPane)SwingUtilities.getAncestorOfClass(
+                                         JSplitPane.class, splitPane);
+                    if (parentSplitPane!=null) {
+                        parentSplitPane.requestFocus();
+                    }
+                }
+            }
+            else if (key == TOGGLE_FOCUS) {
+                toggleFocus(splitPane);
+            }
+            else if (key == FOCUS_OUT_FORWARD) {
+                moveFocus(splitPane, 1);
+            }
+            else if (key == FOCUS_OUT_BACKWARD) {
+                moveFocus(splitPane, -1);
+            }
+        }
+
+	private void moveFocus(JSplitPane splitPane, int direction) {
+	    Container rootAncestor = splitPane.getFocusCycleRootAncestor();
+	    FocusTraversalPolicy policy = rootAncestor.getFocusTraversalPolicy();
+	    Component focusOn = (direction > 0) ?
+		policy.getComponentAfter(rootAncestor, splitPane) :
+		policy.getComponentBefore(rootAncestor, splitPane);
+	    HashSet focusFrom = new HashSet();
+	    if (splitPane.isAncestorOf(focusOn)) {
+		do {
+		    focusFrom.add(focusOn);
+		    rootAncestor = focusOn.getFocusCycleRootAncestor();
+		    policy = rootAncestor.getFocusTraversalPolicy();
+		    focusOn = (direction > 0) ?
+			policy.getComponentAfter(rootAncestor, focusOn) :
+			policy.getComponentBefore(rootAncestor, focusOn);
+		} while (splitPane.isAncestorOf(focusOn) &&
+			 !focusFrom.contains(focusOn));
+	    }
+	    if ( focusOn!=null && !splitPane.isAncestorOf(focusOn) ) {
+		focusOn.requestFocus();
+	    }
+	}
+
+	private void toggleFocus(JSplitPane splitPane) {
+	    Component left = splitPane.getLeftComponent();
+	    Component right = splitPane.getRightComponent();
+
+	    KeyboardFocusManager manager =
+		KeyboardFocusManager.getCurrentKeyboardFocusManager();
+	    Component focus = manager.getFocusOwner();
+	    Component focusOn = getNextSide(splitPane, focus);
+	    if (focusOn != null) {
+		// don't change the focus if the new focused component belongs
+		// to the same splitpane and the same side
+		if ( focus!=null &&
+		     ( (SwingUtilities.isDescendingFrom(focus, left) &&
+			SwingUtilities.isDescendingFrom(focusOn, left)) ||
+		       (SwingUtilities.isDescendingFrom(focus, right) &&
+			SwingUtilities.isDescendingFrom(focusOn, right)) ) ) {
+		    return;
+		}
+ 		BasicLookAndFeel.compositeRequestFocus(focusOn);
+	    }
+	}
+
+	private Component getNextSide(JSplitPane splitPane, Component focus) {
+	    Component left = splitPane.getLeftComponent();
+	    Component right = splitPane.getRightComponent();
+	    Component next = null;
+	    if (focus!=null && SwingUtilities.isDescendingFrom(focus, left) &&
+		right!=null) {
+		next = getFirstAvailableComponent(right);
+		if (next != null) {
+		    return next;
+		}
+	    }
+	    JSplitPane parentSplitPane = (JSplitPane)SwingUtilities.getAncestorOfClass(JSplitPane.class, splitPane);
+	    if (parentSplitPane!=null) {
+		// focus next side of the parent split pane
+		next = getNextSide(parentSplitPane, focus);
+	    } else {
+		next = getFirstAvailableComponent(left);
+		if (next == null) {
+		    next = getFirstAvailableComponent(right);
+		}
+	    }
+	    return next;
+	}
+
+	private Component getFirstAvailableComponent(Component c) {
+	    if (c!=null && c instanceof JSplitPane) {
+		JSplitPane sp = (JSplitPane)c;
+		Component left = getFirstAvailableComponent(sp.getLeftComponent());
+		if (left != null) {
+		    c = left;
+		} else {
+		    c = getFirstAvailableComponent(sp.getRightComponent());
+		}
+	    }
+	    return c;
 	}
     }
 }

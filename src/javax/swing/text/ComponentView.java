@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentView.java	1.51 03/01/23
+ * @(#)ComponentView.java	1.54 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -45,7 +45,7 @@ import javax.swing.event.*;
  * views of a shared model.
  *
  * @author Timothy Prinzing
- * @version 1.51 01/23/03
+ * @version 1.54 12/19/03
  */
 public class ComponentView extends View  {
 
@@ -384,10 +384,12 @@ public class ComponentView extends View  {
 	}
 	
 	public void setBounds(int x, int y, int w, int h) { 
-	   super.setBounds(x, y, w, h);
-	   getComponent(0).setSize(w, h);
-	   cacheChildSizes();
-	}
+            super.setBounds(x, y, w, h);
+            if (getComponentCount() > 0) {
+                getComponent(0).setSize(w, h);
+            }
+            cacheChildSizes();
+        }
 
         public void validateIfNecessary() {
 	    if (!isValid()) {
@@ -396,14 +398,18 @@ public class ComponentView extends View  {
 	}
 
 	private void cacheChildSizes() {
-	    Component child = getComponent(0);
-	    min = child.getMinimumSize();
-	    pref = child.getPreferredSize();
-	    max = child.getMaximumSize();
-	    yalign = child.getAlignmentY();
-	    xalign = child.getAlignmentX();
-	}
-
+            if (getComponentCount() > 0) {
+                Component child = getComponent(0);
+                min = child.getMinimumSize();
+                pref = child.getPreferredSize();
+                max = child.getMaximumSize();
+                yalign = child.getAlignmentY();
+                xalign = child.getAlignmentX();
+            } else {
+                min = pref = max = new Dimension(0, 0);
+            }
+        }
+        
 	/**
 	 * Shows or hides this component depending on the value of parameter 
 	 * <code>b</code>.
@@ -414,9 +420,19 @@ public class ComponentView extends View  {
 	 */
         public void setVisible(boolean b) {
 	    super.setVisible(b);
-	    Component child = this.getComponent(0);
-	    child.setVisible(b);
-	}
+            if (getComponentCount() > 0) {
+                getComponent(0).setVisible(b);
+            }
+        }
+        
+        /**
+         * Overridden to fix 4759054. Must return true so that content
+         * is painted when inside a CellRendererPane which is normally
+         * invisible.
+         */
+        public boolean isShowing() {
+            return true;
+        }
 
         public Dimension getMinimumSize() {
 	    validateIfNecessary();

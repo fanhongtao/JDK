@@ -1,7 +1,7 @@
 /*
- * @(#)HTML.java	1.39 03/01/23
+ * @(#)HTML.java	1.41 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -19,7 +19,7 @@ import javax.swing.text.StyleContext;
  * @author  Timothy Prinzing
  * @author  Sunita Mani
  *
- * @version 1.39 01/23/03
+ * @version 1.41 12/19/03
  */
 public class HTML {
 
@@ -515,6 +515,7 @@ public class HTML {
 	    StyleContext.registerStaticAttributeKey(Attribute.
 						    allAttributes[i]);
 	}
+	StyleContext.registerStaticAttributeKey(HTML.NULL_ATTRIBUTE_VALUE);
         scMapping.put(StyleConstants.Bold, Tag.B);
         scMapping.put(StyleConstants.Italic, Tag.I);
         scMapping.put(StyleConstants.Underline, Tag.U);

@@ -1,7 +1,7 @@
 /*
- * @(#)CertificateFactorySpi.java	1.15 03/01/23
+ * @(#)CertificateFactorySpi.java	1.19 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.security.NoSuchProviderException;
  * @author Jan Luehe
  * @author Sean Mullan
  *
- * @version 1.15, 01/23/03
+ * @version 1.19, 05/05/04
  *
  * @see CertificateFactory
  * @see Certificate
@@ -92,10 +92,16 @@ public abstract class CertificateFactorySpi {
      * the data read from the <code>InputStream</code> inStream. The data
      * is assumed to be in the default encoding.
      *
+     * <p> This method was added to version 1.4 of the Java 2 Platform
+     * Standard Edition. In order to maintain backwards compatibility with
+     * existing service providers, this method cannot be <code>abstract</code>
+     * and by default throws an <code>UnsupportedOperationException</code>.
+     *
      * @param inStream an <code>InputStream</code> containing the data
      * @return a <code>CertPath</code> initialized with the data from the
      *   <code>InputStream</code>
      * @exception CertificateException if an exception occurs while decoding
+     * @exception UnsupportedOperationException if the method is not supported
      * @since 1.4
      */
     public CertPath engineGenerateCertPath(InputStream inStream)
@@ -149,7 +155,8 @@ public abstract class CertificateFactorySpi {
      * @exception UnsupportedOperationException if the method is not supported
      * @since 1.4
      */
-    public CertPath engineGenerateCertPath(List certificates)
+    public CertPath
+	engineGenerateCertPath(List<? extends Certificate> certificates)
         throws CertificateException
     {
         throw new UnsupportedOperationException();
@@ -177,7 +184,7 @@ public abstract class CertificateFactorySpi {
      * @exception UnsupportedOperationException if the method is not supported
      * @since 1.4
      */
-    public Iterator engineGetCertPathEncodings() {
+    public Iterator<String> engineGetCertPathEncodings() {
         throw new UnsupportedOperationException();
     }
 
@@ -217,8 +224,9 @@ public abstract class CertificateFactorySpi {
      *
      * @exception CertificateException on parsing errors.
      */
-    public abstract Collection engineGenerateCertificates(InputStream inStream)
-        throws CertificateException;
+    public abstract Collection<? extends Certificate> 
+	    engineGenerateCertificates(InputStream inStream)
+	    throws CertificateException;
 
     /**
      * Generates a certificate revocation list (CRL) object and initializes it
@@ -285,6 +293,6 @@ public abstract class CertificateFactorySpi {
      *
      * @exception CRLException on parsing errors.
      */
-    public abstract Collection engineGenerateCRLs(InputStream inStream)
-        throws CRLException;
+    public abstract Collection<? extends CRL> engineGenerateCRLs
+	    (InputStream inStream) throws CRLException;
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)ColorUIResource.java	1.12 03/01/23
+ * @(#)ColorUIResource.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  * 
  * @see javax.swing.plaf.UIResource
- * @version 1.12 01/23/03
+ * @version 1.14 12/19/03
  * @author Hans Muller
  * 
  */
@@ -44,6 +44,6 @@ public class ColorUIResource extends Color implements UIResource
     }
 
     public ColorUIResource(Color c) {
-	super(c.getRed(), c.getGreen(), c.getBlue());
+	super(c.getRGB(), (c.getRGB() & 0xFF000000) != 0xFF000000);
     }
 }

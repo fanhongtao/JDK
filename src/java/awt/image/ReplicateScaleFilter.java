@@ -1,7 +1,7 @@
 /*
- * @(#)ReplicateScaleFilter.java	1.16 03/01/23
+ * @(#)ReplicateScaleFilter.java	1.20 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.awt.Rectangle;
  * @see FilteredImageSource
  * @see ImageFilter
  *
- * @version	1.16 01/23/03
+ * @version	1.20 07/16/04
  * @author 	Jim Graham
  */
 public class ReplicateScaleFilter extends ImageFilter {
@@ -93,6 +93,8 @@ public class ReplicateScaleFilter extends ImageFilter {
     /**
      * Passes along the properties from the source object after adding a
      * property indicating the scale applied.
+     * This method invokes <code>super.setProperties</code>,
+     * which might result in additional properties being added.
      * <p>
      * Note: This method is intended to be called by the 
      * <code>ImageProducer</code> of the <code>Image</code> whose pixels 
@@ -101,16 +103,16 @@ public class ReplicateScaleFilter extends ImageFilter {
      * this method directly since that operation could interfere
      * with the filtering operation.
      */
-    public void setProperties(Hashtable props) {
-	props = (Hashtable) props.clone();
+    public void setProperties(Hashtable<?,?> props) {
+	Hashtable<Object,Object> p = (Hashtable<Object,Object>)props.clone();
 	String key = "rescale";
 	String val = destWidth + "x" + destHeight;
-	Object o = props.get(key);
+	Object o = p.get(key);
 	if (o != null && o instanceof String) {
 	    val = ((String) o) + ", " + val;
 	}
-	props.put(key, val);
-	super.setProperties(props);
+	p.put(key, val);
+	super.setProperties(p);
     }
 
     /**

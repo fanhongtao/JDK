@@ -1,7 +1,7 @@
 /*
- * @(#)SystemFlavorMap.java	1.31 03/01/23
+ * @(#)SystemFlavorMap.java	1.36 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,7 +45,7 @@ import sun.awt.datatransfer.DataTransferer;
  * <code>AWT.DnD.flavorMapFileURL</code>. See <code>flavormap.properties</code>
  * for details.
  *
- * @version 1.31, 01/23/03
+ * @version 1.36, 05/05/04
  * @since 1.2
  */
 public final class SystemFlavorMap implements FlavorMap, FlavorTable {
@@ -479,6 +479,25 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
     private List nativeToFlavorLookup(String nat) {
         List flavors = (List)nativeToFlavor.get(nat);
 
+        if (nat != null && !disabledMappingGenerationKeys.contains(nat)) {
+            DataTransferer transferer = DataTransferer.getInstance();
+            if (transferer != null) {
+                List platformFlavors =
+                    transferer.getPlatformMappingsForNative(nat);
+                if (!platformFlavors.isEmpty()) {
+                    if (flavors != null) {
+                        platformFlavors.removeAll(new HashSet(flavors));
+                        // Prepending the platform-specific mappings ensures
+                        // that the flavors added with
+                        // addFlavorForUnencodedNative() are at the end of
+                        // list.
+                        platformFlavors.addAll(flavors);
+                    }
+                    flavors = platformFlavors;
+                }
+            }
+        }
+
         if (flavors == null && isJavaMIMEType(nat)) {
             String decoded = decodeJavaMIMEType(nat);
             DataFlavor flavor = null;
@@ -525,6 +544,25 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                                       final boolean synthesize) {
         List natives = (List)flavorToNative.get(flav);
 
+        if (flav != null && !disabledMappingGenerationKeys.contains(flav)) {
+            DataTransferer transferer = DataTransferer.getInstance();
+            if (transferer != null) {
+                List platformNatives =
+                    transferer.getPlatformMappingsForFlavor(flav);
+                if (!platformNatives.isEmpty()) {
+                    if (natives != null) {
+                        platformNatives.removeAll(new HashSet(natives));
+                        // Prepend the platform-specific mappings to ensure
+                        // that the natives added with
+                        // addUnencodedNativeForFlavor() are at the end of
+                        // list. 
+                        platformNatives.addAll(natives);
+                    }
+                    natives = platformNatives;
+                }
+            }
+        }
+
         if (natives == null) {
             if (synthesize) {
                 String encoded = encodeDataFlavor(flav);
@@ -558,7 +596,9 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * flavor to the underlying native platform.
      * <p>
      * If the specified <code>DataFlavor</code> is previously unknown to the
-     * data transfer subsystem, then invoking this method will establish a
+     * data transfer subsystem and the data transfer subsystem is unable to
+     * translate this <code>DataFlavor</code> to any existing native, then
+     * invoking this method will establish a 
      * mapping in both directions between the specified <code>DataFlavor</code>
      * and an encoded version of its MIME type as its native.
      *
@@ -573,7 +613,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #encodeDataFlavor
      * @since 1.4
      */
-    public synchronized List getNativesForFlavor(DataFlavor flav) {
+    public synchronized List<String> getNativesForFlavor(DataFlavor flav) {
         List retval = null;
 
         // Check cache, even for null flav
@@ -687,6 +727,12 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * method will establish a mapping in both directions between the specified
      * native and a <code>DataFlavor</code> whose MIME type is a decoded
      * version of the native.
+     * <p>
+     * If the specified native is not a properly encoded native and the
+     * mappings for this native have not been altered with
+     * <code>setFlavorsForNative</code>, then the contents of the
+     * <code>List</code> is platform dependent, but <code>null</code>
+     * cannot be returned.
      *
      * @param nat the native whose corresponding <code>DataFlavor</code>s
      *        should be returned. If <code>null</code> is specified, all
@@ -699,7 +745,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #encodeJavaMIMEType
      * @since 1.4
      */
-    public synchronized List getFlavorsForNative(String nat) {
+    public synchronized List<DataFlavor> getFlavorsForNative(String nat) {
 
         // Check cache, even for null nat
         SoftReference ref = (SoftReference)getFlavorsForNativeCache.get(nat);
@@ -868,7 +914,9 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #getNativesForFlavor
      * @see #encodeDataFlavor
      */
-    public synchronized Map getNativesForFlavors(DataFlavor[] flavors) {
+    public synchronized Map<DataFlavor,String>
+	getNativesForFlavors(DataFlavor[] flavors)
+    {
         // Use getNativesForFlavor to generate extra natives for text flavors
         // and stringFlavor
 
@@ -912,7 +960,9 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #getFlavorsForNative
      * @see #encodeJavaMIMEType
      */
-    public synchronized Map getFlavorsForNatives(String[] natives) {
+    public synchronized Map<String,DataFlavor>
+	getFlavorsForNatives(String[] natives)
+    {
         // Use getFlavorsForNative to generate extra flavors for text natives
 
         if (natives == null) {

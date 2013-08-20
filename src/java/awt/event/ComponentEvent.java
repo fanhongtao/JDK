@@ -1,7 +1,7 @@
 /*
- * @(#)ComponentEvent.java	1.25 03/01/23
+ * @(#)ComponentEvent.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import java.awt.Rectangle;
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Carl Quinn
- * @version 1.25 01/23/03
+ * @version 1.27 12/19/03
  * @since 1.1
  */
 public class ComponentEvent extends AWTEvent {
@@ -85,10 +85,13 @@ public class ComponentEvent extends AWTEvent {
     /**
      * Constructs a <code>ComponentEvent</code> object.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source the <code>Component</code> that originated the event
      * @param id     an integer indicating the type of event
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public ComponentEvent(Component source, int id) {
         super(source, id);

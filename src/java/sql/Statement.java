@@ -1,7 +1,7 @@
 /*
- * @(#)Statement.java	1.39 03/01/28
+ * @(#)Statement.java	1.40 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

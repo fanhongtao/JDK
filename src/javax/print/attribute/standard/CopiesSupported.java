@@ -1,11 +1,12 @@
 /*
- * @(#)CopiesSupported.java	1.4 03/01/23
+ * @(#)CopiesSupported.java	1.7 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.SetOfIntegerSyntax;
 import javax.print.attribute.SupportedValuesAttribute;
 
@@ -27,6 +28,8 @@ import javax.print.attribute.SupportedValuesAttribute;
  */
 public final class CopiesSupported extends SetOfIntegerSyntax
 	implements SupportedValuesAttribute {
+
+    private static final long serialVersionUID = 6927711687034846001L;
 
     /**
      * Construct a new copies supported attribute containing a single integer. 
@@ -100,7 +103,7 @@ public final class CopiesSupported extends SetOfIntegerSyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return CopiesSupported.class;
     }
 

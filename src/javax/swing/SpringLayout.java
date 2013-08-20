@@ -1,7 +1,7 @@
 /*
- * @(#)SpringLayout.java	1.15 03/01/23
+ * @(#)SpringLayout.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -142,11 +142,20 @@ import java.util.*;
  * <p>
  * The asymptotic complexity of the layout operation of a <code>SpringLayout</code>
  * is linear in the number of constraints (and/or components).
+ * <p>
+ * <strong>Warning:</strong>
+ * Serialized objects of this class will not be compatible with
+ * future Swing releases. The current serialization support is
+ * appropriate for short term storage or RMI between applications running
+ * the same version of Swing.  As of 1.4, support for long term storage
+ * of all JavaBeans<sup><font size="-2">TM</font></sup>
+ * has been added to the <code>java.beans</code> package.
+ * Please see {@link java.beans.XMLEncoder}.
  *
  * @see Spring
  * @see SpringLayout.Constraints
  *
- * @version  1.15 01/23/03
+ * @version  1.19 12/19/03
  * @author 	Philip Milne
  * @author 	Joe Winchester
  * @since       1.4
@@ -179,49 +188,6 @@ public class SpringLayout implements LayoutManager2 {
      */
     public static final String WEST   = "West";
 
-
-    private static class WidthSpring extends Spring.AbstractSpring {
-        private Component c;
-
-        public WidthSpring(Component c) {
-            this.c = c;
-        }
-
-        public int getMinimumValue() {
-            return c.getMinimumSize().width;
-        }
-
-        public int getPreferredValue() {
-            return c.getPreferredSize().width;
-        }
-
-        public int getMaximumValue() {
-            // We will be doing arithmetic with the results of this call,
-            // so if a returned value is Integer.MAX_VALUE we will get
-            // arithmetic overflow. Truncate such values.
-            return Math.min(Short.MAX_VALUE, c.getMaximumSize().width);
-        }
-    }
-
-     private static class HeightSpring extends Spring.AbstractSpring {
-        private Component c;
-
-        public HeightSpring(Component c) {
-            this.c = c;
-        }
-
-        public int getMinimumValue() {
-            return c.getMinimumSize().height;
-        }
-
-        public int getPreferredValue() {
-            return c.getPreferredSize().height;
-        }
-
-        public int getMaximumValue() {
-            return Math.min(Short.MAX_VALUE, c.getMaximumSize().height);
-        }
-    }
 
     /**
      * A <code>Constraints</code> object holds the
@@ -382,6 +348,29 @@ public class SpringLayout implements LayoutManager2 {
            this.width = width;
            this.height = height;
        }
+
+        /**
+         * Creates a <code>Constraints</code> object with
+         * suitable <code>x</code>, <code>y</code>, <code>width</code> and
+         * <code>height</code> springs for component, <code>c</code>.
+         * The <code>x</code> and <code>y</code> springs are constant
+         * springs  initialised with the component's location at
+         * the time this method is called. The <code>width</code> and
+         * <code>height</code> springs are special springs, created by
+         * the <code>Spring.width()</code> and <code>Spring.height()</code>
+         * methods, which track the size characteristics of the component
+         * when they change.
+         *
+         * @param c  the component whose characteristics will be reflected by this Constraints object
+         * @throws NullPointerException if <code>c</code> is null.
+         * @since 1.5
+         */
+        public Constraints(Component c) {
+            this.x = Spring.constant(c.getX());
+            this.y = Spring.constant(c.getY());
+            this.width = Spring.width(c);
+            this.height = Spring.height(c);
+        }
 
        private boolean overConstrainedHorizontally() { 
            return (x != null) && (width != null) && (east != null); 
@@ -714,14 +703,23 @@ public class SpringLayout implements LayoutManager2 {
         
         pc.setX(Spring.constant(0));
         pc.setY(Spring.constant(0));
-        pc.setWidth(null);
-        pc.setHeight(null);
-        if (pc.getEast() == null) { 
-            pc.setEast(Spring.constant(0, 0, Integer.MAX_VALUE));
-        } 
-        if (pc.getSouth() == null) { 
-            pc.setSouth(Spring.constant(0, 0, Integer.MAX_VALUE));
-        } 
+        // The applyDefaults() method automatically adds width and
+        // height springs that delegate their calculations to the
+        // getMinimumSize(), getPreferredSize() and getMaximumSize()
+        // methods of the relevant component. In the case of the
+        // parent this will cause an infinite loop since these
+        // methods, in turn, delegate their calculations to the
+        // layout manager. Check for this case and replace the
+        // the springs that would cause this problem with a
+        // constant springs that supply default values.
+        Spring width = pc.getWidth();
+        if (width instanceof Spring.WidthSpring && ((Spring.WidthSpring)width).c == p) {
+            pc.setWidth(Spring.constant(0, 0, Integer.MAX_VALUE));
+        }
+        Spring height = pc.getHeight();
+        if (height instanceof Spring.HeightSpring && ((Spring.HeightSpring)height).c == p) {
+            pc.setHeight(Spring.constant(0, 0, Integer.MAX_VALUE));
+        }
     }
 
     /*pp*/ boolean isCyclic(Spring s) { 
@@ -890,10 +888,10 @@ public class SpringLayout implements LayoutManager2 {
            constraints = new Constraints();
         }
         if (constraints.getWidth() == null) {
-            constraints.setWidth(new WidthSpring(c));
+            constraints.setWidth(new Spring.WidthSpring(c));
         }
         if (constraints.getHeight() == null) {
-            constraints.setHeight(new HeightSpring(c));
+            constraints.setHeight(new Spring.HeightSpring(c));
         }
         if (constraints.getX() == null) {
             constraints.setX(Spring.constant(0));

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultFocusManager.java	1.27 03/01/23
+ * @(#)DefaultFocusManager.java	1.29 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -16,12 +16,16 @@ import java.util.Comparator;
  * This class has been obsoleted by the 1.4 focus APIs. While client code may
  * still use this class, developers are strongly encouraged to use
  * <code>java.awt.KeyboardFocusManager</code> and
- * <code>java.awt.DefaultKeyboardFocusManager</code> instead. Please see the
- * Focus Specification for more information.
+ * <code>java.awt.DefaultKeyboardFocusManager</code> instead.
+ * <p>
+ * Please see
+ * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/focus.html">
+ * How to Use the Focus Subsystem</a>,
+ * a section in <em>The Java Tutorial</em>, and the
+ * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
+ * for more information.
  *
- * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
- *
- * @version 1.27, 01/23/03
+ * @version 1.29, 12/19/03
  * @author Arnaud Weber
  * @author David Mendenhall
  */

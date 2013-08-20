@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectFactoryBuilder.java	1.7 03/01/23
+ * @(#)ObjectFactoryBuilder.java	1.10 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 03/01/23
+  * @version 1.10 04/07/16
   *
   * @see ObjectFactory
   * @see NamingManager#getObjectInstance
@@ -52,6 +52,7 @@ public interface ObjectFactoryBuilder {
       *	@exception NamingException If an object factory cannot be created.
       *
       */
-    public ObjectFactory createObjectFactory(Object obj, Hashtable environment)
+    public ObjectFactory createObjectFactory(Object obj,
+					     Hashtable<?,?> environment)
 	throws NamingException;
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)URLDecoder.java	1.23 03/01/23
+ * @(#)URLDecoder.java	1.27 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ import java.io.*;
  *
  * @author  Mark Chamness
  * @author  Michael McCloskey
- * @version 1.23, 01/23/03
+ * @version 1.27, 05/18/04
  * @since   1.2
  */
 
@@ -74,6 +74,7 @@ public class URLDecoder {
      *          to specify the encoding.
      * @return the newly decoded <code>String</code>
      */
+    @Deprecated
     public static String decode(String s) {
 
 	String str = null;
@@ -106,7 +107,8 @@ public class URLDecoder {
      *    encoding</a>. 
      * @return the newly decoded <code>String</code>
      * @exception  UnsupportedEncodingException
-     *             If the named encoding is not supported
+     *             If character encoding needs to be consulted, but
+     *             named character encoding is not supported
      * @see URLEncoder#encode(java.lang.String, java.lang.String)
      * @since 1.4
      */
@@ -114,16 +116,18 @@ public class URLDecoder {
 	throws UnsupportedEncodingException{
 	
 	boolean needToChange = false;
-	StringBuffer sb = new StringBuffer();
 	int numChars = s.length();
+	StringBuffer sb = new StringBuffer(numChars > 500 ? numChars / 2 : numChars);
 	int i = 0;
 
 	if (enc.length() == 0) {
 	    throw new UnsupportedEncodingException ("URLDecoder: empty string enc parameter");
 	}
 
+	char c;
+	byte[] bytes = null;
 	while (i < numChars) {
-            char c = s.charAt(i);
+            c = s.charAt(i);
             switch (c) {
 	    case '+':
 		sb.append(' ');
@@ -144,7 +148,8 @@ public class URLDecoder {
 
 		    // (numChars-i)/3 is an upper bound for the number
 		    // of remaining bytes
-		    byte[] bytes = new byte[(numChars-i)/3];
+		    if (bytes == null)
+			bytes = new byte[(numChars-i)/3];
 		    int pos = 0;
 		    
 		    while ( ((i+2) < numChars) && 

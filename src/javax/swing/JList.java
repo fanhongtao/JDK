@@ -1,7 +1,7 @@
 /*
- * @(#)JList.java	1.106 03/01/23
+ * @(#)JList.java	1.112 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -191,10 +191,6 @@ import java.io.Serializable;
  * Note that in this example the <code>dataList</code> is <code>final</code>
  * because it's referred to by the anonymous <code>MouseListener</code> class.
  * <p>
- * For the keyboard keys used by this component in the standard look and
- * feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JList"><code>JList</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -222,7 +218,7 @@ import java.io.Serializable;
  *   attribute: isContainer false
  * description: A component which allows for the selection of one or more objects from a list.
  *
- * @version 1.106 01/23/03
+ * @version 1.112 05/05/04
  * @author Hans Muller
  */
 public class JList extends JComponent implements Scrollable, Accessible
@@ -331,7 +327,7 @@ public class JList extends JComponent implements Scrollable, Accessible
      * @param  listData  the <code>Vector</code> to be loaded into the
      *		data model
      */
-    public JList(final Vector listData) {
+    public JList(final Vector<?> listData) {
         this (
             new AbstractListModel() {
                 public int getSize() { return listData.size(); }
@@ -1247,7 +1243,7 @@ public class JList extends JComponent implements Scrollable, Accessible
      *						display in the list
      * @see #setModel
      */
-    public void setListData(final Vector listData) {
+    public void setListData(final Vector<?> listData) {
         setModel (
             new AbstractListModel() {
                 public int getSize() { return listData.size(); }
@@ -1730,6 +1726,9 @@ public class JList extends JComponent implements Scrollable, Accessible
      * description: The index of the selected cell.
      */
     public void setSelectedIndex(int index) {
+	if (index >= getModel().getSize()) {
+	    return;
+	}
         getSelectionModel().setSelectionInterval(index, index);
     }
 
@@ -1745,8 +1744,11 @@ public class JList extends JComponent implements Scrollable, Accessible
     public void setSelectedIndices(int[] indices) {
         ListSelectionModel sm = getSelectionModel();
         sm.clearSelection();
+	int size = getModel().getSize();
         for(int i = 0; i < indices.length; i++) {
-            sm.addSelectionInterval(indices[i], indices[i]);
+	    if (indices[i] < size) {
+		sm.addSelectionInterval(indices[i], indices[i]);
+	    }
         }
     }
 
@@ -1932,19 +1934,11 @@ public class JList extends JComponent implements Scrollable, Accessible
 
     /**
      * Returns the distance to scroll to expose the next or previous
-     * row (for vertical scrolling) or character (for horizontal scrolling).
-     * For horizontal scrolling: return the lists font size or 1 if the font
-     * is <code>null</code>.
-     * We're using the font size instead of the width of some canonical string,
-     * e.g. "m", because it's cheaper.
+     * row (for vertical scrolling) or column (for horizontal scrolling).
      * <p>
-     * For verticaL scrolling: if we're scrolling downwards (<code>direction</code> is
-     * greater than 0), and the first row is completely visible with respect
-     * to <code>visibleRect</code>, then return its height.  If
-     * we're scrolling downwards and the first row is only partially visible,
-     * return the height of the visible part of the first row.  Similarly
-     * if we're scrolling upwards we return the height of the row above
-     * the first row, unless the first row is partially visible.
+     * For horizontal scrolling if the list is layed out vertically
+     * (the orientation is <code>VERTICAL</code>) than the lists font size
+     * or 1 is returned if the font is <code>null</code> is used.
      * <p>
      * Note that the value of <code>visibleRect</code> must be the equal to 
      * <code>this.getVisibleRect()</code>.
@@ -1964,11 +1958,7 @@ public class JList extends JComponent implements Scrollable, Accessible
     {
 	checkScrollableParameters(visibleRect, orientation);
 
-        if (orientation == SwingConstants.HORIZONTAL) {
-	    Font f = getFont();
-	    return (f != null) ? f.getSize() : 1;
-	}
-        else {
+        if (orientation == SwingConstants.VERTICAL) {
             int row = getFirstVisibleIndex();
 
             if (row == -1) {
@@ -1991,16 +1981,19 @@ public class JList extends JComponent implements Scrollable, Accessible
                         return 0;
                     }
                     /* The first row is completely visible, return the
-                     * height of the previous row.
+                     * height of the previous row or 0 if the first row
+                     * is the top row of the list.
                      */
                     else if (r.y == visibleRect.y) {
-                        Rectangle prevR = getCellBounds(row - 1, row - 1);
+			Point loc = r.getLocation();
+			loc.y--;
+			int prevIndex = locationToIndex(loc);
+                        Rectangle prevR = getCellBounds(prevIndex, prevIndex);
 
-                        if (prevR.x != r.x) {
-                            // Different column, bail.
+                        if (prevR == null || prevR.y >= r.y) {
                             return 0;
                         }
-                        return (prevR== null) ? 0 : prevR.height;
+                        return prevR.height;
                     }
                     /* The first row is partially visible, return the
                      * height of hidden part.
@@ -2010,7 +2003,26 @@ public class JList extends JComponent implements Scrollable, Accessible
                     }
                 }
             }
+        } else if (orientation == SwingConstants.HORIZONTAL &&
+                           getLayoutOrientation() != JList.VERTICAL) {
+	    int index = locationToIndex(visibleRect.getLocation());
+
+            if (index != -1) {
+                Rectangle cellBounds = getCellBounds(index, index);
+
+                if (cellBounds != null) {
+                    if (cellBounds.x != visibleRect.x) {
+                        if (direction < 0) {
+                            return Math.abs(cellBounds.x - visibleRect.x);
+                        }
+                        return cellBounds.width + cellBounds.x - visibleRect.x;
+                    }
+                    return cellBounds.width;
+                }
+            }
         }
+	Font f = getFont();
+	return (f != null) ? f.getSize() : 1;
     }
 
 
@@ -2030,15 +2042,15 @@ public class JList extends JComponent implements Scrollable, Accessible
      * (the orientation is <code>VERTICAL_WRAP</code> or
      *  <code>HORIZONTAL_WRAP</code>):
      * <ul>
-     * <li>if scrolling right (<code>direction</code> is greater than 0),
-     * the next column should become the first visible column
-     * <li>if scrolling left, and the beginning of the first column is
-     * visible the beginning of the previous column should become visible.
-     * If the beginning of the first column is not visible it should
-     * become visible.
      * </ul>
-     * or visibleRect.width if the list is layed out vertically or
-     * list is empty.
+     * <li>if scrolling right (<code>direction</code> is greater than 0),
+     * the last visible element should become the first completely
+     * visible element
+     * <li>if scrolling left, the first visible element should become the last
+     * completely visible element
+     * <li>visibleRect.width if the list is empty
+     * <p>
+     * Return visibleRect.width if the list is layed out vertically.
      * <p>
      * Note that the value of <code>visibleRect</code> must be the equal to 
      * <code>this.getVisibleRect()</code>.
@@ -2101,24 +2113,49 @@ public class JList extends JComponent implements Scrollable, Accessible
             }
             return inc;
         }
-        else if (orientation == SwingConstants.HORIZONTAL &&
-                           getLayoutOrientation() != JList.VERTICAL) {
-            int index = getFirstVisibleIndex();
-
-            if (index != -1) {
-                Rectangle cellBounds = getCellBounds(index, index);
-
-                if (visibleRect != null && cellBounds != null) {
-                    if (cellBounds.x != visibleRect.x) {
-                        if (direction < 0) {
-                            return Math.abs(cellBounds.x - visibleRect.x);
-                        }
-                        return cellBounds.width + cellBounds.x - visibleRect.x;
-                    }
-                    return cellBounds.width;
-                }
-            }
-        }
+	else if (orientation == SwingConstants.HORIZONTAL &&
+		 getLayoutOrientation() != JList.VERTICAL) {
+	    int inc = visibleRect.width;
+	    /* Scroll Right */
+	    if (direction > 0) {
+		// last cell is an upper right cell
+		int last = locationToIndex(new Point(visibleRect.x + visibleRect.width - 1,
+						     visibleRect.y));
+		if (last != -1) {
+		    Rectangle lastRect = getCellBounds(last,last);
+		    if (lastRect != null) {
+			inc = lastRect.x - visibleRect.x;
+			if (inc < 0) {
+			    inc += lastRect.width;
+			} else if ( (inc == 0) && (last < getModel().getSize()-1) ) {
+			    inc = lastRect.width;
+			}
+		    }
+		}
+	    }
+	    /* Scroll Left */
+	    else {
+		// first cell is a cell at the upper left corner of the visibleRect
+		// shifted left by the visibleRect.width
+		int first = locationToIndex(new Point(visibleRect.x - visibleRect.width,
+							 visibleRect.y));
+		if (first != -1) {
+		    Rectangle firstRect = getCellBounds(first,first);
+		    if (firstRect != null) {
+			if (firstRect.x < visibleRect.x - visibleRect.width) {
+			    if (firstRect.x + firstRect.width >= visibleRect.x) {
+				inc = visibleRect.x - firstRect.x;
+			    } else {
+				inc = visibleRect.x - firstRect.x - firstRect.width;
+			    }
+			} else {
+			    inc = visibleRect.x - firstRect.x;
+			}
+		    }
+		}
+	    }
+	    return inc;
+	}
         return visibleRect.width;
     }
 
@@ -3081,6 +3118,21 @@ public class JList extends JComponent implements Scrollable, Accessible
                     if (c != null) {
                         c.removeFocusListener(l);
                     }
+                }
+            }
+
+            // TIGER - 4733624
+            /**
+             * Returns an AccessibleIcon
+             *
+             * @return the AccessibleIcon for the element renderer.
+             */
+            public AccessibleIcon [] getAccessibleIcon() {
+                AccessibleContext ac = getCurrentAccessibleContext();
+                if (ac != null) {
+                    return ac.getAccessibleIcon();
+                } else {
+                    return null;
                 }
             }
         } // inner class AccessibleJListChild

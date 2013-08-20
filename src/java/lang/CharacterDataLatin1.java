@@ -1,6 +1,6 @@
-// This file was generated AUTOMATICALLY from a template file Fri Jun 20 02:04:09 PDT 2003
+// This file was generated AUTOMATICALLY from a template file Wed Sep 15 04:34:15 PDT 2004
 
-/* @(#)CharacterDataLatin1.java.template	1.2 02/11/11
+/* @(#)CharacterDataLatin1.java.template	1.5 03/07/26
  *
  * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -52,111 +52,125 @@ class CharacterDataLatin1 {
         The encoding of character properties is subject to change at any time.
      */
 
-    static int getProperties(char ch) {
-        return A[ch];
+    static int getProperties(int ch) {
+		char offset = (char)ch;
+        int props = A[offset];
+        return props;
     }
 
-    static int getType(char ch) {
-        return getProperties(ch) & 0x1F;
+    static int getType(int ch) {
+        int props = getProperties(ch);
+        return (props & 0x1F);
     }
 
-    static boolean isLowerCase(char ch) {
-        return getType(ch) == Character.LOWERCASE_LETTER;
+    static boolean isLowerCase(int ch) {
+        int type = getType(ch);
+        return (type == Character.LOWERCASE_LETTER);
     }
 
-    static boolean isUpperCase(char ch) {
-        return getType(ch) == Character.UPPERCASE_LETTER;
+    static boolean isUpperCase(int ch) {
+        int type = getType(ch);
+        return (type == Character.UPPERCASE_LETTER);
     }
 
-    static boolean isTitleCase(char ch) {
+    static boolean isTitleCase(int ch) {
         return false;
     }
 
-    static boolean isDigit(char ch) {
-        return getType(ch) == Character.DECIMAL_DIGIT_NUMBER;
+    static boolean isDigit(int ch) {
+        int type = getType(ch);
+        return (type == Character.DECIMAL_DIGIT_NUMBER);
     }
 
-    static boolean isDefined(char ch) {
-        return getType(ch) != Character.UNASSIGNED;
+    static boolean isDefined(int ch) {
+        int type = getType(ch);
+        return (type != Character.UNASSIGNED);
     }
 
-    static boolean isLetter(char ch) {
+    static boolean isLetter(int ch) {
+        int type = getType(ch);
         return (((((1 << Character.UPPERCASE_LETTER) |
             (1 << Character.LOWERCASE_LETTER) |
             (1 << Character.TITLECASE_LETTER) |
             (1 << Character.MODIFIER_LETTER) |
-            (1 << Character.OTHER_LETTER)) >> getType(ch)) & 1) != 0);
+            (1 << Character.OTHER_LETTER)) >> type) & 1) != 0);
     }
 
-    static boolean isLetterOrDigit(char ch) {
+    static boolean isLetterOrDigit(int ch) {
+        int type = getType(ch);
         return (((((1 << Character.UPPERCASE_LETTER) |
             (1 << Character.LOWERCASE_LETTER) |
             (1 << Character.TITLECASE_LETTER) |
             (1 << Character.MODIFIER_LETTER) |
             (1 << Character.OTHER_LETTER) |
-            (1 << Character.DECIMAL_DIGIT_NUMBER)) >> getType(ch)) & 1) != 0);
+            (1 << Character.DECIMAL_DIGIT_NUMBER)) >> type) & 1) != 0);
     }
 
-    static boolean isSpaceChar(char ch) {
+    static boolean isSpaceChar(int ch) {
+        int type = getType(ch);
         return (((((1 << Character.SPACE_SEPARATOR) |
-                   (1 << Character.LINE_SEPARATOR) |
-                   (1 << Character.PARAGRAPH_SEPARATOR))
-                >> getType(ch)) & 1) != 0);
+            (1 << Character.LINE_SEPARATOR) |
+            (1 << Character.PARAGRAPH_SEPARATOR)) >> type) & 1) != 0);
     }
 
 
-    static boolean isJavaIdentifierStart(char ch) {
-        return (getProperties(ch) & 0x00007000) >= 0x00005000;
+    static boolean isJavaIdentifierStart(int ch) {
+        int props = getProperties(ch);
+        return ((props & 0x00007000) >= 0x00005000);
     }
 
-    static boolean isJavaIdentifierPart(char ch) {
-        return (getProperties(ch) & 0x00003000) != 0;
+    static boolean isJavaIdentifierPart(int ch) {
+        int props = getProperties(ch);
+        return ((props & 0x00003000) != 0);
     }
 
-    static boolean isUnicodeIdentifierStart(char ch) {
-        return (getProperties(ch) & 0x00007000) == 0x00007000;
+    static boolean isUnicodeIdentifierStart(int ch) {
+        int props = getProperties(ch);
+        return ((props & 0x00007000) == 0x00007000);
     }
 
-    static boolean isUnicodeIdentifierPart(char ch) {
-        return (getProperties(ch)& 0x00001000) != 0;
+    static boolean isUnicodeIdentifierPart(int ch) {
+        int props = getProperties(ch);
+        return ((props & 0x00001000) != 0);
     }
 
-    static boolean isIdentifierIgnorable(char ch) {
-        return (getProperties(ch) & 0x00007000) == 0x00001000;
+    static boolean isIdentifierIgnorable(int ch) {
+        int props = getProperties(ch);
+        return ((props & 0x00007000) == 0x00001000);
     }
 
-    static char toLowerCase(char ch) {
-        char mapChar = ch;
+    static int toLowerCase(int ch) {
+        int mapChar = ch;
         int val = getProperties(ch);
 
         if (((val & 0x00020000) != 0) && 
                 ((val & 0x07FC0000) != 0x07FC0000)) { 
             int offset = val << 5 >> (5+18);
-            mapChar = (char)(ch + offset);
+            mapChar = ch + offset;
         }
         return mapChar;
     }
 
-    static char toUpperCase(char ch) {
-        char mapChar = ch;
+    static int toUpperCase(int ch) {
+        int mapChar = ch;
         int val = getProperties(ch);
 
         if ((val & 0x00010000) != 0) {
             if ((val & 0x07FC0000) != 0x07FC0000) {
                 int offset = val  << 5 >> (5+18);
-                mapChar =  (char)(ch - offset);
-            } else if (ch == '\u00B5') {
-                mapChar = '\u039C';
+                mapChar =  ch - offset;
+            } else if (ch == 0x00B5) {
+                mapChar = 0x039C;
             }
         }
         return mapChar;
     }
 
-    static char toTitleCase(char ch) {
+    static int toTitleCase(int ch) {
         return toUpperCase(ch);
     }
 
-    static int digit(char ch, int radix) {
+    static int digit(int ch, int radix) {
         int value = -1;
         if (radix >= Character.MIN_RADIX && radix <= Character.MAX_RADIX) {
             int val = getProperties(ch);
@@ -172,7 +186,7 @@ class CharacterDataLatin1 {
         return (value < radix) ? value : -1;
     }
 
-    static int getNumericValue(char ch) {
+    static int getNumericValue(int ch) {
         int val = getProperties(ch);
         int retval = -1;
 
@@ -194,11 +208,12 @@ class CharacterDataLatin1 {
         return retval;
     }
 
-    static boolean isWhitespace(char ch) {
-        return (getProperties(ch) & 0x00007000) == 0x00004000;
+    static boolean isWhitespace(int ch) {
+        int props = getProperties(ch);
+        return ((props & 0x00007000) == 0x00004000);
     }
 
-    static byte getDirectionality(char ch) {
+    static byte getDirectionality(int ch) {
         int val = getProperties(ch);
         byte directionality = (byte)((val & 0x78000000) >> 27);
 
@@ -208,23 +223,24 @@ class CharacterDataLatin1 {
         return directionality;
     }
 
-    static boolean isMirrored(char ch) {
-        return (getProperties(ch) & 0x80000000) != 0;
+    static boolean isMirrored(int ch) {
+        int props = getProperties(ch);
+        return ((props & 0x80000000) != 0);
     }
 
-    static char toUpperCaseEx(char ch) {
-        char mapChar = ch;
+    static int toUpperCaseEx(int ch) {
+        int mapChar = ch;
         int val = getProperties(ch);
 
         if ((val & 0x00010000) != 0) {
             if ((val & 0x07FC0000) != 0x07FC0000) {
                 int offset = val  << 5 >> (5+18);
-                mapChar =  (char)(ch - offset);
+                mapChar =  ch - offset;
             }
             else {
                 switch(ch) {
                     // map overflow characters
-                    case '\u00B5' : mapChar = '\u039C'; break;
+                    case 0x00B5 : mapChar = 0x039C; break;
                     default       : mapChar = Character.CHAR_ERROR; break;
                 }
             }
@@ -232,8 +248,19 @@ class CharacterDataLatin1 {
         return mapChar;
     }
 
+    static char[] sharpsMap = new char[] {'S', 'S'};
+
+    static char[] toUpperCaseCharArray(int ch) {
+        char[] upperMap = {(char)ch};
+        if (ch == 0x00DF) {
+            upperMap = sharpsMap;
+        }
+        return upperMap;
+    }
+
+
     // The following tables and code generated using:
-  // java GenerateCharacter -template ../../tools/GenerateCharacter/CharacterDataLatin1.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /export/BUILD_AREA/jdk1.4.2/control/build/linux-i586/gensrc/java/lang/CharacterDataLatin1.java -string -usecharforbyte -latin1 8
+  // java GenerateCharacter -template ../../tools/GenerateCharacter/CharacterDataLatin1.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk1.5.0/control/build/linux-i586/gensrc/java/lang/CharacterDataLatin1.java -string -usecharforbyte -latin1 8
   // The A table has 256 entries for a total of 1024 bytes.
 
   static final int A[] = new int[256];
@@ -262,7 +289,7 @@ class CharacterDataLatin1 {
     "\u4800\u100F\u4800\u100F\u4800\u100F\u4800\u100F\u4800\u100F\u4800\u100F\u4800"+
     "\u100F\u4800\u100F\u4800\u100F\u4800\u100F\u4800\u100F\u4800\u100F\u4800\u100F"+
     "\u3800\014\u6800\030\u2800\u601A\u2800\u601A\u2800\u601A\u2800\u601A\u6800"+
-    "\034\u6800\034\u6800\033\u6800\034\000\u7002\uE800\035\u6800\031\u6800\024"+
+    "\034\u6800\034\u6800\033\u6800\034\000\u7002\uE800\035\u6800\031\u6800\u1010"+
     "\u6800\034\u6800\033\u2800\034\u2800\031\u1800\u060B\u1800\u060B\u6800\033"+
     "\u07FD\u7002\u6800\034\u6800\030\u6800\033\u1800\u050B\000\u7002\uE800\036"+
     "\u6800\u080B\u6800\u080B\u6800\u080B\u6800\030\202\u7001\202\u7001\202\u7001"+

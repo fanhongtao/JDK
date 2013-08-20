@@ -1,7 +1,7 @@
 /*
- * @(#)BasicBorders.java	1.30 03/04/22
+ * @(#)BasicBorders.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.io.Serializable;
 
 /**
  * Factory object that can vend Borders appropriate for the basic L & F.
- * @version 1.30 04/22/03
+ * @version 1.33 12/19/03
  * @author Georges Saab
  * @author Amy Fowler
  */
@@ -335,9 +335,14 @@ public class BasicBorders {
         }
 
 	public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-	    BasicGraphicsUtils.drawGroove(g, 0, height-2, 
-					  width, height,
-                                          shadow, highlight);
+	    Color oldColor = g.getColor();
+	    g.translate(x, y);
+	    g.setColor(shadow);
+	    g.drawLine(0, height-2, width, height-2);
+	    g.setColor(highlight);	    
+	    g.drawLine(0, height-1, width, height-1);
+	    g.translate(-x,-y);
+	    g.setColor(oldColor);
 	}
 	
 	public Insets getBorderInsets(Component c)       {
@@ -592,7 +597,6 @@ public class BasicBorders {
 		    g.setColor(shadow);
 		    g.drawLine(0, cBounds.y - 1, 0, maxY);
 		    g.drawLine(maxX, cBounds.y - 1, maxX, cBounds.y - 1);
-		    g.drawLine(0, cBounds.y - 1, cBounds.width, cBounds.y - 1);
 		    g.setColor(highlight);
 		    g.drawLine(0, maxY, cBounds.width + 1, maxY);
 		    g.drawLine(maxX, cBounds.y, maxX, maxY);

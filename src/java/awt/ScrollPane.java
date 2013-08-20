@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPane.java	1.89 03/01/23
+ * @(#)ScrollPane.java	1.95 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -11,6 +11,7 @@ import java.awt.peer.ScrollPanePeer;
 import java.awt.event.*;
 import javax.accessibility.*;
 import sun.awt.ScrollPaneWheelScroller;
+import sun.awt.SunToolkit;
 
 import java.io.Serializable;
 import java.io.ObjectInputStream;
@@ -52,9 +53,11 @@ import java.io.IOException;
  * be reset using setSize().
  * <P>
  * Scrolling with the wheel on a wheel-equipped mouse is enabled by default.
- * This can be disabled using setWheelScrollingEnabled().  Wheel scrolling can
- * be customized by setting the block and unit increment of the horizontal and
- * vertical Adjustables.
+ * This can be disabled using <code>setWheelScrollingEnabled</code>. 
+ * Wheel scrolling can be customized by setting the block and
+ * unit increment of the horizontal and vertical Adjustables.
+ * For information on how mouse wheel events are dispatched, see
+ * the class description for {@link MouseWheelEvent}.
  * <P>
  * Insets are used to define any space used by scrollbars and any
  * borders created by the scroll pane. getInsets() can be used
@@ -63,7 +66,7 @@ import java.io.IOException;
  * will change dynamically depending on whether the scrollbars are
  * currently visible or not.
  *
- * @version     1.89 01/23/03
+ * @version     1.95 05/18/04
  * @author      Tom Ball
  * @author      Amy Fowler
  * @author      Tim Prinzing
@@ -208,6 +211,17 @@ public class ScrollPane extends Container implements Accessible {
 	}
     }
 
+    // The scrollpane won't work with a windowless child... it assumes
+    // it is moving a child window around so the windowless child is
+    // wrapped with a window.
+    private void addToPanel(Component comp, Object constraints, int index) {
+        Panel child = new Panel();
+        child.setLayout(new BorderLayout());
+        child.add(comp);
+        super.addImpl(child, constraints, index);
+        validate();        
+    }
+
     /**
      * Adds the specified component to this scroll pane container.
      * If the scroll pane has an existing child component, that
@@ -225,7 +239,11 @@ public class ScrollPane extends Container implements Accessible {
 		throw new IllegalArgumentException("position greater than 0");
 	    }
 
-	    super.addImpl(comp, constraints, index);
+            if (!SunToolkit.isLightweightOrUnknown(comp)) {
+                super.addImpl(comp, constraints, index);
+            } else {
+                addToPanel(comp, constraints, index);
+            }
 	}
     }
 
@@ -446,6 +464,7 @@ public class ScrollPane extends Container implements Accessible {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>doLayout()</code>.
      */
+    @Deprecated
     public void layout() {
 	if (ncomponents > 0) {
 	    Component c = getComponent(0);
@@ -522,20 +541,6 @@ public class ScrollPane extends Container implements Accessible {
                 vAdjustable.setValue(vAdjustableValue);
                 hAdjustable.setValue(hAdjustableValue);
             }
-
-	    if (getComponentCount() > 0) {
-	        Component comp = getComponent(0);
-		if (comp.peer instanceof LightweightPeer) {
-		    // The scrollpane won't work with a windowless child... it assumes
-		    // it is moving a child window around so the windowless child is
-		    // wrapped with a window.
-		    remove(0);
-		    Panel child = new Panel();
-		    child.setLayout(new BorderLayout());
-		    child.add(comp);
-		    add(child);
-		}
-	    }
 	}
     }
 
@@ -684,7 +689,9 @@ public class ScrollPane extends Container implements Accessible {
 //	}
     }
 
-    class PeerFixer implements AdjustmentListener, java.io.Serializable {
+    class PeerFixer implements AdjustmentListener, java.io.Serializable
+    {
+        private static final long serialVersionUID = 1043664721353696630L;
 
 	PeerFixer(ScrollPane scroller) {
 	    this.scroller = scroller;
@@ -744,7 +751,12 @@ public class ScrollPane extends Container implements Accessible {
      * Java Accessibility API appropriate to scroll pane user-interface 
      * elements.
      */
-    protected class AccessibleAWTScrollPane extends AccessibleAWTContainer {
+    protected class AccessibleAWTScrollPane extends AccessibleAWTContainer
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 6100703663886637L;
 
         /**
          * Get the role of this object.

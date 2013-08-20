@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)Notepad.java	1.30 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)Notepad.java	1.21 03/01/23
+ * @(#)Notepad.java	1.30 04/07/26
  */
 
 import java.awt.*;
@@ -54,11 +55,13 @@ import javax.swing.*;
  * supports only one font.
  *
  * @author  Timothy Prinzing
- * @version 1.21 01/23/03
+ * @version 1.30 07/26/04 
  */
 class Notepad extends JPanel {
 
     private static ResourceBundle resources;
+    private final static String EXIT_AFTER_PAINT = new String("-exit");
+    private static boolean exitAfterFirstPaint;
 
     static {
         try {
@@ -67,6 +70,13 @@ class Notepad extends JPanel {
         } catch (MissingResourceException mre) {
             System.err.println("resources/Notepad.properties not found");
             System.exit(1);
+        }
+    }
+
+    public void paintChildren(Graphics g) {
+        super.paintChildren(g);
+        if (exitAfterFirstPaint) {
+            System.exit(0);
         }
     }
 
@@ -105,15 +115,13 @@ class Notepad extends JPanel {
 	port.add(editor);
 	try {
 	    String vpFlag = resources.getString("ViewportBackingStore");
-	    Boolean bs = new Boolean(vpFlag);
+	    Boolean bs = Boolean.valueOf(vpFlag);
 	    port.setBackingStoreEnabled(bs.booleanValue());
 	} catch (MissingResourceException mre) {
 	    // just use the viewport default
 	}
 
 	menuItems = new Hashtable();
-	menubar = createMenubar();
-	add("North", menubar);
 	JPanel panel = new JPanel();
 	panel.setLayout(new BorderLayout());	
 	panel.add("North",createToolbar());
@@ -129,11 +137,16 @@ class Notepad extends JPanel {
             System.out.println("!!!WARNING: Swing must be run with a " +
                                "1.1.2 or higher version VM!!!");
         }
+        if (args.length > 0 && args[0].equals(EXIT_AFTER_PAINT)) {
+            exitAfterFirstPaint = true;
+        }
         JFrame frame = new JFrame();
         frame.setTitle(resources.getString("Title"));
 	frame.setBackground(Color.lightGray);
 	frame.getContentPane().setLayout(new BorderLayout());
-	frame.getContentPane().add("Center", new Notepad());
+        Notepad notepad = new Notepad();
+	frame.getContentPane().add("Center", notepad);
+        frame.setJMenuBar(notepad.createMenubar());
 	frame.addWindowListener(new AppCloser());
 	frame.pack();
 	frame.setSize(500, 600);
@@ -349,7 +362,7 @@ class Notepad extends JPanel {
 
     /**
      * Take the given string and chop it up into a series
-     * of strings on whitespace boundries.  This is useful
+     * of strings on whitespace boundaries.  This is useful
      * for trying to get an array of strings out of the
      * resource file.
      */
@@ -382,6 +395,7 @@ class Notepad extends JPanel {
 		mb.add(m);
 	    }
 	}
+        this.menubar = mb;
 	return mb;
     }
 
@@ -517,6 +531,7 @@ class Notepad extends JPanel {
     private Action[] defaultActions = {
 	new NewAction(),
 	new OpenAction(),
+        new SaveAction(),
 	new ExitAction(),
 	new ShowElementTreeAction(),
         undoAction,
@@ -589,19 +604,15 @@ class Notepad extends JPanel {
 
         public void actionPerformed(ActionEvent e) {
 	    Frame frame = getFrame();
-	    if (fileDialog == null) {
-		fileDialog = new FileDialog(frame);
-	    }
-	    fileDialog.setMode(FileDialog.LOAD);
-	    fileDialog.show();
+            JFileChooser chooser = new JFileChooser();
+            int ret = chooser.showOpenDialog(frame);
 
-	    String file = fileDialog.getFile();
-	    if (file == null) {
+            if (ret != JFileChooser.APPROVE_OPTION) {
 		return;
 	    }
-	    String directory = fileDialog.getDirectory();
-	    File f = new File(directory, file);
-	    if (f.exists()) {
+
+            File f = chooser.getSelectedFile();
+	    if (f.isFile() && f.canRead()) {
 		Document oldDoc = getEditor().getDocument();
 		if(oldDoc != null)
 		    oldDoc.removeUndoableEditListener(undoHandler);
@@ -609,13 +620,40 @@ class Notepad extends JPanel {
 		    elementTreePanel.setEditor(null);
 		}
 		getEditor().setDocument(new PlainDocument());
-		frame.setTitle(file);
+                frame.setTitle(f.getName());
 		Thread loader = new FileLoader(f, editor.getDocument());
 		loader.start();
+	    } else {
+                JOptionPane.showMessageDialog(getFrame(),
+                        "Could not open file: " + f,
+                        "Error opening file",
+                        JOptionPane.ERROR_MESSAGE);
 	    }
 	}
     }
     
+    class SaveAction extends AbstractAction {
+
+	SaveAction() {
+	    super(saveAction);
+	}
+
+        public void actionPerformed(ActionEvent e) {
+            Frame frame = getFrame();
+            JFileChooser chooser = new JFileChooser();
+            int ret = chooser.showSaveDialog(frame);
+
+            if (ret != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+
+            File f = chooser.getSelectedFile();
+            frame.setTitle(f.getName());
+            Thread saver = new FileSaver(f, editor.getDocument());
+            saver.start();
+	}
+    }
+
     class NewAction extends AbstractAction {
 
 	NewAction() {
@@ -633,6 +671,7 @@ class Notepad extends JPanel {
 	    getEditor().setDocument(new PlainDocument());
 	    getEditor().getDocument().addUndoableEditListener(undoHandler);
 	    resetUndoManager();
+            getFrame().setTitle(resources.getString("Title"));
 	    revalidate();
 	}
     }
@@ -722,20 +761,28 @@ class Notepad extends JPanel {
 		    doc.insertString(doc.getLength(), new String(buff, 0, nch), null);
 		    progress.setValue(progress.getValue() + nch);
 		}
-
-		// we are done... get rid of progressbar
-		doc.addUndoableEditListener(undoHandler);
-		status.removeAll();
-		status.revalidate();
-
-		resetUndoManager();
 	    }
 	    catch (IOException e) {
-		System.err.println(e.toString());
+                final String msg = e.getMessage();
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        JOptionPane.showMessageDialog(getFrame(),
+                                "Could not open file: " + msg,
+                                "Error opening file",
+                                JOptionPane.ERROR_MESSAGE);
 	    }
+                });
+            }
 	    catch (BadLocationException e) {
 		System.err.println(e.getMessage());
 	    }
+            doc.addUndoableEditListener(undoHandler);
+            // we are done... get rid of progressbar
+            status.removeAll();
+            status.revalidate();
+
+            resetUndoManager();
+
 	    if (elementTreePanel != null) {
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
@@ -749,4 +796,67 @@ class Notepad extends JPanel {
 	File f;
     }
 
+    /**
+     * Thread to save a document to file
+     */
+    class FileSaver extends Thread {
+        Document doc;
+        File f;
+
+	FileSaver(File f, Document doc) {
+	    setPriority(4);
+	    this.f = f;
+	    this.doc = doc;
+	}
+
+        public void run() {
+	    try {
+		// initialize the statusbar
+		status.removeAll();
+		JProgressBar progress = new JProgressBar();
+		progress.setMinimum(0);
+		progress.setMaximum((int) doc.getLength());
+		status.add(progress);
+		status.revalidate();
+
+		// start writing
+		Writer out = new FileWriter(f);
+                Segment text = new Segment();
+                text.setPartialReturn(true);
+                int charsLeft = doc.getLength();
+		int offset = 0;
+                while (charsLeft > 0) {
+                    doc.getText(offset, Math.min(4096, charsLeft), text);
+                    out.write(text.array, text.offset, text.count);
+                    charsLeft -= text.count;
+                    offset += text.count;
+                    progress.setValue(offset);
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                out.flush();
+                out.close();
+	    }
+	    catch (IOException e) {
+                final String msg = e.getMessage();
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        JOptionPane.showMessageDialog(getFrame(),
+                                "Could not save file: " + msg,
+                                "Error saving file",
+                                JOptionPane.ERROR_MESSAGE);
+	    }
+                });
+	    }
+	    catch (BadLocationException e) {
+		System.err.println(e.getMessage());
+	    }
+            // we are done... get rid of progressbar
+            status.removeAll();
+            status.revalidate();
+	}
+    }
 }

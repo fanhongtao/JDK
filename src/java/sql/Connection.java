@@ -1,7 +1,7 @@
 /*
- * @(#)Connection.java	1.41 03/01/23
+ * @(#)Connection.java	1.43 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -531,7 +531,7 @@ public interface Connection {
      * @since 1.2
      * @see #setTypeMap
      */
-    java.util.Map getTypeMap() throws SQLException;
+    java.util.Map<String,Class<?>> getTypeMap() throws SQLException;
 
     /**
      * Installs the given <code>TypeMap</code> object as the type map for
@@ -547,7 +547,7 @@ public interface Connection {
      * @since 1.2
      * @see #getTypeMap
      */
-    void setTypeMap(java.util.Map map) throws SQLException;
+    void setTypeMap(java.util.Map<String,Class<?>> map) throws SQLException;
 
     //--------------------------JDBC 3.0-----------------------------
 

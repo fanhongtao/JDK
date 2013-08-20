@@ -1,30 +1,43 @@
+// $Id: DOMSource.java,v 1.5.14.1.2.2 2004/07/13 22:27:49 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)DOMSource.java	1.14 03/01/23
+ * @(#)DOMSource.java	1.16 04/07/13
  */
 package javax.xml.transform.dom;
 
-import javax.xml.transform.*;
-
-import java.lang.String;
-
-import java.io.OutputStream;
-import java.io.Writer;
+import javax.xml.transform.Source;
 
 import org.w3c.dom.Node;
 
-
 /**
- * Acts as a holder for a transformation Source tree in the
- * form of a Document Object Model (DOM) tree.
- *
+ * <p>Acts as a holder for a transformation Source tree in the
+ * form of a Document Object Model (DOM) tree.</p>
+ * 
+ * <p>Note that XSLT requires namespace support. Attempting to transform a DOM
+ * that was not contructed with a namespace-aware parser may result in errors.
+ * Parsers can be made namespace aware by calling
+ * {@link javax.xml.parsers.DocumentBuilderFactory#setNamespaceAware(boolean awareness)}.</p>
+ * 
+ * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @version $Revision: 1.5.14.1.2.2 $, $Date: 2004/07/13 22:27:49 $
  * @see <a href="http://www.w3.org/TR/DOM-Level-2">Document Object Model (DOM) Level 2 Specification</a>
  */
 public class DOMSource implements Source {
+
+    /**
+     * <p><code>Node</code> to serve as DOM source.</p>
+     */
+    private Node node;
+
+    /**
+     * <p>The base ID (URL or system ID) from where URLs
+     * will be resolved.</p>
+     */
+    private String systemID;
 
     /** If {@link javax.xml.transform.TransformerFactory#getFeature}
      * returns true when passed this value as an argument,
@@ -34,12 +47,15 @@ public class DOMSource implements Source {
         "http://javax.xml.transform.dom.DOMSource/feature";
 
     /**
-     * Zero-argument default constructor.  If this is used, and
-     * no DOM source is set, then the Transformer will
-     * create an empty source Document using
-     * {@link javax.xml.parsers.DocumentBuilder#newDocument}.
+     * <p>Zero-argument default constructor.  If this constructor is used, and
+     * no DOM source is set using {@link #setNode(Node node)} , then the
+     * <code>Transformer</code> will
+     * create an empty source {@link org.w3c.dom.Document} using
+     * {@link javax.xml.parsers.DocumentBuilder#newDocument()}.</p>
+     *
+     * @see javax.xml.transform.Transformer#transform(Source xmlSource, Result outputTarget)
      */
-    public DOMSource() {}
+    public DOMSource() { }
 
     /**
      * Create a new input source with a DOM node.  The operation
@@ -88,10 +104,10 @@ public class DOMSource implements Source {
      * Set the base ID (URL or system ID) from where URLs
      * will be resolved.
      *
-     * @param baseID Base URL for this DOM tree.
+     * @param systemID Base URL for this DOM tree.
      */
-    public void setSystemId(String baseID) {
-        this.baseID = baseID;
+    public void setSystemId(String systemID) {
+        this.systemID = systemID;
     }
 
     /**
@@ -101,21 +117,6 @@ public class DOMSource implements Source {
      * @return Base URL for this DOM tree.
      */
     public String getSystemId() {
-        return this.baseID;
+        return this.systemID;
     }
-
-    //////////////////////////////////////////////////////////////////////
-    // Internal state.
-    //////////////////////////////////////////////////////////////////////
-
-    /**
-     * Field node
-     */
-    private Node node;
-
-    /**
-     * The base ID (URL or system ID) from where URLs
-     * will be resolved.
-     */
-    String baseID;
 }

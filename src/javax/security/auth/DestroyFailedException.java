@@ -1,7 +1,7 @@
 /*
- * @(#)DestroyFailedException.java	1.6 03/01/23
+ * @(#)DestroyFailedException.java	1.8 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,9 +14,11 @@ package javax.security.auth;
  * the <code>Destroyable</code> interface when the <code>destroy</code>
  * method fails.
  *
- * @version 1.6, 01/23/03
+ * @version 1.8, 12/19/03
  */
 public class DestroyFailedException extends Exception {
+
+    private static final long serialVersionUID = -7790152857282749162L;
 
     /**
      * Constructs a DestroyFailedException with no detail message. A detail

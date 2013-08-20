@@ -1,7 +1,7 @@
 /*
- * @(#)MockAttributeSet.java	1.9 03/01/23
+ * @(#)MockAttributeSet.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.rtf;
@@ -73,7 +73,7 @@ class MockAttributeSet
          throw new InternalError("MockAttributeSet: charade revealed!");
     }
 
-    public void removeAttributes(Enumeration en)
+    public void removeAttributes(Enumeration<?> en)
     {
          throw new InternalError("MockAttributeSet: charade revealed!");
     }

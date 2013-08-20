@@ -1,8 +1,8 @@
 // XMLReaderAdapter.java - adapt an SAX2 XMLReader to a SAX1 Parser
-// Written by David Megginson, sax@megginson.com
+// http://www.saxproject.org
+// Written by David Megginson
 // NO WARRANTY!  This class is in the public domain.
-
-// $Id: XMLReaderAdapter.java,v 1.1 2001/05/20 03:12:58 curcuru Exp $
+// $Id: XMLReaderAdapter.java,v 1.2.22.1 2004/05/01 08:34:46 jsuttor Exp $
 
 package org.xml.sax.helpers;
 
@@ -31,6 +31,8 @@ import org.xml.sax.SAXNotSupportedException;
  * <blockquote>
  * <em>This module, both source code and documentation, is in the
  * Public Domain, and comes with <strong>NO WARRANTY</strong>.</em>
+ * See <a href='http://www.saxproject.org'>http://www.saxproject.org</a>
+ * for further information.
  * </blockquote>
  *
  * <p>This class wraps a SAX2 {@link org.xml.sax.XMLReader XMLReader}
@@ -42,9 +44,8 @@ import org.xml.sax.SAXNotSupportedException;
  * property, that will also be used to improve efficiency.</p>
  *
  * @since SAX 2.0
- * @author David Megginson, 
- *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0r2pre
+ * @author David Megginson
+ * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.Parser
  * @see org.xml.sax.XMLReader
  */
@@ -106,7 +107,7 @@ public class XMLReaderAdapter implements Parser, ContentHandler
     }
 
 
-
+
     ////////////////////////////////////////////////////////////////////
     // Implementation of org.xml.sax.Parser.
     ////////////////////////////////////////////////////////////////////
@@ -118,8 +119,9 @@ public class XMLReaderAdapter implements Parser, ContentHandler
      * <p>This is not supported in SAX2, and will always throw
      * an exception.</p>
      *
-     * @param The locale for error reporting.
+     * @param locale the locale for error reporting.
      * @see org.xml.sax.Parser#setLocale
+     * @exception org.xml.sax.SAXException Thrown unless overridden.
      */
     public void setLocale (Locale locale)
 	throws SAXException
@@ -412,6 +414,7 @@ public class XMLReaderAdapter implements Parser, ContentHandler
      *
      * @param name The name of the skipped entity.
      * @see org.xml.sax.ContentHandler#skippedEntity
+     * @exception org.xml.sax.SAXException Throwable by subclasses.
      */
     public void skippedEntity (String name)
 	throws SAXException

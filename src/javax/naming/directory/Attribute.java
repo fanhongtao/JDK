@@ -1,7 +1,7 @@
 /*
- * @(#)Attribute.java	1.10 03/01/23
+ * @(#)Attribute.java	1.12 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ import javax.naming.OperationNotSupportedException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.10 03/01/23
+  * @version 1.12 04/05/05
   *
   * @see BasicAttribute
   * @since 1.3
@@ -75,7 +75,7 @@ public interface Attribute extends Cloneable, java.io.Serializable {
       *		the values.
       * @see #isOrdered
       */
-    NamingEnumeration getAll() throws NamingException;
+    NamingEnumeration<?> getAll() throws NamingException;
 
     /**
       * Retrieves one of this attribute's values.

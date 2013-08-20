@@ -1,7 +1,7 @@
 /*
- * @(#)InputMethodContext.java	1.14 03/01/23
+ * @(#)InputMethodContext.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import javax.swing.JFrame;
  *
  * @since 1.3
  *
- * @version 	1.14, 01/23/03
+ * @version 	1.16, 12/19/03
  * @author JavaSoft International
  */
 
@@ -58,6 +58,9 @@ public interface InputMethodContext extends InputMethodRequests {
      * Also, when the window is opened using setVisible(true), the input context will prevent
      * deactivate and activate calls to the input method that might otherwise be caused.
      * <p>
+     * Input methods must call {@link java.awt.Window#dispose() Window.dispose} on the 
+     * returned input method window when it is no longer needed.
+     * <p>
      * @param title the title to be displayed in the window's title bar,
      *              if there is such a title bar.
      *              A <code>null</code> value is treated as an empty string, "".
@@ -86,6 +89,9 @@ public interface InputMethodContext extends InputMethodRequests {
      * are automatically dispatched to the input method.
      * Also, when the window is opened using setVisible(true), the input context will prevent
      * deactivate and activate calls to the input method that might otherwise be caused.
+     * <p>
+     * Input methods must call {@link java.awt.Window#dispose() Window.dispose} on the 
+     * returned input method window when it is no longer needed.
      * <p>
      * @param title the title to be displayed in the window's title bar,
      *              if there is such a title bar.

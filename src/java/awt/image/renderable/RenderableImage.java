@@ -1,7 +1,7 @@
 /*
- * @(#)RenderableImage.java	1.13 03/01/23
+ * @(#)RenderableImage.java	1.15 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -60,7 +60,7 @@ public interface RenderableImage {
      *
      * @return a (possibly empty) Vector of RenderableImages, or null.
      */
-    Vector getSources();
+    Vector<RenderableImage> getSources();
     
     /**
      * Gets a property from the property set of this image.

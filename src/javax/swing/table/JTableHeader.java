@@ -1,7 +1,7 @@
 /*
- * @(#)JTableHeader.java	1.64 03/01/23
+ * @(#)JTableHeader.java	1.66 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,7 +35,7 @@ import java.io.IOException;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.64 01/23/03
+ * @version 1.66 12/19/03
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.JTable
@@ -373,7 +373,7 @@ public class JTableHeader extends JComponent implements TableColumnModelListener
 	int column;
 
 	// Locate the renderer under the event location
-	if ((column = columnModel.getColumnIndexAtX(p.x)) != -1) {
+	if ((column = columnAtPoint(p)) != -1) {
 	    TableColumn aColumn = columnModel.getColumn(column);
 	    TableCellRenderer renderer = aColumn.getHeaderRenderer(); 
             if (renderer == null) { 

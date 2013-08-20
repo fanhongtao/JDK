@@ -1,11 +1,12 @@
 /*
- * @(#)PagesPerMinute.java	1.4 03/01/23
+ * @(#)PagesPerMinute.java	1.7 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
 
+import javax.print.attribute.Attribute;
 import javax.print.attribute.IntegerSyntax;
 import javax.print.attribute.PrintServiceAttribute;
 
@@ -26,6 +27,8 @@ import javax.print.attribute.PrintServiceAttribute;
  */
 public final class PagesPerMinute extends IntegerSyntax
 	implements PrintServiceAttribute {
+
+    private static final long serialVersionUID = -6366403993072862015L;
 
     /**
      * Construct a new pages per minute attribute with the given integer
@@ -73,7 +76,7 @@ public final class PagesPerMinute extends IntegerSyntax
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return PagesPerMinute.class;
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)Caret.java	1.29 03/01/23
+ * @(#)Caret.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -30,7 +30,7 @@ import javax.swing.event.ChangeListener;
  * the mark is left at whatever position it previously had.
  *
  * @author  Timothy Prinzing
- * @version 1.29 01/23/03
+ * @version 1.30 12/19/03
  */
 public interface Caret {
 

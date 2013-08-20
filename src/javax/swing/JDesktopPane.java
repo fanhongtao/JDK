@@ -1,7 +1,7 @@
 /*
- * @(#)JDesktopPane.java	1.46 03/01/23
+ * @(#)JDesktopPane.java	1.51 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,9 +39,6 @@ import java.io.IOException;
  * it should delegate most of its behavior to the <code>desktopManager</code>
  * (closing, resizing, etc).
  * <p>
- * For the keyboard keys used by this component in the standard look and
- * feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JDesktopPane"><code>JDesktopPane</code> key assignments</a>.
  * For further documentation and examples see
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/internalframe.html">How to Use Internal Frames</a>,
  * a section in <em>The Java Tutorial</em>.
@@ -59,7 +56,7 @@ import java.io.IOException;
  * @see JInternalFrame.JDesktopIcon
  * @see DesktopManager
  *
- * @version 1.46 01/23/03
+ * @version 1.51 12/19/03
  * @author David Kloba
  */
 public class JDesktopPane extends JLayeredPane implements Accessible
@@ -81,7 +78,7 @@ public class JDesktopPane extends JLayeredPane implements Accessible
       * @see #OUTLINE_DRAG_MODE
       * @see #setDragMode
       */
-    public static int LIVE_DRAG_MODE = 0;
+    public static final int LIVE_DRAG_MODE = 0;
 
     /**
       * Indicates that an outline only of the item being dragged
@@ -90,9 +87,10 @@ public class JDesktopPane extends JLayeredPane implements Accessible
       * @see #LIVE_DRAG_MODE
       * @see #setDragMode
       */
-    public static int OUTLINE_DRAG_MODE = 1;
+    public static final int OUTLINE_DRAG_MODE = 1;
 
     private int dragMode = LIVE_DRAG_MODE;
+    private boolean dragModeSet = false;
 
     /** 
      * Creates a new <code>JDesktopPane</code>.
@@ -158,11 +156,10 @@ public class JDesktopPane extends JLayeredPane implements Accessible
      *               OUTLINE_DRAG_MODE JDesktopPane.OUTLINE_DRAG_MODE
      */
     public void setDragMode(int dragMode) {
-       /* if (!(dragMode == LIVE_DRAG_MODE || dragMode == OUTLINE_DRAG_MODE)) {
-            throw new IllegalArgumentException("Not a valid drag mode");
-        }*/
-        firePropertyChange("dragMode", this.dragMode, dragMode);
+        int oldDragMode = this.dragMode;
         this.dragMode = dragMode;
+        firePropertyChange("dragMode", oldDragMode, this.dragMode);
+	dragModeSet = true;
      }
 
     /** 
@@ -188,9 +185,16 @@ public class JDesktopPane extends JLayeredPane implements Accessible
      * desktop-specific UI actions.
      *
      * @param d the <code>DesktopManager</code> to use 
+     *
+     * @beaninfo
+     *        bound: true
+     *  description: Desktop manager to handle the internal frames in the
+     *               desktop pane.
      */
     public void setDesktopManager(DesktopManager d) {
+        DesktopManager oldValue = desktopManager;
         desktopManager = d;
+        firePropertyChange("desktopManager", oldValue, desktopManager);
     }
 
     /**
@@ -333,6 +337,16 @@ public class JDesktopPane extends JLayeredPane implements Accessible
         }
     }
 
+    void setUIProperty(String propertyName, Object value) {
+        if (propertyName == "dragMode") {
+	    if (!dragModeSet) {
+		setDragMode(((Integer)value).intValue());
+		dragModeSet = false;
+	    }
+	} else {
+	    super.setUIProperty(propertyName, value);
+	}
+    }
 
     /**
      * Returns a string representation of this <code>JDesktopPane</code>.

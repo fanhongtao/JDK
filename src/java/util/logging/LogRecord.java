@@ -1,7 +1,7 @@
 /*
- * @(#)LogRecord.java	1.18 03/01/13
+ * @(#)LogRecord.java	1.23 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import java.io.*;
  *
  * </ul>
  *
- * @version 1.18, 01/13/03
+ * @version 1.23, 01/12/04
  * @since 1.4
  */
 
@@ -119,7 +119,7 @@ public class LogRecord implements java.io.Serializable {
      * All other properties will be initialized to "null". 
      * 
      * @param level  a logging level value
-     * @param msg  the raw non-localized logging message
+     * @param msg  the raw non-localized logging message (may be null)
      */
     public LogRecord(Level level, String msg) {
 	// Make sure level isn't null, by calling random method.
@@ -222,7 +222,7 @@ public class LogRecord implements java.io.Serializable {
      * Get the sequence number.
      * <p>
      * Sequence numbers are normally assigned in the LogRecord
-     * constructor, which assignes unique sequence numbers to
+     * constructor, which assigns unique sequence numbers to
      * each new LogRecord in increasing order.
      * @return the sequence number
      */
@@ -264,7 +264,7 @@ public class LogRecord implements java.io.Serializable {
     /**
      * Set the name of the class that (allegedly) issued the logging request.
      *
-     * @param sourceClassName the source class name
+     * @param sourceClassName the source class name (may be null)
      */  
     public void setSourceClassName(String sourceClassName) {
 	this.sourceClassName = sourceClassName;
@@ -295,7 +295,7 @@ public class LogRecord implements java.io.Serializable {
     /**
      * Set the name of the method that (allegedly) issued the logging request.
      *
-     * @param sourceMethodName the source method name
+     * @param sourceMethodName the source method name (may be null)
      */  
     public void setSourceMethodName(String sourceMethodName) {
 	this.sourceMethodName = sourceMethodName;
@@ -323,7 +323,7 @@ public class LogRecord implements java.io.Serializable {
     /**
      * Set the "raw" log message, before localization or formatting.
      *
-     * @param message the raw message string
+     * @param message the raw message string (may be null)
      */
     public void setMessage(String message) {
 	this.message = message;
@@ -342,7 +342,7 @@ public class LogRecord implements java.io.Serializable {
     /**
      * Set the parameters to the log message.
      *
-     * @param parameters the log message parameters.
+     * @param parameters the log message parameters. (may be null)
      */
     public void setParameters(Object parameters[]) {
 	this.parameters = parameters;
@@ -401,11 +401,13 @@ public class LogRecord implements java.io.Serializable {
     /**
      * Set a throwable associated with the log event.
      *
-     * @param thrown  a throwable
+     * @param thrown  a throwable (may be null)
      */
     public void setThrown(Throwable thrown) {
 	this.thrown = thrown;
     }
+
+    private static final long serialVersionUID = 5372048053134512534L;
 
     /**
      * @serialData Default fields, followed by a two byte version number
@@ -501,6 +503,6 @@ public class LogRecord implements java.io.Serializable {
 	    ix++;
 	}
 	// We haven't found a suitable frame, so just punt.  This is
-        // OK as we are only commited to making a "best effort" here.
+        // OK as we are only committed to making a "best effort" here.
     }
 }

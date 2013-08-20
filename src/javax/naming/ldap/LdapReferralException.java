@@ -1,7 +1,7 @@
 /*
- * @(#)LdapReferralException.java	1.9 03/01/23
+ * @(#)LdapReferralException.java	1.12 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.util.Hashtable;
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.9 03/01/23
+ * @version 1.12 04/07/16
  * @since 1.3
  */
 
@@ -96,7 +96,9 @@ public abstract class LdapReferralException extends ReferralException {
      * Call either <tt>retryReferral()</tt> or <tt>skipReferral()</tt>
      * to continue processing referrals.
      */
-    public abstract Context getReferralContext(Hashtable env) throws NamingException;
+    public abstract Context
+	getReferralContext(Hashtable<?,?> env)
+	throws NamingException;
 
     /**
      * Retrieves the context at which to continue the method using
@@ -134,8 +136,10 @@ public abstract class LdapReferralException extends ReferralException {
      * Call either <tt>retryReferral()</tt> or <tt>skipReferral()</tt>
      * to continue processing referrals.
      */
-    public abstract Context getReferralContext(
-	Hashtable env, Control[] reqCtls) throws NamingException;
+    public abstract Context
+	getReferralContext(Hashtable<?,?> env,
+			   Control[] reqCtls)
+	throws NamingException;
     
     private static final long serialVersionUID = -1668992791764950804L;
 }

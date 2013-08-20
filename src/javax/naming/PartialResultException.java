@@ -1,7 +1,7 @@
 /*
- * @(#)PartialResultException.java	1.6 03/01/23
+ * @(#)PartialResultException.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ package javax.naming;
   * apply directly here.
   *
   * @author Rosanna Lee
-  * @version 1.6 03/01/23
+  * @version 1.7 03/12/19
   * @author Scott Seligman
   * @since 1.3
   */

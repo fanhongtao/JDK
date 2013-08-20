@@ -1,7 +1,7 @@
 /*
- * @(#)FlowLayout.java	1.46 03/01/23
+ * @(#)FlowLayout.java	1.52 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -10,11 +10,26 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
- * A flow layout arranges components in a left-to-right flow, much
- * like lines of text in a paragraph. Flow layouts are typically used
- * to arrange buttons in a panel. It will arrange
- * buttons left to right until no more buttons fit on the same line.
- * Each line is centered.
+ * A flow layout arranges components in a directional flow, much
+ * like lines of text in a paragraph. The flow direction is
+ * determined by the container's <code>componentOrientation</code>
+ * property and may be one of two values: 
+ * <ul>
+ * <li><code>ComponentOrientation.LEFT_TO_RIGHT</code>
+ * <li><code>ComponentOrientation.RIGHT_TO_LEFT</code>
+ * </ul>
+ * Flow layouts are typically used
+ * to arrange buttons in a panel. It arranges buttons
+ * horizontally until no more buttons fit on the same line.
+ * The line alignment is determined by the <code>align</code>
+ * property. The possible values are:
+ * <ul>
+ * <li>{@link #LEFT LEFT}
+ * <li>{@link #RIGHT RIGHT}
+ * <li>{@link #CENTER CENTER}
+ * <li>{@link #LEADING LEADING}
+ * <li>{@link #TRAILING TRAILING}
+ * </ul>
  * <p>
  * For example, the following picture shows an applet using the flow
  * layout manager (its default layout manager) to position three buttons:
@@ -44,10 +59,11 @@ import java.io.IOException;
  * <p>
  * A flow layout lets each component assume its natural (preferred) size.
  *
- * @version 	1.46, 01/23/03
+ * @version 	1.52, 12/19/03
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @since       JDK1.0
+ * @see ComponentOrientation
  */
 public class FlowLayout implements LayoutManager, java.io.Serializable {
 
@@ -134,7 +150,9 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     /**
      * The flow layout manager allows a seperation of
      * components with gaps.  The horizontal gap will
-     * specify the space between components.
+     * specify the space between components and between
+     * the components and the borders of the
+     * <code>Container</code>.
      *
      * @serial
      * @see #getHgap()
@@ -145,7 +163,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     /**
      * The flow layout manager allows a seperation of
      * components with gaps.  The vertical gap will
-     * specify the space between rows.
+     * specify the space between rows and between the
+     * the rows and the borders of the <code>Container</code>.
      *
      * @serial
      * @see #getHgap()
@@ -171,7 +190,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * alignment and a default 5-unit horizontal and vertical gap.
      * The value of the alignment argument must be one of
      * <code>FlowLayout.LEFT</code>, <code>FlowLayout.RIGHT</code>,
-     * or <code>FlowLayout.CENTER</code>.
+     * <code>FlowLayout.CENTER</code>, <code>FlowLayout.LEADING</code>,
+     * or <code>FlowLayout.TRAILING</code>.
      * @param align the alignment value
      */
     public FlowLayout(int align) {
@@ -184,10 +204,15 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
      * <p>
      * The value of the alignment argument must be one of
      * <code>FlowLayout.LEFT</code>, <code>FlowLayout.RIGHT</code>,
-     * or <code>FlowLayout.CENTER</code>.
+     * <code>FlowLayout.CENTER</code>, <code>FlowLayout.LEADING</code>,
+     * or <code>FlowLayout.TRAILING</code>.
      * @param      align   the alignment value
      * @param      hgap    the horizontal gap between components
+     *                     and between the components and the 
+     *                     borders of the <code>Container</code>
      * @param      vgap    the vertical gap between components
+     *                     and between the components and the 
+     *                     borders of the <code>Container</code>
      */
     public FlowLayout(int align, int hgap, int vgap) {
 	this.hgap = hgap;
@@ -244,8 +269,13 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Gets the horizontal gap between components.
+     * Gets the horizontal gap between components
+     * and between the components and the borders
+     * of the <code>Container</code>
+     *
      * @return     the horizontal gap between components
+     *             and between the components and the borders
+     *             of the <code>Container</code>
      * @see        java.awt.FlowLayout#setHgap
      * @since      JDK1.1
      */
@@ -254,8 +284,13 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Sets the horizontal gap between components.
+     * Sets the horizontal gap between components and
+     * between the components and the borders of the
+     * <code>Container</code>.
+     *
      * @param hgap the horizontal gap between components
+     *             and between the components and the borders
+     *             of the <code>Container</code>
      * @see        java.awt.FlowLayout#getHgap
      * @since      JDK1.1
      */
@@ -264,8 +299,13 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Gets the vertical gap between components.
+     * Gets the vertical gap between components and
+     * between the components and the borders of the
+     * <code>Container</code>.
+     *
      * @return     the vertical gap between components
+     *             and between the components and the borders
+     *             of the <code>Container</code>
      * @see        java.awt.FlowLayout#setVgap
      * @since      JDK1.1
      */
@@ -274,8 +314,12 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Sets the vertical gap between components.
+     * Sets the vertical gap between components and between
+     * the components and the borders of the <code>Container</code>.
+     *
      * @param vgap the vertical gap between components
+     *             and between the components and the borders
+     *             of the <code>Container</code>
      * @see        java.awt.FlowLayout#getVgap
      * @since      JDK1.1
      */
@@ -284,7 +328,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Adds the specified component to the layout. Not used by this class.
+     * Adds the specified component to the layout.
+     * Not used by this class.
      * @param name the name of the component
      * @param comp the component to be added
      */
@@ -292,8 +337,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Removes the specified component from the layout. Not used by
-     * this class.
+     * Removes the specified component from the layout.
+     * Not used by this class.
      * @param comp the component to remove
      * @see       java.awt.Container#removeAll
      */
@@ -303,7 +348,8 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     /**
      * Returns the preferred dimensions for this layout given the 
      * <i>visible</i> components in the specified target container.
-     * @param target the component which needs to be laid out
+     *
+     * @param target the container that needs to be laid out
      * @return    the preferred dimensions to lay out the
      *            subcomponents of the specified container
      * @see Container
@@ -339,7 +385,7 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     /**
      * Returns the minimum dimensions needed to layout the <i>visible</i>
      * components contained in the specified target container.
-     * @param target the component which needs to be laid out
+     * @param target the container that needs to be laid out
      * @return    the minimum dimensions to lay out the
      *            subcomponents of the specified container
      * @see #preferredLayoutSize
@@ -413,10 +459,12 @@ public class FlowLayout implements LayoutManager, java.io.Serializable {
     }
 
     /**
-     * Lays out the container. This method lets each component take
+     * Lays out the container. This method lets each 
+     * <i>visible</i> component take
      * its preferred size by reshaping the components in the
      * target container in order to satisfy the alignment of
      * this <code>FlowLayout</code> object.
+     *
      * @param target the specified component being laid out
      * @see Container
      * @see       java.awt.Container#doLayout

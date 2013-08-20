@@ -1,7 +1,7 @@
 /*
- * @(#)PartiallyOrderedSet.java	1.9 03/01/23
+ * @(#)PartiallyOrderedSet.java	1.11 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -116,7 +116,7 @@ class PartiallyOrderedSet extends AbstractSet {
         DigraphNode secondPONode =
             (DigraphNode)poNodes.get(second);
         
-        secondPONode.removeEdge(secondPONode);
+        secondPONode.removeEdge(firstPONode);
         return firstPONode.addEdge(secondPONode);
     }
 

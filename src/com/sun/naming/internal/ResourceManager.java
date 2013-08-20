@@ -1,7 +1,7 @@
 /*
- * @(#)ResourceManager.java	1.12 03/01/23
+ * @(#)ResourceManager.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ import javax.naming.*;
   * 
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.12 03/01/23
+  * @version 1.13 03/12/19
   */
 
 public final class ResourceManager {

@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContext.java	1.22 03/01/23
+ * @(#)BeanContext.java	1.23 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.util.Locale;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.22, 01/23/03
+ * @version 1.23, 12/19/03
  * @since 1.2
  *
  * @see java.beans.Beans

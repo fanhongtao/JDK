@@ -1,7 +1,7 @@
 /*
- * @(#)TreeModel.java	1.21 03/01/23
+ * @(#)TreeModel.java	1.23 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.tree;
@@ -30,7 +30,7 @@ import javax.swing.event.*;
  * 
  * @see TreePath
  * 
- * @version 1.21 01/23/03
+ * @version 1.23 12/19/03
  * @author Rob Davis
  * @author Ray Ryan
  */
@@ -98,14 +98,16 @@ public interface TreeModel
     public void valueForPathChanged(TreePath path, Object newValue);
 
     /**
-     * Returns the index of child in parent.  If <code>parent</code>
-     * is <code>null</code> or <code>child</code> is <code>null</code>,
-     * returns -1.
+     * Returns the index of child in parent.  If either <code>parent</code>
+     * or <code>child</code> is <code>null</code>, returns -1.
+     * If either <code>parent</code> or <code>child</code> don't
+     * belong to this tree model, returns -1.
      *
      * @param parent a note in the tree, obtained from this data source
      * @param child the node we are interested in
      * @return the index of the child in the parent, or -1 if either
      *    <code>child</code> or <code>parent</code> are <code>null</code>
+     *    or don't belong to this tree model
      */
     public int getIndexOfChild(Object parent, Object child);
 

@@ -1,7 +1,7 @@
 /*
- * @(#)ByteArrayOutputStream.java	1.46 03/01/23
+ * @(#)ByteArrayOutputStream.java	1.49 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ package java.io;
  * generating an <tt>IOException</tt>.
  *
  * @author  Arthur van Hoff
- * @version 1.46, 01/23/03
+ * @version 1.49, 05/18/04
  * @since   JDK1.0
  */
 
@@ -115,7 +115,7 @@ public class ByteArrayOutputStream extends OutputStream {
     /**
      * Resets the <code>count</code> field of this byte array output 
      * stream to zero, so that all currently accumulated output in the 
-     * ouput stream is discarded. The output stream can be used again, 
+     * output stream is discarded. The output stream can be used again, 
      * reusing the already allocated buffer space. 
      *
      * @see     java.io.ByteArrayInputStream#count
@@ -196,6 +196,7 @@ public class ByteArrayOutputStream extends OutputStream {
      * @see        java.io.ByteArrayOutputStream#toString(String)
      * @see        java.io.ByteArrayOutputStream#toString()
      */
+    @Deprecated
     public String toString(int hibyte) {
 	return new String(buf, hibyte, 0, count);
     }

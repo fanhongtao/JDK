@@ -1,7 +1,7 @@
 /*
- * @(#)X509CRL.java	1.25 03/01/23
+ * @(#)X509CRL.java	1.29 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -85,7 +85,7 @@ import sun.security.x509.X509CRLImpl;
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.25, 01/23/03
+ * @version 1.29, 12/19/03
  *
  * @see CRL
  * @see CertificateFactory
@@ -215,6 +215,12 @@ public abstract class X509CRL extends CRL implements X509Extension {
     public abstract int getVersion();
 
     /**
+     * <strong>Denigrated</strong>, replaced by {@linkplain
+     * #getIssuerX500Principal()}. This method returns the <code>issuer</code>
+     * as an implementation specific Principal object, which should not be
+     * relied upon by portable code.
+     *
+     * <p>
      * Gets the <code>issuer</code> (issuer distinguished name) value from 
      * the CRL. The issuer name identifies the entity that signed (and
      * issued) the CRL. 
@@ -253,8 +259,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * Returns the issuer (issuer distinguished name) value from the
      * CRL as an <code>X500Principal</code>.
      * <p>
-     * It is recommended that subclasses override this method to provide 
-     * an efficient implementation.
+     * It is recommended that subclasses override this method.
      *
      * @return an <code>X500Principal</code> representing the issuer
      *		distinguished name
@@ -302,13 +307,39 @@ public abstract class X509CRL extends CRL implements X509Extension {
         getRevokedCertificate(BigInteger serialNumber);
   
     /**
+     * Get the CRL entry, if any, for the given certificate.
+     *
+     * <p>This method can be used to lookup CRL entries in indirect CRLs,
+     * that means CRLs that contain entries from issuers other than the CRL
+     * issuer. The default implementation will only return entries for
+     * certificates issued by the CRL issuer. Subclasses that wish to
+     * support indirect CRLs should override this method.
+     *
+     * @param certificate the certificate for which a CRL entry is to be looked 
+     *   up
+     * @return the entry for the given certificate, or null if no such entry
+     *   exists in this CRL.
+     * @exception NullPointerException if certificate is null
+     *
+     * @since 1.5
+     */
+    public X509CRLEntry getRevokedCertificate(X509Certificate certificate) {
+	X500Principal certIssuer = certificate.getIssuerX500Principal();
+	X500Principal crlIssuer = getIssuerX500Principal();
+	if (certIssuer.equals(crlIssuer) == false) {
+	    return null;
+	}
+	return getRevokedCertificate(certificate.getSerialNumber());
+    }
+  
+    /**
      * Gets all the entries from this CRL.
      * This returns a Set of X509CRLEntry objects.
      *
      * @return all the entries or null if there are none present.
      * @see X509CRLEntry
      */
-    public abstract Set getRevokedCertificates();
+    public abstract Set<? extends X509CRLEntry> getRevokedCertificates();
   
     /**
      * Gets the DER-encoded CRL information, the
@@ -360,7 +391,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * For example, the string "1.2.840.10040.4.3" identifies the SHA-1
      * with DSA signature algorithm, as per RFC 2459.
      * 
-     * <p>See {@link getSigAlgName()#getSigAlgName} for 
+     * <p>See {@link #getSigAlgName() getSigAlgName} for 
      * relevant ASN.1 definitions.
      *
      * @return the signature algorithm OID string.
@@ -375,9 +406,9 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * If access to individual parameter values is needed then use
      * {@link java.security.AlgorithmParameters AlgorithmParameters}
      * and instantiate with the name returned by
-     * {@link getSigAlgName()#getSigAlgName}.
+     * {@link #getSigAlgName() getSigAlgName}.
      * 
-     * <p>See {@link getSigAlgName()#getSigAlgName} for 
+     * <p>See {@link #getSigAlgName() getSigAlgName} for 
      * relevant ASN.1 definitions.
      *
      * @return the DER-encoded signature algorithm parameters, or

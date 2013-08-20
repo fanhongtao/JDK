@@ -1,12 +1,12 @@
 /*
- * @(#)BreakDictionary.java	1.12 03/01/23
+ * @(#)BreakDictionary.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)BreakDictionary.java	1.3 99/04/07
+ * @(#)BreakDictionary.java        1.3 99/04/07
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 2002 - All Rights Reserved
@@ -23,8 +23,13 @@
 package java.text;
 
 import java.io.*;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.MissingResourceException;
 import sun.text.CompactByteArray;
+import sun.text.SupplementaryCharacterData;
+
 /**
  * This is the class that represents the list of known words used by
  * DictionaryBasedBreakIterator.  The conceptual data structure used
@@ -37,64 +42,22 @@ import sun.text.CompactByteArray;
  * advantage of the fact that this array will always be very sparse.
  */
 class BreakDictionary {
-    //=================================================================================
-    // testing and debugging
-    //=================================================================================
-    public static void main(String args[])
-            throws FileNotFoundException, UnsupportedEncodingException, IOException {
-        String filename = args[0];
 
-        BreakDictionary dictionary = new BreakDictionary(new FileInputStream(filename));
-
-        String outputFile = "";
-        if(args.length >= 2) {
-            outputFile = args[1];
-        }
-        PrintWriter out = null;
-        if (outputFile.length() != 0) {
-            out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UnicodeLittle"));
-        }
-        dictionary.printWordList("", 0, out);
-    }
-
-    public void printWordList(String partialWord, int state, PrintWriter out)
-            throws IOException {
-        if (state == -1) {
-            System.out.println(partialWord);
-            if (out != null) {
-                out.println(partialWord);
-            }
-        }
-        else {
-            for (int i = 0; i < numCols; i++) {
-                if (at(state, i) != 0) {
-                    printWordList(partialWord + reverseColumnMap[i], at(state, i), out);
-                }
-            }
-        }
-    }
-
-    /**
-     * A map used to go from column numbers to characters.  Used only
-     * for debugging right now.
-     */
-    private char[] reverseColumnMap = null;
-
-    //=================================================================================
+    //=========================================================================
     // data members
-    //=================================================================================
+    //=========================================================================
 
     /**
       * The version of the dictionary that was read in.
       */
-    private static int supportedVersion = 0;
-    private int version;
+    private static int supportedVersion = 1;
 
     /**
      * Maps from characters to column numbers.  The main use of this is to
      * avoid making room in the array for empty columns.
      */
     private CompactByteArray columnMap = null;
+    private SupplementaryCharacterData supplementaryCharColumnMap = null;
 
     /**
      * The number of actual columns in the table
@@ -150,94 +113,149 @@ class BreakDictionary {
      */
     private byte[] rowIndexShifts = null;
 
-    //=================================================================================
+    //=========================================================================
     // deserialization
-    //=================================================================================
+    //=========================================================================
 
-    public BreakDictionary(InputStream dictionaryStream) throws IOException {
-        readDictionaryFile(new DataInputStream(dictionaryStream));
+    public BreakDictionary(String dictionaryName)
+        throws IOException, MissingResourceException {
+
+        readDictionaryFile(dictionaryName);
     }
 
-    public void readDictionaryFile(DataInputStream in) throws IOException {
-	version = in.readInt();
-	if (version != supportedVersion) {
-	    throw new MissingResourceException("Dictionary version(" + version + ") is unsupported", 
-					       in.toString(), "");
-	}
+    private void readDictionaryFile(final String dictionaryName)
+        throws IOException, MissingResourceException {
 
-        int l;
+        BufferedInputStream in;
+        try {
+            in = (BufferedInputStream)AccessController.doPrivileged(
+                new PrivilegedExceptionAction() {
+                    public Object run() throws Exception {
+                        return new BufferedInputStream(getClass().getResourceAsStream("/sun/text/resources/" + dictionaryName));
+                    }
+                }
+            );
+        }
+        catch (PrivilegedActionException e) {
+            throw new InternalError(e.toString());
+        }
+ 
+        byte[] buf = new byte[8];
+        if (in.read(buf) != 8) {
+            throw new MissingResourceException("Wrong data length",
+                                               dictionaryName, "");
+        }
 
-        // read in the column map (this is serialized in its internal form:
-        // an index array followed by a data array)
-        l = in.readInt();
-        short[] temp = new short[l];
-        for (int i = 0; i < temp.length; i++)
-            temp[i] = in.readShort();
-        l = in.readInt();
-        byte[] temp2 = new byte[l];
-        for (int i = 0; i < temp2.length; i++)
-            temp2[i] = in.readByte();
-        columnMap = new CompactByteArray(temp, temp2);
+        // check vesion
+        int version = BreakIterator.getInt(buf, 0);
+        if (version != supportedVersion) {
+            throw new MissingResourceException("Dictionary version(" + version + ") is unsupported", 
+                                                           dictionaryName, "");
+        }
 
-        // read in numCols and numColGroups
-        numCols = in.readInt();
-        numColGroups = in.readInt();
-
-        // read in the row-number index
-        l = in.readInt();
-        rowIndex = new short[l];
-        for (int i = 0; i < rowIndex.length; i++)
-            rowIndex[i] = in.readShort();
-
-        // load in the populated-cells bitmap: index first, then bitmap list
-        l = in.readInt();
-        rowIndexFlagsIndex = new short[l];
-        for (int i = 0; i < rowIndexFlagsIndex.length; i++)
-            rowIndexFlagsIndex[i] = in.readShort();
-        l = in.readInt();
-        rowIndexFlags = new int[l];
-        for (int i = 0; i < rowIndexFlags.length; i++)
-            rowIndexFlags[i] = in.readInt();
-
-        // load in the row-shift index
-        l = in.readInt();
-        rowIndexShifts = new byte[l];
-        for (int i = 0; i < rowIndexShifts.length; i++)
-            rowIndexShifts[i] = in.readByte();
-
-        // finally, load in the actual state table
-        l = in.readInt();
-        table = new short[l];
-        for (int i = 0; i < table.length; i++)
-            table[i] = in.readShort();
-
-        // this data structure is only necessary for testing and debugging purposes
-        reverseColumnMap = new char[numCols];
-        for (char c = 0; c < 0xffff; c++) {
-            int col = columnMap.elementAt(c);
-            if (col != 0) {
-               reverseColumnMap[col] = c;
-            }
+        // get data size
+        int len = BreakIterator.getInt(buf, 4);
+        buf = new byte[len];
+        if (in.read(buf) != len) {
+            throw new MissingResourceException("Wrong data length",
+                                               dictionaryName, "");
         }
 
         // close the stream
         in.close();
+
+        int l;
+        int offset = 0;
+
+        // read in the column map for BMP characteres (this is serialized in
+        // its internal form: an index array followed by a data array)
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        short[] temp = new short[l];
+        for (int i = 0; i < l; i++, offset+=2) {
+            temp[i] = BreakIterator.getShort(buf, offset);
+        }
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        byte[] temp2 = new byte[l];
+        for (int i = 0; i < l; i++, offset++) {
+            temp2[i] = buf[offset];
+        }
+        columnMap = new CompactByteArray(temp, temp2);
+
+        // read in numCols and numColGroups
+        numCols = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        numColGroups = BreakIterator.getInt(buf, offset);
+        offset += 4;
+
+        // read in the row-number index
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        rowIndex = new short[l];
+        for (int i = 0; i < l; i++, offset+=2) {
+            rowIndex[i] = BreakIterator.getShort(buf, offset);
+        }
+
+        // load in the populated-cells bitmap: index first, then bitmap list
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        rowIndexFlagsIndex = new short[l];
+        for (int i = 0; i < l; i++, offset+=2) {
+            rowIndexFlagsIndex[i] = BreakIterator.getShort(buf, offset);
+        }
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        rowIndexFlags = new int[l];
+        for (int i = 0; i < l; i++, offset+=4) {
+            rowIndexFlags[i] = BreakIterator.getInt(buf, offset);
+        }
+
+        // load in the row-shift index
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        rowIndexShifts = new byte[l];
+        for (int i = 0; i < l; i++, offset++) {
+            rowIndexShifts[i] = buf[offset];
+        }
+
+        // load in the actual state table
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        table = new short[l];
+        for (int i = 0; i < l; i++, offset+=2) {
+            table[i] = BreakIterator.getShort(buf, offset);
+        }
+
+        // finally, prepare the column map for supplementary characters
+        l = BreakIterator.getInt(buf, offset);
+        offset += 4;
+        int[] temp3 = new int[l];
+        for (int i = 0; i < l; i++, offset+=4) {
+            temp3[i] = BreakIterator.getInt(buf, offset);
+        }
+        supplementaryCharColumnMap = new SupplementaryCharacterData(temp3);
     }
 
-    //=================================================================================
+    //=========================================================================
     // access to the words
-    //=================================================================================
+    //=========================================================================
 
     /**
      * Uses the column map to map the character to a column number, then
-     * passes the row and column number to the other version of at()
+     * passes the row and column number to getNextState()
      * @param row The current state
      * @param ch The character whose column we're interested in
      * @return The new state to transition to
      */
-    public final short at(int row, char ch) {
-        int col = columnMap.elementAt(ch);
-        return at(row, col);
+    public final short getNextStateFromCharacter(int row, int ch) {
+        int col;
+        if (ch < Character.MIN_SUPPLEMENTARY_CODE_POINT) {
+            col = columnMap.elementAt((char)ch);
+        } else {
+            col = supplementaryCharColumnMap.getValue(ch);
+        }
+        return getNextState(row, col);
     }
 
     /**
@@ -251,7 +269,7 @@ class BreakDictionary {
      * dictionary character")
      * @return The row number of the new state to transition to
      */
-    public final short at(int row, int col) {
+    public final short getNextState(int row, int col) {
         if (cellIsPopulated(row, col)) {
             // we map from logical to physical row number by looking up the
             // mapping in rowIndex; we map from logical column number to
@@ -291,7 +309,8 @@ class BreakDictionary {
     }
 
     /**
-     * Implementation of at() when we know the specified cell is populated.
+     * Implementation of getNextState() when we know the specified cell is
+     * populated.
      * @param row The PHYSICAL row number of the cell
      * @param col The PHYSICAL column number of the cell
      * @return The value stored in the cell

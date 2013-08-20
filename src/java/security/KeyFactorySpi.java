@@ -1,7 +1,7 @@
 /*
- * @(#)KeyFactorySpi.java	1.10 03/01/23
+ * @(#)KeyFactorySpi.java	1.12 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Jan Luehe
  *
- * @version 1.10, 01/23/03
+ * @version 1.12, 05/05/04
  *
  * @see KeyFactory
  * @see Key
@@ -101,7 +101,8 @@ public abstract class KeyFactorySpi {
      * inappropriate for the given key, or the given key cannot be dealt with
      * (e.g., the given key has an unrecognized format).
      */
-    protected abstract KeySpec engineGetKeySpec(Key key, Class keySpec)
+    protected abstract <T extends KeySpec>
+	T engineGetKeySpec(Key key, Class<T> keySpec)
 	throws InvalidKeySpecException;
 
     /**

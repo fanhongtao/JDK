@@ -1,11 +1,15 @@
 /*
- * @(#)AudioFormat.java	1.29 03/01/23
+ * @(#)AudioFormat.java	1.35 04/03/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.sampled;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <code>AudioFormat</code> is the class that specifies a particular arrangement of data in a sound stream.
@@ -44,8 +48,56 @@ package javax.sound.sampled;
  * data.  For such encodings, the sample rate and sample size refer to the data after it is decoded into PCM,
  * and so they are completely different from the frame rate and frame size.
  *
+ * <p>An <code>AudioFormat</code> object can include a set of
+ * properties. A property is a pair of key and value: the key
+ * is of type <code>String</code>, the associated property
+ * value is an arbitrary object. Properties specify
+ * additional format specifications, like the bit rate for
+ * compressed formats. Properties are mainly used as a means
+ * to transport additional information of the audio format
+ * to and from the service providers. Therefore, properties
+ * are ignored in the {@link #matches(AudioFormat)} method.
+ * However, methods which rely on the installed service
+ * providers, like {@link AudioSystem#isConversionSupported
+ * (AudioFormat, AudioFormat) isConversionSupported} may consider
+ * properties, depending on the respective service provider
+ * implementation.
+ *
+ * <p>The following table lists some common properties which
+ * service providers should use, if applicable:
+ *
+ * <table border=0>
+ *  <tr>
+ *   <th>Property key</th>
+ *   <th>Value type</th>
+ *   <th>Description</th>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;bitrate&quot;</td>
+ *   <td>{@link java.lang.Integer Integer}</td>
+ *   <td>average bit rate in bits per second</td>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;vbr&quot;</td>
+ *   <td>{@link java.lang.Boolean Boolean}</td>
+ *   <td><code>true</code>, if the file is encoded in variable bit
+ *       rate (VBR)</td>
+ *  </tr>
+ *  <tr>
+ *   <td>&quot;quality&quot;</td>
+ *   <td>{@link java.lang.Integer Integer}</td>
+ *   <td>encoding/conversion quality, 1..100</td>
+ *  </tr>
+ * </table>
+ *
+ * <p>Vendors of service providers (plugins) are encouraged
+ * to seek information about other already established
+ * properties in third party plugins, and follow the same
+ * conventions.
+ *
  * @author Kara Kytle
- * @version 1.29 03/01/23
+ * @author Florian Bomers
+ * @version 1.35 04/03/15
  * @see DataLine#getFormat
  * @see AudioInputStream#getFormat
  * @see AudioFileFormat
@@ -53,72 +105,50 @@ package javax.sound.sampled;
  * @since 1.3
  */
 public class AudioFormat {
-    
-    // ENCODING DEFINES
-    
-    /**
-     * Specifies signed, linear PCM data.
-     */
-    //public static final Type PCM_SIGNED = new Type("PCM SIGNED");
-    
-    /**
-     * Specifies unsigned, linear PCM data.
-     */
-    //public static final Type PCM_UNSIGNED = new Type("PCM UNSIGNED");
-    
-    /**
-     * Specifies u-law encoded data.
-     */
-    //public static final Type ULAW = new Type("ULAW");
-    
-    /**
-     * Specifies a-law encoded data.
-     */
-    //public static final Type ALAW = new Type("ALAW");
-    
-    
-    // OTHER DEFINES
-    
-    
-    
+
     // INSTANCE VARIABLES
-    
-    
+
+
     /**
      * The audio encoding technique used by this format.
      */
     protected Encoding encoding;
-    
+
     /**
      * The number of samples played or recorded per second, for sounds that have this format.
      */
     protected float sampleRate;
-    
+
     /**
      * The number of bits in each sample of a sound that has this format.
      */
     protected int sampleSizeInBits;
-    
+
     /**
      * The number of audio channels in this format (1 for mono, 2 for stereo).
      */
     protected int channels;
-    
+
     /**
      * The number of bytes in each frame of a sound that has this format.
      */
     protected int frameSize;
-    
+
     /**
      * The number of frames played or recorded per second, for sounds that have this format.
      */
     protected float frameRate;
-    
+
     /**
      * Indicates whether the audio data is stored in big-endian or little-endian order.
      */
     protected boolean bigEndian;
-    
+
+
+    /** The set of properties */
+    private HashMap<String, Object> properties;
+
+
     /**
      * Constructs an <code>AudioFormat</code> with the given parameters.
      * The encoding specifies the convention used to represent the data.
@@ -136,7 +166,7 @@ public class AudioFormat {
      */
     public AudioFormat(Encoding encoding, float sampleRate, int sampleSizeInBits,
 		       int channels, int frameSize, float frameRate, boolean bigEndian) {
-	
+
 	this.encoding = encoding;
 	this.sampleRate = sampleRate;
 	this.sampleSizeInBits = sampleSizeInBits;
@@ -144,8 +174,40 @@ public class AudioFormat {
 	this.frameSize = frameSize;
 	this.frameRate = frameRate;
 	this.bigEndian = bigEndian;
+	this.properties = null;
     }
-    
+
+
+    /**
+     * Constructs an <code>AudioFormat</code> with the given parameters.
+     * The encoding specifies the convention used to represent the data.
+     * The other parameters are further explained in the {@link AudioFormat
+     * class description}.
+     * @param encoding         the audio encoding technique
+     * @param sampleRate       the number of samples per second
+     * @param sampleSizeInBits the number of bits in each sample
+     * @param channels         the number of channels (1 for mono, 2 for
+     *                         stereo, and so on)
+     * @param frameSize        the number of bytes in each frame
+     * @param frameRate        the number of frames per second
+     * @param bigEndian        indicates whether the data for a single sample
+     *                         is stored in big-endian byte order
+     *                         (<code>false</code> means little-endian)
+     * @param properties       a <code>Map&lt;String,Object&gt;</code> object
+     *                         containing format properties
+     *
+     * @since 1.5
+     */
+    public AudioFormat(Encoding encoding, float sampleRate,
+		       int sampleSizeInBits, int channels,
+		       int frameSize, float frameRate,
+		       boolean bigEndian, Map<String, Object> properties) {
+	this(encoding, sampleRate, sampleSizeInBits, channels,
+	     frameSize, frameRate, bigEndian);
+	this.properties = new HashMap<String, Object>(properties);
+    }
+
+
     /**
      * Constructs an <code>AudioFormat</code> with a linear PCM encoding and
      * the given parameters.  The frame size is set to the number of bytes
@@ -163,17 +225,17 @@ public class AudioFormat {
     public AudioFormat(float sampleRate, int sampleSizeInBits,
 		       int channels, boolean signed, boolean bigEndian) {
 
-	this((signed == true ? Encoding.PCM_SIGNED : Encoding.PCM_UNSIGNED), 
-	     sampleRate, 
-	     sampleSizeInBits, 
-	     channels, 
+	this((signed == true ? Encoding.PCM_SIGNED : Encoding.PCM_UNSIGNED),
+	     sampleRate,
+	     sampleSizeInBits,
+	     channels,
 	     (channels == AudioSystem.NOT_SPECIFIED || sampleSizeInBits == AudioSystem.NOT_SPECIFIED)?
 	     AudioSystem.NOT_SPECIFIED:
-	     ((sampleSizeInBits + 7) / 8) * channels, 
-	     sampleRate, 
+	     ((sampleSizeInBits + 7) / 8) * channels,
+	     sampleRate,
 	     bigEndian);
     }
-    
+
     /**
      * Obtains the type of encoding for sounds in this format.
      *
@@ -184,10 +246,10 @@ public class AudioFormat {
      * @see Encoding#ALAW
      */
     public Encoding getEncoding() {
-	
+
 	return encoding;
     }
-    
+
     /**
      * Obtains the sample rate.
      * For compressed formats, the return value is the sample rate of the uncompressed
@@ -206,10 +268,10 @@ public class AudioFormat {
      * @see AudioSystem#NOT_SPECIFIED
      */
     public float getSampleRate() {
-	
+
 	return sampleRate;
     }
-    
+
     /**
      * Obtains the size of a sample.
      * For compressed formats, the return value is the sample size of the
@@ -228,10 +290,10 @@ public class AudioFormat {
      * @see AudioSystem#NOT_SPECIFIED
      */
     public int getSampleSizeInBits() {
-	
+
 	return sampleSizeInBits;
     }
-    
+
     /**
      * Obtains the number of channels.
      * When this AudioFormat is used for queries (e.g. {@link
@@ -246,10 +308,10 @@ public class AudioFormat {
      * @see AudioSystem#NOT_SPECIFIED
      */
     public int getChannels() {
-	
+
 	return channels;
     }
-    
+
     /**
      * Obtains the frame size in bytes.
      * When this AudioFormat is used for queries (e.g. {@link
@@ -266,10 +328,10 @@ public class AudioFormat {
      * @see AudioSystem#NOT_SPECIFIED
      */
     public int getFrameSize() {
-	
+
 	return frameSize;
     }
-    
+
     /**
      * Obtains the frame rate in frames per second.
      * When this AudioFormat is used for queries (e.g. {@link
@@ -286,11 +348,11 @@ public class AudioFormat {
      * @see AudioSystem#NOT_SPECIFIED
      */
     public float getFrameRate() {
-	
+
 	return frameRate;
     }
-    
-    
+
+
     /**
      * Indicates whether the audio data is stored in big-endian or little-endian
      * byte order.  If the sample size is not more than one byte, the return value is
@@ -299,11 +361,58 @@ public class AudioFormat {
      * <code>false</code> if little-endian
      */
     public boolean isBigEndian() {
-	
+
 	return bigEndian;
     }
-    
-    
+
+
+    /**
+     * Obtain an unmodifiable map of properties.
+     * The concept of properties is further explained in
+     * the {@link AudioFileFormat class description}.
+     *
+     * @return a <code>Map&lt;String,Object&gt;</code> object containing
+     *         all properties. If no properties are recognized, an empty map is
+     *         returned.
+     *
+     * @see #getProperty(String)
+     * @since 1.5
+     */
+    public Map<String,Object> properties() {
+	Map<String,Object> ret;
+	if (properties == null) {
+	    ret = new HashMap<String,Object>(0);
+	} else {
+	    ret = (Map<String,Object>) (properties.clone());
+	}
+	return (Map<String,Object>) Collections.unmodifiableMap(ret);
+    }
+
+
+    /**
+     * Obtain the property value specified by the key.
+     * The concept of properties is further explained in
+     * the {@link AudioFileFormat class description}.
+     *
+     * <p>If the specified property is not defined for a
+     * particular file format, this method returns
+     * <code>null</code>.
+     *
+     * @param key the key of the desired property
+     * @return the value of the property with the specified key,
+     *         or <code>null</code> if the property does not exist.
+     *
+     * @see #properties
+     * @since 1.5
+     */
+    public Object getProperty(String key) {
+	if (properties == null) {
+	    return null;
+	}
+	return properties.get(key);
+    }
+
+
     /**
      * Indicates whether this format matches the one specified.  To match,
      * two formats must have the same encoding, the same number of channels,
@@ -323,8 +432,8 @@ public class AudioFormat {
      * $$kk: 04.20.99: i changed the semantics of this.
      */
     public boolean matches(AudioFormat format) {
-	
-	if ((format.getEncoding() == getEncoding()) &&
+
+	if (format.getEncoding().equals(getEncoding()) &&
 	    ( (format.getSampleRate() == (float)AudioSystem.NOT_SPECIFIED) || (format.getSampleRate() == getSampleRate()) ) &&
 	    (format.getSampleSizeInBits() == getSampleSizeInBits()) &&
 	    (format.getChannels() == getChannels() &&
@@ -332,28 +441,90 @@ public class AudioFormat {
 	     ( (format.getFrameRate() == (float)AudioSystem.NOT_SPECIFIED) || (format.getFrameRate() == getFrameRate()) ) &&
 	     ( (format.getSampleSizeInBits() <= 8)  || (format.isBigEndian() == isBigEndian()) ) ) )
 	    return true;
-	
+
 	return false;
     }
-    
-    
+
+
     /**
      * Returns a string that describes the format, such as:
-     * "PCM SIGNED 22050 Hz 16 bit mono big-endian audio data".  The contents of the string
+     * "PCM SIGNED 22050 Hz 16 bit mono big-endian".  The contents of the string
      * may vary between implementations of Java Sound.
      *
      * @return a string that describes the format parameters
      */
     public String toString() {
-	
-	return getEncoding() + ", " +
-	    sampleRate + " Hz, " +
-	    sampleSizeInBits + " bit, " +
-	    (channels == 2 ? "stereo, " : "mono, ") +
-	    (sampleSizeInBits > 8 ? ((bigEndian == true ? "big-endian, " : "little-endian, ")) : "") +
-	    "audio data";
+	String sEncoding = "";
+	if (getEncoding() != null) {
+	    sEncoding = getEncoding().toString() + " ";
+	}
+
+	String sSampleRate;
+	if (getSampleRate() == (float) AudioSystem.NOT_SPECIFIED) {
+	    sSampleRate = "unknown sample rate, ";
+	} else {
+	    sSampleRate = "" + getSampleRate() + " Hz, ";
+	}
+
+	String sSampleSizeInBits;
+	if (getSampleSizeInBits() == (float) AudioSystem.NOT_SPECIFIED) {
+	    sSampleSizeInBits = "unknown bits per sample, ";
+	} else {
+	    sSampleSizeInBits = "" + getSampleSizeInBits() + " bit, ";
+	}
+
+	String sChannels;
+	if (getChannels() == 1) {
+	    sChannels = "mono, ";
+	} else
+	    if (getChannels() == 2) {
+		sChannels = "stereo, ";
+	    } else {
+		if (getChannels() == AudioSystem.NOT_SPECIFIED) {
+		    sChannels = " unknown number of channels, ";
+		} else {
+		    sChannels = ""+getChannels()+" channels, ";
+		}
+	    }
+
+	String sFrameSize;
+	if (getFrameSize() == (float) AudioSystem.NOT_SPECIFIED) {
+	    sFrameSize = "unknown frame size, ";
+	} else {
+	    sFrameSize = "" + getFrameSize()+ " bytes/frame, ";
+	}
+
+        String sFrameRate = "";
+        if (Math.abs(getSampleRate() - getFrameRate()) > 0.00001) {
+	    if (getFrameRate() == (float) AudioSystem.NOT_SPECIFIED) {
+		sFrameRate = "unknown frame rate, ";
+	    } else {
+		sFrameRate = getFrameRate() + " frames/second, ";
+	    }
+	}
+
+	String sEndian = "";
+	if ((getEncoding().equals(Encoding.PCM_SIGNED)
+	     || getEncoding().equals(Encoding.PCM_UNSIGNED))
+	    && ((getSampleSizeInBits() > 8)
+	        || (getSampleSizeInBits() == AudioSystem.NOT_SPECIFIED))) {
+	    if (isBigEndian()) {
+		sEndian = "big-endian";
+	    } else {
+		sEndian = "little-endian";
+	    }
+	}
+
+	return sEncoding
+	    + sSampleRate
+	    + sSampleSizeInBits
+	    + sChannels
+	    + sFrameSize
+	    + sFrameRate
+	    + sEndian;
+
     }
-    
+
     /**
      * The <code>Encoding</code> class  names the  specific type of data representation
      * used for an audio stream.   The encoding includes aspects of the
@@ -384,70 +555,79 @@ public class AudioFormat {
      * @see javax.sound.sampled.spi.FormatConversionProvider
      *
      * @author Kara Kytle
-     * @version 1.29 03/01/23
+     * @version 1.35 04/03/15
      * @since 1.3
      */
     public static class Encoding {
-	
-	
+
+
 	// ENCODING DEFINES
-	
+
 	/**
 	 * Specifies signed, linear PCM data.
 	 */
 	public static final Encoding PCM_SIGNED = new Encoding("PCM_SIGNED");
-	
+
 	/**
 	 * Specifies unsigned, linear PCM data.
 	 */
 	public static final Encoding PCM_UNSIGNED = new Encoding("PCM_UNSIGNED");
-	
+
 	/**
 	 * Specifies u-law encoded data.
 	 */
 	public static final Encoding ULAW = new Encoding("ULAW");
-	
+
 	/**
 	 * Specifies a-law encoded data.
 	 */
 	public static final Encoding ALAW = new Encoding("ALAW");
-	
-	
+
+
 	// INSTANCE VARIABLES
-	
+
 	/**
 	 * Encoding name.
 	 */
 	private String name;
-	
-	
+
+
 	// CONSTRUCTOR
-	
+
 	/**
 	 * Constructs a new encoding.
 	 * @param name	the name of the new type of encoding
 	 */
-	protected Encoding(String name) {
+	public Encoding(String name) {
 	    this.name = name;
 	}
-	
-	
+
+
 	// METHODS
-	
+
 	/**
 	 * Finalizes the equals method
 	 */
 	public final boolean equals(Object obj) {
-	    return super.equals(obj);
+	    if (toString() == null) {
+		return (obj != null) && (obj.toString() == null);
+	    }
+	    if (obj instanceof Encoding) {
+		return toString().equals(obj.toString());
+	    }
+	    return false;
 	}
-	
+
 	/**
 	 * Finalizes the hashCode method
 	 */
 	public final int hashCode() {
-	    return super.hashCode();
+	    if (toString() == null) {
+		return 0;
+	    }
+	    return toString().hashCode();
 	}
-	
+
 	/**
 	 * Provides the <code>String</code> representation of the encoding.  This <code>String</code> is
 	 * the same name that was passed to the constructor.  For the predefined encodings, the name
@@ -459,7 +639,7 @@ public class AudioFormat {
 	public final String toString() {
 	    return name;
 	}
-	
+
     } // class Encoding
 }
 

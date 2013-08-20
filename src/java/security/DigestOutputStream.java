@@ -1,7 +1,7 @@
 /*
- * @(#)DigestOutputStream.java	1.30 03/01/23
+ * @(#)DigestOutputStream.java	1.31 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import java.io.ByteArrayOutputStream;
  * @see MessageDigest
  * @see DigestInputStream
  *
- * @version 1.30 03/01/23
+ * @version 1.31 03/12/19
  * @author Benjamin Renaud
  */
 public class DigestOutputStream extends FilterOutputStream {

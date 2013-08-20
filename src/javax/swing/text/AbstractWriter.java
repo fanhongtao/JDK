@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractWriter.java	1.19 03/01/23
+ * @(#)AbstractWriter.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.Enumeration;
  * But this value can be set by subclasses.
  *
  * @author Sunita Mani
- * @version 1.19, 01/23/03
+ * @version 1.21, 12/19/03
  */
 
 public abstract class AbstractWriter {
@@ -554,14 +554,11 @@ public abstract class AbstractWriter {
 	    int lineLength = getCurrentLineLength();
 	    int maxLength = getLineLength();
 
-	    if (lineLength >= maxLength && !isLineEmpty()) {
-		// This can happen if some tags have been written out.
-		writeLineSeparator();
-	    }
 	    while (lastIndex < endIndex) {
 		int newlineIndex = indexOf(chars, NEWLINE, lastIndex,
 					   endIndex);
 		boolean needsNewline = false;
+                boolean forceNewLine = false;
 
 		lineLength = getCurrentLineLength();
 		if (newlineIndex != -1 && (lineLength +
@@ -570,7 +567,7 @@ public abstract class AbstractWriter {
 			output(chars, lastIndex, newlineIndex - lastIndex);
 		    }
 		    lastIndex = newlineIndex + 1;
-		    needsNewline = true;
+                    forceNewLine = true;
 		}
 		else if (newlineIndex == -1 && (lineLength +
 				(endIndex - lastIndex)) < maxLength) {
@@ -599,12 +596,13 @@ public abstract class AbstractWriter {
 			breakPoint += lastIndex + 1;
 			output(chars, lastIndex, breakPoint - lastIndex);
 			lastIndex = breakPoint;
+                        needsNewline = true;
 		    }
 		    else {
 			// No where good to break.
-			if (isLineEmpty()) {
-			    // If the current output line is empty, find the
-			    // next whitespace, or write out the whole string.
+
+                        // find the next whitespace, or write out the
+                        // whole string.
 			    // maxBreak will be negative if current line too
 			    // long.
 			    counter = Math.max(0, maxBreak);
@@ -626,22 +624,20 @@ public abstract class AbstractWriter {
 				if (chars[breakPoint] == NEWLINE) {
 				    output(chars, lastIndex, breakPoint++ -
 					   lastIndex);
+                                forceNewLine = true;
 				}
 				else {
 				    output(chars, lastIndex, ++breakPoint -
 					      lastIndex);
+                                needsNewline = true;
 				}
 			    }
 			    lastIndex = breakPoint;
 			}
-			// else Iterate through again.
 		    }
-		    // Force a newline since line length too long.
-		    needsNewline = true;
-		}
-		if (needsNewline || lastIndex < endIndex) {
+		if (forceNewLine || needsNewline || lastIndex < endIndex) {
 		    writeLineSeparator();
-		    if (lastIndex < endIndex) {
+                    if (lastIndex < endIndex || !forceNewLine) {
 			indent();
 		    }
 		}

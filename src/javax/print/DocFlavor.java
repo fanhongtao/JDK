@@ -1,7 +1,7 @@
 /*
- * @(#)DocFlavor.java	1.14 03/01/23
+ * @(#)DocFlavor.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -428,6 +428,8 @@ import java.util.Map;
  */
 public class DocFlavor implements Serializable, Cloneable {
 
+    private static final long serialVersionUID = -4512080796965449721L;
+
     /**
      * A String representing the host operating system encoding.
      * This will follow the conventions documented in
@@ -629,6 +631,8 @@ public class DocFlavor implements Serializable, Cloneable {
      */
     public static class BYTE_ARRAY extends DocFlavor {
 
+	private static final long serialVersionUID = -9065578006593857475L;
+
     	/**
     	 * Constructs a new doc flavor with the given MIME type and a print 
     	 * data representation class name of <CODE>"[B"</CODE> (byte array). 
@@ -824,6 +828,8 @@ public class DocFlavor implements Serializable, Cloneable {
      * @author  Alan Kaminsky
      */
     public static class INPUT_STREAM extends DocFlavor {
+
+	private static final long serialVersionUID = -7045842700749194127L;
 
     	/**
     	 * Constructs a new doc flavor with the given MIME type and a print  
@@ -1215,6 +1221,8 @@ public class DocFlavor implements Serializable, Cloneable {
      */
     public static class CHAR_ARRAY extends DocFlavor {
 
+	private static final long serialVersionUID = -8720590903724405128L;
+
     	/**
     	 * Constructs a new doc flavor with the given MIME type and a print  
     	 * data representation class name of
@@ -1263,6 +1271,8 @@ public class DocFlavor implements Serializable, Cloneable {
      */
     public static class STRING extends DocFlavor {
 
+	private static final long serialVersionUID = 4414407504887034035L;
+	
     	/**
     	 * Constructs a new doc flavor with the given MIME type and a print  
     	 * data representation class name of <CODE>"java.lang.String"</CODE>.
@@ -1308,6 +1318,8 @@ public class DocFlavor implements Serializable, Cloneable {
      * @author  Alan Kaminsky
      */
     public static class READER extends DocFlavor {
+
+	private static final long serialVersionUID = 7100295812579351567L;
 
     	/**
     	 * Constructs a new doc flavor with the given MIME type and a print  
@@ -1355,6 +1367,8 @@ public class DocFlavor implements Serializable, Cloneable {
      * @author  Alan Kaminsky
      */
     public static class SERVICE_FORMATTED extends DocFlavor {
+
+	private static final long serialVersionUID = 6181337766266637256L;
 
     	/**
     	 * Constructs a new doc flavor with a MIME type of 

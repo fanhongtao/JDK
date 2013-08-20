@@ -1,7 +1,7 @@
 /*
- * @(#)BasicAttributes.java	1.10 03/01/23
+ * @(#)BasicAttributes.java	1.12 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import javax.naming.NamingEnumeration;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.10 03/01/23
+  * @version 1.12 04/05/05
   *
   * @see DirContext#getAttributes
   * @see DirContext#modifyAttributes
@@ -146,11 +146,11 @@ public class BasicAttributes implements Attributes {
 	return (attr);
     }
 
-    public NamingEnumeration getAll() {
+    public NamingEnumeration<Attribute> getAll() {
 	return new AttrEnumImpl();
     }
 
-    public NamingEnumeration getIDs() {
+    public NamingEnumeration<String> getIDs() {
 	return new IDEnumImpl();
     }
 
@@ -291,9 +291,9 @@ public class BasicAttributes implements Attributes {
     }
 
 
-class AttrEnumImpl implements NamingEnumeration {
+class AttrEnumImpl implements NamingEnumeration<Attribute> {
 
-    Enumeration elements;
+    Enumeration<Attribute> elements;
 
     public AttrEnumImpl() {
 	this.elements = attrs.elements();
@@ -303,7 +303,7 @@ class AttrEnumImpl implements NamingEnumeration {
 	return elements.hasMoreElements();
     }
 
-    public Object nextElement() {
+    public Attribute nextElement() {
 	return elements.nextElement();
     }
 
@@ -311,7 +311,7 @@ class AttrEnumImpl implements NamingEnumeration {
 	return hasMoreElements();
     }
 
-    public Object next() throws NamingException {
+    public Attribute next() throws NamingException {
 	return nextElement();
     }
 
@@ -320,9 +320,9 @@ class AttrEnumImpl implements NamingEnumeration {
     }
 }
 
-class IDEnumImpl implements NamingEnumeration {
+class IDEnumImpl implements NamingEnumeration<String> {
 
-    Enumeration elements;
+    Enumeration<Attribute> elements;
 
     public IDEnumImpl() {
 	// Walking through the elements, rather than the keys, gives
@@ -334,7 +334,7 @@ class IDEnumImpl implements NamingEnumeration {
 	return elements.hasMoreElements();
     }
 
-    public Object nextElement() {
+    public String nextElement() {
 	Attribute attr = (Attribute)elements.nextElement();
 	return attr.getID();
     }
@@ -343,7 +343,7 @@ class IDEnumImpl implements NamingEnumeration {
 	return hasMoreElements();
     }
 
-    public Object next() throws NamingException {
+    public String next() throws NamingException {
 	return nextElement();
     }
 

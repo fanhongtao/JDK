@@ -1,7 +1,7 @@
 /*
- * @(#)FileHandler.java	1.26 03/01/23
+ * @(#)FileHandler.java	1.34 04/04/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -77,7 +77,7 @@ import java.security.*;
  * Thus for example a pattern of "%t/java%g.log" with a count of 2
  * would typically cause log files to be written on Solaris to 
  * /var/tmp/java0.log and /var/tmp/java1.log whereas on Windows 95 they
- * would be typically written to to C:\TEMP\java0.log and C:\TEMP\java1.log
+ * would be typically written to C:\TEMP\java0.log and C:\TEMP\java1.log
  * <p> 
  * Generation numbers follow the sequence 0, 1, 2, etc.
  * <p>
@@ -96,7 +96,7 @@ import java.security.*;
  * Note that the use of unique ids to avoid conflicts is only guaranteed
  * to work reliably when using a local disk file system.
  *
- * @version 1.26, 01/23/03
+ * @version 1.34, 04/05/04
  * @since 1.4
  */
 
@@ -165,7 +165,7 @@ public class FileHandler extends StreamHandler {
     private void configure() {
         LogManager manager = LogManager.getLogManager();
 
-	String cname = FileHandler.class.getName();
+	String cname = getClass().getName();
 
 	pattern = manager.getStringProperty(cname + ".pattern", "%h/java%u.log");
 	limit = manager.getIntProperty(cname + ".limit", 0);
@@ -200,6 +200,7 @@ public class FileHandler extends StreamHandler {
      * @exception  IOException if there are IO problems opening the files.
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have <tt>LoggingPermission("control"))</tt>.
+     * @exception  NullPointerException if pattern property is an empty String.
      */
     public FileHandler() throws IOException, SecurityException {
 	checkAccess();
@@ -222,8 +223,12 @@ public class FileHandler extends StreamHandler {
      * @exception  IOException if there are IO problems opening the files.
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have <tt>LoggingPermission("control")</tt>.
+     * @exception  IllegalArgumentException if pattern is an empty string
      */
     public FileHandler(String pattern) throws IOException, SecurityException {
+	if (pattern.length() < 1 ) {
+	    throw new IllegalArgumentException();   
+	}
 	checkAccess();
 	configure();
 	this.pattern = pattern;
@@ -250,8 +255,12 @@ public class FileHandler extends StreamHandler {
      * @exception  IOException if there are IO problems opening the files.
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have <tt>LoggingPermission("control")</tt>.
+     * @exception  IllegalArgumentException if pattern is an empty string
      */
     public FileHandler(String pattern, boolean append) throws IOException, SecurityException {
+	if (pattern.length() < 1 ) {
+	    throw new IllegalArgumentException();   
+	}
 	checkAccess();
 	configure();
 	this.pattern = pattern;
@@ -282,10 +291,11 @@ public class FileHandler extends StreamHandler {
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have <tt>LoggingPermission("control")</tt>.
      * @exception IllegalArgumentException if limit < 0, or count < 1.
+     * @exception  IllegalArgumentException if pattern is an empty string
      */
     public FileHandler(String pattern, int limit, int count)
 					throws IOException, SecurityException {
-	if (limit < 0 || count < 1) {
+	if (limit < 0 || count < 1 || pattern.length() < 1) {
 	    throw new IllegalArgumentException();
 	}
 	checkAccess();
@@ -319,11 +329,12 @@ public class FileHandler extends StreamHandler {
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have <tt>LoggingPermission("control")</tt>.
      * @exception IllegalArgumentException if limit < 0, or count < 1.
+     * @exception  IllegalArgumentException if pattern is an empty string
      *
      */
     public FileHandler(String pattern, int limit, int count, boolean append)
 					throws IOException, SecurityException {
-	if (limit < 0 || count < 1) {
+	if (limit < 0 || count < 1 || pattern.length() < 1) {
 	    throw new IllegalArgumentException();
 	}
 	checkAccess();
@@ -534,7 +545,8 @@ public class FileHandler extends StreamHandler {
     /**
      * Format and publish a <tt>LogRecord</tt>.
      *
-     * @param  record  description of the log event
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     public synchronized void publish(LogRecord record) {
 	if (!isLoggable(record)) {
@@ -579,6 +591,7 @@ public class FileHandler extends StreamHandler {
 	synchronized(locks) {
 	    locks.remove(lockFileName);
 	}
+        new File(lockFileName).delete();
 	lockFileName = null;
 	lockStream = null;
     }

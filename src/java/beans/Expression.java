@@ -1,13 +1,11 @@
 /*
- * @(#)Expression.java	1.10 03/01/23
+ * @(#)Expression.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.beans; 
-
-import java.lang.reflect.*; 
 
 /**
  * An <code>Expression</code> object represents a primitive expression 
@@ -29,7 +27,6 @@ import java.lang.reflect.*;
  * @version 1.3 11/15/00
  * @author Philip Milne
  */
-
 public class Expression extends Statement { 
 
     private static Object unbound = new Object(); 
@@ -42,7 +39,7 @@ public class Expression extends Statement {
      *
      * @param target The target of this expression. 
      * @param methodName The methodName of this expression. 
-     * @param arguments The arguments of this expression. 
+     * @param arguments The arguments of this expression. If <code>null</code> then an empty array will be used. 
      *     
      * @see #getValue
      */
@@ -60,7 +57,7 @@ public class Expression extends Statement {
      * @param value The value of this expression. 
      * @param target The target of this expression. 
      * @param methodName The methodName of this expression. 
-     * @param arguments The arguments of this expression. 
+     * @param arguments The arguments of this expression. If <code>null</code> then an empty array will be used.
      *
      * @see #setValue
      */
@@ -128,49 +125,3 @@ public class Expression extends Statement {
         return instanceName(value) + "=" + super.toString(); 
     } 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

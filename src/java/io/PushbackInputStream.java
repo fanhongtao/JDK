@@ -1,7 +1,7 @@
 /*
- * @(#)PushbackInputStream.java	1.33 03/01/23
+ * @(#)PushbackInputStream.java	1.36 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ package java.io;
  *
  * @author  David Connelly
  * @author  Jonathan Payne
- * @version 1.33, 01/23/03
+ * @version 1.36, 02/19/04
  * @since   JDK1.0
  */
 public
@@ -123,7 +123,7 @@ class PushbackInputStream extends FilterInputStream {
     /**
      * Reads up to <code>len</code> bytes of data from this input stream into
      * an array of bytes.  This method first reads any pushed-back bytes; after
-     * that, if fewer than than <code>len</code> bytes have been read then it
+     * that, if fewer than <code>len</code> bytes have been read then it
      * reads from the underlying input stream.  This method blocks until at
      * least 1 byte of input is available.
      *
@@ -289,6 +289,35 @@ class PushbackInputStream extends FilterInputStream {
      */
     public boolean markSupported() {
 	return false;
+    }
+
+    /**
+     * Marks the current position in this input stream.
+     *
+     * <p> The <code>mark</code> method of <code>PushbackInputStream</code>
+     * does nothing.
+     *
+     * @param   readlimit   the maximum limit of bytes that can be read before
+     *                      the mark position becomes invalid.
+     * @see     java.io.InputStream#reset()
+     */
+    public synchronized void mark(int readlimit) {
+    }
+ 
+    /**
+     * Repositions this stream to the position at the time the
+     * <code>mark</code> method was last called on this input stream.
+     *
+     * <p> The method <code>reset</code> for class
+     * <code>PushbackInputStream</code> does nothing except throw an
+     * <code>IOException</code>.
+     *
+     * @exception  IOException  if this method is invoked.
+     * @see     java.io.InputStream#mark(int)
+     * @see     java.io.IOException
+     */
+    public synchronized void reset() throws IOException {
+        throw new IOException("mark/reset not supported");
     }
 
     /**

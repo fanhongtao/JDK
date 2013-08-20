@@ -1,7 +1,7 @@
 /*
- * @(#)GapVector.java	1.10 03/01/23
+ * @(#)GapVector.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -21,7 +21,7 @@ import javax.swing.undo.UndoableEdit;
  * moving the array contents directly to accomodate the change.
  *
  * @author  Timothy Prinzing
- * @version 1.10 01/23/03
+ * @version 1.12 12/19/03
  * @see GapContent
  */
 abstract class GapVector implements Serializable {
@@ -207,7 +207,7 @@ abstract class GapVector implements Serializable {
 	int oldSize = getArrayLength();
 	int oldGapEnd = g1;
 	int upperSize = oldSize - oldGapEnd;
-	int arrayLength = (newSize + 1) * 2;
+	int arrayLength = getNewArraySize(newSize);
 	int newGapEnd = arrayLength - upperSize;
 	resize(arrayLength);
 	g1 = newGapEnd;
@@ -216,6 +216,16 @@ abstract class GapVector implements Serializable {
 	    // Copy array items to new end of array.
 	    System.arraycopy(array, oldGapEnd, array, newGapEnd, upperSize);
 	}
+    }
+
+    /**
+     * Calculates a new size of the storage array depending on required
+     * capacity.
+     * @param reqSize the size which is necessary for new content
+     * @return the new size of the storage array
+     */
+    int getNewArraySize(int reqSize) {
+        return (reqSize + 1) * 2;
     }
 
     /**

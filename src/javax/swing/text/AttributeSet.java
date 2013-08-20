@@ -1,7 +1,7 @@
 /*
- * @(#)AttributeSet.java	1.38 03/01/23
+ * @(#)AttributeSet.java	1.40 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -24,7 +24,7 @@ import java.util.Enumeration;
  * exists, the key will be resolved through the parent.
  *
  * @author  Timothy Prinzing
- * @version 1.38 01/23/03
+ * @version 1.40 05/05/04
  * @see MutableAttributeSet
  */
 public interface AttributeSet {
@@ -121,7 +121,7 @@ public interface AttributeSet {
      *
      * @return the names
      */
-    public Enumeration getAttributeNames();
+    public Enumeration<?> getAttributeNames();
 
     /**
      * Returns true if this set contains this attribute with an equal value.

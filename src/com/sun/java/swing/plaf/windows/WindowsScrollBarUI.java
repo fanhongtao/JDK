@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsScrollBarUI.java	1.16 03/01/23
+ * @(#)WindowsScrollBarUI.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,20 +47,6 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 	if (XPStyle.getXP() != null) {
 	    scrollbar.setBorder(null);
 	}
-    }
-
-    public Dimension getPreferredSize(JComponent c) {
-	Dimension d = super.getPreferredSize(c);
-
-	XPStyle xp = XPStyle.getXP();
-	if (xp != null) {
-	    if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
-		d.width = xp.getInt("sysmetrics.scrollbarwidth", 17);
-	    } else {
-		d.height = xp.getInt("sysmetrics.scrollbarheight", 17);
-	    }
-	}
-	return d;
     }
 
     public void uninstallUI(JComponent c) {
@@ -133,11 +119,12 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 	if (xp != null) {
 	    JScrollBar sb = (JScrollBar)c;
 	    int index = 0;
-	    // Pending: Implement rollover 1
 	    if (!sb.isEnabled()) {
 		index = 3;
 	    } else if (isDragging) {
 		index = 2;
+	    } else if (isThumbRollover()) {
+		index = 1;
 	    }
 	    // Paint thumb
 	    XPStyle.Skin skin = xp.getSkin(v ? "scrollbar.thumbbtnvert" : "scrollbar.thumbbtnhorz");
@@ -226,6 +213,7 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 	public void paint(Graphics g) {
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
+		ButtonModel model = getModel();
 		XPStyle.Skin skin = xp.getSkin("scrollbar.arrowbtn");
 		int index = 0;
 		switch (direction) {
@@ -233,6 +221,15 @@ public class WindowsScrollBarUI extends BasicScrollBarUI {
 		    case SOUTH: index =  4; break;
 		    case WEST:  index =  8; break;
 		    case EAST:  index = 12; break;
+		}
+
+		// normal, rollover, pressed, disabled
+		if (model.isArmed() && model.isPressed()) {
+		    index += 2;
+		} else if (!model.isEnabled()) {
+		    index += 3;
+		} else if (model.isRollover() || model.isPressed()) {
+		    index += 1;
 		}
 
 		skin.paintSkin(g, 0, 0, getSize().width, getSize().height, index);

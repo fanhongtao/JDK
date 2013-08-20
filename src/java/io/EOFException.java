@@ -1,7 +1,7 @@
 /*
- * @(#)EOFException.java	1.12 03/01/23
+ * @(#)EOFException.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ package java.io;
  * <p>
  *
  * @author  Frank Yellin
- * @version 1.12, 01/23/03
+ * @version 1.13, 12/19/03
  * @see     java.io.DataInputStream
  * @see     java.io.IOException
  * @since   JDK1.0

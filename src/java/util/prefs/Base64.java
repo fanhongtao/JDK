@@ -1,7 +1,7 @@
 /*
- * @(#)Base64.java	1.4 03/01/23
+ * @(#)Base64.java	1.5 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.util.prefs;
  * and vice-versa.
  *
  * @author  Josh Bloch
- * @version 1.4, 01/23/03
+ * @version 1.5, 12/19/03
  * @see     Preferences
  * @since   1.4
  */

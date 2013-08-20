@@ -1,7 +1,7 @@
 /*
- * @(#)TreeSet.java	1.26 03/01/23
+ * @(#)TreeSet.java	1.32 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,17 +50,17 @@ package java.util;
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis. 
+ * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
  * Therefore, it would be wrong to write a program that depended on this
  * exception for its correctness:   <i>the fail-fast behavior of iterators
  * should be used only to detect bugs.</i><p>
  *
- * This class is a member of the 
+ * This class is a member of the
  * <a href="{@docRoot}/../guide/collections/index.html">
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.26, 01/23/03
+ * @version 1.32, 12/19/03
  * @see	    Collection
  * @see	    Set
  * @see	    HashSet
@@ -71,11 +71,12 @@ package java.util;
  * @since   1.2
  */
 
-public class TreeSet extends AbstractSet
-		     implements SortedSet, Cloneable, java.io.Serializable
+public class TreeSet<E>
+    extends AbstractSet<E>
+    implements SortedSet<E>, Cloneable, java.io.Serializable
 {
-    private transient SortedMap m;	 // The backing Map
-    private transient Set      	keySet;  // The keySet view of the backing Map
+    private transient SortedMap<E,Object> m; // The backing Map
+    private transient Set<E> keySet;	// The keySet view of the backing Map
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
@@ -83,7 +84,7 @@ public class TreeSet extends AbstractSet
     /**
      * Constructs a set backed by the specified sorted map.
      */
-    private TreeSet(SortedMap m) {
+    private TreeSet(SortedMap<E,Object> m) {
         this.m = m;
         keySet = m.keySet();
     }
@@ -98,11 +99,11 @@ public class TreeSet extends AbstractSet
      * set that violates this constraint (for example, the user attempts to
      * add a string element to a set whose elements are integers), the
      * <tt>add(Object)</tt> call will throw a <tt>ClassCastException</tt>.
-     * 
+     *
      * @see Comparable
      */
     public TreeSet() {
-	this(new TreeMap());
+	this(new TreeMap<E,Object>());
     }
 
     /**
@@ -118,8 +119,8 @@ public class TreeSet extends AbstractSet
      *        <tt>null</tt> value indicates that the elements' <i>natural
      *        ordering</i> should be used.
      */
-    public TreeSet(Comparator c) {
-	this(new TreeMap(c));
+    public TreeSet(Comparator<? super E> c) {
+	this(new TreeMap<E,Object>(c));
     }
 
     /**
@@ -137,9 +138,9 @@ public class TreeSet extends AbstractSet
      *         not comparable, or are not mutually comparable.
      * @throws NullPointerException if the specified collection is null.
      */
-    public TreeSet(Collection c) {
+    public TreeSet(Collection<? extends E> c) {
         this();
-        addAll(c);        
+        addAll(c);
     }
 
     /**
@@ -149,7 +150,7 @@ public class TreeSet extends AbstractSet
      * @param s sorted set whose elements will comprise the new set.
      * @throws NullPointerException if the specified sorted set is null.
      */
-    public TreeSet(SortedSet s) {
+    public TreeSet(SortedSet<E> s) {
         this(s.comparator());
 	addAll(s);
     }
@@ -160,7 +161,7 @@ public class TreeSet extends AbstractSet
      *
      * @return an iterator over the elements in this set.
      */
-    public Iterator iterator() {
+    public Iterator<E> iterator() {
 	return keySet.iterator();
     }
 
@@ -187,7 +188,7 @@ public class TreeSet extends AbstractSet
      *
      * @param o the object to be checked for containment in this set.
      * @return <tt>true</tt> if this set contains the specified element.
-     * 
+     *
      * @throws ClassCastException if the specified object cannot be compared
      * 		  with the elements currently in the set.
      */
@@ -201,11 +202,11 @@ public class TreeSet extends AbstractSet
      * @param o element to be added to this set.
      * @return <tt>true</tt> if the set did not already contain the specified
      *         element.
-     * 
+     *
      * @throws ClassCastException if the specified object cannot be compared
      * 		  with the elements currently in the set.
      */
-    public boolean add(Object o) {
+    public boolean add(E o) {
 	return m.put(o, PRESENT)==null;
     }
 
@@ -214,7 +215,7 @@ public class TreeSet extends AbstractSet
      *
      * @param o object to be removed from this set, if present.
      * @return <tt>true</tt> if the set contained the specified element.
-     * 
+     *
      * @throws ClassCastException if the specified object cannot be compared
      * 		  with the elements currently in the set.
      */
@@ -239,14 +240,16 @@ public class TreeSet extends AbstractSet
      *		  with the elements currently in the set.
      * @throws NullPointerException of the specified collection is null.
      */
-    public boolean addAll(Collection c) {
+    public  boolean addAll(Collection<? extends E> c) {
         // Use linear-time version if applicable
-        if (m.size()==0 && c.size() > 0 && c instanceof SortedSet && 
+        if (m.size()==0 && c.size() > 0 &&
+	    // FIXME(VFORCE) Work-around for bug in compiler
+	    c instanceof SortedSet &&
             m instanceof TreeMap) {
-            SortedSet set = (SortedSet)c;
-            TreeMap map = (TreeMap)m;
-            Comparator cc = set.comparator();
-            Comparator mc = map.comparator();
+            SortedSet<Map.Entry<E, Object>> set = (SortedSet<Map.Entry<E, Object>>) (SortedSet) c;
+            TreeMap<E,Object> map = (TreeMap<E, Object>) m;
+            Comparator<? super E> cc = (Comparator<E>) set.comparator();
+            Comparator<? super E> mc = map.comparator();
             if (cc==mc || (cc != null && cc.equals(mc))) {
                 map.addAllForTreeSet(set, PRESENT);
                 return true;
@@ -279,7 +282,7 @@ public class TreeSet extends AbstractSet
      * <tt>high</tt>, inclusive: <pre>
      *     SortedSet sub = s.subSet(low, high+"\0");
      * </pre>
-     * 
+     *
      * A similar technique can be used to generate an <i>open range</i> (which
      * contains neither endpoint).  The following idiom obtains a view
      * containing all of the strings in <tt>s</tt> from <tt>low</tt> to
@@ -303,8 +306,8 @@ public class TreeSet extends AbstractSet
      *	       order, or its comparator does not tolerate <tt>null</tt>
      *         elements.
      */
-    public SortedSet subSet(Object fromElement, Object toElement) {
-	return new TreeSet(m.subMap(fromElement, toElement));
+    public SortedSet<E> subSet(E fromElement, E toElement) {
+	return new TreeSet<E>(m.subMap(fromElement, toElement));
     }
 
     /**
@@ -340,8 +343,8 @@ public class TreeSet extends AbstractSet
      *	       this set uses natural ordering, or its comparator does
      *         not tolerate <tt>null</tt> elements.
      */
-    public SortedSet headSet(Object toElement) {
-	return new TreeSet(m.headMap(toElement));
+    public SortedSet<E> headSet(E toElement) {
+	return new TreeSet<E>(m.headMap(toElement));
     }
 
     /**
@@ -379,8 +382,8 @@ public class TreeSet extends AbstractSet
      *	       and this set uses natural ordering, or its comparator does
      *         not tolerate <tt>null</tt> elements.
      */
-    public SortedSet tailSet(Object fromElement) {
-	return new TreeSet(m.tailMap(fromElement));
+    public SortedSet<E> tailSet(E fromElement) {
+	return new TreeSet<E>(m.tailMap(fromElement));
     }
 
     /**
@@ -390,7 +393,7 @@ public class TreeSet extends AbstractSet
      * @return the comparator used to order this sorted set, or <tt>null</tt>
      * if this tree set uses its elements natural ordering.
      */
-    public Comparator comparator() {
+    public Comparator<? super E> comparator() {
         return m.comparator();
     }
 
@@ -400,7 +403,7 @@ public class TreeSet extends AbstractSet
      * @return the first (lowest) element currently in this sorted set.
      * @throws    NoSuchElementException sorted set is empty.
      */
-    public Object first() {
+    public E first() {
         return m.firstKey();
     }
 
@@ -410,7 +413,7 @@ public class TreeSet extends AbstractSet
      * @return the last (highest) element currently in this sorted set.
      * @throws    NoSuchElementException sorted set is empty.
      */
-    public Object last() {
+    public E last() {
         return m.lastKey();
     }
 
@@ -421,14 +424,14 @@ public class TreeSet extends AbstractSet
      * @return a shallow copy of this set.
      */
     public Object clone() {
-        TreeSet clone = null;
-	try { 
-	    clone = (TreeSet)super.clone();
-	} catch (CloneNotSupportedException e) { 
+        TreeSet<E> clone = null;
+	try {
+	    clone = (TreeSet<E>) super.clone();
+	} catch (CloneNotSupportedException e) {
 	    throw new InternalError();
 	}
 
-        clone.m = new TreeMap(m);
+        clone.m = new TreeMap<E,Object>(m);
         clone.keySet = clone.m.keySet();
 
         return clone;
@@ -472,16 +475,21 @@ public class TreeSet extends AbstractSet
 	s.defaultReadObject();
 
         // Read in Comparator
-        Comparator c = (Comparator)s.readObject();
+        Comparator<E> c = (Comparator<E>) s.readObject();
 
         // Create backing TreeMap and keySet view
-        m = (c==null ? new TreeMap() : new TreeMap(c));
+	TreeMap<E,Object> tm;
+	if (c==null)
+	    tm = new TreeMap<E,Object>();
+	else
+	    tm = new TreeMap<E,Object>(c);
+	m = tm;
         keySet = m.keySet();
 
         // Read in size
         int size = s.readInt();
 
-        ((TreeMap)m).readTreeSet(size, s, PRESENT);
+        tm.readTreeSet(size, s, PRESENT);
     }
 
     private static final long serialVersionUID = -2479143000061671589L;

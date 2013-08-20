@@ -1,7 +1,7 @@
 /*
- * @(#)CharsetProvider.java	1.13 03/01/23
+ * @(#)CharsetProvider.java	1.15 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -46,7 +46,7 @@ import java.util.Iterator;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.13, 03/01/23
+ * @version 1.15, 04/05/05
  * @since 1.4
  *
  * @see java.nio.charset.Charset
@@ -75,7 +75,7 @@ public abstract class CharsetProvider {
      *
      * @return  The new iterator
      */
-    public abstract Iterator charsets();
+    public abstract Iterator<Charset> charsets();
 
     /**
      * Retrieves a charset for the given charset name. </p>

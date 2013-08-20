@@ -1,7 +1,7 @@
 /*
- * @(#)PortableRemoteObject.java	1.28 03/01/23
+ * @(#)PortableRemoteObject.java	1.32 04/06/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -17,6 +17,7 @@ package javax.rmi;
 
 import java.lang.reflect.Method ;
 
+import org.omg.CORBA.INITIALIZE;
 import javax.rmi.CORBA.Util;
 
 import java.rmi.RemoteException;
@@ -25,10 +26,12 @@ import java.rmi.Remote;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
-
+import java.net.MalformedURLException ;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import sun.security.action.GetPropertyAction;
+import java.rmi.server.RMIClassLoader;
+
+import com.sun.corba.se.impl.orbutil.GetPropertyAction;
 
 /**
  * Server implementation objects may either inherit from
@@ -52,7 +55,7 @@ public class PortableRemoteObject {
             "javax.rmi.CORBA.PortableRemoteObjectClass";
 
     private static final String defaultPortableRemoteObjectImplName =
-            "com.sun.corba.se.internal.javax.rmi.PortableRemoteObject";
+            "com.sun.corba.se.impl.javax.rmi.PortableRemoteObject";
 
     static {
         proDelegate = (javax.rmi.CORBA.PortableRemoteObjectDelegate)
@@ -176,15 +179,35 @@ public class PortableRemoteObject {
 	}
 
         try {
-            return (Object) Util.loadClass(className, null, null).newInstance();
+            return (Object) loadDelegateClass(className).newInstance();
         } catch (ClassNotFoundException ex) {
-            throw new org.omg.CORBA.INITIALIZE(
-                                              "cannot instantiate " + className);
+	    INITIALIZE exc = new INITIALIZE( "Cannot instantiate " + className);
+	    exc.initCause( ex ) ;
+	    throw exc ;
         } catch (Exception ex) {
-            throw new org.omg.CORBA.INITIALIZE(
-                                              "cannot instantiate " + className);
+	    INITIALIZE exc = new INITIALIZE( "Error while instantiating" + className);
+	    exc.initCause( ex ) ;
+	    throw exc ;
         }
 
+    }
+
+    private static Class loadDelegateClass( String className )  throws ClassNotFoundException
+    {
+	try {
+	    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+	    return Class.forName(className, false, loader);
+	} catch (ClassNotFoundException e) {
+	    // ignore, then try RMIClassLoader
+	}
+
+	try {
+	    return RMIClassLoader.loadClass(className);
+	} catch (MalformedURLException e) {
+	    String msg = "Could not load " + className + ": " + e.toString();
+	    ClassNotFoundException exc = new ClassNotFoundException( msg ) ; 
+	    throw exc ;
+	}
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)MouseWheelEvent.java	1.7 03/01/23
+ * @(#)MouseWheelEvent.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -59,7 +59,7 @@ import sun.awt.DebugHelper;
  * reflect the most recent settings.
  *
  * @author Brent Christian
- * @version 1.7 01/23/03
+ * @version 1.9 12/19/03
  * @see MouseWheelListener
  * @see java.awt.ScrollPane
  * @see java.awt.ScrollPane#setWheelScrollingEnabled(boolean)
@@ -124,7 +124,9 @@ public class MouseWheelEvent extends MouseEvent {
      * specified source component, type, modifiers, coordinates,
      * scroll type, scroll amount, and wheel rotation.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source         the <code>Component</code> that originated
      *                       the event
@@ -146,6 +148,7 @@ public class MouseWheelEvent extends MouseEvent {
      * @param wheelRotation  the amount that the mouse wheel was rotated (the
      *                       number of "clicks")
      *
+     * @throws IllegalArgumentException if <code>source</code> is null
      * @see MouseEvent#MouseEvent(java.awt.Component, int, long, int, int, int, int, boolean)
      */
     public MouseWheelEvent (Component source, int id, long when, int modifiers,

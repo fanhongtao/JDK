@@ -1,7 +1,7 @@
 /*
- * @(#)PolicyNode.java	1.7 03/01/23
+ * @(#)PolicyNode.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,7 +41,7 @@ import java.util.Set;
  * with no ill effects. This stipulation applies to all public fields and 
  * methods of this class and any added or overridden by subclasses. 
  *
- * @version     1.7 01/23/03
+ * @version     1.9 12/19/03
  * @since       1.4
  * @author      Sean Mullan
  */
@@ -64,7 +64,7 @@ public interface PolicyNode {
      *
      * @return an iterator over the children of this node
      */
-    Iterator getChildren();
+    Iterator<? extends PolicyNode> getChildren();
 
     /**
      * Returns the depth of this node in the valid policy tree.
@@ -91,7 +91,7 @@ public interface PolicyNode {
      * <code>PolicyQualifierInfo</code>s. For the root node, this
      * is always an empty <code>Set</code>.
      */
-    Set getPolicyQualifiers();
+    Set<? extends PolicyQualifierInfo> getPolicyQualifiers();
 
     /**
      * Returns the set of expected policies that would satisfy this
@@ -102,7 +102,7 @@ public interface PolicyNode {
      * the single special value "any-policy". For the root node, this method 
      * always returns a <code>Set</code> with the single value "any-policy".
      */
-    Set getExpectedPolicies();
+    Set<String> getExpectedPolicies();
 
     /**
      * Returns the criticality indicator of the certificate policy extension

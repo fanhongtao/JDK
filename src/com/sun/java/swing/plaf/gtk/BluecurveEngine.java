@@ -1,11 +1,12 @@
 /*
- * @(#)BluecurveEngine.java	1.3 03/01/23
+ * @(#)BluecurveEngine.java	1.6 04/01/09
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import javax.swing.plaf.synth.*;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
@@ -13,7 +14,7 @@ import javax.swing.plaf.*;
 /**
  * A bluecurve like engine.
  *
- * @version 1.3, 01/23/03
+ * @version 1.6, 01/09/04
  * @author Scott Violet
  */
 class BluecurveEngine extends GTKEngine {
@@ -273,7 +274,6 @@ class BluecurveEngine extends GTKEngine {
                 innerLeft, bottomRight, innerRight);
         if (info == "menuitem" || info == "bar") {
             // Draw the GradientPaint
-            // PENDING: we could cache a GradientPaint to avoid so much garbage.
             int gw = Math.min(2, xThickness);
             int gh = Math.min(2, yThickness);
             Color topColor = style.getGTKColor(c, region,
@@ -294,14 +294,8 @@ class BluecurveEngine extends GTKEngine {
                            int shadowType, int direction, String info,
                            int x, int y, int w, int h) {
         // Draw the arrow
-        int sizeW = w / 2;
-        if (w % 2 == 1) {
-            sizeW++;
-        }
-        int sizeH = h / 2;
-        if (h % 2 == 1) {
-            sizeH++;
-        }
+        int sizeW = w / 4 + 1;
+        int sizeH = h / 4 + 1;
         int size = Math.max(2, Math.min(sizeW, sizeH));
 
         switch (direction) {
@@ -425,11 +419,11 @@ class BluecurveEngine extends GTKEngine {
 
     public void paintExtension(SynthContext context, Graphics g, int state,
                                int shadowType, String info, int x, int y,
-                               int w, int h, int placement) {
+                               int w, int h, int placement, int tabIndex) {
         _paintExtension(context, g, state, shadowType, x, y, w, h, placement,
                    BluecurveColorType.OUTER3, GTKColorType.BACKGROUND,
                    BluecurveColorType.OUTER3, BluecurveColorType.INNER_RIGHT2,
-                        true);
+                        true, tabIndex);
     }
 
     public void paintBoxGap(SynthContext context, Graphics g, int state,

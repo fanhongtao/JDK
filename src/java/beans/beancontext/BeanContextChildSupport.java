@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextChildSupport.java	1.13 03/01/23
+ * @(#)BeanContextChildSupport.java	1.16 04/03/04
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.io.Serializable;
  * </p>
  *
  * @author	Laurence P. G. Cable
- * @version	1.13, 01/23/03
+ * @version	1.16, 03/04/04
  * @since	1.2
  * 
  * @see	java.beans.beancontext.BeanContext
@@ -127,7 +127,13 @@ public class BeanContextChildSupport implements BeanContextChild, BeanContextSer
     public synchronized BeanContext getBeanContext() { return beanContext; }
 
     /**
-     * Adds a property change listener.
+     * Add a PropertyChangeListener for a specific property.
+     * The same listener object may be added more than once.  For each
+     * property,  the listener will be invoked the number of times it was added
+     * for that property.
+     * If <code>name</code> or <code>pcl</code> is null, no exception is thrown
+     * and no action is taken.
+     *
      * @param name The name of the property to listen on
      * @param pcl The <code>PropertyChangeListener</code> to be added
      */
@@ -136,7 +142,15 @@ public class BeanContextChildSupport implements BeanContextChild, BeanContextSer
     }
 
     /**
-     * Remove a property change listener.
+     * Remove a PropertyChangeListener for a specific property.
+     * If <code>pcl</code> was added more than once to the same event
+     * source for the specified property, it will be notified one less time
+     * after being removed.
+     * If <code>name</code> is null, no exception is thrown
+     * and no action is taken.
+     * If <code>pcl</code> is null, or was never added for the specified
+     * property, no exception is thrown and no action is taken.
+     *
      * @param name The name of the property that was listened on
      * @param pcl The PropertyChangeListener to be removed
      */
@@ -145,7 +159,13 @@ public class BeanContextChildSupport implements BeanContextChild, BeanContextSer
     }
 
     /**
-     * Adds a <code>VetoableChangeListener</code>.
+     * Add a VetoableChangeListener for a specific property.
+     * The same listener object may be added more than once.  For each
+     * property,  the listener will be invoked the number of times it was added
+     * for that property.
+     * If <code>name</code> or <code>vcl</code> is null, no exception is thrown
+     * and no action is taken.
+     *
      * @param name The name of the property to listen on
      * @param vcl The <code>VetoableChangeListener</code> to be added
      */
@@ -155,6 +175,14 @@ public class BeanContextChildSupport implements BeanContextChild, BeanContextSer
 
     /**
      * Removes a <code>VetoableChangeListener</code>.
+     * If <code>pcl</code> was added more than once to the same event
+     * source for the specified property, it will be notified one less time
+     * after being removed.
+     * If <code>name</code> is null, no exception is thrown
+     * and no action is taken.
+     * If <code>vcl</code> is null, or was never added for the specified
+     * property, no exception is thrown and no action is taken.
+     *
      * @param name The name of the property that was listened on
      * @param vcl The <code>VetoableChangeListener</code> to be removed
      */

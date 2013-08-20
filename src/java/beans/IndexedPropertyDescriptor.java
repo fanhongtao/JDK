@@ -1,5 +1,5 @@
 /*
- * @(#)IndexedPropertyDescriptor.java	1.38 04/08/16
+ * @(#)IndexedPropertyDescriptor.java	1.49 04/05/05
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,7 +45,7 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
      * @exception IntrospectionException if an exception occurs during
      *              introspection.
      */
-    public IndexedPropertyDescriptor(String propertyName, Class beanClass)
+    public IndexedPropertyDescriptor(String propertyName, Class<?> beanClass)
 		throws IntrospectionException {
 	this(propertyName, beanClass,
 			 "get" + capitalize(propertyName),
@@ -76,7 +76,7 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
      * @exception IntrospectionException if an exception occurs during
      *              introspection.
      */
-    public IndexedPropertyDescriptor(String propertyName, Class beanClass,
+    public IndexedPropertyDescriptor(String propertyName, Class<?> beanClass,
 		String readMethodName, String writeMethodName,
 		String indexedReadMethodName, String indexedWriteMethodName)
 		throws IntrospectionException {
@@ -152,21 +152,13 @@ perty.
 	    
 	    Class[] args = { int.class };
 	    
-	    try {
-		indexedReadMethod = Introspector.findMethod(cls, indexedReadMethodName, 
-							    1, args);
-	    } catch (Exception e) {
-		indexedReadMethod = null;
-	    }
+	    indexedReadMethod = Introspector.findMethod(cls, indexedReadMethodName, 
+							1, args);
 	    if (indexedReadMethod == null) {
 		// no "is" method, so look for a "get" method.
 		indexedReadMethodName = "get" + getBaseName();
-		try {
-		    indexedReadMethod = Introspector.findMethod(cls, indexedReadMethodName, 
+		indexedReadMethod = Introspector.findMethod(cls, indexedReadMethodName, 
 							    1, args);
-		} catch (Exception e) {
-		    indexedReadMethod = null;
-		}
 	    }
 	    setIndexedReadMethod0(indexedReadMethod);
 	}
@@ -237,12 +229,8 @@ perty.
 	    if (indexedWriteMethodName == null) {
 		indexedWriteMethodName = "set" + getBaseName();
 	    }
-	    try {
-		indexedWriteMethod = Introspector.findMethod(cls, indexedWriteMethodName, 
-			     2, (type == null) ? null : new Class[] { int.class, type });
-	    } catch (Exception e) {
-		indexedWriteMethod = null;
-	    }
+	    indexedWriteMethod = Introspector.findMethod(cls, indexedWriteMethodName, 
+			 2, (type == null) ? null : new Class[] { int.class, type });
 	    setIndexedWriteMethod0(indexedWriteMethod);
 	}
 	return indexedWriteMethod;
@@ -276,13 +264,13 @@ perty.
     }
 
     /**
-     * Gets the Class object of the indexed properties' type.
-     * This is the type that will be returned by the indexedReadMethod.
+     * Gets the <code>Class</code> object of the indexed properties' type.
+     * The returned <code>Class</code> may describe a primitive type such as <code>int</code>.
      *
-     * @return The Java Class for the indexed properties type.  Note that
-     * the Class may describe a primitive Java type such as "int".
+     * @return The <code>Class</code> for the indexed properties' type; may return <code>null</code>
+     *         if the type cannot be determined.
      */
-    public synchronized Class getIndexedPropertyType() {
+    public synchronized Class<?> getIndexedPropertyType() {
 	Class type = getIndexedPropertyType0();
 	if (type == null) {
 	    try {
@@ -451,4 +439,41 @@ perty.
 	indexedWriteMethodName = old.indexedWriteMethodName;
 	indexedReadMethodName = old.indexedReadMethodName;
     }
+
+    /**
+     * Returns a hash code value for the object. 
+     * See {@link java.lang.Object#hashCode} for a complete description.
+     *
+     * @return a hash code value for this object.
+     * @since 1.5
+     */
+    public int hashCode() {
+	int result = super.hashCode();
+
+	result = 37 * result + ((indexedWriteMethodName == null) ? 0 : 
+				indexedWriteMethodName.hashCode());
+	result = 37 * result + ((indexedReadMethodName == null) ? 0 : 
+				indexedReadMethodName.hashCode());
+	result = 37 * result + ((getIndexedPropertyType() == null) ? 0 : 
+				getIndexedPropertyType().hashCode());
+	
+	return result;
+    }
+
+    /*
+    public String toString() {
+	String message = super.toString();
+
+	message += ", indexedType=";
+	message += getIndexedPropertyType();
+
+	message += ", indexedWriteMethod=";
+	message += indexedWriteMethodName;
+
+	message += ", indexedReadMethod=";
+	message += indexedReadMethodName;
+	
+	return message;
+    }
+    */
 }

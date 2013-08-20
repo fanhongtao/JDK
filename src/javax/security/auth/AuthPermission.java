@@ -1,7 +1,7 @@
 /*
- * @(#)AuthPermission.java	1.48 03/01/23
+ * @(#)AuthPermission.java	1.51 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,10 +63,12 @@ package javax.security.auth;
  *	createLoginContext.{name} -  allow code to instantiate a
  *				<code>LoginContext</code> with the
  *				specified <i>name</i>.  <i>name</i>
- *				is used as the index into the login
- *				<code>Configuration</code>.  <i>name</i>
- *				can be wildcarded (set to '*') to allow
- *				for any name.
+ *				is used as the index into the installed login
+ *				<code>Configuration</code>
+ *				(that returned by
+ *				<code>Configuration.getConfiguration()</code>).
+ *				<i>name</i> can be wildcarded (set to '*')
+ *				to allow for any name.
  *
  *	getLoginConfiguration - allow for the retrieval of the system-wide
  *				login Configuration.
@@ -101,10 +103,12 @@ package javax.security.auth;
  *				Subject-based access control policy.
  * </pre>
  *
- * @version 1.48, 01/23/03
+ * @version 1.51, 12/19/03
  */
 public final class AuthPermission extends
 java.security.BasicPermission {
+
+    private static final long serialVersionUID = 5806031445061587174L;
 
     /**
      * Creates a new AuthPermission with the specified name.

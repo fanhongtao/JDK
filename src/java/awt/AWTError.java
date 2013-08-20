@@ -1,7 +1,7 @@
 /*
- * @(#)AWTError.java	1.14 03/01/23
+ * @(#)AWTError.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,7 @@ package java.awt;
 /**
  * Thrown when a serious Abstract Window Toolkit error has occurred. 
  *
- * @version 	1.14 01/23/03
+ * @version 	1.15 12/19/03
  * @author 	Arthur van Hoff
  */
 public class AWTError extends Error {

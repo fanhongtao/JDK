@@ -1,17 +1,17 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)ExpiringCache.java	1.3 03/01/23
+ * @(#)ExpiringCache.java	1.5 04/02/13
  */
 
 package java.io;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 class ExpiringCache {
@@ -20,6 +20,7 @@ class ExpiringCache {
     // Clear out old entries every few queries
     private int queryCount;
     private int queryOverflow = 300;
+    private int MAX_ENTRIES = 200;
 
     static class Entry {
         private long   timestamp;
@@ -43,7 +44,11 @@ class ExpiringCache {
 
     ExpiringCache(long millisUntilExpiration) {
         this.millisUntilExpiration = millisUntilExpiration;
-        map = new HashMap();
+        map = new LinkedHashMap() {
+            protected boolean removeEldestEntry(Map.Entry eldest) {
+              return size() > MAX_ENTRIES;
+            }
+          };
     }
 
     synchronized String get(String key) {

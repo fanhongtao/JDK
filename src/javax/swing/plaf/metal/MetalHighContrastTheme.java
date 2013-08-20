@@ -1,7 +1,7 @@
 /*
- * @(#)MetalHighContrastTheme.java	1.3 03/01/23
+ * @(#)MetalHighContrastTheme.java	1.4 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -18,7 +18,7 @@ import java.awt.*;
  * A high contrast theme. This is used on Windows if the system property
  * awt.highContrast.on is true.
  *
- * @version @(#)MetalHighContrastTheme.java	1.3 03/01/23
+ * @version @(#)MetalHighContrastTheme.java	1.4 03/12/19
  * @author Michael C. Albers
  */
 class MetalHighContrastTheme extends DefaultMetalTheme {

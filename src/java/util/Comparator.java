@@ -1,7 +1,7 @@
 /*
- * @(#)Comparator.java	1.19 03/01/23
+ * @(#)Comparator.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,8 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.19, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.22, 12/19/03
  * @see Comparable
  * @see Arrays#sort(Object[], Comparator)
  * @see TreeMap
@@ -76,7 +77,7 @@ package java.util;
  * @since 1.2
  */
 
-public interface Comparator {
+public interface Comparator<T> {
     /**
      * Compares its two arguments for order.  Returns a negative integer,
      * zero, or a positive integer as the first argument is less than, equal
@@ -109,7 +110,7 @@ public interface Comparator {
      * @throws ClassCastException if the arguments' types prevent them from
      * 	       being compared by this Comparator.
      */
-    int compare(Object o1, Object o2);
+    int compare(T o1, T o2);
 
     /**
      * 

@@ -1,7 +1,7 @@
 /*
- * @(#)AttributeSet.java	1.7 03/01/23
+ * @(#)AttributeSet.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -115,7 +115,7 @@ public interface AttributeSet {
      *     {@link java.lang.Class Class} that implements interface {@link 
      *     Attribute Attribute}. 
      */
-    public Attribute get(Class category);
+    public Attribute get(Class<?> category);
 
     /**
      * Adds the specified attribute to this attribute set if it is not 
@@ -153,7 +153,7 @@ public interface AttributeSet {
      *     (unchecked exception) Thrown if this attribute set does not support 
      *     the <CODE>remove()</CODE> operation. 
      */
-    public boolean remove(Class category);
+    public boolean remove(Class<?> category);
 
     /**
      * Removes the specified attribute from this attribute set if  
@@ -182,7 +182,7 @@ public interface AttributeSet {
      * @return  <tt>true</tt> if this attribute set contains an attribute 
      *         value for the specified category.
      */
-    public boolean containsKey(Class category);
+    public boolean containsKey(Class<?> category);
 
     /**
      * Returns <tt>true</tt> if this attribute set contains the given  

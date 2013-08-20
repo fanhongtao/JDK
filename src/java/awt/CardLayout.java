@@ -1,7 +1,7 @@
 /*
- * @(#)CardLayout.java	1.37 03/01/23
+ * @(#)CardLayout.java	1.40 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ import java.io.IOException;
  * method can be used to associate a string identifier with a given card
  * for fast random access.
  *
- * @version 	1.37 01/23/03
+ * @version 	1.40 05/18/04
  * @author 	Arthur van Hoff
  * @see         java.awt.Container
  * @since       JDK1.0
@@ -196,6 +196,7 @@ public class CardLayout implements LayoutManager2,
      * @deprecated   replaced by
      *      <code>addLayoutComponent(Component, Object)</code>.
      */
+    @Deprecated
     public void addLayoutComponent(String name, Component comp) {
         synchronized (comp.getTreeLock()) {
             if (!vector.isEmpty()) {
@@ -241,9 +242,9 @@ public class CardLayout implements LayoutManager2,
     /**
      * Determines the preferred size of the container argument using
      * this card layout.
-     * @param   parent the name of the parent container.
+     * @param   parent the parent container in which to do the layout
      * @return  the preferred dimensions to lay out the subcomponents
-     *                of the specified container.
+     *                of the specified container
      * @see     java.awt.Container#getPreferredSize
      * @see     java.awt.CardLayout#minimumLayoutSize
      */
@@ -271,10 +272,9 @@ public class CardLayout implements LayoutManager2,
 
     /**
      * Calculates the minimum size for the specified panel.
-     * @param     parent the name of the parent container
-     *                in which to do the layout.
+     * @param     parent the parent container in which to do the layout
      * @return    the minimum dimensions required to lay out the
-     *                subcomponents of the specified container.
+     *                subcomponents of the specified container
      * @see       java.awt.Container#doLayout
      * @see       java.awt.CardLayout#preferredLayoutSize
      */
@@ -348,8 +348,7 @@ public class CardLayout implements LayoutManager2,
      * to be the size of the container, minus space for surrounding
      * insets, horizontal gaps, and vertical gaps.
      *
-     * @param     parent the name of the parent container
-     *                             in which to do the layout.
+     * @param     parent the parent container in which to do the layout
      * @see       java.awt.Container#doLayout
      */
     public void layoutContainer(Container parent) {
@@ -387,8 +386,7 @@ public class CardLayout implements LayoutManager2,
 
     /**
      * Flips to the first card of the container.
-     * @param     parent   the name of the parent container
-     *                          in which to do the layout.
+     * @param     parent   the parent container in which to do the layout
      * @see       java.awt.CardLayout#last
      */
     public void first(Container parent) {
@@ -414,8 +412,7 @@ public class CardLayout implements LayoutManager2,
      * Flips to the next card of the specified container. If the
      * currently visible card is the last one, this method flips to the
      * first card in the layout.
-     * @param     parent   the name of the parent container
-     *                          in which to do the layout.
+     * @param     parent   the parent container in which to do the layout
      * @see       java.awt.CardLayout#previous
      */
     public void next(Container parent) {
@@ -441,8 +438,7 @@ public class CardLayout implements LayoutManager2,
      * Flips to the previous card of the specified container. If the
      * currently visible card is the first one, this method flips to the
      * last card in the layout.
-     * @param     parent   the name of the parent container
-     *                          in which to do the layout.
+     * @param     parent   the parent container in which to do the layout
      * @see       java.awt.CardLayout#next
      */
     public void previous(Container parent) {
@@ -474,8 +470,7 @@ public class CardLayout implements LayoutManager2,
 
     /**
      * Flips to the last card of the container.
-     * @param     parent   the name of the parent container
-     *                          in which to do the layout.
+     * @param     parent   the parent container in which to do the layout
      * @see       java.awt.CardLayout#first
      */
     public void last(Container parent) {
@@ -501,9 +496,8 @@ public class CardLayout implements LayoutManager2,
      * Flips to the component that was added to this layout with the
      * specified <code>name</code>, using <code>addLayoutComponent</code>.
      * If no such component exists, then nothing happens.
-     * @param     parent   the name of the parent container
-     *                     in which to do the layout.
-     * @param     name     the component name.
+     * @param     parent   the parent container in which to do the layout
+     * @param     name     the component name
      * @see       java.awt.CardLayout#addLayoutComponent(java.awt.Component, java.lang.Object)
      */
     public void show(Container parent, String name) {

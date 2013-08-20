@@ -1,22 +1,23 @@
 /*
- * @(#)WindowsGraphicsUtils.java	1.9 03/01/23
+ * @(#)WindowsGraphicsUtils.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
 
+import com.sun.java.swing.SwingUtilities2;
+
 import java.awt.*;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 
 /**
  * A collection of static utility methods used for rendering the Windows look 
  * and feel.
  * 
- * @version 1.9 01/23/03
+ * @version 1.13 12/19/03
  * @author Mark Davidson
  * @since 1.4
  */
@@ -36,7 +37,7 @@ public class WindowsGraphicsUtils {
 					Rectangle textRect, String text,
 					int textShiftOffset) {
         ButtonModel model = b.getModel();
-        FontMetrics fm = g.getFontMetrics();
+        FontMetrics fm = SwingUtilities2.getFontMetrics(b, g);
 
 	int mnemIndex = b.getDisplayedMnemonicIndex();
 	// W2K Feature: Check to see if the Underscore should be rendered.
@@ -48,8 +49,16 @@ public class WindowsGraphicsUtils {
 	Color color = b.getForeground();
 	if(model.isEnabled()) {
 	    /*** paint the text normally */
-	    g.setColor(color);
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemIndex,
+            if(!(b instanceof JMenuItem && model.isArmed()) 
+                && !(b instanceof JMenu && (model.isSelected() || model.isRollover()))) {
+                /* We shall not set foreground color for selected menu or
+                 * armed menuitem. Foreground must be set in appropriate
+                 * Windows* class because these colors passes from
+                 * BasicMenuItemUI as protected fields and we can't
+                 * reach them from this class */
+	        g.setColor(b.getForeground());
+            }
+	    SwingUtilities2.drawStringUnderlineCharAt(b, g,text, mnemIndex,
 					  textRect.x + textShiftOffset,
 					  textRect.y + fm.getAscent() + textShiftOffset);
 	} else {	/*** paint the text disabled ***/
@@ -65,7 +74,7 @@ public class WindowsGraphicsUtils {
 		    shadow = b.getBackground().darker();
 		}
 		g.setColor(shadow);
-		BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+		SwingUtilities2.drawStringUnderlineCharAt(b, g,text,
 							     mnemIndex,
 							     textRect.x, 
 							     textRect.y + fm.getAscent());
@@ -74,7 +83,7 @@ public class WindowsGraphicsUtils {
 		color = b.getBackground().brighter();
 	    }
 	    g.setColor(color);
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text,
+	    SwingUtilities2.drawStringUnderlineCharAt(b, g,text,
 							 mnemIndex,
 							 textRect.x - 1, 
 							 textRect.y + fm.getAscent() - 1);

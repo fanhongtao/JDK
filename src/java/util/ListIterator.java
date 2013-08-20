@@ -1,7 +1,7 @@
 /*
- * @(#)ListIterator.java	1.21 03/01/23
+ * @(#)ListIterator.java	1.23 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,14 +37,14 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.21, 01/23/03
+ * @version 1.23, 12/19/03
  * @see Collection
  * @see List
  * @see Iterator
  * @see Enumeration
  * @since   1.2
  */
-public interface ListIterator extends Iterator {
+public interface ListIterator<E> extends Iterator<E> {
     // Query Operations
 
     /**
@@ -68,7 +68,7 @@ public interface ListIterator extends Iterator {
      * @return the next element in the list.
      * @exception NoSuchElementException if the iteration has no next element.
      */
-    Object next();
+    E next();
 
     /**
      * Returns <tt>true</tt> if this list iterator has more elements when
@@ -93,7 +93,7 @@ public interface ListIterator extends Iterator {
      * @exception NoSuchElementException if the iteration has no previous
      *            element.
      */
-    Object previous();
+    E previous();
 
     /**
      * Returns the index of the element that would be returned by a subsequent
@@ -156,7 +156,7 @@ public interface ListIterator extends Iterator {
      *		  <tt>add</tt> have been called after the last call to
      * 		  <tt>next</tt> or <tt>previous</tt>.
      */
-    void set(Object o);
+    void set(E o);
 
     /**
      * Inserts the specified element into the list (optional operation).  The
@@ -180,5 +180,5 @@ public interface ListIterator extends Iterator {
      * @exception IllegalArgumentException if some aspect of this element
      *            prevents it from being added to this list.
      */
-    void add(Object o);
+    void add(E o);
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractButton.java	1.161 03/01/23
+ * @(#)AbstractButton.java	1.174 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -42,7 +42,7 @@ import java.util.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.161 01/23/03 
+ * @version 1.174 05/18/04 
  * @author Jeff Dinkins
  */
 public abstract class AbstractButton extends JComponent implements ItemSelectable, SwingConstants {
@@ -169,8 +169,23 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 
     private long       multiClickThreshhold    = 0;
 
-    private AccessibleIcon accessibleIcon      = null;
+    private boolean    borderPaintedSet        = false;
+    private boolean    rolloverEnabledSet      = false;
+    private boolean    iconTextGapSet          = false;
+    private boolean    contentAreaFilledSet    = false;
 
+    // Whether or not we've set the LayoutManager.
+    private boolean setLayout = false;
+
+    // This is only used by JButton, promoted to avoid an extra
+    // boolean field in JButton
+    boolean defaultCapable = true;
+
+    /**
+     * Combined listeners: ActionListener, ChangeListener, ItemListener.
+     */
+    private Handler handler;
+    
     /** 
      * The button model's <code>changeListener</code>.
      */
@@ -247,17 +262,15 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      */
     public void setSelected(boolean b) {
         boolean oldValue = isSelected();
-        if (accessibleContext != null && oldValue != b) {
-            if (b) {
-                accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                    null, AccessibleState.SELECTED);
-            } else {
-                accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                    AccessibleState.SELECTED, null);
-            }
-        }
+
+        // TIGER - 4840653
+        // Removed code which fired an AccessibleState.SELECTED
+        // PropertyChangeEvent since this resulted in two
+        // identical events being fired since
+        // AbstractButton.fireItemStateChanged also fires the
+        // same event. This caused screen readers to speak the
+        // name of the item twice.
+
         model.setSelected(b);
     }
 
@@ -373,7 +386,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
          * (i.e. setDisabledIcon() was never called) then
          * clear the disabledIcon field.
          */
-        if (defaultIcon != oldValue && disabledIcon instanceof UIResource) {
+        if (defaultIcon != oldValue && (disabledIcon instanceof UIResource)) {
             disabledIcon = null;
         }
 
@@ -391,16 +404,6 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
             } 
             repaint();
         }
-
-	// set the accessible icon
-	accessibleIcon = null;
-	if (defaultIcon instanceof Accessible) {
-	    AccessibleContext ac = 
-		((Accessible)defaultIcon).getAccessibleContext();
-	    if (ac != null && ac instanceof AccessibleIcon) {
-		accessibleIcon = (AccessibleIcon)ac;
-	    }
-	}    
     }
     
     /**
@@ -559,21 +562,22 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     
     /**
      * Returns the icon used by the button when it's disabled.
-     * If no disabled icon has been set, the button constructs
-     * one from the default icon. 
-     * <!-- PENDING(jeff): the disabled icon really should be created 
-     * (if necessary) by the L&F.-->
+     * If no disabled icon has been set this will forward the call to
+     * the look and feel to construct an appropriate disabled Icon.
+     * <p>
+     * Some look and feels might not render the disabled Icon, in which
+     * case they will ignore this.
      *
      * @return the <code>disabledIcon</code> property
      * @see #getPressedIcon
      * @see #setDisabledIcon
+     * @see javax.swing.LookAndFeel#getDisabledIcon
      */
     public Icon getDisabledIcon() {
         if (disabledIcon == null) {
-            if (defaultIcon != null && defaultIcon instanceof ImageIcon) {
-                disabledIcon = new IconUIResource(new ImageIcon(
-                    GrayFilter.createDisabledImage(
-                        ((ImageIcon)defaultIcon).getImage())));
+            disabledIcon = UIManager.getLookAndFeel().getDisabledIcon(this, getIcon());
+            if (disabledIcon != null) {
+                firePropertyChange(DISABLED_ICON_CHANGED_PROPERTY, null, disabledIcon);
             }
         }
         return disabledIcon;
@@ -606,24 +610,27 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     
     /**
      * Returns the icon used by the button when it's disabled and selected.
-     * If not no disabled selection icon has been set, the button constructs
-     * one from the selection icon. 
-     * <!-- PENDING(jeff): the disabled selection icon really should be 
-     * created (if necessary) by the L&F. -->
+     * If no disabled selection icon has been set, this will forward
+     * the call to the LookAndFeel to construct an appropriate disabled
+     * Icon from the selection icon if it has been set and to
+     * <code>getDisabledIcon()</code> otherwise.
+     * <p>
+     * Some look and feels might not render the disabled selected Icon, in
+     * which case they will ignore this.
      *
      * @return the <code>disabledSelectedIcon</code> property
-     * @see #getPressedIcon
-     * @see #setDisabledIcon
+     * @see #getDisabledIcon
+     * @see #setDisabledSelectedIcon
+     * @see javax.swing.LookAndFeel#getDisabledSelectedIcon
      */
     public Icon getDisabledSelectedIcon() {
-        if(disabledSelectedIcon == null) {
-            if(selectedIcon != null && selectedIcon instanceof ImageIcon) {
-                disabledSelectedIcon = new IconUIResource(new ImageIcon(
-                    GrayFilter.createDisabledImage(
-                        ((ImageIcon)selectedIcon).getImage())));
-            } else {
-                return getDisabledIcon();
-            }
+        if (disabledSelectedIcon == null) {
+             if (selectedIcon != null) {
+                 disabledSelectedIcon = UIManager.getLookAndFeel().
+                         getDisabledSelectedIcon(this, getSelectedIcon());
+             } else {
+                 return getDisabledIcon();
+             }
         }
         return disabledSelectedIcon;
     }
@@ -863,6 +870,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void setIconTextGap(int iconTextGap) {
         int oldValue = this.iconTextGap;
         this.iconTextGap = iconTextGap;
+	iconTextGapSet = true;
         firePropertyChange("iconTextGap", oldValue, iconTextGap);
         if (iconTextGap != oldValue) {
             revalidate();
@@ -1109,7 +1117,12 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
                 Integer n = (a==null) ? null : (Integer)a.getValue(type);
                 setMnemonic(n==null ? '\0' : n.intValue());
             } else if (type.equals(Action.NAME)) {
-                setText(a!=null ? (String)a.getValue(type) : null);
+                // When hideActionText property is set, we don't use
+                // Action name for button text. Useful for toolbar buttons.
+                Boolean hide = (Boolean)getClientProperty("hideActionText");
+                setText(a != null && hide!=Boolean.TRUE ?
+                        (String)a.getValue(Action.NAME) :
+                        null);
             } else if (type.equals(Action.SHORT_DESCRIPTION)) {
                 setToolTipText(a!=null ? (String)a.getValue(type) : null);
             } else if (type.equals(Action.SMALL_ICON)) {
@@ -1147,7 +1160,9 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         return new ButtonActionPropertyChangeListener(this, a);
     }
 
-    private static class ButtonActionPropertyChangeListener extends AbstractActionPropertyChangeListener {
+    private static class ButtonActionPropertyChangeListener
+                     extends AbstractActionPropertyChangeListener
+                     implements Serializable {
 	ButtonActionPropertyChangeListener(AbstractButton b, Action a) {
 	    super(b, a);
 	}
@@ -1216,6 +1231,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void setBorderPainted(boolean b) {
         boolean oldValue = paintBorder;
         paintBorder = b;
+	borderPaintedSet = true;
         firePropertyChange(BORDER_PAINTED_CHANGED_PROPERTY, oldValue, paintBorder);
         if (b != oldValue) {
             revalidate();
@@ -1309,6 +1325,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void setContentAreaFilled(boolean b) {
         boolean oldValue = contentAreaFilled;
         contentAreaFilled = b;
+	contentAreaFilledSet = true;
         firePropertyChange(CONTENT_AREA_FILLED_CHANGED_PROPERTY, oldValue, contentAreaFilled);
         if (b != oldValue) {
             repaint();
@@ -1343,6 +1360,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void setRolloverEnabled(boolean b) {
         boolean oldValue = rolloverEnabled;
         rolloverEnabled = b;
+        rolloverEnabledSet = true;
         firePropertyChange(ROLLOVER_ENABLED_CHANGED_PROPERTY, oldValue, rolloverEnabled);
         if (b != oldValue) {
             repaint();
@@ -1563,8 +1581,10 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
         if (oldModel != null) {
             oldModel.removeChangeListener(changeListener);
             oldModel.removeActionListener(actionListener);
+            oldModel.removeItemListener(itemListener);
             changeListener = null;
             actionListener = null;
+            itemListener = null;
         }
         
         model = newModel;
@@ -1614,6 +1634,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      */
     public void setUI(ButtonUI ui) {
         super.setUI(ui);
+        // disabled icons are generated by the LF so they should be unset here
+        if (disabledIcon instanceof UIResource) {
+            setDisabledIcon(null);
+        }
+        if (disabledSelectedIcon instanceof UIResource) {
+            setDisabledSelectedIcon(null);
+        }
     }
 
     
@@ -1630,6 +1657,44 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     public void updateUI() {
     }
     
+    /**
+     * Adds the specified component to this container at the specified
+     * index, refer to
+     * {@link java.awt.Container#addImpl(Component, Object, int)}
+     * for a complete description of this method.
+     *
+     * @param     comp the component to be added
+     * @param     constraints an object expressing layout constraints 
+     *                 for this component
+     * @param     index the position in the container's list at which to
+     *                 insert the component, where <code>-1</code> 
+     *                 means append to the end
+     * @exception IllegalArgumentException if <code>index</code> is invalid
+     * @exception IllegalArgumentException if adding the container's parent
+     *			to itself
+     * @exception IllegalArgumentException if adding a window to a container
+     * @since 1.5
+     */
+    protected void addImpl(Component comp, Object constraints, int index) {
+        if (!setLayout) {
+            setLayout(new OverlayLayout(this));
+        }
+        super.addImpl(comp, constraints, index);
+    }
+
+    /** 
+     * Sets the layout manager for this container, refer to
+     * {@link java.awt.Container#setLayout(LayoutManager)}
+     * for a complete description of this method.
+     *
+     * @param mgr the specified layout manager
+     * @since 1.5
+     */
+    public void setLayout(LayoutManager mgr) {
+        setLayout = true;
+        super.setLayout(mgr);
+    }
+
     /**
      * Adds a <code>ChangeListener</code> to the button.
      * @param l the listener to be added
@@ -1722,10 +1787,10 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * can override this to return another <code>ChangeListener</code>
      * implementation.
      *
-     * @return the new <code>ButtonChangeListener</code>
+     * @return the new <code>ChangeListener</code>
      */
     protected ChangeListener createChangeListener() {
-        return (ChangeListener) new ButtonChangeListener();
+        return getHandler();
     }
 
     /**
@@ -1741,15 +1806,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * Please see {@link java.beans.XMLEncoder}.
      */
     protected class ButtonChangeListener implements ChangeListener, Serializable {
+        // NOTE: This class is NOT used, instead the functionality has
+        // been moved to Handler.
         ButtonChangeListener() {
         }
 
         public void stateChanged(ChangeEvent e) {
-            Object source = e.getSource();
-
-            updateMnemonicProperties();
-            fireStateChanged();
-            repaint();
+            getHandler().stateChanged(e);
         }
     }
 
@@ -1834,25 +1897,13 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
     
 
-    private class ForwardActionEvents implements ActionListener, Serializable {
-        public void actionPerformed(ActionEvent event) {
-            fireActionPerformed(event);
-        }
-    }
-
     protected ActionListener createActionListener() {
-        return new ForwardActionEvents();
+        return getHandler();
     }
 
-
-    private class ForwardItemEvents implements ItemListener, Serializable {
-        public void itemStateChanged(ItemEvent event) {
-            fireItemStateChanged(event);
-        }
-    }
 
     protected ItemListener createItemListener() {
-        return new ForwardItemEvents();
+        return getHandler();
     }
 
     
@@ -1876,6 +1927,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      * @return a <code>String</code> containing the label
      * @deprecated - Replaced by <code>getText</code>
      */
+    @Deprecated
     public String getLabel() {
         return getText();
     }
@@ -1889,6 +1941,7 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
      *        bound: true
      *  description: Replace by setText(text)
      */
+    @Deprecated
     public void setLabel(String label) {
         setText(label);
     }
@@ -1938,8 +1991,6 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
 
     protected void init(String text, Icon icon) {
-        setLayout(new OverlayLayout(this));
-
         if(text != null) {
             setText(text);
         }
@@ -2004,6 +2055,32 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 	return super.imageUpdate(img, infoflags, x, y, w, h);
     }
 
+    void setUIProperty(String propertyName, Object value) {
+        if (propertyName == "borderPainted") {
+	    if (!borderPaintedSet) {
+		setBorderPainted(((Boolean)value).booleanValue());
+		borderPaintedSet = false;
+	    }
+	} else if (propertyName == "rolloverEnabled") {
+	    if (!rolloverEnabledSet) {
+		setRolloverEnabled(((Boolean)value).booleanValue());
+		rolloverEnabledSet = false;
+	    }
+	} else if (propertyName == "iconTextGap") {
+	    if (!iconTextGapSet) {
+		setIconTextGap(((Number)value).intValue());
+		iconTextGapSet = false;
+	    }
+	} else if (propertyName == "contentAreaFilled") {
+	    if (!contentAreaFilledSet) {
+		setContentAreaFilled(((Boolean)value).booleanValue());
+		contentAreaFilledSet = false;
+	    }
+	} else {
+	    super.setUIProperty(propertyName, value);
+	}
+    }
+
     /**
      * Returns a string representation of this <code>AbstractButton</code>.
      * This method 
@@ -2061,6 +2138,45 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
     }
 
 
+    private Handler getHandler() {
+        if (handler == null) {
+            handler = new Handler();
+        }
+        return handler;
+    }
+
+
+    //
+    // Listeners that are added to model
+    //
+    class Handler implements ActionListener, ChangeListener, ItemListener,
+                             Serializable {
+        //
+        // ChangeListener
+        //
+        public void stateChanged(ChangeEvent e) {
+            Object source = e.getSource();
+
+            updateMnemonicProperties();
+            fireStateChanged();
+            repaint();
+        }
+
+        // 
+        // ActionListener
+        // 
+        public void actionPerformed(ActionEvent event) {
+            fireActionPerformed(event);
+        }
+
+        //
+        // ItemListener
+        //
+        public void itemStateChanged(ItemEvent event) {
+            fireItemStateChanged(event);
+        }
+    }
+
 ///////////////////
 // Accessibility support
 ///////////////////
@@ -2107,13 +2223,16 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
 	 * or more exist.  Otherwise return null.
 	 */
 	public AccessibleIcon [] getAccessibleIcon() {
-	    if (AbstractButton.this.accessibleIcon == null) {
-		return null; 
-	    } else {
-		AccessibleIcon [] ac = new AccessibleIcon[1];
-		ac[0] = AbstractButton.this.accessibleIcon;
-		return ac;
-	    }
+            Icon defaultIcon = getIcon();
+
+            if (defaultIcon instanceof Accessible) {
+                AccessibleContext ac = 
+                    ((Accessible)defaultIcon).getAccessibleContext();
+                if (ac != null && ac instanceof AccessibleIcon) {
+                    return new AccessibleIcon[] { (AccessibleIcon)ac };
+                }
+            }
+            return null;
 	}
 
         /**
@@ -2262,17 +2381,17 @@ public abstract class AbstractButton extends JComponent implements ItemSelectabl
          * @return True if the value was set.
          */
         public boolean setCurrentAccessibleValue(Number n) {
-            if (n instanceof Integer) {
-                int i = n.intValue();
-                if (i == 0) {
-                    setSelected(false);
-                } else {
-                    setSelected(true);
-                }
-                return true;
-            } else {
-                return false;
-            }
+	    // TIGER - 4422535 
+	    if (n == null) {
+		return false;
+	    }
+	    int i = n.intValue();
+	    if (i == 0) {
+		setSelected(false);
+	    } else {
+		setSelected(true);
+	    }
+	    return true;
         }
 
         /**

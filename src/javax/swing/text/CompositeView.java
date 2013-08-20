@@ -1,7 +1,7 @@
 /*
- * @(#)CompositeView.java	1.66 03/01/23
+ * @(#)CompositeView.java	1.67 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -54,7 +54,7 @@ import javax.swing.SwingConstants;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.66 01/23/03
+ * @version 1.67 12/19/03
  */
 public abstract class CompositeView extends View {
 

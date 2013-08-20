@@ -1,12 +1,13 @@
 /*
- * @(#)PixmapEngineParser.java	1.17 03/01/23
+ * @(#)PixmapEngineParser.java	1.19 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.gtk;
 
+import javax.swing.plaf.synth.SynthConstants;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.awt.Font;
@@ -16,7 +17,7 @@ import java.awt.Insets;
  * A parser for the "pixmap" engine sections in GTK rc theme files.
  *
  * @author  Shannon Hickey
- * @version 1.17 01/23/03
+ * @version 1.19 12/19/03
  */
 class PixmapEngineParser extends GTKEngineParser {
 

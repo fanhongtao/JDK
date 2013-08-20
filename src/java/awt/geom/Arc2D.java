@@ -1,7 +1,7 @@
 /*
- * @(#)Arc2D.java	1.22 03/01/23
+ * @(#)Arc2D.java	1.27 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -801,8 +801,10 @@ public abstract class Arc2D extends RectangularShape {
      * @see #getAngleStart
      */
     public void setAngleStart(Point2D p) {
-	setAngleStart(-Math.toDegrees(Math.atan2(p.getY() - getCenterY(),
-						 p.getX() - getCenterX())));
+	// Bias the dx and dy by the height and width of the oval.
+	double dx = getHeight() * (p.getX() - getCenterX());
+	double dy = getWidth() * (p.getY() - getCenterY());
+	setAngleStart(-Math.toDegrees(Math.atan2(dy, dx)));
     }
 
     /**
@@ -820,10 +822,13 @@ public abstract class Arc2D extends RectangularShape {
     public void setAngles(double x1, double y1, double x2, double y2) {
 	double x = getCenterX();
 	double y = getCenterY();
+	double w = getWidth();
+	double h = getHeight();
 	// Note: reversing the Y equations negates the angle to adjust
 	// for the upside down coordinate system.
-	double ang1 = Math.atan2(y - y1, x1 - x);
-	double ang2 = Math.atan2(y - y2, x2 - x);
+	// Also we should bias atans by the height and width of the oval.
+	double ang1 = Math.atan2(w * (y - y1), h * (x1 - x));
+	double ang2 = Math.atan2(w * (y - y2), h * (x2 - x));
 	ang2 -= ang1;
 	if (ang2 <= 0.0) {
 	    ang2 += Math.PI * 2.0;
@@ -1074,7 +1079,7 @@ public abstract class Arc2D extends RectangularShape {
 	angle += Math.toRadians(-getAngleExtent());
 	double x2 = Math.cos(angle);
 	double y2 = Math.sin(angle);
-	boolean inside = (Line2D.relativeCCW(x1, y1, x2, y2, x, y) *
+	boolean inside = (Line2D.relativeCCW(x1, y1, x2, y2, 2*normx, 2*normy) *
 			  Line2D.relativeCCW(x1, y1, x2, y2, 0, 0) >= 0);
 	return inarc ? !inside : inside;
     }
@@ -1092,209 +1097,97 @@ public abstract class Arc2D extends RectangularShape {
      * <CODE>false</CODE> if the arc doesn't intersect the rectangle.
      */
 
-  public boolean intersects(double x, double y, double w, double h) {
+    public boolean intersects(double x, double y, double w, double h) {
 
-      /*
-       * REMIND: Verify correct handling of "upside down angles".
-       */
-      /*
-        Change around so that is really works this time
-        We check each of the four line segments for intersection with an
-        ellipse of the same radius as the imaginary arc.
-        We then compute the angle of the intersections and call included
-        angle to find out if the intersection is within the arc itself
-        - Aaron Muderick
-        */
+	double aw = getWidth();
+	double ah = getHeight();
 
-      double intersect_angle;
-      double yint, xint; 
-
-      //if there are any points of the rect in the arc then return true;
-      if (contains(x, y) || contains(x + w, y) ||
-      	  contains(x, y + h) || contains(x + w, y + h)) return true;
-      
-      //we need to translate the arc and the rect so that we can do
-      //quadrant checking
-      x = x - (getX() + (getWidth()/2));
-      y = (y - (getY() + (getHeight()/2))) * (-1);
-
-      //find out the squash ratio
-      double squash = getWidth()/getHeight();
-
-      if (((x*x)/((getWidth()/2)*(getWidth()/2)) < 1)) {
-	if ((x == 0) && ((((getHeight()/2) >= (y-h)) && ((getHeight()/2) <= y))
-                         || ((((-1) * (getHeight()/2)) >= (y-h)) && (((-1) 
-                                    * (getHeight()/2) <= y))))) {
-	  if (containsAngle(Math.PI/2)) {
-              return true;
-          }
-	  if (containsAngle(Math.PI*(3/2))) {
-              return true;
-          }
+	if ( w <= 0 || h <= 0 || aw <= 0 || ah <= 0 ) {
+	    return false;
 	}
-	
-	yint = Math.abs(Math.sqrt((1-((x*x)/((getWidth()/2)*(getWidth()/2))))
-                                  *((getHeight()/2)*(getHeight()/2))));
-	intersect_angle = Math.abs(Math.atan((yint*squash)/x)); 
-
-	if ((x > 0) && (((yint >= (y-h)) && (yint <= y)) 
-                        || ((((-1) * yint) >= (y-h)) 
-                            && (((-1) * yint) <= y)))) {	  
-	  if (containsAngle(intersect_angle/Math.PI * 180)) {
-              return true;
-          }
-	  if (containsAngle((((2*Math.PI) - intersect_angle)/Math.PI) 
-                            * 180)) {
-              return true;
-          }
+	double ext = getAngleExtent();
+	if (ext == 0) {
+	    return false;
 	}
 
-	if ((x < 0) && (((yint >= (y-h)) && (yint <= y)) 
-                        || ((((-1) * yint) >= (y-h)) 
-                            && (((-1) * yint) <= y)))){
-	  
-	  if (containsAngle((((Math.PI) - intersect_angle)/Math.PI) * 180)) {
-              return true;
-          }
-	  if (containsAngle(((Math.PI + intersect_angle)/Math.PI) * 180)) {
-              return true;
-          }
-	}
-  }
+	double ax  = getX();
+	double ay  = getY();
+	double axw = ax + aw;
+	double ayh = ay + ah;
+	double xw  = x + w;
+	double yh  = y + h;
 
-      if ((((x+w)*(x+w))/((getWidth()/2)*(getWidth()/2)) < 1)) {
-	if (((x+w) == 0) && ((((getHeight()/2) >= (y-h)) 
-                              && ((getHeight()/2) <= y)) 
-                             || ((((-1) * (getHeight()/2)) >= (y-h)) 
-                                 && (((-1) * (getHeight()/2) <= y))))) {
-	  if (containsAngle(Math.PI/2)) {
-              return true;
-          }
-	  if (containsAngle(Math.PI*(3/2))) {
-              return true;
-          }
-	}
-	
-	yint = Math.abs(Math.sqrt((1-(((x+w)*(x+w))
-                                      /((getWidth()/2)*(getWidth()/2))))
-                                  *((getHeight()/2)*(getHeight()/2))));
-
-	intersect_angle = Math.abs(Math.atan((yint*squash)/(x+w)));
-
-	if (((x+w) > 0) && (((yint >= (y-h)) && (yint <= y)) 
-                            || ((((-1) * yint) >= (y-h)) 
-                                && (((-1) * yint) <= y)))) {	
-	  if (containsAngle((intersect_angle/Math.PI) * 180)) {
-              return true;
-          }
-	  if (containsAngle((((2*Math.PI) - intersect_angle)/Math.PI) * 180)) {
-              return true;
-          }
+	// check bbox
+	if (x >= axw || y >= ayh || xw <= ax || yh <= ay) {
+	    return false;
 	}
 
-	if (((x+w) < 0) && (((yint >= (y-h)) && (yint <= y)) 
-                            || ((((-1) * yint) >= (y-h)) 
-                                && (((-1) * yint) <= y)))) {
-            if (containsAngle((((Math.PI) - intersect_angle)/Math.PI) * 180)) {
-              return true;
-            }
-            if (containsAngle(((Math.PI + intersect_angle)/Math.PI) * 180)) {
-                return true;
-            }
+	// extract necessary data
+	double axc = getCenterX();
+	double ayc = getCenterY();
+	Point2D sp = getStartPoint();
+	Point2D ep = getEndPoint();
+	double sx = sp.getX();
+	double sy = sp.getY();
+	double ex = ep.getX();
+	double ey = ep.getY();
+
+	/*
+	 * Try to catch rectangles that intersect arc in areas
+	 * outside of rectagle with left top corner coordinates
+	 * (min(center x, start point x, end point x),
+	 *  min(center y, start point y, end point y))
+	 * and rigth bottom corner coordinates
+	 * (max(center x, start point x, end point x),
+	 *  max(center y, start point y, end point y)).
+	 * So we'll check axis segments outside of rectangle above.
+	 */
+	if (ayc >= y && ayc <= yh) { // 0 and 180
+	    if ((sx < xw && ex < xw && axc < xw &&
+	         axw > x && containsAngle(0)) ||
+	        (sx > x && ex > x && axc > x &&
+	         ax < xw && containsAngle(180))) {
+		return true;
+	    }
 	}
-      
-      }
-
-      if (((y*y)/((getHeight()/2)*(getHeight()/2)) < 1)) {
-
-	if ((y == 0) && ((((getWidth()/2) >= x) && ((getWidth()/2) <= (x+w))) 
-                         || ((((-1) * (getWidth()/2)) >= x)
-                             && (((-1) * (getWidth()/2)) <= (x+w))))) {
-	  if (containsAngle(Math.PI)) {
-              return true;
-          }
-	  if (containsAngle(Math.PI*2)) {
-              return true;
-          }
-	}
-	
-	xint = Math.abs(Math.sqrt((1-((y*y)
-                                      /((getHeight()/2)
-                                        *(getHeight()/2))))
-                                  *((getWidth()/2)*(getWidth()/2))));
-
-	intersect_angle = Math.abs(Math.atan(y/(xint/squash))); 
-
-	if ((y > 0) && (((xint >= x) && (xint <= (x+w))) 
-                        || ((((-1) * xint) >= x) 
-                            && (((-1) * xint) <= (x+w))))) {	 
-	  if (containsAngle((intersect_angle)/Math.PI * 180)) {
-              return true;
-          }
-	  if (containsAngle(((Math.PI) - intersect_angle)/Math.PI * 180)) {
-              return true;
-          }
+	if (axc >= x && axc <= xw) { // 90 and 270
+	    if ((sy > y && ey > y && ayc > y &&
+	         ay < yh && containsAngle(90)) ||
+	        (sy < yh && ey < yh && ayc < yh &&
+	         ayh > y && containsAngle(270))) {
+		return true;
+	    }
 	}
 
-	if ((y < 0) &&  (((xint >= x) && (xint <= (x+w))) 
-                         || ((((-1) * xint) >= x) 
-                             && (((-1) * xint) <= (x+w))))) {
-	  if (containsAngle(((Math.PI*2) - intersect_angle)/Math.PI * 180)) {
-              return true;
-          }
-	  if (containsAngle((Math.PI + intersect_angle)/Math.PI * 180)) {
-              return true;
-          }
+	/*
+	 * For PIE we should check intersection with pie slices;
+	 * also we should do the same for arcs with extent is greater
+	 * than 180, because we should cover case of rectangle, which
+	 * situated between center of arc and chord, but does not
+	 * intersect the chord.
+	 */
+	Rectangle2D rect = new Rectangle2D.Double(x, y, w, h);
+	if (type == PIE || Math.abs(ext) > 180) {
+	    // for PIE: try to find intersections with pie slices
+	    if (rect.intersectsLine(axc, ayc, sx, sy) ||
+		rect.intersectsLine(axc, ayc, ex, ey)) {
+		return true;
+	    }
+	} else {
+	    // for CHORD and OPEN: try to find intersections with chord
+	    if (rect.intersectsLine(sx, sy, ex, ey)) {
+		return true;
+	    }
 	}
-      
-      }
 
-      if ((((y-h)*(y-h))/((getHeight()/2)*(getHeight()/2)) < 1)) {
-	if (((y-h) == 0) && ((((getWidth()/2) >= x) 
-                              && ((getWidth()/2) <= (x+w))) 
-                             || ((((-1) * (getWidth()/2)) >= x) 
-                                 && (((-1) * (getWidth()/2)) <= (x+w))))) {
-	  if (containsAngle(Math.PI)) {
-              return true;
-          }
-	  if (containsAngle(Math.PI*2)) {
-              return true;
-          }
+	// finally check the rectangle corners inside the arc
+	if (contains(x, y) || contains(x + w, y) ||
+	    contains(x, y + h) || contains(x + w, y + h)) {
+	    return true;
 	}
-	
-	xint = Math.abs(Math.sqrt((1-(((y-h)*(y-h))
-                                      /((getHeight()/2)*(getHeight()/2))))
-                                  *((getWidth()/2)*(getWidth()/2))));
 
-	intersect_angle = Math.abs(Math.atan((y-h)/(xint/squash)));   	    
-
-	if (((y-h) > 0) &&  (((xint >= x) && (xint <= (x+w))) 
-                             || ((((-1) * xint) >= x) 
-                                 && (((-1) * xint) <= (x+w))))) {	  
-	  if (containsAngle(intersect_angle/Math.PI * 180)) {
-              return true;
-          }
-	  if (containsAngle(((Math.PI) - intersect_angle)/Math.PI * 180)) {
-              return true;
-          }
-	}
-	if (((y-h) < 0) && (((xint >= x) && (xint <= (x+w))) 
-                            || ((((-1) * xint) >= x) 
-                                && (((-1) * xint) <= (x+w))))) {
-	  if (containsAngle(((Math.PI*2) - intersect_angle)/Math.PI * 180)) {
-              return true;
-          }
-	  if (containsAngle((Math.PI + intersect_angle)/Math.PI * 180)) {
-              return true;
-          }
-	}
-      
-      }
-      
-      return false;
-
-  }
-    
+	return false;
+    }
 
     /**
      * Determine whether or not the interior of the arc entirely contains 
@@ -1336,7 +1229,7 @@ public abstract class Arc2D extends RectangularShape {
 	// If the shape is convex then we have done all the testing
 	// we need.  Only PIE arcs can be concave and then only if
 	// the angular extents are greater than 180 degrees.
-	if (type != PIE || getAngleExtent() <= 180.0) {
+	if (type != PIE || Math.abs(getAngleExtent()) <= 180.0) {
 	    return true;
 	}
 	// For a PIE shape we have an additional test for the case where

@@ -1,7 +1,7 @@
 /*
- * @(#)JRadioButton.java	1.72 03/01/23
+ * @(#)JRadioButton.java	1.74 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -37,10 +37,6 @@ import java.io.IOException;
  * in <em>The Java Tutorial</em>
  * for further documentation.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JRadioButton"><code>JRadioButton</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -56,7 +52,7 @@ import java.io.IOException;
  *
  * @see ButtonGroup
  * @see JCheckBox
- * @version 1.72 01/23/03
+ * @version 1.74 12/19/03
  * @author Jeff Dinkins
  */
 public class JRadioButton extends JToggleButton implements Accessible {

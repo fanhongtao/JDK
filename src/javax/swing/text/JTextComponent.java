@@ -1,7 +1,7 @@
 /*
- * @(#)JTextComponent.java	1.202 03/01/23
+ * @(#)JTextComponent.java	1.212 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -40,6 +40,7 @@ import javax.swing.plaf.*;
 
 import javax.accessibility.*;
 
+import sun.awt.AppContext;
 
 /**
  * <code>JTextComponent</code> is the base class for swing text 
@@ -61,8 +62,18 @@ import javax.accessibility.*;
  * Notification of changes to the caret position and the selection
  * are sent to implementations of the <code>CaretListener</code>
  * interface that have been registered with the text component.
- * The UI will install a default caret unless a customized caret 
- * has been set.
+ * The UI will install a default caret unless a customized caret
+ * has been set. <br>
+ * By default the caret tracks all the document changes
+ * performed on the Event Dispatching Thread and updates it's position
+ * accordingly if an insertion occurs before or at the caret position
+ * or a removal occurs before the caret position. <code>DefaultCaret</code>
+ * tries to make itself visible which may lead to scrolling
+ * of a text component within <code>JScrollPane</code>. The default caret
+ * behavior can be changed by the {@link DefaultCaret#setUpdatePolicy} method.
+ * <br>
+ * <b>Note</b>: Non-editable text components also have a caret though
+ * it may not be painted. 
  *
  * <p>
  * <dt><b><font size=+1>Commands</font></b>
@@ -238,7 +249,7 @@ import javax.accessibility.*;
  *     attribute: isContainer false
  * 
  * @author  Timothy Prinzing
- * @version 1.202 01/23/03
+ * @version 1.212 04/15/04
  * @see Document
  * @see DocumentEvent
  * @see DocumentListener
@@ -775,7 +786,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         Keymap map = new DefaultKeymap(nm, parent); 
         if (nm != null) {
             // add a named keymap, a class of bindings
-            keymapTable.put(nm, map);
+            getKeymapTable().put(nm, map);
         }
         return map;
     }
@@ -788,7 +799,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * @return the keymap that was removed
      */
     public static Keymap removeKeymap(String nm) {
-        return (Keymap) keymapTable.remove(nm);
+        return getKeymapTable().remove(nm);
     }
 
     /**
@@ -799,7 +810,22 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * @return the keymap
      */
     public static Keymap getKeymap(String nm) {
-        return (Keymap) keymapTable.get(nm);
+        return getKeymapTable().get(nm);
+    }
+
+    private static HashMap<String,Keymap> getKeymapTable() {
+        AppContext appContext = AppContext.getAppContext();
+        HashMap<String,Keymap> keymapTable = 
+            (HashMap<String,Keymap>)appContext.get(KEYMAP_TABLE);
+        if (keymapTable == null) {
+            keymapTable = new HashMap<String,Keymap>(17);
+            appContext.put(KEYMAP_TABLE, keymapTable);
+            //initialize default keymap
+            Keymap binding = addKeymap(DEFAULT_KEYMAP, null);
+            binding.setDefaultAction(new 
+                                     DefaultEditorKit.DefaultKeyTypedAction());
+        }
+        return keymapTable;
     }
 
     /**
@@ -1066,6 +1092,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         Document doc = getDocument();
         if (doc != null) {
             try {
+		boolean composedTextSaved = saveComposedText(caret.getDot());
                 int p0 = Math.min(caret.getDot(), caret.getMark());
                 int p1 = Math.max(caret.getDot(), caret.getMark());
                 if (doc instanceof AbstractDocument) {
@@ -1079,6 +1106,9 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
                         doc.insertString(p0, content, null);
                     }
                 }
+		if (composedTextSaved) {
+		    restoreComposedText();
+		}
             } catch (BadLocationException e) {
 		UIManager.getLookAndFeel().provideErrorFeedback(JTextComponent.this);
             }
@@ -1269,7 +1299,11 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         aKey = Character.toUpperCase(aKey);
         char old = focusAccelerator;
         focusAccelerator = aKey;
+        // Fix for 4341002: value of FOCUS_ACCELERATOR_KEY is wrong.
+        // So we fire both FOCUS_ACCELERATOR_KEY, for compatibility,
+        // and the correct event here.
         firePropertyChange(FOCUS_ACCELERATOR_KEY, old, focusAccelerator);
+        firePropertyChange("focusAccelerator", old, focusAccelerator);
     }
 
     /**
@@ -1335,8 +1369,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 
     public void removeNotify() {
         super.removeNotify();
-        if (focusedComponent == this) {
-            focusedComponent = null;
+        if (getFocusedComponent() == this) {
+            AppContext.getAppContext().remove(FOCUSED_COMPONENT);
         }
     }
 
@@ -1390,6 +1424,10 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
      * and Swing</A> for more information.     
      *
+     * Note that text is not a bound property, so no <code>PropertyChangeEvent
+     * </code> is fired when it changes. To listen for changes to the text,
+     * use <code>DocumentListener</code>.
+     *
      * @param t the new text to be set
      * @see #getText
      * @see DefaultCaret
@@ -1415,6 +1453,10 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * Returns the text contained in this <code>TextComponent</code>.
      * If the underlying document is <code>null</code>,
      * will give a <code>NullPointerException</code>.
+     *
+     * Note that text is not a bound property, so no <code>PropertyChangeEvent
+     * </code> is fired when it changes. To listen for changes to the text,
+     * use <code>DocumentListener</code>.
      *
      * @return the text
      * @exception NullPointerException if the document is <code>null</code>
@@ -1488,6 +1530,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    } else {
 		setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	    }
+	    enableInputMethods(editable);
 	    firePropertyChange("editable", Boolean.valueOf(oldVal), Boolean.valueOf(editable));
 	    repaint();
 	}
@@ -2204,16 +2247,42 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         }
 
 
+        // TIGER - 4170173
+        /**
+         * Returns the String at a given index. Whitespace
+         * between words is treated as a word.
+         *
+         * @param part the CHARACTER, WORD, or SENTENCE to retrieve
+         * @param index an index within the text
+         * @return the letter, word, or sentence.
+         *
+         */
         public String getAtIndex(int part, int index) {
             return getAtIndex(part, index, 0);
         }
 
 
+        /**
+         * Returns the String after a given index. Whitespace
+         * between words is treated as a word.
+         *
+         * @param part the CHARACTER, WORD, or SENTENCE to retrieve
+         * @param index an index within the text
+         * @return the letter, word, or sentence.
+         */
         public String getAfterIndex(int part, int index) {
             return getAtIndex(part, index, 1);
         }
 
 
+        /**
+         * Returns the String before a given index. Whitespace
+         * between words is treated a word.
+         *
+         * @param part the CHARACTER, WORD, or SENTENCE to retrieve
+         * @param index an index within the text
+         * @return the letter, word, or sentence.
+         */
         public String getBeforeIndex(int part, int index) {
             return getAtIndex(part, index, -1);
         }
@@ -2409,7 +2478,11 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    if (doc != null) {
 		try {
 		    if (s != null && s.length() > 0) {
+			boolean composedTextSaved = saveComposedText(index);
 			doc.insertString(index, s, null);
+			if (composedTextSaved) {
+			    restoreComposedText();
+			}
 		    }
 		} catch (BadLocationException e) {
 	            UIManager.getLookAndFeel().provideErrorFeedback(JTextComponent.this);
@@ -2707,7 +2780,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     static class DefaultTransferHandler extends TransferHandler implements
                                         UIResource {
         public void exportToClipboard(JComponent comp, Clipboard clipboard,
-                                      int action) {
+                                      int action) throws IllegalStateException {
             if (comp instanceof JTextComponent) {
                 JTextComponent text = (JTextComponent)comp;
                 int p0 = text.getSelectionStart();
@@ -2717,7 +2790,12 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
                         Document doc = text.getDocument();
                         String srcData = doc.getText(p0, p1 - p0);
                         StringSelection contents =new StringSelection(srcData);
+
+                        // this may throw an IllegalStateException,
+                        // but it will be caught and handled in the
+                        // action that invoked this method
                         clipboard.setContents(contents, null);
+
                         if (action == TransferHandler.MOVE) {
                             doc.remove(p0, p1 - p0);
                         }
@@ -2774,7 +2852,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * value may currently have focus.
      */
     static final JTextComponent getFocusedComponent() {
-        return focusedComponent;
+        return (JTextComponent)AppContext.getAppContext().
+            get(FOCUSED_COMPONENT);
     }
 
     private int getCurrentEventModifiers() {
@@ -2788,24 +2867,20 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
         return modifiers;
     }
 
-    /**
-     * The most recent JTextComponent that has/had focus. The text actions use
-     * this via the <code>getFocusedComponent</code> method as a fallback case
-     * when a JTextComponent doesn't have focus.
-     */
-    private static JTextComponent focusedComponent;
-    private static Hashtable keymapTable = null;
+    private static final Object KEYMAP_TABLE = 
+        new StringBuilder("JTextComponent_KeymapTable");
     private JTextComponent editor;
     //
     // member variables used for on-the-spot input method 
     // editing style support
     // 
     private transient InputMethodRequests inputMethodRequestsHandler;
-    private AttributedString composedText;
+    private SimpleAttributeSet composedTextAttribute;
     private String composedTextContent;
     private Position composedTextStart;
+    private Position composedTextEnd;    
     private Position latestCommittedTextStart;
-    private int latestCommittedTextLength;
+    private Position latestCommittedTextEnd;
     private ComposedTextCaret composedTextCaret;
     private transient Caret originalCaret;
     /**
@@ -2882,9 +2957,9 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    KeyStroke[] retValue = null;
 	    // Determine local bindings first.
 	    Vector keyStrokes = null;
-	    for (Enumeration enum = bindings.keys();
-		 enum.hasMoreElements();) {
-		Object key = enum.nextElement();
+	    for (Enumeration enum_ = bindings.keys();
+		 enum_.hasMoreElements();) {
+		Object key = enum_.nextElement();
 		if (bindings.get(key) == a) {
 		    if (keyStrokes == null) {
 			keyStrokes = new Vector();
@@ -3127,23 +3202,15 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	}
     }
 
-
+    private static final Object FOCUSED_COMPONENT = 
+        new StringBuilder("JTextComponent_FocusedComponent");
+    
     /**
      * The default keymap that will be shared by all
      * <code>JTextComponent</code> instances unless they
      * have had a different keymap set. 
      */
     public static final String DEFAULT_KEYMAP = "default";
-
-    static {
-        try {
-            keymapTable = new Hashtable(17);
-            Keymap binding = addKeymap(DEFAULT_KEYMAP, null);
-            binding.setDefaultAction(new DefaultEditorKit.DefaultKeyTypedAction());
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Event to use when firing a notification of change to caret 
@@ -3190,7 +3257,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 
         // --- FocusListener methods -----------------------------------
         public void focusGained(FocusEvent fe) {
-            focusedComponent = (JTextComponent)fe.getSource();
+            AppContext.getAppContext().put(FOCUSED_COMPONENT,
+                                           fe.getSource());
         }
 
         public void focusLost(FocusEvent fe) {
@@ -3302,11 +3370,14 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	public AttributedCharacterIterator cancelLatestCommittedText(
 						Attribute[] attributes) {
 	    Document doc = getDocument();
-	    if ((doc != null) && (latestCommittedTextStart != null) && (latestCommittedTextLength != 0)) {
+	    if ((doc != null) && (latestCommittedTextStart != null) 
+                && (!latestCommittedTextStart.equals(latestCommittedTextEnd))) {
 		try {
 		    int startIndex = latestCommittedTextStart.getOffset();
-		    String latestCommittedText = doc.getText(startIndex, latestCommittedTextLength);
-		    doc.remove(startIndex, latestCommittedTextLength);
+                    int endIndex = latestCommittedTextEnd.getOffset();
+		    String latestCommittedText = 
+                        doc.getText(startIndex, endIndex - startIndex);
+		    doc.remove(startIndex, endIndex - startIndex);
 		    return new AttributedString(latestCommittedText).getIterator();
 		} catch (BadLocationException ble) {}
 	    }
@@ -3319,7 +3390,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    int composedEndIndex = 0;
 	    if (composedTextExists()) {
 		composedStartIndex = composedTextStart.getOffset();
-		composedEndIndex = composedStartIndex + composedTextContent.length();
+		composedEndIndex = composedTextEnd.getOffset();
 	    }
 
 	    String committed;
@@ -3348,7 +3419,8 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    if (doc != null) {
 		length = doc.getLength();
 		if (composedTextContent != null) {
-		    length -= composedTextContent.length();
+		    length -= composedTextEnd.getOffset() - 
+                        composedTextStart.getOffset();
 		}
             }
 	    return length;
@@ -3359,7 +3431,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    int composedEndIndex = 0;
 	    if (composedTextExists()) {
 		composedStartIndex = composedTextStart.getOffset();
-		composedEndIndex = composedStartIndex + composedTextContent.length();
+		composedEndIndex = composedTextEnd.getOffset();
 	    }
 	    int caretIndex = getCaretPosition();
 
@@ -3373,16 +3445,15 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     	}
 
     	public TextHitInfo getLocationOffset(int x, int y) {
-	    if (composedText == null) {
+	    if (composedTextAttribute == null) {
 	        return null;
 	    } else { 
 	        Point p = getLocationOnScreen();
 	        p.x = x - p.x;
 	        p.y = y - p.y;
 	        int pos = viewToModel(p);
-		int composedStartIndex = composedTextStart.getOffset();
-	        if ((pos >= composedStartIndex) && 
-		    (pos <= composedStartIndex + composedTextContent.length())) {
+	        if ((pos >= composedTextStart.getOffset()) && 
+		    (pos <= composedTextEnd.getOffset())) {
 	            return TextHitInfo.leading(pos - composedTextStart.getOffset());
 	        } else {
 	            return null;
@@ -3422,18 +3493,15 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	// --- DocumentListener methods ---
 	
 	public void changedUpdate(DocumentEvent e) {
-	    latestCommittedTextStart = null;
-	    latestCommittedTextLength = 0;
+	    latestCommittedTextStart = latestCommittedTextEnd = null;
 	}
 
 	public void insertUpdate(DocumentEvent e) {
-	    latestCommittedTextStart = null;
-	    latestCommittedTextLength = 0;
+	    latestCommittedTextStart = latestCommittedTextEnd = null;
 	}
 
 	public void removeUpdate(DocumentEvent e) {
-	    latestCommittedTextStart = null;
-	    latestCommittedTextLength = 0;
+	    latestCommittedTextStart = latestCommittedTextEnd = null;
 	}
     }
 
@@ -3451,11 +3519,12 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	Document doc = getDocument();
 	if (composedTextExists()) {
 	    try {	
-	        int removeOffs = composedTextStart.getOffset();
-	        doc.remove(removeOffs, composedTextContent.length());
+	        doc.remove(composedTextStart.getOffset(), 
+                           composedTextEnd.getOffset() - 
+                           composedTextStart.getOffset());
 	    } catch (BadLocationException ble) {}
-	    composedTextStart = null;
-	    composedText = null;
+	    composedTextStart = composedTextEnd = null;
+	    composedTextAttribute = null;
 	    composedTextContent = null;
 	}
 	
@@ -3497,19 +3566,17 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    // new composed text insertion
 	    composedTextIndex = text.getIndex();
 	    if (composedTextIndex < text.getEndIndex()) {
-		createComposedString(composedTextIndex, text);
-		SimpleAttributeSet attrSet = new SimpleAttributeSet();	
-		attrSet.addAttribute(StyleConstants.ComposedTextAttribute, 
-					composedText);
+		createComposedTextAttribute(composedTextIndex, text);
 		try {	
 		    replaceSelection(null);
 		    doc.insertString(caret.getDot(), composedTextContent, 
-		    			attrSet);
+		    			composedTextAttribute);
 		    composedTextStart = doc.createPosition(caret.getDot() -
 						composedTextContent.length());
+                    composedTextEnd = doc.createPosition(caret.getDot());
 		} catch (BadLocationException ble) {
-	            composedTextStart = null;
-	            composedText = null;
+	            composedTextStart = composedTextEnd = null;
+	            composedTextAttribute = null;
 	            composedTextContent = null;
 		}	
 	    }
@@ -3517,20 +3584,22 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    // Save the latest committed text information
 	    if (committedTextStartIndex != committedTextEndIndex) {
 		try {	
-		    latestCommittedTextStart = doc.createPosition(committedTextStartIndex);
-		    latestCommittedTextLength = committedTextEndIndex - committedTextStartIndex;
+		    latestCommittedTextStart = doc.
+                        createPosition(committedTextStartIndex);
+                    latestCommittedTextEnd = doc.
+                        createPosition(committedTextEndIndex);
 		} catch (BadLocationException ble) {
-		    latestCommittedTextStart = null;
-		    latestCommittedTextLength = 0;
+		    latestCommittedTextStart = 
+                        latestCommittedTextEnd = null;
 		}
 	    } else {
-		latestCommittedTextStart = null;
-		latestCommittedTextLength = 0;
+		latestCommittedTextStart = 
+                    latestCommittedTextEnd = null;
 	    }
 	}
     }
 
-    private void createComposedString(int composedIndex, 
+    private void createComposedTextAttribute(int composedIndex, 
     					AttributedCharacterIterator text) {
 	Document doc = getDocument();
         StringBuffer strBuf = new StringBuffer();
@@ -3542,8 +3611,36 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	}
 	
 	composedTextContent = new String(strBuf);	
-	composedText = new AttributedString(text, composedIndex,
-	                                    text.getEndIndex());
+	composedTextAttribute = new SimpleAttributeSet();	
+	composedTextAttribute.addAttribute(StyleConstants.ComposedTextAttribute, 
+		new AttributedString(text, composedIndex, text.getEndIndex()));
+    }
+
+    private boolean saveComposedText(int pos) {
+	if (composedTextExists()) {
+	    int start = composedTextStart.getOffset();
+	    int len = composedTextEnd.getOffset() - 
+                composedTextStart.getOffset();
+	    if (pos >= start && pos <= start + len) {
+		try {	
+		    getDocument().remove(start, len);
+		    return true;
+		} catch (BadLocationException ble) {}
+	    }
+	}
+	return false;
+    }
+
+    private void restoreComposedText() {
+	Document doc = getDocument();
+	try {
+	    doc.insertString(caret.getDot(),
+                             composedTextContent, 
+		    	     composedTextAttribute);
+	    composedTextStart = doc.createPosition(caret.getDot() - 
+				composedTextContent.length());
+            composedTextEnd = doc.createPosition(caret.getDot());
+	} catch (BadLocationException ble) {}
     }
     
     //
@@ -3602,8 +3699,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 		    // becomes visible.
 		    try {
 			Rectangle d = modelToView(dot);
-			Rectangle end = modelToView(composedTextStart.getOffset() + 
-			                            composedTextContent.length());
+			Rectangle end = modelToView(composedTextEnd.getOffset());
 			Rectangle b = getBounds(); 
 			d.x += Math.min(end.x - d.x, b.width);
 			scrollRectToVisible(d);
@@ -3722,7 +3818,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
 	    int offset = host.viewToModel(pt);
 	    int composedStartIndex = host.composedTextStart.getOffset();
 	    if ((offset < composedStartIndex) ||
-	        (offset > composedStartIndex + composedTextContent.length())) {
+	        (offset > composedTextEnd.getOffset())) {
 		try {
 		    // Issue endComposition
 		    Position newPos = host.getDocument().createPosition(offset); 

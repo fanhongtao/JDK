@@ -1,7 +1,7 @@
 /*
- * @(#)Choice.java	1.83 03/01/23
+ * @(#)Choice.java	1.89 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -47,7 +47,7 @@ import javax.accessibility.*;
  * attributes as font size and length of items contained within 
  * the <code>Choice</code>.
  * <p>
- * @version	1.83 01/23/03
+ * @version	1.89 05/18/04
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -141,6 +141,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getItemCount()</code>.
      */
+    @Deprecated
     public int countItems() {
 	return pItems.size();
     }
@@ -185,7 +186,7 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      */
     public void addItem(String item) {
         synchronized (this) {
-	    addItemNoInvalidate(item);
+	    insertNoInvalidate(item, pItems.size());
 	}
 
 	// This could change the preferred size of the Component.
@@ -195,25 +196,27 @@ public class Choice extends Component implements ItemSelectable, Accessible {
     }
 
     /**
-     * Adds an item to this <code>Choice</code>,
+     * Inserts an item to this <code>Choice</code>,
      * but does not invalidate the <code>Choice</code>.
      * Client methods must provide their own synchronization before
      * invoking this method.
      * @param item the item to be added
+     * @param index the new item position
      * @exception NullPointerException if the item's value is equal to
      *		<code>null</code>
      */
-    private void addItemNoInvalidate(String item) {
+    private void insertNoInvalidate(String item, int index) {
         if (item == null) {
 	    throw new 
 	        NullPointerException("cannot add null item to Choice");
 	}
-	pItems.addElement(item);
+	pItems.insertElementAt(item, index);
 	ChoicePeer peer = (ChoicePeer)this.peer;
 	if (peer != null) {
-	    peer.addItem(item, pItems.size() - 1);
+	    peer.addItem(item, index);
 	}
-	if (selectedIndex < 0) {
+	// no selection or selection shifted up
+	if (selectedIndex < 0 || selectedIndex >= index) {
 	    select(0);
 	}
     }
@@ -242,27 +245,10 @@ public class Choice extends Component implements ItemSelectable, Accessible {
 	    if (index < 0) {
 	        throw new IllegalArgumentException("index less than zero.");
 	    }
+            /* if the index greater than item count, add item to the end */            
+            index = Math.min(index, pItems.size());
 
-	    int nitems = getItemCount();
-	    Vector tempItems = new Vector();
-
-	    /* Remove the item at index, nitems-index times 
-	       storing them in a temporary vector in the
-	       order they appear on the choice menu.
-	    */
-	    for (int i = index ; i < nitems; i++) {
-	        tempItems.addElement(getItem(index));
-		removeNoInvalidate(index);
-	    }
-
-	    addItemNoInvalidate(item);
-
-	    /* Add the removed items back to the choice menu, they 
-	       are already in the correct order in the temp vector.
-	    */
-	    for (int i = 0; i < tempItems.size()  ; i++) {
-	        addItemNoInvalidate((String)tempItems.elementAt(i));
-	    }
+            insertNoInvalidate(item, index);
 	}
 
 	// This could change the preferred size of the Component.
@@ -549,8 +535,8 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * @see #getItemListeners
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
-	EventListener l = null; 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
+	EventListener l = null;
 	if  (listenerType == ItemListener.class) { 
 	    l = itemListener;
 	} else {
@@ -738,7 +724,12 @@ public class Choice extends Component implements ItemSelectable, Accessible {
      * Java Accessibility API appropriate to choice user-interface elements.
      */
     protected class AccessibleAWTChoice extends AccessibleAWTComponent
-    implements AccessibleAction {
+        implements AccessibleAction
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = 7175603582428509322L;
 
 	public AccessibleAWTChoice() {
 	    super();

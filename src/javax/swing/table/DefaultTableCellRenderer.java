@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableCellRenderer.java	1.35 05/12/07
+ * @(#)DefaultTableCellRenderer.java	1.38 04/03/05
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,10 +39,16 @@ import java.io.Serializable;
  * cell is drawn. This would greatly decrease performance because the
  * <code>revalidate</code> message would be
  * passed up the hierarchy of the container to determine whether any other
- * components would be affected.  So this class
- * overrides the <code>validate</code>, <code>revalidate</code>,
- * <code>repaint</code>, and <code>firePropertyChange</code> methods to be 
- * no-ops.  If you write your own renderer,
+ * components would be affected.  
+ * As the renderer is only parented for the lifetime of a painting operation
+ * we similarly want to avoid the overhead associated with walking the
+ * hierarchy for painting operations.
+ * So this class
+ * overrides the <code>validate</code>, <code>invalidate</code>,
+ * <code>revalidate</code>, <code>repaint</code>, and
+ * <code>firePropertyChange</code> methods to be 
+ * no-ops and override the <code>isOpaque</code> method solely to improve
+ * performance.  If you write your own renderer,
  * please keep this performance consideration in mind.
  * <p>
  *
@@ -55,15 +61,15 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.35 12/07/05
+ * @version 1.38 03/05/04
  * @author Philip Milne 
  * @see JTable
  */
 public class DefaultTableCellRenderer extends JLabel
     implements TableCellRenderer, Serializable
 {
+
     protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1); 
-    private static final Border SAFE_NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
     
     // We need a place to store the color the JLabel should be returned 
     // to after its foreground and background colors have been set 
@@ -78,15 +84,7 @@ public class DefaultTableCellRenderer extends JLabel
     public DefaultTableCellRenderer() {
 	super();
 	setOpaque(true);
-        setBorder(getNoFocusBorder());
-    }
-
-    private static Border getNoFocusBorder() {
-        if (System.getSecurityManager() != null) {
-            return SAFE_NO_FOCUS_BORDER;
-        } else {
-            return noFocusBorder;
-        }
+        setBorder(noFocusBorder);
     }
 
     /**
@@ -157,12 +155,19 @@ public class DefaultTableCellRenderer extends JLabel
 
 	if (hasFocus) {
 	    setBorder( UIManager.getBorder("Table.focusCellHighlightBorder") );
-	    if (table.isCellEditable(row, column)) {
-	        super.setForeground( UIManager.getColor("Table.focusCellForeground") );
-	        super.setBackground( UIManager.getColor("Table.focusCellBackground") );
+	    if (!isSelected && table.isCellEditable(row, column)) {
+                Color col;
+                col = UIManager.getColor("Table.focusCellForeground");
+                if (col != null) {
+                    super.setForeground(col);
+                }
+                col = UIManager.getColor("Table.focusCellBackground");
+                if (col != null) {
+                    super.setBackground(col);
+                }
 	    }
 	} else {
-	    setBorder(getNoFocusBorder());
+	    setBorder(noFocusBorder);
 	}
 
         setValue(value); 
@@ -200,6 +205,15 @@ public class DefaultTableCellRenderer extends JLabel
      * Overridden for performance reasons.
      * See the <a href="#override">Implementation Note</a> 
      * for more information.
+     *
+     * @since 1.5
+     */
+    public void invalidate() {}
+
+    /**
+     * Overridden for performance reasons.
+     * See the <a href="#override">Implementation Note</a> 
+     * for more information.
      */
     public void validate() {}
 
@@ -223,6 +237,16 @@ public class DefaultTableCellRenderer extends JLabel
      * for more information.
      */
     public void repaint(Rectangle r) { }
+
+    /**
+     * Overridden for performance reasons.
+     * See the <a href="#override">Implementation Note</a> 
+     * for more information.
+     *
+     * @since 1.5
+     */
+    public void repaint() {
+    }
 
     /**
      * Overridden for performance reasons.

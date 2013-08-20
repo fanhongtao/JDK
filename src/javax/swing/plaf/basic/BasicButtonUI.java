@@ -1,12 +1,13 @@
 /*
- * @(#)BasicButtonUI.java	1.107 03/01/23
+ * @(#)BasicButtonUI.java	1.112 04/01/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
 package javax.swing.plaf.basic;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Serializable;
@@ -22,7 +23,7 @@ import javax.swing.text.View;
 /**
  * BasicButton implementation
  *
- * @version 1.107 01/23/03
+ * @version 1.112 01/19/04
  * @author Jeff Dinkins
  */
 public class BasicButtonUI extends ButtonUI{
@@ -30,14 +31,16 @@ public class BasicButtonUI extends ButtonUI{
     private final static BasicButtonUI buttonUI = new BasicButtonUI();
 
     // Visual constants
+    // NOTE: This is not used or set any where. Were we allowed to remove
+    // fields, this would be removed.
     protected int defaultTextIconGap;
     
-    // Offset controlled by set method 
+    // Amount to offset text, the value of this comes from
+    // defaultTextShiftOffset once setTextShiftOffset has been invoked.
     private int shiftOffset = 0;
+    // Value that is set in shiftOffset once setTextShiftOffset has been
+    // invoked. The value of this comes from the defaults table.
     protected int defaultTextShiftOffset;
-
-    // Has the shared instance defaults been initialized?
-    private boolean defaults_initialized = false;
 
     private final static String propertyPrefix = "Button" + ".";
 
@@ -63,76 +66,36 @@ public class BasicButtonUI extends ButtonUI{
 	BasicHTML.updateRenderer(c, ((AbstractButton) c).getText());
     }
 
-    private Color defaultForeground = null;
-    private Color defaultBackground = null;
-    private Font defaultFont = null;
-    private Border defaultBorder = null;
-
     protected void installDefaults(AbstractButton b) {
         // load shared instance defaults
         String pp = getPropertyPrefix();
-        if(!defaults_initialized) {
-            defaultTextIconGap = ((Integer)UIManager.get(pp + "textIconGap")).intValue();
-            defaultTextShiftOffset = ((Integer)UIManager.get(pp + "textShiftOffset")).intValue();
-        
-	    // next four lines part of optimized component defaults installation
-	   /* defaultForeground = UIManager.getColor(pp + "foreground");
-	    defaultBackground = UIManager.getColor(pp + "background");
-	    defaultFont = UIManager.getFont(pp + "font");
-	    defaultBorder = UIManager.getBorder(pp + "border");*/
 
-            defaults_initialized = true;
-        }
+        defaultTextShiftOffset = UIManager.getInt(pp + "textShiftOffset");
 
         // set the following defaults on the button
         if (b.isContentAreaFilled()) {
-            b.setOpaque(true); 
+            LookAndFeel.installProperty(b, "opaque", Boolean.TRUE);
         } else {
-            b.setOpaque(false);
+            LookAndFeel.installProperty(b, "opaque", Boolean.FALSE);
         }
 
         if(b.getMargin() == null || (b.getMargin() instanceof UIResource)) {
             b.setMargin(UIManager.getInsets(pp + "margin"));
         }
 
-	// *** begin optimized defaults install ***
-
-/*	Color currentForeground = b.getForeground();
-	Color currentBackground = b.getBackground();
-	Font currentFont = b.getFont();
-	Border currentBorder = b.getBorder();
-
-	if (currentForeground == null || currentForeground instanceof UIResource) {
-	      b.setForeground(defaultForeground);
-	}
-
-	if (currentBackground == null || currentBackground instanceof UIResource) {
-              b.setBackground(defaultBackground);
-	}
-
-	if (currentFont == null || currentFont instanceof UIResource) {
-	      b.setFont(defaultFont);
-	}
-
-	if (currentBorder == null || currentBorder instanceof UIResource) {
-	      b.setBorder(defaultBorder);
-	} */
-
-	// *** end optimized defaults install ***
-
-	// old code below works for component defaults installation, but it is slow
-	LookAndFeel.installColorsAndFont(b, pp + "background", pp + "foreground", pp + "font");
+	LookAndFeel.installColorsAndFont(b, pp + "background",
+                                         pp + "foreground", pp + "font");
         LookAndFeel.installBorder(b, pp + "border");
 
+        Object rollover = UIManager.get(pp + "rollover");
+        if (rollover != null) {
+            LookAndFeel.installProperty(b, "rolloverEnabled", rollover);
+        }
     }
 
     protected void installListeners(AbstractButton b) {
         BasicButtonListener listener = createButtonListener(b);
         if(listener != null) {
-            // put the listener in the button's client properties so that
-            // we can get at it later
-            b.putClientProperty(this, listener);
-
             b.addMouseListener(listener);
             b.addMouseMotionListener(listener);
             b.addFocusListener(listener);
@@ -142,7 +105,8 @@ public class BasicButtonUI extends ButtonUI{
     }
     
     protected void installKeyboardActions(AbstractButton b){
-        BasicButtonListener listener = (BasicButtonListener) b.getClientProperty(this);
+        BasicButtonListener listener = getButtonListener(b);
+
         if(listener != null) {
             listener.installKeyboardActions(b);
         }
@@ -160,15 +124,14 @@ public class BasicButtonUI extends ButtonUI{
     }
 
     protected void uninstallKeyboardActions(AbstractButton b) {
-        BasicButtonListener listener = (BasicButtonListener) b.getClientProperty(this);
+        BasicButtonListener listener = getButtonListener(b);
         if(listener != null) {
             listener.uninstallKeyboardActions(b);
         }
     }
 
     protected void uninstallListeners(AbstractButton b) {
-        BasicButtonListener listener = (BasicButtonListener) b.getClientProperty(this);
-        b.putClientProperty(this, null);
+        BasicButtonListener listener = getButtonListener(b);
         if(listener != null) {
             b.removeMouseListener(listener);
             b.removeMouseListener(listener);
@@ -181,7 +144,6 @@ public class BasicButtonUI extends ButtonUI{
 
     protected void uninstallDefaults(AbstractButton b) {
         LookAndFeel.uninstallBorder(b);
-        defaults_initialized = false;
     }
   
     // ********************************
@@ -213,7 +175,7 @@ public class BasicButtonUI extends ButtonUI{
         AbstractButton b = (AbstractButton) c;
         ButtonModel model = b.getModel();
 
-        FontMetrics fm = g.getFontMetrics();
+        FontMetrics fm = SwingUtilities2.getFontMetrics(b, g);
 
         Insets i = c.getInsets();
 
@@ -315,24 +277,24 @@ public class BasicButtonUI extends ButtonUI{
     protected void paintText(Graphics g, JComponent c, Rectangle textRect, String text) {
         AbstractButton b = (AbstractButton) c;                       
         ButtonModel model = b.getModel();
-        FontMetrics fm = g.getFontMetrics();
+        FontMetrics fm = SwingUtilities2.getFontMetrics(c, g);
         int mnemonicIndex = b.getDisplayedMnemonicIndex();
 
 	/* Draw the Text */
 	if(model.isEnabled()) {
 	    /*** paint the text normally */
 	    g.setColor(b.getForeground());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemonicIndex,
+	    SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
 					  textRect.x + getTextShiftOffset(),
 					  textRect.y + fm.getAscent() + getTextShiftOffset());
 	}
 	else {
 	    /*** paint the text disabled ***/
 	    g.setColor(b.getBackground().brighter());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemonicIndex,
+	    SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
 					  textRect.x, textRect.y + fm.getAscent());
 	    g.setColor(b.getBackground().darker());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g,text, mnemonicIndex,
+	    SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
 					  textRect.x - 1, textRect.y + fm.getAscent() - 1);
 	}
     }
@@ -358,8 +320,6 @@ public class BasicButtonUI extends ButtonUI{
   
 
 
-    // Method signature defined here overriden in subclasses. 
-    // Perhaps this class should be abstract?
     protected void paintButtonPressed(Graphics g, AbstractButton b){
     }
 
@@ -401,5 +361,21 @@ public class BasicButtonUI extends ButtonUI{
 	return d;
     }
 
+    /**
+     * Returns the ButtonListener for the passed in Button, or null if one
+     * could not be found.
+     */
+    private BasicButtonListener getButtonListener(AbstractButton b) {
+        MouseMotionListener[] listeners = b.getMouseMotionListeners();
+
+        if (listeners != null) {
+            for (int counter = 0; counter < listeners.length; counter++) {
+                if (listeners[counter] instanceof BasicButtonListener) {
+                    return (BasicButtonListener)listeners[counter];
+                }
+            }
+        }
+        return null;
+    }
 
 }

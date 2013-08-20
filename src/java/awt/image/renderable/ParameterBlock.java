@@ -1,7 +1,7 @@
 /*
- * @(#)ParameterBlock.java	1.12 03/01/23
+ * @(#)ParameterBlock.java	1.14 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -76,10 +76,10 @@ import java.util.Vector;
  * */
 public class ParameterBlock implements Cloneable, Serializable {
     /** A Vector of sources, stored as arbitrary Objects. */
-    protected Vector sources = new Vector();
+    protected Vector<Object> sources = new Vector<Object>();
     
     /** A Vector of non-source parameters, stored as arbitrary Objects. */
-    protected Vector parameters = new Vector();
+    protected Vector<Object> parameters = new Vector<Object>();
 
     /** A dummy constructor. */
     public ParameterBlock() {}
@@ -89,7 +89,7 @@ public class ParameterBlock implements Cloneable, Serializable {
      * of sources. 
      * @param sources a <code>Vector</code> of source images
      */
-    public ParameterBlock(Vector sources) {
+    public ParameterBlock(Vector<Object> sources) {
         setSources(sources);
     }
     
@@ -100,7 +100,9 @@ public class ParameterBlock implements Cloneable, Serializable {
      * @param parameters a <code>Vector</code> of parameters to be used in the
      *        rendering operation
      */
-    public ParameterBlock(Vector sources, Vector parameters) {
+    public ParameterBlock(Vector<Object> sources,
+			  Vector<Object> parameters)
+    {
         setSources(sources);
         setParameters(parameters);
     }
@@ -243,7 +245,7 @@ public class ParameterBlock implements Cloneable, Serializable {
      * @return the <code>sources</code> <code>Vector</code>.  
      * @see #setSources(Vector)  
      */
-    public Vector getSources() {
+    public Vector<Object> getSources() {
         return sources;
     }
     
@@ -252,7 +254,7 @@ public class ParameterBlock implements Cloneable, Serializable {
      * @param sources the <code>Vector</code> of source images
      * @see #getSources
      */
-    public void setSources(Vector sources) {
+    public void setSources(Vector<Object> sources) {
         this.sources = sources;
     }
     
@@ -275,7 +277,7 @@ public class ParameterBlock implements Cloneable, Serializable {
      * @return the <code>parameters</code> <code>Vector</code>.
      * @see #setParameters(Vector)
      */
-    public Vector getParameters() {
+    public Vector<Object> getParameters() {
         return parameters;
     }
     
@@ -285,7 +287,7 @@ public class ParameterBlock implements Cloneable, Serializable {
      *        parameters
      * @see #getParameters
      */
-    public void setParameters(Vector parameters) {
+    public void setParameters(Vector<Object> parameters) {
         this.parameters = parameters;
     }
     

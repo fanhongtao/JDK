@@ -1,7 +1,7 @@
 /*
- * @(#)CenterLayout.java	1.10 03/01/23
+ * @(#)CenterLayout.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.io.*;
 
 /**
   * Center-positioning layout manager.
-  * @version 1.10 01/23/03
+  * @version 1.12 12/19/03
   * @author Tom Santos
   * @author Steve Wilson
   */
@@ -24,11 +24,11 @@ class CenterLayout implements LayoutManager, Serializable {
     public Dimension preferredLayoutSize( Container container ) {
 	Component c = container.getComponent( 0 );
 	if ( c != null ) {
-	    Dimension size = c.getPreferredSize();
-	    Insets insets = container.getInsets();
-	    size.width += insets.left + insets.right;
-	    size.height += insets.top + insets.bottom;
-	    return size;
+            Dimension size = c.getPreferredSize();
+            Insets insets = container.getInsets();
+
+            return new Dimension(size.width + insets.left + insets.right,
+                                 size.height + insets.top + insets.bottom);
 	}
 	else {
 	    return new Dimension( 0, 0 );
@@ -40,23 +40,24 @@ class CenterLayout implements LayoutManager, Serializable {
     }
 
     public void layoutContainer(Container container) {
-	try {
-	   Component c = container.getComponent( 0 );
+        if (container.getComponentCount() > 0) {
+            Component c = container.getComponent(0);
+            Dimension pref = c.getPreferredSize();
+            int containerWidth = container.getWidth();
+            int containerHeight = container.getHeight();
+            Insets containerInsets = container.getInsets();
 
-           c.setSize( c.getPreferredSize() );
-	   Dimension size = c.getSize();
-           Dimension containerSize = container.getSize();
-	   Insets containerInsets = container.getInsets();
-	   containerSize.width -= containerInsets.left + containerInsets.right;
-	   containerSize.height -= containerInsets.top + containerInsets.bottom;
-	   int componentLeft = (containerSize.width / 2) - (size.width / 2);
-	   int componentTop = (containerSize.height / 2) - (size.height / 2);
-	   componentLeft += containerInsets.left;
-	   componentTop += containerInsets.top;
+            containerWidth -= containerInsets.left +
+                              containerInsets.right;
+            containerHeight -= containerInsets.top +
+                               containerInsets.bottom;
 
-	    c.setBounds( componentLeft, componentTop, size.width, size.height );
-	 }
-         catch( Exception e ) {
-         }
+            int left = (containerWidth - pref.width) / 2 +
+                            containerInsets.left;
+            int right = (containerHeight - pref.height) / 2 +
+                            containerInsets.top;
+
+            c.setBounds(left, right, pref.width, pref.height);
+        }
     }
 }

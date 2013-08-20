@@ -1,7 +1,7 @@
 /*
- * @(#)MotifSliderUI.java	1.21 03/01/23
+ * @(#)MotifSliderUI.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import javax.swing.plaf.basic.BasicSliderUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.21 01/23/03
+ * @version 1.22 12/19/03
  * @author Jeff Dinkins
  */
 public class MotifSliderUI extends BasicSliderUI {

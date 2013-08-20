@@ -1,7 +1,7 @@
 /*
- * @(#)MetalRootPaneUI.java	1.17 03/01/23
+ * @(#)MetalRootPaneUI.java	1.20 04/04/27
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,6 +17,7 @@ import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import java.awt.*;
 import java.io.*;
+import java.security.*;
 
 /**
  * Provides the metal look and feel implementation of <code>RootPaneUI</code>.
@@ -41,7 +42,7 @@ import java.io.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 01/23/03
+ * @version 1.20 04/27/04
  * @author Terry Kellerman
  * @since 1.4
  */
@@ -688,6 +689,14 @@ public class MetalRootPaneUI extends BasicRootPaneUI
          */
         private int dragHeight;
 
+        /*
+         * PrivilegedExceptionAction needed by mouseDragged method to
+         * obtain new location of window on screen during the drag.
+         */
+        private final PrivilegedExceptionAction getLocationAction = new PrivilegedExceptionAction(){
+                public Object run() throws HeadlessException{
+                    return MouseInfo.getPointerInfo().getLocation();
+                }};
 
         public void mousePressed(MouseEvent ev) {
             JRootPane rootPane = getRootPane();
@@ -810,12 +819,15 @@ public class MetalRootPaneUI extends BasicRootPaneUI
             Point pt = ev.getPoint();
 
             if (isMovingWindow) {
-                Point windowPt = w.getLocationOnScreen();
-
-                windowPt.x += pt.x - dragOffsetX;
-                windowPt.y += pt.y - dragOffsetY;
-                w.setLocation(windowPt);
-            }
+                Point windowPt;
+                try {
+                    windowPt = (Point) AccessController.doPrivileged(getLocationAction);
+                    windowPt.x = windowPt.x - dragOffsetX;
+                    windowPt.y = windowPt.y - dragOffsetY;
+                    w.setLocation(windowPt);
+                }catch (PrivilegedActionException e) {
+                }
+            }                
             else if (dragCursor != 0) {
                 Rectangle r = w.getBounds();
                 Rectangle startBounds = new Rectangle(r);
@@ -921,9 +933,12 @@ public class MetalRootPaneUI extends BasicRootPaneUI
          * Returns the corner that contains the point <code>x</code>,
          * <code>y</code>, or -1 if the position doesn't match a corner.
          */
-        private int calculateCorner(Component c, int x, int y) {
-            int xPosition = calculatePosition(x, c.getWidth());
-            int yPosition = calculatePosition(y, c.getHeight());
+        private int calculateCorner(Window w, int x, int y) {
+            Insets insets = w.getInsets();
+            int xPosition = calculatePosition(x - insets.left,
+                    w.getWidth() - insets.left - insets.right);
+            int yPosition = calculatePosition(y - insets.top,
+                    w.getHeight() - insets.top - insets.bottom);
 
             if (xPosition == -1 || yPosition == -1) {
                 return -1;

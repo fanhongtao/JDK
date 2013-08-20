@@ -1,7 +1,7 @@
 /*
- * @(#)PrintServiceAttributeEvent.java	1.3 03/01/23
+ * @(#)PrintServiceAttributeEvent.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,8 @@ import javax.print.attribute.PrintServiceAttributeSet;
 
 public class PrintServiceAttributeEvent extends PrintEvent {
 
+    private static final long serialVersionUID = -7565987018140326600L;
+
     private PrintServiceAttributeSet attributes;
 
     /**
@@ -28,6 +30,8 @@ public class PrintServiceAttributeEvent extends PrintEvent {
      *
      * @param source the print job generating  this event
      * @param attributes the attribute changes being reported
+     * @throws IllegalArgumentException if <code>source</code> is
+     *         <code>null</code>.
      */
     public PrintServiceAttributeEvent(PrintService source,
                                       PrintServiceAttributeSet attributes) {

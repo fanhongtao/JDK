@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDropTargetListener.java	1.8 03/01/23
+ * @(#)BasicDropTargetListener.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -40,7 +40,7 @@ import javax.swing.Timer;
  * </ul>
  * 
  * @author  Timothy Prinzing
- * @version 1.8 01/23/03
+ * @version 1.10 12/19/03
  */
 class BasicDropTargetListener implements DropTargetListener, UIResource, ActionListener {
 
@@ -82,6 +82,8 @@ class BasicDropTargetListener implements DropTargetListener, UIResource, ActionL
     protected void updateInsertionLocation(JComponent c, Point p) {
     }
 
+    private static final int AUTOSCROLL_INSET = 10;
+
     /**
      * Update the geometry of the autoscroll region.  The geometry is
      * maintained as a pair of rectangles.  The region can cause
@@ -90,11 +92,9 @@ class BasicDropTargetListener implements DropTargetListener, UIResource, ActionL
      * between the two rectangles.
      * <p>
      * This is implemented to use the visible area of the component 
-     * as the outer rectangle and the insets are based upon the
-     * Scrollable information (if any).  If the Scrollable is
-     * scrollable along an axis, the step increment is used as
-     * the autoscroll inset.  If the component is not scrollable,
-     * the insets will be zero (i.e. autoscroll will not happen).
+     * as the outer rectangle, and the insets are fixed at 10. Should
+     * the component be smaller than a total of 20 in any direction,
+     * autoscroll will not occur in that direction.
      */
     void updateAutoscrollRegion(JComponent c) {
 	// compute the outer
@@ -102,14 +102,17 @@ class BasicDropTargetListener implements DropTargetListener, UIResource, ActionL
 	outer.reshape(visible.x, visible.y, visible.width, visible.height);
 
 	// compute the insets
-	// TBD - the thing with the scrollable
 	Insets i = new Insets(0, 0, 0, 0);
 	if (c instanceof Scrollable) {
-	    Scrollable s = (Scrollable) c;
-	    i.left = s.getScrollableUnitIncrement(visible, SwingConstants.HORIZONTAL, 1);
-	    i.top = s.getScrollableUnitIncrement(visible, SwingConstants.VERTICAL, 1);
-	    i.right = s.getScrollableUnitIncrement(visible, SwingConstants.HORIZONTAL, -1);
-	    i.bottom = s.getScrollableUnitIncrement(visible, SwingConstants.VERTICAL, -1);
+            int minSize = 2 * AUTOSCROLL_INSET;
+
+            if (visible.width >= minSize) {
+                i.left = i.right = AUTOSCROLL_INSET;
+            }
+            
+            if (visible.height >= minSize) {
+                i.top = i.bottom = AUTOSCROLL_INSET;
+            }
 	}
 
 	// set the inner from the insets
@@ -129,25 +132,25 @@ class BasicDropTargetListener implements DropTargetListener, UIResource, ActionL
 	if (c instanceof Scrollable) {
 	    Scrollable s = (Scrollable) c;
 	    if (pos.y < inner.y) {
-		// scroll top downward
-		int dy = s.getScrollableUnitIncrement(outer, SwingConstants.VERTICAL, 1);
+		// scroll upward
+		int dy = s.getScrollableUnitIncrement(outer, SwingConstants.VERTICAL, -1);
 		Rectangle r = new Rectangle(inner.x, outer.y - dy, inner.width, dy);
 		c.scrollRectToVisible(r);
 	    } else if (pos.y > (inner.y + inner.height)) {
-		// scroll bottom upward
-		int dy = s.getScrollableUnitIncrement(outer, SwingConstants.VERTICAL, -1);
+		// scroll downard
+		int dy = s.getScrollableUnitIncrement(outer, SwingConstants.VERTICAL, 1);
 		Rectangle r = new Rectangle(inner.x, outer.y + outer.height, inner.width, dy);
 		c.scrollRectToVisible(r);
 	    }
 
 	    if (pos.x < inner.x) {
-		// scroll left side to the right
-		int dx = s.getScrollableUnitIncrement(outer, SwingConstants.HORIZONTAL, 1);
+		// scroll left
+		int dx = s.getScrollableUnitIncrement(outer, SwingConstants.HORIZONTAL, -1);
 		Rectangle r = new Rectangle(outer.x - dx, inner.y, dx, inner.height);
 		c.scrollRectToVisible(r);
 	    } else if (pos.x > (inner.x + inner.width)) {
-		// scroll right side to the left
-		int dx = s.getScrollableUnitIncrement(outer, SwingConstants.HORIZONTAL, -1);
+		// scroll right
+		int dx = s.getScrollableUnitIncrement(outer, SwingConstants.HORIZONTAL, 1);
 		Rectangle r = new Rectangle(outer.x + outer.width, inner.y, dx, inner.height);
 		c.scrollRectToVisible(r);
 	    }

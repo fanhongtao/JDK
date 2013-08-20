@@ -1,7 +1,7 @@
 /*
- * @(#)PreparedStatement.java	1.42 03/01/23
+ * @(#)PreparedStatement.java	1.44 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -271,6 +271,7 @@ public interface PreparedStatement extends Statement {
      * @exception SQLException if a database access error occurs
      * @deprecated
      */
+    @Deprecated
     void setUnicodeStream(int parameterIndex, java.io.InputStream x, 
 			  int length) throws SQLException;
 

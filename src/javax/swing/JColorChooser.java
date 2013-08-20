@@ -1,7 +1,7 @@
 /*
- * @(#)JColorChooser.java	1.44 03/01/23
+ * @(#)JColorChooser.java	1.47 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +56,7 @@ import javax.accessibility.*;
  *    description: A component that supports selecting a Color.
  *
  *
- * @version 1.44 01/23/03
+ * @version 1.47 12/19/03
  * @author James Gosling
  * @author Amy Fowler
  * @author Steve Wilson
@@ -117,8 +117,6 @@ public class JColorChooser extends JComponent implements Accessible {
 
         ColorTracker ok = new ColorTracker(pane);
         JDialog dialog = createDialog(component, title, true, pane, ok, null);
-        dialog.addWindowListener(new ColorChooserDialog.Closer());
-        dialog.addComponentListener(new ColorChooserDialog.DisposeOnClose());
 
         dialog.show(); // blocks until user brings dialog down...
 
@@ -151,8 +149,18 @@ public class JColorChooser extends JComponent implements Accessible {
         JColorChooser chooserPane, ActionListener okListener,
         ActionListener cancelListener) throws HeadlessException {
 
-        return new ColorChooserDialog(c, title, modal, chooserPane,
-                                                okListener, cancelListener);
+        Window window = JOptionPane.getWindowForComponent(c);
+	ColorChooserDialog dialog;
+        if (window instanceof Frame) {
+            dialog = new ColorChooserDialog((Frame)window, title, modal, c, chooserPane,
+					    okListener, cancelListener);
+        } else {
+            dialog = new ColorChooserDialog((Dialog)window, title, modal, c, chooserPane,
+					    okListener, cancelListener);
+        }
+        dialog.addWindowListener(new ColorChooserDialog.Closer());
+        dialog.addComponentListener(new ColorChooserDialog.DisposeOnClose());
+	return dialog;
     }
 
     /**
@@ -577,12 +585,26 @@ public class JColorChooser extends JComponent implements Accessible {
 class ColorChooserDialog extends JDialog {
     private Color initialColor;
     private JColorChooser chooserPane;
+    static private JButton cancelButton;
 
-    public ColorChooserDialog(Component c, String title, boolean modal,
-        JColorChooser chooserPane,
+    public ColorChooserDialog(Dialog owner, String title, boolean modal,
+        Component c, JColorChooser chooserPane,
         ActionListener okListener, ActionListener cancelListener)
         throws HeadlessException {
-        super(JOptionPane.getFrameForComponent(c), title, modal);
+        super(owner, title, modal);
+	initColorChooserDialog(c, chooserPane, okListener, cancelListener);
+    }
+
+    public ColorChooserDialog(Frame owner, String title, boolean modal,
+        Component c, JColorChooser chooserPane,
+        ActionListener okListener, ActionListener cancelListener)
+        throws HeadlessException {
+        super(owner, title, modal);
+	initColorChooserDialog(c, chooserPane, okListener, cancelListener);
+    }
+
+    protected void initColorChooserDialog(Component c, JColorChooser chooserPane,
+	ActionListener okListener, ActionListener cancelListener) {
         //setResizable(false);
 
         this.chooserPane = chooserPane;
@@ -613,7 +635,7 @@ class ColorChooserDialog extends JDialog {
         });
         buttonPane.add(okButton);
 
-        JButton cancelButton = new JButton(cancelString);
+        cancelButton = new JButton(cancelString);
 
 	// The following few lines are used to register esc to close the dialog
 	Action cancelKeyAction = new AbstractAction() {
@@ -679,6 +701,7 @@ class ColorChooserDialog extends JDialog {
 
     static class Closer extends WindowAdapter implements Serializable{
         public void windowClosing(WindowEvent e) {
+            cancelButton.doClick();
             Window w = e.getWindow();
             w.hide();
         }

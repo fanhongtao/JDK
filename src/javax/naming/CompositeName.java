@@ -1,7 +1,7 @@
 /*
- * @(#)CompositeName.java	1.12 03/01/23
+ * @(#)CompositeName.java	1.14 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -178,7 +178,7 @@ import java.util.Properties;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.12 03/01/23
+ * @version 1.14 04/05/05
  * @since 1.3
  */
 
@@ -197,7 +197,7 @@ public class CompositeName implements Name {
       *               The enumeration will be consumed to extract its
       *               elements.
       */
-    protected CompositeName(Enumeration comps) {
+    protected CompositeName(Enumeration<String> comps) {
 	impl = new NameImpl(null, comps); // null means use default syntax
     }
 
@@ -347,7 +347,7 @@ public class CompositeName implements Name {
       * 	this composite name. Each element of the enumeration is of
       *		class String.
       */
-    public Enumeration getAll() {
+    public Enumeration<String> getAll() {
 	return (impl.getAll());
     }
 
@@ -444,7 +444,9 @@ public class CompositeName implements Name {
       * @return The updated CompositeName, not a new one. Cannot be null.
       * @exception InvalidNameException If suffix is not a composite name.
       */
-    public Name addAll(Name suffix) throws InvalidNameException {
+    public Name addAll(Name suffix)
+	throws InvalidNameException
+    {
 	if (suffix instanceof CompositeName) {
 	    impl.addAll(suffix.getAll());
 	    return this;
@@ -469,7 +471,9 @@ public class CompositeName implements Name {
       * @exception ArrayIndexOutOfBoundsException
       *		If posn is outside the specified range.
       */
-    public Name addAll(int posn, Name n) throws InvalidNameException {
+    public Name addAll(int posn, Name n)
+	throws InvalidNameException
+    {
 	if (n instanceof CompositeName) {
 	    impl.addAll(posn, n.getAll());
 	    return this;
@@ -508,7 +512,9 @@ public class CompositeName implements Name {
       * @exception InvalidNameException If adding comp at the specified position
       *				would violate the name's syntax.
       */
-    public Name add(int posn, String comp) throws InvalidNameException {
+    public Name add(int posn, String comp)
+	throws InvalidNameException
+    {
 	impl.add(posn, comp);
 	return this;
     }

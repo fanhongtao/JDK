@@ -1,7 +1,7 @@
 /*
- * @(#)Integer.java	1.76 03/01/23
+ * @(#)Integer.java	1.90 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,12 +20,19 @@ package java.lang;
  * to an <code>int</code>, as well as other constants and methods
  * useful when dealing with an <code>int</code>.
  *
+ * <p>Implementation note: The implementations of the "bit twiddling"
+ * methods (such as {@link #highestOneBit(int) highestOneBit} and
+ * {@link #numberOfTrailingZeros(int) numberOfTrailingZeros}) are
+ * based on material from Henry S. Warren, Jr.'s <i>Hacker's
+ * Delight</i>, (Addison Wesley, 2002).
+ *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.76, 01/23/03
- * @since   JDK1.0
+ * @author  Josh Bloch
+ * @version 1.90, 05/11/04
+ * @since JDK1.0
  */
-public final class Integer extends Number implements Comparable {
+public final class Integer extends Number implements Comparable<Integer> {
     /**
      * A constant holding the minimum value an <code>int</code> can
      * have, -2<sup>31</sup>.
@@ -44,7 +51,7 @@ public final class Integer extends Number implements Comparable {
      *
      * @since   JDK1.1
      */
-    public static final Class	TYPE = Class.getPrimitiveClass("int");
+    public static final Class<Integer>	TYPE = (Class<Integer>) Class.getPrimitiveClass("int");
 
     /**
      * All possible chars for representing a number as a String
@@ -267,7 +274,7 @@ public final class Integer extends Number implements Comparable {
 	// accelerate Integer.toString.  In particular we want to
 	// avoid division by 10.
 	//
-	// The "trick" has roughly the same performance characterists
+	// The "trick" has roughly the same performance characteristics
 	// as the "classic" Integer.toString code on a non-JIT VM.
 	// The trick avoids .rem and .div calls but has a longer code
 	// path and is thus dominated by dispatch overhead.  In the
@@ -293,38 +300,26 @@ public final class Integer extends Number implements Comparable {
      * @return  a string representation of the argument in base&nbsp;10.
      */
     public static String toString(int i) {
-        switch(i) {
-            case Integer.MIN_VALUE: return "-2147483648";
-            case -3: return "-3";
-            case -2: return "-2";
-            case -1: return "-1";
-            case 0: return "0";
-            case 1: return "1";
-            case 2: return "2";
-            case 3: return "3";
-            case 4: return "4";
-            case 5: return "5";
-            case 6: return "6";
-            case 7: return "7";
-            case 8: return "8";
-            case 9: return "9";
-            case 10: return "10";
-        }
-        char[] buf = (char[])(perThreadBuffer.get());
-        int charPos = getChars(i, buf);
-        return new String(buf, charPos, 12 - charPos);
+        if (i == Integer.MIN_VALUE)
+            return "-2147483648";
+        int size = (i < 0) ? stringSize(-i) + 1 : stringSize(i);
+        char[] buf = new char[size];
+        getChars(i, size, buf);
+        return new String(0, size, buf);
     }
 
-    // Per-thread buffer for string/stringbuffer conversion
-    private static ThreadLocal perThreadBuffer = new ThreadLocal() {
-        protected synchronized Object initialValue() {
-            return new char[12];
-        }
-    };
-
-    private static int getChars(int i, char[] buf) {
+    /**
+     * Places characters representing the integer i into the
+     * character array buf. The characters are placed into
+     * the buffer backwards starting with the least significant
+     * digit at the specified index (exclusive), and working
+     * backwards from there.
+     *
+     * Will fail if i == Integer.MIN_VALUE
+     */
+    static void getChars(int i, int index, char[] buf) {
         int q, r;
-        int charPos = 12;
+        int charPos = index;
         char sign = 0;
 
         if (i < 0) { 
@@ -354,32 +349,16 @@ public final class Integer extends Number implements Comparable {
         if (sign != 0) {
             buf [--charPos] = sign;
         }
-        return charPos;
     }
- 
-    static void appendTo(int i, StringBuffer sb) {
-        switch(i) {
-            case Integer.MIN_VALUE:
-                sb.append("-2147483648");
-                return;
-            case -3: sb.append("-3"); return;
-            case -2: sb.append("-2"); return;
-            case -1: sb.append("-1"); return;
-            case 0: sb.append("0"); return;
-            case 1: sb.append("1"); return;
-            case 2: sb.append("2"); return;
-            case 3: sb.append("3"); return;
-            case 4: sb.append("4"); return;
-            case 5: sb.append("5"); return;
-            case 6: sb.append("6"); return;
-            case 7: sb.append("7"); return;
-            case 8: sb.append("8"); return;
-            case 9: sb.append("9"); return;
-            case 10: sb.append("10"); return;
-        }
-        char[] buf = (char[])(perThreadBuffer.get());
-        int charPos = getChars(i, buf);
-        sb.append(buf, charPos, 12 - charPos);
+
+    final static int [] sizeTable = { 9, 99, 999, 9999, 99999, 999999, 9999999,
+                                      99999999, 999999999, Integer.MAX_VALUE };
+
+    // Requires positive x
+    static int stringSize(int x) {
+        for (int i=0; ; i++)
+            if (x <= sizeTable[i])
+                return i+1;
     }
     
     /**
@@ -574,12 +553,44 @@ public final class Integer extends Number implements Comparable {
 	return new Integer(parseInt(s, 10));
     }
 
+    private static class IntegerCache {
+	private IntegerCache(){}
+
+	static final Integer cache[] = new Integer[-(-128) + 127 + 1];
+
+	static {
+	    for(int i = 0; i < cache.length; i++)
+		cache[i] = new Integer(i - 128);
+	}
+    }
+
+    /**
+     * Returns a <tt>Integer</tt> instance representing the specified
+     * <tt>int</tt> value.
+     * If a new <tt>Integer</tt> instance is not required, this method
+     * should generally be used in preference to the constructor
+     * {@link #Integer(int)}, as this method is likely to yield
+     * significantly better space and time performance by caching
+     * frequently requested values.
+     *
+     * @param  i an <code>int</code> value.
+     * @return a <tt>Integer</tt> instance representing <tt>i</tt>.
+     * @since  1.5
+     */
+    public static Integer valueOf(int i) {
+	final int offset = 128;
+	if (i >= -128 && i <= 127) { // must cache 
+	    return IntegerCache.cache[i + offset];
+	}
+        return new Integer(i);
+    }
+
     /**
      * The value of the <code>Integer</code>.
      *
      * @serial
      */
-    private int value;
+    private final int value;
 
     /**
      * Constructs a newly allocated <code>Integer</code> object that
@@ -826,7 +837,7 @@ public final class Integer extends Number implements Comparable {
 
     /**
      * Decodes a <code>String</code> into an <code>Integer</code>.
-     * Accepts decimal, hexadecimal, and octal numbers numbers given
+     * Accepts decimal, hexadecimal, and octal numbers given
      * by the following grammar:
      *
      * <blockquote>
@@ -929,30 +940,222 @@ public final class Integer extends Number implements Comparable {
 	return (thisVal<anotherVal ? -1 : (thisVal==anotherVal ? 0 : 1));
     }
 
+
+    // Bit twiddling
+
     /**
-     * Compares this <code>Integer</code> object to another object.
-     * If the object is an <code>Integer</code>, this function behaves
-     * like <code>compareTo(Integer)</code>.  Otherwise, it throws a
-     * <code>ClassCastException</code> (as <code>Integer</code>
-     * objects are only comparable to other <code>Integer</code>
-     * objects).
+     * The number of bits used to represent an <tt>int</tt> value in two's
+     * complement binary form.
      *
-     * @param   o the <code>Object</code> to be compared.
-     * @return  the value <code>0</code> if the argument is a 
-     *		<code>Integer</code> numerically equal to this 
-     *		<code>Integer</code>; a value less than <code>0</code> 
-     *		if the argument is a <code>Integer</code> numerically 
-     *		greater than this <code>Integer</code>; and a value 
-     *		greater than <code>0</code> if the argument is a 
-     *		<code>Integer</code> numerically less than this 
-     *		<code>Integer</code>.
-     * @exception <code>ClassCastException</code> if the argument is not an
-     *		  <code>Integer</code>.
-     * @see     java.lang.Comparable
-     * @since   1.2
+     * @since 1.5
      */
-    public int compareTo(Object o) {
-	return compareTo((Integer)o);
+    public static final int SIZE = 32;
+ 
+    /**
+     * Returns an <tt>int</tt> value with at most a single one-bit, in the
+     * position of the highest-order ("leftmost") one-bit in the specified
+     * <tt>int</tt> value.  Returns zero if the specified value has no
+     * one-bits in its two's complement binary representation, that is, if it
+     * is equal to zero.
+     *
+     * @return an <tt>int</tt> value with a single one-bit, in the position
+     *     of the highest-order one-bit in the specified value, or zero if
+     *     the specified value is itself equal to zero.
+     * @since 1.5
+     */
+    public static int highestOneBit(int i) {
+        // HD, Figure 3-1
+        i |= (i >>  1);
+        i |= (i >>  2);
+        i |= (i >>  4);
+        i |= (i >>  8);
+        i |= (i >> 16);
+        return i - (i >>> 1);
+    }
+ 
+    /**
+     * Returns an <tt>int</tt> value with at most a single one-bit, in the
+     * position of the lowest-order ("rightmost") one-bit in the specified
+     * <tt>int</tt> value.  Returns zero if the specified value has no
+     * one-bits in its two's complement binary representation, that is, if it
+     * is equal to zero.
+     *
+     * @return an <tt>int</tt> value with a single one-bit, in the position
+     *     of the lowest-order one-bit in the specified value, or zero if
+     *     the specified value is itself equal to zero.
+     * @since 1.5
+     */
+    public static int lowestOneBit(int i) {
+        // HD, Section 2-1
+        return i & -i;
+    }
+ 
+    /**
+     * Returns the number of zero bits preceding the highest-order
+     * ("leftmost") one-bit in the two's complement binary representation
+     * of the specified <tt>int</tt> value.  Returns 32 if the
+     * specified value has no one-bits in its two's complement representation,
+     * in other words if it is equal to zero.
+     *
+     * <p>Note that this method is closely related to the logarithm base 2.
+     * For all positive <tt>int</tt> values x:
+     * <ul>
+     * <li>floor(log<sub>2</sub>(x)) = <tt>31 - numberOfLeadingZeros(x)</tt>
+     * <li>ceil(log<sub>2</sub>(x)) = <tt>32 - numberOfLeadingZeros(x - 1)</tt>
+     * </ul>
+     *
+     * @return the number of zero bits preceding the highest-order
+     *     ("leftmost") one-bit in the two's complement binary representation
+     *     of the specified <tt>int</tt> value, or 32 if the value
+     *     is equal to zero.
+     * @since 1.5
+     */
+    public static int numberOfLeadingZeros(int i) {
+        // HD, Figure 5-6
+        if (i == 0)
+            return 32;
+        int n = 1;
+        if (i >>> 16 == 0) { n += 16; i <<= 16; }
+        if (i >>> 24 == 0) { n +=  8; i <<=  8; }
+        if (i >>> 28 == 0) { n +=  4; i <<=  4; }
+        if (i >>> 30 == 0) { n +=  2; i <<=  2; }
+        n -= i >>> 31;
+        return n;
+    }
+ 
+    /**
+     * Returns the number of zero bits following the lowest-order ("rightmost")
+     * one-bit in the two's complement binary representation of the specified
+     * <tt>int</tt> value.  Returns 32 if the specified value has no
+     * one-bits in its two's complement representation, in other words if it is
+     * equal to zero.
+     *
+     * @return the number of zero bits following the lowest-order ("rightmost")
+     *     one-bit in the two's complement binary representation of the
+     *     specified <tt>int</tt> value, or 32 if the value is equal
+     *     to zero.
+     * @since 1.5
+     */
+    public static int numberOfTrailingZeros(int i) {
+        // HD, Figure 5-14
+	int y;
+	if (i == 0) return 32;
+	int n = 31;
+	y = i <<16; if (y != 0) { n = n -16; i = y; }
+	y = i << 8; if (y != 0) { n = n - 8; i = y; }
+	y = i << 4; if (y != 0) { n = n - 4; i = y; }
+	y = i << 2; if (y != 0) { n = n - 2; i = y; }
+	return n - ((i << 1) >>> 31);
+    }
+ 
+    /**
+     * Returns the number of one-bits in the two's complement binary
+     * representation of the specified <tt>int</tt> value.  This function is
+     * sometimes referred to as the <i>population count</i>.
+     *
+     * @return the number of one-bits in the two's complement binary
+     *     representation of the specified <tt>int</tt> value.
+     * @since 1.5
+     */
+    public static int bitCount(int i) {
+        // HD, Figure 5-2
+	i = i - ((i >>> 1) & 0x55555555);
+	i = (i & 0x33333333) + ((i >>> 2) & 0x33333333);
+	i = (i + (i >>> 4)) & 0x0f0f0f0f;
+	i = i + (i >>> 8);
+	i = i + (i >>> 16);
+	return i & 0x3f;
+    }
+ 
+    /**
+     * Returns the value obtained by rotating the two's complement binary
+     * representation of the specified <tt>int</tt> value left by the
+     * specified number of bits.  (Bits shifted out of the left hand, or
+     * high-order, side reenter on the right, or low-order.)
+     *
+     * <p>Note that left rotation with a negative distance is equivalent to
+     * right rotation: <tt>rotateLeft(val, -distance) == rotateRight(val,
+     * distance)</tt>.  Note also that rotation by any multiple of 32 is a
+     * no-op, so all but the last five bits of the rotation distance can be
+     * ignored, even if the distance is negative: <tt>rotateLeft(val,
+     * distance) == rotateLeft(val, distance & 0x1F)</tt>.
+     *
+     * @return the value obtained by rotating the two's complement binary
+     *     representation of the specified <tt>int</tt> value left by the
+     *     specified number of bits.
+     * @since 1.5
+     */
+    public static int rotateLeft(int i, int distance) {
+        return (i << distance) | (i >>> -distance);
+    }
+
+    /**
+     * Returns the value obtained by rotating the two's complement binary
+     * representation of the specified <tt>int</tt> value right by the
+     * specified number of bits.  (Bits shifted out of the right hand, or
+     * low-order, side reenter on the left, or high-order.)
+     *
+     * <p>Note that right rotation with a negative distance is equivalent to
+     * left rotation: <tt>rotateRight(val, -distance) == rotateLeft(val,
+     * distance)</tt>.  Note also that rotation by any multiple of 32 is a
+     * no-op, so all but the last five bits of the rotation distance can be
+     * ignored, even if the distance is negative: <tt>rotateRight(val,
+     * distance) == rotateRight(val, distance & 0x1F)</tt>.
+     *
+     * @return the value obtained by rotating the two's complement binary
+     *     representation of the specified <tt>int</tt> value right by the
+     *     specified number of bits.
+     * @since 1.5
+     */
+    public static int rotateRight(int i, int distance) {
+        return (i >>> distance) | (i << -distance);
+    }
+ 
+    /**
+     * Returns the value obtained by reversing the order of the bits in the
+     * two's complement binary representation of the specified <tt>int</tt>
+     * value.
+     *
+     * @return the value obtained by reversing order of the bits in the
+     *     specified <tt>int</tt> value.
+     * @since 1.5
+     */
+    public static int reverse(int i) {
+        // HD, Figure 7-1
+	i = (i & 0x55555555) << 1 | (i >>> 1) & 0x55555555;
+	i = (i & 0x33333333) << 2 | (i >>> 2) & 0x33333333;
+	i = (i & 0x0f0f0f0f) << 4 | (i >>> 4) & 0x0f0f0f0f;
+	i = (i << 24) | ((i & 0xff00) << 8) |
+	    ((i >>> 8) & 0xff00) | (i >>> 24);
+	return i;
+    }
+ 
+    /**
+     * Returns the signum function of the specified <tt>int</tt> value.  (The
+     * return value is -1 if the specified value is negative; 0 if the
+     * specified value is zero; and 1 if the specified value is positive.)
+     *
+     * @return the signum function of the specified <tt>int</tt> value.
+     * @since 1.5
+     */
+    public static int signum(int i) {
+        // HD, Section 2-7
+        return (i >> 31) | (-i >>> 31);
+    }
+ 
+    /**
+     * Returns the value obtained by reversing the order of the bytes in the
+     * two's complement representation of the specified <tt>int</tt> value.
+     *
+     * @return the value obtained by reversing the bytes in the specified
+     *     <tt>int</tt> value.
+     * @since 1.5
+     */
+    public static int reverseBytes(int i) {
+        return ((i >>> 24)           ) |
+               ((i >>   8) &   0xFF00) |
+               ((i <<   8) & 0xFF0000) |
+               ((i << 24));
     }
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */

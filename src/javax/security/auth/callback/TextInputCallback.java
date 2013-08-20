@@ -1,7 +1,7 @@
 /*
- * @(#)TextInputCallback.java	1.12 03/01/23
+ * @(#)TextInputCallback.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,10 +13,12 @@ package javax.security.auth.callback;
  * method of a <code>CallbackHandler</code> to retrieve generic text
  * information.
  *
- * @version 1.12, 01/23/03
+ * @version 1.14, 12/19/03
  * @see javax.security.auth.callback.CallbackHandler
  */
 public class TextInputCallback implements Callback, java.io.Serializable {
+
+    private static final long serialVersionUID = -8064222478852811804L;
 
     /**
      * @serial

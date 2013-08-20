@@ -1,7 +1,7 @@
 /*
- * @(#)URISyntax.java	1.4 03/01/23
+ * @(#)URISyntax.java	1.6 04/01/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,8 @@ import java.net.URISyntaxException;
  * @author  Alan Kaminsky
  */
 public abstract class URISyntax	implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = -7842661210486401678L;
 
     /**
      * URI value of this URI attribute.

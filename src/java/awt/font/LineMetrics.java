@@ -1,7 +1,7 @@
 /*
- * @(#)LineMetrics.java	1.18 03/01/23
+ * @(#)LineMetrics.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -30,10 +30,10 @@ public abstract class LineMetrics {
 
 
     /**
-     * Returns the number of characters in the text whose
+     * Returns the number of characters (<code>char</code> values) in the text whose
      * metrics are encapsulated by this <code>LineMetrics</code>
      * object.
-     * @return the number of characters in the text with which
+     * @return the number of characters (<code>char</code> values) in the text with which
      *         this <code>LineMetrics</code> was created.
      */
     public abstract int getNumChars();

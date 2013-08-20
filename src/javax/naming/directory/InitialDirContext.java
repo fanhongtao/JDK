@@ -1,7 +1,7 @@
 /*
- * @(#)InitialDirContext.java	1.8 03/01/23
+ * @(#)InitialDirContext.java	1.11 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.naming.*;
  *
  * @author Rosanna Lee
  * @author Scott Seligman
- * @version 1.8 03/01/23
+ * @version 1.11 04/07/16
  *
  * @see javax.naming.InitialContext
  * @since 1.3
@@ -76,7 +76,9 @@ public class InitialDirContext extends InitialContext implements DirContext {
      *
      * @throws	NamingException if a naming exception is encountered
      */
-    public InitialDirContext(Hashtable environment) throws NamingException {
+    public InitialDirContext(Hashtable<?,?> environment)
+	throws NamingException
+    {
 	super(environment);
     }
 
@@ -201,64 +203,78 @@ public class InitialDirContext extends InitialContext implements DirContext {
 
 // -------------------- search operations
 
-    public NamingEnumeration search(String name,
-				    Attributes matchingAttributes)
-	    throws NamingException {
+    public NamingEnumeration<SearchResult>
+	search(String name, Attributes matchingAttributes)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, matchingAttributes);
     }
 
-    public NamingEnumeration search(Name name,
-				    Attributes matchingAttributes)
-	    throws NamingException {
+    public NamingEnumeration<SearchResult>
+	search(Name name, Attributes matchingAttributes)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, matchingAttributes);
     }
 
-    public NamingEnumeration search(String name, 
-				    Attributes matchingAttributes,
-				    String[] attributesToReturn)
-	    throws NamingException  {
+    public NamingEnumeration<SearchResult>
+	search(String name, 
+	       Attributes matchingAttributes,
+	       String[] attributesToReturn)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, 
 						      matchingAttributes,
 						      attributesToReturn);
     }
 
-    public NamingEnumeration search(Name name, 
-				    Attributes matchingAttributes,
-				    String[] attributesToReturn)
-	    throws NamingException  {
+    public NamingEnumeration<SearchResult>
+	search(Name name, 
+	       Attributes matchingAttributes,
+	       String[] attributesToReturn)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, 
 					    matchingAttributes,
 					    attributesToReturn);
     }
 
-    public NamingEnumeration search(String name, 
-				    String filter,
-				    SearchControls cons)
-	    throws NamingException {
+    public NamingEnumeration<SearchResult>
+	search(String name, 
+	       String filter,
+	       SearchControls cons)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, filter, cons);
     }
 
-    public NamingEnumeration search(Name name, 
-				    String filter,
-				    SearchControls cons)
-	    throws NamingException  {
+    public NamingEnumeration<SearchResult>
+	search(Name name,
+	       String filter,
+	       SearchControls cons)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, filter, cons);
     }
 
-    public NamingEnumeration search(String name,
-				    String filterExpr,
-				    Object[] filterArgs,
-				    SearchControls cons)
-	    throws NamingException {
+    public NamingEnumeration<SearchResult>
+	search(String name,
+	       String filterExpr,
+	       Object[] filterArgs,
+	       SearchControls cons)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, filterExpr, 
 						      filterArgs, cons);
     }
 
-    public NamingEnumeration search(Name name,
-				    String filterExpr,
-				    Object[] filterArgs,
-				    SearchControls cons)
-	    throws NamingException  {
+    public NamingEnumeration<SearchResult>
+	search(Name name,
+	       String filterExpr,
+	       Object[] filterArgs,
+	       SearchControls cons)
+	throws NamingException
+    {
 	return getURLOrDefaultInitDirCtx(name).search(name, filterExpr, 
 						      filterArgs, cons);
     }

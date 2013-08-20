@@ -1,7 +1,7 @@
 /*
- * @(#)SourceDataLine.java	1.17 03/01/23
+ * @(#)SourceDataLine.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ package javax.sound.sampled;
  * when the audio output resumes. 
  *
  * @author Kara Kytle
- * @version 1.17 03/01/23
+ * @version 1.20 03/12/19
  * @see Mixer
  * @see DataLine
  * @see TargetDataLine
@@ -75,8 +75,9 @@ public interface SourceDataLine extends DataLine {
      * @param bufferSize the desired buffer size
      * @throws LineUnavailableException if the line cannot be
      * opened due to resource restrictions
-     * @throws IllegalArgumentException if the buffer size does not represent 
-     * an integral number of sample frames
+     * @throws IllegalArgumentException if the buffer size does not represent
+     * an integral number of sample frames,
+     * or if <code>format</code> is not fully specified or invalid
      * @throws IllegalStateException if the line is already open
      * @throws SecurityException if the line cannot be
      * opened due to security restrictions
@@ -114,6 +115,8 @@ public interface SourceDataLine extends DataLine {
      * @param format the desired audio format
      * @throws LineUnavailableException if the line cannot be
      * opened due to resource restrictions
+     * @throws IllegalArgumentException if <code>format</code>
+     * is not fully specified or invalid
      * @throws IllegalStateException if the line is already open
      * @throws SecurityException if the line cannot be
      * opened due to security restrictions
@@ -158,11 +161,17 @@ public interface SourceDataLine extends DataLine {
      * @param b a byte array containing data to be written to the data line
      * @param len the length, in bytes, of the valid data in the array 
      * (in other words, the requested amount of data to write, in bytes)
+     * @param off the offset from the beginning of the array, in bytes
      * @return the number of bytes actually written
+     * @throws IllegalArgumentException if the requested number of bytes does
+     * not represent an integral number of sample frames,
+     * or if <code>len</code> is negative
+     * @throws ArrayIndexOutOfBoundsException if <code>off</code> is negative,
+     * or <code>off+len</code> is greater than the length of the array
+     * <code>b</code>.
+     *
      * @see TargetDataLine#read
      * @see DataLine#available
-     * @throws IllegalArgumentException if the requested number of bytes does
-     * not represent an integral number of sample frames.
      */	
     public int write(byte[] b, int off, int len);
 

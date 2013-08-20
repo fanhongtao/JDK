@@ -1,7 +1,7 @@
 /*
- * @(#)UIDefaults.java	1.57 05/06/07
+ * @(#)UIDefaults.java	1.58 04/05/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,8 +11,6 @@ package javax.swing;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.border.*;
 import javax.swing.event.SwingPropertyChangeSupport;
-
-import sun.reflect.misc.MethodUtil;
 
 import java.lang.reflect.*;
 import java.util.HashMap;
@@ -34,7 +32,6 @@ import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.security.PrivilegedAction;
 
-
 /**
  * A table of defaults for Swing components.  Applications can set/get
  * default values via the <code>UIManager</code>.
@@ -49,10 +46,10 @@ import java.security.PrivilegedAction;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see UIManager
- * @version 1.57 06/07/05
+ * @version 1.58 05/05/04
  * @author Hans Muller
  */
-public class UIDefaults extends Hashtable
+public class UIDefaults extends Hashtable<Object,Object>
 {
     private static final Object PENDING = new String("Pending");
 
@@ -74,7 +71,7 @@ public class UIDefaults extends Hashtable
      * Create an empty defaults table.
      */
     public UIDefaults() {
-        super();
+        super(700, .75f);
         resourceCache = new HashMap();
     }
 
@@ -326,7 +323,7 @@ public class UIDefaults extends Hashtable
      * @see java.util.Hashtable#put
      */
     public void putDefaults(Object[] keyValueList) {
-        for(int i = 0; i < keyValueList.length; i += 2) {
+        for(int i = 0, max = keyValueList.length; i < max; i += 2) {
             Object value = keyValueList[i + 1];
             if (value == null) {
                 super.remove(keyValueList[i]);
@@ -634,7 +631,8 @@ public class UIDefaults extends Hashtable
      * @return the value of <code>Class.forName(get(uidClassID))</code>
      * @see #getUI
      */
-    public Class getUIClass(String uiClassID, ClassLoader uiClassLoader)
+    public Class<? extends ComponentUI>
+	getUIClass(String uiClassID, ClassLoader uiClassLoader)
     {
         try {
             String className = (String)get(uiClassID);
@@ -672,7 +670,7 @@ public class UIDefaults extends Hashtable
      * @return the Class object returned by
      *		<code>getUIClass(uiClassID, null)</code>
      */
-    public Class getUIClass(String uiClassID) {
+    public Class<? extends ComponentUI> getUIClass(String uiClassID) {
 	return getUIClass(uiClassID, null);
     }
 
@@ -728,7 +726,7 @@ public class UIDefaults extends Hashtable
 		    m = uiClass.getMethod("createUI", new Class[]{acClass});
 		    put(uiClass, m);
 		}
-                uiObject = MethodUtil.invoke(m, null, new Object[]{target});
+		uiObject = m.invoke(null, new Object[]{target});
             }
             catch (NoSuchMethodException e) {
                 getUIError("static createUI() method not found in " + uiClass);
@@ -827,8 +825,10 @@ public class UIDefaults extends Hashtable
         if( resourceBundles == null ) {
             resourceBundles = new Vector(5);
         }
-        resourceBundles.add( bundleName );
-        resourceCache.clear();
+        if (!resourceBundles.contains(bundleName)) {
+            resourceBundles.add( bundleName );
+            resourceCache.clear();
+        }
     }
 
 
@@ -1058,7 +1058,7 @@ public class UIDefaults extends Hashtable
                         if (methodName != null) {
                             Class[] types = getClassArray(args);
                             Method m = c.getMethod(methodName, types);
-                            return MethodUtil.invoke(m, c, args);
+                            return m.invoke(c, args);
                         } else {
                             Class[] types = getClassArray(args);
                             Constructor constructor = c.getConstructor(types);

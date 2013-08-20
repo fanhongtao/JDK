@@ -1,7 +1,7 @@
 /*
- * @(#)SimpleTimeZone.java	1.45 03/01/23
+ * @(#)SimpleTimeZone.java	1.49 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,9 @@ package java.util;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import sun.util.calendar.CalendarDate;
+import sun.util.calendar.CalendarSystem;
+import sun.util.calendar.CalendarUtils;
+import sun.util.calendar.BaseCalendar;
 import sun.util.calendar.Gregorian;
 
 /**
@@ -57,10 +59,10 @@ import sun.util.calendar.Gregorian;
  * <li><b>Day of week on or after day of month</b><br>
  * To specify a day of week on or after an exact day of month, set the
  * <em>month</em> to an exact month value, <em>day-of-month</em> to the day on
- * or after which the rule is applied, and <em>day-of-week</em> to a {@link
+ * or after which the rule is applied, and <em>day-of-week</em> to a negative {@link
  * Calendar#DAY_OF_WEEK DAY_OF_WEEK} field value. For example, to specify the
  * second Sunday of April, set <em>month</em> to {@link Calendar#APRIL APRIL},
- * <em>day-of-month</em> to 8, and <em>day-of-week</em> to {@link
+ * <em>day-of-month</em> to 8, and <em>day-of-week</em> to <code>-</code>{@link
  * Calendar#SUNDAY SUNDAY}.</li>
  *
  * <li><b>Day of week on or before day of month</b><br>
@@ -68,7 +70,7 @@ import sun.util.calendar.Gregorian;
  * <em>day-of-month</em> and <em>day-of-week</em> to a negative value. For
  * example, to specify the last Wednesday on or before the 21st of March, set
  * <em>month</em> to {@link Calendar#MARCH MARCH}, <em>day-of-month</em> is -21
- * and <em>day-of-week</em> is {@link Calendar#WEDNESDAY -WEDNESDAY}. </li>
+ * and <em>day-of-week</em> is <code>-</code>{@link Calendar#WEDNESDAY WEDNESDAY}. </li>
  *
  * <li><b>Last day-of-week of month</b><br>
  * To specify, the last day-of-week of the month, set <em>day-of-week</em> to a
@@ -124,7 +126,7 @@ import sun.util.calendar.Gregorian;
  * @see      Calendar
  * @see      GregorianCalendar
  * @see      TimeZone
- * @version  1.45 01/23/03
+ * @version  1.49 01/12/04
  * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 
@@ -313,16 +315,6 @@ public class SimpleTimeZone extends TimeZone {
 			  int endTime, int endTimeMode,
 			  int dstSavings) {
 
-	// Workaround fix for 4278609 (JCK failure)
-	if (endMonth == Calendar.JANUARY && endDay == 1 &&
-	    endDayOfWeek == 0 && endTime == 0 && endTimeMode == WALL_TIME &&
-	    dstSavings > 0) {
-	    endMonth = Calendar.DECEMBER;
-	    endDay = 31;
-	    endTime = (24 * 60 * 60 * 1000) - dstSavings;
-	    endTimeMode = STANDARD_TIME;
-	}
-
         setID(ID);
         this.rawOffset      = rawOffset;
         this.startMonth     = startMonth;
@@ -352,6 +344,7 @@ public class SimpleTimeZone extends TimeZone {
     public void setStartYear(int year)
     {
         startYear = year;
+	invalidateCache();
     }
 
     /**
@@ -379,8 +372,8 @@ public class SimpleTimeZone extends TimeZone {
         this.startDayOfWeek = startDayOfWeek;
         this.startTime = startTime;
         startTimeMode = WALL_TIME;
-        // useDaylight = true; // Set by decodeRules
         decodeStartRule();
+	invalidateCache();
     }
 
     /**
@@ -425,7 +418,7 @@ public class SimpleTimeZone extends TimeZone {
     public void setStartRule(int startMonth, int startDay, int startDayOfWeek,
 			     int startTime, boolean after)
     {
-	// TODO: this method doesn't check the initial values of dayOfMonth or dsyOfWeek.
+	// TODO: this method doesn't check the initial values of dayOfMonth or dayOfWeek.
         if (after) {
             setStartRule(startMonth, startDay, -startDayOfWeek, startTime);
         } else {
@@ -460,8 +453,8 @@ public class SimpleTimeZone extends TimeZone {
         this.endDayOfWeek = endDayOfWeek;
         this.endTime = endTime;
         this.endTimeMode = WALL_TIME;
-        // useDaylight = true; // Set by decodeRules
         decodeEndRule();
+	invalidateCache();
     }
 
     /**
@@ -533,37 +526,29 @@ public class SimpleTimeZone extends TimeZone {
      * @see TimeZone#getOffsets
      */
     int getOffsets(long date, int[] offsets) {
-	int offset;
+	int offset = rawOffset;
 
-    calc:
-	{
-	    if (!useDaylight) {
-		offset = rawOffset;
-		break calc;
-	    }
-
-	    // get standard local time
-	    CalendarDate cdate = Gregorian.getCalendarDate(date + rawOffset);
-
-	    int year = cdate.getYear();
-	    // if it's BC, assume no DST.
-	    if (year <= 0) {
-		offset = rawOffset;
-		break calc;
-	    }
-	    int month = cdate.getMonth();
-	    int monthLength = staticMonthLength[month];
-	    int prevMonthLength = staticMonthLength[(month + Calendar.DECEMBER) % 12];
-	    if (Gregorian.isLeapYear(year)) {
-		if (month == Calendar.FEBRUARY) { 
-		    ++monthLength;
-		} else if (month == Calendar.MARCH) {
-		    ++prevMonthLength;
+      computeOffset:
+	if (useDaylight) {
+	    synchronized (this) {
+		if (cacheStart != 0) {
+		    if (date >= cacheStart && date < cacheEnd) {
+			offset += dstSavings;
+			break computeOffset;
+		    }
 		}
 	    }
-	    offset = getOffset(GregorianCalendar.AD, year, month, cdate.getDate(), 
-			       cdate.getDayOfWeek(), cdate.getTimeOfDay(),
-			       monthLength, prevMonthLength);
+	    BaseCalendar cal = date >= GregorianCalendar.DEFAULT_GREGORIAN_CUTOVER ?
+		gcal : (BaseCalendar) CalendarSystem.forName("julian");
+	    BaseCalendar.Date cdate = (BaseCalendar.Date) cal.newCalendarDate(TimeZone.NO_TIMEZONE);
+	    // Get the year in local time
+	    cal.getCalendarDate(date + rawOffset, cdate);
+	    int year = cdate.getNormalizedYear();
+	    if (year >= startYear) {
+		// Clear time elements for the transition calculations
+		cdate.setTimeOfDay(0, 0, 0, 0);
+		offset = getOffset(cal, cdate, year, date);
+	    }
 	}
 
 	if (offsets != null) {
@@ -602,232 +587,173 @@ public class SimpleTimeZone extends TimeZone {
     public int getOffset(int era, int year, int month, int day, int dayOfWeek,
                          int millis)
     {
-        // Check the month before indexing into staticMonthLength. This
-	// duplicates the test that occurs in the 7-argument getOffset(),
-	// however, this is unavoidable. We don't mind because this method, in
-	// fact, should not be called; internal code should always call the
-	// 7-argument getOffset(), and outside code should use Calendar.get(int
-	// field) with fields ZONE_OFFSET and DST_OFFSET. We can't get rid of
-	// this method because it's public API. - liu 8/10/98
-        if (month < Calendar.JANUARY
-            || month > Calendar.DECEMBER) {
-            throw new IllegalArgumentException("Illegal month " + month);
+	if (era != GregorianCalendar.AD && era != GregorianCalendar.BC) {
+            throw new IllegalArgumentException("Illegal era " + era);
         }
 
-	int monthLength, prevMonthLength;
-	if ((era == GregorianCalendar.AD) && Gregorian.isLeapYear(year)) {
-	    monthLength = staticLeapMonthLength[month];
-	    prevMonthLength = (month > 1) ? staticLeapMonthLength[month - 1] : 31;
+	int y = year;
+	if (era == GregorianCalendar.BC) {
+	    // adjust y with the GregorianCalendar-style year numbering.
+	    y = 1 - y;
+	}
+
+	// If the year isn't representable with the 64-bit long
+	// integer in milliseconds, convert the year to an
+	// equivalent year. This is required to pass some JCK test cases
+	// which are actually useless though because the specified years
+	// can't be supported by the Java time system.
+	if (y >= 292278994) {
+	    y = 2800 + y % 2800;
+	} else if (y <= -292269054) {
+	    // y %= 28 also produces an equivalent year, but positive
+	    // year numbers would be convenient to use the UNIX cal
+	    // command.
+	    y = (int) CalendarUtils.mod((long) y, 28);
+	}
+
+	// convert year to its 1-based month value
+	int m = month + 1;
+
+	// First, calculate time as a Gregorian date.
+	BaseCalendar cal = gcal;
+	BaseCalendar.Date cdate = (BaseCalendar.Date) cal.newCalendarDate(TimeZone.NO_TIMEZONE);
+	cdate.setDate(y, m, day);
+	long time = cal.getTime(cdate); // normalize cdate
+	time += millis - rawOffset; // UTC time
+
+	// If the time value represents a time before the default
+	// Gregorian cutover, recalculate time using the Julian
+	// calendar system. For the Julian calendar system, the
+	// normalized year numbering is ..., -2 (BCE 2), -1 (BCE 1),
+	// 1, 2 ... which is different from the GregorianCalendar
+	// style year numbering (..., -1, 0 (BCE 1), 1, 2, ...).
+	if (time < GregorianCalendar.DEFAULT_GREGORIAN_CUTOVER) {
+	    cal = (BaseCalendar) CalendarSystem.forName("julian");
+	    cdate = (BaseCalendar.Date) cal.newCalendarDate(TimeZone.NO_TIMEZONE);
+	    cdate.setNormalizedDate(y, m, day);
+	    time = cal.getTime(cdate) + millis - rawOffset;
+	}
+
+	if ((cdate.getNormalizedYear() != y)
+	    || (cdate.getMonth() != m)
+	    || (cdate.getDayOfMonth() != day)
+	    // The validation should be cdate.getDayOfWeek() ==
+	    // dayOfWeek. However, we don't check dayOfWeek for
+	    // compatibility.
+	    || (dayOfWeek < Calendar.SUNDAY || dayOfWeek > Calendar.SATURDAY)
+	    || (millis < 0 || millis >= (24*60*60*1000))) {
+            throw new IllegalArgumentException();
+	}
+
+        if (!useDaylight || year < startYear || era != GregorianCalendar.CE) {
+	    return rawOffset;
+	}
+
+	return getOffset(cal, cdate, y, time);
+    }
+
+    private int getOffset(BaseCalendar cal, BaseCalendar.Date cdate, int year, long time) {
+	synchronized (this) {
+	    if (cacheStart != 0) {
+		if (time >= cacheStart && time < cacheEnd) {
+		    return rawOffset + dstSavings;
+		}
+		if (year == cacheYear) {
+		    return rawOffset;
+		}
+	    }
+	}
+
+	long start = getStart(cal, cdate, year);
+	long end = getEnd(cal, cdate, year);
+	int offset = rawOffset;
+	if (start <= end) {
+	    if (time >= start && time < end) {
+		offset += dstSavings;
+	    }
+	    synchronized (this) {
+		cacheYear = year;
+		cacheStart = start;
+		cacheEnd = end;
+	    }
 	} else {
-	    monthLength = staticMonthLength[month];
-	    prevMonthLength = (month > 1) ? staticMonthLength[month - 1] : 31;
+	    if (time < end) {
+		// TODO: support Gregorian cutover. The previous year
+		// may be in the other calendar system.
+		start = getStart(cal, cdate, year - 1);
+		if (time >= start) {
+		    offset += dstSavings;
+		}
+	    } else if (time >= start) {
+		// TODO: support Gregorian cutover. The next year
+		// may be in the other calendar system.
+		end = getEnd(cal, cdate, year + 1);
+		if (time < end) {
+		    offset += dstSavings;
+		}
+	    }
+	    if (start <= end) {
+		synchronized (this) {
+		    // The start and end transitions are in multiple years.
+		    cacheYear = (long) startYear - 1;
+		    cacheStart = start;
+		    cacheEnd = end;
+		}
+	    }
 	}
-
-	if (true) {
-            /* Use this parameter checking code for normal operation.  Only one
-             * of these two blocks should actually get compiled into the class
-             * file.  */
-            if ((era != GregorianCalendar.AD && era != GregorianCalendar.BC)
-                || month < Calendar.JANUARY
-                || month > Calendar.DECEMBER
-                || day < 1
-                || day > monthLength
-                || dayOfWeek < Calendar.SUNDAY
-                || dayOfWeek > Calendar.SATURDAY
-                || millis < 0
-                || millis >= millisPerDay) {
-                throw new IllegalArgumentException();
-            }
-        } else {
-            /* This parameter checking code is better for debugging, but
-             * overkill for normal operation.  Only one of these two blocks
-             * should actually get compiled into the class file.  */
-            if (era != GregorianCalendar.AD && era != GregorianCalendar.BC) {
-                throw new IllegalArgumentException("Illegal era " + era);
-            }
-            if (month < Calendar.JANUARY
-                || month > Calendar.DECEMBER) {
-                throw new IllegalArgumentException("Illegal month " + month);
-            }
-            if (day < 1 || day > monthLength) {
-                throw new IllegalArgumentException("Illegal day " + day);
-            }
-            if (dayOfWeek < Calendar.SUNDAY
-                || dayOfWeek > Calendar.SATURDAY) {
-                throw new IllegalArgumentException("Illegal day of week " + dayOfWeek);
-            }
-            if (millis < 0 || millis >= millisPerDay) {
-                throw new IllegalArgumentException("Illegal millis " + millis);
-            }
-        }
-
-        return getOffset(era, year, month, day, dayOfWeek, millis,
-			 monthLength, prevMonthLength);
+	return offset;
     }
 
-    /**
-     * Gets offset, for current date, modified in case of
-     * daylight saving time. This is the offset to add <em>to</em> UTC to get local time.
-     * Gets the time zone offset, for current date, modified in case of daylight
-     * saving time. This is the offset to add to UTC to get local time. Assume
-     * that the start and end month are distinct.
-     * @param era           The era of the given date.
-     * @param year          The year in the given date.
-     * @param month         The month in the given date. Month is 0-based. e.g.,
-     *                      0 for January.
-     * @param day           The day-in-month of the given date.
-     * @param dayOfWeek     The day-of-week of the given date.
-     * @param millis        The milliseconds in day in <em>standard</em> local time.
-     * @param monthLength   The length of the given month in days.
-     * @param prevMonthLength The length of the previous month in days.
-     * @return              The offset to add to GMT to get local time.
-     * @exception IllegalArgumentException the era, month, day,
-     * dayOfWeek, millis, or monthLength parameters are out of range
-     */
-    private int getOffset(int era, int year, int month, int day, int dayOfWeek,
-			  int millis, int monthLength, int prevMonthLength) {
-        int result = rawOffset;
-
-        // Bail out if we are before the onset of daylight saving time
-        if (!useDaylight || year < startYear || era != GregorianCalendar.AD) {
-	    return result;
+    private long getStart(BaseCalendar cal, BaseCalendar.Date cdate, int year) {
+	int time = startTime;
+	if (startTimeMode != UTC_TIME) {
+	    time -= rawOffset;
 	}
-
-        // Check for southern hemisphere.  We assume that the start and end
-        // month are different.
-        boolean southern = (startMonth > endMonth);
-
-        // Compare the date to the starting and ending rules.+1 = date>rule, -1
-        // = date<rule, 0 = date==rule.
-        int startCompare = compareToRule(month, monthLength, prevMonthLength,
-                                         day, dayOfWeek, millis,
-                                         startTimeMode == UTC_TIME ? -rawOffset : 0,
-                                         startMode, startMonth, startDayOfWeek,
-                                         startDay, startTime);
-        int endCompare = 0;
-
-        /* We don't always have to compute endCompare.  For many instances,
-         * startCompare is enough to determine if we are in DST or not.  In the
-         * northern hemisphere, if we are before the start rule, we can't have
-         * DST.  In the southern hemisphere, if we are after the start rule, we
-         * must have DST.  This is reflected in the way the next if statement
-         * (not the one immediately following) short circuits. */
-        if (southern != (startCompare >= 0)) {
-            /* For the ending rule comparison, we add the dstSavings to the millis
-             * passed in to convert them from standard to wall time.  We then must
-             * normalize the millis to the range 0..millisPerDay-1. */
-            endCompare = compareToRule(month, monthLength, prevMonthLength,
-                                       day, dayOfWeek, millis,
-                                       endTimeMode == WALL_TIME ? dstSavings :
-                                        (endTimeMode == UTC_TIME ? -rawOffset : 0),
-                                       endMode, endMonth, endDayOfWeek,
-                                       endDay, endTime);
-        }
-
-        // Check for both the northern and southern hemisphere cases.  We
-        // assume that in the northern hemisphere, the start rule is before the
-        // end rule within the calendar year, and vice versa for the southern
-        // hemisphere.
-        if ((!southern && (startCompare >= 0 && endCompare < 0)) ||
-		(southern && (startCompare >= 0 || endCompare < 0))) {
-            result += dstSavings;
-	}
-
-        return result;
+	return getTransition(cal, cdate, startMode, year, startMonth, startDay,
+			     startDayOfWeek, time);
     }
 
-    /**
-     * Compares the given date in the year to the given rule and returns 1, 0,
-     * or -1, depending on whether the date is after, equal to, or before the
-     * rule date. The millis are compared directly against the ruleMillis, so
-     * any standard-daylight adjustments must be handled by the caller.
-     *
-     * @return  1 if the date is after the rule date, -1 if the date is before
-     *          the rule date, or 0 if the date is equal to the rule date.
-     */
-    private static int compareToRule(int month, int monthLen, int prevMonthLen,
-                                     int dayOfMonth,
-                                     int dayOfWeek, int millis, int millisDelta,
-                                     int ruleMode, int ruleMonth, int ruleDayOfWeek,
-                                     int ruleDay, int ruleMillis)
-    {
-        // Make adjustments for startTimeMode and endTimeMode
-        millis += millisDelta;
-        while (millis >= millisPerDay) {
-            millis -= millisPerDay;
-            ++dayOfMonth;
-            dayOfWeek = 1 + (dayOfWeek % 7); // dayOfWeek is one-based
-            if (dayOfMonth > monthLen) {
-                dayOfMonth = 1;
-                /* When incrementing the month, it is desirable to overflow
-                 * from DECEMBER to DECEMBER+1, since we use the result to
-                 * compare against a real month. Wraparound of the value
-                 * leads to bug 4173604. */
-                ++month;
-            }
-        }
-        while (millis < 0) {
-            millis += millisPerDay;
-            --dayOfMonth;
-            dayOfWeek = 1 + ((dayOfWeek+5) % 7); // dayOfWeek is one-based
-            if (dayOfMonth < 1) {
-                dayOfMonth = prevMonthLen;
-                --month;
-            }
-        }
-        
-        if (month < ruleMonth) {
-	    return -1;
+    private long getEnd(BaseCalendar cal, BaseCalendar.Date cdate, int year) {
+	int time = endTime;
+	if (startTimeMode != UTC_TIME) {
+	    time -= rawOffset;
 	}
-        if (month > ruleMonth) {
-	    return 1;
+	if (startTimeMode == WALL_TIME) {
+	    time -= dstSavings;
 	}
+	return getTransition(cal, cdate, endMode, year, endMonth, endDay,
+					endDayOfWeek, time);
+    }
 
-        int ruleDayOfMonth = 0;
-        switch (ruleMode) {
-        case DOM_MODE:
-            ruleDayOfMonth = ruleDay;
-            break;
+    private long getTransition(BaseCalendar cal, BaseCalendar.Date cdate,
+			       int mode, int year, int month, int dayOfMonth,
+			       int dayOfWeek, int timeOfDay) {
+	cdate.setNormalizedYear(year);
+	cdate.setMonth(month + 1);
+	switch (mode) {
+	case DOM_MODE:
+	    cdate.setDayOfMonth(dayOfMonth);
+	    break;
 
-        case DOW_IN_MONTH_MODE:
-            // In this case ruleDay is the day-of-week-in-month
-            if (ruleDay > 0) {
-                ruleDayOfMonth = 1 + (ruleDay - 1) * 7 +
-                    (7 + ruleDayOfWeek - (dayOfWeek - dayOfMonth + 1)) % 7;
-            } else {
-		// Assume ruleDay < 0 here
-                ruleDayOfMonth = monthLen + (ruleDay + 1) * 7 -
-                    (7 + (dayOfWeek + monthLen - dayOfMonth) - ruleDayOfWeek) % 7;
-            }
-            break;
+	case DOW_IN_MONTH_MODE:
+	    cdate.setDayOfMonth(1);
+	    if (dayOfMonth < 0) {
+		cdate.setDayOfMonth(cal.getMonthLength(cdate));
+	    }
+	    cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(dayOfMonth, dayOfWeek, cdate);
+	    break;
 
-        case DOW_GE_DOM_MODE:
-            ruleDayOfMonth = ruleDay +
-                (49 + ruleDayOfWeek - ruleDay - dayOfWeek + dayOfMonth) % 7;
-            break;
+	case DOW_GE_DOM_MODE:
+	    cdate.setDayOfMonth(dayOfMonth);
+	    cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(1, dayOfWeek, cdate);
+	    break;
 
-        case DOW_LE_DOM_MODE:
-            ruleDayOfMonth = ruleDay -
-                (49 - ruleDayOfWeek + ruleDay + dayOfWeek - dayOfMonth) % 7;
-            // Note at this point ruleDayOfMonth may be <1, although it will
-            // be >=1 for well-formed rules.
-            break;
-        }
-
-        if (dayOfMonth < ruleDayOfMonth) {
-	    return -1;
+	case DOW_LE_DOM_MODE:
+	    cdate.setDayOfMonth(dayOfMonth);
+	    cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(-1, dayOfWeek, cdate);
+	    break;
 	}
-        if (dayOfMonth > ruleDayOfMonth) {
-	    return 1;
-	}
-
-        if (millis < ruleMillis) {
-	    return -1;
-	}
-	if (millis > ruleMillis) {
-	    return 1;
-	}
-	return 0;
+	return cal.getTime(cdate) + timeOfDay;
     }
 
     /**
@@ -914,7 +840,7 @@ public class SimpleTimeZone extends TimeZone {
      */
     public Object clone()
     {
-        return super.clone();
+	return super.clone();
     }
 
     /**
@@ -950,9 +876,9 @@ public class SimpleTimeZone extends TimeZone {
     }
 
     /**
-     * Returns true if this zone has the same rules and offset as another zone.
+     * Returns <code>true</code> if this zone has the same rules and offset as another zone.
      * @param other the TimeZone object to be compared with
-     * @return true if the given zone is a SimpleTimeZone and has the
+     * @return <code>true</code> if the given zone is a SimpleTimeZone and has the
      * same rules and offset as this one
      * @since 1.2
      */
@@ -1127,16 +1053,17 @@ public class SimpleTimeZone extends TimeZone {
     private int endTime;
 
     /**
-     * The format of endTime, either WALL_TIME, STANDARD_TIME, or UTC_TIME.
+     * The format of endTime, either <code>WALL_TIME</code>,
+     * <code>STANDARD_TIME</code>, or <code>UTC_TIME</code>.
      * @serial
      * @since 1.3
      */
     private int endTimeMode;
 
     /**
-     * The year in which daylight saving time is first observed.  This is an AD
+     * The year in which daylight saving time is first observed.  This is an {@link GregorianCalendar#AD AD}
      * value.  If this value is less than 1 then daylight saving time is observed
-     * for all AD years.
+     * for all <code>AD</code> years.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
      * @serial
      */
@@ -1241,6 +1168,24 @@ public class SimpleTimeZone extends TimeZone {
      */
     private int dstSavings;
 
+    private static final Gregorian gcal = CalendarSystem.getGregorianCalendar();
+
+    /**
+     * Cache values representing a single period of daylight saving
+     * time. When the cache values are valid, cacheStart is the start
+     * time (inclusive) of daylight saving time and cacheEnd is the
+     * end time (exclusive).
+     *
+     * cacheYear has a year value if both cacheStart and cacheEnd are
+     * in the same year. cacheYear is set to startYear - 1 if
+     * cacheStart and cacheEnd are in different years. cacheStart is 0
+     * if the cache values are void. cacheYear is a long to support
+     * Integer.MIN_VALUE - 1 (JCK requirement).
+     */
+    private transient long cacheYear;  
+    private transient long cacheStart;
+    private transient long cacheEnd;
+
     /**
      * Constants specifying values of startMode and endMode.
      */
@@ -1304,6 +1249,11 @@ public class SimpleTimeZone extends TimeZone {
      * @since 1.1.4
      */
     private int serialVersionOnStream = currentSerialVersion;
+
+    synchronized private void invalidateCache() {
+	cacheYear = startYear - 1;
+	cacheStart = cacheEnd = 0;
+    }
 
     //----------------------------------------------------------------------
     // Rule representation

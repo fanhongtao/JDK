@@ -1,7 +1,7 @@
 /*
- * @(#)BasicEditorPaneUI.java	1.30 03/01/23
+ * @(#)BasicEditorPaneUI.java	1.32 04/07/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import javax.swing.*;
 import javax.swing.text.*;
+import javax.swing.text.html.*;
 import javax.swing.plaf.*;
 import javax.swing.border.*;
 
@@ -30,7 +31,7 @@ import javax.swing.border.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.30 01/23/03
+ * @version 1.32 07/23/04
  */
 public class BasicEditorPaneUI extends BasicTextUI {
 
@@ -62,6 +63,27 @@ public class BasicEditorPaneUI extends BasicTextUI {
 	return "EditorPane";
     }
 
+    /**
+     *{@inheritDoc}
+     *
+     * @since 1.5
+     */
+    public void installUI(JComponent c) {
+        super.installUI(c);
+        updateDisplayProperties(c.getFont(),
+                                c.getForeground());
+    }
+
+    /**
+     *{@inheritDoc}
+     *
+     * @since 1.5
+     */
+    public void uninstallUI(JComponent c) {
+        cleanDisplayProperties();
+        super.uninstallUI(c);
+    }
+    
     /**
      * Fetches the EditorKit for the UI.  This is whatever is
      * currently set in the associated JEditorPane.
@@ -108,7 +130,8 @@ public class BasicEditorPaneUI extends BasicTextUI {
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
-	if (evt.getPropertyName().equals("editorKit")) {
+        String name = evt.getPropertyName();
+	if ("editorKit".equals(name)) {
 	    ActionMap map = SwingUtilities.getUIActionMap(getComponent());
 	    if (map != null) {
 		Object oldValue = evt.getOldValue();
@@ -127,9 +150,35 @@ public class BasicEditorPaneUI extends BasicTextUI {
 		}
 	    }
 	    updateFocusTraversalKeys();
-	} else if ("editable".equals(evt.getPropertyName())) {
+	} else if ("editable".equals(name)) {
 	    updateFocusTraversalKeys();
-	}
+	} else if ("foreground".equals(name)
+                   || "font".equals(name)
+                   || "document".equals(name)
+                   || JEditorPane.W3C_LENGTH_UNITS.equals(name)
+                   || JEditorPane.HONOR_DISPLAY_PROPERTIES.equals(name)
+                   ) {
+            JComponent c = getComponent();
+            updateDisplayProperties(c.getFont(), c.getForeground());
+            if ( JEditorPane.W3C_LENGTH_UNITS.equals(name)
+                 || JEditorPane.HONOR_DISPLAY_PROPERTIES.equals(name) ) {
+                modelChanged();
+            }
+            if ("foreground".equals(name)) {
+                Object honorDisplayPropertiesObject = c.
+                    getClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES);
+                boolean honorDisplayProperties = false;
+                if (honorDisplayPropertiesObject instanceof Boolean) {
+                    honorDisplayProperties = 
+                        ((Boolean)honorDisplayPropertiesObject).booleanValue();
+                }
+                if (honorDisplayProperties) {
+                    modelChanged();
+                }
+            }
+
+               
+        }
     }
 
     void removeActions(ActionMap map, Action[] actions) {
@@ -148,6 +197,152 @@ public class BasicEditorPaneUI extends BasicTextUI {
 	}
     }
 
+    void updateDisplayProperties(Font font, Color fg) {
+        JComponent c = getComponent();
+        Object honorDisplayPropertiesObject = c.
+            getClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES);
+        boolean honorDisplayProperties = false;
+        Object w3cLengthUnitsObject = c.getClientProperty(JEditorPane.
+                                                          W3C_LENGTH_UNITS);
+        boolean w3cLengthUnits = false;
+        if (honorDisplayPropertiesObject instanceof Boolean) {
+            honorDisplayProperties = 
+                ((Boolean)honorDisplayPropertiesObject).booleanValue();
+        }
+        if (w3cLengthUnitsObject instanceof Boolean) {
+            w3cLengthUnits = ((Boolean)w3cLengthUnitsObject).booleanValue();
+        }
+        if (this instanceof BasicTextPaneUI
+            || honorDisplayProperties) {
+             //using equals because can not use UIResource for Boolean
+            Document doc = getComponent().getDocument();
+            if (doc instanceof StyledDocument) {
+                if (doc instanceof HTMLDocument
+                    && honorDisplayProperties) {
+                    updateCSS(font, fg);
+                } else {
+                    updateStyle(font, fg);
+                }
+            }
+        } else {
+            cleanDisplayProperties();
+        }
+        if ( w3cLengthUnits ) {
+            Document doc = getComponent().getDocument();
+            if (doc instanceof HTMLDocument) {
+                StyleSheet documentStyleSheet = 
+                    ((HTMLDocument)doc).getStyleSheet();
+                documentStyleSheet.addRule("W3C_LENGTH_UNITS_ENABLE");
+            }
+        } else {
+            Document doc = getComponent().getDocument();
+            if (doc instanceof HTMLDocument) {
+                StyleSheet documentStyleSheet = 
+                    ((HTMLDocument)doc).getStyleSheet();
+                documentStyleSheet.addRule("W3C_LENGTH_UNITS_DISABLE");
+            }
+
+        }
+    }
+
+    void cleanDisplayProperties() {
+        Document document = getComponent().getDocument();
+        if (document instanceof HTMLDocument) {
+            StyleSheet documentStyleSheet = 
+                ((HTMLDocument)document).getStyleSheet();
+            StyleSheet[] styleSheets = documentStyleSheet.getStyleSheets();
+            if (styleSheets != null) {
+                for (StyleSheet s : styleSheets) {
+                    if (s instanceof StyleSheetUIResource) {
+                        documentStyleSheet.removeStyleSheet(s);
+                        documentStyleSheet.addRule("BASE_SIZE_DISABLE");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    static class StyleSheetUIResource extends StyleSheet implements UIResource {
+    }
+    
+    private void updateCSS(Font font, Color fg) {
+        JTextComponent component = getComponent();
+        Document document = component.getDocument();
+        if (document instanceof HTMLDocument) {
+            StyleSheet styleSheet = new StyleSheetUIResource();
+            StyleSheet documentStyleSheet = 
+                ((HTMLDocument)document).getStyleSheet();
+            StyleSheet[] styleSheets = documentStyleSheet.getStyleSheets();
+            if (styleSheets != null) {
+                for (StyleSheet s : styleSheets) {
+                    if (s instanceof StyleSheetUIResource) {
+                        documentStyleSheet.removeStyleSheet(s);
+                    }
+                }
+            }
+            String cssRule = com.sun.java.swing.
+                SwingUtilities2.displayPropertiesToCSS(font,
+                                                       fg);
+            styleSheet.addRule(cssRule);
+            documentStyleSheet.addStyleSheet(styleSheet);
+            documentStyleSheet.addRule("BASE_SIZE " + 
+                                       component.getFont().getSize());
+        }
+    }
+
+    private void updateStyle(Font font, Color fg) {
+        updateFont(font);
+        updateForeground(fg);
+    }
+
+    /**
+     * Update the color in the default style of the document.
+     *
+     * @param color the new color to use or null to remove the color attribute
+     *              from the document's style
+     */
+    private void updateForeground(Color color) {
+        StyledDocument doc = (StyledDocument)getComponent().getDocument();
+        Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
+
+        if (style == null) {
+            return;
+        }
+
+        if (color == null) {
+            style.removeAttribute(StyleConstants.Foreground);
+        } else {
+            StyleConstants.setForeground(style, color);
+        }
+    }
+    
+    /**
+     * Update the font in the default style of the document.
+     *
+     * @param font the new font to use or null to remove the font attribute
+     *             from the document's style
+     */
+    private void updateFont(Font font) {
+        StyledDocument doc = (StyledDocument)getComponent().getDocument();
+        Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
+
+        if (style == null) {
+            return;
+        }
+
+        if (font == null) {
+            style.removeAttribute(StyleConstants.FontFamily);
+            style.removeAttribute(StyleConstants.FontSize);
+            style.removeAttribute(StyleConstants.Bold);
+            style.removeAttribute(StyleConstants.Italic);
+        } else {
+            StyleConstants.setFontFamily(style, font.getName());
+            StyleConstants.setFontSize(style, font.getSize());
+            StyleConstants.setBold(style, font.isBold());
+            StyleConstants.setItalic(style, font.isItalic());
+        }
+    }
 }
 
 

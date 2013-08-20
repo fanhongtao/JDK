@@ -1,7 +1,7 @@
 /*
- * @(#)JarOutputStream.java	1.21 03/01/23
+ * @(#)JarOutputStream.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.io.*;
  * the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.21, 01/23/03
+ * @version 1.22, 12/19/03
  * @see	    Manifest
  * @see	    java.util.zip.ZipOutputStream
  * @since   1.2

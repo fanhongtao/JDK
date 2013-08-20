@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsRootPaneUI.java	1.13 04/05/06
+ * @(#)WindowsRootPaneUI.java	1.15 04/04/16
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,11 +21,11 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.AbstractButton;
-import javax.swing.JLabel;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -43,7 +43,7 @@ import javax.swing.plaf.basic.ComboPopup;
  * Windows implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.13 05/06/04
+ * @version 1.15 04/16/04
  * @author Mark Davidson
  * @since 1.4
  */
@@ -62,33 +62,6 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
         static JRootPane root = null;
         static Window winAncestor = null;
 
-        void repaintMnemonicsInWindow(Window w) {
-            if(w == null || !w.isShowing()) {
-                return;
-            }
-
-            Window[] ownedWindows = w.getOwnedWindows();
-            for(int i=0;i<ownedWindows.length;i++) {
-                repaintMnemonicsInWindow(ownedWindows[i]);
-            }
-
-            repaintMnemonicsInComponents(w.getComponents());
-        }
-
-        void repaintMnemonicsInComponents(Component[] c) {
-            for(int i=0;i<c.length;i++) {
-                if((c[i] instanceof JLabel) || (c[i] instanceof AbstractButton)
-                   && ((AbstractButton)c[i]).getMnemonic() != '\0') {
-                    c[i].repaint();
-                    continue;
-                }
-                if(c[i] instanceof Container) {
-                    repaintMnemonicsInComponents(
-                      ((Container)c[i]).getComponents());
-                }
-            }
-        }
-
         void altPressed(KeyEvent ev) {
             MenuSelectionManager msm =
                 MenuSelectionManager.defaultManager();
@@ -100,12 +73,12 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
             } else if(path.length > 0) { // We are in ComboBox
                 menuCanceledOnPress = false;
                 WindowsLookAndFeel.setMnemonicHidden(false);
-                repaintMnemonicsInWindow(winAncestor);
+                WindowsUtils.repaintMnemonicsInWindow(winAncestor);
                 ev.consume();
             } else {
                 menuCanceledOnPress = false;
 	        WindowsLookAndFeel.setMnemonicHidden(false);
-                repaintMnemonicsInWindow(winAncestor);
+                WindowsUtils.repaintMnemonicsInWindow(winAncestor);
                 JMenuBar mbar = root != null ? root.getJMenuBar() : null;
                 if(mbar == null && winAncestor instanceof JFrame) {
                     mbar = ((JFrame)winAncestor).getJMenuBar();
@@ -120,7 +93,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
         void altReleased(KeyEvent ev) {
             if (menuCanceledOnPress) {
 	        WindowsLookAndFeel.setMnemonicHidden(true);
-                repaintMnemonicsInWindow(winAncestor);
+                WindowsUtils.repaintMnemonicsInWindow(winAncestor);
                 return;
             }
 
@@ -142,12 +115,12 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
                     msm.setSelectedPath(path);
                 } else if(!WindowsLookAndFeel.isMnemonicHidden()) {
                     WindowsLookAndFeel.setMnemonicHidden(true);
-                    repaintMnemonicsInWindow(winAncestor);
+                    WindowsUtils.repaintMnemonicsInWindow(winAncestor);
                 }
             } else {
                 if((msm.getSelectedPath())[0] instanceof ComboPopup) {
                     WindowsLookAndFeel.setMnemonicHidden(true);
-                    repaintMnemonicsInWindow(winAncestor);
+                    WindowsUtils.repaintMnemonicsInWindow(winAncestor);
                 }
             }
 
@@ -156,8 +129,8 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
         public boolean postProcessKeyEvent(KeyEvent ev) {
             if (ev.getKeyCode() == KeyEvent.VK_ALT) {
                 root = SwingUtilities.getRootPane(ev.getComponent());
-                winAncestor = (root == null ? null :
-                	SwingUtilities.getWindowAncestor(root));
+                winAncestor = (root == null ? null : 
+                        SwingUtilities.getWindowAncestor(root));
 
                 if (ev.getID() == KeyEvent.KEY_PRESSED) {
                     if (!altKeyPressed) {
@@ -174,11 +147,13 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
                         MenuElement[] path = msm.getSelectedPath();
                         if (path.length <= 0) {
                             WindowsLookAndFeel.setMnemonicHidden(true);
-                            repaintMnemonicsInWindow(winAncestor);
+                            WindowsUtils.repaintMnemonicsInWindow(winAncestor);
                         }
                     }
                     altKeyPressed = false;
                 }
+                root = null;
+                winAncestor = null;
             } else {
                 altKeyPressed = false;
             }

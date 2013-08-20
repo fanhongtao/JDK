@@ -1,7 +1,7 @@
 /*
- * @(#)KeyImpl.java	1.9 03/01/23
+ * @(#)KeyImpl.java	1.13 04/04/01
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,10 +26,14 @@ import sun.security.util.DerValue;
  * with a principal and may represent an ephemeral session key.
  *
  * @author Mayank Upadhyay
- * @version 1.9, 01/23/03
+ * @version 1.13, 04/01/04
  * @since 1.4
+ * 
+ * @serial include
  */
 class KeyImpl implements SecretKey, Destroyable, Serializable {
+
+    private static final long serialVersionUID = -7889313790214321193L;
 
     private transient byte[] keyBytes;
     private transient int keyType;
@@ -66,8 +70,7 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
 	try {
 	    PrincipalName princ = new PrincipalName(principal.getName());
 	    EncryptionKey key = 
-		new EncryptionKey(new StringBuffer().append(password), 
-				princ.getSalt(),algorithm);
+		new EncryptionKey(password, princ.getSalt(),algorithm);
 	    this.keyBytes = key.getBytes();
 	    this.keyType = key.getEType();
 	} catch (KrbException e) {
@@ -95,12 +98,22 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
     private String getAlgorithmName(int eType) {
 	if (destroyed)
 	    throw new IllegalStateException("This key is no longer valid");
-	if (eType == EncryptedData.ETYPE_NULL)
-	    return "NULL";
-	else 
-	    //	    if (eType == ETYPE_DES_CBC_CRC ||
-	    //		eType == ETYPE_DES_CBC_MD5)
+
+	switch (eType) {
+	case EncryptedData.ETYPE_DES_CBC_CRC:
+	case EncryptedData.ETYPE_DES_CBC_MD5:
 	    return "DES";
+
+	case EncryptedData.ETYPE_DES3_CBC_HMAC_SHA1_KD:
+	    return "DESede";
+
+	case EncryptedData.ETYPE_NULL:
+	    return "NULL";
+
+	default:
+	    throw new IllegalArgumentException(
+		"Unsupported encryption type: " + eType);
+	}
     }
     
     public final String getFormat() {

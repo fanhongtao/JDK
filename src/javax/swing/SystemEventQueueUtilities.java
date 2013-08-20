@@ -1,7 +1,7 @@
 /*
- * @(#)SystemEventQueueUtilities.java	1.37 03/01/23
+ * @(#)SystemEventQueueUtilities.java	1.39 04/02/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -35,11 +35,8 @@ class SystemEventQueueUtilities
     private static final Object classLock = new Object();
 
 
-    private static final Object rootTableKey = new Object() {
-	public String toString() {
-	   return "SystemEventQueueUtilties.rootTableKey";
-	}
-    };
+    private static final Object rootTableKey =
+                new StringBuffer("SystemEventQueueUtilties.rootTableKey");
 
     private static Map getRootTable() {
 	Map rt = (Map)AppContext.getAppContext().get(rootTableKey);
@@ -47,7 +44,7 @@ class SystemEventQueueUtilities
 	    synchronized (rootTableKey) {
 		rt = (Map)AppContext.getAppContext().get(rootTableKey);
 		if (rt == null) {
-		    rt = new WeakHashMap(4);
+		    rt = Collections.synchronizedMap(new WeakHashMap(4));
 		    AppContext.getAppContext().put(rootTableKey, rt);
 		}
 	    }

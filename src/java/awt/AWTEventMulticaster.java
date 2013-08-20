@@ -1,7 +1,7 @@
 /*
- * @(#)AWTEventMulticaster.java	1.35 03/01/23
+ * @(#)AWTEventMulticaster.java	1.37 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -50,7 +50,7 @@ import java.util.EventListener;
  *
  * @author      John Rose
  * @author 	Amy Fowler
- * @version 	1.35, 01/23/03
+ * @version 	1.37, 05/05/04
  * @since 	1.1
  */
 
@@ -943,11 +943,12 @@ public class AWTEventMulticaster implements
      *
      * @since 1.4
      */
-    public static EventListener[] getListeners(EventListener l, 
-                                               Class listenerType) {  
+    public static <T extends EventListener> T[]
+	getListeners(EventListener l, Class<T> listenerType)
+    {
         int n = getListenerCount(l, listenerType); 
-        EventListener[] result = (EventListener[])Array.newInstance(listenerType, n); 
-        populateListenerArray(result, l, 0); 
-        return result; 
+        T[] result = (T[])Array.newInstance(listenerType, n);
+        populateListenerArray(result, l, 0);
+        return result;
     }
 }

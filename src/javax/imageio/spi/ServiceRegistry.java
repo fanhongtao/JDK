@@ -1,7 +1,7 @@
 /*
- * @(#)ServiceRegistry.java	1.18 03/01/23
+ * @(#)ServiceRegistry.java	1.22 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -95,7 +95,7 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if
      * <code>categories</code> is <code>null</code>.
      */
-    public ServiceRegistry(Iterator categories) {
+    public ServiceRegistry(Iterator<Class<?>> categories) {
         if (categories == null) {
             throw new IllegalArgumentException("categories == null!");
         }
@@ -149,8 +149,9 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if
      * <code>providerClass</code> is <code>null</code>.
      */
-    public static Iterator lookupProviders(Class providerClass, 
-					   ClassLoader loader) {
+    public static <T> Iterator<T> lookupProviders(Class<T> providerClass, 
+						  ClassLoader loader)
+    {
         if (providerClass == null) {
             throw new IllegalArgumentException("providerClass == null!");
         }
@@ -179,7 +180,7 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if
      * <code>providerClass</code> is <code>null</code>.
      */
-    public static Iterator lookupProviders(Class providerClass) {
+    public static <T> Iterator<T> lookupProviders(Class<T> providerClass) {
         if (providerClass == null) {
             throw new IllegalArgumentException("providerClass == null!");
         }
@@ -194,7 +195,7 @@ public class ServiceRegistry {
      * @return an <code>Iterator</code> containing
      * <code>Class</code>objects.
      */
-    public Iterator getCategories() {
+    public Iterator<Class<?>> getCategories() {
         Set keySet = categoryMap.keySet();
         return keySet.iterator();
     }
@@ -240,8 +241,8 @@ public class ServiceRegistry {
      * @exception ClassCastException if provider does not implement
      * the <code>Class</code> defined by <code>category</code>.
      */
-    public boolean registerServiceProvider(Object provider,
-                                           Class category) {
+    public <T> boolean registerServiceProvider(T provider,
+					       Class<T> category) {
         if (provider == null) {
             throw new IllegalArgumentException("provider == null!");
         }
@@ -305,7 +306,7 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if <code>providers</code>
      * is <code>null</code> or contains a <code>null</code> entry.
      */
-    public void registerServiceProviders(Iterator providers) {
+    public void registerServiceProviders(Iterator<?> providers) {
         if (providers == null) {
             throw new IllegalArgumentException("provider == null!");
         }
@@ -342,8 +343,8 @@ public class ServiceRegistry {
      * @exception ClassCastException if provider does not implement
      * the class defined by <code>category</code>.
      */
-    public boolean deregisterServiceProvider(Object provider,
-                                             Class category) {
+    public <T> boolean deregisterServiceProvider(T provider,
+						 Class<T> category) {
         if (provider == null) {
             throw new IllegalArgumentException("provider == null!");
         }
@@ -424,8 +425,8 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if there is no category
      * corresponding to <code>category</code>.
      */
-    public Iterator getServiceProviders(Class category,
-                                        boolean useOrdering) {
+    public <T> Iterator<T> getServiceProviders(Class<T> category,
+					       boolean useOrdering) {
         SubRegistry reg = (SubRegistry)categoryMap.get(category);
         if (reg == null) {
             throw new IllegalArgumentException("category unknown!");
@@ -479,9 +480,9 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if there is no category
      * corresponding to <code>category</code>.
      */
-    public Iterator getServiceProviders(Class category,
-                                        Filter filter,
-                                        boolean useOrdering) {
+    public <T> Iterator<T> getServiceProviders(Class<T> category,
+					       Filter filter,
+					       boolean useOrdering) {
         SubRegistry reg = (SubRegistry)categoryMap.get(category);
         if (reg == null) {
             throw new IllegalArgumentException("category unknown!");
@@ -507,7 +508,7 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if <code>providerClass</code> is
      * <code>null</code>.
      */
-    public Object getServiceProviderByClass(Class providerClass) {
+    public <T> T getServiceProviderByClass(Class<T> providerClass) {
         if (providerClass == null) {
             throw new IllegalArgumentException("providerClass == null!");
         }
@@ -516,7 +517,7 @@ public class ServiceRegistry {
             Class c = (Class)iter.next();
             if (c.isAssignableFrom(providerClass)) {
                 SubRegistry reg = (SubRegistry)categoryMap.get(c);
-                Object provider = reg.getServiceProviderByClass(providerClass);
+                T provider = reg.getServiceProviderByClass(providerClass);
                 if (provider != null) {
                     return provider;
                 }
@@ -552,9 +553,9 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if there is no category
      * corresponding to <code>category</code>.
      */
-    public boolean setOrdering(Class category,
-                               Object firstProvider,
-                               Object secondProvider) {
+    public <T> boolean setOrdering(Class<T> category,
+				   T firstProvider,
+				   T secondProvider) {
         if (firstProvider == null || secondProvider == null) {
             throw new IllegalArgumentException("provider is null!");
         }
@@ -597,9 +598,9 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if there is no category
      * corresponding to <code>category</code>.
      */
-    public boolean unsetOrdering(Class category,
-                                 Object firstProvider,
-                                 Object secondProvider) {
+    public <T> boolean unsetOrdering(Class<T> category,
+				     T firstProvider,
+				     T secondProvider) {
         if (firstProvider == null || secondProvider == null) {
             throw new IllegalArgumentException("provider is null!");
         }
@@ -626,7 +627,7 @@ public class ServiceRegistry {
      * @exception IllegalArgumentException if there is no category
      * corresponding to <code>category</code>.
      */
-    public void deregisterAll(Class category) {
+    public void deregisterAll(Class<?> category) {
         SubRegistry reg = (SubRegistry)categoryMap.get(category);
         if (reg == null) {
             throw new IllegalArgumentException("category unknown!");
@@ -644,7 +645,6 @@ public class ServiceRegistry {
             SubRegistry reg = (SubRegistry)iter.next();
             reg.clear();
         }
-        categoryMap.clear();
     }
 
     /**
@@ -677,7 +677,7 @@ class SubRegistry {
     PartiallyOrderedSet poset = new PartiallyOrderedSet();
 
     // Class -> Provider Object of that class
-    Map map = new HashMap();
+    Map<Class<?>,Object> map = new HashMap();
 
     public SubRegistry(ServiceRegistry registry, Class category) {
         this.registry = registry;
@@ -685,8 +685,12 @@ class SubRegistry {
     }
 
     public boolean registerServiceProvider(Object provider) {
-        boolean present = map.get(provider.getClass()) != null;
+        Object oprovider = map.get(provider.getClass());
+        boolean present =  oprovider != null;
 
+        if (present) {
+            deregisterServiceProvider(oprovider);
+        }
         map.put(provider.getClass(), provider);
         poset.add(provider);
         if (provider instanceof RegisterableService) {
@@ -741,8 +745,8 @@ class SubRegistry {
         }
     }
 
-    public Object getServiceProviderByClass(Class providerClass) {
-        return map.get(providerClass);
+    public <T> T getServiceProviderByClass(Class<T> providerClass) {
+        return (T)map.get(providerClass);
     }
 
     public void clear() {
@@ -769,14 +773,14 @@ class SubRegistry {
  * A class for wrapping <code>Iterators</code> with a filter function.
  * This provides an iterator for a subset without duplication.
  */
-class FilterIterator implements Iterator {
+class FilterIterator<T> implements Iterator<T> {
 
-    private Iterator iter;
+    private Iterator<T> iter;
     private ServiceRegistry.Filter filter;
 
-    private Object next = null;
+    private T next = null;
 
-    public FilterIterator(Iterator iter,
+    public FilterIterator(Iterator<T> iter,
                           ServiceRegistry.Filter filter) {
         this.iter = iter;
         this.filter = filter;
@@ -785,7 +789,7 @@ class FilterIterator implements Iterator {
 
     private void advance() {
         while (iter.hasNext()) {
-            Object elt = iter.next();
+            T elt = iter.next();
             if (filter.filter(elt)) {
                 next = elt;
                 return;
@@ -799,11 +803,11 @@ class FilterIterator implements Iterator {
         return next != null;
     }
 
-    public Object next() {
+    public T next() {
         if (next == null) {
             throw new NoSuchElementException();
         }
-        Object o = next;
+        T o = next;
         advance();
         return o;
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)PopupMenu.java	1.27 03/01/23
+ * @(#)PopupMenu.java	1.29 04/03/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import javax.accessibility.*;
  * (e.g., you add it to a <code>MenuBar</code>), then you <b>cannot</b>
  * call <code>show</code> on that <code>PopupMenu</code>.
  *
- * @version	1.27 01/23/03
+ * @version	1.29 03/16/04
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {
@@ -171,7 +171,12 @@ public class PopupMenu extends Menu {
      * <p>
      * The class used to obtain the accessible role for this object.
      */
-    protected class AccessibleAWTPopupMenu extends AccessibleAWTMenu {
+    protected class AccessibleAWTPopupMenu extends AccessibleAWTMenu
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = -4282044795947239955L;
 
         /**
          * Get the role of this object.

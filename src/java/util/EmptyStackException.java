@@ -1,7 +1,7 @@
 /*
- * @(#)EmptyStackException.java	1.19 03/01/23
+ * @(#)EmptyStackException.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.util;
  * that the stack is empty. 
  *
  * @author  Jonathan Payne
- * @version 1.19, 01/23/03
+ * @version 1.20, 12/19/03
  * @see     java.util.Stack
  * @since   JDK1.0
  */

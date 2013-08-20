@@ -1,7 +1,7 @@
 /*
- * @(#)SequenceInputStream.java	1.25 03/01/23
+ * @(#)SequenceInputStream.java	1.28 04/05/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.Vector;
  * on the last of the contained input streams.
  *
  * @author  Author van Hoff
- * @version 1.25, 01/23/03
+ * @version 1.28, 05/12/04
  * @since   JDK1.0
  */
 public
@@ -46,7 +46,7 @@ class SequenceInputStream extends InputStream {
      * @param   e   an enumeration of input streams.
      * @see     java.util.Enumeration
      */
-    public SequenceInputStream(Enumeration e) {
+    public SequenceInputStream(Enumeration<? extends InputStream> e) {
 	this.e = e;
 	try {
 	    nextStream();

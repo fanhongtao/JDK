@@ -1,7 +1,7 @@
 /*
- * @(#)EnumControl.java	1.13 03/01/27
+ * @(#)EnumControl.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,7 +29,7 @@ package javax.sound.sampled;
  * used for each setting.
  *
  * @author Kara Kytle
- * @version 1.13, 03/01/27
+ * @version 1.14, 03/12/19
  * @since 1.3
  */
 public abstract class EnumControl extends Control {
@@ -165,7 +165,7 @@ public abstract class EnumControl extends Control {
      * @see EnumControl
      *
      * @author Kara Kytle
-     * @version 1.13, 03/01/27
+     * @version 1.14, 03/12/19
      * @since 1.3
      */
     public static class Type extends Control.Type {

@@ -1,7 +1,7 @@
 /*
- * @(#)StateFactory.java	1.7 03/01/23
+ * @(#)StateFactory.java	1.10 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.naming.spi;
@@ -52,7 +52,7 @@ import java.util.Hashtable;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.7 03/01/23
+  * @version 1.10 04/07/16
   *
   * @see NamingManager#getStateToBind
   * @see DirectoryManager#getStateToBind
@@ -116,6 +116,6 @@ public interface StateFactory {
  * @see DirectoryManager#getStateToBind
  */
     public Object getStateToBind(Object obj, Name name, Context nameCtx,
-	Hashtable environment)
+				 Hashtable<?,?> environment)
 	throws NamingException;
 }

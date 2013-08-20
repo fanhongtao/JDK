@@ -1,7 +1,7 @@
 /*
- * @(#)UnixNumericUserPrincipal.java	1.7 03/01/23
+ * @(#)UnixNumericUserPrincipal.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -27,6 +27,8 @@ import java.security.Principal;
 public class UnixNumericUserPrincipal implements
 					Principal,
 					java.io.Serializable {
+    private static final long serialVersionUID = -4329764253802397821L;
+
     /**
      * @serial
      */

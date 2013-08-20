@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleRelation.java	1.10 03/01/27
+ * @(#)AccessibleRelation.java	1.14 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.util.ResourceBundle;
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *
- * @version     1.6 @(#)AccessibleRelation.java	1.6
+ * @version     1.14 04/15/04
  * @author      Lynn Monsanto
  */
 public class AccessibleRelation extends AccessibleBundle {
@@ -101,6 +101,77 @@ public class AccessibleRelation extends AccessibleBundle {
      */
     public static final String CONTROLLED_BY = new String("controlledBy");
 
+    /**
+     * Indicates an object is logically contiguous with a second
+     * object where the second object occurs after the object.
+     * An example is a paragraph of text that runs to the end of
+     * a page and continues on the next page with an intervening
+     * text footer and/or text header.  The two parts of
+     * the paragraph are separate text elements but are related
+     * in that the second element is a continuation
+     * of the first
+     * element.  In other words, the first element "flows to"
+     * the second element.
+     *
+     * @since 1.5
+     */
+    public static final String FLOWS_TO = "flowsTo"; 
+ 
+    /**
+     * Indicates an object is logically contiguous with a second
+     * object where the second object occurs before the object.
+     * An example is a paragraph of text that runs to the end of
+     * a page and continues on the next page with an intervening
+     * text footer and/or text header.  The two parts of
+     * the paragraph are separate text elements but are related
+     * in that the second element is a continuation of the first
+     * element.  In other words, the second element "flows from"
+     * the second element.
+     *
+     * @since 1.5
+     */
+    public static final String FLOWS_FROM = "flowsFrom"; 
+ 
+    /**
+     * Indicates that an object is a subwindow of one or more
+     * objects.
+     *
+     * @since 1.5
+     */
+    public static final String SUBWINDOW_OF = "subwindowOf"; 
+ 
+    /**
+     * Indicates that an object is a parent window of one or more
+     * objects.
+     *
+     * @since 1.5
+     */
+    public static final String PARENT_WINDOW_OF = "parentWindowOf"; 
+ 
+    /**
+     * Indicates that an object has one or more objects
+     * embedded in it.
+     *
+     * @since 1.5
+     */
+    public static final String EMBEDS = "embeds"; 
+ 
+    /**
+     * Indicates that an object is embedded in one or more
+     * objects.
+     *
+     * @since 1.5
+     */
+    public static final String EMBEDDED_BY = "embeddedBy"; 
+ 
+    /**
+     * Indicates that an object is a child node of one
+     * or more objects.
+     *
+     * @since 1.5
+     */
+    public static final String CHILD_NODE_OF = "childNodeOf";     
+
     /** 
      * Identifies that the target group for a label has changed
      */
@@ -126,6 +197,62 @@ public class AccessibleRelation extends AccessibleBundle {
      * changed
      */
     public static final String CONTROLLED_BY_PROPERTY = "controlledByProperty";
+    
+    /**
+     * Indicates the FLOWS_TO relation between two objects
+     * has changed.
+     *
+     * @since 1.5
+     */
+    public static final String FLOWS_TO_PROPERTY = "flowsToProperty";
+
+    /**
+     * Indicates the FLOWS_FROM relation between two objects
+     * has changed.
+     *
+     * @since 1.5
+     */
+    public static final String FLOWS_FROM_PROPERTY = "flowsFromProperty";
+    
+    /**
+     * Indicates the SUBWINDOW_OF relation between two or more objects
+     * has changed.
+     *
+     * @since 1.5
+     */
+    public static final String SUBWINDOW_OF_PROPERTY = "subwindowOfProperty";
+    
+    /**
+     * Indicates the PARENT_WINDOW_OF relation between two or more objects
+     * has changed.
+     *
+     * @since 1.5
+     */
+    public static final String PARENT_WINDOW_OF_PROPERTY = "parentWindowOfProperty";
+    
+    /**
+     * Indicates the EMBEDS relation between two or more objects
+     * has changed.
+     *
+     * @since 1.5
+     */
+    public static final String EMBEDS_PROPERTY = "embedsProperty";
+    
+    /**
+     * Indicates the EMBEDDED_BY relation between two or more objects
+     * has changed.
+     *
+     * @since 1.5
+     */
+    public static final String EMBEDDED_BY_PROPERTY = "embeddedByProperty";
+    
+    /**
+     * Indicates the CHILD_NODE_OF relation between two or more objects
+     * has changed.
+     *
+     * @since 1.5
+     */
+    public static final String CHILD_NODE_OF_PROPERTY = "childNodeOfProperty";
 
     /**
      * Create a new AccessibleRelation using the given locale independent key.

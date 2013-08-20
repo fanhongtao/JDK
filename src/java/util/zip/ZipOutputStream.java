@@ -1,7 +1,7 @@
 /*
- * @(#)ZipOutputStream.java	1.27 03/02/07
+ * @(#)ZipOutputStream.java	1.31 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import java.util.Enumeration;
  * entries.
  *
  * @author	David Connelly
- * @version	1.27, 02/07/03
+ * @version	1.31, 12/19/03
  */
 public
 class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
@@ -27,7 +27,7 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
     private Vector entries = new Vector();
     private Hashtable names = new Hashtable();
     private CRC32 crc = new CRC32();
-    private long written;
+    private long written = 0;
     private long locoff = 0;
     private String comment;
     private int method = DEFLATED;
@@ -185,16 +185,15 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
 		}
 		if ((e.flag & 8) == 0) {
 		    // verify size, compressed size, and crc-32 settings
-		    if (e.size != def.getTotalIn()) {
+		    if (e.size != def.getBytesRead()) {
 			throw new ZipException(
 			    "invalid entry size (expected " + e.size +
-			    " but got " + def.getTotalIn() + " bytes)");
+			    " but got " + def.getBytesRead() + " bytes)");
 		    }
-		    if (e.csize != def.getTotalOut()) {
+		    if (e.csize != def.getBytesWritten()) {
 			throw new ZipException(
 			    "invalid entry compressed size (expected " +
-			    e.csize + " but got " + def.getTotalOut() +
-			    " bytes)");
+			    e.csize + " but got " + def.getBytesWritten() + " bytes)");
 		    }
 		    if (e.crc != crc.getValue()) {
 			throw new ZipException(
@@ -203,8 +202,8 @@ class ZipOutputStream extends DeflaterOutputStream implements ZipConstants {
 			    Long.toHexString(crc.getValue()) + ")");
 		    }
 		} else {
-		    e.size = def.getTotalIn();
-		    e.csize = def.getTotalOut();
+		    e.size  = def.getBytesRead();
+		    e.csize = def.getBytesWritten();
 		    e.crc = crc.getValue();
 		    writeEXT(e);
 		}

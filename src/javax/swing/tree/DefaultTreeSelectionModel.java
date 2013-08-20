@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTreeSelectionModel.java	1.47 03/01/23
+ * @(#)DefaultTreeSelectionModel.java	1.50 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,7 +41,7 @@ import javax.swing.DefaultListSelectionModel;
  *
  * @see javax.swing.JTree
  *
- * @version 1.47 01/23/03
+ * @version 1.50 05/05/04
  * @author Scott Violet
  */
 public class DefaultTreeSelectionModel extends Object implements Cloneable, Serializable, TreeSelectionModel
@@ -668,7 +668,7 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 
@@ -855,12 +855,14 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
     }
 
     /**
-     * Makes sure the currently selected TreePaths are valid
+     * Makes sure the currently selected <code>TreePath</code>s are valid
      * for the current selection mode.
      * If the selection mode is <code>CONTIGUOUS_TREE_SELECTION</code>
-     * and a RowMapper exists, this will make sure all the rows are
-     * contiguous. If the selection isn't contiguous, the selection is
-     * reset to contain the first set of contiguous paths.
+     * and a <code>RowMapper</code> exists, this will make sure all
+     * the rows are contiguous, that is, when sorted all the rows are
+     * in order with no gaps.
+     * If the selection isn't contiguous, the selection is
+     * reset to contain the first set, when sorted, of contiguous rows.
      * <p>
      * If the selection mode is <code>SINGLE_TREE_SELECTION</code> and
      * more than one TreePath is selected, the selection is reset to
@@ -1057,7 +1059,7 @@ public class DefaultTreeSelectionModel extends Object implements Cloneable, Seri
       * Notifies listeners of a change in path. changePaths should contain
       * instances of PathPlaceHolder.
       */
-    protected void notifyPathChange(Vector changedPaths,
+    protected void notifyPathChange(Vector<PathPlaceHolder> changedPaths,
 				    TreePath oldLeadSelection) {
 	int                    cPathCount = changedPaths.size();
 	boolean[]              newness = new boolean[cPathCount];

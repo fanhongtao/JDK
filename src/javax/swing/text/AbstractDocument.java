@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractDocument.java	1.140 03/03/17
+ * @(#)AbstractDocument.java	1.151 04/07/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -17,7 +17,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.*;
 import javax.swing.tree.TreeNode;
 
-import sun.awt.font.BidiUtils;
+import sun.font.BidiUtils;
 
 /**
  * An implementation of the document interface to serve as a 
@@ -77,7 +77,7 @@ import sun.awt.font.BidiUtils;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.140 03/17/03
+ * @version 1.151 07/13/04
  */
 public abstract class AbstractDocument implements Document, Serializable {
 
@@ -143,7 +143,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      * @return a non-<code>null</code> <code>Dictionary</code>
      * @see #setDocumentProperties
      */
-    public Dictionary getDocumentProperties() {
+    public Dictionary<Object,Object> getDocumentProperties() {
 	if (documentProperties == null) {
 	    documentProperties = new Hashtable(2);
 	}
@@ -156,7 +156,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      * @param x the new dictionary
      * @see #getDocumentProperties
      */
-    public void setDocumentProperties(Dictionary x) {
+    public void setDocumentProperties(Dictionary<Object,Object> x) {
 	documentProperties = x;
     }
 
@@ -306,7 +306,7 @@ public abstract class AbstractDocument implements Document, Serializable {
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 
@@ -613,9 +613,14 @@ public abstract class AbstractDocument implements Document, Serializable {
 	}
     }
     
+    /**
+     * Indic, Thai, and surrogate char values require complex 
+     * text layout and cursor support.
+     */
     private static final boolean isComplex(char ch) {
         return (ch >= '\u0900' && ch <= '\u0D7F') || // Indic
-               (ch >= '\u0E00' && ch <= '\u0E7F');   // Thai
+               (ch >= '\u0E00' && ch <= '\u0E7F') || // Thai
+               (ch >= '\uD800' && ch <= '\uDFFF');   // surrogate value range
     }
 
     private static final boolean isComplex(char[] text, int start, int limit) {
@@ -1202,9 +1207,9 @@ public abstract class AbstractDocument implements Document, Serializable {
             
             // Create a Bidi over this paragraph then get the level
             // array.
-            String pText;
+            Segment seg = SegmentCache.getSharedSegment();
             try {
-                pText = getText(pStart, pEnd-pStart);
+                getText(pStart, pEnd-pStart, seg);
             } catch (BadLocationException e ) {
                 throw new Error("Internal error: " + e.toString());
             }
@@ -1218,11 +1223,13 @@ public abstract class AbstractDocument implements Document, Serializable {
 		    bidiflag = Bidi.DIRECTION_RIGHT_TO_LEFT;
 		}
 	    }
-	    bidiAnalyzer = new Bidi(pText, bidiflag);
+	    bidiAnalyzer = new Bidi(seg.array, seg.offset, null, 0, seg.count, 
+                    bidiflag);
 	    BidiUtils.getLevels(bidiAnalyzer, levels, levelsEnd);
 	    levelsEnd += bidiAnalyzer.getLength();
 
             o =  p.getEndOffset();
+            SegmentCache.releaseSharedSegment(seg);
         }
 
         // REMIND(bcb) remove this code when debugging is done.
@@ -1479,7 +1486,7 @@ public abstract class AbstractDocument implements Document, Serializable {
     /**
      * Storage for document-wide properties.
      */
-    private Dictionary documentProperties = null;
+    private Dictionary<Object,Object> documentProperties = null;
 
     /**
      * The event listener list for the document.
@@ -1711,7 +1718,7 @@ public abstract class AbstractDocument implements Document, Serializable {
          * @return the updated attribute set
 	 * @see MutableAttributeSet#removeAttributes
 	 */
-        public AttributeSet removeAttributes(AttributeSet old, Enumeration names);
+        public AttributeSet removeAttributes(AttributeSet old, Enumeration<?> names);
 
 	/**
 	 * Removes a set of attributes for the element.
@@ -1910,7 +1917,7 @@ public abstract class AbstractDocument implements Document, Serializable {
          * @return the attribute names as an enumeration
 	 * @see AttributeSet#getAttributeNames
 	 */
-        public Enumeration getAttributeNames() {
+        public Enumeration<?> getAttributeNames() {
 	    return attributes.getAttributeNames();
 	}
 
@@ -2001,7 +2008,7 @@ public abstract class AbstractDocument implements Document, Serializable {
          * @param names the attribute names
 	 * @see MutableAttributeSet#removeAttributes
 	 */
-        public void removeAttributes(Enumeration names) {
+        public void removeAttributes(Enumeration<?> names) {
 	    checkForIllegalCast();
 	    AttributeContext context = getAttributeContext();
 	    attributes = context.removeAttributes(attributes, names);
@@ -2326,11 +2333,13 @@ public abstract class AbstractDocument implements Document, Serializable {
 
         /**
          * Gets the ending offset in the model for the element.
+         * @throws NullPointerException if this element has no children
          *
          * @return the offset >= 0
          */
         public int getEndOffset() {
-	    Element child = children[nchildren - 1];
+	    Element child = 
+		(nchildren > 0) ? children[nchildren - 1] : children[0];
 	    return child.getEndOffset();
 	}
     
@@ -2770,12 +2779,13 @@ public abstract class AbstractDocument implements Document, Serializable {
 		// change the state
 		super.redo();
 		// fire a DocumentEvent to notify the view(s)
+                UndoRedoDocumentEvent ev = new UndoRedoDocumentEvent(this, false);
 		if (type == DocumentEvent.EventType.INSERT) {
-		    fireInsertUpdate(this);
+		    fireInsertUpdate(ev);
 		} else if (type == DocumentEvent.EventType.REMOVE) {
-		    fireRemoveUpdate(this);
+		    fireRemoveUpdate(ev);
 		} else {
-		    fireChangedUpdate(this);
+		    fireChangedUpdate(ev);
 		}
 	    } finally {
 		writeUnlock();
@@ -2793,12 +2803,13 @@ public abstract class AbstractDocument implements Document, Serializable {
 		// change the state
 		super.undo();
 		// fire a DocumentEvent to notify the view(s)
+                UndoRedoDocumentEvent ev = new UndoRedoDocumentEvent(this, true);
 		if (type == DocumentEvent.EventType.REMOVE) {
-		    fireInsertUpdate(this);
+		    fireInsertUpdate(ev);
 		} else if (type == DocumentEvent.EventType.INSERT) {
-		    fireRemoveUpdate(this);
+		    fireRemoveUpdate(ev);
 		} else {
-		    fireChangedUpdate(this);
+		    fireChangedUpdate(ev);
 		}
 	    } finally {
 		writeUnlock();
@@ -2913,7 +2924,7 @@ public abstract class AbstractDocument implements Document, Serializable {
 		Object o = edits.elementAt(i);
 		if (o instanceof DocumentEvent.ElementChange) {
 		    DocumentEvent.ElementChange c = (DocumentEvent.ElementChange) o;
-		    if (c.getElement() == elem) {
+		    if (elem.equals(c.getElement())) {
 			return c;
 		    }
 		}
@@ -2928,6 +2939,60 @@ public abstract class AbstractDocument implements Document, Serializable {
         private Hashtable changeLookup;
 	private DocumentEvent.EventType type;
 
+    }
+
+    /**
+     * This event used when firing document changes while Undo/Redo
+     * operations. It just wraps DefaultDocumentEvent and delegates
+     * all calls to it except getType() which depends on operation
+     * (Undo or Redo).
+     */
+    class UndoRedoDocumentEvent implements DocumentEvent {
+        private DefaultDocumentEvent src = null;
+        private boolean isUndo;
+        private EventType type = null;
+
+        public UndoRedoDocumentEvent(DefaultDocumentEvent src, boolean isUndo) {
+            this.src = src;
+            this.isUndo = isUndo;
+            if(isUndo) {
+                if(src.getType().equals(EventType.INSERT)) {
+                    type = EventType.REMOVE;
+                } else if(src.getType().equals(EventType.REMOVE)) {
+                    type = EventType.INSERT;
+                } else {
+                    type = src.getType();
+                }
+            } else {
+                type = src.getType();
+            }
+        }
+
+        public DefaultDocumentEvent getSource() {
+            return src;
+        }
+
+        // DocumentEvent methods delegated to DefaultDocumentEvent source
+        // except getType() which depends on operation (Undo or Redo).
+        public int getOffset() {
+            return src.getOffset();
+        }
+
+        public int getLength() {
+            return src.getLength();
+        }
+
+        public Document getDocument() {
+            return src.getDocument();
+        }
+
+        public DocumentEvent.EventType getType() {
+            return type;
+        }
+
+        public DocumentEvent.ElementChange getChange(Element elem) {
+            return src.getChange(elem);
+        }
     }
 
     /**

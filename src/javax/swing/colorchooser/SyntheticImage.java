@@ -1,7 +1,7 @@
 /*
- * @(#)SyntheticImage.java	1.22 03/01/23
+ * @(#)SyntheticImage.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -34,7 +34,7 @@ import java.awt.image.*;
  *  frame has started.  It is acceptable (expected?) for computeRow(0,r)
  *  to pause until the appropriate time to start the next frame.
  *
- *  @version 1.22 01/23/03
+ *  @version 1.24 12/19/03
  *  @author James Gosling
  */
 abstract class SyntheticImage implements ImageProducer {
@@ -62,13 +62,15 @@ abstract class SyntheticImage implements ImageProducer {
     }
     public synchronized void removeConsumer(ImageConsumer ic) {
         SyntheticImageGenerator prev = null;
-        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next)
+        for (SyntheticImageGenerator ics = root; ics != null; ics = ics.next) {
             if (ics.ic == ic) {
                 ics.useful = false;
                 if (prev!=null) prev.next = ics.next;
                 else root = ics.next;
                 return;
             }
+            prev = ics;
+        }
     }
     public synchronized void startProduction(ImageConsumer ic) {
         addConsumer(ic);

@@ -1,12 +1,13 @@
 /*
- * @(#)MetalLabelUI.java	1.12 05/12/07
+ * @(#)MetalLabelUI.java	1.12 03/12/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.swing.plaf.metal;
 
+import com.sun.java.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
@@ -20,21 +21,17 @@ import java.awt.*;
  * is completely static, i.e. there's only one UIView implementation 
  * that's shared by all JLabel objects.
  *
- * @version 1.12 12/07/05
+ * @version 1.12 12/19/03
  * @author Hans Muller
  */
 
 public class MetalLabelUI extends BasicLabelUI
 {
     protected static MetalLabelUI metalLabelUI = new MetalLabelUI();
-    private final static MetalLabelUI SAFE_METAL_LABEL_UI = new MetalLabelUI();
+
 
     public static ComponentUI createUI(JComponent c) {
-        if (System.getSecurityManager() != null) {
-            return SAFE_METAL_LABEL_UI;
-        } else {
-            return metalLabelUI;
-        }
+	return metalLabelUI;
     }
 
     /**
@@ -48,7 +45,7 @@ public class MetalLabelUI extends BasicLabelUI
     {
 	int mnemIndex = l.getDisplayedMnemonicIndex();
 	g.setColor(UIManager.getColor("Label.disabledForeground"));
-	BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, mnemIndex,
+	SwingUtilities2.drawStringUnderlineCharAt(l, g, s, mnemIndex,
                                                    textX, textY);
     }
 }

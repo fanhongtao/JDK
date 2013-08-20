@@ -1,7 +1,7 @@
 /*
- * @(#)TreeNode.java	1.20 03/01/23
+ * @(#)TreeNode.java	1.23 04/07/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import java.util.Enumeration;
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Tree Nodes</a>
  * in <em>The Java Tutorial.</em>
  *
- * @version 1.20 01/23/03
+ * @version 1.23 07/13/04
  * @author Rob Davis
  * @author Scott Violet
  */

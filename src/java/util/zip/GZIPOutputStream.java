@@ -1,7 +1,7 @@
 /*
- * @(#)GZIPOutputStream.java	1.21 03/01/23
+ * @(#)GZIPOutputStream.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * This class implements a stream filter for writing compressed data in
  * the GZIP file format.
- * @version 	1.21, 01/23/03
+ * @version 	1.22, 12/19/03
  * @author 	David Connelly
  *
  */

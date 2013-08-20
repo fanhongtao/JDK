@@ -1,7 +1,7 @@
 /*
- * @(#)DynAny.java	1.22 03/01/23
+ * @(#)DynAny.java	1.25 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,9 +16,9 @@ package org.omg.CORBA;
  *  The <tt>DynAny</tt> APIs enable traversal of the data value associated with an
  *  Any at runtime and extraction of the primitive constituents of the
  *  data value.
+ * @deprecated Use the new <a href="../DynamicAny/DynAny.html">DynAny</a> instead
  */
-
-
+@Deprecated
 public interface DynAny extends org.omg.CORBA.Object
 {
     /**

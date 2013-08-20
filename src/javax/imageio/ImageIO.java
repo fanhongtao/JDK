@@ -1,7 +1,7 @@
 /*
- * @(#)ImageIO.java	1.83 03/01/23
+ * @(#)ImageIO.java	1.85 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -469,7 +469,7 @@ public final class ImageIO {
         return toStringArray(s);
     }
 
-    static class ImageReaderIterator implements Iterator {
+    static class ImageReaderIterator implements Iterator<ImageReader> {
         // Contains ImageReaderSpis
         public Iterator iter;
 
@@ -481,7 +481,7 @@ public final class ImageIO {
             return iter.hasNext();
         }
 
-        public Object next() {
+        public ImageReader next() {
             ImageReaderSpi spi = null;
             try {
                 spi = (ImageReaderSpi)iter.next();
@@ -595,7 +595,7 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageReaderSpi#canDecodeInput
      */
-    public static Iterator getImageReaders(Object input) {
+    public static Iterator<ImageReader> getImageReaders(Object input) {
         if (input == null) {
             throw new IllegalArgumentException("input == null!");
         }
@@ -655,7 +655,9 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageReaderSpi#getFormatNames
      */
-    public static Iterator getImageReadersByFormatName(String formatName) {
+    public static Iterator<ImageReader>
+	getImageReadersByFormatName(String formatName)
+    {
         if (formatName == null) {
             throw new IllegalArgumentException("formatName == null!");
         } 
@@ -688,7 +690,9 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageReaderSpi#getFileSuffixes
      */
-    public static Iterator getImageReadersBySuffix(String fileSuffix) {
+    public static Iterator<ImageReader>
+	getImageReadersBySuffix(String fileSuffix)
+    {
         if (fileSuffix == null) {
             throw new IllegalArgumentException("fileSuffix == null!");
         }
@@ -721,7 +725,9 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageReaderSpi#getMIMETypes
      */
-    public static Iterator getImageReadersByMIMEType(String MIMEType) { 
+    public static Iterator<ImageReader>
+	getImageReadersByMIMEType(String MIMEType)
+    {
         if (MIMEType == null) {
             throw new IllegalArgumentException("MIMEType == null!");
         }
@@ -796,7 +802,7 @@ public final class ImageIO {
         return toStringArray(s);
     }
 
-    static class ImageWriterIterator implements Iterator {
+    static class ImageWriterIterator implements Iterator<ImageWriter> {
         // Contains ImageWriterSpis
         public Iterator iter;
 
@@ -808,7 +814,7 @@ public final class ImageIO {
             return iter.hasNext();
         }
 
-        public Object next() {
+        public ImageWriter next() {
             ImageWriterSpi spi = null;
             try {
                 spi = (ImageWriterSpi)iter.next();
@@ -851,7 +857,9 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageWriterSpi#getFormatNames
      */
-    public static Iterator getImageWritersByFormatName(String formatName) {
+    public static Iterator<ImageWriter>
+	getImageWritersByFormatName(String formatName)
+    {
         if (formatName == null) {
             throw new IllegalArgumentException("formatName == null!");
         } 
@@ -883,7 +891,9 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageWriterSpi#getFileSuffixes
      */
-    public static Iterator getImageWritersBySuffix(String fileSuffix) {
+    public static Iterator<ImageWriter>
+	getImageWritersBySuffix(String fileSuffix)
+    {
         if (fileSuffix == null) {
             throw new IllegalArgumentException("fileSuffix == null!");
         }
@@ -915,7 +925,9 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageWriterSpi#getMIMETypes
      */
-    public static Iterator getImageWritersByMIMEType(String MIMEType) {
+    public static Iterator<ImageWriter>
+	getImageWritersByMIMEType(String MIMEType)
+    {
         if (MIMEType == null) {
             throw new IllegalArgumentException("MIMEType == null!");
         }
@@ -1116,8 +1128,9 @@ public final class ImageIO {
      *
      * @see javax.imageio.spi.ImageWriterSpi#canEncodeImage(ImageTypeSpecifier)
      */
-    public static Iterator getImageWriters(ImageTypeSpecifier type,
-                                           String formatName) {
+    public static Iterator<ImageWriter>
+	getImageWriters(ImageTypeSpecifier type, String formatName)
+    {
         if (type == null) {
             throw new IllegalArgumentException("type == null!");
         }
@@ -1139,7 +1152,9 @@ public final class ImageIO {
         return new ImageWriterIterator(iter);
     }
 
-    static class ImageTranscoderIterator implements Iterator {
+    static class ImageTranscoderIterator
+	implements Iterator<ImageTranscoder>
+    {
         // Contains ImageTranscoderSpis
         public Iterator iter;
 
@@ -1151,7 +1166,7 @@ public final class ImageIO {
             return iter.hasNext();
         }
 
-        public Object next() {
+        public ImageTranscoder next() {
             ImageTranscoderSpi spi = null;
             spi = (ImageTranscoderSpi)iter.next();
             return spi.createTranscoderInstance();
@@ -1198,8 +1213,9 @@ public final class ImageIO {
      * @exception IllegalArgumentException if <code>reader</code> or
      * <code>writer</code> is <code>null</code>.
      */
-    public static Iterator getImageTranscoders(ImageReader reader,
-                                               ImageWriter writer) {
+    public static Iterator<ImageTranscoder>
+	getImageTranscoders(ImageReader reader, ImageWriter writer)
+    {
         if (reader == null) {
             throw new IllegalArgumentException("reader == null!");
         }

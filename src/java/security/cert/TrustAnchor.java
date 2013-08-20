@@ -1,7 +1,7 @@
 /*
- * @(#)TrustAnchor.java	1.8 03/01/23
+ * @(#)TrustAnchor.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ import sun.security.x509.X500Name;
  * @see PKIXParameters#PKIXParameters(Set)
  * @see PKIXBuilderParameters#PKIXBuilderParameters(Set, CertSelector)
  *
- * @version     1.8 01/23/03
+ * @version     1.10 12/19/03
  * @since       1.4
  * @author      Sean Mullan
  */
@@ -50,11 +50,11 @@ public class TrustAnchor {
 	CertPathHelperImpl.initialize();
     }
 
-    private PublicKey pubKey;
-    private String caName;
-    private X500Principal caPrincipal;
-    private X509Certificate trustedCert;
-    private byte [] ncBytes;
+    private final PublicKey pubKey;
+    private final String caName;
+    private final X500Principal caPrincipal;
+    private final X509Certificate trustedCert;
+    private byte[] ncBytes;
     private NameConstraintsExtension nc;
 
     /**
@@ -115,9 +115,49 @@ public class TrustAnchor {
 	this.trustedCert = trustedCert;
         this.pubKey = null;
         this.caName = null;
+	this.caPrincipal = null;
 	setNameConstraints(nameConstraints);
     }
 
+    /**
+     * Creates an instance of <code>TrustAnchor</code> where the
+     * most-trusted CA is specified as an X500Principal and public key.
+     * Name constraints are an optional parameter, and are intended to be used
+     * as additional constraints when validating an X.509 certification path.
+     * <p>
+     * The name constraints are specified as a byte array. This byte array
+     * contains the DER encoded form of the name constraints, as they
+     * would appear in the NameConstraints structure defined in RFC 2459
+     * and X.509. The ASN.1 notation for this structure is supplied in the
+     * documentation for
+     * {@link #TrustAnchor(X509Certificate, byte[])
+     * TrustAnchor(X509Certificate trustedCert, byte[] nameConstraints) }.
+     * <p>
+     * Note that the name constraints byte array supplied here is cloned to
+     * protect against subsequent modifications.
+     *
+     * @param caPrincipal the name of the most-trusted CA as X500Principal
+     * @param pubKey the public key of the most-trusted CA
+     * @param nameConstraints a byte array containing the ASN.1 DER encoding of
+     * a NameConstraints extension to be used for checking name constraints.
+     * Only the value of the extension is included, not the OID or criticality
+     * flag. Specify <code>null</code> to omit the parameter.
+     * @throws NullPointerException if the specified <code>caPrincipal</code> or
+     * <code>pubKey</code> parameter is <code>null</code>
+     * @since 1.5
+     */
+    public TrustAnchor(X500Principal caPrincipal, PublicKey pubKey,
+            byte[] nameConstraints) {
+	if ((caPrincipal == null) || (pubKey == null)) {
+	    throw new NullPointerException();
+	}
+	this.trustedCert = null;
+	this.caPrincipal = caPrincipal;
+	this.caName = caPrincipal.getName();
+	this.pubKey = pubKey;
+	setNameConstraints(nameConstraints);
+    }
+ 
     /**
      * Creates an instance of <code>TrustAnchor</code> where the
      * most-trusted CA is specified as a distinguished name and public key.
@@ -160,14 +200,7 @@ public class TrustAnchor {
             throw new IllegalArgumentException("the caName " +
                 "parameter must be a non-empty String");
 	// check if caName is formatted correctly
-	try {
-	    caPrincipal = new X500Name(caName, "RFC2253").asX500Principal();
-	} catch (IOException ioe) {
-	    IllegalArgumentException iae = 
-	        new IllegalArgumentException(ioe.getMessage());
-	    iae.initCause(ioe);
-	    throw iae;
-	}
+	this.caPrincipal = new X500Principal(caName);
         this.pubKey = pubKey;
         this.caName = caName;
 	this.trustedCert = null;
@@ -185,27 +218,35 @@ public class TrustAnchor {
     }
 
     /**
+     * Returns the name of the most-trusted CA as an X500Principal.
+     *
+     * @return the X.500 distinguished name of the most-trusted CA, or
+     * <code>null</code> if the trust anchor was not specified as a trusted
+     * public key and name or X500Principal pair
+     * @since 1.5
+     */
+    public final X500Principal getCA() {
+	return this.caPrincipal;
+    }
+
+    /**
      * Returns the name of the most-trusted CA in RFC 2253 <code>String</code>
      * format.
      *
      * @return the X.500 distinguished name of the most-trusted CA, or
      * <code>null</code> if the trust anchor was not specified as a trusted
-     * public key and name pair
+     * public key and name or X500Principal pair
      */
     public final String getCAName() {
         return this.caName;
     }
     
-    final X500Principal getCA() {
-	return this.caPrincipal;
-    }
-
     /**
      * Returns the public key of the most-trusted CA.
      *
      * @return the public key of the most-trusted CA, or <code>null</code>
      * if the trust anchor was not specified as a trusted public key and name
-     * pair
+     * or X500Principal pair
      */
     public final PublicKey getCAPublicKey() {
         return this.pubKey;
@@ -242,7 +283,7 @@ public class TrustAnchor {
      * would appear in the NameConstraints structure defined in RFC 2459
      * and X.509. The ASN.1 notation for this structure is supplied in the
      * documentation for
-     * {@link TrustAnchor#(X509Certificate, byte[]) 
+     * {@link #TrustAnchor(X509Certificate, byte[]) 
      * TrustAnchor(X509Certificate trustedCert, byte[] nameConstraints) }.
      * <p>
      * Note that the byte array returned is cloned to protect against

@@ -1,7 +1,7 @@
 /*
- * @(#)FocusAdapter.java	1.15 03/01/23
+ * @(#)FocusAdapter.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ package java.awt.event;
  * @see <a href="http://www.awl.com/cp/javaseries/jcl1_2.html">Reference: The Java Class Libraries (update file)</a>
  *
  * @author Carl Quinn
- * @version 1.15 01/23/03
+ * @version 1.16 12/19/03
  * @since 1.1
  */
 public abstract class FocusAdapter implements FocusListener {

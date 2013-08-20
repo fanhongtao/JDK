@@ -1,8 +1,8 @@
 // ContentHandler.java - handle main document content.
-// Written by David Megginson, sax@megginson.com
+// http://www.saxproject.org
+// Written by David Megginson
 // NO WARRANTY!  This class is in the public domain.
-
-// $Id: ContentHandler.java,v 1.1 2001/05/20 03:12:56 curcuru Exp $
+// $Id: ContentHandler.java,v 1.1.24.1 2004/05/01 08:34:39 jsuttor Exp $
 
 package org.xml.sax;
 
@@ -13,6 +13,8 @@ package org.xml.sax;
  * <blockquote>
  * <em>This module, both source code and documentation, is in the
  * Public Domain, and comes with <strong>NO WARRANTY</strong>.</em>
+ * See <a href='http://www.saxproject.org'>http://www.saxproject.org</a>
+ * for further information.
  * </blockquote>
  *
  * <p>This is the main interface that most SAX applications
@@ -34,23 +36,21 @@ package org.xml.sax;
  * and for reporting skipped entities (in non-validating XML
  * processors).</p>
  *
- * <p>Implementors should note that there is also a Java class
- * {@link java.net.ContentHandler ContentHandler} in the java.net
+ * <p>Implementors should note that there is also a 
+ * <code>ContentHandler</code> class in the <code>java.net</code>
  * package; that means that it's probably a bad idea to do</p>
  *
- * <blockquote>
- * import java.net.*;
+ * <pre>import java.net.*;
  * import org.xml.sax.*;
- * </blockquote>
+ * </pre>
  *
  * <p>In fact, "import ...*" is usually a sign of sloppy programming
  * anyway, so the user should consider this a feature rather than a
  * bug.</p>
  *
  * @since SAX 2.0
- * @author David Megginson, 
- *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0r2pre
+ * @author David Megginson
+ * @version 2.0.1+ (sax2r3pre1)
  * @see org.xml.sax.XMLReader
  * @see org.xml.sax.DTDHandler
  * @see org.xml.sax.ErrorHandler
@@ -76,11 +76,13 @@ public interface ContentHandler
      * is probably not sufficient for use with a search engine.</p>
      *
      * <p>Note that the locator will return correct information only
-     * during the invocation of the events in this interface.  The
+     * during the invocation SAX event callbacks after
+     * {@link #startDocument startDocument} returns and before
+     * {@link #endDocument endDocument} is called.  The
      * application should not attempt to use it at any other time.</p>
      *
-     * @param locator An object that can return the location of
-     *                any SAX document event.
+     * @param locator an object that can return the location of
+     *                any SAX document event
      * @see org.xml.sax.Locator
      */
     public void setDocumentLocator (Locator locator);
@@ -90,12 +92,11 @@ public interface ContentHandler
      * Receive notification of the beginning of a document.
      *
      * <p>The SAX parser will invoke this method only once, before any
-     * other methods in this interface or in {@link org.xml.sax.DTDHandler
-     * DTDHandler} (except for {@link #setDocumentLocator 
+     * other event callbacks (except for {@link #setDocumentLocator 
      * setDocumentLocator}).</p>
      *
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      * @see #endDocument
      */
     public void startDocument ()
@@ -105,14 +106,22 @@ public interface ContentHandler
     /**
      * Receive notification of the end of a document.
      *
+     * <p><strong>There is an apparent contradiction between the
+     * documentation for this method and the documentation for {@link
+     * org.xml.sax.ErrorHandler#fatalError}.  Until this ambiguity is
+     * resolved in a future major release, clients should make no
+     * assumptions about whether endDocument() will or will not be
+     * invoked when the parser has reported a fatalError() or thrown
+     * an exception.</strong></p>
+     *
      * <p>The SAX parser will invoke this method only once, and it will
      * be the last method invoked during the parse.  The parser shall
      * not invoke this method until it has either abandoned parsing
      * (because of an unrecoverable error) or reached the end of
      * input.</p>
      *
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      * @see #startDocument
      */
     public void endDocument()
@@ -136,21 +145,24 @@ public interface ContentHandler
      * itself, if necessary.</p>
      *
      * <p>Note that start/endPrefixMapping events are not
-     * guaranteed to be properly nested relative to each-other:
-     * all startPrefixMapping events will occur before the
+     * guaranteed to be properly nested relative to each other:
+     * all startPrefixMapping events will occur immediately before the
      * corresponding {@link #startElement startElement} event, 
      * and all {@link #endPrefixMapping endPrefixMapping}
-     * events will occur after the corresponding {@link #endElement
-     * endElement} event, but their order is not otherwise 
+     * events will occur immediately after the corresponding
+     * {@link #endElement endElement} event,
+     * but their order is not otherwise 
      * guaranteed.</p>
      *
      * <p>There should never be start/endPrefixMapping events for the
      * "xml" prefix, since it is predeclared and immutable.</p>
      *
-     * @param prefix The Namespace prefix being declared.
-     * @param uri The Namespace URI the prefix is mapped to.
-     * @exception org.xml.sax.SAXException The client may throw
-     *            an exception during processing.
+     * @param prefix the Namespace prefix being declared.
+     *	An empty string is used for the default element namespace,
+     *	which has no prefix.
+     * @param uri the Namespace URI the prefix is mapped to
+     * @throws org.xml.sax.SAXException the client may throw
+     *            an exception during processing
      * @see #endPrefixMapping
      * @see #startElement
      */
@@ -162,14 +174,15 @@ public interface ContentHandler
      * End the scope of a prefix-URI mapping.
      *
      * <p>See {@link #startPrefixMapping startPrefixMapping} for 
-     * details.  This event will always occur after the corresponding 
-     * {@link #endElement endElement} event, but the order of 
+     * details.  These events will always occur immediately after the
+     * corresponding {@link #endElement endElement} event, but the order of 
      * {@link #endPrefixMapping endPrefixMapping} events is not otherwise
      * guaranteed.</p>
      *
-     * @param prefix The prefix that was being mapping.
-     * @exception org.xml.sax.SAXException The client may throw
-     *            an exception during processing.
+     * @param prefix the prefix that was being mapped.
+     *	This is the empty string when a default mapping scope ends.
+     * @throws org.xml.sax.SAXException the client may throw
+     *            an exception during processing
      * @see #startPrefixMapping
      * @see #endElement
      */
@@ -220,23 +233,28 @@ public interface ContentHandler
      * property is true (it is false by default, and support for a 
      * true value is optional).</p>
      *
-     * @param uri The Namespace URI, or the empty string if the
+     * <p>Like {@link #characters characters()}, attribute values may have
+     * characters that need more than one <code>char</code> value.  </p>
+     *
+     * @param uri the Namespace URI, or the empty string if the
      *        element has no Namespace URI or if Namespace
-     *        processing is not being performed.
-     * @param localName The local name (without prefix), or the
+     *        processing is not being performed
+     * @param localName the local name (without prefix), or the
      *        empty string if Namespace processing is not being
-     *        performed.
-     * @param qName The qualified name (with prefix), or the
-     *        empty string if qualified names are not available.
-     * @param atts The attributes attached to the element.  If
+     *        performed
+     * @param qName the qualified name (with prefix), or the
+     *        empty string if qualified names are not available
+     * @param atts the attributes attached to the element.  If
      *        there are no attributes, it shall be an empty
-     *        Attributes object.
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     *        Attributes object.  The value of this object after
+     *        startElement returns is undefined
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      * @see #endElement
      * @see org.xml.sax.Attributes
+     * @see org.xml.sax.helpers.AttributesImpl
      */
-    public void startElement (String namespaceURI, String localName,
+    public void startElement (String uri, String localName,
 			      String qName, Attributes atts)
 	throws SAXException;
 
@@ -251,18 +269,18 @@ public interface ContentHandler
      *
      * <p>For information on the names, see startElement.</p>
      *
-     * @param uri The Namespace URI, or the empty string if the
+     * @param uri the Namespace URI, or the empty string if the
      *        element has no Namespace URI or if Namespace
-     *        processing is not being performed.
-     * @param localName The local name (without prefix), or the
+     *        processing is not being performed
+     * @param localName the local name (without prefix), or the
      *        empty string if Namespace processing is not being
-     *        performed.
-     * @param qName The qualified XML 1.0 name (with prefix), or the
-     *        empty string if qualified names are not available.
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     *        performed
+     * @param qName the qualified XML name (with prefix), or the
+     *        empty string if qualified names are not available
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      */
-    public void endElement (String namespaceURI, String localName,
+    public void endElement (String uri, String localName,
 			    String qName)
 	throws SAXException;
 
@@ -280,16 +298,33 @@ public interface ContentHandler
      * <p>The application must not attempt to read from the array
      * outside of the specified range.</p>
      *
+     * <p>Individual characters may consist of more than one Java
+     * <code>char</code> value.  There are two important cases where this
+     * happens, because characters can't be represented in just sixteen bits.
+     * In one case, characters are represented in a <em>Surrogate Pair</em>,
+     * using two special Unicode values. Such characters are in the so-called
+     * "Astral Planes", with a code point above U+FFFF.  A second case involves
+     * composite characters, such as a base character combining with one or
+     * more accent characters. </p>
+     *
+     * <p> Your code should not assume that algorithms using
+     * <code>char</code>-at-a-time idioms will be working in character
+     * units; in some cases they will split characters.  This is relevant
+     * wherever XML permits arbitrary characters, such as attribute values,
+     * processing instruction data, and comments as well as in data reported
+     * from this method.  It's also generally relevant whenever Java code
+     * manipulates internationalized text; the issue isn't unique to XML.</p>
+     *
      * <p>Note that some parsers will report whitespace in element
      * content using the {@link #ignorableWhitespace ignorableWhitespace}
      * method rather than this one (validating parsers <em>must</em> 
      * do so).</p>
      *
-     * @param ch The characters from the XML document.
-     * @param start The start position in the array.
-     * @param length The number of characters to read from the array.
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     * @param ch the characters from the XML document
+     * @param start the start position in the array
+     * @param length the number of characters to read from the array
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      * @see #ignorableWhitespace 
      * @see org.xml.sax.Locator
      */
@@ -301,9 +336,10 @@ public interface ContentHandler
      * Receive notification of ignorable whitespace in element content.
      *
      * <p>Validating Parsers must use this method to report each chunk
-     * of whitespace in element content (see the W3C XML 1.0 recommendation,
-     * section 2.10): non-validating parsers may also use this method
-     * if they are capable of parsing and using content models.</p>
+     * of whitespace in element content (see the W3C XML 1.0
+     * recommendation, section 2.10): non-validating parsers may also
+     * use this method if they are capable of parsing and using
+     * content models.</p>
      *
      * <p>SAX parsers may return all contiguous whitespace in a single
      * chunk, or they may split it into several chunks; however, all of
@@ -314,11 +350,11 @@ public interface ContentHandler
      * <p>The application must not attempt to read from the array
      * outside of the specified range.</p>
      *
-     * @param ch The characters from the XML document.
-     * @param start The start position in the array.
-     * @param length The number of characters to read from the array.
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     * @param ch the characters from the XML document
+     * @param start the start position in the array
+     * @param length the number of characters to read from the array
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      * @see #characters
      */
     public void ignorableWhitespace (char ch[], int start, int length)
@@ -336,12 +372,16 @@ public interface ContentHandler
      * section 2.8) or a text declaration (XML 1.0, section 4.3.1)
      * using this method.</p>
      *
-     * @param target The processing instruction target.
-     * @param data The processing instruction data, or null if
+     * <p>Like {@link #characters characters()}, processing instruction
+     * data may have characters that need more than one <code>char</code>
+     * value. </p>
+     *
+     * @param target the processing instruction target
+     * @param data the processing instruction data, or null if
      *        none was supplied.  The data does not include any
-     *        whitespace separating it from the target.
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     *        whitespace separating it from the target
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      */
     public void processingInstruction (String target, String data)
 	throws SAXException;
@@ -349,8 +389,13 @@ public interface ContentHandler
 
     /**
      * Receive notification of a skipped entity.
+     * This is not called for entity references within markup constructs
+     * such as element start tags or markup declarations.  (The XML
+     * recommendation requires reporting skipped external entities.
+     * SAX also reports internal entity expansion/non-expansion, except
+     * within markup constructs.)
      *
-     * <p>The Parser will invoke this method once for each entity
+     * <p>The Parser will invoke this method each time the entity is
      * skipped.  Non-validating processors may skip entities if they
      * have not seen the declarations (because, for example, the
      * entity was declared in an external DTD subset).  All processors
@@ -360,12 +405,12 @@ public interface ContentHandler
      * <code>http://xml.org/sax/features/external-parameter-entities</code>
      * properties.</p>
      *
-     * @param name The name of the skipped entity.  If it is a 
+     * @param name the name of the skipped entity.  If it is a 
      *        parameter entity, the name will begin with '%', and if
      *        it is the external DTD subset, it will be the string
-     *        "[dtd]".
-     * @exception org.xml.sax.SAXException Any SAX exception, possibly
-     *            wrapping another exception.
+     *        "[dtd]"
+     * @throws org.xml.sax.SAXException any SAX exception, possibly
+     *            wrapping another exception
      */
     public void skippedEntity (String name)
 	throws SAXException;

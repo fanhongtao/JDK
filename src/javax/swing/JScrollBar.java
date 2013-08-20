@@ -1,7 +1,7 @@
 /*
- * @(#)JScrollBar.java	1.74 03/01/23
+ * @(#)JScrollBar.java	1.78 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,7 +53,7 @@ import java.io.IOException;
  *      attribute: isContainer false
  *    description: A component that helps determine the visible content range of an area.
  *
- * @version 1.74 01/23/03
+ * @version 1.78 12/19/03
  * @author David Kloba
  */
 public class JScrollBar extends JComponent implements Adjustable, Accessible
@@ -336,6 +336,9 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
 
     /**
      * Sets the unitIncrement property.
+     * <p>
+     * Note, that if the argument is equal to the value of Integer.MIN_VALUE,
+     * the most look and feels will not provide the scrolling to the right/down.
      * @see #getUnitIncrement
      * @beaninfo
      *   preferred: true
@@ -376,6 +379,9 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
 
     /**
      * Sets the blockIncrement property.
+     * <p>
+     * Note, that if the argument is equal to the value of Integer.MIN_VALUE,
+     * the most look and feels will not provide the scrolling to the right/down.
      * @see #getBlockIncrement()
      * @beaninfo
      *   preferred: true
@@ -643,12 +649,23 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      * @see EventListenerList
      */
     protected void fireAdjustmentValueChanged(int id, int type, int value) {
+	fireAdjustmentValueChanged(id, type, value, getValueIsAdjusting());
+    }   
+    
+    /*
+     * Notify listeners that the scrollbar's model has changed.
+     * 
+     * @see #addAdjustmentListener
+     * @see EventListenerList
+     */
+    private void fireAdjustmentValueChanged(int id, int type, int value,
+					    boolean isAdjusting) {
         Object[] listeners = listenerList.getListenerList();
         AdjustmentEvent e = null;
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
             if (listeners[i]==AdjustmentListener.class) {
                 if (e == null) {
-                    e = new AdjustmentEvent(this, id, type, value);
+                    e = new AdjustmentEvent(this, id, type, value, isAdjusting);
                 }
                 ((AdjustmentListener)listeners[i+1]).adjustmentValueChanged(e);
             }          
@@ -665,9 +682,15 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
      */
     private class ModelListener implements ChangeListener, Serializable {
         public void stateChanged(ChangeEvent e)   {
-            int id = AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED;
-            int type = AdjustmentEvent.TRACK;
-            fireAdjustmentValueChanged(id, type, getValue());
+	    Object obj = e.getSource();
+	    if (obj instanceof BoundedRangeModel) {
+		int id = AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED;
+		int type = AdjustmentEvent.TRACK;
+		BoundedRangeModel model = (BoundedRangeModel)obj;
+		int value = model.getValue();
+		boolean isAdjusting = model.getValueIsAdjusting();
+		fireAdjustmentValueChanged(id, type, value, isAdjusting);
+	    }
         }
     }
 
@@ -844,12 +867,12 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
          * @return True if the value was set.
          */
         public boolean setCurrentAccessibleValue(Number n) {
-            if (n instanceof Integer) {
-                setValue(n.intValue());
-                return true;
-            } else {
-                return false;
-            }
+	    // TIGER - 4422535 
+            if (n == null) {
+		return false;
+	    }
+	    setValue(n.intValue());
+	    return true;
         }
 
         /**
@@ -867,7 +890,8 @@ public class JScrollBar extends JComponent implements Adjustable, Accessible
          * @return The maximum value of this object.
          */
         public Number getMaximumAccessibleValue() {
-            return new Integer(getMaximum());
+	    // TIGER - 4422362
+            return new Integer(model.getMaximum() - model.getExtent());
         }
 
     } // AccessibleJScrollBar

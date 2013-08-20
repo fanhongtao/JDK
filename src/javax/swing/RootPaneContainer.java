@@ -1,7 +1,7 @@
 /*
- * @(#)RootPaneContainer.java	1.13 03/01/23
+ * @(#)RootPaneContainer.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,31 @@ import java.awt.Container;
  * that need to treat components like JFrame, that contain a
  * single JRootPane, specially.  For example in a GUI builder, 
  * dropping a component on a RootPaneContainer would be interpreted 
- * as <code>frame.getContentPane().add(child)</code>.  
+ * as <code>frame.getContentPane().add(child)</code>.
+ * <p>
+ * For conveniance
+ * <code>JFrame</code>, <code>JDialog</code>, <code>JWindow</code>,
+ * <code>JApplet</code> and <code>JInternalFrame</code>, by default,
+ * forward, by default, all calls to the <code>add</code>,
+ * <code>remove</code> and <code>setLayout</code> methods, to the
+ * <code>contentPane</code>. This means you can call:
+ * <pre>
+ * rootPaneContainer.add(component);
+ * </pre>
+ * instead of:
+ * <pre>
+ * rootPaneContainer.getContentPane().add(component);
+ * </pre>
+ * <p>
+ * The behavior of the <code>add</code> and
+ * <code>setLayout</code> methods for
+ * <code>JFrame</code>, <code>JDialog</code>, <code>JWindow</code>,
+ * <code>JApplet</code> and <code>JInternalFrame</code> is controlled by
+ * the <code>rootPaneCheckingEnabled</code> property. If this property is
+ * true (the default), then calls to these methods are
+  * forwarded to the <code>contentPane</code>; if false, these
+  * methods operate directly on the <code>RootPaneContainer</code>. This
+  * property is only intended for subclasses, and is therefore protected.
  * 
  * @see JRootPane
  * @see JFrame
@@ -34,7 +58,7 @@ import java.awt.Container;
  * @see JApplet
  * @see JInternalFrame
  *
- * @version 1.13 01/23/03
+ * @version 1.15 12/19/03
  * @author Hans Muller
  */
 public interface RootPaneContainer

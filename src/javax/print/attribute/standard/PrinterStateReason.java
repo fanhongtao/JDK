@@ -1,7 +1,7 @@
 /*
- * @(#)PrinterStateReason.java	1.7 03/01/23
+ * @(#)PrinterStateReason.java	1.10 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.print.attribute.standard;
@@ -48,6 +48,8 @@ import javax.print.attribute.Attribute;
  * @author  Alan Kaminsky
  */
 public class PrinterStateReason	extends EnumSyntax implements Attribute	{
+
+    private static final long serialVersionUID = -1623720656201472593L;
 
     /**
      * The printer has detected an error other than ones listed below.
@@ -404,7 +406,7 @@ public class PrinterStateReason	extends EnumSyntax implements Attribute	{
      * @return  Printing attribute class (category), an instance of class
      *          {@link java.lang.Class java.lang.Class}.
      */
-    public final Class getCategory() {
+    public final Class<? extends Attribute> getCategory() {
 	return PrinterStateReason.class;
     }
 

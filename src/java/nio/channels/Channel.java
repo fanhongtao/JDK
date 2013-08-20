@@ -1,13 +1,14 @@
 /*
- * @(#)Channel.java	1.16 03/01/23
+ * @(#)Channel.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.nio.channels;
 
 import java.io.IOException;
+import java.io.Closeable;
 
 
 /**
@@ -31,11 +32,11 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.16, 03/01/23
+ * @version 1.18, 03/12/19
  * @since 1.4
  */
 
-public interface Channel {
+public interface Channel extends Closeable {
 
     /**
      * Tells whether or not this channel is open.  </p>

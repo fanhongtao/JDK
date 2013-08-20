@@ -1,19 +1,20 @@
 /*
- * @(#)GTKIconFactory.java	1.22 04/01/13
+ * @(#)GTKIconFactory.java	1.23 03/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
 
+import javax.swing.plaf.synth.*;
 import java.awt.*;
 import java.lang.reflect.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
-import java.util.HashMap;
+import sun.swing.plaf.synth.*;
 
 /**
- * @version 1.22, 01/13/04
+ * @version 1.23, 12/19/03
  */
 class GTKIconFactory {
     // Tree icons
@@ -38,7 +39,7 @@ class GTKIconFactory {
 
     //
     // Tree methods
-    //
+    // 
     public static SynthIcon getTreeExpandedIcon() {
         if (expandedIcon == null) {
             expandedIcon =
@@ -130,7 +131,7 @@ class GTKIconFactory {
 
     //
     // Menus
-    //
+    // 
     public static SynthIcon getMenuArrowIcon() {
         if (menuArrowIcon == null) {
             menuArrowIcon = new DelegatingIcon("paintMenuArrowIcon", 13, 13);
@@ -201,10 +202,10 @@ class GTKIconFactory {
         int shadowType = GTKConstants.SHADOW_OUT;
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                                       context.getRegion(), state);
-        if ((state & SynthConstants.MOUSE_OVER) !=0 ) {
+        if ((state & SynthConstants.MOUSE_OVER) != 0) {
             gtkState = SynthConstants.MOUSE_OVER;
         }
-        if ((state & SynthConstants.SELECTED) !=0 ) {
+        if ((state & SynthConstants.SELECTED) != 0) {
             shadowType = GTKConstants.SHADOW_IN;
         }
         style.getEngine(context).paintCheck(context, g, gtkState,
@@ -253,7 +254,7 @@ class GTKIconFactory {
 
     //
     // ToolBar Handle
-    //
+    // 
     public static SynthIcon getToolBarHandleIcon() {
         return new ToolBarHandleIcon();
     }
@@ -343,6 +344,7 @@ class GTKIconFactory {
                     getMethod().invoke(GTKIconFactory.class, new Object[] {
                                 context, g, new Integer(x), new Integer(y),
                                 new Integer(w), new Integer(h) });
+                    updateSizeIfNecessary(context);
                 } catch (IllegalAccessException iae) {
                 } catch (InvocationTargetException ite) {
                 }
@@ -350,19 +352,20 @@ class GTKIconFactory {
         }
 
         public int getIconWidth(SynthContext context) {
-            if (width == -1) {
-                width = context.getStyle().getInt(context,
-                        "Tree.expanderSize", 10);
-            }
+            updateSizeIfNecessary(context);
             return width;
         }
 
         public int getIconHeight(SynthContext context) {
-            if (height == -1) {
-                height = context.getStyle().getInt(context,
+            updateSizeIfNecessary(context);
+            return height;
+        }
+
+        private void updateSizeIfNecessary(SynthContext context) {
+            if (width == -1 && context != null) {
+                width = height = context.getStyle().getInt(context,
                         "Tree.expanderSize", 10);
             }
-            return height;
         }
 
         private Method getMethod() {
@@ -391,7 +394,6 @@ class GTKIconFactory {
             if (context != null) {
                 context = getContext(context);
                 paintToolBarHandleIcon(context, g, x, y, w, h);
-                context.dispose();
             }
         }
 
@@ -418,9 +420,9 @@ class GTKIconFactory {
                 style = SynthLookAndFeel.getStyleFactory().getStyle(
                              context.getComponent(), GTKRegion.HANDLE_BOX);
             }
-            return SynthContext.getContext(SynthContext.class,
-                                context.getComponent(), GTKRegion.HANDLE_BOX,
-                                style, SynthConstants.ENABLED);
+            return new SynthContext(context.getComponent(),
+                                    GTKRegion.HANDLE_BOX,
+                                    style, SynthConstants.ENABLED);
         }
     }
 }

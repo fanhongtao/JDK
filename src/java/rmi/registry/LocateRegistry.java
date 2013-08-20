@@ -1,7 +1,7 @@
 /*
- * @(#)LocateRegistry.java	1.30 03/01/23
+ * @(#)LocateRegistry.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,6 +11,14 @@ import java.rmi.RemoteException;
 import java.rmi.server.ObjID;
 import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
+import java.rmi.server.RemoteRef;
+import java.rmi.server.UnicastRemoteObject;
+import sun.rmi.registry.RegistryImpl;
+import sun.rmi.server.UnicastRef2;
+import sun.rmi.server.UnicastRef;
+import sun.rmi.server.Util;
+import sun.rmi.transport.LiveRef;
+import sun.rmi.transport.tcp.TCPEndpoint;
 
 /**
  * <code>LocateRegistry</code> is used to obtain a reference to a bootstrap
@@ -23,7 +31,7 @@ import java.rmi.server.RMIServerSocketFactory;
  * the remote host.  Therefore, a subsequent method invocation to a remote
  * registry returned as a result of this method may fail.
  *
- * @version 1.30, 01/23/03
+ * @version 1.33, 12/19/03
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1
@@ -136,43 +144,66 @@ public final class LocateRegistry {
 		host = "";
 	    }
 	}
-	
-	if (csf == null) {
-	    registry = (Registry) sun.rmi.server.RemoteProxy.
-		getStub("sun.rmi.registry.RegistryImpl", ObjID.REGISTRY_ID,
-			host, port);
-	} else {
-	    registry = (Registry) sun.rmi.server.RemoteProxy.
-		getStub("sun.rmi.registry.RegistryImpl", ObjID.REGISTRY_ID,
-			host, port, csf);
-	}
 
-	return registry;
+	/*
+	 * Create a proxy for the registry with the given host, port, and
+	 * client socket factory.  If the supplied client socket factory is
+	 * null, then the ref type is a UnicastRef, otherwise the ref type
+	 * is a UnicastRef2.  If the property
+	 * java.rmi.server.ignoreStubClasses is true, then the proxy
+	 * returned is an instance of a dynamic proxy class that implements
+	 * the Registry interface; otherwise the proxy returned is an
+	 * instance of the pregenerated stub class for RegistryImpl.
+	 **/
+	LiveRef liveRef =
+	    new LiveRef(new ObjID(ObjID.REGISTRY_ID),
+			new TCPEndpoint(host, port, csf, null),
+			false);
+	RemoteRef ref =
+	    (csf == null) ? new UnicastRef(liveRef) : new UnicastRef2(liveRef);
+
+	return (Registry) Util.createProxy(RegistryImpl.class, ref, false);
     }
 
     /**
-     * Creates and exports a <code>Registry</code> on the local host
-     * that accepts requests on the specified <code>port</code>.
+     * Creates and exports a <code>Registry</code> instance on the local
+     * host that accepts requests on the specified <code>port</code>.
+     *
+     * <p>The <code>Registry</code> instance is exported as if the static
+     * {@link UnicastRemoteObject.exportObject(Remote,int)
+     * UnicastRemoteObject.exportObject} method is invoked, passing the
+     * <code>Registry</code> instance and the specified <code>port</code> as
+     * arguments, except that the <code>Registry</code> instance is
+     * exported with a well-known object identifier, an {@link ObjID}
+     * instance constructed with the value {@link ObjID#REGISTRY_ID}.
      *
      * @param port the port on which the registry accepts requests
      * @return the registry
      * @exception RemoteException if the registry could not be exported
      * @since JDK1.1
-     */
-    public static Registry createRegistry(int port) throws RemoteException
-    {
-	return new sun.rmi.registry.RegistryImpl(port);
+     **/
+    public static Registry createRegistry(int port) throws RemoteException {
+	return new RegistryImpl(port);
     }
 
     /**
-     * Creates and exports a <code>Registry</code> on the local host that
-     * uses custom socket factories for communication with that registry.
-     * The registry that is created listens for incoming requests on the
-     * given <code>port</code> using a <code>ServerSocket</code> created
-     * from the supplied <code>RMIServerSocketFactory</code>.  A client
-     * that receives a reference to this registry will use a
-     * <code>Socket</code> created from the supplied
-     * <code>RMIClientSocketFactory</code>.
+     * Creates and exports a <code>Registry</code> instance on the local
+     * host that uses custom socket factories for communication with that
+     * instance.  The registry that is created listens for incoming
+     * requests on the given <code>port</code> using a
+     * <code>ServerSocket</code> created from the supplied
+     * <code>RMIServerSocketFactory</code>.
+     *
+     * <p>The <code>Registry</code> instance is exported as if 
+     * the static {@link
+     * UnicastRemoteObject.exportObject(Remote,int,RMIClientSocketFactory,RMIServerSocketFactory)
+     * UnicastRemoteObject.exportObject} method is invoked, passing the
+     * <code>Registry</code> instance, the specified <code>port</code>, the
+     * specified <code>RMIClientSocketFactory</code>, and the specified
+     * <code>RMIServerSocketFactory</code> as arguments, except that the
+     * <code>Registry</code> instance is exported with a well-known object
+     * identifier, an {@link ObjID} instance constructed with the value
+     * {@link ObjID#REGISTRY_ID}.
      *
      * @param port port on which the registry accepts requests
      * @param csf  client-side <code>Socket</code> factory used to
@@ -182,12 +213,12 @@ public final class LocateRegistry {
      * @return the registry
      * @exception RemoteException if the registry could not be exported
      * @since 1.2
-     */
+     **/
     public static Registry createRegistry(int port, 
 					  RMIClientSocketFactory csf, 
 					  RMIServerSocketFactory ssf) 
 	throws RemoteException
     {
-	return new sun.rmi.registry.RegistryImpl(port, csf, ssf);
+	return new RegistryImpl(port, csf, ssf);
     }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)DynEnum.java	1.10 03/01/23
+ * @(#)DynEnum.java	1.13 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,8 +10,9 @@ package org.omg.CORBA;
 
 /** Represents a <tt>DynAny</tt> object  associated
  *  with an IDL enum.
+ * @deprecated Use the new <a href="../DynamicAny/DynEnum.html">DynEnum</a> instead
  */
-
+@Deprecated
 public interface DynEnum extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
 {
     /**

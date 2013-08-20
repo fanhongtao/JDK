@@ -1,9 +1,8 @@
 // SAXNotRecognizedException.java - unrecognized feature or value.
-// Written by David Megginson, sax@megginson.com
+// http://www.saxproject.org
+// Written by David Megginson
 // NO WARRANTY!  This class is in the Public Domain.
-
-// $Id: SAXNotRecognizedException.java,v 1.1.2.1 2001/11/15 19:46:10 edwingo Exp $
-
+// $Id: SAXNotRecognizedException.java,v 1.2.24.1.2.1 2004/06/08 22:44:56 rameshm Exp $
 
 package org.xml.sax;
 
@@ -14,6 +13,8 @@ package org.xml.sax;
  * <blockquote>
  * <em>This module, both source code and documentation, is in the
  * Public Domain, and comes with <strong>NO WARRANTY</strong>.</em>
+ * See <a href='http://www.saxproject.org'>http://www.saxproject.org</a>
+ * for further information.
  * </blockquote>
  *
  * <p>An XMLReader will throw this exception when it finds an
@@ -21,21 +22,20 @@ package org.xml.sax;
  * extensions may use this class for other, similar purposes.</p>
  *
  * @since SAX 2.0
- * @author David Megginson, 
- *         <a href="mailto:sax@megginson.com">sax@megginson.com</a>
- * @version 2.0r2pre w/ JAXP 1.1 signatures
+ * @author David Megginson
+ * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.SAXNotSupportedException
  */
 public class SAXNotRecognizedException extends SAXException
 {
 
-//     /**
-//      * Default constructor.
-//      */
-//     public SAXNotRecognizedException ()
-//     {
-// 	super();
-//     }
+    /**
+     * Default constructor.
+     */
+    public SAXNotRecognizedException ()
+    {
+	super();
+    }
 
 
     /**
@@ -48,6 +48,8 @@ public class SAXNotRecognizedException extends SAXException
 	super(message);
     }
 
+    // Added serialVersionUID to preserve binary compatibility 
+    static final long serialVersionUID = 5440506620509557213L;
 }
 
 // end of SAXNotRecognizedException.java

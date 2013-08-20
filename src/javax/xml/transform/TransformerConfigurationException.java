@@ -1,7 +1,7 @@
 /*
- * @(#)TransformerConfigurationException.java	1.10 03/01/23
- *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)TransformerConfigurationException.java	1.14 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.xml.transform;
@@ -45,9 +45,8 @@ public class TransformerConfigurationException extends TransformerException {
      * given <code>Exception</code> base cause and detail message.
      *
      * @param e The exception to be encapsulated in a
-     * TransformerConfigurationException
+     *      TransformerConfigurationException
      * @param msg The detail message.
-     * @param e The exception to be wrapped in a TransformerConfigurationException
      */
     public TransformerConfigurationException(String msg, Throwable e) {
         super(msg, e);

@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectOutputStream.java	1.135 06/08/11
+ * @(#)ObjectOutputStream.java	1.145 04/05/28
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import sun.misc.SoftCache;
  * to an OutputStream.  The objects can be read (reconstituted) using an
  * ObjectInputStream.  Persistent storage of objects can be accomplished by
  * using a file for the stream.  If the stream is a network socket stream, the
- * objects can be reconsituted on another host or in another process.
+ * objects can be reconstituted on another host or in another process.
  *
  * <p>Only objects that support the java.io.Serializable interface can be
  * written to streams.  The class of each serializable object is encoded
@@ -98,6 +98,19 @@ import sun.misc.SoftCache;
  * the methods of ObjectOutput and ObjectInput.  It is the responsibility of
  * the objects to handle any versioning that occurs.
  *
+ * <p>Enum constants are serialized differently than ordinary serializable or
+ * externalizable objects.  The serialized form of an enum constant consists
+ * solely of its name; field values of the constant are not transmitted.  To
+ * serialize an enum constant, ObjectOutputStream writes the string returned by
+ * the constant's name method.  Like other serializable or externalizable
+ * objects, enum constants can function as the targets of back references
+ * appearing subsequently in the serialization stream.  The process by which
+ * enum constants are serialized cannot be customized; any class-specific
+ * writeObject and writeReplace methods defined by enum types are ignored
+ * during serialization.  Similarly, any serialPersistentFields or
+ * serialVersionUID field declarations are also ignored--all enum types have a
+ * fixed serialVersionUID of 0L.
+ *
  * <p>Primitive data, excluding serializable fields and externalizable data, is
  * written to the ObjectOutputStream in block-data records. A block data record
  * is composed of a header and data. The block data header consists of a marker
@@ -111,7 +124,7 @@ import sun.misc.SoftCache;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version     1.135, 06/08/11
+ * @version     1.145, 04/05/28
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -442,7 +455,7 @@ public class ObjectOutputStream
      * @throws	IOException Any exception thrown by the underlying
      * 		OutputStream.
      */
-    protected void annotateClass(Class cl) throws IOException {
+    protected void annotateClass(Class<?> cl) throws IOException {
     }
 
     /**
@@ -457,7 +470,7 @@ public class ObjectOutputStream
      * <code>resolveProxyClass</code>.  For a given subclass of
      * <code>ObjectOutputStream</code> that overrides this method, the
      * <code>resolveProxyClass</code> method in the corresponding subclass of
-     * <code>ObjectInputStream</code> must read any data or objects writtem by
+     * <code>ObjectInputStream</code> must read any data or objects written by
      * <code>annotateProxyClass</code>.
      *
      * @param	cl the proxy class to annotate custom data for
@@ -466,7 +479,7 @@ public class ObjectOutputStream
      * @see ObjectInputStream#resolveProxyClass(String[])
      * @since	1.3
      */
-    protected void annotateProxyClass(Class cl) throws IOException {
+    protected void annotateProxyClass(Class<?> cl) throws IOException {
     }
 
     /** 
@@ -474,7 +487,7 @@ public class ObjectOutputStream
      * substitute one object for another during serialization. Replacing
      * objects is disabled until enableReplaceObject is called. The
      * enableReplaceObject method checks that the stream requesting to do
-     * replacment can be trusted.  The first occurrence of each object written
+     * replacement can be trusted.  The first occurrence of each object written
      * into the serialization stream is passed to replaceObject.  Subsequent
      * references to the object are replaced by the object returned by the
      * original call to replaceObject.  To ensure that the private state of
@@ -622,6 +635,9 @@ public class ObjectOutputStream
      * @throws	IOException If an I/O error has occurred.
      */
     public void write(byte[] buf, int off, int len) throws IOException {
+	if (buf == null) {
+	    throw new NullPointerException();
+	}
 	int endoff = off + len;
 	if (off < 0 || len < 0 || endoff > buf.length || endoff < 0) {
 	    throw new IndexOutOfBoundsException();
@@ -773,13 +789,15 @@ public class ObjectOutputStream
     }
 
     /**
-     * Primitive data write of this String in UTF format.  Note that there is a
+     * Primitive data write of this String in 
+     * <a href="DataInput.html#modified-utf-8">modified UTF-8</a>
+     * format.  Note that there is a
      * significant difference between writing a String into the stream as
      * primitive data or as an Object. A String instance written by writeObject
      * is written into the stream as a String initially. Future writeObject()
      * calls write references to the string into the stream.
      *
-     * @param	str the String in UTF format
+     * @param	str the String to be written
      * @throws	IOException if I/O errors occur while writing to the underlying
      * 		stream
      */
@@ -788,7 +806,7 @@ public class ObjectOutputStream
     }
     
     /**
-     * Provide programatic access to the persistent fields to be written
+     * Provide programmatic access to the persistent fields to be written
      * to ObjectOutput.
      *
      * @since 1.2
@@ -868,16 +886,11 @@ public class ObjectOutputStream
 	public abstract void put(String name, Object val);
 
 	/**
-	 * Write the data and fields to the specified ObjectOutput stream,
-	 * which must be the same stream that produced this
-	 * <code>PutField</code> object.
+	 * Write the data and fields to the specified ObjectOutput stream.
 	 * 
 	 * @param  out the stream to write the data and fields to
 	 * @throws IOException if I/O errors occur while writing to the
 	 * 	   underlying stream
-	 * @throws IllegalArgumentException if the specified stream is not
-	 * 	   the same stream that produced this <code>PutField</code>
-	 * 	   object
 	 * @deprecated This method does not write the values contained by this
 	 * 	   <code>PutField</code> object in a proper format, and may
 	 * 	   result in corruption of the serialization stream.  The
@@ -885,6 +898,7 @@ public class ObjectOutputStream
 	 * 	   calling the {@link java.io.ObjectOutputStream#writeFields()}
 	 * 	   method.
 	 */
+        @Deprecated
 	public abstract void write(ObjectOutput out) throws IOException;
     }
 
@@ -1053,6 +1067,8 @@ public class ObjectOutputStream
 		writeString((String) obj, unshared);
 	    } else if (cl.isArray()) {
 		writeArray(obj, desc, unshared);
+	    } else if (obj instanceof Enum) {
+		writeEnum((Enum) obj, desc, unshared);
 	    } else if (obj instanceof Serializable) {
 		writeOrdinaryObject(obj, desc, unshared);
 	    } else {
@@ -1232,8 +1248,24 @@ public class ObjectOutputStream
     }
     
     /**
+     * Writes given enum constant to stream.
+     */
+    private void writeEnum(Enum en,
+			   ObjectStreamClass desc,
+			   boolean unshared)
+	throws IOException
+    {
+	bout.writeByte(TC_ENUM);
+	ObjectStreamClass sdesc = desc.getSuperDesc();
+	writeClassDesc((sdesc.forClass() == Enum.class) ? desc : sdesc, false);
+	handles.assign(unshared ? null : en);
+	writeString(en.name(), false);
+    }
+
+    /**
      * Writes representation of a "ordinary" (i.e., not a String, Class,
-     * ObjectStreamClass or array) serializable object to the stream.
+     * ObjectStreamClass, array, or enum constant) serializable object to the
+     * stream.
      */
     private void writeOrdinaryObject(Object obj, 
 				     ObjectStreamClass desc, 
@@ -1455,9 +1487,6 @@ public class ObjectOutputStream
 	     * instance.  Applications which write unshared objects using the
 	     * PutField API must use OOS.writeFields().
 	     */
-	    if (ObjectOutputStream.this != out) {
-	        throw new IllegalArgumentException("wrong stream");
-	    }
 	    out.write(primVals, 0, primVals.length);
 	    
 	    ObjectStreamField[] fields = desc.getFields(false);
@@ -2087,7 +2116,7 @@ public class ObjectOutputStream
 
 	/**
 	 * Inserts mapping object -> handle mapping into table.  Assumes table
-	 * is large enough to accomodate new mapping.
+	 * is large enough to accommodate new mapping.
 	 */
 	private void insert(Object obj, int handle) {
 	    int index = hash(obj) % spine.length;

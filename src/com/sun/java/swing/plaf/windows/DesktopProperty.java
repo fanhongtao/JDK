@@ -1,5 +1,5 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.windows;
@@ -17,7 +17,7 @@ import javax.swing.plaf.*;
  * will force the UIs to update all known Frames. You can invoke
  * <code>invalidate</code> to force the value to be fetched again.
  *
- * @version @(#)DesktopProperty.java	1.5 03/01/23
+ * @version @(#)DesktopProperty.java	1.7 03/12/19
  */
 // NOTE: Don't rely on this class staying in this location. It is likely
 // to move to a different package in the future.
@@ -218,8 +218,8 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
             else if (value instanceof Font) {
                 return new FontUIResource((Font)value);
             }
-            else if (value instanceof UIDefaults.ProxyLazyValue) {
-                value = ((UIDefaults.ProxyLazyValue)value).createValue(null);
+            else if (value instanceof UIDefaults.LazyValue) {
+                value = ((UIDefaults.LazyValue)value).createValue(null);
             }
             else if (value instanceof UIDefaults.ActiveValue) {
                 value = ((UIDefaults.ActiveValue)value).createValue(null);

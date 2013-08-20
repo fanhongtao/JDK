@@ -1,7 +1,7 @@
 /*
- * @(#)DirStateFactory.java	1.8 03/01/23
+ * @(#)DirStateFactory.java	1.11 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.naming.spi;
@@ -57,7 +57,7 @@ import java.util.Hashtable;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 03/01/23
+  * @version 1.11 04/07/16
   *
   * @see DirectoryManager#getStateToBind
   * @see DirObjectFactory
@@ -123,7 +123,8 @@ public interface DirStateFactory extends StateFactory {
  * @see DirectoryManager#getStateToBind
  */
     public Result getStateToBind(Object obj, Name name, Context nameCtx,
-	Hashtable environment, Attributes inAttrs)
+				 Hashtable<?,?> environment,
+				 Attributes inAttrs)
 	throws NamingException;
 
 

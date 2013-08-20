@@ -1,7 +1,7 @@
 /*
- * @(#)BeanContextServicesSupport.java	1.19 03/01/23
+ * @(#)BeanContextServicesSupport.java	1.23 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.util.Locale;
  * </p>
  *
  * @author Laurence P. G. Cable
- * @version 1.19, 01/23/03
+ * @version 1.23, 04/15/04
  * @since 1.2
  */
 
@@ -140,6 +140,8 @@ public class      BeanContextServicesSupport extends BeanContextSupport
 
     protected class BCSSChild extends BeanContextSupport.BCSChild  {
 
+        private static final long serialVersionUID = -3263851306889194873L;
+
 	/*
 	 * private nested class to map serviceClass to Provider and requestors
 	 * listeners.
@@ -231,18 +233,24 @@ public class      BeanContextServicesSupport extends BeanContextSupport
 	    boolean isDelegated() { return delegateProvider != null; }
 
  	    void addRef(boolean delegated) { 
-		if (delegated)
+		if (delegated) {
 		    delegateRefs++;
-		else
+		} else {
 		    serviceRefs++;
+		}
 	    }
 
 
 	    void releaseRef(boolean delegated) { 
-                if (delegated)
-                    if (--delegateRefs == 0) delegateProvider = null;
-                else
-                    if (--serviceRefs  <= 0) serviceProvider = null;
+                if (delegated) {
+                    if (--delegateRefs == 0) {
+			delegateProvider = null;
+		    }
+                } else {
+                    if (--serviceRefs  <= 0) {
+			serviceProvider = null;
+		    }
+		}
             }    
 
 	    int getRefs() { return serviceRefs + delegateRefs; }
@@ -366,6 +374,7 @@ public class      BeanContextServicesSupport extends BeanContextSupport
 	    bcsp.releaseService(BeanContextServicesSupport.this.getBeanContextServicesPeer(), requestor, service);
 
 	    serviceClassRef.releaseRef(isDelegated);
+	    serviceClassRef.removeRequestor(requestor);
 
 	    if (serviceRef.release() == 0) {
 

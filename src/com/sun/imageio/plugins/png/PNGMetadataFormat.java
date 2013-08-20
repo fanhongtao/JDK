@@ -1,7 +1,7 @@
 /*
- * @(#)PNGMetadataFormat.java	1.7 03/01/23
+ * @(#)PNGMetadataFormat.java	1.9 04/03/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -15,7 +15,7 @@ import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.metadata.IIOMetadataFormat;
 import javax.imageio.metadata.IIOMetadataFormatImpl;
 
-class PNGMetadataFormat extends IIOMetadataFormatImpl {
+public class PNGMetadataFormat extends IIOMetadataFormatImpl {
 
     private static IIOMetadataFormat instance = null;
 

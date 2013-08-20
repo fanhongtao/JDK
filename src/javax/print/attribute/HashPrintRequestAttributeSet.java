@@ -1,7 +1,7 @@
 /*
- * @(#)HashPrintRequestAttributeSet.java	1.4 03/01/23
+ * @(#)HashPrintRequestAttributeSet.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,7 @@ import java.io.Serializable;
 public class HashPrintRequestAttributeSet extends HashAttributeSet
     implements PrintRequestAttributeSet, Serializable {
 
+    private static final long serialVersionUID = 2364756266107751933L;
 
     /**
      * Construct a new, empty print request attribute set. 

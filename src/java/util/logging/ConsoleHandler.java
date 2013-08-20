@@ -1,7 +1,7 @@
 /*
- * @(#)ConsoleHandler.java	1.9 03/01/23
+ * @(#)ConsoleHandler.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.net.*;
  *	  the default platform encoding).
  * </ul>
  * <p>
- * @version 1.9, 01/23/03
+ * @version 1.12, 12/19/03
  * @since 1.4
  */
 
@@ -44,7 +44,7 @@ public class ConsoleHandler extends StreamHandler {
     // javadoc.
     private void configure() {
         LogManager manager = LogManager.getLogManager();
-	String cname = ConsoleHandler.class.getName();
+	String cname = getClass().getName();
 
 	setLevel(manager.getLevelProperty(cname +".level", Level.INFO));
 	setFilter(manager.getFilterProperty(cname +".filter", null));
@@ -81,7 +81,8 @@ public class ConsoleHandler extends StreamHandler {
      * The logging request was made initially to a <tt>Logger</tt> object,
      * which initialized the <tt>LogRecord</tt> and forwarded it here.
      * <p>
-     * @param  record  description of the log event
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     public void publish(LogRecord record) {
 	super.publish(record);	

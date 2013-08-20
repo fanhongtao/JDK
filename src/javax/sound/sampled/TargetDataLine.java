@@ -1,7 +1,7 @@
 /*
- * @(#)TargetDataLine.java	1.17 03/01/23
+ * @(#)TargetDataLine.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +33,7 @@ package javax.sound.sampled;
  * the oldest queued data is discarded and replaced by new data.
  * 
  * @author Kara Kytle
- * @version 1.17 03/01/23
+ * @version 1.20 03/12/19
  * @see Mixer
  * @see DataLine
  * @see SourceDataLine
@@ -69,8 +69,9 @@ public interface TargetDataLine extends DataLine {
      * @param bufferSize the desired buffer size, in bytes.
      * @throws LineUnavailableException if the line cannot be
      * opened due to resource restrictions
-     * @throws IllegalArgumentException if the buffer size does not represent 
-     * an integral number of sample frames
+     * @throws IllegalArgumentException if the buffer size does not represent
+     * an integral number of sample frames,
+     * or if <code>format</code> is not fully specified or invalid
      * @throws IllegalStateException if the line is already open
      * @throws SecurityException if the line cannot be
      * opened due to security restrictions
@@ -107,6 +108,8 @@ public interface TargetDataLine extends DataLine {
      * @param format the desired audio format
      * @throws LineUnavailableException if the line cannot be
      * opened due to resource restrictions
+     * @throws IllegalArgumentException if <code>format</code>
+     * is not fully specified or invalid
      * @throws IllegalStateException if the line is already open
      * @throws SecurityException if the line cannot be
      * opened due to security restrictions
@@ -151,6 +154,10 @@ public interface TargetDataLine extends DataLine {
      * @return the number of bytes actually read
      * @throws IllegalArgumentException if the requested number of bytes does
      * not represent an integral number of sample frames.
+     * or if <code>len</code> is negative.
+     * @throws ArrayIndexOutOfBoundsException if <code>off</code> is negative,
+     * or <code>off+len</code> is greater than the length of the array
+     * <code>b</code>. 
      *
      * @see SourceDataLine#write
      * @see DataLine#available

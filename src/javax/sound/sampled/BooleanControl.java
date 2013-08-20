@@ -1,7 +1,7 @@
 /*
- * @(#)BooleanControl.java	1.14 03/01/27
+ * @(#)BooleanControl.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ package javax.sound.sampled;
  * display in the user interface.
  *
  * @author Kara Kytle
- * @version 1.14, 03/01/27
+ * @version 1.15, 03/12/19
  * @since 1.3
  */
 public abstract class BooleanControl extends Control {
@@ -138,7 +138,7 @@ public abstract class BooleanControl extends Control {
      * common types.
      *
      * @author Kara Kytle
-     * @version 1.14, 03/01/27
+     * @version 1.15, 03/12/19
      * @since 1.3
      */
     public static class Type extends Control.Type {

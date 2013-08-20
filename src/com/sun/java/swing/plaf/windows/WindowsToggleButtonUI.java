@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsToggleButtonUI.java	1.26 03/01/23
+ * @(#)WindowsToggleButtonUI.java	1.29 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.26 01/23/03
+ * @version 1.29 12/19/03
  * @author Jeff Dinkins
  */
 public class WindowsToggleButtonUI extends BasicToggleButtonUI
@@ -64,8 +64,8 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    b.setBorder(xp.getBorder("button.pushbutton"));
-	    b.setOpaque(false);
-	    b.setRolloverEnabled(true);
+	    LookAndFeel.installProperty(b, "opaque", Boolean.FALSE);
+	    LookAndFeel.installProperty(b, "rolloverEnabled", Boolean.TRUE);
 	}
     }
 
@@ -147,7 +147,7 @@ public class WindowsToggleButtonUI extends BasicToggleButtonUI
 	 * to allow for the focus line if focus is painted
 	 */
         AbstractButton b = (AbstractButton)c;
-	if (b.isFocusPainted()) {
+	if (d != null && b.isFocusPainted()) {
 	    if(d.width % 2 == 0) { d.width += 1; }
 	    if(d.height % 2 == 0) { d.height += 1; }
 	}

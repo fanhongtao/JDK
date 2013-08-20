@@ -1,7 +1,7 @@
 /*
- * @(#)JSplitPane.java	1.70 03/01/23
+ * @(#)JSplitPane.java	1.76 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,10 +61,6 @@ import java.io.IOException;
  * the default, indicates the right/bottom component gets all the space,
  * where as a value of 1 indicates the left/top component gets all the space.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JSplitPane"><code>JSplitPane</code> key assignments</a>.
- * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
  * future Swing releases. The current serialization support is
@@ -77,7 +73,7 @@ import java.io.IOException;
  * @see #setDividerLocation
  * @see #resetToPreferredSizes
  *
- * @version 1.70 01/23/03
+ * @version 1.76 12/19/03
  * @author Scott Violet
  */
 public class JSplitPane extends JComponent implements Accessible
@@ -196,12 +192,14 @@ public class JSplitPane extends JComponent implements Accessible
      * Size of the divider.
      */
     protected int dividerSize;
+    private boolean dividerSizeSet = false;
 
     /**
      * Is a little widget provided to quickly expand/collapse the
      * split pane?
      */
     protected boolean oneTouchExpandable;
+    private boolean oneTouchExpandableSet;
 
     /**
      * Previous location of the split pane.
@@ -319,7 +317,7 @@ public class JSplitPane extends JComponent implements Accessible
 
 	dividerLocation = -1;
         setLayout(null);
-	setOpaque(true);
+	setUIProperty("opaque", Boolean.TRUE);
         orientation = newOrientation;
         if (orientation != HORIZONTAL_SPLIT && orientation != VERTICAL_SPLIT)
             throw new IllegalArgumentException("cannot create JSplitPane, " +
@@ -408,6 +406,7 @@ public class JSplitPane extends JComponent implements Accessible
     public void setDividerSize(int newSize) {
         int           oldSize = dividerSize;
 
+	dividerSizeSet = true;
         if (oldSize != newSize) {
             dividerSize = newSize;
             firePropertyChange(DIVIDER_SIZE_PROPERTY, oldSize, newSize);
@@ -551,6 +550,7 @@ public class JSplitPane extends JComponent implements Accessible
         boolean           oldValue = oneTouchExpandable;
 
         oneTouchExpandable = newValue;
+        oneTouchExpandableSet = true;
         firePropertyChange(ONE_TOUCH_EXPANDABLE_PROPERTY, oldValue, newValue);
         repaint();
     }
@@ -1023,7 +1023,7 @@ public class JSplitPane extends JComponent implements Accessible
         SplitPaneUI        ui = getUI();
 
         if (ui != null) {
-            Graphics           tempG = SwingGraphics.createSwingGraphics(g);
+            Graphics           tempG = g.create();
             ui.finishedPaintingChildren(this, tempG);
             tempG.dispose();
         }
@@ -1044,6 +1044,22 @@ public class JSplitPane extends JComponent implements Accessible
                 ui.installUI(this);
             }
         }
+    }
+
+    void setUIProperty(String propertyName, Object value) {
+        if (propertyName == "dividerSize") {
+	    if (!dividerSizeSet) {
+		setDividerSize(((Number)value).intValue());
+		dividerSizeSet = false;
+	    }
+        } else if (propertyName == "oneTouchExpandable") {
+            if (!oneTouchExpandableSet) {
+                setOneTouchExpandable(((Boolean)value).booleanValue());
+                oneTouchExpandableSet = false;
+            }
+	} else {
+	    super.setUIProperty(propertyName, value);
+	}
     }
 
 
@@ -1166,12 +1182,12 @@ public class JSplitPane extends JComponent implements Accessible
          * @return True if the value was set.
          */
         public boolean setCurrentAccessibleValue(Number n) {
-            if (n instanceof Integer) {
-                setDividerLocation(n.intValue());
-                return true;
-            } else {
-                return false;
-            }
+	    // TIGER - 4422535 
+            if (n == null) {
+		return false;
+	    }
+	    setDividerLocation(n.intValue());
+	    return true;
         }
     
 

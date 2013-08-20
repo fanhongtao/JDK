@@ -1,7 +1,7 @@
 /*
- * @(#)Any.java	1.44 03/01/23
+ * @(#)Any.java	1.46 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -592,6 +592,7 @@ abstract public class Any implements IDLEntity {
      *      comments for unimplemented features</a>
      * @deprecated Deprecated by CORBA 2.2.
      */
+    @Deprecated
     public Principal extract_Principal() throws BAD_OPERATION {
 	throw new org.omg.CORBA.NO_IMPLEMENT() ;
     }
@@ -607,6 +608,7 @@ abstract public class Any implements IDLEntity {
      *      comments for unimplemented features</a>
      * @deprecated Deprecated by CORBA 2.2.
      */
+    @Deprecated
     public void	   insert_Principal(Principal p) {
 	throw new org.omg.CORBA.NO_IMPLEMENT() ;
     }

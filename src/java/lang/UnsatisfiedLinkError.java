@@ -1,7 +1,7 @@
 /*
- * @(#)UnsatisfiedLinkError.java	1.20 03/01/23
+ * @(#)UnsatisfiedLinkError.java	1.21 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ package java.lang;
  * native-language definition of a method declared <code>native</code>. 
  *
  * @author unascribed
- * @version 1.20, 01/23/03
+ * @version 1.21, 12/19/03
  * @see     java.lang.Runtime
  * @since   JDK1.0
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)MenuBar.java	1.63 03/01/23
+ * @(#)MenuBar.java	1.69 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -40,7 +40,7 @@ import javax.accessibility.*;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.63, 01/23/03
+ * @version 1.69, 05/18/04
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)
@@ -181,8 +181,11 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
 
     /**
      * Adds the specified menu to the menu bar.
-     * @param        m   the menu to be added.
-     * @return       the menu added.
+     * If the menu has been part of another menu bar,
+     * removes it from that menu bar.
+     *
+     * @param        m   the menu to be added
+     * @return       the menu added
      * @see          java.awt.MenuBar#remove(int)
      * @see          java.awt.MenuBar#remove(java.awt.MenuComponent)
      */
@@ -251,6 +254,7 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getMenuCount()</code>.
      */
+    @Deprecated
     public int countMenus() {
 	return getMenuCountImpl();
     }
@@ -288,7 +292,7 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * @see         java.awt.MenuShortcut
      * @since       JDK1.1
      */
-    public synchronized Enumeration shortcuts() {
+    public synchronized Enumeration<MenuShortcut> shortcuts() {
         Vector shortcuts = new Vector();
 	int nmenus = getMenuCount();
 	for (int i = 0 ; i < nmenus ; i++) {
@@ -438,6 +442,13 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
     }
 
     /**
+     * Defined in MenuComponent. Overridden here.
+     */
+    int getAccessibleChildIndex(MenuComponent child) {
+        return menus.indexOf(child);
+    }
+
+    /**
      * Inner class of MenuBar used to provide default support for
      * accessibility.  This class is not meant to be used directly by
      * application developers, but is instead meant only to be
@@ -447,7 +458,12 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
      * <code>MenuBar</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to menu bar user-interface elements.
      */
-    protected class AccessibleAWTMenuBar extends AccessibleAWTMenuComponent {
+    protected class AccessibleAWTMenuBar extends AccessibleAWTMenuComponent
+    {
+        /*
+         * JDK 1.3 serialVersionUID
+         */
+        private static final long serialVersionUID = -8577604491830083815L;
 
         /**
          * Get the role of this object.

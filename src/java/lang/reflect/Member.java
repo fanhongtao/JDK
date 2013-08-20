@@ -1,7 +1,7 @@
 /*
- * @(#)Member.java	1.12 03/01/23
+ * @(#)Member.java	1.16 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,4 +63,13 @@ interface Member {
      */
     public int getModifiers();
 
+    /**
+     * Returns <tt>true</tt> if this member was introduced by
+     * the compiler; returns <tt>false</tt> otherwise.
+     *
+     * @return true if and only if this member was introduced by
+     * the compiler.
+     * @since 1.5
+     */
+    public boolean isSynthetic();
 }

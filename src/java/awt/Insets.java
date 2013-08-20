@@ -1,7 +1,7 @@
 /*
- * @(#)Insets.java	1.28 03/01/23
+ * @(#)Insets.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.awt;
  * at each of its edges. The space can be a border, a blank space, or 
  * a title. 
  *
- * @version 	1.28, 01/23/03
+ * @version 	1.30, 12/19/03
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see         java.awt.LayoutManager
@@ -88,6 +88,22 @@ public class Insets implements Cloneable, java.io.Serializable {
 	this.left = left;
 	this.bottom = bottom;
 	this.right = right;
+    }
+
+    /**
+     * Set top, left, bottom, and right to the specified values
+     *
+     * @param       top   the inset from the top.
+     * @param       left   the inset from the left.
+     * @param       bottom   the inset from the bottom.
+     * @param       right   the inset from the right.
+     * @since 1.5
+     */
+    public void set(int top, int left, int bottom, int right) {
+        this.top = top;
+        this.left = left;
+        this.bottom = bottom;
+        this.right = right;
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
- * @(#)IndexColorModel.java	1.92 03/01/23
+ * @(#)IndexColorModel.java	1.96 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,8 +30,8 @@ import java.math.BigInteger;
  * the constructor, an opaque alpha component (alpha = 1.0) is
  * assumed for each entry.
  * An optional transparent pixel value can be supplied that indicates a
- * completely transparent pixel, regardless of any alpha component
- * supplied or assumed for that pixel value.
+ * pixel to be made completely transparent, regardless of any alpha
+ * component supplied or assumed for that pixel value.
  * Note that the color components in the colormap of an
  * <code>IndexColorModel</code> objects are never pre-multiplied with
  * the alpha components.
@@ -53,6 +53,18 @@ import java.math.BigInteger;
  * that some valid color has an alpha component that is
  * neither completely transparent nor completely opaque (0.0 < alpha < 1.0).
  * </a>
+ *
+ * <p>
+ * If an <code>IndexColorModel</code> object has 
+ * a transparency value of <code>Transparency.OPAQUE</code>,
+ * then the <code>hasAlpha</code> 
+ * and <code>getNumComponents</code> methods
+ * (both inherited from <code>ColorModel</code>) 
+ * return false and 3, respectively.
+ * For any other transparency value,
+ * <code>hasAlpha</code> returns true
+ * and <code>getNumComponents</code> returns 4.
+ *
  * <p>
  * The index represented by a pixel value is stored in the least
  * significant <em>n</em> bits of the pixel representations passed to the
@@ -74,7 +86,7 @@ import java.math.BigInteger;
  * this is that the underlying native graphics code makes assumptions
  * about the layout and operation of this class and those assumptions
  * are reflected in the implementations of the methods here that are
- * marked final.  You can subclass this class for other reaons, but
+ * marked final.  You can subclass this class for other reasons, but
  * you cannot override or modify the behaviour of those methods.
  *
  * @see ColorModel
@@ -139,7 +151,7 @@ public class IndexColorModel extends ColorModel {
      * of red, green, and blue components.  Pixels described by this color
      * model all have alpha components of 255 unnormalized 
      * (1.0&nbsp;normalized), which means they are fully opaque, except 
-     * for the indicated transparent pixel.  All of the arrays
+     * for the indicated pixel to be made transparent.  All of the arrays
      * specifying the color components must have at least the specified
      * number of entries.
      * The <code>ColorSpace</code> is the default sRGB space.
@@ -249,7 +261,7 @@ public class IndexColorModel extends ColorModel {
     /**
      * Constructs an <code>IndexColorModel</code> from a single array of 
      * interleaved red, green, blue and optional alpha components.  The 
-     * specified transparent index represents a pixel that is considered
+     * specified transparent index represents a pixel that is made
      * entirely transparent regardless of any alpha value specified
      * for it.  The array must have enough values in it to fill all
      * of the needed component arrays of the specified size.
@@ -328,7 +340,7 @@ public class IndexColorModel extends ColorModel {
      * Constructs an <code>IndexColorModel</code> from an array of 
      * ints where each int is comprised of red, green, blue, and 
      * optional alpha components in the default RGB color model format.  
-     * The specified transparent index represents a pixel that is considered
+     * The specified transparent index represents a pixel that is made
      * entirely transparent regardless of any alpha value specified
      * for it.  The array must have enough values in it to fill all
      * of the needed component arrays of the specified size.
@@ -590,10 +602,16 @@ public class IndexColorModel extends ColorModel {
     }
 
     /**
-     * Returns the index of the transparent pixel in this 
-     * <code>IndexColorModel</code> or -1 if there is no transparent pixel.
-     * @return the index of this <code>IndexColorModel</code> object's
-     *       transparent pixel, or -1 if there is no such pixel.
+     * Returns the index of a transparent pixel in this
+     * <code>IndexColorModel</code> or -1 if there is no pixel
+     * with an alpha value of 0.  If a transparent pixel was
+     * explicitly specified in one of the constructors by its
+     * index, then that index will be preferred, otherwise,
+     * the index of any pixel which happens to be fully transparent
+     * may be returned.
+     * @return the index of a transparent pixel in this
+     *         <code>IndexColorModel</code> object, or -1 if there
+     *         is no such pixel
      */
     final public int getTransparentPixel() {
 	return transparent_index;
@@ -933,12 +951,16 @@ public class IndexColorModel extends ColorModel {
     /**
      * Returns an array of unnormalized color/alpha components for a 
      * specified pixel in this <code>ColorModel</code>.  The pixel value 
-     * is specified as an int.  If the components array is <code>null</code>, 
-     * a new array is allocated.  The components array is returned.  
-     * Color/alpha components are stored in the components array starting 
+     * is specified as an int.  If the <code>components</code> array is <code>null</code>, 
+     * a new array is allocated that contains 
+     * <code>offset + getNumComponents()</code> elements. 
+     * The <code>components</code> array is returned, 
+     * with the alpha component included 
+     * only if <code>hasAlpha</code> returns true.  
+     * Color/alpha components are stored in the <code>components</code> array starting 
      * at <code>offset</code> even if the array is allocated by this method.  
      * An <code>ArrayIndexOutOfBoundsException</code>
-     * is thrown if  the components array is not <code>null</code> and is 
+     * is thrown if  the <code>components</code> array is not <code>null</code> and is 
      * not large enough to hold all the color and alpha components 
      * starting at <code>offset</code>.
      * @param pixel the specified pixel
@@ -948,6 +970,8 @@ public class IndexColorModel extends ColorModel {
      * which to start storing the color and alpha components
      * @return an array containing the color and alpha components of the
      * specified pixel starting at the specified offset.
+     * @see ColorModel#hasAlpha
+     * @see ColorModel#getNumComponents
      */
     public int[] getComponents(int pixel, int[] components, int offset) {
         if (components == null) {
@@ -976,7 +1000,11 @@ public class IndexColorModel extends ColorModel {
      * is thrown if <code>pixel</code> is not large enough to hold 
      * a pixel value for this <code>ColorModel</code>.  If the 
      * <code>components</code> array is <code>null</code>, a new array 
-     * is allocated.  The <code>components</code> array is returned.  
+     * is allocated that contains 
+     * <code>offset + getNumComponents()</code> elements. 
+     * The <code>components</code> array is returned, 
+     * with the alpha component included 
+     * only if <code>hasAlpha</code> returns true.  
      * Color/alpha components are stored in the <code>components</code> 
      * array starting at <code>offset</code> even if the array is
      * allocated by this method.  An 
@@ -1008,6 +1036,8 @@ public class IndexColorModel extends ColorModel {
      *            primitive array of type <code>transferType</code>
      * @throws UnsupportedOperationException if <code>transferType</code>
      *         is not one of the supported transer types
+     * @see ColorModel#hasAlpha
+     * @see ColorModel#getNumComponents
      */
     public int[] getComponents(Object pixel, int[] components, int offset) {
         int intpixel;

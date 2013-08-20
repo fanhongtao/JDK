@@ -1,10 +1,12 @@
 /*
- * @(#)TitledBorder.java	1.38 03/01/23
+ * @(#)TitledBorder.java	1.40 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.border;
+
+import com.sun.java.swing.SwingUtilities2;
 
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -17,6 +19,7 @@ import java.awt.Toolkit;
 import java.awt.Component;
 import java.awt.Dimension;
 
+import javax.swing.JComponent;
 import javax.swing.UIManager;
 
 /**
@@ -44,7 +47,7 @@ import javax.swing.UIManager;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.38 01/23/03 
+ * @version 1.40 12/19/03 
  * @author David Kloba
  * @author Amy Fowler
  */
@@ -228,12 +231,14 @@ public class TitledBorder extends AbstractBorder
 
         g.setFont(getFont(c));
 
-        FontMetrics fm = g.getFontMetrics();
+        JComponent jc = (c instanceof JComponent) ? (JComponent)c : null;
+        FontMetrics fm = SwingUtilities2.getFontMetrics(jc, g);
         int         fontHeight = fm.getHeight();
         int         descent = fm.getDescent();
         int         ascent = fm.getAscent();
         int         diff;
-        int         stringWidth = fm.stringWidth(getTitle());
+        int         stringWidth = SwingUtilities2.stringWidth(jc, fm,
+                                                              getTitle());
         Insets      insets;
 
         if (border != null) {
@@ -376,7 +381,7 @@ public class TitledBorder extends AbstractBorder
         }
 
         g.setColor(getTitleColor());
-        g.drawString(getTitle(), textLoc.x, textLoc.y);
+        SwingUtilities2.drawString(jc, g, getTitle(), textLoc.x, textLoc.y);
 
         g.setFont(font);
         g.setColor(color);
@@ -596,10 +601,12 @@ public class TitledBorder extends AbstractBorder
                                           insets.top+insets.bottom);
         Font font = getFont(c);
         FontMetrics fm = c.getFontMetrics(font);
+        JComponent jc = (c instanceof JComponent) ? (JComponent)c : null;
         switch (titlePosition) {
           case ABOVE_TOP:
           case BELOW_BOTTOM:
-              minSize.width = Math.max(fm.stringWidth(getTitle()), minSize.width);
+              minSize.width = Math.max(SwingUtilities2.stringWidth(jc, fm,
+                                       getTitle()), minSize.width);
               break;
           case BELOW_TOP:
           case ABOVE_BOTTOM:
@@ -607,7 +614,7 @@ public class TitledBorder extends AbstractBorder
           case BOTTOM:
           case DEFAULT_POSITION:       
           default:
-              minSize.width += fm.stringWidth(getTitle());
+              minSize.width += SwingUtilities2.stringWidth(jc, fm, getTitle());
         }
         return minSize;       
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)TextAction.java	1.27 03/01/23
+ * @(#)TextAction.java	1.29 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -39,7 +39,7 @@ import javax.swing.KeyStroke;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.27 01/23/03
+ * @version 1.29 12/19/03
  */
 public abstract class TextAction extends AbstractAction {
 
@@ -74,14 +74,15 @@ public abstract class TextAction extends AbstractAction {
     /**
      * Takes one list of 
      * commands and augments it with another list
-     * of commands.  The second list is considered
-     * to be higher priority than the first list
-     * and commands with the same name will both lists
-     * will only have the dominate command found in the 
-     * second list in the returned list.
+     * of commands.  The second list takes precedence
+     * over the first list; that is, when both lists
+     * contain a command with the same name, the command
+     * from the second list is used.
      *
-     * @param list1 the first list, may be empty but not null
-     * @param list2 the second list, may be empty but not null
+     * @param list1 the first list, may be empty but not
+     *              <code>null</code>
+     * @param list2 the second list, may be empty but not
+     *              <code>null</code>
      * @return the augmented list
      */
     public static final Action[] augmentList(Action[] list1, Action[] list2) {

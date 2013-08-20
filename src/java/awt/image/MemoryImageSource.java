@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryImageSource.java	1.28 03/01/23
+ * @(#)MemoryImageSource.java	1.33 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -82,7 +82,7 @@ import java.util.Enumeration;
  *
  * @see ImageProducer
  *
- * @version	1.28 01/23/03
+ * @version	1.33 07/16/04
  * @author 	Jim Graham
  * @author	Animation capabilities inspired by the
  *		MemoryAnimationSource class written by Garth Dickie
@@ -133,7 +133,9 @@ public class MemoryImageSource implements ImageProducer {
      * @see java.awt.Component#createImage
      */
     public MemoryImageSource(int w, int h, ColorModel cm,
-			     byte[] pix, int off, int scan, Hashtable props) {
+			     byte[] pix, int off, int scan,
+			     Hashtable<?,?> props)
+    {
 	initialize(w, h, cm, (Object) pix, off, scan, props);
     }
 
@@ -171,7 +173,9 @@ public class MemoryImageSource implements ImageProducer {
      * @see java.awt.Component#createImage
      */
     public MemoryImageSource(int w, int h, ColorModel cm,
-			     int[] pix, int off, int scan, Hashtable props) {
+			     int[] pix, int off, int scan,
+			     Hashtable<?,?> props)
+    {
 	initialize(w, h, cm, (Object) pix, off, scan, props);
     }
 
@@ -223,7 +227,8 @@ public class MemoryImageSource implements ImageProducer {
      * @see ColorModel#getRGBdefault
      */
     public MemoryImageSource(int w, int h, int pix[], int off, int scan,
-			     Hashtable props) {
+			     Hashtable<?,?> props)
+    {
 	initialize(w, h, ColorModel.getRGBdefault(),
 		   (Object) pix, off, scan, props);
     }
@@ -232,6 +237,8 @@ public class MemoryImageSource implements ImageProducer {
      * Adds an ImageConsumer to the list of consumers interested in
      * data for this image.
      * @param ic the specified <code>ImageConsumer</code>
+     * @throws NullPointerException if the specified
+     *           <code>ImageConsumer</code> is null
      * @see ImageConsumer
      */
     public synchronized void addConsumer(ImageConsumer ic) {
@@ -319,9 +326,9 @@ public class MemoryImageSource implements ImageProducer {
     public synchronized void setAnimated(boolean animated) {
 	this.animating = animated;
 	if (!animating) {
-	    Enumeration enum = theConsumers.elements();
-	    while (enum.hasMoreElements()) {
-	    	ImageConsumer ic = (ImageConsumer) enum.nextElement();
+	    Enumeration enum_ = theConsumers.elements();
+	    while (enum_.hasMoreElements()) {
+	    	ImageConsumer ic = (ImageConsumer) enum_.nextElement();
 		ic.imageComplete(ImageConsumer.STATICIMAGEDONE);
 		if (isConsumer(ic)) {
 		    ic.imageComplete(ImageConsumer.IMAGEERROR);
@@ -352,9 +359,9 @@ public class MemoryImageSource implements ImageProducer {
 	}
 	this.fullbuffers = fullbuffers;
 	if (animating) {
-	    Enumeration enum = theConsumers.elements();
-	    while (enum.hasMoreElements()) {
-	    	ImageConsumer ic = (ImageConsumer) enum.nextElement();
+	    Enumeration enum_ = theConsumers.elements();
+	    while (enum_.hasMoreElements()) {
+	    	ImageConsumer ic = (ImageConsumer) enum_.nextElement();
 		ic.setHints(fullbuffers
 			    ? (ImageConsumer.TOPDOWNLEFTRIGHT |
 			       ImageConsumer.COMPLETESCANLINES)
@@ -450,9 +457,9 @@ public class MemoryImageSource implements ImageProducer {
 	    if ((w <= 0 || h <= 0) && !framenotify) {
 		return;
 	    }
-	    Enumeration enum = theConsumers.elements();
-	    while (enum.hasMoreElements()) {
-	    	ImageConsumer ic = (ImageConsumer) enum.nextElement();
+	    Enumeration enum_ = theConsumers.elements();
+	    while (enum_.hasMoreElements()) {
+	    	ImageConsumer ic = (ImageConsumer) enum_.nextElement();
 		if (w > 0 && h > 0) {
 		    sendPixels(ic, x, y, w, h);
 		}

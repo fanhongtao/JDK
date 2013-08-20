@@ -1,7 +1,7 @@
 /*
- * @(#)HashMap.java	1.63 06/02/08
+ * @(#)HashMap.java	1.63 04/02/19
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -88,7 +88,8 @@ import  java.io.*;
  * @author  Doug Lea
  * @author  Josh Bloch
  * @author  Arthur van Hoff
- * @version 1.63, 02/08/06
+ * @author  Neal Gafter
+ * @version 1.63, 02/19/04
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -97,9 +98,11 @@ import  java.io.*;
  * @since   1.2
  */
 
-public class HashMap extends AbstractMap implements Map, Cloneable,
-    Serializable
+public class HashMap<K,V>
+    extends AbstractMap<K,V>
+    implements Map<K,V>, Cloneable, Serializable
 {
+
     /**
      * The default initial capacity - MUST be a power of two.
      */
@@ -210,7 +213,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * @param   m the map whose mappings are to be placed in this map.
      * @throws  NullPointerException if the specified map is null.
      */
-    public HashMap(Map m) {
+    public HashMap(Map<? extends K, ? extends V> m) {
         this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1,
                       DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR);
         putAllForCreate(m);
@@ -236,14 +239,14 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
     /**
      * Returns internal representation for key. Use NULL_KEY if key is null.
      */
-    static Object maskNull(Object key) {
-        return (key == null ? NULL_KEY : key);
+    static <T> T maskNull(T key) {
+        return key == null ? (T)NULL_KEY : key;
     }
 
     /**
      * Returns key represented by specified internal representation.
      */
-    static Object unmaskNull(Object key) {
+    static <T> T unmaskNull(T key) {
         return (key == NULL_KEY ? null : key);
     }
 
@@ -312,14 +315,14 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *          <tt>null</tt> if the map contains no mapping for this key.
      * @see #put(Object, Object)
      */
-    public Object get(Object key) {
+    public V get(Object key) {
         Object k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
-        Entry e = table[i]; 
+        Entry<K,V> e = table[i]; 
         while (true) {
             if (e == null)
-                return e;
+                return null;
             if (e.hash == hash && eq(k, e.key)) 
                 return e.value;
             e = e.next;
@@ -352,11 +355,11 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * HashMap.  Returns null if the HashMap contains no mapping
      * for this key.
      */
-    Entry getEntry(Object key) {
+    Entry<K,V> getEntry(Object key) {
         Object k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
-        Entry e = table[i]; 
+        Entry<K,V> e = table[i]; 
         while (e != null && !(e.hash == hash && eq(k, e.key)))
             e = e.next;
         return e;
@@ -374,14 +377,14 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *	       also indicate that the HashMap previously associated
      *	       <tt>null</tt> with the specified key.
      */
-    public Object put(Object key, Object value) {
-        Object k = maskNull(key);
+    public V put(K key, V value) {
+	K k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
 
-        for (Entry e = table[i]; e != null; e = e.next) {
+        for (Entry<K,V> e = table[i]; e != null; e = e.next) {
             if (e.hash == hash && eq(k, e.key)) {
-                Object oldValue = e.value;
+                V oldValue = e.value;
                 e.value = value;
                 e.recordAccess(this);
                 return oldValue;
@@ -399,8 +402,8 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * check for comodification, etc.  It calls createEntry rather than
      * addEntry.
      */
-    private void putForCreate(Object key, Object value) {
-        Object k = maskNull(key);
+    private void putForCreate(K key, V value) {
+        K k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
 
@@ -409,7 +412,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
          * clone or deserialize.  It will only happen for construction if the
          * input Map is a sorted map whose ordering is inconsistent w/ equals.
          */
-        for (Entry e = table[i]; e != null; e = e.next) {
+        for (Entry<K,V> e = table[i]; e != null; e = e.next) {
             if (e.hash == hash && eq(k, e.key)) {
                 e.value = value;
                 return;
@@ -419,9 +422,9 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
         createEntry(hash, k, value, i);
     }
 
-    void putAllForCreate(Map m) {
-        for (Iterator i = m.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry e = (Map.Entry) i.next();
+    void putAllForCreate(Map<? extends K, ? extends V> m) {
+        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> i = m.entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<? extends K, ? extends V> e = i.next();
             putForCreate(e.getKey(), e.getValue());
         }
     }
@@ -432,7 +435,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * number of keys in this map reaches its threshold.
      *
      * If current capacity is MAXIMUM_CAPACITY, this method does not
-     * resize the map, but but sets threshold to Integer.MAX_VALUE.
+     * resize the map, but sets threshold to Integer.MAX_VALUE.
      * This has the effect of preventing future calls.
      *
      * @param newCapacity the new capacity, MUST be a power of two;
@@ -461,11 +464,11 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
         Entry[] src = table;
         int newCapacity = newTable.length;
         for (int j = 0; j < src.length; j++) {
-            Entry e = src[j];
+            Entry<K,V> e = src[j];
             if (e != null) {
                 src[j] = null;
                 do {
-                    Entry next = e.next;
+                    Entry<K,V> next = e.next;
                     int i = indexFor(e.hash, newCapacity);  
                     e.next = newTable[i];
                     newTable[i] = e;
@@ -483,7 +486,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * @param m mappings to be stored in this map.
      * @throws NullPointerException if the specified map is null.
      */
-    public void putAll(Map m) {
+    public void putAll(Map<? extends K, ? extends V> m) {
         int numKeysToBeAdded = m.size();
         if (numKeysToBeAdded == 0)
             return;
@@ -508,8 +511,8 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
                 resize(newCapacity);
         }
 
-        for (Iterator i = m.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry e = (Map.Entry) i.next();
+        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> i = m.entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<? extends K, ? extends V> e = i.next();
             put(e.getKey(), e.getValue());
         }
     }
@@ -523,9 +526,9 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *	       also indicate that the map previously associated <tt>null</tt>
      *	       with the specified key.
      */
-    public Object remove(Object key) {
-        Entry e = removeEntryForKey(key);
-        return (e == null ? e : e.value);
+    public V remove(Object key) {
+        Entry<K,V> e = removeEntryForKey(key);
+        return (e == null ? null : e.value);
     }
 
     /**
@@ -533,15 +536,15 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * in the HashMap.  Returns null if the HashMap contains no mapping
      * for this key.
      */
-    Entry removeEntryForKey(Object key) {
+    Entry<K,V> removeEntryForKey(Object key) {
         Object k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
-        Entry prev = table[i];
-        Entry e = prev;
+        Entry<K,V> prev = table[i];
+        Entry<K,V> e = prev;
 
         while (e != null) {
-            Entry next = e.next;
+            Entry<K,V> next = e.next;
             if (e.hash == hash && eq(k, e.key)) {
                 modCount++;
                 size--;
@@ -562,19 +565,19 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
     /**
      * Special version of remove for EntrySet.
      */
-    Entry removeMapping(Object o) {
+    Entry<K,V> removeMapping(Object o) {
         if (!(o instanceof Map.Entry))
             return null;
 
-        Map.Entry entry = (Map.Entry)o;
+        Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
         Object k = maskNull(entry.getKey());
         int hash = hash(k);
         int i = indexFor(hash, table.length);
-        Entry prev = table[i];
-        Entry e = prev;
+        Entry<K,V> prev = table[i];
+        Entry<K,V> e = prev;
 
         while (e != null) {
-            Entry next = e.next;
+            Entry<K,V> next = e.next;
             if (e.hash == hash && e.equals(entry)) {
                 modCount++;
                 size--;
@@ -597,7 +600,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      */
     public void clear() {
         modCount++;
-        Entry tab[] = table;
+        Entry[] tab = table;
         for (int i = 0; i < tab.length; i++) 
             tab[i] = null;
         size = 0;
@@ -615,7 +618,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	if (value == null) 
             return containsNullValue();
 
-	Entry tab[] = table;
+	Entry[] tab = table;
         for (int i = 0; i < tab.length ; i++)
             for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (value.equals(e.value))
@@ -627,7 +630,7 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * Special-case code for containsValue with null argument
      **/
     private boolean containsNullValue() {
-	Entry tab[] = table;
+	Entry[] tab = table;
         for (int i = 0; i < tab.length ; i++)
             for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (e.value == null)
@@ -642,9 +645,9 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * @return a shallow copy of this map.
      */
     public Object clone() {
-        HashMap result = null;
+        HashMap<K,V> result = null;
 	try { 
-	    result = (HashMap)super.clone();
+	    result = (HashMap<K,V>)super.clone();
 	} catch (CloneNotSupportedException e) { 
 	    // assert false;
 	}
@@ -658,32 +661,32 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
         return result;
     }
 
-    static class Entry implements Map.Entry {
-        final Object key;
-        Object value;
+    static class Entry<K,V> implements Map.Entry<K,V> {
+        final K key;
+        V value;
         final int hash;
-        Entry next;
+        Entry<K,V> next;
 
         /**
          * Create new entry.
          */
-        Entry(int h, Object k, Object v, Entry n) { 
-            value = v; 
+        Entry(int h, K k, V v, Entry<K,V> n) {
+            value = v;
             next = n;
             key = k;
             hash = h;
         }
 
-        public Object getKey() {
-            return unmaskNull(key);
+        public K getKey() {
+            return HashMap.<K>unmaskNull(key);
         }
 
-        public Object getValue() {
+        public V getValue() {
             return value;
         }
     
-        public Object setValue(Object newValue) {
-            Object oldValue = value;
+        public V setValue(V newValue) {
+	    V oldValue = value;
             value = newValue;
             return oldValue;
         }
@@ -717,14 +720,14 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
          * overwritten by an invocation of put(k,v) for a key k that's already
          * in the HashMap.
          */
-        void recordAccess(HashMap m) {
+        void recordAccess(HashMap<K,V> m) {
         }
 
         /**
          * This method is invoked whenever the entry is
          * removed from the table.
          */
-        void recordRemoval(HashMap m) {
+        void recordRemoval(HashMap<K,V> m) {
         }
     }
 
@@ -735,9 +738,10 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *
      * Subclass overrides this to alter the behavior of put method.
      */
-    void addEntry(int hash, Object key, Object value, int bucketIndex) {
-        table[bucketIndex] = new Entry(hash, key, value, table[bucketIndex]);
-        if (size++ >= threshold) 
+    void addEntry(int hash, K key, V value, int bucketIndex) {
+	Entry<K,V> e = table[bucketIndex];
+        table[bucketIndex] = new Entry<K,V>(hash, key, value, e);
+        if (size++ >= threshold)
             resize(2 * table.length);
     }
 
@@ -749,22 +753,23 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * Subclass overrides this to alter the behavior of HashMap(Map),
      * clone, and readObject.
      */
-    void createEntry(int hash, Object key, Object value, int bucketIndex) {
-        table[bucketIndex] = new Entry(hash, key, value, table[bucketIndex]);
+    void createEntry(int hash, K key, V value, int bucketIndex) {
+	Entry<K,V> e = table[bucketIndex];
+        table[bucketIndex] = new Entry<K,V>(hash, key, value, e);
         size++;
     }
 
-    private abstract class HashIterator implements Iterator {
-        Entry next;                  // next entry to return
-        int expectedModCount;        // For fast-fail 
-        int index;                   // current slot 
-        Entry current;               // current entry
+    private abstract class HashIterator<E> implements Iterator<E> {
+        Entry<K,V> next;	// next entry to return
+        int expectedModCount;	// For fast-fail 
+        int index;		// current slot 
+        Entry<K,V> current;	// current entry
 
         HashIterator() {
             expectedModCount = modCount;
             Entry[] t = table;
             int i = t.length;
-            Entry n = null;
+            Entry<K,V> n = null;
             if (size != 0) { // advance to first entry
                 while (i > 0 && (n = t[--i]) == null)
                     ;
@@ -777,14 +782,14 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
             return next != null;
         }
 
-        Entry nextEntry() { 
+        Entry<K,V> nextEntry() { 
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
-            Entry e = next;
+            Entry<K,V> e = next;
             if (e == null) 
                 throw new NoSuchElementException();
                 
-            Entry n = e.next;
+            Entry<K,V> n = e.next;
             Entry[] t = table;
             int i = index;
             while (n == null && i > 0)
@@ -807,39 +812,39 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 
     }
 
-    private class ValueIterator extends HashIterator {
-        public Object next() {
+    private class ValueIterator extends HashIterator<V> {
+        public V next() {
             return nextEntry().value;
         }
     }
 
-    private class KeyIterator extends HashIterator {
-        public Object next() {
+    private class KeyIterator extends HashIterator<K> {
+        public K next() {
             return nextEntry().getKey();
         }
     }
 
-    private class EntryIterator extends HashIterator {
-        public Object next() {
+    private class EntryIterator extends HashIterator<Map.Entry<K,V>> {
+        public Map.Entry<K,V> next() {
             return nextEntry();
         }
     }
 
     // Subclass overrides these to alter behavior of views' iterator() method
-    Iterator newKeyIterator()   {
+    Iterator<K> newKeyIterator()   {
         return new KeyIterator();
     }
-    Iterator newValueIterator()   {
+    Iterator<V> newValueIterator()   {
         return new ValueIterator();
     }
-    Iterator newEntryIterator()   {
+    Iterator<Map.Entry<K,V>> newEntryIterator()   {
         return new EntryIterator();
     }
 
 
     // Views
 
-    private transient Set entrySet = null;
+    private transient Set<Map.Entry<K,V>> entrySet = null;
 
     /**
      * Returns a set view of the keys contained in this map.  The set is
@@ -852,13 +857,13 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *
      * @return a set view of the keys contained in this map.
      */
-    public Set keySet() {
-        Set ks = keySet;
+    public Set<K> keySet() {
+        Set<K> ks = keySet;
         return (ks != null ? ks : (keySet = new KeySet()));
     }
 
-    private class KeySet extends AbstractSet {
-        public Iterator iterator() {
+    private class KeySet extends AbstractSet<K> {
+        public Iterator<K> iterator() {
             return newKeyIterator();
         }
         public int size() {
@@ -886,13 +891,13 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *
      * @return a collection view of the values contained in this map.
      */
-    public Collection values() {
-        Collection vs = values;
+    public Collection<V> values() {
+        Collection<V> vs = values;
         return (vs != null ? vs : (values = new Values()));
     }
 
-    private class Values extends AbstractCollection {
-        public Iterator iterator() {
+    private class Values extends AbstractCollection<V> {
+        public Iterator<V> iterator() {
             return newValueIterator();
         }
         public int size() {
@@ -919,24 +924,20 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      * @return a collection view of the mappings contained in this map.
      * @see Map.Entry
      */
-    public Set entrySet() {
-	return entrySet0();
+    public Set<Map.Entry<K,V>> entrySet() {
+        Set<Map.Entry<K,V>> es = entrySet;
+        return (es != null ? es : (entrySet = (Set<Map.Entry<K,V>>) (Set) new EntrySet()));
     }
 
-    private Set entrySet0() {
-        Set es = entrySet;
-        return (es != null ? es : (entrySet = new EntrySet()));
-    }
-
-    private class EntrySet extends AbstractSet {
-        public Iterator iterator() {
+    private class EntrySet extends AbstractSet/*<Map.Entry<K,V>>*/ {
+        public Iterator/*<Map.Entry<K,V>>*/ iterator() {
             return newEntryIterator();
         }
         public boolean contains(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
-            Map.Entry e = (Map.Entry)o;
-            Entry candidate = getEntry(e.getKey());
+            Map.Entry<K,V> e = (Map.Entry<K,V>) o;
+            Entry<K,V> candidate = getEntry(e.getKey());
             return candidate != null && candidate.equals(e);
         }
         public boolean remove(Object o) {
@@ -959,15 +960,13 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
      *		   <i>size</i> of the HashMap (the number of key-value
      *		   mappings), followed by the key (Object) and value (Object)
      *		   for each key-value mapping represented by the HashMap
-     *             The key-value mappings are emitted in the order that they 
+     *             The key-value mappings are emitted in the order that they
      *             are returned by <tt>entrySet().iterator()</tt>.
      * 
      */
     private void writeObject(java.io.ObjectOutputStream s)
         throws IOException
     {
-        Iterator i = (size > 0) ? entrySet0().iterator() : null;
-
 	// Write out the threshold, loadfactor, and any hidden stuff
 	s.defaultWriteObject();
 
@@ -978,14 +977,11 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 	s.writeInt(size);
 
         // Write out keys and values (alternating)
-	if ( i == null) return;
-
-	while (i.hasNext()) {
-            Map.Entry e = (Map.Entry) i.next();
+        for (Iterator<Map.Entry<K,V>> i = entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<K,V> e = i.next();
             s.writeObject(e.getKey());
             s.writeObject(e.getValue());
         }
-	
     }
 
     private static final long serialVersionUID = 362498820763181265L;
@@ -1011,8 +1007,8 @@ public class HashMap extends AbstractMap implements Map, Cloneable,
 
 	// Read the keys and values, and put the mappings in the HashMap
 	for (int i=0; i<size; i++) {
-	    Object key = s.readObject();
-	    Object value = s.readObject();
+	    K key = (K) s.readObject();
+	    V value = (V) s.readObject();
 	    putForCreate(key, value);
 	}
     }

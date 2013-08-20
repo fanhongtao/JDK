@@ -1,7 +1,7 @@
 /*
- * @(#)CodeSource.java	1.32 03/01/23
+ * @(#)CodeSource.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -10,6 +10,8 @@ package java.security;
 
 import java.net.URL;
 import java.net.SocketPermission;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Hashtable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,16 +20,17 @@ import java.security.cert.*;
 /**
  *
  * <p>This class extends the concept of a codebase to
- * encapsulate not only the location (URL) but also the certificate(s)
- * that were used to verify signed code originating from that
- * location.
+ * encapsulate not only the location (URL) but also the certificate chains 
+ * that were used to verify signed code originating from that location.
  *
- * @version 	1.32, 01/23/03
+ * @version 	1.38, 12/19/03
  * @author Li Gong
  * @author Roland Schemers
  */
 
 public class CodeSource implements java.io.Serializable {
+
+    private static final long serialVersionUID = 4977541819976013951L;
 
     /**
      * The code location.
@@ -36,11 +39,21 @@ public class CodeSource implements java.io.Serializable {
      */
     private URL location;
 
-    // certificates
-    private transient java.security.cert.Certificate certs[];
+    /*
+     * The code signers.
+     */
+    private transient CodeSigner[] signers = null;
+
+    /*
+     * The code signers. Certificate chains are concatenated.
+     */
+    private transient java.security.cert.Certificate certs[] = null;
 
     // cached SocketPermission used for matchLocation
     private transient SocketPermission sp;
+
+    // for generating cert paths
+    private transient CertificateFactory factory = null;
 
     /**
      * Constructs a CodeSource and associates it with the specified 
@@ -48,12 +61,35 @@ public class CodeSource implements java.io.Serializable {
      * 
      * @param url the location (URL).
      * 
-     * @param certs the certificate(s).
+     * @param certs the certificate(s). It may be null. The contents of the 
+     * array are copied to protect against subsequent modification.
      */
     public CodeSource(URL url, java.security.cert.Certificate certs[]) {
 	this.location = url;
-	if (certs != null) 
+
+	// Copy the supplied certs
+	if (certs != null) {
 	    this.certs = (java.security.cert.Certificate[]) certs.clone();
+	}
+    }
+
+    /**
+     * Constructs a CodeSource and associates it with the specified 
+     * location and set of code signers.
+     * 
+     * @param url the location (URL).
+     * @param signers the code signers. It may be null. The contents of the 
+     * array are copied to protect against subsequent modification.
+     *
+     * @since 1.5
+     */
+    public CodeSource(URL url, CodeSigner[] signers) {
+	this.location = url;
+
+	// Copy the supplied signers
+	if (signers != null) {
+	    this.signers = (CodeSigner[])signers.clone();
+	}
     }
 
     /**
@@ -72,9 +108,9 @@ public class CodeSource implements java.io.Serializable {
     /**
      * Tests for equality between the specified object and this
      * object. Two CodeSource objects are considered equal if their 
-     * locations are of identical value and if the two sets of 
-     * certificates are of identical values. It is not required that
-     * the certificates be in the same order.
+     * locations are of identical value and if their signer certificate
+     * chains are of identical value. It is not required that
+     * the certificate chains be in the same order.
      * 
      * @param obj the object to test for equality with this object.
      * 
@@ -100,42 +136,7 @@ public class CodeSource implements java.io.Serializable {
 	}
 
 	// certs must match
-	if (certs == null) {
-	    // if certs is null, then cs.certs must be null as well
-	    if (cs.certs != null) return false;
-	} else {
-	    // if certs is not null, then it must equal cs.certs
-	    // equality means that both arrays of certs are the same set
-	    // step 1 -- every cert in certs[] must match one in cs.certs[]
-	    if (cs.certs == null) 
-		return false;
-
-	    boolean match;
-	    for (int i = 0; i < certs.length; i++) {
-		match = false;
-		for (int j = 0; j < cs.certs.length; j++) {
-		    if (certs[i].equals(cs.certs[j])) {
-			match = true;
-			break;
-		    }
-		}
-		if (!match) return false;
-	    }
-	    // step 2 -- every key in cs.certs[] must match one in certs[]
-	    for (int i = 0; i < cs.certs.length; i++) {
-		match = false;
-		for (int j = 0; j < certs.length; j++) {
-		    if (cs.certs[i].equals(certs[j])) {
-			match = true;
-			break;
-		    }
-		}
-		if (!match) return false;
-	    }
-	}
-       
-	// they must be equal if we got here...
-	return true;
+	return matchCerts(cs, true);
     }
 
     /**
@@ -151,14 +152,61 @@ public class CodeSource implements java.io.Serializable {
 
     /**
      * Returns the certificates associated with this CodeSource.
+     * <p>
+     * If this CodeSource object was created using the
+     * {@link #CodeSource(URL url, CodeSigner[] signers)}
+     * constructor then its certificate chains are extracted and used to 
+     * create an array of Certificate objects. Each signer certificate is 
+     * followed by its supporting certificate chain (which may be empty). 
+     * Each signer certificate and its supporting certificate chain is ordered 
+     * bottom-to-top (i.e., with the signer certificate first and the (root) 
+     * certificate authority last).
      * 
-     * @return the certificates
+     * @return A copy of the certificates array, or null if there is none. 
      */
     public final java.security.cert.Certificate[] getCertificates() {
-	/* return a clone copy, to avoid malicious modification to the
-	   original object */
-	if (this.certs != null) {
-	    return (java.security.cert.Certificate[])this.certs.clone();
+	if (certs != null) {
+	    return (java.security.cert.Certificate[]) certs.clone();
+
+	} else if (signers != null) {
+	    // Convert the code signers to certs
+	    ArrayList certChains = new ArrayList();
+	    for (int i = 0; i < signers.length; i++) {
+		certChains.addAll(
+		    signers[i].getSignerCertPath().getCertificates());
+	    }
+	    certs = (java.security.cert.Certificate[])
+		certChains.toArray(
+		    new java.security.cert.Certificate[certChains.size()]);
+	    return (java.security.cert.Certificate[]) certs.clone();
+
+	} else {
+	    return null;
+	}
+    }
+
+    /**
+     * Returns the code signers associated with this CodeSource.
+     * <p>
+     * If this CodeSource object was created using the
+     * {@link #CodeSource(URL url, Certificate[] certs)}
+     * constructor then its certificate chains are extracted and used to 
+     * create an array of CodeSigner objects. Note that only X.509 certificates
+     * are examined - all other certificate types are ignored.
+     *
+     * @return A copy of the code signer array, or null if there is none.
+     *
+     * @since 1.5
+     */
+    public final CodeSigner[] getCodeSigners() {
+	if (signers != null) {
+	    return (CodeSigner[]) signers.clone();
+
+	} else if (certs != null) {
+	    // Convert the certs to code signers
+	    signers = convertCertArrayToSignerArray(certs);
+	    return (CodeSigner[]) signers.clone();
+	    
 	} else {
 	    return null;
 	}
@@ -238,39 +286,64 @@ public class CodeSource implements java.io.Serializable {
 	if (codesource == null)
 	    return false;
 
-	return matchCerts(codesource) && matchLocation(codesource);
+	return matchCerts(codesource, false) && matchLocation(codesource);
     }
 
-   
     /**
      * Returns true if all the certs in this
      * CodeSource are also in <i>that</i>.
      * 
      * @param that the CodeSource to check against.
+     * @param strict If true then a strict equality match is performed.
+     *               Otherwise a subset match is performed.
      */
-    private boolean matchCerts(CodeSource that)
+    private boolean matchCerts(CodeSource that, boolean strict)
     {
 	// match any key
-	if (this.certs == null) 
+	if (certs == null && signers == null) 
 	    return true;
 
-	// if certs are null, and this.certs is not null, return false
-	if (that.certs == null)
+	// match no key
+	if (that.certs == null && that.signers == null)
 	    return false;
 
 	boolean match;
-	for (int i=0; i < this.certs.length; i++) {
-	    match = false;
-	    for (int j=0; j < that.certs.length; j++) {
-		if (this.certs[i].equals(that.certs[j])) {
-		    match = true;
-		    break;
-		}
+	// both have signers
+	if (signers != null && that.signers != null) {
+	    if (strict && signers.length != that.signers.length) {
+		return false;
 	    }
-	    if (!match) return false;
+	    for (int i = 0; i < signers.length; i++) {
+		match = false;
+		for (int j = 0; j < that.signers.length; j++) {
+		    if (signers[i].equals(that.signers[j])) {
+			match = true;
+			break;
+		    }
+		}
+		if (!match) return false;
+	    }
+	    return true;
+
+	// both have certs
+	} else {
+	    if (strict && certs.length != that.certs.length) {
+		return false;
+	    }
+	    for (int i = 0; i < certs.length; i++) {
+		match = false;
+		for (int j = 0; j < that.certs.length; j++) {
+		    if (certs[i].equals(that.certs[j])) {
+			match = true;
+			break;
+		    }
+		}
+		if (!match) return false;
+	    }
+	    return true;
 	}
-	return true;
     }
+
 
     /**
      * Returns true if two CodeSource's have the "same" location.
@@ -292,29 +365,26 @@ public class CodeSource implements java.io.Serializable {
 	    if (!location.getProtocol().equals(that.location.getProtocol()))
 		return false;
 
-	    if ((location.getHost() != null)) {
-		if ((location.getHost().equals("") || 
-		    location.getHost().equals("localhost")) &&
-		    (that.location.getHost().equals("") || 
-		     that.location.getHost().equals("localhost"))) {
+	    String thisHost = location.getHost();
+	    String thatHost = that.location.getHost();
+
+	    if (thisHost != null) {
+		if (("".equals(thisHost) || "localhost".equals(thisHost)) &&
+		    ("".equals(thatHost) || "localhost".equals(thatHost))) {
 		    // ok
-		} else if (!location.getHost().equals(
-					     that.location.getHost())) {
+		} else if (!thisHost.equals(thatHost)) {
+		    if (thatHost == null) {
+			return false;
+		    }
 		    if (this.sp == null) {
-			this.sp = 
-			    new SocketPermission(location.getHost(),"resolve");
+			this.sp = new SocketPermission(thisHost, "resolve");
 		    }
 		    if (that.sp == null) {
-			if (that.location.getHost() == null ||
-				that.location.getHost().equals(""))
-			    return false;
-			that.sp = 
-		       new SocketPermission(that.location.getHost(),"resolve");
+			that.sp = new SocketPermission(thatHost, "resolve");
 		    }
-
-		    boolean ok = this.sp.implies(that.sp);
-		    if (!ok)
+		    if (!this.sp.implies(that.sp)) {
 			return false;
+		    }
 		}
 	    }
 
@@ -367,15 +437,21 @@ public class CodeSource implements java.io.Serializable {
      * @return information about this CodeSource.
      */
     public String toString() {
-	StringBuffer sb = new StringBuffer();
+	StringBuilder sb = new StringBuilder();
 	sb.append("(");
 	sb.append(this.location);
+
 	if (this.certs != null && this.certs.length > 0) {
-	    for (int i=0; i < this.certs.length; i++) {
-		sb.append( " "+this.certs[i]);
+	    for (int i = 0; i < this.certs.length; i++) {
+		sb.append( " " + this.certs[i]);
+	    }
+
+	} else if (this.signers != null && this.signers.length > 0) {
+	    for (int i = 0; i < this.signers.length; i++) {
+		sb.append( " " + this.signers[i]);
 	    }
 	} else {
-	    sb.append(" <no certificates>");
+	    sb.append(" <no signer certificates>");
 	}
 	sb.append(")");
 	return sb.toString();
@@ -392,20 +468,22 @@ public class CodeSource implements java.io.Serializable {
      * denoting the certificate type, followed by an
      * <code>int</code> specifying the length of the certificate encoding,
      * followed by the certificate encoding itself which is written out as an
-     * array of bytes.
+     * array of bytes. Finally, if any code signers are present then the array 
+     * of code signers is serialized and written out too.
      */
     private synchronized void writeObject(java.io.ObjectOutputStream oos)
         throws IOException
     {
-	oos.defaultWriteObject();
+	oos.defaultWriteObject(); // location
 
-	if (certs==null || certs.length==0) {
+	// Serialize the array of certs
+	if (certs == null || certs.length == 0) {
 	    oos.writeInt(0);
 	} else {
 	    // write out the total number of certs
 	    oos.writeInt(certs.length);
 	    // write out each cert, including its type
-	    for (int i=0; i < certs.length; i++) {
+	    for (int i = 0; i < certs.length; i++) {
 		java.security.cert.Certificate cert = certs[i];
 		try {
 		    oos.writeUTF(cert.getType());
@@ -417,6 +495,11 @@ public class CodeSource implements java.io.Serializable {
 		}
 	    }
 	}
+
+	// Serialize the array of code signers (if any)
+	if (signers != null && signers.length > 0) {
+	    oos.writeObject(signers);
+	}
     }
 
     /**
@@ -426,9 +509,9 @@ public class CodeSource implements java.io.Serializable {
 	throws IOException, ClassNotFoundException
     {
 	CertificateFactory cf;
-	Hashtable cfs=null;
+	Hashtable cfs = null;
 
-	ois.defaultReadObject();
+	ois.defaultReadObject(); // location
 
 	// process any new-style certs in the stream (if present)
 	int size = ois.readInt();
@@ -439,7 +522,7 @@ public class CodeSource implements java.io.Serializable {
 	    this.certs = new java.security.cert.Certificate[size];
 	}
 
-	for (int i=0; i<size; i++) {
+	for (int i = 0; i < size; i++) {
 	    // read the certificate type, and instantiate a certificate
 	    // factory of that type (reuse existing factory if possible)
 	    String certType = ois.readUTF();
@@ -452,13 +535,13 @@ public class CodeSource implements java.io.Serializable {
 		    cf = CertificateFactory.getInstance(certType);
 		} catch (CertificateException ce) {
 		    throw new ClassNotFoundException
-			("Certificate factory for "+certType+" not found");
+			("Certificate factory for " + certType + " not found");
 		}
 		// store the certificate factory so we can reuse it later
 		cfs.put(certType, cf);
 	    }
 	    // parse the certificate
-	    byte[] encoded=null;
+	    byte[] encoded = null;
 	    try {
 		encoded = new byte[ois.readInt()];
 	    } catch (OutOfMemoryError oome) {
@@ -472,6 +555,66 @@ public class CodeSource implements java.io.Serializable {
 		throw new IOException(ce.getMessage());
 	    }
 	    bais.close();
+	}
+
+	// Deserialize array of code signers (if any)
+	try {
+	    this.signers = (CodeSigner[])ois.readObject();
+	} catch (IOException ioe) {
+	    // no signers present
+	}
+    }
+
+    /*
+     * Convert an array of certificates to an array of code signers.
+     * The array of certificates is a concatenation of certificate chains
+     * where the initial certificate in each chain is the end-entity cert.
+     *
+     * @return An array of code signers or null if none are generated.
+     */
+    private CodeSigner[] convertCertArrayToSignerArray(
+ 	java.security.cert.Certificate[] certs) {
+
+	if (certs == null) {
+	    return null;
+	}
+
+	try {
+	    // Initialize certificate factory 
+	    if (factory == null) {
+		factory = CertificateFactory.getInstance("X.509");
+	    }
+
+	    // Iterate through all the certificates
+	    int i = 0;
+	    List signers = new ArrayList();
+	    while (i < certs.length) {
+		List certChain = new ArrayList();
+		certChain.add(certs[i++]); // first cert is an end-entity cert
+		int j = i;
+
+		// Extract chain of certificates 
+		// (loop while certs are not end-entity certs)
+		while (j < certs.length && 
+		    certs[j] instanceof X509Certificate &&
+		    ((X509Certificate)certs[j]).getBasicConstraints() != -1) {
+		    certChain.add(certs[j]);
+		    j++;
+		}
+		i = j;
+		CertPath certPath = factory.generateCertPath(certChain);
+		signers.add(new CodeSigner(certPath, null));
+	    }
+
+	    if (signers.isEmpty()) {
+		return null;
+	    } else {
+		return (CodeSigner[])
+		    signers.toArray(new CodeSigner[signers.size()]);
+	    }
+
+	} catch (CertificateException e) {
+	    return null; //TODO - may be better to throw an ex. here
 	}
     }
 }

@@ -1,12 +1,12 @@
 /*
- * @(#)InetAddressImpl.java	1.2 03/01/23
+ * @(#)InetAddressImpl.java	1.4 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.net;
-
+import java.io.IOException;
 /*
  * Package private interface to "implementation" used by 
  * {@link InetAddress}.
@@ -25,5 +25,7 @@ interface InetAddressImpl {
 
     InetAddress anyLocalAddress();
     InetAddress loopbackAddress();
+    boolean isReachable(InetAddress addr, int timeout, NetworkInterface netif,
+			int ttl) throws IOException;
 }
 

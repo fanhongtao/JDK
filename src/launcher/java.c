@@ -1,19 +1,8 @@
 /*
- * @(#)java.c	1.114 08/09/02
+ * @(#)java.c	1.121 04/06/17
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * Backported from Tiger (1.5) java.c	1.110 03/11/03
- *
- * Removed or Disabled:
- *	4884169: RFE: JVM could adapt to the class of machine it's on
- *
- * Added:
- *	5030265: Broken UTF-8 support (delta 1.119)
- *
  */
 
 /*
@@ -61,7 +50,7 @@
 
 /*
  * The following environment variable is used to influence the behavior
- * of the jre exec'd through the Select Version routine.  The command line
+ * of the jre exec'd through the SelectVersion routine.  The command line
  * options which specify the version are not passed to the exec'd version,
  * because that jre may be an older version which wouldn't recognize them.
  * This environment variable is known to this (and later) version and serves
@@ -109,7 +98,6 @@ static jobjectArray NewPlatformStringArray(JNIEnv *env, char **strv, int strc);
 static jclass LoadClass(JNIEnv *env, char *name);
 static jstring GetMainClassName(JNIEnv *env, char *jarname);
 static void SetJavaCommandLineProp(char* classname, char* jarfile, int argc, char** argv);
-static void SetJavaLauncherProp(void);
 
 #ifdef JAVA_ARGS
 static void TranslateDashJArgs(int *pargc, char ***pargv);
@@ -122,18 +110,21 @@ static jint PrintXUsage(void);
 
 static void SetPaths(int argc, char **argv);
 
-
-/* Support for options such as -hotspot, -classic etc. */
+/* Maximum supported entries from jvm.cfg. */
 #define INIT_MAX_KNOWN_VMS	10
+/* Values for vmdesc.flag */ 
 #define VM_UNKNOWN		-1
 #define VM_KNOWN		 0
 #define VM_ALIASED_TO		 1
 #define VM_WARN			 2
 #define VM_ERROR		 3
+#define VM_IF_SERVER_CLASS	 4
+#define VM_IGNORE		 5
 struct vmdesc {
     char *name;
     int flag;
     char *alias;
+    char *server_class;
 };
 static struct vmdesc *knownVMs = NULL;
 static int knownVMsCount = 0;
@@ -141,12 +132,12 @@ static int knownVMsLimit = 0;
 
 static void GrowKnownVMs();
 static int  KnownVMIndex(const char* name);
-static void FreeKnownVMs();
+static void FreeKnownVMs(); 
+
+jboolean ServerClassMachine();
 
 /* flag which if set suppresses error messages from the launcher */
 static int noExitErrorMessage = 0;
-
-jboolean ServerClassMachine();
 
 /*
  * Entry point.
@@ -196,6 +187,8 @@ main(int argc, char ** argv)
      *     be set (if it should ever be set).  This isn't exactly the
      *	   poster child for structured programming, but it is a small
      *	   price to pay for not processing a jar file operand twice.
+     *	   (Note: This side effect has been disabled.  See comment on
+     *	   bugid 5030265 below.)
      */
     SelectVersion(argc, argv, &main_class);
 
@@ -272,9 +265,6 @@ main(int argc, char ** argv)
     /* set the -Dsun.java.command pseudo property */
     SetJavaCommandLineProp(classname, jarfile, argc, argv);
 
-    /* Set the -Dsun.java.launcher pseudo property */
-    SetJavaLauncherProp();
-
     /*
      * Done with all command line processing and potential re-execs so
      * clean up the environment.
@@ -334,7 +324,26 @@ main(int argc, char ** argv)
 
     ret = 1;
 
-    /* Get the application's main class */
+    /*
+     * Get the application's main class.
+     *
+     * See bugid 5030265.  The Main-Class name has already been parsed
+     * from the manifest, but not parsed properly for UTF-8 support.
+     * Hence the code here ignores the value previously extracted and
+     * uses the pre-existing code to reextract the value.  This is
+     * possibly an end of release cycle expedient.  However, it has
+     * also been discovered that passing some character sets through
+     * the environment has "strange" behavior on some variants of
+     * Windows.  Hence, maybe the manifest parsing code local to the
+     * launcher should never be enhanced.
+     *
+     * Hence, future work should either:
+     *	   1)	Correct the local parsing code and verify that the
+     *		Main-Class attribute gets properly passed through
+     *		all environments,
+     *	   2)	Remove the vestages of maintaining main_class through
+     *		the environment (and remove these comments).
+     */
     if (jarfile != 0) {
 	mainClassName = GetMainClassName(env, jarfile);
 	if ((*env)->ExceptionOccurred(env)) {
@@ -436,32 +445,40 @@ main(int argc, char ** argv)
 
     /* Invoke main method. */
     (*env)->CallStaticVoidMethod(env, mainClass, mainID, mainArgs);
-    if ((*env)->ExceptionOccurred(env)) {
-	/* 
-	 * Formerly, we used to call the "uncaughtException" method of
-	 * the main thread group, but this was later shown to be
-	 * unnecessary since the default definition merely printed out
-	 * the same exception stack trace as ExceptionDescribe and
-	 * could never actually be overridden by application programs.
-	 */
-	ReportExceptionDescription(env);
-	goto leave;
-    }
 
     /*
-     * Detach the current thread so that it appears to have exited when
-     * the application's main method exits.
+     * The launcher's exit code (in the absence of calls to
+     * System.exit) will be non-zero if main threw an exception.
+     */
+    ret = (*env)->ExceptionOccurred(env) == NULL ? 0 : 1;
+
+    /*
+     * Detach the main thread so that it appears to have ended when
+     * the application's main method exits.  This will invoke the
+     * uncaught exception handler machinery if main threw an
+     * exception.  An uncaught exception handler cannot change the
+     * launcher's return code except by calling System.exit.
      */
     if ((*vm)->DetachCurrentThread(vm) != 0) {
 	message = "Could not detach main thread.";
 	messageDest = JNI_TRUE;
+	ret = 1;
 	goto leave;
     }
-    ret = 0;
+
     message = NULL;
 
-leave:
+ leave:
+    /*
+     * Wait for all non-daemon threads to end, then destroy the VM.
+     * This will actually create a trivial new Java waiter thread
+     * named "DestroyJavaVM", but this will be seen as a different
+     * thread from the one that executed main, even though they are
+     * the same C thread.  This allows mainThread.join() and
+     * mainThread.isAlive() to work as expected.
+     */
     (*vm)->DestroyJavaVM(vm);
+
     if(message != NULL && !noExitErrorMessage)
       ReportErrorMessage(message, messageDest);
     return ret;
@@ -554,8 +571,18 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     *pargc = newArgvIdx;
 
     /* use the default VM type if not specified (no alias processing) */
-    if (jvmtype == NULL)
-	return knownVMs[0].name+1;
+    if (jvmtype == NULL) {
+      char* result = knownVMs[0].name+1;
+      /* Use a different VM type if we are on a server class machine? */
+      if ((knownVMs[0].flag == VM_IF_SERVER_CLASS) &&
+          (ServerClassMachine() == JNI_TRUE)) {
+        result = knownVMs[0].server_class+1;
+      }
+      if (_launcher_debug) {
+        printf("Default VM: %s\n", result);
+      }
+      return result;
+    }
 
     /* if using an alternate VM, no alias processing */
     if (jvmidx < 0)
@@ -599,6 +626,8 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
 	    fprintf(stderr, "Warning: %s VM not supported; %s VM will be used\n", 
 		    jvmtype, knownVMs[0].name + 1);
         }
+	/* fall through */
+    case VM_IGNORE:
 	jvmtype = knownVMs[jvmidx=0].name + 1;
 	/* fall through */
     case VM_KNOWN:
@@ -713,13 +742,12 @@ SelectVersion(int argc, char **argv, char **main_class)
 	    if (strcmp(arg, "-jar") == 0)
 		jarflag = 1;
 	    /* deal with "unfortunate" classpath syntax */
-	    if (strcmp(arg, "-classpath") == 0 || strcmp(arg, "-cp") == 0) {
-	        if (argc >= 1) {
-		    *new_argp++ = arg;
-		    argc--;
-		    argv++;
-		    arg = *argv;
-		}
+	    if ((strcmp(arg, "-classpath") == 0 || strcmp(arg, "-cp") == 0) &&
+	      (argc >= 2)) {
+		*new_argp++ = arg;
+		argc--;
+		argv++;
+		arg = *argv;
 	    }
 	    *new_argp++ = arg;
 	}
@@ -742,7 +770,7 @@ SelectVersion(int argc, char **argv, char **main_class)
      * is corrupt, issue the appropriate error messages and exit.
      *
      * Even if there isn't a jar file, construct a manifest_info structure
-     * containing the command line information.  Its a convenient way to carry
+     * containing the command line information.  It's a convenient way to carry
      * this data around.
      */
     if (jarflag && operand) {
@@ -834,14 +862,8 @@ SelectVersion(int argc, char **argv, char **main_class)
      * to avoid locating, expanding and parsing the manifest extra
      * times.
      */
-    if (info.main_class != NULL) {
-	if (strlen(info.main_class) <= MAXNAMELEN) {
-	    (void)strcat(env_entry, info.main_class);
-	} else {
-	    ReportErrorMessage("Error: main-class: attribute exceeds system limits\n", JNI_TRUE);
-	    exit(1);
-	}
-    }
+    if (info.main_class != NULL)
+	(void)strcat(env_entry, info.main_class);
     (void)putenv(env_entry);
     ExecJRE(jre, new_argv);
     free_manifest();
@@ -920,7 +942,7 @@ ParseArguments(int *pargc, char ***pargv, char **pjarfile,
 	    AddOption("-Xverify:remote", NULL);
 	} else if (strcmp(arg, "-noverify") == 0) {
 	    AddOption("-Xverify:none", NULL);
-        } else if (strcmp(arg, "-XXsuppressExitMessage") == 0) {
+	} else if (strcmp(arg, "-XXsuppressExitMessage") == 0) {
             noExitErrorMessage = 1;
 	} else if (strncmp(arg, "-prof", 5) == 0) {
 	    char *p = arg + 5;
@@ -1024,6 +1046,36 @@ MemAlloc(size_t size)
     return p;
 }
 
+static jstring platformEncoding = NULL;
+static jstring getPlatformEncoding(JNIEnv *env) {
+    if (platformEncoding == NULL) {
+        jstring propname = (*env)->NewStringUTF(env, "sun.jnu.encoding");
+        if (propname) {
+            jclass cls;
+            jmethodID mid;
+            NULL_CHECK0 (cls = (*env)->FindClass(env, "java/lang/System"));
+            NULL_CHECK0 (mid = (*env)->GetStaticMethodID(
+		                   env, cls, 
+			           "getProperty",
+			           "(Ljava/lang/String;)Ljava/lang/String;"));
+            platformEncoding = (*env)->CallStaticObjectMethod (
+                                    env, cls, mid, propname);
+        } 
+    }
+    return platformEncoding;
+}
+
+static jboolean isEncodingSupported(JNIEnv *env, jstring enc) {
+    jclass cls;
+    jmethodID mid;
+    NULL_CHECK0 (cls = (*env)->FindClass(env, "java/nio/charset/Charset"));
+    NULL_CHECK0 (mid = (*env)->GetStaticMethodID(
+	                   env, cls, 
+		           "isSupported",
+		           "(Ljava/lang/String;)Z"));
+    return (jboolean)(*env)->CallStaticObjectMethod (env, cls, mid, enc);
+}
+
 /*
  * Returns a new Java string object for the specified platform string.
  */
@@ -1034,21 +1086,38 @@ NewPlatformString(JNIEnv *env, char *s)
     jclass cls;
     jmethodID mid;
     jbyteArray ary;
+    jstring enc;
 
     if (s == NULL)
 	return 0;
-    NULL_CHECK0(cls = (*env)->FindClass(env, "java/lang/String"));
-    NULL_CHECK0(mid = (*env)->GetMethodID(env, cls, "<init>", "([B)V"));
+    enc = getPlatformEncoding(env);
+
     ary = (*env)->NewByteArray(env, len);
     if (ary != 0) {
-	jstring str = 0;
+        jstring str = 0;
 	(*env)->SetByteArrayRegion(env, ary, 0, len, (jbyte *)s);
 	if (!(*env)->ExceptionOccurred(env)) {
-	    str = (*env)->NewObject(env, cls, mid, ary);
-	}
-	(*env)->DeleteLocalRef(env, ary);
-	return str;
-    }
+            if (isEncodingSupported(env, enc) == JNI_TRUE) {
+                NULL_CHECK0(cls = (*env)->FindClass(env, "java/lang/String"));
+                NULL_CHECK0(mid = (*env)->GetMethodID(env, cls, "<init>", 
+	   				  "([BLjava/lang/String;)V"));
+	        str = (*env)->NewObject(env, cls, mid, ary, enc);
+	    } else {
+                /*If the encoding specified in sun.jnu.encoding is not 
+                  endorsed by "Charset.isSupported" we have to fall back 
+                  to use String(byte[]) explicitly here without specifying
+                  the encoding name, in which the StringCoding class will 
+                  pickup the iso-8859-1 as the fallback converter for us. 
+	        */
+                NULL_CHECK0(cls = (*env)->FindClass(env, "java/lang/String"));
+                NULL_CHECK0(mid = (*env)->GetMethodID(env, cls, "<init>", 
+	   				  "([B)V"));
+	        str = (*env)->NewObject(env, cls, mid, ary);
+            }
+	    (*env)->DeleteLocalRef(env, ary);
+	    return str;
+        }
+    } 
     return 0;
 }
 
@@ -1104,6 +1173,7 @@ LoadClass(JNIEnv *env, char *name)
 
     return cls;
 }
+
 
 /*
  * Returns the main class name for the specified jar file.
@@ -1321,14 +1391,6 @@ SetJavaCommandLineProp(char *classname, char *jarfile,
 }
 
 /*
- * JVM would like to know if it's created by a standard Sun launcher, or by
- * user native application, the following property indicates the former.
- */
-void SetJavaLauncherProp() {
-  AddOption("-Dsun.java.launcher=SUN_STANDARD", NULL);
-}
-
-/*
  * Prints the version information from the java.version and other properties.
  */
 static void
@@ -1363,19 +1425,38 @@ PrintUsage(void)
 
     PrintMachineDependentOptions();
 
-    for (i=0; i<knownVMsCount; i++) {
+    if ((knownVMs[0].flag == VM_KNOWN) ||
+        (knownVMs[0].flag == VM_IF_SERVER_CLASS)) {
+      fprintf(stdout, "    %s\t  to select the \"%s\" VM\n",
+              knownVMs[0].name, knownVMs[0].name+1);
+    }        
+    for (i=1; i<knownVMsCount; i++) {
 	if (knownVMs[i].flag == VM_KNOWN)
 	    fprintf(stdout, "    %s\t  to select the \"%s\" VM\n",
 		    knownVMs[i].name, knownVMs[i].name+1);
     }
-    for (i=0; i<knownVMsCount; i++) {
+    for (i=1; i<knownVMsCount; i++) {
 	if (knownVMs[i].flag == VM_ALIASED_TO)
 	    fprintf(stdout, "    %s\t  is a synonym for "
 		    "the \"%s\" VM  [deprecated]\n",
 		    knownVMs[i].name, knownVMs[i].alias+1);
     }
-    fprintf(stdout, 
-	"                  The default VM is %s.\n\n", knownVMs[0].name+1);
+    /* The first known VM is the default */
+    {
+      const char* defaultVM   = knownVMs[0].name+1;
+      const char* punctuation = ".";
+      const char* reason      = "";
+      if ((knownVMs[0].flag == VM_IF_SERVER_CLASS) &&
+          (ServerClassMachine() == JNI_TRUE)) {
+        defaultVM = knownVMs[0].server_class+1;
+        punctuation = ", ";
+        reason = "because you are running on a server-class machine.\n";
+      }
+      fprintf(stdout, "                  The default VM is %s%s\n", 
+              defaultVM, punctuation);
+      fprintf(stdout, "                  %s\n",
+              reason);
+    }       
 
     fprintf(stdout,
 "    -cp <class search path of directories and zip/jar files>\n"
@@ -1404,6 +1485,14 @@ PrintUsage(void)
 "                  enable system assertions\n"
 "    -dsa | -disablesystemassertions\n"
 "                  disable system assertions\n"
+"    -agentlib:<libname>[=<options>]\n"
+"                  load native agent library <libname>, e.g. -agentlib:hprof\n"
+"                    see also, -agentlib:jdwp=help and -agentlib:hprof=help\n"
+"    -agentpath:<pathname>[=<options>]\n"
+"                  load native agent library by full pathname\n"
+"    -javaagent:<jarpath>[=<options>]\n"
+"                  load Java programming language agent, see java.lang.instrument\n"
+
 	    ,PATH_SEPARATOR);
 }
 
@@ -1444,12 +1533,16 @@ PrintXUsage(void)
  *     vmLine         :=  knownLine 
  *                    |   aliasLine 
  *                    |   warnLine 
+ *                    |   ignoreLine 
  *                    |   errorLine 
+ *                    |   predicateLine
  *                    |   commentLine
  *     knownLine      :=  flag  "KNOWN"                  EOL
  *     warnLine       :=  flag  "WARN"                   EOL
+ *     ignoreLine     :=  flag  "IGNORE"                 EOL
  *     errorLine      :=  flag  "ERROR"                  EOL
  *     aliasLine      :=  flag  "ALIASED_TO"       flag  EOL
+ *     predicateLine  :=  flag  "IF_SERVER_CLASS"  flag  EOL
  *     commentLine    :=  "#" text                       EOL
  *     flag           :=  "-" identifier
  *
@@ -1460,9 +1553,18 @@ PrintXUsage(void)
  *   of the second flag is used as the name of the JVM.
  * - if the flag appears on a warnLine, the identifier is used as the 
  *   name of the JVM, but a warning is generated.
+ * - if the flag appears on an ignoreLine, the identifier is recognized as the 
+ *   name of a JVM, but the identifier is ignored and the default vm used
  * - if the flag appears on an errorLine, an error is generated.
+ * - if the flag appears as the first flag on a predicateLine, and 
+ *   the machine on which you are running passes the predicate indicated, 
+ *   then the identifier of the second flag is used as the name of the JVM, 
+ *   otherwise the identifier of the first flag is used as the name of the JVM.
  * If no flag is given on the command line, the first vmLine of the jvm.cfg 
  * file determines the name of the JVM.
+ * PredicateLines are only interpreted on first vmLine of a jvm.cfg file, 
+ * since they only make sense if someone hasn't specified the name of the 
+ * JVM on the command line.
  *
  * The intent of the jvm.cfg file is to allow several JVM libraries to 
  * be installed in different subdirectories of a single JRE installation, 
@@ -1482,6 +1584,7 @@ ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative)
     int vmType;
     char *tmpPtr;
     char *altVMName;
+    char *serverClassVMName;
     static char *whiteSpace = " \t";
     if (_launcher_debug) {
         start = CounterGet();
@@ -1546,8 +1649,27 @@ ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative)
                     }
                 } else if (!strncmp(tmpPtr, "WARN", strlen("WARN"))) {
                     vmType = VM_WARN;
+                } else if (!strncmp(tmpPtr, "IGNORE", strlen("IGNORE"))) {
+                    vmType = VM_IGNORE;
                 } else if (!strncmp(tmpPtr, "ERROR", strlen("ERROR"))) {
                     vmType = VM_ERROR;
+                } else if (!strncmp(tmpPtr,
+                                    "IF_SERVER_CLASS",
+                                    strlen("IF_SERVER_CLASS"))) {
+                    tmpPtr += strcspn(tmpPtr, whiteSpace);
+                    if (*tmpPtr != 0) {
+                        tmpPtr += strspn(tmpPtr, whiteSpace);
+                    }
+                    if (*tmpPtr == 0) {
+                        fprintf(stderr, "Warning: missing server class VM on line %d of `%s'\n",
+                                lineno, jvmCfgName);
+                    } else {
+                        /* Null terminate server class VM name */
+                        serverClassVMName = tmpPtr;
+                        tmpPtr += strcspn(tmpPtr, whiteSpace);
+                        *tmpPtr = 0;
+                        vmType = VM_IF_SERVER_CLASS;
+                    }
                 } else {
                     fprintf(stderr, "Warning: unknown VM type on line %d of `%s'\n",
                             lineno, &jvmCfgName[0]);
@@ -1569,6 +1691,13 @@ ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative)
                 if (_launcher_debug) {
                     printf("    name: %s  vmType: %s  alias: %s\n", 
                            knownVMs[cnt].name, "VM_ALIASED_TO", knownVMs[cnt].alias);
+                }
+                break;
+            case VM_IF_SERVER_CLASS:
+                knownVMs[cnt].server_class = strdup(serverClassVMName);
+                if (_launcher_debug) {
+                    printf("    name: %s  vmType: %s  server_class: %s\n", 
+                           knownVMs[cnt].name, "VM_IF_SERVER_CLASS", knownVMs[cnt].server_class);
                 }
                 break;
             }

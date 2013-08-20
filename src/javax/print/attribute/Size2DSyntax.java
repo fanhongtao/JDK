@@ -1,7 +1,7 @@
 /*
- * @(#)Size2DSyntax.java	1.3 03/01/23
+ * @(#)Size2DSyntax.java	1.5 04/01/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,6 +64,8 @@ import java.io.Serializable;
  * @author  Alan Kaminsky
  */
 public abstract class Size2DSyntax implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = 5584439964938660530L;
 
     /**
      * X dimension in units of micrometers (&#181;m).

@@ -1,7 +1,7 @@
 /*
- * @(#)NavigationFilter.java	1.3 03/01/23
+ * @(#)NavigationFilter.java	1.4 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -28,7 +28,7 @@ import java.awt.Shape;
  * @see javax.swing.text.DefaultCaret
  * @see javax.swing.text.View
  *
- * @version 1.3 01/23/03
+ * @version 1.4 12/19/03
  * @since 1.4
  */
 public class NavigationFilter {

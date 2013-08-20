@@ -1,7 +1,7 @@
 /*
- * @(#)UIManager.java	1.103 03/01/23
+ * @(#)UIManager.java	1.115 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -15,6 +15,7 @@ import java.awt.Insets;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventPostProcessor;
+import java.awt.Toolkit;
 
 import java.awt.event.KeyEvent;
 
@@ -36,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
@@ -83,7 +85,7 @@ import sun.security.action.GetPropertyAction;
  *
  * @see javax.swing.plaf.metal
  *
- * @version 1.103 01/23/03
+ * @version 1.115 12/19/03
  * @author Thomas Ball
  * @author Hans Muller
  */
@@ -109,14 +111,29 @@ public class UIManager implements Serializable
         LookAndFeel lookAndFeel;
         LookAndFeel multiLookAndFeel = null;
         Vector auxLookAndFeels = null;
-        SwingPropertyChangeSupport changeSupport = 
-            new SwingPropertyChangeSupport(UIManager.class);
+        SwingPropertyChangeSupport changeSupport;
 
         UIDefaults getLookAndFeelDefaults() { return tables[0]; }
         void setLookAndFeelDefaults(UIDefaults x) { tables[0] = x; }
 
         UIDefaults getSystemDefaults() { return tables[1]; }
         void setSystemDefaults(UIDefaults x) { tables[1] = x; }
+
+        /**
+         * Returns the SwingPropertyChangeSupport for the current
+         * AppContext.  If <code>create</code> is a true, a non-null
+         * <code>SwingPropertyChangeSupport</code> will be returned, if
+         * <code>create</code> is false and this has not been invoked
+         * with true, null will be returned.
+         */
+        public synchronized SwingPropertyChangeSupport
+                                 getPropertyChangeSupport(boolean create) {
+            if (create && changeSupport == null) {
+                changeSupport = new SwingPropertyChangeSupport(
+                                         UIManager.class);
+            }
+            return changeSupport;
+        }
     }
 
 
@@ -202,9 +219,13 @@ public class UIManager implements Serializable
      */
     private static String makeSwingPropertiesFilename() {
         String sep = File.separator;
-	return AccessController.doPrivileged(new GetPropertyAction(
-                    "java.home", "<java.home undefined>")) + sep + "lib" +
-                    sep + "swing.properties";
+        // No need to wrap this in a doPrivileged as it's called from
+        // a doPrivileged.
+        String javaHome = System.getProperty("java.home");
+        if (javaHome == null) {
+            javaHome = "<java.home undefined>";
+        }
+        return javaHome + sep + "lib" + sep + "swing.properties";
     }
 
 
@@ -274,11 +295,35 @@ public class UIManager implements Serializable
      * 
      * @see #initializeInstalledLAFs
      */
-    private static LookAndFeelInfo[] installedLAFs = {
-        new LookAndFeelInfo("Metal", "javax.swing.plaf.metal.MetalLookAndFeel"),
-        new LookAndFeelInfo("CDE/Motif", "com.sun.java.swing.plaf.motif.MotifLookAndFeel"),
-        new LookAndFeelInfo("Windows", "com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
-    };
+    private static LookAndFeelInfo[] installedLAFs;
+
+    static {
+        ArrayList iLAFs = new ArrayList(4);
+        iLAFs.add(new LookAndFeelInfo(
+                      "Metal", "javax.swing.plaf.metal.MetalLookAndFeel"));
+        iLAFs.add(new LookAndFeelInfo("CDE/Motif",
+                  "com.sun.java.swing.plaf.motif.MotifLookAndFeel"));
+
+        // Only include windows on Windows boxs.
+	String osName = (String)AccessController.doPrivileged(
+                             new GetPropertyAction("os.name"));
+        if (osName != null && osName.indexOf("Windows") != -1) {
+            iLAFs.add(new LookAndFeelInfo("Windows",
+                        "com.sun.java.swing.plaf.windows.WindowsLookAndFeel"));
+            if (Toolkit.getDefaultToolkit().getDesktopProperty(
+                    "win.xpstyle.themeActive") != null) {
+                iLAFs.add(new LookAndFeelInfo("Windows Classic",
+                 "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"));
+            }
+        }
+        else {
+            // GTK is not shipped on Windows.
+            iLAFs.add(new LookAndFeelInfo("GTK+",
+                  "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"));
+        }
+        installedLAFs = (LookAndFeelInfo[])iLAFs.toArray(
+                        new LookAndFeelInfo[iLAFs.size()]);
+    }
 
 
     /** 
@@ -383,21 +428,28 @@ public class UIManager implements Serializable
             throw new UnsupportedLookAndFeelException(s);
         }
 
-        LookAndFeel oldLookAndFeel = getLAFState().lookAndFeel;
+        LAFState lafState = getLAFState();
+        LookAndFeel oldLookAndFeel = lafState.lookAndFeel;
         if (oldLookAndFeel != null) {
             oldLookAndFeel.uninitialize();
         }
 
-        getLAFState().lookAndFeel = newLookAndFeel;
+        lafState.lookAndFeel = newLookAndFeel;
         if (newLookAndFeel != null) {
+            sun.swing.DefaultLookup.setDefaultLookup(null);
             newLookAndFeel.initialize();
-            getLAFState().setLookAndFeelDefaults(newLookAndFeel.getDefaults());
+            lafState.setLookAndFeelDefaults(newLookAndFeel.getDefaults());
         }
         else {
-            getLAFState().setLookAndFeelDefaults(null);
+            lafState.setLookAndFeelDefaults(null);
         }
 
-        getLAFState().changeSupport.firePropertyChange("lookAndFeel", oldLookAndFeel, newLookAndFeel);
+        SwingPropertyChangeSupport changeSupport = lafState.
+                                         getPropertyChangeSupport(false);
+        if (changeSupport != null) {
+            changeSupport.firePropertyChange("lookAndFeel", oldLookAndFeel,
+                                             newLookAndFeel);
+        }
     }
 
     
@@ -420,8 +472,14 @@ public class UIManager implements Serializable
                IllegalAccessException,
                UnsupportedLookAndFeelException 
     {
+        if ("javax.swing.plaf.metal.MetalLookAndFeel".equals(className)) {
+            // Avoid reflection for the common case of metal.
+            setLookAndFeel(new javax.swing.plaf.metal.MetalLookAndFeel());
+        }
+        else {
             Class lnfClass = SwingUtilities.loadSystemClass(className);
             setLookAndFeel((LookAndFeel)(lnfClass.newInstance()));
+        }
     }
 
 
@@ -429,7 +487,8 @@ public class UIManager implements Serializable
      * Returns the name of the <code>LookAndFeel</code> class that implements
      * the native systems look and feel if there is one, otherwise
      * the name of the default cross platform <code>LookAndFeel</code>
-     * class.
+     * class. If the system property <code>swing.systemlaf</code> has been
+     * defined, its value will be returned.
      * 
      * @return the <code>String</code> of the <code>LookAndFeel</code>
      *		class
@@ -438,6 +497,11 @@ public class UIManager implements Serializable
      * @see #getCrossPlatformLookAndFeelClassName
      */
     public static String getSystemLookAndFeelClassName() {
+	String systemLAF = (String)AccessController.doPrivileged(
+                             new GetPropertyAction("swing.systemlaf"));
+        if (systemLAF != null) {
+            return systemLAF;
+        }
 	String osName = (String)AccessController.doPrivileged(
                              new GetPropertyAction("os.name"));
 
@@ -445,12 +509,17 @@ public class UIManager implements Serializable
             if (osName.indexOf("Windows") != -1) {
                 return "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
             }
-            else if ((osName.indexOf("Solaris") != -1) || 
-		     (osName.indexOf("SunOS") != -1)) {
-                return "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
-            } 
-	    else if (osName.indexOf("Mac") != -1 ) {
-                return "com.sun.java.swing.plaf.mac.MacLookAndFeel";
+            else {
+                String desktop = (String)AccessController.doPrivileged(
+                             new GetPropertyAction("sun.desktop"));
+                if ("gnome".equals(desktop)) {
+                    // May be set on Linux and Solaris boxs.
+                    return "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+                }
+                if ((osName.indexOf("Solaris") != -1) || 
+		             (osName.indexOf("SunOS") != -1)) {
+                    return "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+                }
             }
         }
         return getCrossPlatformLookAndFeelClassName();
@@ -460,13 +529,20 @@ public class UIManager implements Serializable
     /**
      * Returns the name of the <code>LookAndFeel</code> class that implements
      * the default cross platform look and feel -- the Java
-     * Look and Feel (JLF).
+     * Look and Feel (JLF).  If the system property
+     * <code>swing.crossplatformlaf</code> has been
+     * defined, its value will be returned.
      * 
      * @return  a string with the JLF implementation-class
      * @see #setLookAndFeel
      * @see #getSystemLookAndFeelClassName
      */
     public static String getCrossPlatformLookAndFeelClassName() {
+	String laf = (String)AccessController.doPrivileged(
+                             new GetPropertyAction("swing.crossplatformlaf"));
+        if (laf != null) {
+            return laf;
+        }
         return "javax.swing.plaf.metal.MetalLookAndFeel";
     }
 
@@ -834,6 +910,11 @@ public class UIManager implements Serializable
     static public void addAuxiliaryLookAndFeel(LookAndFeel laf) {
         maybeInitialize();
 
+        if (!laf.isSupportedLookAndFeel()) {
+            // Ideally we would throw an exception here, but it's too late
+            // for that.
+            return;
+        }
         Vector v = getLAFState().auxLookAndFeels;
         if (v == null) {
             v = new Vector();
@@ -930,7 +1011,8 @@ public class UIManager implements Serializable
     public static void addPropertyChangeListener(PropertyChangeListener listener) 
     {
 	synchronized (classLock) {
-	    getLAFState().changeSupport.addPropertyChangeListener(listener);
+	    getLAFState().getPropertyChangeSupport(true).
+                             addPropertyChangeListener(listener);
 	}
     }
 
@@ -946,7 +1028,8 @@ public class UIManager implements Serializable
     public static void removePropertyChangeListener(PropertyChangeListener listener) 
     {
         synchronized (classLock) {
-	    getLAFState().changeSupport.removePropertyChangeListener(listener);
+	    getLAFState().getPropertyChangeSupport(true).
+                          removePropertyChangeListener(listener);
 	}
     }
 
@@ -961,7 +1044,8 @@ public class UIManager implements Serializable
      */
     public static PropertyChangeListener[] getPropertyChangeListeners() {
         synchronized(classLock) {
-            return getLAFState().changeSupport.getPropertyChangeListeners();
+            return getLAFState().getPropertyChangeSupport(true).
+                      getPropertyChangeListeners();
         }
     }
 
@@ -976,8 +1060,9 @@ public class UIManager implements Serializable
 	else {
 	    final Properties props = new Properties();
 
-	    SwingUtilities.doPrivileged(new Runnable() {
-		public void run() {
+            java.security.AccessController.doPrivileged(
+                new java.security.PrivilegedAction() {
+                public Object run() {
 		    try {
 			File file = new File(makeSwingPropertiesFilename());
 
@@ -1000,6 +1085,8 @@ public class UIManager implements Serializable
 		    checkProperty(props, multiplexingLAFKey);
 		    checkProperty(props, installedLAFsKey);
 		    checkProperty(props, disableMnemonicKey);
+                    // Don't care about return value.
+                    return null;
 		}
 	    });
 	    return props;
@@ -1007,14 +1094,12 @@ public class UIManager implements Serializable
     }
 
     private static void checkProperty(Properties props, String key) {
-	try {
-	    String value = System.getProperty(key);
-	    if (value != null) {
-		props.put(key, value);
-	    }
-	} catch (SecurityException e) {
-	    // If system won't give us a property, we don't want it!
-	}
+        // No need to do catch the SecurityException here, this runs
+        // in a doPrivileged.
+        String value = System.getProperty(key);
+        if (value != null) {
+            props.put(key, value);
+        }
     }
 
 
@@ -1142,10 +1227,6 @@ public class UIManager implements Serializable
 
 
     private static void initializeSystemDefaults(Properties swingProps) {
-        Object defaults[] = {
-            "FocusManagerClassName", "javax.swing.DefaultFocusManager"
-        };
-        getLAFState().setSystemDefaults(new UIDefaults(defaults));
 	getLAFState().swingProps = swingProps;
     }
 
@@ -1172,28 +1253,21 @@ public class UIManager implements Serializable
      */
     private static void initialize() {
         Properties swingProps = loadSwingProperties();
-	try {
-	    // We discourage the JIT during UI initialization.
-	    // JITing here tends to be counter-productive.
-	    java.lang.Compiler.disable();
-
-            initializeSystemDefaults(swingProps);
-            initializeDefaultLAF(swingProps);
-            initializeAuxiliaryLAFs(swingProps);
-            initializeInstalledLAFs(swingProps);
-
-	} 
-	finally {
-	    // Make sure to always re-enable the JIT.
-	    java.lang.Compiler.enable();
-	}
+        initializeSystemDefaults(swingProps);
+        initializeDefaultLAF(swingProps);
+        initializeAuxiliaryLAFs(swingProps);
+        initializeInstalledLAFs(swingProps);
 
         // Enable the Swing default LayoutManager.
-	if (FocusManager.isFocusManagerEnabled()) {
-	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
-		setDefaultFocusTraversalPolicy(
-                    new LayoutFocusTraversalPolicy());
-	}
+        String toolkitName = Toolkit.getDefaultToolkit().getClass().getName();
+        // don't set default policy if this is XAWT.
+        if (!"sun.awt.X11.XToolkit".equals(toolkitName)) {
+            if (FocusManager.isFocusManagerEnabled()) {
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                    setDefaultFocusTraversalPolicy(
+                        new LayoutFocusTraversalPolicy());
+            }
+        }
         // Install a hook that will be invoked if no one consumes the
         // KeyEvent.  If the source isn't a JComponent this will process
         // key bindings, if the source is a JComponent it implies that

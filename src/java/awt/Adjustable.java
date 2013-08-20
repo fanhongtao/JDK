@@ -1,7 +1,7 @@
 /*
- * @(#)Adjustable.java	1.15 03/01/23
+ * @(#)Adjustable.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import java.awt.event.*;
  * The interface for objects which have an adjustable numeric value
  * contained within a bounded range of values.
  *
- * @version 1.15 01/23/03
+ * @version 1.18 12/19/03
  * @author Amy Fowler
  * @author Tim Prinzing
  */
@@ -105,10 +105,16 @@ public interface Adjustable {
     int getVisibleAmount();
 
     /**
-     * Sets the current value of the adjustable object. This
-     * value must be within the range defined by the minimum and
-     * maximum values for this object.
-     * @param v the current value 
+     * Sets the current value of the adjustable object. If
+     * the value supplied is less than <code>minimum</code>
+     * or greater than <code>maximum</code> - <code>visibleAmount</code>,
+     * then one of those values is substituted, as appropriate.
+     * <p>
+     * Calling this method does not fire an
+     * <code>AdjustmentEvent</code>. 
+     *
+     * @param v the current value, between <code>minimum</code>
+     *    and <code>maximum</code> - <code>visibleAmount</code>
      */
     void setValue(int v);
 

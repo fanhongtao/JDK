@@ -1,7 +1,7 @@
 /*
- * @(#)RenderingHints.java	1.19 03/01/23
+ * @(#)RenderingHints.java	1.21 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,9 @@ import java.lang.ref.WeakReference;
  * implement {@link java.awt.image.BufferedImageOp} and
  * {@link java.awt.image.Raster}.
  */
-public class RenderingHints implements Map, Cloneable {
+public class RenderingHints
+    implements Map<Object,Object>, Cloneable
+{
     /**
      * Defines the base type of all keys used to control various
      * aspects of the rendering and imaging pipelines.  Instances
@@ -368,7 +370,7 @@ public class RenderingHints implements Map, Cloneable {
      * @param init a map of key/value pairs to initialize the hints
      *		or null if the object should be empty
      */
-    public RenderingHints(Map init) {
+    public RenderingHints(Map<Key,?> init) {
 	if (init != null) {
 	    hintmap.putAll(init);
 	}
@@ -536,16 +538,17 @@ public class RenderingHints implements Map, Cloneable {
      *		 prevents it from being stored in
      * 		  this <code>RenderingHints</code>.
      */
-    public void putAll(Map m) {
-	if (m instanceof RenderingHints) {
-	    hintmap.putAll(((RenderingHints) m).hintmap);
+    public void putAll(Map<?,?> m) {
+	// ## javac bug?
+	//if (m instanceof RenderingHints) {
+	if (RenderingHints.class.isInstance(m)) {
+	    //hintmap.putAll(((RenderingHints) m).hintmap);
+	    for (Map.Entry<?,?> entry : m.entrySet())
+		hintmap.put(entry.getKey(), entry.getValue());
 	} else {
 	    // Funnel each key/value pair through our protected put method
-	    Iterator iter = m.entrySet().iterator();
-	    while (iter.hasNext()) {
-		Map.Entry entry = (Map.Entry) iter.next();
+	    for (Map.Entry<?,?> entry : m.entrySet())
 		put(entry.getKey(), entry.getValue());
-	    }
 	}
     }
 
@@ -567,7 +570,7 @@ public class RenderingHints implements Map, Cloneable {
      * @return a <code>Set</code> view of the keys contained 
      * in this <code>RenderingHints</code>.
      */
-    public Set keySet() {
+    public Set<Object> keySet() {
 	return hintmap.keySet();
     }
 
@@ -593,7 +596,7 @@ public class RenderingHints implements Map, Cloneable {
      * @return a <code>Collection</code> view of the values 
      *		contained in this <code>RenderingHints</code>.
      */
-    public Collection values() {
+    public Collection<Object> values() {
 	return hintmap.values();
     }
 
@@ -614,7 +617,7 @@ public class RenderingHints implements Map, Cloneable {
      * @return a <code>Set</code> view of the mappings contained in 
      * this <code>RenderingHints</code>.
      */
-    public Set entrySet() {
+    public Set<Map.Entry<Object,Object>> entrySet() {
 	return Collections.unmodifiableMap(hintmap).entrySet();
     }
 

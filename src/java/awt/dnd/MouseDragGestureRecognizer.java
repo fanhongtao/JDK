@@ -1,7 +1,7 @@
 /*
- * @(#)MouseDragGestureRecognizer.java	1.12 03/01/23
+ * @(#)MouseDragGestureRecognizer.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,16 +16,29 @@ import java.awt.event.MouseMotionListener;
 /**
  * This abstract subclass of <code>DragGestureRecognizer</code>
  * defines a <code>DragGestureRecognizer</code>
- * for mouse based gestures.
+ * for mouse-based gestures.
  *
- * Each platform will implement its own concrete subclass of this class,
+ * Each platform implements its own concrete subclass of this class,
  * available via the Toolkit.createDragGestureRecognizer() method, 
  * to encapsulate
  * the recognition of the platform dependent mouse gesture(s) that initiate
  * a Drag and Drop operation.
+ * <p>
+ * Mouse drag gesture recognizers should honor the
+ * drag gesture motion threshold, available through
+ * {@link DragSource#getDragThreshold}.
+ * A drag gesture should be recognized only when the distance
+ * in either the horizontal or vertical direction between 
+ * the location of the latest mouse dragged event and the 
+ * location of the corresponding mouse button pressed event
+ * is greater than the drag gesture motion threshold.
+ * <p>
+ * Drag gesture recognizers created with
+ * {@link DragSource#createDefaultDragGestureRecognizer}
+ * follow this convention.
  *
  * @author Laurence P. G. Cable
- * @version 1.12
+ * @version 1.14
  *
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragGestureEvent

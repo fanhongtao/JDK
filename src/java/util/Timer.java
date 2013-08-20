@@ -1,7 +1,7 @@
 /*
- * @(#)Timer.java	1.9 03/01/23
+ * @(#)Timer.java	1.17 04/04/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.util.Date;
  * default, the task execution thread does not run as a <i>daemon thread</i>,
  * so it is capable of keeping an application from terminating.  If a caller
  * wants to terminate a timer's task execution thread rapidly, the caller
- * should invoke the the timer's <tt>cancel</tt> method.
+ * should invoke the timer's <tt>cancel</tt> method.
  *
  * <p>If the timer's task execution thread terminates unexpectedly, for
  * example, because its <tt>stop</tt> method is invoked, any further
@@ -47,8 +47,10 @@ import java.util.Date;
  * it uses a binary heap to represent its task queue, so the cost to schedule
  * a task is O(log n), where n is the number of concurrently scheduled tasks.
  *
+ * <p>Implementation note: All constructors start a timer thread.
+ *
  * @author  Josh Bloch
- * @version 1.9, 01/23/03
+ * @version 1.17, 04/12/04
  * @see     TimerTask
  * @see     Object#wait(long)
  * @since   1.3
@@ -85,6 +87,15 @@ public class Timer {
     };
 
     /**
+     * This ID is used to generate thread names.  (It could be replaced
+     * by an AtomicInteger as soon as they become available.)
+     */
+    private static int nextSerialNumber = 0;
+    private static synchronized int serialNumber() {
+        return nextSerialNumber++;
+    }
+
+    /**
      * Creates a new timer.  The associated thread does <i>not</i> run as
      * a daemon.
      *
@@ -92,12 +103,12 @@ public class Timer {
      * @see #cancel()
      */
     public Timer() {
-        thread.start();
+        this("Timer-" + serialNumber());
     }
 
     /**
      * Creates a new timer whose associated thread may be specified to 
-     * run as a daemon.  A deamon thread is called for if the timer will
+     * run as a daemon.  A daemon thread is called for if the timer will
      * be used to schedule repeating "maintenance activities", which must
      * be performed as long as the application is running, but should not
      * prolong the lifetime of the application.
@@ -108,6 +119,37 @@ public class Timer {
      * @see #cancel()
      */
     public Timer(boolean isDaemon) {
+        this("Timer-" + serialNumber(), isDaemon);
+    }
+
+    /**
+     * Creates a new timer whose associated thread has the specified name.
+     * The associated thread does <i>not</i> run as a daemon.
+     *
+     * @param name the name of the associated thread
+     * @throws NullPointerException if name is null
+     * @see Thread#getName()
+     * @see Thread#isDaemon()
+     * @since 1.5
+     */
+    public Timer(String name) {
+        thread.setName(name);
+        thread.start();
+    }
+ 
+    /**
+     * Creates a new timer whose associated thread has the specified name,
+     * and may be specified to run as a daemon.
+     *
+     * @param name the name of the associated thread
+     * @param isDaemon true if the associated thread should run as a daemon
+     * @throws NullPointerException if name is null
+     * @see Thread#getName()
+     * @see Thread#isDaemon()
+     * @since 1.5
+     */
+    public Timer(String name, boolean isDaemon) {
+        thread.setName(name);
         thread.setDaemon(isDaemon);
         thread.start();
     }
@@ -231,7 +273,7 @@ public class Timer {
      * <p>Fixed-rate execution is appropriate for recurring activities that
      * are sensitive to <i>absolute</i> time, such as ringing a chime every
      * hour on the hour, or running scheduled maintenance every day at a
-     * particular time.  It is also appropriate for for recurring activities
+     * particular time.  It is also appropriate for recurring activities
      * where the total time to perform a fixed number of executions is
      * important, such as a countdown timer that ticks once every second for
      * ten seconds.  Finally, fixed-rate execution is appropriate for
@@ -270,7 +312,7 @@ public class Timer {
      * <p>Fixed-rate execution is appropriate for recurring activities that
      * are sensitive to <i>absolute</i> time, such as ringing a chime every
      * hour on the hour, or running scheduled maintenance every day at a
-     * particular time.  It is also appropriate for for recurring activities
+     * particular time.  It is also appropriate for recurring activities
      * where the total time to perform a fixed number of executions is
      * important, such as a countdown timer that ticks once every second for
      * ten seconds.  Finally, fixed-rate execution is appropriate for
@@ -292,7 +334,7 @@ public class Timer {
     }
 
     /**
-     * Schedule the specifed timer task for execution at the specified
+     * Schedule the specified timer task for execution at the specified
      * time with the specified period, in milliseconds.  If period is
      * positive, the task is scheduled for repeated execution; if period is
      * zero, the task is scheduled for one-time execution. Time is specified
@@ -347,6 +389,44 @@ public class Timer {
             queue.notify();  // In case queue was already empty.
         }
     }
+
+    /**
+     * Removes all cancelled tasks from this timer's task queue.  <i>Calling
+     * this method has no effect on the behavior of the timer</i>, but
+     * eliminates the references to the cancelled tasks from the queue.
+     * If there are no external references to these tasks, they become
+     * eligible for garbage collection.
+     *
+     * <p>Most programs will have no need to call this method.
+     * It is designed for use by the rare application that cancels a large
+     * number of tasks.  Calling this method trades time for space: the
+     * runtime of the method may be proportional to n + c log n, where n
+     * is the number of tasks in the queue and c is the number of cancelled
+     * tasks.
+     *
+     * <p>Note that it is permissible to call this method from within a
+     * a task scheduled on this timer.
+     *
+     * @return the number of tasks removed from the queue.
+     * @since 1.5
+     */
+     public int purge() {
+         int result = 0;
+
+         synchronized(queue) {
+             for (int i = queue.size(); i > 0; i--) {
+                 if (queue.get(i).state == TimerTask.CANCELLED) {
+                     queue.quickRemove(i);
+                     result++;
+                 }
+             }
+
+             if (result != 0)
+                 queue.heapify();
+         }
+
+         return result;
+     }
 }
 
 /**
@@ -381,7 +461,7 @@ class TimerThread extends Thread {
         try {
             mainLoop();
         } finally {
-            // Somone killed this Thread, behave as if Timer cancelled
+            // Someone killed this Thread, behave as if Timer cancelled
             synchronized(queue) {
                 newTasksMayBeScheduled = false;
                 queue.clear();  // Eliminate obsolete references
@@ -441,7 +521,7 @@ class TimerThread extends Thread {
  * ordered on nextExecutionTime.  Each Timer object has one of these, which it
  * shares with its TimerThread.  Internally this class uses a heap, which
  * offers log(n) performance for the add, removeMin and rescheduleMin
- * operations, and constant time performance for the the getMin operation.
+ * operations, and constant time performance for the getMin operation.
  */
 class TaskQueue {
     /**
@@ -459,6 +539,13 @@ class TaskQueue {
      * queue[1] up to queue[size]).
      */
     private int size = 0;
+
+    /**
+     * Returns the number of tasks currently on the queue.
+     */
+    int size() {
+        return size;
+    }
 
     /**
      * Adds a new task to the priority queue.
@@ -484,12 +571,33 @@ class TaskQueue {
     }
 
     /**
+     * Return the ith task in the priority queue, where i ranges from 1 (the
+     * head task, which is returned by getMin) to the number of tasks on the
+     * queue, inclusive.
+     */
+    TimerTask get(int i) {
+        return queue[i];
+    }
+
+    /**
      * Remove the head task from the priority queue.
      */
     void removeMin() {
         queue[1] = queue[size];
         queue[size--] = null;  // Drop extra reference to prevent memory leak
         fixDown(1);
+    }
+
+    /**
+     * Removes the ith element from queue without regard for maintaining
+     * the heap invariant.  Recall that queue is one-based, so
+     * 1 <= i <= size.
+     */
+    void quickRemove(int i) {
+        assert i <= size;
+
+        queue[i] = queue[size];
+        queue[size--] = null;  // Drop extra ref to prevent memory leak
     }
 
     /**
@@ -550,7 +658,7 @@ class TaskQueue {
      */
     private void fixDown(int k) {
         int j;
-        while ((j = k << 1) <= size) {
+        while ((j = k << 1) <= size && j > 0) {
             if (j < size &&
                 queue[j].nextExecutionTime > queue[j+1].nextExecutionTime)
                 j++; // j indexes smallest kid
@@ -559,5 +667,14 @@ class TaskQueue {
             TimerTask tmp = queue[j];  queue[j] = queue[k]; queue[k] = tmp;
             k = j;
         }
+    }
+
+    /**
+     * Establishes the heap invariant (described above) in the entire tree,
+     * assuming nothing about the order of the elements prior to the call.
+     */
+    void heapify() {
+        for (int i = size/2; i >= 1; i--)
+            fixDown(i);
     }
 }

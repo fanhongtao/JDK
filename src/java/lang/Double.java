@@ -1,11 +1,15 @@
 /*
- * @(#)Double.java	1.82 03/01/23
+ * @(#)Double.java	1.94 04/05/11
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.lang;
+
+import sun.misc.FloatingDecimal;
+import sun.misc.FpUtils;
+import sun.misc.DoubleConsts;
 
 /**
  * The <code>Double</code> class wraps a value of the primitive type
@@ -21,10 +25,11 @@ package java.lang;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.82, 01/23/03
+ * @author  Joseph D. Darcy
+ * @version 1.94, 05/11/04
  * @since JDK1.0
  */
-public final class Double extends Number implements Comparable {
+public final class Double extends Number implements Comparable<Double> {
     /**
      * A constant holding the positive infinity of type
      * <code>double</code>. It is equal to the value returned by
@@ -48,18 +53,29 @@ public final class Double extends Number implements Comparable {
 
     /**
      * A constant holding the largest positive finite value of type
-     * <code>double</code>, (2-2<sup>-52</sup>)&middot;2<sup>1023</sup>.
-     * It is equal to the value returned by:
+     * <code>double</code>,
+     * (2-2<sup>-52</sup>)&middot;2<sup>1023</sup>.  It is equal to
+     * the hexadecimal floating-point literal
+     * <code>0x1.fffffffffffffP+1023</code> and also equal to
      * <code>Double.longBitsToDouble(0x7fefffffffffffffL)</code>.
      */
-    public static final double MAX_VALUE = 1.7976931348623157e+308;
+    public static final double MAX_VALUE = 1.7976931348623157e+308; // 0x1.fffffffffffffP+1023
 
     /**
      * A constant holding the smallest positive nonzero value of type
      * <code>double</code>, 2<sup>-1074</sup>. It is equal to the
-     * value returned by <code>Double.longBitsToDouble(0x1L)</code>.
+     * hexadecimal floating-point literal
+     * <code>0x0.0000000000001P-1022</code> and also equal to
+     * <code>Double.longBitsToDouble(0x1L)</code>.
      */
-    public static final double MIN_VALUE = 4.9e-324;
+    public static final double MIN_VALUE = 4.9e-324; // 0x0.0000000000001P-1022
+
+    /**
+     * The number of bits used to represent a <tt>double</tt> value.
+     *
+     * @since 1.5
+     */
+    public static final int SIZE = 64;
 
     /**
      * The <code>Class</code> instance representing the primitive type
@@ -67,7 +83,7 @@ public final class Double extends Number implements Comparable {
      *
      * @since JDK1.1 
      */
-    public static final Class	TYPE = Class.getPrimitiveClass("double");
+    public static final Class<Double>	TYPE = (Class<Double>) Class.getPrimitiveClass("double");
 
     /**
      * Returns a string representation of the <code>double</code> 
@@ -136,41 +152,217 @@ public final class Double extends Number implements Comparable {
     }
 
     /**
+     * Returns a hexadecimal string representation of the
+     * <code>double</code> argument. All characters mentioned below
+     * are ASCII characters.
+     *
+     * <ul>
+     * <li>If the argument is NaN, the result is the string
+     *     &quot;<code>NaN</code>&quot;.
+     * <li>Otherwise, the result is a string that represents the sign
+     * and magnitude of the argument. If the sign is negative, the
+     * first character of the result is '<code>-</code>'
+     * (<code>'&#92;u002D'</code>); if the sign is positive, no sign
+     * character appears in the result. As for the magnitude <i>m</i>:
+     *
+     * <ul> 
+     * <li>If <i>m</i> is infinity, it is represented by the string
+     * <code>"Infinity"</code>; thus, positive infinity produces the
+     * result <code>"Infinity"</code> and negative infinity produces
+     * the result <code>"-Infinity"</code>.
+     *
+     * <li>If <i>m</i> is zero, it is represented by the string
+     * <code>"0x0.0p0"</code>; thus, negative zero produces the result
+     * <code>"-0x0.0p0"</code> and positive zero produces the result
+     * <code>"0x0.0p0"</code>.
+     *
+     * <li>If <i>m</i> is a <code>double</code> value with a
+     * normalized representation, substrings are used to represent the
+     * significand and exponent fields.  The significand is
+     * represented by the characters <code>&quot;0x1.&quot;</code>
+     * followed by a lowercase hexadecimal representation of the rest
+     * of the significand as a fraction.  Trailing zeros in the
+     * hexadecimal representation are removed unless all the digits
+     * are zero, in which case a single zero is used. Next, the
+     * exponent is represented by <code>&quot;p&quot;</code> followed
+     * by a decimal string of the unbiased exponent as if produced by
+     * a call to {@link Integer#toString(int) Integer.toString} on the
+     * exponent value.
+     *
+     * <li>If <i>m</i> is a <code>double</code> value with a subnormal
+     * representation, the significand is represented by the
+     * characters <code>&quot;0x0.&quot;</code> followed by a
+     * hexadecimal representation of the rest of the significand as a
+     * fraction.  Trailing zeros in the hexadecimal representation are
+     * removed. Next, the exponent is represented by
+     * <code>&quot;p-1022&quot;</code>.  Note that there must be at
+     * least one nonzero digit in a subnormal significand.
+     *
+     * </ul>
+     * 
+     * </ul>
+     *
+     * <table border>
+     * <caption><h3>Examples</h3></caption>
+     * <tr><th>Floating-point Value</th><th>Hexadecimal String</th>
+     * <tr><td><code>1.0</code></td>	<td><code>0x1.0p0</code></td>
+     * <tr><td><code>-1.0</code></td>	<td><code>-0x1.0p0</code></td>
+     * <tr><td><code>2.0</code></td>	<td><code>0x1.0p1</code></td>
+     * <tr><td><code>3.0</code></td>	<td><code>0x1.8p1</code></td>
+     * <tr><td><code>0.5</code></td>	<td><code>0x1.0p-1</code></td>
+     * <tr><td><code>0.25</code></td>	<td><code>0x1.0p-2</code></td>
+     * <tr><td><code>Double.MAX_VALUE</code></td>
+     *     <td><code>0x1.fffffffffffffp1023</code></td>
+     * <tr><td><code>Minimum Normal Value</code></td>
+     *     <td><code>0x1.0p-1022</code></td>
+     * <tr><td><code>Maximum Subnormal Value</code></td>
+     *     <td><code>0x0.fffffffffffffp-1022</code></td>
+     * <tr><td><code>Double.MIN_VALUE</code></td>
+     *     <td><code>0x0.0000000000001p-1022</code></td>
+     * </table>
+     * @param   d   the <code>double</code> to be converted.
+     * @return a hex string representation of the argument.
+     * @since 1.5
+     * @author Joseph D. Darcy
+     */
+    public static String toHexString(double d) {
+	/*
+	 * Modeled after the "a" conversion specifier in C99, section
+	 * 7.19.6.1; however, the output of this method is more
+	 * tightly specified.
+	 */
+	if (!FpUtils.isFinite(d) )
+	    // For infinity and NaN, use the decimal output.
+	    return Double.toString(d);
+	else {
+	    // Initialized to maximum size of output.
+	    StringBuffer answer = new StringBuffer(24); 
+ 	    
+	    if (FpUtils.rawCopySign(1.0, d) == -1.0) // value is negative,
+		answer.append("-");		     // so append sign info
+
+	    answer.append("0x"); 
+
+	    d = Math.abs(d);
+
+	    if(d == 0.0) {
+		answer.append("0.0p0");
+	    }
+	    else {
+		boolean subnormal = (d < DoubleConsts.MIN_NORMAL);
+
+		// Isolate significand bits and OR in a high-order bit
+		// so that the string representation has a known
+		// length.
+		long signifBits = (Double.doubleToLongBits(d) 
+				   & DoubleConsts.SIGNIF_BIT_MASK) |
+		    0x1000000000000000L;
+
+		// Subnormal values have a 0 implicit bit; normal
+		// values have a a 1 implicit bit.
+		answer.append(subnormal ? "0." : "1.");
+
+		// Isolate the low-order 13 digits of the hex
+		// representation.  If all the digits are zero,
+		// replace with a single 0; otherwise, remove all
+		// trailing zeros.
+		String signif = Long.toHexString(signifBits).substring(3,16);
+		answer.append(signif.equals("0000000000000") ? // 13 zeros
+			      "0":
+			      signif.replaceFirst("0{1,12}$", ""));
+
+		// If the value is subnormal, use the E_min exponent
+		// value for double; otherwise, extract and report d's
+		// exponent (the representation of a subnormal uses
+		// E_min -1).
+		answer.append("p" + (subnormal ?
+			       DoubleConsts.MIN_EXPONENT:
+			       FpUtils.getExponent(d) ));
+	    }
+	    return answer.toString();
+	}
+    }
+    
+    /**
      * Returns a <code>Double</code> object holding the
      * <code>double</code> value represented by the argument string
      * <code>s</code>.
-     * <p>
-     * If <code>s</code> is <code>null</code>, then a 
+     * 
+     * <p>If <code>s</code> is <code>null</code>, then a 
      * <code>NullPointerException</code> is thrown.
-     * <p>
-     * Leading and trailing whitespace characters in <code>s</code>
-     * are ignored. The rest of <code>s</code> should constitute a
-     * <i>FloatValue</i> as described by the lexical rule:
-     * <blockquote><i>
+     *
+     * <p>Leading and trailing whitespace characters in <code>s</code>
+     * are ignored.  Whitespace is removed as if by the {@link
+     * String#trim} method; that is, both ASCII space and control
+     * characters are removed. The rest of <code>s</code> should
+     * constitute a <i>FloatValue</i> as described by the lexical
+     * syntax rules:
+     *
+     * <blockquote>
      * <dl>
-     * <dt>FloatValue:
+     * <dt><i>FloatValue:</i>
      * <dd><i>Sign<sub>opt</sub></i> <code>NaN</code>
      * <dd><i>Sign<sub>opt</sub></i> <code>Infinity</code>
-     * <dd>Sign<sub>opt</sub> FloatingPointLiteral
+     * <dd><i>Sign<sub>opt</sub> FloatingPointLiteral</i>
+     * <dd><i>Sign<sub>opt</sub> HexFloatingPointLiteral</i>
+     * <dd><i>SignedInteger</i>
      * </dl>
-     * </i></blockquote>
-     * where <i>Sign</i> and <i>FloatingPointLiteral</i> are as
-     * defined in 
-     * <a href="http://java.sun.com/docs/books/jls/second_edition/html/lexical.doc.html#230798">&sect;3.10.2</a>
-     * of the <a href="http://java.sun.com/docs/books/jls/html/">Java 
-     * Language Specification</a>. If <code>s</code> does not have the 
-     * form of a <i>FloatValue</i>, then a <code>NumberFormatException</code>
-     * is thrown. Otherwise, <code>s</code> is regarded as
-     * representing an exact decimal value in the usual "computerized
-     * scientific notation"; this exact decimal value is then
-     * conceptually converted to an "infinitely precise" binary value
-     * that is then rounded to type <code>double</code> by the usual
-     * round-to-nearest rule of IEEE 754 floating-point arithmetic,
-     * which includes preserving the sign of a zero value. Finally, a
-     * <code>Double</code> object representing this
-     * <code>double</code> value is returned.
+     *
      * <p>
-     * To interpret localized string representations of a
+     *
+     * <dl>
+     * <dt><i>HexFloatingPointLiteral</i>:
+     * <dd> <i>HexSignificand BinaryExponent FloatTypeSuffix<sub>opt</sub></i>
+     * </dl>
+     *
+     * <p>
+     *
+     * <dl>
+     * <dt><i>HexSignificand:</i>
+     * <dd><i>HexNumeral</i>
+     * <dd><i>HexNumeral</i> <code>.</code>
+     * <dd><code>0x</code> <i>HexDigits<sub>opt</sub> 
+     *     </i><code>.</code><i> HexDigits</i>
+     * <dd><code>0X</code><i> HexDigits<sub>opt</sub> 
+     *     </i><code>.</code> <i>HexDigits</i>
+     * </dl>
+     *
+     * <p>
+     *
+     * <dl>
+     * <dt><i>BinaryExponent:</i>
+     * <dd><i>BinaryExponentIndicator SignedInteger</i>
+     * </dl>
+     *
+     * <p>
+     *
+     * <dl>
+     * <dt><i>BinaryExponentIndicator:</i>
+     * <dd><code>p</code>
+     * <dd><code>P</code>
+     * </dl>
+     *
+     * </blockquote>
+     *
+     * where <i>Sign</i>, <i>FloatingPointLiteral</i>,
+     * <i>HexNumeral</i>, <i>HexDigits</i>, <i>SignedInteger</i> and
+     * <i>FloatTypeSuffix</i> are as defined in the lexical structure
+     * sections of the of the <a
+     * href="http://java.sun.com/docs/books/jls/html/">Java Language
+     * Specification</a>. If <code>s</code> does not have the form of
+     * a <i>FloatValue</i>, then a <code>NumberFormatException</code>
+     * is thrown. Otherwise, <code>s</code> is regarded as
+     * representing an exact decimal value in the usual
+     * &quot;computerized scientific notation&quot; or as an exact
+     * hexadecimal value; this exact numerical value is then
+     * conceptually converted to an &quot;infinitely precise&quot;
+     * binary value that is then rounded to type <code>double</code>
+     * by the usual round-to-nearest rule of IEEE 754 floating-point
+     * arithmetic, which includes preserving the sign of a zero
+     * value. Finally, a <code>Double</code> object representing this
+     * <code>double</code> value is returned.
+     *
+     * <p> To interpret localized string representations of a
      * floating-point value, use subclasses of {@link
      * java.text.NumberFormat}.
      *
@@ -192,6 +384,59 @@ public final class Double extends Number implements Comparable {
      * <code>0.1</code>. (The numerical value 0.1 cannot be exactly
      * represented in a binary floating-point number.)
      *
+     * <p>To avoid calling this method on a invalid string and having
+     * a <code>NumberFormatException</code> be thrown, the regular
+     * expression below can be used to screen the input string:
+     *
+     * <code>
+     * <pre>
+     *	final String Digits	= "(\\p{Digit}+)";
+     *  final String HexDigits  = "(\\p{XDigit}+)";
+     *	// an exponent is 'e' or 'E' followed by an optionally 
+     *	// signed decimal integer.
+     *	final String Exp	= "[eE][+-]?"+Digits;
+     *	final String fpRegex	=
+     *	    ("[\\x00-\\x20]*"+	// Optional leading &quot;whitespace&quot;
+     *	     "[+-]?(" +	// Optional sign character
+     *	     "NaN|" +		// "NaN" string
+     *	     "Infinity|" +	// "Infinity" string
+     *
+     *	     // A decimal floating-point string representing a finite positive
+     *	     // number without a leading sign has at most five basic pieces:
+     *	     // Digits . Digits ExponentPart FloatTypeSuffix
+     *	     // 
+     *	     // Since this method allows integer-only strings as input
+     *	     // in addition to strings of floating-point literals, the
+     *	     // two sub-patterns below are simplifications of the grammar
+     *	     // productions from the Java Language Specification, 2nd 
+     *	     // edition, section 3.10.2.
+     *
+     *	     // Digits ._opt Digits_opt ExponentPart_opt FloatTypeSuffix_opt
+     *	     "((("+Digits+"(\\.)?("+Digits+"?)("+Exp+")?)|"+
+     *
+     *	     // . Digits ExponentPart_opt FloatTypeSuffix_opt
+     *	     "(\\.("+Digits+")("+Exp+")?)|"+
+     *
+     *       // Hexadecimal strings
+     *       "((" +
+     *        // 0[xX] HexDigits ._opt BinaryExponent FloatTypeSuffix_opt
+     *        "(0[xX]" + HexDigits + "(\\.)?)|" +
+     *
+     *        // 0[xX] HexDigits_opt . HexDigits BinaryExponent FloatTypeSuffix_opt
+     *        "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
+     *
+     *        ")[pP][+-]?" + Digits + "))" +
+     *	     "[fFdD]?))" +
+     *	     "[\\x00-\\x20]*");// Optional trailing &quot;whitespace&quot;
+     *	    
+     *  if (Pattern.matches(fpRegex, myString))
+     *	    Double.valueOf(myString); // Will not throw NumberFormatException
+     *	else {
+     *	    // Perform suitable alternative action
+     *	}
+     * </pre>
+     * </code>
+     *
      * @param      s   the string to be parsed.
      * @return     a <code>Double</code> object holding the value
      *             represented by the <code>String</code> argument.
@@ -200,6 +445,23 @@ public final class Double extends Number implements Comparable {
      */
     public static Double valueOf(String s) throws NumberFormatException {
 	return new Double(FloatingDecimal.readJavaFormatString(s).doubleValue());
+    }
+
+    /**
+     * Returns a <tt>Double</tt> instance representing the specified
+     * <tt>double</tt> value.
+     * If a new <tt>Double</tt> instance is not required, this method
+     * should generally be used in preference to the constructor
+     * {@link #Double(double)}, as this method is likely to yield
+     * significantly better space and time performance by caching
+     * frequently requested values.
+     *
+     * @param  d a double value.
+     * @return a <tt>Double</tt> instance representing <tt>d</tt>.
+     * @since  1.5
+     */
+    public static Double valueOf(double d) {
+        return new Double(d);
     }
 
     /**
@@ -249,7 +511,7 @@ public final class Double extends Number implements Comparable {
      *
      * @serial
      */
-    private double value;
+    private final double value;
 
     /**
      * Constructs a newly allocated <code>Double</code> object that
@@ -595,10 +857,8 @@ public final class Double extends Number implements Comparable {
      *		<code>0.0d</code> is considered by this method to be greater
      *		than <code>-0.0d</code>.
      * </ul>
-     * This ensures that <code>Double.compareTo(Object)</code> (which
-     * forwards its behavior to this method) obeys the general
-     * contract for <code>Comparable.compareTo</code>, and that the
-     * <i>natural order</i> on <code>Double</code>s is <i>consistent
+     * This ensures that the <i>natural ordering</i> of
+     * <tt>Double</tt> objects imposed by this method is <i>consistent
      * with equals</i>.
      *
      * @param   anotherDouble   the <code>Double</code> to be compared.
@@ -611,35 +871,9 @@ public final class Double extends Number implements Comparable {
      *		<code>anotherDouble</code>.
      *		
      * @since   1.2
-     * @see Comparable#compareTo(Object)
      */
     public int compareTo(Double anotherDouble) {
         return Double.compare(value, anotherDouble.value);
-    }
-
-    /**
-     * Compares this <code>Double</code> object to another object.  If
-     * the object is a <code>Double</code>, this function behaves like
-     * <code>compareTo(Double)</code>.  Otherwise, it throws a
-     * <code>ClassCastException</code> (as <code>Double</code> objects
-     * are comparable only to other <code>Double</code> objects).
-     *
-     * @param   o the <code>Object</code> to be compared.
-     * @return the value <code>0</code> if the argument is a
-     *		<code>Double</code> numerically equal to this
-     *		<code>Double</code>; a value less than <code>0</code>
-     *		if the argument is a <code>Double</code> numerically
-     *		greater than this <code>Double</code>; and a value
-     *		greater than <code>0</code> if the argument is a
-     *		<code>Double</code> numerically less than this
-     *		<code>Double</code>.
-     * @exception <code>ClassCastException</code> if the argument is not a
-     *		  <code>Double</code>.
-     * @see     java.lang.Comparable
-     * @since 1.2
-     */
-    public int compareTo(Object o) {
-	return compareTo((Double)o);
     }
 
     /**

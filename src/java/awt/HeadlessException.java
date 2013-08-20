@@ -1,7 +1,7 @@
 /*
- * @(#)HeadlessException.java	1.5 03/01/23
+ * @(#)HeadlessException.java	1.8 04/03/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,8 +16,24 @@ package java.awt;
  * @author  Michael Martak
  */
 public class HeadlessException extends UnsupportedOperationException {
+    /*
+     * JDK 1.4 serialVersionUID
+     */
+    private static final long serialVersionUID = 167183644944358563L;
     public HeadlessException() {}
     public HeadlessException(String msg) {
         super(msg);
+    }
+    public String getMessage() {
+        String superMessage = super.getMessage();
+        String headlessMessage = GraphicsEnvironment.getHeadlessMessage();
+        
+        if (superMessage == null) {
+            return headlessMessage;
+        } else if (headlessMessage == null) {
+            return superMessage;
+        } else {
+            return superMessage + headlessMessage;
+        }
     }
 }

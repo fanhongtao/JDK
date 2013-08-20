@@ -1,7 +1,7 @@
 /*
- * @(#)Graphics.java	1.65 03/01/23
+ * @(#)Graphics.java	1.69 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -73,7 +73,7 @@ import java.text.AttributedCharacterIterator;
  * All drawing or writing is done in the current color, 
  * using the current paint mode, and in the current font. 
  * 
- * @version 	1.65, 01/23/03
+ * @version 	1.69, 05/18/04
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see     java.awt.Component
@@ -824,17 +824,23 @@ public abstract class Graphics {
      * complete image has not yet been loaded, and it has not been dithered 
      * and converted for the current output device.
      * <p>
-     * If the image has not yet been completely loaded, then
-     * <code>drawImage</code> returns <code>false</code>. As more of
-     * the image becomes available, the process that draws the image notifies 
+     * If the image has completely loaded and its pixels are
+     * no longer being changed, then
+     * <code>drawImage</code> returns <code>true</code>. 
+     * Otherwise, <code>drawImage</code> returns <code>false</code>
+     * and as more of
+     * the image becomes available 
+     * or it is time to draw another frame of animation,
+     * the process that loads the image notifies 
      * the specified image observer.
-     * @param    img the specified image to be drawn.
+     * @param    img the specified image to be drawn. This method does
+     *               nothing if <code>img</code> is null.
      * @param    x   the <i>x</i> coordinate.
      * @param    y   the <i>y</i> coordinate.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
-     * @return   <code>true</code> if the image is completely loaded;
-     *           <code>false</code> otherwise.
+     * @return   <code>false</code> if the image pixels are still changing;
+     *           <code>true</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -856,7 +862,7 @@ public abstract class Graphics {
      * for the current output device.
      * If the current output representation is not yet complete, then
      * <code>drawImage</code> returns <code>false</code>. As more of
-     * the image becomes available, the process that draws the image notifies 
+     * the image becomes available, the process that loads the image notifies
      * the image observer by calling its <code>imageUpdate</code> method.
      * <p>
      * A scaled version of an image will not necessarily be
@@ -864,15 +870,16 @@ public abstract class Graphics {
      * image has been constructed for this output device.  Each size of
      * the image may be cached separately and generated from the original
      * data in a separate image production sequence.
-     * @param    img    the specified image to be drawn.
+     * @param    img    the specified image to be drawn. This method does
+     *                  nothing if <code>img</code> is null.
      * @param    x      the <i>x</i> coordinate.
      * @param    y      the <i>y</i> coordinate.
      * @param    width  the width of the rectangle.
      * @param    height the height of the rectangle.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
-     * @return   <code>true</code> if the current output representation
-     *           is complete; <code>false</code> otherwise.
+     * @return   <code>false</code> if the image pixels are still changing;
+     *           <code>true</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -896,19 +903,25 @@ public abstract class Graphics {
      * complete image has not yet been loaded, and it has not been dithered 
      * and converted for the current output device.
      * <p>
-     * If the image has not yet been completely loaded, then
-     * <code>drawImage</code> returns <code>false</code>. As more of
-     * the image becomes available, the process that draws the image notifies 
+     * If the image has completely loaded and its pixels are
+     * no longer being changed, then
+     * <code>drawImage</code> returns <code>true</code>. 
+     * Otherwise, <code>drawImage</code> returns <code>false</code>
+     * and as more of
+     * the image becomes available 
+     * or it is time to draw another frame of animation,
+     * the process that loads the image notifies 
      * the specified image observer.
-     * @param    img    the specified image to be drawn.
+     * @param    img the specified image to be drawn. This method does
+     *               nothing if <code>img</code> is null.
      * @param    x      the <i>x</i> coordinate.
      * @param    y      the <i>y</i> coordinate.
      * @param    bgcolor the background color to paint under the
      *                         non-opaque portions of the image.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
-     * @return   <code>true</code> if the image is completely loaded;
-     *           <code>false</code> otherwise.
+     * @return   <code>false</code> if the image pixels are still changing;
+     *           <code>true</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -934,7 +947,7 @@ public abstract class Graphics {
      * for the current output device.
      * If the current output representation is not yet complete then
      * <code>drawImage</code> returns <code>false</code>. As more of
-     * the image becomes available, the process that draws the image notifies 
+     * the image becomes available, the process that loads the image notifies 
      * the specified image observer.
      * <p>
      * A scaled version of an image will not necessarily be
@@ -942,7 +955,8 @@ public abstract class Graphics {
      * image has been constructed for this output device.  Each size of
      * the image may be cached separately and generated from the original
      * data in a separate image production sequence.
-     * @param    img       the specified image to be drawn.
+     * @param    img       the specified image to be drawn. This method does
+     *                     nothing if <code>img</code> is null.
      * @param    x         the <i>x</i> coordinate.
      * @param    y         the <i>y</i> coordinate.
      * @param    width     the width of the rectangle.
@@ -951,8 +965,8 @@ public abstract class Graphics {
      *                         non-opaque portions of the image.
      * @param    observer    object to be notified as more of 
      *                          the image is converted.
-     * @return   <code>true</code> if the current output representation
-     *           is complete; <code>false</code> otherwise.
+     * @return   <code>false</code> if the image pixels are still changing;
+     *           <code>true</code> otherwise.
      * @see      java.awt.Image
      * @see      java.awt.image.ImageObserver
      * @see      java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -973,7 +987,7 @@ public abstract class Graphics {
      * for the current output device.
      * If the current output representation is not yet complete then
      * <code>drawImage</code> returns <code>false</code>. As more of
-     * the image becomes available, the process that draws the image notifies 
+     * the image becomes available, the process that loads the image notifies 
      * the specified image observer.
      * <p>
      * This method always uses the unscaled version of the image
@@ -985,7 +999,8 @@ public abstract class Graphics {
      * the destination rectangle, and the second source coordinate is
      * mapped to the second destination coordinate. The subimage is
      * scaled and flipped as needed to preserve those mappings.
-     * @param       img the specified image to be drawn
+     * @param       img the specified image to be drawn. This method does
+     *                  nothing if <code>img</code> is null.
      * @param       dx1 the <i>x</i> coordinate of the first corner of the
      *                    destination rectangle.
      * @param       dy1 the <i>y</i> coordinate of the first corner of the
@@ -1004,8 +1019,8 @@ public abstract class Graphics {
      *                    source rectangle.
      * @param       observer object to be notified as more of the image is
      *                    scaled and converted.
-     * @return   <code>true</code> if the current output representation
-     *           is complete; <code>false</code> otherwise.
+     * @return   <code>false</code> if the image pixels are still changing;
+     *           <code>true</code> otherwise.
      * @see         java.awt.Image
      * @see         java.awt.image.ImageObserver
      * @see         java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -1031,7 +1046,7 @@ public abstract class Graphics {
      * for the current output device.
      * If the current output representation is not yet complete then
      * <code>drawImage</code> returns <code>false</code>. As more of
-     * the image becomes available, the process that draws the image notifies 
+     * the image becomes available, the process that loads the image notifies 
      * the specified image observer.
      * <p>
      * This method always uses the unscaled version of the image
@@ -1043,7 +1058,8 @@ public abstract class Graphics {
      * the destination rectangle, and the second source coordinate is
      * mapped to the second destination coordinate. The subimage is
      * scaled and flipped as needed to preserve those mappings.
-     * @param       img the specified image to be drawn
+     * @param       img the specified image to be drawn. This method does
+     *                  nothing if <code>img</code> is null.
      * @param       dx1 the <i>x</i> coordinate of the first corner of the
      *                    destination rectangle.
      * @param       dy1 the <i>y</i> coordinate of the first corner of the
@@ -1064,8 +1080,8 @@ public abstract class Graphics {
      *                    non-opaque portions of the image.
      * @param       observer object to be notified as more of the image is
      *                    scaled and converted.
-     * @return   <code>true</code> if the current output representation
-     *           is complete; <code>false</code> otherwise.
+     * @return   <code>false</code> if the image pixels are still changing;
+     *           <code>true</code> otherwise.
      * @see         java.awt.Image
      * @see         java.awt.image.ImageObserver
      * @see         java.awt.image.ImageObserver#imageUpdate(java.awt.Image, int, int, int, int, int)
@@ -1130,6 +1146,7 @@ public abstract class Graphics {
      * @deprecated As of JDK version 1.1,
      * replaced by <code>getClipBounds()</code>.
      */
+    @Deprecated
     public Rectangle getClipRect() {
 	return getClipBounds();
     }

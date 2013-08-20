@@ -1,7 +1,7 @@
 /*
- * @(#)HashAttributeSet.java	1.9 03/01/23
+ * @(#)HashAttributeSet.java	1.12 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,6 +21,8 @@ import java.util.HashMap;
  * @author  Alan Kaminsky
  */
 public class HashAttributeSet implements AttributeSet, Serializable {
+
+    private static final long serialVersionUID = 5311560590283707917L;
 
     /**
      * The interface of which all members of this attribute set must be an 
@@ -133,7 +135,7 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      *                     subinterface thereof.
      * @exception NullPointerException if interfaceName is null.
      */
-    protected HashAttributeSet(Class interfaceName) {
+    protected HashAttributeSet(Class<?> interfaceName) {
 	if (interfaceName == null) {
 	    throw new NullPointerException("null interface");
 	}
@@ -158,7 +160,7 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      *     (unchecked exception) Thrown if <CODE>attribute</CODE> is not an 
      *     instance of <CODE>interfaceName</CODE>. 
      */
-    protected HashAttributeSet(Attribute attribute, Class interfaceName) {
+    protected HashAttributeSet(Attribute attribute, Class<?> interfaceName) {
 	if (interfaceName == null) {
 	    throw new NullPointerException("null interface");
 	}
@@ -191,7 +193,7 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      * <CODE>attributes</CODE> is not an instance of
      * <CODE>interfaceName</CODE>. 
      */
-    protected HashAttributeSet(Attribute[] attributes, Class interfaceName) {
+    protected HashAttributeSet(Attribute[] attributes, Class<?> interfaceName) {
 	if (interfaceName == null) {
 	    throw new NullPointerException("null interface");
 	}
@@ -219,7 +221,7 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      * <CODE>attributes</CODE> is not an instance of
      * <CODE>interfaceName</CODE>. 
      */
-    protected HashAttributeSet(AttributeSet attributes, Class interfaceName) {
+    protected HashAttributeSet(AttributeSet attributes, Class<?> interfaceName) {
       myInterface = interfaceName;
       if (attributes != null) {
 	Attribute[] attribArray = attributes.toArray();	    
@@ -253,7 +255,7 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      *     {@link java.lang.Class Class} that implements interface {@link 
      *     Attribute Attribute}. 
      */    
-    public Attribute get(Class category) {
+    public Attribute get(Class<?> category) {
 	return (Attribute)
 	    attrMap.get(AttributeSetUtilities.
 			verifyAttributeCategory(category,
@@ -301,7 +303,7 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      *     (unchecked exception) Thrown if this attribute set does not 
      *     support the <CODE>remove()</CODE> operation. 
      */
-    public boolean remove(Class category) {
+    public boolean remove(Class<?> category) {
 	return
 	    category != null &&
 	    AttributeSetUtilities.
@@ -340,7 +342,7 @@ public class HashAttributeSet implements AttributeSet, Serializable {
      * @return  <tt>true</tt> if this attribute set contains an attribute 
      *         value for the specified category.
      */
-    public boolean containsKey(Class category) {
+    public boolean containsKey(Class<?> category) {
 	return
 	    category != null &&
 	    AttributeSetUtilities.

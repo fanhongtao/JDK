@@ -1,12 +1,13 @@
 /*
- * @(#)WindowsLabelUI.java	1.16 03/01/23
+ * @(#)WindowsLabelUI.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.windows;
 
+import com.sun.java.swing.SwingUtilities2;
 import java.awt.Color;
 import java.awt.Graphics;
 
@@ -16,7 +17,6 @@ import javax.swing.UIManager;
 
 import javax.swing.plaf.ComponentUI;
 
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 import javax.swing.plaf.basic.BasicLabelUI;
 
 
@@ -51,7 +51,7 @@ public class WindowsLabelUI extends BasicLabelUI {
 	}
 
         g.setColor(l.getForeground());
-        BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, mnemonicIndex,
+        SwingUtilities2.drawStringUnderlineCharAt(l, g, s, mnemonicIndex,
                                                      textX, textY);
     }
 
@@ -65,20 +65,20 @@ public class WindowsLabelUI extends BasicLabelUI {
 	if ( UIManager.getColor("Label.disabledForeground") instanceof Color &&
 	     UIManager.getColor("Label.disabledShadow") instanceof Color) {
 	    g.setColor( UIManager.getColor("Label.disabledShadow") );
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g, s,
+	    SwingUtilities2.drawStringUnderlineCharAt(l, g, s,
 							 mnemonicIndex,
 							 textX + 1, textY + 1);
 	    g.setColor( UIManager.getColor("Label.disabledForeground") );
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g, s,
+	    SwingUtilities2.drawStringUnderlineCharAt(l, g, s,
 							 mnemonicIndex,
 							 textX, textY);
 	} else {
 	    Color background = l.getBackground();
 	    g.setColor(background.brighter());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, mnemonicIndex,
+	    SwingUtilities2.drawStringUnderlineCharAt(l,g, s, mnemonicIndex,
 							 textX + 1, textY + 1);
 	    g.setColor(background.darker());
-	    BasicGraphicsUtils.drawStringUnderlineCharAt(g, s, mnemonicIndex,
+            SwingUtilities2.drawStringUnderlineCharAt(l,g, s, mnemonicIndex,
 							 textX, textY);
 	}
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)Attributes.java	1.45 03/01/23
+ * @(#)Attributes.java	1.50 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,6 +17,8 @@ import java.util.Collection;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.logging.Logger; 
+import java.util.Comparator;
+import sun.misc.ASCIICaseInsensitiveComparator;
 
 /**
  * The Attributes class maps Manifest attribute names to associated string
@@ -28,15 +30,15 @@ import java.util.logging.Logger;
  * for more information about valid attribute names and values.
  *
  * @author  David Connelly
- * @version 1.45, 01/23/03
+ * @version 1.50, 05/05/04
  * @see	    Manifest
  * @since   1.2
  */
-public class Attributes implements Map, Cloneable {
+public class Attributes implements Map<Object,Object>, Cloneable {
     /**
      * The attribute name-value mappings.
      */
-    protected Map map;
+    protected Map<Object,Object> map;
 
     /**
      * Constructs a new, empty Attributes object with default size.
@@ -189,8 +191,12 @@ public class Attributes implements Map, Cloneable {
      * @param attr the Attributes to be stored in this map
      * @exception ClassCastException if attr is not an Attributes
      */
-    public void putAll(Map attr) {
-	map.putAll((Attributes)attr);
+    public void putAll(Map<?,?> attr) {
+	// ## javac bug?
+	if (!Attributes.class.isInstance(attr))
+	    throw new ClassCastException();
+	for (Map.Entry<?,?> me : (attr).entrySet())
+	    put(me.getKey(), me.getValue());
     }
 
     /**
@@ -217,14 +223,14 @@ public class Attributes implements Map, Cloneable {
     /**
      * Returns a Set view of the attribute names (keys) contained in this Map.
      */
-    public Set keySet() {
+    public Set<Object> keySet() {
 	return map.keySet();
     }
 
     /**
      * Returns a Collection view of the attribute values contained in this Map.
      */
-    public Collection values() {
+    public Collection<Object> values() {
 	return map.values();
     }
 
@@ -232,7 +238,7 @@ public class Attributes implements Map, Cloneable {
      * Returns a Collection view of the attribute name-value mappings
      * contained in this Map.
      */
-    public Set entrySet() {
+    public Set<Map.Entry<Object,Object>> entrySet() {
 	return map.entrySet();
     }
 
@@ -469,7 +475,8 @@ public class Attributes implements Map, Cloneable {
 	 */
 	public boolean equals(Object o) {
 	    if (o instanceof Name) {
-		return name.equalsIgnoreCase(((Name)o).name);
+		Comparator c = ASCIICaseInsensitiveComparator.CASE_INSENSITIVE_ORDER;
+		return c.compare(name, ((Name)o).name) == 0;
 	    } else {
 		return false;
 	    }
@@ -480,7 +487,7 @@ public class Attributes implements Map, Cloneable {
 	 */
         public int hashCode() {
 	    if (hashCode == -1) {
-		hashCode = name.toLowerCase().hashCode();
+		hashCode = ASCIICaseInsensitiveComparator.lowerCaseHashCode(name);
 	    }
 	    return hashCode;
 	}
@@ -544,7 +551,7 @@ public class Attributes implements Map, Cloneable {
        /**
          * <code>Name</code> object for <code>Extension-List</code> manifest attribute 
          * used for declaring dependencies on installed extensions.
-         * @see <a href="../../../../guide/extensions/spec.html#dependnecy">
+         * @see <a href="../../../../guide/extensions/spec.html#dependency">
          *      Installed extension dependency</a>
          */ 
         public static final Name EXTENSION_LIST = new Name("Extension-List");

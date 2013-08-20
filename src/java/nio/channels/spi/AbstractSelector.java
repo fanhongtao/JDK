@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractSelector.java	1.16 03/01/23
+ * @(#)AbstractSelector.java	1.19 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,7 @@ import java.nio.channels.Selector;
 import java.util.HashSet;
 import java.util.Set;
 import sun.nio.ch.Interruptible;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -44,7 +45,7 @@ import sun.nio.ch.Interruptible;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.16, 03/01/23
+ * @version 1.19, 04/05/05
  * @since 1.4
  */
 
@@ -52,7 +53,7 @@ public abstract class AbstractSelector
     extends Selector
 {
 
-    private boolean open = true;
+    private AtomicBoolean selectorOpen = new AtomicBoolean(true);
 
     // The provider that created this selector
     private final SelectorProvider provider;
@@ -84,12 +85,10 @@ public abstract class AbstractSelector
      *          If an I/O error occurs
      */
     public final void close() throws IOException {
-	synchronized (this) {
-	    if (!open)
-		return;
-	    open = false;
-	    implCloseSelector();
-	}
+        boolean open = selectorOpen.getAndSet(false);
+        if (!open)
+            return;
+        implCloseSelector();
     }
 
     /**
@@ -111,7 +110,7 @@ public abstract class AbstractSelector
     protected abstract void implCloseSelector() throws IOException;
 
     public final boolean isOpen() {
-	return open;
+	return selectorOpen.get();
     }
 
     /**
@@ -130,7 +129,7 @@ public abstract class AbstractSelector
      *
      * @return  The cancelled-key set
      */
-    protected final Set cancelledKeys() {
+    protected final Set<SelectionKey> cancelledKeys() {
 	return cancelledKeys;
     }
 

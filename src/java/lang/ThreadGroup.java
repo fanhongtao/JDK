@@ -1,7 +1,7 @@
 /*
- * @(#)ThreadGroup.java	1.55 03/01/23
+ * @(#)ThreadGroup.java	1.63 04/06/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import sun.misc.VM;
  * parent thread group or any other thread groups. 
  *
  * @author  unascribed
- * @version 1.55, 01/23/03
+ * @version 1.63, 06/17/04
  * @since   JDK1.0
  */
 /* The locking strategy for this code is to try to lock only one level of the
@@ -36,7 +36,7 @@ import sun.misc.VM;
  * while we work on the children.
  */
 public
-class ThreadGroup {
+class ThreadGroup implements Thread.UncaughtExceptionHandler {
     ThreadGroup parent;
     String name;
     int maxPriority;
@@ -44,6 +44,7 @@ class ThreadGroup {
     boolean daemon;
     boolean vmAllowSuspension;
 
+    int nUnstartedThreads = 0;
     int nthreads;
     Thread threads[];
 
@@ -290,10 +291,15 @@ class ThreadGroup {
 
     /**
      * Returns an estimate of the number of active threads in this
-     * thread group.
+     * thread group.  The result might not reflect concurrent activity,
+     * and might be affected by the presence of certain system threads.
+     * <p>
+     * Due to the inherently imprecise nature of the result, it is
+     * recommended that this method only be used for informational purposes.
      *
-     * @return  the number of active threads in this thread group and in any
-     *          other thread group that has this thread group as an ancestor.
+     * @return  an estimate of the number of active threads in this thread
+     *          group and in any other thread group that has this thread
+     *          group as an ancestor.
      * @since   JDK1.0
      */
     public int activeCount() {
@@ -328,10 +334,16 @@ class ThreadGroup {
      * First, the <code>checkAccess</code> method of this thread group is 
      * called with no arguments; this may result in a security exception. 
      * <p>
-     * An application should use the <code>activeCount</code> method to 
-     * get an estimate of how big the array should be. If the array is 
-     * too short to hold all the threads, the extra threads are silently 
-     * ignored. 
+     * An application might use the <code>activeCount</code> method to 
+     * get an estimate of how big the array should be, however <i>if the
+     * array is too short to hold all the threads, the extra threads are
+     * silently ignored.</i>  If it is critical to obtain every active
+     * thread in this thread group and its subgroups, the caller should
+     * verify that the returned int value is strictly less than the length
+     * of <tt>list</tt>.
+     * <p>
+     * Due to the inherent race condition in this method, it is recommended
+     * that the method only be used for informational purposes.
      *
      * @param   list   an array into which to place the list of threads.
      * @return  the number of threads put into the array.
@@ -356,8 +368,15 @@ class ThreadGroup {
      * First, the <code>checkAccess</code> method of this thread group is 
      * called with no arguments; this may result in a security exception. 
      * <p>
-     * An application should use the <code>activeCount</code> method to 
-     * get an estimate of how big the array should be. 
+     * An application might use the <code>activeCount</code> method to 
+     * get an estimate of how big the array should be, however <i>if the
+     * array is too short to hold all the threads, the extra threads are
+     * silently ignored.</i>  If it is critical to obtain every active thread
+     * in this thread group, the caller should verify that the returned int
+     * value is strictly less than the length of <tt>list</tt>.
+     * <p>
+     * Due to the inherent race condition in this method, it is recommended
+     * that the method only be used for informational purposes.
      *
      * @param   list      an array into which to place the list of threads.
      * @param   recurse   a flag indicating whether also to include threads
@@ -411,7 +430,10 @@ class ThreadGroup {
 
     /**
      * Returns an estimate of the number of active groups in this
-     * thread group.
+     * thread group.  The result might not reflect concurrent activity.
+     * <p>
+     * Due to the inherently imprecise nature of the result, it is
+     * recommended that this method only be used for informational purposes.
      *
      * @return  the number of active thread groups with this thread group as
      *          an ancestor.
@@ -446,10 +468,16 @@ class ThreadGroup {
      * First, the <code>checkAccess</code> method of this thread group is 
      * called with no arguments; this may result in a security exception. 
      * <p>
-     * An application should use the <code>activeGroupCount</code> 
-     * method to get an estimate of how big the array should be. If the 
-     * array is too short to hold all the thread groups, the extra thread 
-     * groups are silently ignored. 
+     * An application might use the <code>activeGroupCount</code> method to 
+     * get an estimate of how big the array should be, however <i>if the
+     * array is too short to hold all the thread groups, the extra thread
+     * groups are silently ignored.</i>  If it is critical to obtain every
+     * active subgroup in this thread group, the caller should verify that
+     * the returned int value is strictly less than the length of
+     * <tt>list</tt>.
+     * <p>
+     * Due to the inherent race condition in this method, it is recommended
+     * that the method only be used for informational purposes.
      *
      * @param   list   an array into which to place the list of thread groups.
      * @return  the number of thread groups put into the array.
@@ -473,8 +501,16 @@ class ThreadGroup {
      * First, the <code>checkAccess</code> method of this thread group is 
      * called with no arguments; this may result in a security exception. 
      * <p>
-     * An application should use the <code>activeGroupCount</code> 
-     * method to get an estimate of how big the array should be. 
+     * An application might use the <code>activeGroupCount</code> method to 
+     * get an estimate of how big the array should be, however <i>if the
+     * array is too short to hold all the thread groups, the extra thread
+     * groups are silently ignored.</i>  If it is critical to obtain every
+     * active subgroup in this thread group, the caller should verify that
+     * the returned int value is strictly less than the length of
+     * <tt>list</tt>.
+     * <p>
+     * Due to the inherent race condition in this method, it is recommended
+     * that the method only be used for informational purposes.
      *
      * @param   list      an array into which to place the list of threads.
      * @param   recurse   a flag indicating whether to recursively enumerate
@@ -543,6 +579,7 @@ class ThreadGroup {
      * @deprecated    This method is inherently unsafe.  See
      *     {@link Thread#stop} for details.
      */
+    @Deprecated
     public final void stop() {
         if (stopOrSuspend(false))
             Thread.currentThread().stop();
@@ -605,6 +642,7 @@ class ThreadGroup {
      * @deprecated    This method is inherently deadlock-prone.  See
      *     {@link Thread#suspend} for details.
      */
+    @Deprecated
     public final void suspend() {
         if (stopOrSuspend(true))
             Thread.currentThread().suspend();
@@ -666,6 +704,7 @@ class ThreadGroup {
      *       both of which have been deprecated, as they are inherently
      *       deadlock-prone.  See {@link Thread#suspend} for details.
      */
+    @Deprecated
     public final void resume() {
 	int ngroupsSnapshot;
 	ThreadGroup[] groupsSnapshot;
@@ -781,12 +820,31 @@ class ThreadGroup {
 	    if (nthreads == 0) {
 		notifyAll();
 	    }
-	    if (daemon && (nthreads == 0) && (ngroups == 0)) {
+            if (daemon && (nthreads == 0) &&  
+                (nUnstartedThreads == 0) && (ngroups == 0))  
+            { 
 		destroy();
 	    }
 	}
     }
     
+
+    /**
+     * Increments the count of unstarted threads in the thread group.
+     * Unstarted threads are not added to the thread group so that they
+     * can be collected if they are never started, but they must be
+     * counted so that daemon thread groups with unstarted threads in
+     * them are not destroyed.
+     */
+    void addUnstarted() {
+        synchronized(this) {
+            if (destroyed) {
+                throw new IllegalThreadStateException();
+            }
+            nUnstartedThreads++;
+        }
+    }
+
     /**
      * Adds the specified Thread to this group.
      * @param t the Thread to be added
@@ -809,6 +867,7 @@ class ThreadGroup {
 	    // This is done last so it doesn't matter in case the
 	    // thread is killed
 	    nthreads++;
+            nUnstartedThreads--;
 	}
     }
 
@@ -834,7 +893,9 @@ class ThreadGroup {
 	    if (nthreads == 0) {
 		notifyAll();
 	    }
-	    if (daemon && (nthreads == 0) && (ngroups == 0)) {
+            if (daemon && (nthreads == 0) &&  
+                (nUnstartedThreads == 0) && (ngroups == 0))  
+            { 
 		destroy();
 	    }
 	}
@@ -879,7 +940,9 @@ class ThreadGroup {
 
     /**
      * Called by the Java Virtual Machine when a thread in this 
-     * thread group stops because of an uncaught exception. 
+     * thread group stops because of an uncaught exception, and the thread 
+     * does not have a specific {@link Thread.UncaughtExceptionHandler} 
+     * installed.
      * <p>
      * The <code>uncaughtException</code> method of 
      * <code>ThreadGroup</code> does the following: 
@@ -887,11 +950,19 @@ class ThreadGroup {
      * <li>If this thread group has a parent thread group, the
      *     <code>uncaughtException</code> method of that parent is called
      *     with the same two arguments. 
+     * <li>Otherwise, this method checks to see if there is a
+     *     {@linkplain Thread#getDefaultUncaughtExceptionHandler default
+     *     uncaught exception handler} installed, and if so, its
+     *     <code>uncaughtException</code> method is called with the same 
+     *     two arguments.
      * <li>Otherwise, this method determines if the <code>Throwable</code>
-     *     argument is an instance of <code>ThreadDeath</code>. If so, nothing
-     *     special is done. Otherwise, the <code>Throwable</code>'s
-     *     <code>printStackTrace</code> method is called to print a stack
-     *     backtrace to the standard error stream.
+     *     argument is an instance of {@link ThreadDeath}. If so, nothing
+     *     special is done. Otherwise, a message containing the
+     *     thread's name, as returned from the thread's {@link
+     *     Thread#getName getName} method, and a stack backtrace,
+     *     using the <code>Throwable</code>'s {@link
+     *     Throwable#printStackTrace printStackTrace} method, is
+     *     printed to the {@linkplain System#err standard error stream}.
      * </ul>
      * <p>
      * Applications can override this method in subclasses of 
@@ -900,17 +971,22 @@ class ThreadGroup {
      *
      * @param   t   the thread that is about to exit.
      * @param   e   the uncaught exception.
-     * @see     java.lang.System#err
-     * @see     java.lang.ThreadDeath
-     * @see     java.lang.Throwable#printStackTrace(java.io.PrintStream)
      * @since   JDK1.0
      */
     public void uncaughtException(Thread t, Throwable e) {
 	if (parent != null) {
 	    parent.uncaughtException(t, e);
-	} else if (!(e instanceof ThreadDeath)) {
-	    e.printStackTrace(System.err);
-	}
+	} else {
+            Thread.UncaughtExceptionHandler ueh = 
+                Thread.getDefaultUncaughtExceptionHandler();
+            if (ueh != null) {
+                ueh.uncaughtException(t, e);
+            } else if (!(e instanceof ThreadDeath)) {
+		System.err.print("Exception in thread \""
+				 + t.getName() + "\" ");
+                e.printStackTrace(System.err);
+            }
+        }
     }
 
     /**
@@ -923,6 +999,7 @@ class ThreadGroup {
      *		   which is deprecated.  Further, the behavior of this call
      *		   was never specified.
      */
+    @Deprecated
     public boolean allowThreadSuspension(boolean b) {
 	this.vmAllowSuspension = b;
 	if (!b) {

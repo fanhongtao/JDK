@@ -1,7 +1,7 @@
 /*
- * @(#)AbstractLayoutCache.java	1.15 03/01/23
+ * @(#)AbstractLayoutCache.java	1.17 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.Enumeration;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.15 01/23/03
+ * @version 1.17 05/05/04
  * @author Scott Violet
  */
 
@@ -304,7 +304,7 @@ public abstract class AbstractLayoutCache implements RowMapper {
      * @param path the starting location for the enumeration
      * @return the <code>Enumerator</code> starting at the desired location
      */
-    public abstract Enumeration getVisiblePathsFrom(TreePath path);
+    public abstract Enumeration<TreePath> getVisiblePathsFrom(TreePath path);
 
     /**
      * Returns the number of visible children for row.

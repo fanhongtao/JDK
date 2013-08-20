@@ -1,7 +1,7 @@
 /*
- * @(#)CaretListener.java	1.8 03/01/23
+ * @(#)CaretListener.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -13,7 +13,7 @@ import java.util.EventListener;
  * Listener for changes in the caret position of a text 
  * component.
  *
- * @version 1.8 01/23/03
+ * @version 1.9 12/19/03
  * @author  Timothy Prinzing
  */
 public interface CaretListener extends EventListener {

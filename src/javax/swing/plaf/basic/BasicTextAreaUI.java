@@ -1,7 +1,7 @@
 /*
  * @(#)BasicTextAreaUI.java	1.68 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -33,7 +33,7 @@ import javax.swing.plaf.*;
  * @version 1.68 01/23/03
  */
 public class BasicTextAreaUI extends BasicTextUI {
-
+    
     /**
      * Creates a UI for a JTextArea.
      *
@@ -61,6 +61,11 @@ public class BasicTextAreaUI extends BasicTextUI {
     protected String getPropertyPrefix() {
 	return "TextArea";
     }
+    
+    protected void installDefaults() {
+        super.installDefaults();
+        //the fix for 4785160 is undone
+    }
 
     /**
      * This method gets called when a bound property is changed
@@ -81,6 +86,35 @@ public class BasicTextAreaUI extends BasicTextUI {
 	} else if ("editable".equals(evt.getPropertyName())) {
 	    updateFocusTraversalKeys();
 	}
+    }
+
+
+    /**
+     * The method is overridden to take into account caret width.
+     *
+     * @param c the editor component
+     * @return the preferred size
+     * @throws IllegalArgumentException if invalid value is passed
+     *
+     * @since 1.5
+     */
+    public Dimension getPreferredSize(JComponent c) {                    
+        return super.getPreferredSize(c);                         
+        //the fix for 4785160 is undone
+    }                                                                    
+                                                                          
+    /**
+     * The method is overridden to take into account caret width.
+     *
+     * @param c the editor component
+     * @return the minimum size
+     * @throws IllegalArgumentException if invalid value is passed
+     *
+     * @since 1.5
+     */
+    public Dimension getMinimumSize(JComponent c) {
+        return super.getMinimumSize(c);
+        //the fix for 4785160 is undone
     }
 
     /**

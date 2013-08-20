@@ -1,7 +1,7 @@
 /*
- * @(#)Font.java	1.183 05/08/30
+ * @(#)Font.java	1.200 04/07/20
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,10 +25,15 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
-import sun.awt.font.NativeFontWrapper;
-import sun.awt.font.StandardGlyphVector;
+import sun.font.StandardGlyphVector;
 import sun.java2d.FontSupport;
-import sun.java2d.SunGraphicsEnvironment;
+
+import sun.font.Font2D;
+import sun.font.Font2DHandle;
+import sun.font.FontManager;
+import sun.font.GlyphLayout;
+import sun.font.FontLineMetrics;
+import sun.font.CoreMetrics;
 
 /**
  * The <code>Font</code> class represents fonts, which are used to
@@ -94,7 +99,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * <p>
  * For a discussion of the relative advantages and disadvantages of using
  * physical or logical fonts, see the
- * <a href="../../../guide/intl/faq.html#fonts">Internationalization FAQ</a>
+ * <a href="http://java.sun.com/j2se/corejava/intl/reference/faqs/index.html#desktop-rendering">Internationalization FAQ</a>
  * document.
  *
  * <h4>Font Faces and Names</h4>
@@ -126,7 +131,7 @@ import sun.java2d.SunGraphicsEnvironment;
  * with varying sizes, styles, transforms and font features via the
  * <code>deriveFont</code> methods in this class.
  *
- * @version 	1.183, 08/30/05
+ * @version 	1.200, 07/20/04
  */
 public class Font implements java.io.Serializable
 {
@@ -190,11 +195,21 @@ public class Font implements java.io.Serializable
     public static final int HANGING_BASELINE = 2;
 
     /**
-     * Create a Font of type TRUETYPE.
-     * In future other types may be added to support other font types.
+     * Identify a font resource of type TRUETYPE.
+     * Used to specify a TrueType font resource to the
+     * {@link #createFont} method.
+     * @since 1.3
      */
 
     public static final int TRUETYPE_FONT = 0;
+
+    /**
+     * Identify a font resource of type TYPE1.
+     * Used to specify a Type1 font resource to the
+     * {@link #createFont} method.
+     * @since 1.5
+     */
+    public static final int TYPE1_FONT = 1;
 
     /**
      * The logical name of this <code>Font</code>, as passed to the
@@ -239,7 +254,9 @@ public class Font implements java.io.Serializable
      */
     private transient FontPeer peer;
     private transient long pData;       // native JDK1.1 font pointer
-    private transient long pNativeFont; // native Java 2 platform font reference
+    private transient Font2DHandle font2DHandle;
+    private transient int superscript;
+    private transient float width = 1f;
 
     /*
      * If the origin of a Font is a created font then this attribute
@@ -248,12 +265,10 @@ public class Font implements java.io.Serializable
     private transient boolean createdFont = false;
 
     // cached values - performance
-    private transient int numGlyphs = -1;
-    private transient int missingGlyph = -1;
-    private transient int canRotate = -1;
     private transient double[] matrix;
     private transient boolean nonIdentityTx;
 
+    private static final AffineTransform identityTx = new AffineTransform();
     /*
      * JDK 1.1 serialVersionUID
      */
@@ -265,6 +280,7 @@ public class Font implements java.io.Serializable
      * @since JDK1.1
      * @deprecated Font rendering is now platform independent.
      */
+    @Deprecated
     public FontPeer getPeer(){
 	return getPeer_NoClientCode();
     }
@@ -280,51 +296,113 @@ public class Font implements java.io.Serializable
         return peer;
     }
 
-    private void initializeFont(Hashtable attributes) {
-        if (this.name == null) {
-            this.name = "Default";
-        }
-        if (attributes == null) {
-            fRequestedAttributes = new Hashtable(5, (float)0.9);
-            fRequestedAttributes.put(TextAttribute.TRANSFORM, IDENT_TX_ATTRIBUTE);
+    /* create this map only when requested - which may be rarely */
+    private Hashtable getRequestedAttributes() {
+	if (fRequestedAttributes == null) {
+	    fRequestedAttributes = new Hashtable(7, (float)0.9);
+            fRequestedAttributes.put(TextAttribute.TRANSFORM,
+				     IDENT_TX_ATTRIBUTE);
             fRequestedAttributes.put(TextAttribute.FAMILY, name);
             fRequestedAttributes.put(TextAttribute.SIZE, new Float(size));
-	    fRequestedAttributes.put(TextAttribute.WEIGHT, (style & BOLD) != 0 ? 
-                TextAttribute.WEIGHT_BOLD : TextAttribute.WEIGHT_REGULAR);
-	    fRequestedAttributes.put(TextAttribute.POSTURE, (style & ITALIC) != 0 ? 
-		TextAttribute.POSTURE_OBLIQUE : TextAttribute.POSTURE_REGULAR);
+	    fRequestedAttributes.put(TextAttribute.WEIGHT,
+				     (style & BOLD) != 0 ? 
+				     TextAttribute.WEIGHT_BOLD :
+				     TextAttribute.WEIGHT_REGULAR);
+	    fRequestedAttributes.put(TextAttribute.POSTURE,
+				     (style & ITALIC) != 0 ? 
+				     TextAttribute.POSTURE_OBLIQUE :
+				     TextAttribute.POSTURE_REGULAR);
+            fRequestedAttributes.put(TextAttribute.SUPERSCRIPT,
+                                     new Integer(superscript));
+            fRequestedAttributes.put(TextAttribute.WIDTH,
+                                     new Float(width));
+	}
+	return fRequestedAttributes;
+    }
 
-	    // nonIdentityTx = false;
-        } else {
-            // fRequestedAttributes = ffApply(style, attributes);
-	    Object obj = fRequestedAttributes.get(TextAttribute.TRANSFORM);
+    private void initializeFont(Hashtable attributes) {
+        if (attributes != null) {
+	    Object obj = attributes.get(TextAttribute.TRANSFORM);
 	    if (obj instanceof TransformAttribute) {
 		nonIdentityTx = !((TransformAttribute)obj).isIdentity();
 	    } else if (obj instanceof AffineTransform) {
 		nonIdentityTx = !((AffineTransform)obj).isIdentity();
 	    }
-	    // else nonIdentityTx = false;
-        }
-        GraphicsEnvironment env =
-            GraphicsEnvironment.getLocalGraphicsEnvironment();
-        String localName = this.name;
-        if (env instanceof FontSupport && createdFont == false) {
-            localName = ((FontSupport)env).mapFontName(
-                this.name, this.style);
-        }
 
-        NativeFontWrapper.initializeFont(this, localName, style); // sets pNativeFont
-        // System.out.println("Initializing font: '" + localName + "'.");
+            obj = attributes.get(TextAttribute.SUPERSCRIPT);
+            if (obj instanceof Integer) {
+                superscript = ((Integer)obj).intValue();
+
+                // !!! always synthesize superscript
+                nonIdentityTx |= superscript != 0;
+            }
+
+            obj = attributes.get(TextAttribute.WIDTH);
+            if (obj instanceof Integer) {
+                width = ((Float)obj).floatValue();
+
+                // !!! always synthesize width
+                nonIdentityTx |= width != 1;
+            }
+        }
+    }
+
+    private Font2D getFont2D() {
+	if (FontManager.usingPerAppContextComposites &&
+	    font2DHandle != null &&
+	    font2DHandle.font2D instanceof sun.font.CompositeFont &&
+	    ((sun.font.CompositeFont)(font2DHandle.font2D)).isStdComposite()) {
+	    return FontManager.findFont2D(name, style,
+					  FontManager.LOGICAL_FALLBACK);
+	} else if (font2DHandle == null) {
+	    font2DHandle =
+		FontManager.findFont2D(name, style,
+				       FontManager.LOGICAL_FALLBACK).handle;
+	}
+	/* Do not cache the de-referenced font2D. It must be explicitly
+	 * de-referenced to pick up a valid font in the event that the
+	 * original one is marked invalid
+	 */
+	return font2DHandle.font2D;
     }
 
     /**
      * Creates a new <code>Font</code> from the specified name, style and
      * point size.
-     * @param name the font name.  This can be a logical font name or a
-     * font face name. A logical name must be either: Dialog, DialogInput,
-     * Monospaced, Serif, or SansSerif.  If <code>name</code> is
-     * <code>null</code>, the <code>name</code> of the new
-     * <code>Font</code> is set to the name "Default".
+     * <p>
+     * The font name can be a font face name or a font family name.
+     * It is used together with the style to find an appropriate font face.
+     * When a font family name is specified, the style argument is used to
+     * select the most appropriate face from the family. When a font face
+     * name is specified, the face's style and the style argument are
+     * merged to locate the best matching font from the same family.
+     * For example if face name "Arial Bold" is specified with style
+     * <code>Font.ITALIC</code>, the font system looks for a face in the
+     * "Arial" family that is bold and italic, and may associate the font
+     * instance with the physical font face "Arial Bold Italic".
+     * The style argument is merged with the specified face's style, not
+     * added or subtracted.
+     * This means, specifying a bold face and a bold style does not
+     * double-embolden the font, and specifying a bold face and a plain
+     * style does not lighten the font.
+     * <p>
+     * If no face for the requested style can be found, the font system
+     * may apply algorithmic styling to achieve the desired style.
+     * For example, if <code>ITALIC</code> is requested, but no italic
+     * face is available, glyphs from the plain face may be algorithmically
+     * obliqued (slanted).
+     * <p>
+     * Font name lookup is case insensitive, using the case folding
+     * rules of the US locale.
+     *
+     * @param name the font name.  This can be a font face name or a font
+     * family name, and may represent either a logical font or a physical
+     * font found in this <code>GraphicsEnvironment</code>.
+     * The family names for logical fonts are: Dialog, DialogInput,
+     * Monospaced, Serif, or SansSerif.	 If <code>name</code> is
+     * <code>null</code>, the <em>logical font name</em> of the new
+     * <code>Font</code> as returned by <code>getName()</code>is set to
+     * the name "Default".
      * @param style the style constant for the <code>Font</code>
      * The style argument is an integer bitmask that may
      * be PLAIN, or a bitwise union of BOLD and/or ITALIC
@@ -337,30 +415,45 @@ public class Font implements java.io.Serializable
      * @since JDK1.0
      */
     public Font(String name, int style, int size) {
-	this.name = name;
+	this.name = (name != null) ? name : "Default";
 	this.style = (style & ~0x03) == 0 ? style : 0;
 	this.size = size;
         this.pointSize = size;
-	initializeFont(null);
     }
 
-    private Font(String name, int style, int size, boolean created) {
-        this.createdFont = created;
-	this.name = name;
-        this.style = (style & ~0x03) == 0 ? style : 0;
-        this.size = size;
-        this.pointSize = size;
-        initializeFont(null);
-    }
-
-    private Font(String name, int style, float sizePts, boolean created) {
-        this.createdFont = created;
-	this.name = name;
+    private Font(String name, int style, float sizePts) {
+	this.name = (name != null) ? name : "Default";
 	this.style = (style & ~0x03) == 0 ? style : 0;
 	this.size = (int)(sizePts + 0.5);
         this.pointSize = sizePts;
-	initializeFont(null);
     }
+
+    /* used to implement Font.createFont */
+    private Font(File fontFile, int fontFormat, boolean isCopy)
+        throws FontFormatException {
+	this.createdFont = true;
+	/* Font2D instances created by this method track their font file
+	 * so that when the Font2D is GC'd it can also remove the file.
+	 */
+	this.font2DHandle =
+	    FontManager.createFont2D(fontFile, fontFormat, isCopy).handle;
+	this.name = this.font2DHandle.font2D.getFontName(Locale.getDefault());
+	this.style = Font.PLAIN;
+	this.size = 1;
+	this.pointSize = 1f;
+    }
+
+    private Font(Map attributes, boolean created, Font2DHandle handle) {
+	this.createdFont = created;
+	/* Fonts created from a stream will use the same font2D instance
+	 * as the parent.
+	 */
+	if (created) {
+	    this.font2DHandle = handle;
+	}
+	initFromMap(attributes);
+    }
+
     /**
      * Creates a new <code>Font</code> with the specified attributes.
      * This <code>Font</code> only recognizes keys defined in 
@@ -370,14 +463,10 @@ public class Font implements java.io.Serializable
      * @param attributes the attributes to assign to the new
      *		<code>Font</code>, or <code>null</code>
      */
-    public Font(Map attributes){
+    public Font(Map<? extends Attribute, ?> attributes) {
 	initFromMap(attributes);
-    }
+    }	
 
-    private Font(Map attributes, boolean created) {
-        this.createdFont = created;
-        initFromMap(attributes);
-    }
 
     private void initFromMap(Map attributes) {
 	this.name = "Dialog";
@@ -393,24 +482,45 @@ public class Font implements java.io.Serializable
                 this.name = (String)obj;
             }
 
-            if ((obj = attributes.get(TextAttribute.WEIGHT)) != null){
+            if ((obj = attributes.get(TextAttribute.WEIGHT)) != null) {
                 if(obj.equals(TextAttribute.WEIGHT_BOLD)) {
                     this.style |= BOLD;
                 }
             }
 
-            if ((obj = attributes.get(TextAttribute.POSTURE)) != null){
+            if ((obj = attributes.get(TextAttribute.POSTURE)) != null) {
                 if(obj.equals(TextAttribute.POSTURE_OBLIQUE)) {
                     this.style |= ITALIC;
                 }
             }
 
-            if ((obj = attributes.get(TextAttribute.SIZE)) != null){
+            if ((obj = attributes.get(TextAttribute.SIZE)) != null) {
                 this.pointSize = ((Float)obj).floatValue();
                 this.size = (int)(this.pointSize + 0.5);
             }
+
+            if ((obj = attributes.get(TextAttribute.TRANSFORM)) != null) {
+		if (obj instanceof TransformAttribute) {
+		    nonIdentityTx = !((TransformAttribute)obj).isIdentity();
+		} else if (obj instanceof AffineTransform) {
+		    nonIdentityTx = !((AffineTransform)obj).isIdentity();
+		}
+	    }
+
+            if ((obj = attributes.get(TextAttribute.SUPERSCRIPT)) != null) {
+                if (obj instanceof Integer) {
+                    superscript = ((Integer)obj).intValue();
+                    nonIdentityTx |= superscript != 0;
+                }
+            }
+
+            if ((obj = attributes.get(TextAttribute.WIDTH)) != null) {
+                if (obj instanceof Float) {
+                    width = ((Float)obj).floatValue();
+                    nonIdentityTx |= width != 1;
+                }
+            }
         }
-        initializeFont(fRequestedAttributes);
     }
 
      /**
@@ -423,7 +533,7 @@ public class Font implements java.io.Serializable
      * @since 1.2
      * @see java.awt.font.TextAttribute
      */
-    public static Font getFont(Map attributes) {
+    public static Font getFont(Map<? extends Attribute, ?> attributes) {
         Font font = (Font)attributes.get(TextAttribute.FONT);
         if (font != null) {
             return font;
@@ -461,6 +571,8 @@ public class Font implements java.io.Serializable
 	float weight = 1.0f;
 	float posture = 0.0f;
 	float size = 12.0f;
+        int superscript = 0;
+        float width = 1.0f;
 	double[] txdata = null; // identity
 
 	Map attrs;
@@ -524,6 +636,22 @@ public class Font implements java.io.Serializable
 		    hashCode = (hashCode << 3) ^ new Double(txdata[0]).hashCode();
 		}
 	    }
+
+            o = map.get(TextAttribute.SUPERSCRIPT);
+            if (o != null) {
+                if (o instanceof Integer) {
+                    superscript = ((Integer)o).intValue();
+                    hashCode = hashCode << 3 ^ superscript;
+                }
+            }
+
+            o = map.get(TextAttribute.WIDTH);
+            if (o != null) {
+                if (o instanceof Float) {
+                    width = ((Float)o).floatValue();
+                    hashCode = hashCode << 3 ^ Float.floatToIntBits(width);
+                }
+            }
 	}
 
 	public int hashCode() {
@@ -536,6 +664,8 @@ public class Font implements java.io.Serializable
 		this.size == rhskey.size &&
 		this.weight == rhskey.weight &&
 		this.posture == rhskey.posture &&
+                this.superscript == rhskey.superscript &&
+                this.width == rhskey.width &&
 		this.family.equals(rhskey.family) &&
 		((this.txdata == null) == (rhskey.txdata == null))) {
 		
@@ -554,7 +684,7 @@ public class Font implements java.io.Serializable
     
 
   /**
-   * Returns a new <code>Font</code> with the specified font type
+   * Returns a new <code>Font</code> using the specified font type
    * and input data.  The new <code>Font</code> is
    * created with a point size of 1 and style {@link #PLAIN PLAIN}.
    * This base font can then be used with the <code>deriveFont</code>
@@ -562,73 +692,109 @@ public class Font implements java.io.Serializable
    * varying sizes, styles, transforms and font features.  This
    * method does not close the {@link InputStream}.
    * @param fontFormat the type of the <code>Font</code>, which is
-   * {@link #TRUETYPE_FONT TRUETYPE_FONT} if a TrueType is desired.  Other
-   * types might be provided in the future.
+   * {@link #TRUETYPE_FONT TRUETYPE_FONT} if a TrueType resource is specified.
+   * or {@link #TYPE1_FONT TYPE1_FONT} if a Type 1 resource is specified.
    * @param fontStream an <code>InputStream</code> object representing the
    * input data for the font.
    * @return a new <code>Font</code> created with the specified font type.
-   * @throws IllegalArgumentException if <code>fontType</code> is not
-   *     <code>TRUETYPE_FONT</code>
+   * @throws IllegalArgumentException if <code>fontFormat</code> is not
+   *     <code>TRUETYPE_FONT</code>or<code>TYPE1_FONT</code>.
    * @throws FontFormatException if the <code>fontStream</code> data does
-   *     not contain the required Truetype font tables.
+   *     not contain the required font tables for the specified format.
    * @throws IOException if the <code>fontStream</code>
    *     cannot be completely read.
    * @since 1.3
    */
-  // REMIND - need to update this for serialization
-    public static Font createFont ( int fontFormat, InputStream fontStream ) 
-      throws java.awt.FontFormatException, java.io.IOException {
+    public static Font createFont(int fontFormat, InputStream fontStream) 
+    throws java.awt.FontFormatException, java.io.IOException {
 
-      if ( fontFormat != Font.TRUETYPE_FONT ) {
-	throw new IllegalArgumentException ( "font format not recognized" );
-      }
-      final File fontFile = 
-	  (File)java.security.AccessController.doPrivileged(
-		 new java.security.PrivilegedAction() {
+	if (fontFormat != Font.TRUETYPE_FONT &&
+	    fontFormat != Font.TYPE1_FONT) {
+	    throw new IllegalArgumentException ("font format not recognized");
+	}
+	final InputStream fStream = fontStream;
+	Object ret = java.security.AccessController.doPrivileged(
+	   new java.security.PrivilegedAction() {
 	      public Object run() {
 		  File tFile = null;
 		  try {		    
-		      tFile = File.createTempFile ( "+~JF", ".tmp", null );
+		      tFile = File.createTempFile("+~JF", ".tmp", null);
 		      tFile.deleteOnExit();
-		  } catch (IOException ioe) {
+		      BufferedInputStream inStream =
+			  new BufferedInputStream(fStream); 
+		      FileOutputStream outStream = new FileOutputStream(tFile);
+		      int bytesRead = 0;
+		      int bufSize = 8192;
+		      byte [] buf = new byte[bufSize]; 
+		      while (bytesRead != -1) {
+			  bytesRead = inStream.read(buf, 0, bufSize);
+			  if (bytesRead != -1) {
+			      outStream.write(buf, 0, bytesRead);
+			  }
+		      }
+		      /* don't close the input stream */
+		      outStream.close();
+		  } catch (IOException e) {
+		      return e;
 		  }
 		  return tFile;
 	      }
 	  });
-      BufferedInputStream bufferedStream = null;
-      bufferedStream = new BufferedInputStream ( fontStream ); 
-      FileOutputStream theOutputStream = 
-	  (FileOutputStream)java.security.AccessController.doPrivileged(
-		 new java.security.PrivilegedAction() {
-	      public Object run() {
-		  FileOutputStream fos = null;
-		  try {
-		      fos = new FileOutputStream(fontFile);
-		  } catch (IOException ioe) {
-		  }
-		  return fos;
-	      }
-	  });
-      int bytesRead = 0;
-      byte buf[];
-      int bufSize = 8192;  // this seems like a reasonable number
-      buf = new byte[bufSize]; 
-      while ( bytesRead != -1 ) {
-	bytesRead = bufferedStream.read ( buf, 0, bufSize );
-	if ( bytesRead != -1 )
-	  theOutputStream.write ( buf, 0, bytesRead );
-      }
-      bufferedStream.close();
-      theOutputStream.close();
-      String createName = SunGraphicsEnvironment.createFont( fontFile );
-      if ( createName == null ) {
-	throw new FontFormatException ( "Unable to create font - bad font data" );
-      }
-      //    System.out.println (" Creating font with the name " + createName );
-      Font createFont = new Font ( createName, Font.PLAIN, 1, true);
-      return createFont;
+
+	if (ret instanceof File) {
+	    return new Font((File)ret, fontFormat, true);
+	} else if (ret instanceof IOException) {
+	    throw (IOException)ret;
+	} else {
+	    throw new FontFormatException("Couldn't access font stream");
+	}
     }
 
+    /**
+     * Returns a new <code>Font</code> using the specified font type
+     * and the specified font file.  The new <code>Font</code> is
+     * created with a point size of 1 and style {@link #PLAIN PLAIN}.
+     * This base font can then be used with the <code>deriveFont</code>
+     * methods in this class to derive new <code>Font</code> objects with
+     * varying sizes, styles, transforms and font features.
+     * @param fontFormat the type of the <code>Font</code>, which is
+     * {@link #TRUETYPE_FONT TRUETYPE_FONT} if a TrueType resource is
+     * specified or {@link #TYPE1_FONT TYPE1_FONT} if a Type 1 resource is
+     * specified.
+     * So long as the returned font, or its derived fonts are referenced
+     * the implementation may continue to access <code>fontFile</code>
+     * to retrieve font data. Thus the results are undefined if the file
+     * is changed, or becomes inaccessible.
+     * @param fontFile a <code>File</code> object representing the
+     * input data for the font.
+     * @return a new <code>Font</code> created with the specified font type.
+     * @throws IllegalArgumentException if <code>fontFormat</code> is not
+     *     <code>TRUETYPE_FONT</code>or<code>TYPE1_FONT</code>.
+     * @throws NullPointerException if <code>fontFile</code> is null.
+     * @throws IOException if the <code>fontFile</code> cannot be read.
+     * @throws FontFormatException if <code>fontFile</code> does
+     *     not contain the required font tables for the specified format.
+     * @throws SecurityException if the executing code does not have
+     * permission to read from the file.
+     * @since 1.5
+     */
+    public static Font createFont(int fontFormat, File fontFile)
+    throws java.awt.FontFormatException, java.io.IOException {
+	if (fontFormat != Font.TRUETYPE_FONT &&
+	    fontFormat != Font.TYPE1_FONT) {
+	    throw new IllegalArgumentException ("font format not recognized");
+	}
+	SecurityManager sm = System.getSecurityManager();
+	if (sm != null) {
+	    FilePermission filePermission =
+			new FilePermission(fontFile.getPath(), "read");
+	    sm.checkPermission(filePermission);
+	}
+	if (!fontFile.canRead()) {
+	    throw new IOException("Can't read " + fontFile);
+	}
+	return new Font(fontFile, fontFormat, false);
+    }
 
     /**
      * Returns a copy of the transform associated with this 
@@ -637,22 +803,102 @@ public class Font implements java.io.Serializable
      *		transform attribute of this <code>Font</code> object.
      */
     public AffineTransform getTransform() {
-        Object obj = fRequestedAttributes.get(TextAttribute.TRANSFORM);
+	/* The most common case is the identity transform.  Most callers 
+	 * should call isTransformed() first, to decide if they need to
+	 * get the transform, but some may not.  Here we check to see
+	 * if we have a nonidentity transform, and only do the work to
+	 * fetch and/or compute it if so, otherwise we return a new
+	 * identity transform.
+	 *
+	 * Note that the transform is _not_ necessarily the same as 
+	 * the transform passed in as an Attribute in a Map, as the
+	 * transform returned will also reflect the effects of WIDTH and
+	 * SUPERSCRIPT attributes.  Clients who want the actual transform
+	 * need to call getRequestedAttributes.
+	 */
+	if (nonIdentityTx) {
+            AffineTransform at = null;
+	    Object obj = getRequestedAttributes().get(TextAttribute.TRANSFORM);
+	    if (obj != null) {
+		if( obj instanceof TransformAttribute ){
+		    at = ((TransformAttribute)obj).getTransform();
+		}
+		else {
+		    if ( obj instanceof AffineTransform){
+			at = new AffineTransform((AffineTransform)obj);
+		    }
+		}
+	    } else {
+                at = new AffineTransform();
+            }
+            
+            if (superscript != 0) {
+                // can't get ascent and descent here, recursive call to this fn, so use pointsize
+                // let users combine super- and sub-scripting
+                double trans = 0;
+                int n = 0;
+                boolean up = superscript > 0;
+                int sign = up ? -1 : 1;
+                int ss = up ? superscript : -superscript;
 
-        if (obj != null) {
-	    if( obj instanceof TransformAttribute ){
-	          return ((TransformAttribute)obj).getTransform();
-	    }
-	    else {
-	      if ( obj instanceof AffineTransform){
-	         return new AffineTransform((AffineTransform)obj);
-	      }
-	    }
-	}else{
-	     obj = new AffineTransform();
-	}
-	return (AffineTransform)obj;
+                while ((ss & 7) > n) {
+                    int newn = ss & 7;
+                    trans += sign * (ssinfo[newn] - ssinfo[n]);
+                    ss >>= 3;
+                    sign = -sign;
+                    n = newn;
+                }
+                trans *= pointSize;
+                double scale = Math.pow(2./3., n);
+
+                at.preConcatenate(AffineTransform.getTranslateInstance(0, trans));
+                at.scale(scale, scale);
+
+                // note on placement and italics
+                // We preconcatenate the transform because we don't want to translate along
+                // the italic angle, but purely perpendicular to the baseline.  While this
+                // looks ok for superscripts, it can lead subscripts to stack on each other
+                // and bring the following text too close.  The way we deal with potential
+                // collisions that can occur in the case of italics is by adjusting the
+                // horizontal spacing of the adjacent glyphvectors.  Examine the italic
+                // angle of both vectors, if one is non-zero, compute the minimum ascent
+                // and descent, and then the x position at each for each vector along its
+                // italic angle starting from its (offset) baseline.  Compute the difference
+                // between the x positions and use the maximum difference to adjust the
+                // position of the right gv.
+            }
+
+            if (width != 1f) {
+                at.scale(width, 1f);
+            }
+
+            return at;
+        }
+
+        return new AffineTransform();
     }
+
+    // x = r^0 + r^1 + r^2... r^n
+    // rx = r^1 + r^2 + r^3... r^(n+1)
+    // x - rx = r^0 - r^(n+1)
+    // x (1 - r) = r^0 - r^(n+1)
+    // x = (r^0 - r^(n+1)) / (1 - r)
+    // x = (1 - r^(n+1)) / (1 - r)
+
+    // scale ratio is 2/3
+    // trans = 1/2 of ascent * x
+    // assume ascent is 3/4 of point size
+
+    private static final float[] ssinfo = {
+        0.0f,
+        0.375f,
+        0.625f,
+        0.7916667f,
+        0.9027778f,
+        0.9768519f,
+        1.0262346f,
+        1.0591564f,
+    };
 
     /**
      * Returns the family name of this <code>Font</code>.  
@@ -705,11 +951,10 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public String getFamily(Locale l) {
-        if (SunGraphicsEnvironment.isLogicalFont(name)) {
-            return name;
+        if (l == null) {
+            throw new NullPointerException("null locale doesn't mean default");
         }
-	short lcid = NativeFontWrapper.getLCIDFromLocale(l);
-        return NativeFontWrapper.getFamilyName(this, lcid);
+	return getFont2D().getFamilyName(l);
     }
 
     /**
@@ -721,8 +966,7 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public String getPSName() {
-	String psName = NativeFontWrapper.getPostscriptName(this);
-	return (psName == null ? getFontName() : psName);
+	return getFont2D().getPostscriptName();
     }
 
     /**
@@ -736,7 +980,7 @@ public class Font implements java.io.Serializable
      * @since JDK1.0
      */
     public String getName() {
-	return new String(name);
+	return name;
     }
 
     /**
@@ -766,11 +1010,10 @@ public class Font implements java.io.Serializable
      * @see java.util.Locale
      */
     public String getFontName(Locale l) {
-        if (SunGraphicsEnvironment.isLogicalFont(name)) {
-            return name + "." + SunGraphicsEnvironment.styleStr(style);
+        if (l == null) {
+            throw new NullPointerException("null locale doesn't mean default");
         }
-	short lcid = NativeFontWrapper.getLCIDFromLocale(l);
-        return NativeFontWrapper.getFullName(this, lcid);
+	return getFont2D().getFontName(l);
     }
 
     /**
@@ -879,10 +1122,18 @@ public class Font implements java.io.Serializable
 
     /**
      * Returns a <code>Font</code> object from the system properties list.
+     * <code>nm</code> is treated as the name of a system property to be
+     * obtained.  The <code>String</code> value of this property is then
+     * interpreted as a <code>Font</code> object according to the
+     * specification of <code>Font.decode(String)</code>
+     * If the specified property is not found, null is returned instead.
+     * 
      * @param nm the property name
      * @return a <code>Font</code> object that the property name
-     *		describes.
+     *		describes, or null if no such property exists.
+     * @throws NullPointerException if nm is null.
      * @since 1.2
+     * @see #decode(String)
      */
     public static Font getFont(String nm) {
 	return getFont(nm, null);
@@ -893,35 +1144,67 @@ public class Font implements java.io.Serializable
      * argument describes.
      * To ensure that this method returns the desired Font, 
      * format the <code>str</code> parameter in
-     * one of two ways:
+     * one of these ways
      * <p>
-     * "fontfamilyname-style-pointsize" or <br>
-     * "fontfamilyname style pointsize"<p>
-     * in which <i>style</i> is one of the three 
+     * <ul>
+     * <li><em>fontname-style-pointsize</em>
+     * <li><em>fontname-pointsize</em>
+     * <li><em>fontname-style</em>
+     * <li><em>fontname</em>
+     * <li><em>fontname style pointsize</em>
+     * <li><em>fontname pointsize</em>
+     * <li><em>fontname style</em>
+     * <li><em>fontname</em>
+     * </ul>
+     * in which <i>style</i> is one of the four 
      * case-insensitive strings:
-     * <code>"BOLD"</code>, <code>"BOLDITALIC"</code>, or
-     * <code>"ITALIC"</code>, and pointsize is a decimal
+     * <code>"PLAIN"</code>, <code>"BOLD"</code>, <code>"BOLDITALIC"</code>, or
+     * <code>"ITALIC"</code>, and pointsize is a positive decimal integer
      * representation of the point size.
-     * For example, if you want a font that is Arial, bold, and
+     * For example, if you want a font that is Arial, bold, with
      * a point size of 18, you would call this method with:
      * "Arial-BOLD-18".
+     * This is equivalent to calling the Font constructor :
+     * <code>new Font("Arial", Font.BOLD, 18);</code>
+     * and the values are interpreted as specified by that constructor.
+     * <p>
+     * A valid trailing decimal field is always interpreted as the pointsize.
+     * Therefore a fontname containing a trailing decimal value should not
+     * be used in the fontname only form.
+     * <p>
+     * If a style name field is not one of the valid style strings, it is
+     * interpreted as part of the font name, and the default style is used.
+     * <p>
+     * Only one of ' ' or '-' may be used to separate fields in the input.
+     * The identified separator is the one closest to the end of the string
+     * which separates a valid pointsize, or a valid style name from
+     * the rest of the string.
+     * Null (empty) pointsize and style fields are treated
+     * as valid fields with the default value for that field. 
+     *<p>
+     * Some font names may include the separator characters ' ' or '-'.
+     * If <code>str</code> is not formed with 3 components, e.g. such that
+     * <code>style</code> or <code>pointsize</code> fields are not present in
+     * <code>str</code>, and <code>fontname</code> also contains a
+     * character determined to be the separator character
+     * then these characters where they appear as intended to be part of
+     * <code>fontname</code> may instead be interpreted as separators
+     * so the font name may not be properly recognised.
+     * 
      * <p>
      * The default size is 12 and the default style is PLAIN.
-     * If you don't specify a valid size, the returned 
-     * <code>Font</code> has a size of 12.  If you don't specify 
-     * a valid style, the returned Font has a style of PLAIN.
-     * If you do not provide a valid font family name in 
-     * the <code>str</code> argument, this method still returns 
-     * a valid font with a family name of "dialog".
+     * If <code>str</code> does not specify a valid size, the returned 
+     * <code>Font</code> has a size of 12.  If <code>str</code> does not
+     * specify a valid style, the returned Font has a style of PLAIN.
+     * If you do not specify a valid font name in 
+     * the <code>str</code> argument, this method will return
+     * a font with the family name "Dialog".
      * To determine what font family names are available on
      * your system, use the
      * {@link GraphicsEnvironment#getAvailableFontFamilyNames()} method.
      * If <code>str</code> is <code>null</code>, a new <code>Font</code>
-     * is returned with the family name "dialog", a size of 12 and a 
+     * is returned with the family name "Dialog", a size of 12 and a 
      * PLAIN style.
-       If <code>str</code> is <code>null</code>, 
-     * a new <code>Font</code> is returned with the name "dialog", a  
-     * size of 12 and a PLAIN style.
      * @param str the name of the font, or <code>null</code>
      * @return the <code>Font</code> object that <code>str</code>
      *		describes, or a new default <code>Font</code> if 
@@ -931,94 +1214,74 @@ public class Font implements java.io.Serializable
      */
     public static Font decode(String str) {
 	String fontName = str;
-	String fontSizeStr;
-	int index;
+	String styleName = "";
 	int fontSize = 12;
 	int fontStyle = Font.PLAIN;
 
         if (str == null) {
-            return new Font("dialog", fontStyle, fontSize);
+            return new Font("Dialog", fontStyle, fontSize);
         }
+	
+	int lastHyphen = str.lastIndexOf('-');
+	int lastSpace = str.lastIndexOf(' ');
+	char sepChar = (lastHyphen > lastSpace) ? '-' : ' ';
+	int sizeIndex = str.lastIndexOf(sepChar);
+	int styleIndex = str.lastIndexOf(sepChar, sizeIndex-1);
+	int strlen = str.length();
 
-	int i = str.indexOf('-');
-	if (i >= 0) {
-	    fontName = str.substring(0, i);
-	    str = str.substring(i+1);
-	    str = str.toLowerCase(); // name may be in upper/lower causing incorrect style matching
-	    
-	    index = str.indexOf ( "bold-italic" );
-	    if ( index != -1 ) {
-	      fontStyle = Font.BOLD | Font.ITALIC;
-	    }
-	    if ( index == -1 ) {
-	      index = str.indexOf ( "bolditalic" );
-              if (index != -1) {
-                  fontStyle = Font.BOLD | Font.ITALIC;
-              }
-	    }
-	    if ( index == -1 ) {
-	      index = str.indexOf ( "bold" );
-	      if ( index != -1 ) {
-		fontStyle = Font.BOLD;
-              }
-	    }
-	    if ( index == -1 ) {
-	      index = str.indexOf ( "italic" );
-              if (index != -1) {
-                  fontStyle = Font.ITALIC;
-              }
-	    }
-	    index = str.lastIndexOf ( "-" );
-	    if ( index != -1 ) {
-	      str = str.substring(index+1);
-	    }
+	if (sizeIndex > 0 && sizeIndex+1 < strlen) {
 	    try {
-		fontSize = Integer.valueOf(str).intValue();
+		fontSize =
+		    Integer.valueOf(str.substring(sizeIndex+1)).intValue();
+		if (fontSize <= 0) {
+		    fontSize = 12;
+		}
 	    } catch (NumberFormatException e) {
+		/* It wasn't a valid size, if we didn't also find the
+		 * start of the style string perhaps this is the style */
+		styleIndex = sizeIndex;
+		sizeIndex = strlen;
+		if (str.charAt(sizeIndex-1) == sepChar) {
+		    sizeIndex--;
+		}
 	    }
-	} else if ( i == -1 ) {
-
-	  fontStyle = Font.PLAIN;
-	  fontSize = 12;
-
-	  str = str.toLowerCase();
-	  index = str.indexOf ( "bolditalic" );
-	  if (index != -1 ) {
-	    fontStyle = Font.BOLD | Font.ITALIC;
-	  }
-	  if ( index == -1 ) {
-	    index = str.indexOf ( "bold italic" );
-	    if ( index != -1 ) {
-	      fontStyle = Font.BOLD | Font.ITALIC;
-	    }
-	  }
-	  if ( index == -1 ) {
-	    index = str.indexOf ("bold");
-   
-	    if ( index != -1 ) {
-	      fontStyle = Font.BOLD;	
-	    }
-	  }
-	  if ( index == -1 ) {
-	    index = str.indexOf  ("italic");
-	    if ( index != -1 )
-	      fontStyle = Font.ITALIC;
-	  }
-
-	  if ( index != -1 ) {  // found a style
-	    fontName = fontName.substring(0, index );
-	    fontName = fontName.trim();
-	  }
-	  index = str.lastIndexOf (" " );
-	  if ( index != -1 ) {
-	     fontSizeStr = str.substring ( index );
-	     fontSizeStr = fontSizeStr.trim();
-	     try {
-		fontSize = Integer.valueOf(fontSizeStr).intValue();
-	     } catch (NumberFormatException e) {
-	     }
-	  }
 	}
+
+	if (styleIndex >= 0 && styleIndex+1 < strlen) {
+	    styleName = str.substring(styleIndex+1, sizeIndex);
+	    styleName = styleName.toLowerCase(Locale.ENGLISH);
+	    if (styleName.equals("bolditalic")) {
+		fontStyle = Font.BOLD | Font.ITALIC;
+	    } else if (styleName.equals("italic")) {
+		fontStyle = Font.ITALIC;
+	    } else if (styleName.equals("bold")) {
+		fontStyle = Font.BOLD;
+	    } else if (styleName.equals("plain")) {
+		fontStyle = Font.PLAIN;
+	    } else {
+		/* this string isn't any of the expected styles, so
+		 * assume its part of the font name
+		 */
+		styleIndex = sizeIndex;
+		if (str.charAt(styleIndex-1) == sepChar) {
+		    styleIndex--;
+		}
+	    }
+	    fontName = str.substring(0, styleIndex);
+
+	} else {
+	    int fontEnd = strlen;
+	    if (styleIndex > 0) {
+		fontEnd = styleIndex;
+	    } else if (sizeIndex > 0) {
+		fontEnd = sizeIndex;
+	    }
+	    if (fontEnd > 0 && str.charAt(fontEnd-1) == sepChar) {
+		fontEnd--;
+	    }
+	    fontName = str.substring(0, fontEnd);
+	}
+
 	return new Font(fontName, fontStyle, fontSize);
     }
 
@@ -1030,39 +1293,27 @@ public class Font implements java.io.Serializable
      * obtained.  The <code>String</code> value of this property is then
      * interpreted as a <code>Font</code> object. 
      * <p>
-     * The property value should be one of the following forms: 
-     * <ul>
-     * <li><em>fontname-style-pointsize</em>
-     * <li><em>fontname-pointsize</em>
-     * <li><em>fontname-style</em>
-     * <li><em>fontname</em>
-     * </ul>
-     * where <i>style</i> is one of the three case-insensitive strings 
-     * <code>"BOLD"</code>, <code>"BOLDITALIC"</code>, or 
-     * <code>"ITALIC"</code>, and point size is a decimal 
-     * representation of the point size. 
-     * <p>
-     * The default style is <code>PLAIN</code>. The default point size 
-     * is 12. 
-     * <p>
+     * The property value should be one of the forms accepted by
+     * <code>Font.decode(String)</code>
      * If the specified property is not found, the <code>font</code> 
      * argument is returned instead. 
      * @param nm the case-insensitive property name
      * @param font a default <code>Font</code> to return if property
      * 		<code>nm</code> is not defined
      * @return    the <code>Font</code> value of the property.
+     * @throws NullPointerException if nm is null.
      * @see #decode(String)
      */
     public static Font getFont(String nm, Font font) {
-      String str = null;
-      try {
-	str =System.getProperty(nm);
-      } catch(SecurityException e) {
-      }
-      if (str == null) {
-	return font;
-      }
-      return decode ( str );
+	String str = null;
+	try {
+	    str =System.getProperty(nm);
+	} catch(SecurityException e) {
+	}
+	if (str == null) {
+	    return font;
+	}
+	return decode ( str );
     }
 
 
@@ -1093,19 +1344,23 @@ public class Font implements java.io.Serializable
 	if (obj != null) {
 	  try {
 	    Font font = (Font)obj;
+	    if ((size == font.size) &&
+		(pointSize == font.pointSize) &&
+		(style == font.style) &&
+                (superscript == font.superscript) &&
+                (width == font.width) &&
+		name.equals(font.name)) {
+		
+		double[] thismat = this.getMatrix();
+		double[] thatmat = font.getMatrix();
 	    
-	    double[] thismat = this.getMatrix();
-	    double[] thatmat = font.getMatrix();
-	    
-	    return  (size == font.size)
-	      && (pointSize == font.pointSize)
-	      && (style == font.style)
-	      && (pNativeFont == font.pNativeFont)
-	      && name.equals(font.name)
-	      && thismat[0] == thatmat[0]
-	      && thismat[1] == thatmat[1]
-	      && thismat[2] == thatmat[2]
-	      && thismat[3] == thatmat[3];
+		return thismat[0] == thatmat[0]
+		    && thismat[1] == thatmat[1]
+		    && thismat[2] == thatmat[2]
+		    && thismat[3] == thatmat[3]
+		    && thismat[4] == thatmat[4]
+		    && thismat[5] == thatmat[5];
+	    }
 	  }
 	  catch (ClassCastException e) {
 	  }
@@ -1182,6 +1437,7 @@ public class Font implements java.io.Serializable
       if (pointSize == 0) {
 		pointSize = (float)size;
  	  }
+      width = 1f; // init transient field
       initializeFont(fRequestedAttributes);
     }
 
@@ -1193,10 +1449,7 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public int getNumGlyphs() {
-        if (numGlyphs == -1) {
-            numGlyphs = NativeFontWrapper.getNumGlyphs(this);
-        }
-        return numGlyphs;
+	return  getFont2D().getNumGlyphs();
     }
 
     /**
@@ -1206,15 +1459,14 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public int getMissingGlyphCode() {
-        if (missingGlyph == -1) {
-            missingGlyph = NativeFontWrapper.getMissingGlyphCode(this);
-        }
-        return missingGlyph;
+	return getFont2D().getMissingGlyphCode();
     }
 
     /**
      * get the transform matrix for this font.
      */
+    /* for identity transforms this code attempts to share a matrix
+     * amongst fonts with the same pt size */
     private static double cachedMat[];
     private double[] getMatrix() {
         if (matrix == null) {
@@ -1222,13 +1474,13 @@ public class Font implements java.io.Serializable
 	    if (nonIdentityTx) {
 		AffineTransform tx = getTransform();
 		tx.scale(ptSize, ptSize);
-		matrix = new double[] { tx.getScaleX(), tx.getShearY(),
-					tx.getShearX(), tx.getScaleY() };
+		tx.getMatrix(matrix = new double[6]);
 	    } else {
 		synchronized (Font.class) {
 		    double[] m = cachedMat;
 		    if (m == null || m[0] != ptSize) {
-			cachedMat = m = new double[] {ptSize, 0, 0, ptSize};
+			cachedMat = m =
+			    new double[] {ptSize, 0, 0, ptSize, 0, 0 };
 		    }
 		    matrix = m;
 		}
@@ -1254,7 +1506,7 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public byte getBaselineFor(char c) {
-        return NativeFontWrapper.getBaselineFor(this, c);
+	return getFont2D().getBaselineFor(c);
     }
 
     /**
@@ -1263,8 +1515,8 @@ public class Font implements java.io.Serializable
      * glyph substitution.
      * @return the attributes map of this <code>Font</code>.
      */
-    public Map getAttributes(){
-        return (Map)fRequestedAttributes.clone();
+    public Map<TextAttribute,?> getAttributes(){
+        return (Map<TextAttribute,?>)getRequestedAttributes().clone();
     }
 
     /**
@@ -1281,7 +1533,9 @@ public class Font implements java.io.Serializable
             TextAttribute.WEIGHT,
             TextAttribute.POSTURE,
             TextAttribute.SIZE,
-	    TextAttribute.TRANSFORM
+	    TextAttribute.TRANSFORM,
+            TextAttribute.SUPERSCRIPT,
+            TextAttribute.WIDTH,
         };
 
         return attributes;
@@ -1296,10 +1550,10 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public Font deriveFont(int style, float size){
-	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
+	Hashtable newAttributes = (Hashtable)getRequestedAttributes().clone();
 	applyStyle(style, newAttributes);
 	applySize(size, newAttributes);
-        return new Font(newAttributes, createdFont);
+        return new Font(newAttributes, createdFont, font2DHandle);
     }
 
     /**
@@ -1314,10 +1568,10 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public Font deriveFont(int style, AffineTransform trans){
-	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
+	Hashtable newAttributes = (Hashtable)getRequestedAttributes().clone();
 	applyStyle(style, newAttributes);
 	applyTransform(trans, newAttributes);
-        return new Font(newAttributes, createdFont);
+        return new Font(newAttributes, createdFont, font2DHandle);
     }
 
     /**
@@ -1328,9 +1582,9 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public Font deriveFont(float size){
-	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
+	Hashtable newAttributes = (Hashtable)getRequestedAttributes().clone();
 	applySize(size, newAttributes);
-        return new Font(newAttributes, createdFont);
+        return new Font(newAttributes, createdFont, font2DHandle);
     }
 
     /**
@@ -1344,9 +1598,9 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public Font deriveFont(AffineTransform trans){
-	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
+	Hashtable newAttributes = (Hashtable)getRequestedAttributes().clone();
 	applyTransform(trans, newAttributes);
-        return new Font(newAttributes, createdFont);
+        return new Font(newAttributes, createdFont, font2DHandle);
     }
 
     /**
@@ -1357,9 +1611,9 @@ public class Font implements java.io.Serializable
      * @since 1.2
      */
     public Font deriveFont(int style){
-	Hashtable newAttributes = (Hashtable)fRequestedAttributes.clone();
+	Hashtable newAttributes = (Hashtable)getRequestedAttributes().clone();
 	applyStyle(style, newAttributes);
-        return new Font(newAttributes, createdFont);
+        return new Font(newAttributes, createdFont, font2DHandle);
     }
 
     /**
@@ -1371,7 +1625,7 @@ public class Font implements java.io.Serializable
      * @return a new <code>Font</code> object.
      * @since 1.2
      */
-    public Font deriveFont(Map attributes) {
+    public Font deriveFont(Map<? extends Attribute, ?> attributes) {
 	if (attributes == null || attributes.size() == 0) {
 	    return this;
 	}
@@ -1385,19 +1639,46 @@ public class Font implements java.io.Serializable
 	    newAttrs.put(validAttribs[i],obj);
 	  } 
 	}
-        return new Font(newAttrs, createdFont);
+        return new Font(newAttrs, createdFont, font2DHandle);
     }
 
     /**
      * Checks if this <code>Font</code> has a glyph for the specified
      * character.
-     * @param c a unicode character code
-     * @return <code>true</code> if this <code>Font</code> can display the
+     *
+     * <p> <b>Note:</b> This method cannot handle <a
+     * href="../../java/lang/Character.html#supplementary"> supplementary
+     * characters</a>. To support all Unicode characters, including
+     * supplementary characters, use the {@link #canDisplay(int)}
+     * method or <code>canDisplayUpTo</code> methods.
+     *
+     * @param c the character for which a glyph is needed
+     * @return <code>true</code> if this <code>Font</code> has a glyph for this
      *		character; <code>false</code> otherwise.
      * @since 1.2
      */
     public boolean canDisplay(char c){
-        return NativeFontWrapper.canDisplay(this, c);
+	return getFont2D().canDisplay(c);
+    }
+
+    /**
+     * Checks if this <code>Font</code> has a glyph for the specified
+     * character.
+     *
+     * @param codePoint the character (Unicode code point) for which a glyph
+     *        is needed.
+     * @return <code>true</code> if this <code>Font</code> has a glyph for the
+     *		character; <code>false</code> otherwise.
+     * @throws IllegalArgumentException if the code point is not a valid Unicode
+     *          code point.
+     * @see Character#isValidCodePoint(int)
+     * @since 1.5
+     */
+    public boolean canDisplay(int codePoint) {
+	if (!Character.isValidCodePoint(codePoint)) {
+	    throw new IllegalArgumentException("invalid code point: " + Integer.toHexString(codePoint));
+	}
+	return getFont2D().canDisplay(codePoint);
     }
 
     /**
@@ -1427,11 +1708,13 @@ public class Font implements java.io.Serializable
      * the characters in the specified <code>text</code> 
      * starting at <code>start</code> and ending at 
      * <code>limit</code>.  This method is a convenience overload.
-     * @param text the specified array of characters
-     * @param start the specified starting offset into the specified array
-     *		of characters
-     * @param limit the specified ending offset into the specified
-     *		array of characters
+     * @param text the specified array of <code>char</code> values
+     * @param start the specified starting offset (in
+     *              <code>char</code>s) into the specified array of
+     *              <code>char</code> values
+     * @param limit the specified ending offset (in
+     *              <code>char</code>s) into the specified array of
+     *              <code>char</code> values
      * @return an offset into <code>text</code> that points
      *		to the first character in <code>text</code> that this
      *		<code>Font</code> cannot display; or <code>-1</code> if
@@ -1448,21 +1731,20 @@ public class Font implements java.io.Serializable
     }
 
     /**
-     * Indicates whether or not this <code>Font</code> can display
-     * the specified <code>String</code>.  For strings with Unicode
-     * encoding, it is important to know if a particular font can display
-     * the string. This method returns an offset
-     * into the <code>String</code> <code>str</code> which is the first
-     * character this <code>Font</code> cannot display without using the
-     * missing glyph code . If this <code>Font</code> can display all
-     * characters, <code>-1</code> is returned.
-     * @param iter a {@link CharacterIterator} object
-     * @param start the specified starting offset into the specified array
-     *          of characters
+     * Indicates whether or not this <code>Font</code> can display the
+     * text specified by the <code>iter</code> starting at
+     * <code>start</code> and ending at <code>limit</code>.
+     *
+     * @param iter  a {@link CharacterIterator} object
+     * @param start the specified starting offset into the specified
+     *              <code>CharacterIterator</code>.
      * @param limit the specified ending offset into the specified
-     *          array of characters
-     * @return an offset into the <code>String</code> object that can be
-     * 		displayed by this <code>Font</code>.
+     *              <code>CharacterIterator</code>.
+     * @return an offset into <code>iter</code> that points
+     *		to the first character in <code>iter</code> that this
+     *		<code>Font</code> cannot display; or <code>-1</code> if
+     *		this <code>Font</code> can display all characters in
+     *		<code>iter</code>.
      * @since 1.2
      */
     public int canDisplayUpTo(CharacterIterator iter, int start, int limit) {
@@ -1482,94 +1764,9 @@ public class Font implements java.io.Serializable
      * @see TextAttribute#POSTURE
      * @return the angle of the ITALIC style of this <code>Font</code>.
      */
-    public float getItalicAngle(){
-        double matrix[] = getMatrix();
-        return NativeFontWrapper.getItalicAngle(this, matrix, false, false);
-    }
-
-    /**
-    * Metrics from a font for layout of characters along a line
-    * and layout of set of lines.
-    */
-    private final class FontLineMetrics extends LineMetrics {
-        // package private fields
-        int   numchars;
-        float ascent, descent, leading, height;
-        int   baselineIndex;
-        float [] baselineOffsets;
-        float strikethroughOffset, strikethroughThickness;
-        float underlineOffset, underlineThickness;
-
-        public final int getNumChars() {
-            return numchars;
-        }
-
-        public final float getAscent() {
-            return ascent;
-        }
-
-        public final float getDescent() {
-            return descent;
-        }
-
-        public final float getLeading() {
-            return leading;
-        }
-
-        public final float getHeight() {
-            return height;
-        }
-
-        public final int getBaselineIndex() {
-            return baselineIndex;
-        }
-
-        public final float[] getBaselineOffsets() {
-            return baselineOffsets;
-        }
-
-        public final float getStrikethroughOffset() {
-            return strikethroughOffset;
-        }
-
-        public final float getStrikethroughThickness() {
-            return strikethroughThickness;
-        }
-
-        public final float getUnderlineOffset() {
-            return underlineOffset;
-        }
-
-        public final float getUnderlineThickness() {
-            return underlineThickness;
-        }
-
-        public final boolean equals(Object rhs) {
-	  if (rhs != null) {
-	    if (this == rhs) {
-	      return true;
-	    }
-	    try {
-	       FontLineMetrics rlm = (FontLineMetrics)rhs;
-
-	       // does not include numchars, which should never have been here anyway
-	       return ascent == rlm.ascent 
-		 && descent == rlm.descent
-		 && leading == rlm.leading
-		 && baselineIndex == rlm.baselineIndex
-		 && baselineOffsets[0] == rlm.baselineOffsets[0]
-		 && baselineOffsets[1] == rlm.baselineOffsets[1]
-		 && baselineOffsets[2] == rlm.baselineOffsets[2]
-		 && strikethroughOffset == rlm.strikethroughOffset
-		 && strikethroughThickness == rlm.strikethroughThickness
-		 && underlineOffset == rlm.underlineOffset
-		 && underlineThickness == rlm.underlineThickness;
-	    }
-	    catch (ClassCastException e) {
-	    }
-	  }
-	  return false;
-	}
+    public float getItalicAngle() {
+	AffineTransform at = (isTransformed()) ? getTransform() : identityTx;
+	return getFont2D().getItalicAngle(this, at, false, false);
     }
 
     /**
@@ -1587,30 +1784,57 @@ public class Font implements java.io.Serializable
         return false;   // REMIND always safe, but prevents caller optimize
     }
 
+    private transient SoftReference flmref;
     private FontLineMetrics defaultLineMetrics(FontRenderContext frc) {
-        FontLineMetrics flm = new FontLineMetrics();
+        FontLineMetrics flm = null;
+        if (flmref == null
+            || (flm = (FontLineMetrics)flmref.get()) == null
+            || !flm.frc.equals(frc)) {
+            
+            /* The device transform in the frc is not used in obtaining line
+             * metrics, although it probably should be: REMIND find why not?
+             * The font transform is used but its applied in getFontMetrics, so
+             * just pass identity here
+             */
+            float [] metrics = new float[4];
+            getFont2D().getFontMetrics(this, identityTx,
+                                       frc.isAntiAliased(),
+                                       frc.usesFractionalMetrics(),
+                                       metrics);
+            float ascent  = metrics[0];
+            float descent = metrics[1];
+            float leading = metrics[2];
+            float ssOffset = 0;
+            if (superscript != 0) {
+                ssOffset = (float)getTransform().getTranslateY();
+                ascent -= ssOffset;
+                descent += ssOffset;
+            }
+            float height = ascent + descent + leading;
 
-        double [] matrix = getMatrix();
-        float [] metrics = new float[4];
-        NativeFontWrapper.getFontMetrics(this, matrix,
-                                        frc.isAntiAliased(),
-                                        frc.usesFractionalMetrics(),
-                                        metrics);
+            int baselineIndex = 0; // need real index, assumes roman for everything
+            float[] baselineOffsets = { 0, (descent/2f - ascent) / 2f, -ascent }; // need real baselines eventually
 
-        flm.ascent      = metrics[0];
-        flm.descent     = metrics[1];
-        flm.leading     = metrics[2];
-        flm.height      = metrics[0] + metrics[1] + metrics[2];
-        flm.baselineIndex       = 0;
-        flm.baselineOffsets     = new float[3];
-        flm.baselineOffsets[0]  = 0;
+            // !!! desperately need real data here
+            float strikethroughOffset = ssOffset -(metrics[0] / 2.5f);
+            float strikethroughThickness  = (float)(Math.log(pointSize / 4));
 
-        flm.strikethroughOffset     = -(flm.ascent / 3.0f);
-        flm.strikethroughThickness  = pointSize / 12.0f;
+            float underlineOffset = ssOffset + strikethroughThickness / 1.5f;
+            float underlineThickness = strikethroughThickness;
 
-        flm.underlineOffset     = 0f;
-        flm.underlineThickness  = pointSize / 12.0f;
-        return flm;
+            float italicAngle = getItalicAngle();
+
+            CoreMetrics cm = new CoreMetrics(ascent, descent, leading, height,
+                                             baselineIndex, baselineOffsets,
+                                             strikethroughOffset, strikethroughThickness,
+                                             underlineOffset, underlineThickness,
+                                             ssOffset, italicAngle);
+
+            flm = new FontLineMetrics(0, cm, frc);
+            flmref = new SoftReference(flm);
+        }
+
+        return (FontLineMetrics)flm.clone();
     }
 
     /**
@@ -1863,12 +2087,10 @@ public class Font implements java.io.Serializable
      * for the character with the maximum bounds.
      */
     public Rectangle2D getMaxCharBounds(FontRenderContext frc) {
-        double [] matrix = getMatrix();
-        float [] metrics = new float[4];
-        NativeFontWrapper.getFontMetrics(this, matrix,
-                                        frc.isAntiAliased(),
-                                        frc.usesFractionalMetrics(),
-                                        metrics);
+        float [] metrics = new float[4]; 
+
+	getFont2D().getFontMetrics(this, frc, metrics);
+
         return new Rectangle2D.Float(0, -metrics[0],
                                 metrics[3],
                                 metrics[0] + metrics[1] + metrics[2]);
@@ -1998,7 +2220,12 @@ public class Font implements java.io.Serializable
 					 int start,
 					 int limit,
 					 int flags) {
-      return new StandardGlyphVector(this, text, start, limit-start, flags, frc);
+
+      GlyphLayout gl = GlyphLayout.get(null); // !!! no custom layout engines
+      StandardGlyphVector gv = gl.layout(this, frc, text,
+					 start, limit, flags, null);
+      GlyphLayout.done(gl);
+      return gv;
     }
 
     /**

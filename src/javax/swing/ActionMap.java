@@ -1,7 +1,7 @@
 /*
- * @(#)ActionMap.java	1.12 03/01/23
+ * @(#)ActionMap.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -34,12 +34,12 @@ import java.util.Set;
  *
  * @see InputMap
  *
- * @version 1.12 01/23/03
+ * @version 1.14 12/19/03
  * @author Scott Violet
  */
 public class ActionMap implements Serializable {
     /** Handles the mapping between Action name and Action. */
-    private transient AbstractAction.ArrayTable     arrayTable;
+    private transient ArrayTable     arrayTable;
     /** Parent that handles any bindings we don't contain. */
     private ActionMap                               parent;
 
@@ -85,7 +85,7 @@ public class ActionMap implements Serializable {
 	}
 	else {
 	    if (arrayTable == null) {
-		arrayTable = new AbstractAction.ArrayTable();
+		arrayTable = new ArrayTable();
 	    }
 	    arrayTable.put(key, action);
 	}
@@ -192,7 +192,7 @@ public class ActionMap implements Serializable {
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
 
-        AbstractAction.ArrayTable.writeArrayTable(s, arrayTable);
+        ArrayTable.writeArrayTable(s, arrayTable);
     }
 
     private void readObject(ObjectInputStream s) throws ClassNotFoundException,

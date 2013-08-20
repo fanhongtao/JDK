@@ -1,7 +1,7 @@
 /*
- * @(#)CertStoreSpi.java	1.5 03/01/23
+ * @(#)CertStoreSpi.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import java.util.Collection;
  * <code>engineGetCertificates</code> and <code>engineGetCRLs</code> methods.
  * More sophisticated ones may allow truly concurrent access.
  *
- * @version 	1.5 01/23/03
+ * @version 	1.7 12/19/03
  * @since	1.4
  * @author	Steve Hanna
  */
@@ -75,8 +75,8 @@ public abstract class CertStoreSpi {
      *         match the specified selector (never <code>null</code>)
      * @throws CertStoreException if an exception occurs 
      */
-    public abstract Collection engineGetCertificates(CertSelector selector)
-        throws CertStoreException;
+    public abstract Collection<? extends Certificate> engineGetCertificates
+	    (CertSelector selector) throws CertStoreException;
      
     /**
      * Returns a <code>Collection</code> of <code>CRL</code>s that
@@ -103,6 +103,6 @@ public abstract class CertStoreSpi {
      *         match the specified selector (never <code>null</code>)
      * @throws CertStoreException if an exception occurs 
      */
-    public abstract Collection engineGetCRLs(CRLSelector selector)
-        throws CertStoreException;
+    public abstract Collection<? extends CRL> engineGetCRLs
+	    (CRLSelector selector) throws CertStoreException;
 }

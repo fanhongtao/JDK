@@ -1,7 +1,7 @@
 /*
- * @(#)MotifMenuUI.java	1.30 03/01/23
+ * @(#)MotifMenuUI.java	1.32 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.motif;
@@ -16,13 +16,12 @@ import javax.swing.plaf.basic.*;
 
 
 import javax.swing.plaf.basic.BasicMenuUI;
-import javax.swing.plaf.basic.BasicGraphicsUtils;
 
 /**
  * A Motif L&F implementation of MenuUI.  
  * <p>
  *
- * @version 1.30 01/23/03
+ * @version 1.32 12/19/03
  * @author Georges Saab
  * @author Rich Schiavi
  */

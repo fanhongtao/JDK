@@ -1,7 +1,7 @@
 /*
- * @(#)ByteBufferAs-X-Buffer.java	1.14 03/01/23
+ * @(#)ByteBufferAs-X-Buffer.java	1.17 04/05/03
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -57,6 +57,7 @@ class ByteBufferAsIntBufferB			// package-private
 	assert (pos <= lim);
 	int rem = (pos <= lim ? lim - pos : 0);
 	int off = (pos << 2) + offset;
+        assert (off >= 0);
 	return new ByteBufferAsIntBufferB(bb, -1, 0, rem, rem, off);
     }
 
@@ -144,6 +145,8 @@ class ByteBufferAsIntBufferB			// package-private
     public boolean isReadOnly() {
 	return false;
     }
+
+
 
 
 

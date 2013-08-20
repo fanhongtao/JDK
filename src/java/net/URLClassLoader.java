@@ -1,7 +1,7 @@
 /*
- * @(#)URLClassLoader.java	1.82 07/04/10
+ * @(#)URLClassLoader.java	1.85 04/08/02
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,6 +22,7 @@ import java.util.StringTokenizer;
 import java.util.jar.Manifest;
 import java.util.jar.Attributes;
 import java.util.jar.Attributes.Name;
+import java.security.CodeSigner;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.security.AccessController;
@@ -49,7 +50,7 @@ import sun.security.util.SecurityConstants;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.82, 04/10/07
+ * @version 1.85, 08/02/04
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -180,7 +181,7 @@ public class URLClassLoader extends SecureClassLoader {
      * @return the resulting class
      * @exception ClassNotFoundException if the class could not be found
      */
-    protected Class findClass(final String name)
+    protected Class<?> findClass(final String name)
 	 throws ClassNotFoundException
     {
 	try {
@@ -245,10 +246,19 @@ public class URLClassLoader extends SecureClassLoader {
 	    }
 	}
 	// Now read the class bytes and define the class
-	byte[] b = res.getBytes();
-	java.security.cert.Certificate[] certs = res.getCertificates();
-	CodeSource cs = new CodeSource(url, certs);
-	return defineClass(name, b, 0, b.length, cs);
+	java.nio.ByteBuffer bb = res.getByteBuffer();
+	if (bb != null) {
+	    // Use (direct) ByteBuffer:
+	    CodeSigner[] signers = res.getCodeSigners();
+	    CodeSource cs = new CodeSource(url, signers);
+	    return defineClass(name, bb, cs);
+	} else {
+	    byte[] b = res.getBytes();
+	    // must read certificates AFTER reading bytes.
+	    CodeSigner[] signers = res.getCodeSigners();
+	    CodeSource cs = new CodeSource(url, signers);
+	    return defineClass(name, b, 0, b.length, cs);
+	}
     }
 
     /**
@@ -364,10 +374,12 @@ public class URLClassLoader extends SecureClassLoader {
      * @exception IOException if an I/O exception occurs
      * @return an <code>Enumeration</code> of <code>URL</code>s
      */
-    public Enumeration findResources(final String name) throws IOException {
+    public Enumeration<URL> findResources(final String name)
+	throws IOException
+    {
         final Enumeration e = ucp.findResources(name, true);
 
-	return new Enumeration() {
+	return new Enumeration<URL>() {
 	    private URL url = null;
 
 	    private boolean next() {
@@ -390,7 +402,7 @@ public class URLClassLoader extends SecureClassLoader {
 		return url != null;
 	    }
 
-	    public Object nextElement() {
+	    public URL nextElement() {
 		if (!next()) {
 		    throw new NoSuchElementException();
 		}
@@ -457,12 +469,13 @@ public class URLClassLoader extends SecureClassLoader {
 	} else {
 	    URL locUrl = url;
 	    if (urlConnection instanceof JarURLConnection) {
-	        locUrl = ((JarURLConnection)urlConnection).getJarFileURL();
+		locUrl = ((JarURLConnection)urlConnection).getJarFileURL();
 	    }
 	    String host = locUrl.getHost();
-	    if (host != null && (host.length() > 0))
-	    	p = new SocketPermission(host,
-					SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION);
+	    if (host == null)
+		host = "localhost";
+	    p = new SocketPermission(host,
+		SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION);
 	}
 
 	// make sure the person that created this class loader
@@ -559,16 +572,9 @@ final class FactoryURLClassLoader extends URLClassLoader {
 	// should go away once we've added support for exported packages.
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null) {
-            String cname = name.replace('/', '.');
-            if (cname.startsWith("[")) {
-                int b = cname.lastIndexOf('[') + 2;
-                if (b > 1 && b < cname.length()) {
-                    cname = cname.substring(b);
-                }
-            }
-	    int i = cname.lastIndexOf('.');
+	    int i = name.lastIndexOf('.');
 	    if (i != -1) {
-		sm.checkPackageAccess(cname.substring(0, i));
+		sm.checkPackageAccess(name.substring(0, i));
 	    }
 	}
 	return super.loadClass(name, resolve);

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultSingleSelectionModel.java	1.33 03/01/23
+ * @(#)DefaultSingleSelectionModel.java	1.35 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.33 01/23/03
+ * @version 1.35 05/05/04
  * @author Dave Moore
  */
 public class DefaultSingleSelectionModel implements SingleSelectionModel, 
@@ -153,7 +153,7 @@ Serializable {
      *
      * @since 1.3
      */
-    public EventListener[] getListeners(Class listenerType) { 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
 	return listenerList.getListeners(listenerType); 
     }
 }

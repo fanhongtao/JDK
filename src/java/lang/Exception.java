@@ -1,7 +1,7 @@
 /*
- * @(#)Exception.java	1.30 03/01/23
+ * @(#)Exception.java	1.31 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ package java.lang;
  * application might want to catch.
  *
  * @author  Frank Yellin
- * @version 1.30, 01/23/03
+ * @version 1.31, 12/19/03
  * @see     java.lang.Error
  * @since   JDK1.0
  */

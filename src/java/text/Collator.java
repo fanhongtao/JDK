@@ -1,7 +1,7 @@
 /*
- * @(#)Collator.java	1.34 03/01/27
+ * @(#)Collator.java	1.39 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -101,11 +101,13 @@ import sun.text.resources.LocaleData;
  * @see         CollationKey
  * @see         CollationElementIterator
  * @see         Locale
- * @version     1.34, 01/27/03
+ * @version     1.39, 05/05/04
  * @author      Helena Shih, Laura Werner, Richard Gillam
  */
 
-public abstract class Collator implements java.util.Comparator, Cloneable {
+public abstract class Collator
+    implements java.util.Comparator<Object>, Cloneable
+{
     /**
      * Collator strength value.  When set, only PRIMARY differences are
      * considered significant during comparison. The assignment of strengths
@@ -143,7 +145,7 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
      * PRIMARY, SECONDARY, and TERTIARY levels but different at the IDENTICAL
      * level.  Additionally, differences between pre-composed accents such as
      * "&#092;u00C0" (A-grave) and combining accents such as "A&#092;u0300"
-     * (A, combining-grave) will be considered significant at the tertiary
+     * (A, combining-grave) will be considered significant at the IDENTICAL
      * level if decomposition is set to NO_DECOMPOSITION.
      */
     public final static int IDENTICAL = 3;
@@ -160,9 +162,9 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
 
     /**
      * Decomposition mode value. With CANONICAL_DECOMPOSITION
-     * set, characters that are canonical variants according to Unicode 2.0
-     * will be decomposed for collation. This 
-     * should be used to get correct collation of accented characters.
+     * set, characters that are canonical variants according to Unicode 
+     * standard will be decomposed for collation. This should be used to get 
+     * correct collation of accented characters.
      * <p>
      * CANONICAL_DECOMPOSITION corresponds to Normalization Form D as
      * described in 
@@ -403,8 +405,14 @@ public abstract class Collator implements java.util.Comparator, Cloneable {
     }
 
     /**
-     * Get the set of Locales for which Collators are installed.
-     * @return the list of available locales which collators are installed.
+     * Returns an array of all locales for which the
+     * <code>getInstance</code> methods of this class can return
+     * localized instances.
+     * The array returned must contain at least a <code>Locale</code>
+     * instance equal to {@link java.util.Locale#US Locale.US}.
+     *
+     * @return An array of locales for which localized
+     *         <code>Collator</code> instances are available.
      */
     public static synchronized Locale[] getAvailableLocales() {
         return LocaleData.getAvailableLocales("CollationElements");

@@ -1,7 +1,7 @@
 /*
- * @(#)DataLine.java	1.27 03/01/23
+ * @(#)DataLine.java	1.33 04/07/14
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ package javax.sound.sampled;
  * for a more complete description.
  *
  * @author Kara Kytle
- * @version 1.27, 03/01/23
+ * @version 1.33, 04/07/14
  * @see LineEvent
  * @since 1.3
  */
@@ -145,6 +145,17 @@ public interface DataLine extends Line {
     /**
      * Obtains the current format (encoding, sample rate, number of channels,
      * etc.) of the data line's audio data.
+     *
+     * <p>If the line is not open and has never been opened, it returns
+     * the default format. The default format is an implementation
+     * specific audio format, or, if the <code>DataLine.Info</code>
+     * object, which was used to retrieve this <code>DataLine</code>,
+     * specifies at least one fully qualified audio format, the
+     * last one will be used as the default format. Opening the
+     * line with a specific audio format (e.g.
+     * {@link SourceDataLine#open(AudioFormat)}) will override the
+     * default format.
+     *
      * @return current audio data format
      * @see AudioFormat
      */
@@ -159,11 +170,6 @@ public interface DataLine extends Line {
      * number of sample frames of audio data.
      *
      * @return the size of the buffer in bytes
-     */
-    /*
-     * ISSUE: frames or bytes??
-     * $$kk: 09.22.99: Should be bytes by analogy with read and write methods,
-     * i should think!
      */
     public int getBufferSize();
     
@@ -192,10 +198,26 @@ public interface DataLine extends Line {
      * Obtains the current position in the audio data, in sample frames.
      * The frame position measures the number of sample
      * frames captured by, or rendered from, the line since it was opened.
+     * This return value will wrap around after 2^31 frames. It is recommended
+     * to use <code>getLongFramePosition</code> instead.
+     *
      * @return the number of frames already processed since the line was opened
+     * @see #getLongFramePosition()
      */
     public int getFramePosition();
     
+
+    /**
+     * Obtains the current position in the audio data, in sample frames.
+     * The frame position measures the number of sample
+     * frames captured by, or rendered from, the line since it was opened.
+     *
+     * @return the number of frames already processed since the line was opened
+     * @since 1.5
+     */
+    public long getLongFramePosition();
+ 
+
     /**
      * Obtains the current position in the audio data, in microseconds.
      * The microsecond position measures the time corresponding to the number
@@ -239,7 +261,7 @@ public interface DataLine extends Line {
      *
      * @see Line.Info
      * @author Kara Kytle
-     * @version 1.27, 03/01/23
+     * @version 1.33, 04/07/14
      * @since 1.3
      */
     public static class Info extends Line.Info {
@@ -259,7 +281,7 @@ public interface DataLine extends Line {
 	 * @param minBufferSize minimum buffer size supported by the data line, in bytes
 	 * @param maxBufferSize maximum buffer size supported by the data line, in bytes
 	 */
-	public Info(Class lineClass, AudioFormat[] formats, int minBufferSize, int maxBufferSize) {
+	public Info(Class<?> lineClass, AudioFormat[] formats, int minBufferSize, int maxBufferSize) {
 	    
 	    super(lineClass);
 	    
@@ -284,7 +306,7 @@ public interface DataLine extends Line {
 	 * @param format desired format
 	 * @param bufferSize desired buffer size in bytes
 	 */
-	public Info(Class lineClass, AudioFormat format, int bufferSize) {
+	public Info(Class<?> lineClass, AudioFormat format, int bufferSize) {
 	    
 	    super(lineClass);
 	    
@@ -309,7 +331,7 @@ public interface DataLine extends Line {
 	 * @param lineClass the class of the data line described by the info object
 	 * @param format desired format
 	 */
-	public Info(Class lineClass, AudioFormat format) {
+	public Info(Class<?> lineClass, AudioFormat format) {
 	    this(lineClass, format, AudioSystem.NOT_SPECIFIED);
 	}
 	
@@ -321,6 +343,16 @@ public interface DataLine extends Line {
 	 * the set returned by <code>getFormats()</code>.  The reverse is not
 	 * the case: <code>isFormatSupported(AudioFormat)</code> is guaranteed to return
 	 * <code>true</code> for all formats returned by <code>getFormats()</code>.
+	 *
+	 * Some fields in the AudioFormat instances can be set to
+	 * {@link javax.sound.sampled.AudioSystem#NOT_SPECIFIED NOT_SPECIFIED}
+	 * if that field does not apply to the format,
+	 * or if the format supports a wide range of values for that field.
+	 * For example, a multi-channel device supporting up to
+	 * 64 channels, could set the channel field in the
+	 * <code>AudioFormat</code> instances returned by this
+	 * method to <code>NOT_SPECIFIED</code>.
+	 *
 	 * @return a set of supported audio formats.
 	 * @see #isFormatSupported(AudioFormat)
 	 */
@@ -387,14 +419,17 @@ public interface DataLine extends Line {
 	    }
 	    
 	    Info dataLineInfo = (Info)info;
-	    
-	    if ((getMaxBufferSize() != AudioSystem.NOT_SPECIFIED) && (dataLineInfo.getMaxBufferSize() != AudioSystem.NOT_SPECIFIED)) {
+
+	    // treat anything < 0 as NOT_SPECIFIED
+	    // demo code in old Java Sound Demo used a wrong buffer calculation
+	    // that would lead to arbitrary negative values
+	    if ((getMaxBufferSize() >= 0) && (dataLineInfo.getMaxBufferSize() >= 0)) {
 		if (getMaxBufferSize() > dataLineInfo.getMaxBufferSize()) {
 		    return false;
 		}
 	    }
 	    
-	    if ((getMinBufferSize() != AudioSystem.NOT_SPECIFIED) && (dataLineInfo.getMinBufferSize() != AudioSystem.NOT_SPECIFIED)) {
+	    if ((getMinBufferSize() >= 0) && (dataLineInfo.getMinBufferSize() >= 0)) {
 		if (getMinBufferSize() < dataLineInfo.getMinBufferSize()) {
 		    return false;
 		}

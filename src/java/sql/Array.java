@@ -1,7 +1,7 @@
 /*
- * @(#)Array.java	1.21 03/01/23
+ * @(#)Array.java	1.23 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -114,7 +114,7 @@ public interface Array {
    *                         access the array
    * @since 1.2
    */
-  Object getArray(java.util.Map map) throws SQLException;
+  Object getArray(java.util.Map<String,Class<?>> map) throws SQLException;
 
   /**
    * Retrieves a slice of the SQL <code>ARRAY</code>
@@ -163,7 +163,7 @@ public interface Array {
    * access the array
    * @since 1.2
    */
-  Object getArray(long index, int count, java.util.Map map) 
+  Object getArray(long index, int count, java.util.Map<String,Class<?>> map)
     throws SQLException;
 
   /**
@@ -216,7 +216,7 @@ public interface Array {
    * access the array
    * @since 1.2
    */
-  ResultSet getResultSet (java.util.Map map) throws SQLException;
+  ResultSet getResultSet (java.util.Map<String,Class<?>> map) throws SQLException;
 
   /**
    * Retrieves a result set holding the elements of the subarray that
@@ -280,7 +280,8 @@ public interface Array {
    * access the array
    * @since 1.2
    */
-  ResultSet getResultSet (long index, int count, java.util.Map map)
+  ResultSet getResultSet (long index, int count,
+			  java.util.Map<String,Class<?>> map)
     throws SQLException;
 
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)SolarisLoginModule.java	1.7 03/01/23
+ * @(#)SolarisLoginModule.java	1.10 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,6 +35,7 @@ import com.sun.security.auth.SolarisNumericGroupPrincipal;
  *
  * @version 1.19, 01/11/00
  */
+@Deprecated
 public class SolarisLoginModule implements LoginModule {
 
     // initial state
@@ -77,7 +78,9 @@ public class SolarisLoginModule implements LoginModule {
      *			<code>LoginModule</code>.
      */
     public void initialize(Subject subject, CallbackHandler callbackHandler,
-			Map sharedState, Map options) {
+			   Map<String,?> sharedState,
+			   Map<String,?> options)
+    {
 
 	this.subject = subject;
 	this.callbackHandler = callbackHandler;

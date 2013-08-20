@@ -1,7 +1,7 @@
 /*
- * @(#)Util.java	1.42 03/01/23
+ * @(#)Util.java	1.45 04/06/21
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -18,6 +18,7 @@ package javax.rmi.CORBA;
 import java.rmi.RemoteException;
 
 import org.omg.CORBA.ORB;
+import org.omg.CORBA.INITIALIZE;
 import org.omg.CORBA.SystemException;
 import org.omg.CORBA.Any;
 import org.omg.CORBA.portable.InputStream;
@@ -28,13 +29,14 @@ import javax.rmi.CORBA.Tie;
 import java.rmi.Remote;
 import java.io.File;
 import java.io.FileInputStream;
-
+import java.net.MalformedURLException ;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import sun.security.action.GetPropertyAction;
 import java.util.Properties;
+import java.rmi.server.RMIClassLoader;
 
-import com.sun.corba.se.internal.util.JDKBridge;
+import com.sun.corba.se.impl.orbutil.GetPropertyAction;
+
 /**
  * Provides utility methods that can be used by stubs and ties to
  * perform common operations.
@@ -45,7 +47,7 @@ public class Util {
     private static javax.rmi.CORBA.UtilDelegate utilDelegate = null;
     private static final String UtilClassKey = "javax.rmi.CORBA.UtilClass";
     private static final String defaultUtilImplName = 
-"com.sun.corba.se.internal.POA.ShutdownUtilDelegate";
+"com.sun.corba.se.impl.javax.rmi.CORBA.Util";
 
     static {
 	utilDelegate = (javax.rmi.CORBA.UtilDelegate)
@@ -232,7 +234,7 @@ Tie#deactivate}
 	if (utilDelegate != null) {
 	    return utilDelegate.loadClass(className,remoteCodebase,loader);
 	}  
-	return JDKBridge.loadClass(className, remoteCodebase, loader);
+	return null ;
     }
 
 
@@ -320,8 +322,9 @@ Tie#deactivate}
     // are in different packages and the visibility needs to be package for
     // security reasons. If you know a better solution how to share this code
     // then remove it from PortableRemoteObject. Also in Stub.java
-    private static Object createDelegateIfSpecified(String classKey, String 
-defaultClassName) {
+    private static Object createDelegateIfSpecified(String classKey, 
+	String defaultClassName) 
+    {
         String className = (String)
             AccessController.doPrivileged(new GetPropertyAction(classKey));
         if (className == null) {
@@ -336,24 +339,42 @@ defaultClassName) {
 	}
 
         try {
-            return Util.loadClass(className, null, null).newInstance();
+            return loadDelegateClass(className).newInstance();
         } catch (ClassNotFoundException ex) {
-            throw new org.omg.CORBA.INITIALIZE(
-                                              "cannot instantiate " + className);
+	    INITIALIZE exc = new INITIALIZE( "Cannot instantiate " + className);
+	    exc.initCause( ex ) ;
+	    throw exc ;
         } catch (Exception ex) {
-            throw new org.omg.CORBA.INITIALIZE(
-                                              "cannot instantiate " + className);
+	    INITIALIZE exc = new INITIALIZE( "Error while instantiating" + className);
+	    exc.initCause( ex ) ;
+	    throw exc ;
         }
-
     }
 
+    private static Class loadDelegateClass( String className )  throws ClassNotFoundException
+    {
+	try {
+	    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+	    return Class.forName(className, false, loader);
+	} catch (ClassNotFoundException e) {
+	    // ignore, then try RMIClassLoader
+	}
 
+	try {
+	    return RMIClassLoader.loadClass(className);
+	} catch (MalformedURLException e) {
+	    String msg = "Could not load " + className + ": " + e.toString();
+	    ClassNotFoundException exc = new ClassNotFoundException( msg ) ; 
+	    throw exc ;
+	}
+    }
     /**
      * Load the orb.properties file.
      */
-    private static Properties getORBPropertiesFile () {
-        return (Properties) AccessController.doPrivileged(new 
-GetORBPropertiesFileAction());
+    private static Properties getORBPropertiesFile () 
+    {
+        return (Properties) AccessController.doPrivileged(
+	    new GetORBPropertiesFileAction());
     }
 
 }

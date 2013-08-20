@@ -1,12 +1,13 @@
 /*
- * @(#)JLayeredPane.java	1.45 03/01/23
+ * @(#)JLayeredPane.java	1.54 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
 
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -153,7 +154,7 @@ public class JLayeredPane extends JComponent implements Accessible {
     /** Bound property */
     public final static String LAYER_PROPERTY = "layeredContainerLayer";
     // Hashtable to store layer values for non-JComponent components
-    private Hashtable componentToLayer;
+    private Hashtable<Component,Integer> componentToLayer;
     private boolean optimizedDrawingPossible = true;
 
 
@@ -168,14 +169,13 @@ public class JLayeredPane extends JComponent implements Accessible {
     private void validateOptimizedDrawing() {
         boolean layeredComponentFound = false;
         synchronized(getTreeLock()) {
-            int i,d;
             Integer layer = null;
 
-            for(i=0,d=getComponentCount();i<d;i++) {
+            for (Component c : getComponents()) {
                 layer = null;
-                if(getComponent(i) instanceof JInternalFrame ||
-                   (getComponent(i) instanceof JComponent &&
-                    (layer = (Integer)((JComponent)getComponent(i)).getClientProperty(LAYER_PROPERTY)) != null)) {
+                if(c instanceof JInternalFrame || (c instanceof JComponent &&
+                         (layer = (Integer)((JComponent)c).getClientProperty(
+                          LAYER_PROPERTY)) != null)) {
                     if(layer != null && layer.equals(FRAME_CONTENT_LAYER))
                         continue;
                     layeredComponentFound = true;
@@ -221,6 +221,23 @@ public class JLayeredPane extends JComponent implements Accessible {
             getComponentToLayer().remove(c);
         }
         validateOptimizedDrawing();
+    }
+
+    /** 
+     * Removes all the components from this container.
+     *
+     * @since 1.5
+     */
+    public void removeAll() {
+        Component[] children = getComponents();
+        Hashtable cToL = getComponentToLayer();
+        for (int counter = children.length - 1; counter >= 0; counter--) {
+            Component c = children[counter];
+            if (c != null && !(c instanceof JComponent)) {
+                cToL.remove(c);
+            }
+        }
+        super.removeAll();
     }
 
     /**
@@ -317,9 +334,6 @@ public class JLayeredPane extends JComponent implements Accessible {
         layerObj = getObjectForLayer(layer);
 
         if(layer == getLayer(c) && position == getPosition(c)) {
-            if(c instanceof JComponent)
-                repaint(((JComponent)c)._bounds);
-            else
                 repaint(c.getBounds());
             return;
         }
@@ -330,27 +344,15 @@ public class JLayeredPane extends JComponent implements Accessible {
         else
             getComponentToLayer().put((Component)c, layerObj);
         
-        if(c.getParent() == null || c.getParent() != this)      {
-            if(c instanceof JComponent)
-                repaint(((JComponent)c)._bounds);
-            else
-                repaint(c.getBounds());
+        if(c.getParent() == null || c.getParent() != this) {
+            repaint(c.getBounds());
             return;
         }
 
-        // Remove the Component and re-add after re-setting the layer
-        // this is necessary now because I have no access to the
-        // components[] in Container, to reorder things.
-        remove(c);
+        int index = insertIndexForLayer(c, layer, position);
 
-        // ALERT passing NULL here for the constraints may be bad
-        // the current hacks to fix this smell bad right now. 
-        // Cannot override 
-        add(c, null, position);
-        if(c instanceof JComponent)
-            repaint(((JComponent)c)._bounds);
-        else
-            repaint(c.getBounds());
+        setComponentZOrder(c, index);
+        repaint(c.getBounds());
     }
 
     /** 
@@ -409,7 +411,7 @@ public class JLayeredPane extends JComponent implements Accessible {
      * @see #setPosition(Component, int) 
      */
     public void moveToBack(Component c) {
-        setPosition(c, getComponentCountInLayer(getLayer(c)));
+        setPosition(c, -1);
     }
 
     /**
@@ -566,9 +568,9 @@ public class JLayeredPane extends JComponent implements Accessible {
      *
      * @return the Hashtable used to map components to their layers
      */
-    protected Hashtable getComponentToLayer() {
+    protected Hashtable<Component,Integer> getComponentToLayer() {
         if(componentToLayer == null)
-            componentToLayer = new Hashtable(4);
+            componentToLayer = new Hashtable<Component,Integer>(4);
         return componentToLayer;
     }
     
@@ -613,18 +615,44 @@ public class JLayeredPane extends JComponent implements Accessible {
      * @see #getIndexOf
      */
     protected int insertIndexForLayer(int layer, int position) {
+        return insertIndexForLayer(null, layer, position);
+    }
+
+    /** 
+     * This method is an extended version of insertIndexForLayer()
+     * to support setLayer which uses Container.setZOrder which does
+     * not remove the component from the containment heirarchy though
+     * we need to ignore it when calculating the insertion index.
+     * 
+     * @param comp      component to ignore when determining index
+     * @param layer     an int specifying the layer
+     * @param position  an int specifying the position within the layer
+     * @return an int giving the (absolute) insertion-index
+     *
+     * @see #getIndexOf
+     */
+    private int insertIndexForLayer(Component comp, int layer, int position) {
         int i, count, curLayer;
         int layerStart = -1;
         int layerEnd = -1;
+        int componentCount = getComponentCount();
         
-        count = getComponentCount();
-        for(i = 0; i < count; i++) {
-            curLayer = getLayer(getComponent(i));               
-            if(layerStart == -1 && curLayer == layer) {
+        ArrayList<Component> compList =
+            new ArrayList<Component>(componentCount);
+        for (int index = 0; index < componentCount; index++) {
+            if (getComponent(index) != comp) {
+                compList.add(getComponent(index));
+            }
+        }
+
+        count = compList.size();
+        for (i = 0; i < count; i++) {
+            curLayer = getLayer(compList.get(i));               
+            if (layerStart == -1 && curLayer == layer) {
                 layerStart = i;
             }   
-            if(curLayer < layer ) {
-                if(i == 0) { 
+            if (curLayer < layer) {
+                if (i == 0) { 
                     // layer is greater than any current layer  
                     // [ ASSERT(layer > highestLayer()) ] 
                     layerStart = 0;
@@ -639,29 +667,28 @@ public class JLayeredPane extends JComponent implements Accessible {
         // layer requested is lower than any current layer
         // [ ASSERT(layer < lowestLayer()) ] 
         // put it on the bottom of the stack
-        if(layerStart == -1 && layerEnd == -1)
+        if (layerStart == -1 && layerEnd == -1)
             return count;
 
         // In the case of a single layer entry handle the degenerative cases
-        if(layerStart != -1 && layerEnd == -1)
+        if (layerStart != -1 && layerEnd == -1)
             layerEnd = count;
         
-        if(layerEnd != -1 && layerStart == -1)
+        if (layerEnd != -1 && layerStart == -1)
             layerStart = layerEnd;
         
         // If we are adding to the bottom, return the last element
-        if(position == -1)
+        if (position == -1)
             return layerEnd;
         
         // Otherwise make sure the requested position falls in the 
         // proper range
-        if(position > -1 && layerStart + position <= layerEnd)
+        if (position > -1 && layerStart + position <= layerEnd)
             return layerStart + position;
         
         // Otherwise return the end of the layer
         return layerEnd;
     }
-
 
     /**
      * Returns a string representation of this JLayeredPane. This method 

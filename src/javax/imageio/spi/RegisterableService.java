@@ -1,7 +1,7 @@
 /*
- * @(#)RegisterableService.java	1.7 03/01/23
+ * @(#)RegisterableService.java	1.9 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ public interface RegisterableService {
      * @param category a <code>Class</code> object indicating the
      * registry category under which this object has been registered.
      */
-    void onRegistration(ServiceRegistry registry, Class category);
+    void onRegistration(ServiceRegistry registry, Class<?> category);
 
     /**
      * Called when an object implementing this interface is removed
@@ -43,5 +43,5 @@ public interface RegisterableService {
      * @param category a <code>Class</code> object indicating the
      * registry category from which this object is being deregistered.
      */
-    void onDeregistration(ServiceRegistry registry, Class category);
+    void onDeregistration(ServiceRegistry registry, Class<?> category);
 }

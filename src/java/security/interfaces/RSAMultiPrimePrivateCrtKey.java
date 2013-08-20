@@ -1,7 +1,7 @@
 /*
- * @(#)RSAMultiPrimePrivateCrtKey.java	1.4 03/01/23
+ * @(#)RSAMultiPrimePrivateCrtKey.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,7 +17,7 @@ import java.security.spec.RSAOtherPrimeInfo;
  *
  * @author Valerie Peng
  *
- * @version 1.4 03/01/23
+ * @version 1.6 03/12/19
  * 
  * @see java.security.spec.RSAPrivateKeySpec
  * @see java.security.spec.RSAMultiPrimePrivateCrtKeySpec
@@ -28,6 +28,8 @@ import java.security.spec.RSAOtherPrimeInfo;
  */
 
 public interface RSAMultiPrimePrivateCrtKey extends RSAPrivateKey {
+
+    static final long serialVersionUID = 618058533534628008L;
 
     /**
      * Returns the public exponent.

@@ -1,7 +1,7 @@
 /*
- * @(#)JTextPane.java	1.87 03/01/23
+ * @(#)JTextPane.java	1.90 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -32,10 +32,6 @@ import javax.swing.plaf.*;
  * on the paragraph or character run.  Components and images may
  * be embedded in the flow of text.
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JTextPane"><code>JTextPane</code> key assignments</a>.
- * <p>
  * <dt><b><font size=+1>Newlines</font></b>
  * <dd>
  * For a discussion on how newlines are handled, see
@@ -57,7 +53,7 @@ import javax.swing.plaf.*;
  * description: A text component that can be marked up with attributes that are graphically represented.
  *
  * @author  Timothy Prinzing
- * @version 1.87 01/23/03
+ * @version 1.90 12/19/03
  * @see javax.swing.text.StyledEditorKit
  */
 public class JTextPane extends JEditorPane {
@@ -150,29 +146,11 @@ public class JTextPane extends JEditorPane {
      * @param content  the content to replace the selection with
      */
     public void replaceSelection(String content) {
-        replaceSelection(content, null);
+        replaceSelection(content, true);
     }
 
-    /**
-     * Replaces the currently selected content with new content
-     * represented by the given string.  If there is no selection
-     * this amounts to an insert of the given text.  If there
-     * is no replacement text this amounts to a removal of the
-     * current selection.  The replacement text will have attributes
-     * defined by the input parameter or those currently defined for
-     * input at the point of insertion if the parameter is null.
-     * If the document is not editable, beep and return.
-     * <p>
-     * This method is thread safe, although most Swing methods
-     * are not. Please see 
-     * <A HREF="http://java.sun.com/products/jfc/swingdoc-archive/threads.html">Threads
-     * and Swing</A> for more information.     
-     *
-     * @param content  the content to replace the selection with
-     * @param attr     the attributes to apply to the new content
-     */
-    private void replaceSelection(String content, AttributeSet attr) {
-        if (! isEditable()) {
+    private void replaceSelection(String content, boolean checkEditable) {
+        if (checkEditable && !isEditable()) {
 	    UIManager.getLookAndFeel().provideErrorFeedback(JTextPane.this);
             return;
         }
@@ -182,16 +160,16 @@ public class JTextPane extends JEditorPane {
                 Caret caret = getCaret();
                 int p0 = Math.min(caret.getDot(), caret.getMark());
                 int p1 = Math.max(caret.getDot(), caret.getMark());
+		AttributeSet attr = getInputAttributes().copyAttributes();
                 if (doc instanceof AbstractDocument) {
-                    ((AbstractDocument)doc).replace(p0, p1 - p0, content, 
-                              attr != null ? attr : getInputAttributes());
+                    ((AbstractDocument)doc).replace(p0, p1 - p0, content,attr);
                 }
                 else {
                     if (p0 != p1) {
                         doc.remove(p0, p1 - p0);
                     }
                     if (content != null && content.length() > 0) {
-                        doc.insertString(p0, content, attr != null ? attr : getInputAttributes());
+                        doc.insertString(p0, content, attr);
                     }
                 }
             } catch (BadLocationException e) {
@@ -233,7 +211,7 @@ public class JTextPane extends JEditorPane {
         MutableAttributeSet inputAttributes = getInputAttributes();
         inputAttributes.removeAttributes(inputAttributes);
         StyleConstants.setComponent(inputAttributes, c);
-        replaceSelection(" ", inputAttributes.copyAttributes());
+        replaceSelection(" ", false);
         inputAttributes.removeAttributes(inputAttributes);
     }
 
@@ -257,7 +235,7 @@ public class JTextPane extends JEditorPane {
         MutableAttributeSet inputAttributes = getInputAttributes();
         inputAttributes.removeAttributes(inputAttributes);
         StyleConstants.setIcon(inputAttributes, g);
-        replaceSelection(" ", inputAttributes.copyAttributes());
+        replaceSelection(" ", false);
         inputAttributes.removeAttributes(inputAttributes);
     }
 

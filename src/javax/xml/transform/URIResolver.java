@@ -1,10 +1,8 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * @(#)URIResolver.java	1.13 04/07/26
+ * 
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-
-/*
- * @(#)URIResolver.java	1.8 03/01/23
  */
 package javax.xml.transform;
 
@@ -19,8 +17,8 @@ public interface URIResolver {
      * an xsl:include, xsl:import, or document() function.
      *
      * @param href An href attribute, which may be relative or absolute.
-     * @param base The base URI in effect when the href attribute
-     * was encountered.
+     * @param base The base URI against which the first argument will be made
+     * absolute if the absolute URI is required.
      *
      * @return A Source object, or null if the href cannot be resolved,
      * and the processor should try to resolve the URI itself.

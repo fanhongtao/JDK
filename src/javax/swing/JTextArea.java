@@ -1,7 +1,7 @@
 /*
- * @(#)JTextArea.java	1.87 03/01/23
+ * @(#)JTextArea.java	1.92 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -77,10 +77,6 @@ import java.io.IOException;
  *    myArea.getDocument().addDocumentListener(myListener);
  * </pre>
  * <p>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JTextArea"><code>JTextArea</code> key assignments</a>.
- * <p>
  * <dt><b><font size=+1>Newlines</font></b>
  * <dd>
  * For a discussion on how newlines are handled, see
@@ -102,7 +98,7 @@ import java.io.IOException;
  * description: A multi-line area that displays plain text.
  * 
  * @author  Timothy Prinzing
- * @version 1.87 01/23/03
+ * @version 1.92 12/19/03
  * @see JTextPane
  * @see JEditorPane
  */
@@ -200,10 +196,14 @@ public class JTextArea extends JTextComponent {
 	if (columns < 0) {
 	    throw new IllegalArgumentException("columns: " + columns);
 	}
-	setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-			   JComponent.getManagingFocusForwardTraversalKeys());
-	setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
-			   JComponent.getManagingFocusBackwardTraversalKeys());
+        LookAndFeel.installProperty(this,
+                                    "focusTraversalKeysForward", 
+                                    JComponent.
+                                    getManagingFocusForwardTraversalKeys());
+        LookAndFeel.installProperty(this,
+                                    "focusTraversalKeysBackward", 
+                                    JComponent.
+                                    getManagingFocusBackwardTraversalKeys());
     }
 
     /**
@@ -614,9 +614,9 @@ public class JTextArea extends JTextComponent {
         Insets insets = getInsets();
 
         if (columns != 0) {
-	    d.width = Math.max(d.width, columns * getColumnWidth() +
-                               insets.left + insets.right);
-	}
+            d.width = Math.max(d.width, columns * getColumnWidth() + 
+                    insets.left + insets.right); 	
+        }
 	if (rows != 0) {
 	    d.height = Math.max(d.height, rows * getRowHeight() +
                                 insets.top + insets.bottom);

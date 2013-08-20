@@ -1,7 +1,7 @@
 /*
- * @(#)EventHandler.java	1.15 07/01/12
+ * @(#)EventHandler.java	1.14 04/05/05
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans; 
@@ -10,12 +10,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;
-import java.security.AccessControlContext;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import java.util.EventObject;
-import sun.reflect.misc.MethodUtil;
 
 /**
  * The <code>EventHandler</code> class provides 
@@ -210,7 +206,6 @@ public class EventHandler implements InvocationHandler {
     private String action;
     private String eventPropertyName;
     private String listenerMethodName; 
-    private AccessControlContext acc;
     
     /**
      * Creates a new <code>EventHandler</code> object;
@@ -230,7 +225,6 @@ public class EventHandler implements InvocationHandler {
      * @see #getListenerMethodName
      */
     public EventHandler(Object target, String action, String eventPropertyName, String listenerMethodName) {
-        this.acc = AccessController.getContext();
         this.target = target;
         this.action = action;
         this.eventPropertyName = eventPropertyName;
@@ -297,29 +291,28 @@ public class EventHandler implements InvocationHandler {
         String rest = getters.substring(Math.min(firstDot + 1, getters.length())); 
         
         try { 
-            Method getter = ReflectionUtils.getMethod(target.getClass(),  
-                                      "get" + NameGenerator.capitalize(first), 
-                                      new Class[]{}); 
+            Method getter = ReflectionUtils.getMethod(target.getClass(), 
+				      "get" + NameGenerator.capitalize(first),
+				      new Class[]{});
             if (getter == null) { 
-                getter = ReflectionUtils.getMethod(target.getClass(),  
-                                   "is" + NameGenerator.capitalize(first),  
-                                   new Class[]{}); 
+                getter = ReflectionUtils.getMethod(target.getClass(), 
+				   "is" + NameGenerator.capitalize(first), 
+				   new Class[]{});
             } 
             if (getter == null) { 
-                getter = ReflectionUtils.getMethod(target.getClass(), first,
-						   new Class[]{}); 
+                getter = ReflectionUtils.getMethod(target.getClass(), first, new Class[]{});
             } 
             if (getter == null) { 
-                throw new RuntimeException("No method called: " + first +
-                                           " defined on " + target);
+		throw new RuntimeException("No method called: " + first + 
+					   " defined on " + target); 
             } 
-            Object newTarget = MethodUtil.invoke(getter, target, new Object[]{});
+            Object newTarget = getter.invoke(target, new Object[]{}); 
             return applyGetters(newTarget, rest); 
         } 
         catch (Throwable e) { 
-            throw new RuntimeException("Failed to call method: " + first +
-                                       " on " + target, e); 
-        } 
+            throw new RuntimeException("Failed to call method: " + first + 
+				       " on " + target, e); 
+        }
     }
     
     /**
@@ -333,15 +326,7 @@ public class EventHandler implements InvocationHandler {
      * 
      * @see EventHandler
      */
-    public Object invoke(final Object proxy, final Method method, final Object[] arguments) { 
-         return AccessController.doPrivileged(new PrivilegedAction() { 
-             public Object run() { 
-                 return invokeInternal(proxy, method, arguments); 
-             } 
-         }, acc); 
-    } 
- 
-    private Object invokeInternal(Object proxy, Method method, Object[] arguments) {
+    public Object invoke(Object proxy, Method method, Object[] arguments) {
 
         String methodName = method.getName();
         if (method.getDeclaringClass() == Object.class)  {
@@ -370,24 +355,20 @@ public class EventHandler implements InvocationHandler {
             }
             try {
                 if (targetMethod == null) { 
-                    targetMethod = ReflectionUtils.getMethod(target.getClass(),
-                                                             action, argTypes); 
+                    targetMethod = ReflectionUtils.getMethod(target.getClass(), 
+							     action, argTypes);
                 }
                 if (targetMethod == null) { 
-                    targetMethod = ReflectionUtils.getMethod(target.getClass(),
-                        "set" + NameGenerator.capitalize(action), argTypes);
+                    targetMethod = ReflectionUtils.getMethod(target.getClass(), 
+			     "set" + NameGenerator.capitalize(action), argTypes);
                 }
-                if (targetMethod == null) {
-                    String argTypeString = (argTypes.length == 0)
-                                           ? " with no arguments"
-                                           : " with argument " + argTypes[0];
-                    throw new RuntimeException("No method called: " +
-                                               action +
-                                               " on " +
-                                               target.getClass() +
-                                               argTypeString);
+                if (targetMethod == null) { 
+		    throw new RuntimeException("No method called: " + 
+					       action + " on class " + 
+					       target.getClass() + " with argument "
+					       + argTypes[0]); 
                 }
-                return MethodUtil.invoke(targetMethod, target, newArgs);
+                return targetMethod.invoke(target, newArgs);
             } 
             catch (IllegalAccessException ex) {
                 throw new RuntimeException(ex);
@@ -427,7 +408,9 @@ public class EventHandler implements InvocationHandler {
      * 
      * @see #create(Class, Object, String, String)
      */
-    public static Object create(Class listenerInterface, Object target, String action) {
+    public static <T> T create(Class<T> listenerInterface,
+			       Object target, String action)
+    {
         return create(listenerInterface, target, action, null, null); 
     }
 
@@ -468,7 +451,10 @@ public class EventHandler implements InvocationHandler {
      * 
      * @see #create(Class, Object, String, String, String)
      */
-    public static Object create(Class listenerInterface, Object target, String action, String eventPropertyName) {
+    public static <T> T create(Class<T> listenerInterface,
+			       Object target, String action,
+			       String eventPropertyName)
+    {
         return create(listenerInterface, target, action, eventPropertyName, null); 
     }
 
@@ -524,11 +510,16 @@ public class EventHandler implements InvocationHandler {
      * 
      * @see EventHandler
      */
-    public static Object create(Class listenerInterface, Object target, String action, String eventPropertyName, String listenerMethodName) {
-        return Proxy.newProxyInstance(target.getClass().getClassLoader(), 
-                                      new Class[] {listenerInterface}, 
-                                      new EventHandler(target, action, 
-                                                          eventPropertyName, listenerMethodName));
+    public static <T> T create(Class<T> listenerInterface,
+			       Object target, String action,
+			       String eventPropertyName,
+			       String listenerMethodName)
+    {
+        return (T)Proxy.newProxyInstance(target.getClass().getClassLoader(),
+					 new Class[] {listenerInterface},
+					 new EventHandler(target, action,
+							  eventPropertyName,
+							  listenerMethodName));
     }
 }
 

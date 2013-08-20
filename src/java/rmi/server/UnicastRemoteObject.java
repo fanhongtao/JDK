@@ -1,34 +1,92 @@
 /*
- * @(#)UnicastRemoteObject.java	1.30 03/01/23
+ * @(#)UnicastRemoteObject.java	1.32 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
 
 import java.rmi.*;
+import sun.rmi.server.UnicastServerRef;
+import sun.rmi.server.UnicastServerRef2;
 
 /**
- * The UnicastRemoteObject class defines a non-replicated remote
- * object whose references are valid only while the server process is
- * alive.  The UnicastRemoteObject class provides support for
- * point-to-point active object references (invocations, parameters,
- * and results) using TCP streams.
+ * Used for exporting a remote object with JRMP and obtaining a stub
+ * that communicates to the remote object.
  *
- * <p>Objects that require remote behavior should extend RemoteObject,
- * typically via UnicastRemoteObject. If UnicastRemoteObject is not
- * extended, the implementation class must then assume the
- * responsibility for the correct semantics of the hashCode, equals,
- * and toString methods inherited from the Object class, so that they
- * behave appropriately for remote objects.
+ * <p>For the constructors and static <code>exportObject</code> methods
+ * below, the stub for a remote object being exported is obtained as
+ * follows:
  *
- * @version 1.30, 01/23/03
+ * <p><ul>
+ *
+ * <li>If the remote object is exported using the {@link
+ * #exportObject(Remote) UnicastRemoteObject.exportObject(Remote)} method,
+ * a stub class (typically pregenerated from the remote object's class
+ * using the <code>rmic</code> tool) is loaded and an instance of that stub
+ * class is constructed as follows.
+ * <ul>
+ *
+ * <li>A "root class" is determined as follows:  if the remote object's
+ * class directly implements an interface that extends {@link Remote}, then
+ * the remote object's class is the root class; otherwise, the root class is
+ * the most derived superclass of the remote object's class that directly
+ * implements an interface that extends <code>Remote</code>.
+ *
+ * <li>The name of the stub class to load is determined by concatenating
+ * the binary name of the root class with the suffix <code>"_Stub"</code>.
+ *
+ * <li>The stub class is loaded by name using the class loader of the root
+ * class.  The stub class must extend {@link RemoteStub} and must have a
+ * public constructor that has one parameter, of type {@link RemoteRef}.
+ *
+ * <li>Finally, an instance of the stub class is constructed with a
+ * {@link RemoteRef}.
+ * </ul>
+ *
+ * <li>If the appropriate stub class could not be found, or the stub class
+ * could not be loaded, or a problem occurs creating the stub instance, a
+ * {@link StubNotFoundException} is thrown.
+ *
+ * <p>
+ * <li>For all other means of exporting:
+ * <p><ul>
+ *
+ * <li>If the remote object's stub class (as defined above) could not be
+ * loaded or the system property
+ * <code>java.rmi.server.ignoreStubClasses</code> is set to
+ * <code>"true"</code> (case insensitive), a {@link
+ * java.lang.reflect.Proxy} instance is constructed with the following
+ * properties:
+ *
+ * <ul>
+ *
+ * <li>The proxy's class is defined by the class loader of the remote
+ * object's class.
+ *
+ * <li>The proxy implements all the remote interfaces implemented by the
+ * remote object's class.
+ *
+ * <li>The proxy's invocation handler is a {@link
+ * RemoteObjectInvocationHandler} instance constructed with a
+ * {@link RemoteRef}.
+ *
+ * <li>If the proxy could not be created, a {@link StubNotFoundException}
+ * will be thrown.
+ * </ul>
+ *
+ * <p>
+ * <li>Otherwise, an instance of the remote object's stub class (as
+ * described above) is used as the stub.
+ *
+ * </ul>
+ * </ul>
+ *
+ * @version 1.32, 12/19/03
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   JDK1.1
- * @see     RemoteServer
- * @see     RemoteObject
- */
+ **/
 public class UnicastRemoteObject extends RemoteServer {
 
     /**
@@ -72,7 +130,7 @@ public class UnicastRemoteObject extends RemoteServer {
     protected UnicastRemoteObject(int port) throws RemoteException
     {
 	this.port = port;
-	exportObject((Remote)this, port);
+	exportObject((Remote) this, port);
     }
 
     /**
@@ -94,7 +152,7 @@ public class UnicastRemoteObject extends RemoteServer {
 	this.port = port;
 	this.csf = csf;
 	this.ssf = ssf;
-	exportObject((Remote)this, port, csf, ssf);
+	exportObject((Remote) this, port, csf, ssf);
     }
 
     /**
@@ -119,7 +177,7 @@ public class UnicastRemoteObject extends RemoteServer {
     public Object clone() throws CloneNotSupportedException
     {
 	try {
-	    UnicastRemoteObject cloned = (UnicastRemoteObject)super.clone();
+	    UnicastRemoteObject cloned = (UnicastRemoteObject) super.clone();
 	    cloned.reexport();
 	    return cloned;
 	} catch (RemoteException e) {
@@ -135,9 +193,9 @@ public class UnicastRemoteObject extends RemoteServer {
     private void reexport() throws RemoteException
     {
 	if (csf == null && ssf == null) {
-	    exportObject((Remote)this, port);
+	    exportObject((Remote) this, port);
 	} else {
-	    exportObject((Remote)this, port, csf, ssf);
+	    exportObject((Remote) this, port, csf, ssf);
 	}
     }
 
@@ -152,13 +210,15 @@ public class UnicastRemoteObject extends RemoteServer {
     public static RemoteStub exportObject(Remote obj)
 	throws RemoteException
     {
-	return (RemoteStub)exportObject(obj, 0);
+	/*
+	 * Use UnicastServerRef constructor passing the boolean value true
+	 * to indicate that only a generated stub class should be used.  A
+	 * generated stub class must be used instead of a dynamic proxy
+	 * because the return value of this method is RemoteStub which a
+	 * dynamic proxy class cannot extend.
+	 */
+	return (RemoteStub) exportObject(obj, new UnicastServerRef(true));
     }
-
-    /* parameter types for server ref constructor invocation used below */
-    private static Class[] portParamTypes = {
-	int.class
-    };
 
     /** 
      * Exports the remote object to make it available to receive incoming
@@ -172,16 +232,8 @@ public class UnicastRemoteObject extends RemoteServer {
     public static Remote exportObject(Remote obj, int port)
 	throws RemoteException
     {
-	// prepare arguments for server ref constructor
-	Object[] args = new Object[] { new Integer(port) };
-
-	return exportObject(obj, "UnicastServerRef", portParamTypes, args);
+	return exportObject(obj, new UnicastServerRef(port));
     }
-
-    /* parameter types for server ref constructor invocation used below */
-    private static Class[] portFactoryParamTypes = {
-	int.class, RMIClientSocketFactory.class, RMIServerSocketFactory.class
-    };
 
     /**
      * Exports the remote object to make it available to receive incoming
@@ -200,11 +252,8 @@ public class UnicastRemoteObject extends RemoteServer {
 				      RMIServerSocketFactory ssf)
 	throws RemoteException
     {
-	// prepare arguments for server ref constructor
-	Object[] args = new Object[] { new Integer(port), csf, ssf };
 	
-	return exportObject(obj, "UnicastServerRef2", portFactoryParamTypes,
-			    args);
+	return exportObject(obj, new UnicastServerRef2(port, csf, ssf));
     }
 
     /**
@@ -231,48 +280,16 @@ public class UnicastRemoteObject extends RemoteServer {
 	return sun.rmi.transport.ObjectTable.unexportObject(obj, force);
     }
 
-    /*
-     * Creates an instance of given server ref type with constructor chosen
-     * by indicated paramters and supplied with given arguements, and
-     * export remote object with it.
+    /**
+     * Exports the specified object using the specified server ref.
      */
-    private static Remote exportObject(Remote obj, String refType,
-				       Class[] params, Object[] args)
+    private static Remote exportObject(Remote obj, UnicastServerRef sref)
 	throws RemoteException
     {
-	// compose name of server ref class and find it
-	String refClassName = RemoteRef.packagePrefix + "." + refType;
-	Class refClass;
-	try {
-	    refClass = Class.forName(refClassName);
-	} catch (ClassNotFoundException e) {
-	    throw new ExportException(
-		"No class found for server ref type: " + refType);
+	// if obj extends UnicastRemoteObject, set its ref.
+	if (obj instanceof UnicastRemoteObject) {
+	    ((UnicastRemoteObject) obj).ref = sref;
 	}
-
-	if (!ServerRef.class.isAssignableFrom(refClass)) {
-	    throw new ExportException(
-		"Server ref class not instance of " +
-		ServerRef.class.getName() + ": " + refClass.getName());
-	}
-
-	// create server ref instance using given constructor and arguments
-	ServerRef serverRef;
-	try {
-	    java.lang.reflect.Constructor cons =
-		refClass.getConstructor(params);
-	    serverRef = (ServerRef) cons.newInstance(args);
-	    // if impl does extends UnicastRemoteObject, set its ref
-	    if (obj instanceof UnicastRemoteObject)
-		((UnicastRemoteObject)obj).ref = serverRef;
-
-	} catch (Exception e) {
-	    throw new ExportException(
-		"Exception creating instance of server ref class: " +
-		refClass.getName(), e);
-	}
-
-	return serverRef.exportObject(obj, null);
+	return sref.exportObject(obj, null, false);
     }
 }
-

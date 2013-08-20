@@ -1,7 +1,7 @@
 /*
- * @(#)TextLayoutStrategy.java	1.18 03/01/23
+ * @(#)TextLayoutStrategy.java	1.22 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -13,7 +13,7 @@ import java.text.BreakIterator;
 import java.awt.font.*;
 import java.awt.geom.AffineTransform;
 import javax.swing.event.DocumentEvent;
-import sun.awt.font.BidiUtils;
+import sun.font.BidiUtils;
 
 /**
  * A flow strategy that uses java.awt.font.LineBreakMeasureer to
@@ -23,7 +23,7 @@ import sun.awt.font.BidiUtils;
  * that uses TextLayout is plugged into the GlyphView.
  *
  * @author  Timothy Prinzing
- * @version 1.18 01/23/03
+ * @version 1.22 05/05/04
  */
 class TextLayoutStrategy extends FlowView.FlowStrategy {
 
@@ -273,32 +273,9 @@ class TextLayoutStrategy extends FlowView.FlowStrategy {
         View lv = getLogicalView(fv);
         text.setView(lv);
 
-        Graphics2D g2d =(Graphics2D) fv.getContainer().getGraphics();
-        FontRenderContext frc;
-        try {
-            // FontRenderContexts exist to allow text to be measured at times
-            // when a Graphics object is not available.  A TextLayout is
-            // drawn using the settings of the FRC it was created with in
-            // preferrence to the settings of the Graphics it is drawn with.
-            // This keeps measuring and drawing consistent but may be 
-            // surprising to some users.  We should probably ensure that
-            // these two stay in sync.
-            if( g2d != null ) {
-                frc = g2d.getFontRenderContext();
-            } else {
-                // As a practical matter, this FRC will almost always
-                // be the right one.
-                AffineTransform xf 
-                    = GraphicsEnvironment.getLocalGraphicsEnvironment()
-                    .getDefaultScreenDevice().getDefaultConfiguration()
-                    .getDefaultTransform();
-                frc = new FontRenderContext(xf, false, false);
-            }
-        } finally {
-            if( g2d != null ) 
-                g2d.dispose();
-        }
-        
+        Container container = fv.getContainer();
+        FontRenderContext frc = com.sun.java.swing.SwingUtilities2.
+                                    getFontRenderContext(container);
         BreakIterator iter;
         Container c = fv.getContainer();
         if (c != null) {
@@ -437,7 +414,7 @@ class TextLayoutStrategy extends FlowView.FlowStrategy {
 	 * Returns the index of the first character of the run
 	 * with respect to the given attributes containing the current character.
 	 */
-        public int getRunStart(Set attributes) {
+        public int getRunStart(Set<? extends Attribute> attributes) {
 	    int index = getBeginIndex();
 	    Object[] a = attributes.toArray();
 	    for (int i = 0; i < a.length; i++) {
@@ -477,7 +454,7 @@ class TextLayoutStrategy extends FlowView.FlowStrategy {
 	 * Returns the index of the first character following the run
 	 * with respect to the given attributes containing the current character.
 	 */
-        public int getRunLimit(Set attributes) {
+        public int getRunLimit(Set<? extends Attribute> attributes) {
 	    int index = getEndIndex();
 	    Object[] a = attributes.toArray();
 	    for (int i = 0; i < a.length; i++) {

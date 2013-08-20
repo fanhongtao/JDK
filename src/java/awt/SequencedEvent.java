@@ -1,7 +1,7 @@
 /*
- * @(#)SequencedEvent.java	1.7 03/01/23
+ * @(#)SequencedEvent.java	1.10 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import sun.awt.SunToolkit;
  * before the wrapping SequencedEvent was able to be dispatched. In this case,
  * the nested event is never dispatched.
  *
- * @version 1.7, 01/23/03
+ * @version 1.10, 12/19/03
  * @author David Mendenhall
  */
 class SequencedEvent extends AWTEvent implements ActiveEvent {
@@ -41,7 +41,7 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
      * @param nested the AWTEvent which this SequencedEvent's dispatch()
      *        method will dispatch
      */
-    SequencedEvent(AWTEvent nested) {
+    public SequencedEvent(AWTEvent nested) {
 	super(nested.getSource(), ID);
 	this.nested = nested;
 	synchronized (SequencedEvent.class) {

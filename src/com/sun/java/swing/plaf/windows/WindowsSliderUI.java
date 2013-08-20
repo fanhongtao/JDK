@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsSliderUI.java	1.13 03/01/23
+ * @(#)WindowsSliderUI.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -92,25 +92,46 @@ public class WindowsSliderUI extends BasicSliderUI
     public void paintThumb(Graphics g)  {        
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    String category;
-	    boolean vertical = (slider.getOrientation() == JSlider.VERTICAL);
-	    boolean leftToRight = slider.getComponentOrientation().isLeftToRight();
-	    if (!slider.getPaintTicks()) {
-		category = vertical ? "trackbar.thumbvert"
-				    : "trackbar.thumb";
-	    } else {
-		category = vertical ? (leftToRight ? "trackbar.thumbright" : "trackbar.thumbleft")
-				    : "trackbar.thumbbottom";
-	    }
 	    // Pending: Implement all five states
-	    int index = 0;
-	    if (!slider.isEnabled()) {
-		index = 4;
-	    }
-	    xp.getSkin(category).paintSkin(g, thumbRect.x, thumbRect.y, index);
+            int index = 0;
+            if (!slider.isEnabled()) {
+                index = 4;
+            }
+            getXPThumbSkin().paintSkin(g, thumbRect.x, thumbRect.y, index);
 	} else {
 	    super.paintThumb(g);
 	}
+    }
+
+    protected Dimension getThumbSize() {
+        XPStyle xp = XPStyle.getXP();
+	if (xp != null) {
+            Dimension size = new Dimension();
+            XPStyle.Skin s = getXPThumbSkin();
+            size.width = s.getWidth();
+            size.height = s.getHeight();
+            return size;
+	} else {
+	    return super.getThumbSize();
+	}
+    }
+
+    private XPStyle.Skin getXPThumbSkin() {
+	XPStyle xp = XPStyle.getXP();
+	String category;
+        boolean vertical = (slider.getOrientation() == JSlider.VERTICAL);
+	boolean leftToRight = slider.getComponentOrientation().isLeftToRight();
+	Boolean paintThumbArrowShape =
+		(Boolean)slider.getClientProperty("Slider.paintThumbArrowShape");
+	if ((!slider.getPaintTicks() && paintThumbArrowShape == null) ||
+            paintThumbArrowShape == Boolean.FALSE) {
+		category = vertical ? "trackbar.thumbvert"
+				    : "trackbar.thumb";
+	} else {
+		category = vertical ? (leftToRight ? "trackbar.thumbright" : "trackbar.thumbleft")
+				    : "trackbar.thumbbottom";
+	}
+	return xp.getSkin(category);
     }
 }
 

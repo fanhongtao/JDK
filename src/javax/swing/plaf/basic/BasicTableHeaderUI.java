@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTableHeaderUI.java	1.60 03/01/23
+ * @(#)BasicTableHeaderUI.java	1.63 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import javax.swing.plaf.*;
 /**
  * BasicTableHeaderUI implementation
  *
- * @version 1.60 01/23/03
+ * @version 1.63 12/19/03
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -261,6 +261,7 @@ public class BasicTableHeaderUI extends TableHeaderUI {
     protected void installDefaults() {
         LookAndFeel.installColorsAndFont(header, "TableHeader.background",
                                          "TableHeader.foreground", "TableHeader.font");
+        LookAndFeel.installProperty(header, "opaque", Boolean.TRUE);
     }
 
     /**
@@ -329,35 +330,27 @@ public class BasicTableHeaderUI extends TableHeaderUI {
 
 	TableColumn draggedColumn = header.getDraggedColumn(); 
 	int columnWidth;
-	int columnMargin = cm.getColumnMargin();
-        Rectangle cellRect = header.getHeaderRect(cMin); 
+        Rectangle cellRect = header.getHeaderRect(ltr ? cMin : cMax); 
 	TableColumn aColumn;
 	if (ltr) {
 	    for(int column = cMin; column <= cMax ; column++) { 
 		aColumn = cm.getColumn(column); 
 		columnWidth = aColumn.getWidth();
-		cellRect.width = columnWidth - columnMargin;
+		cellRect.width = columnWidth;
 		if (aColumn != draggedColumn) {
 		    paintCell(g, cellRect, column);
 		} 
 		cellRect.x += columnWidth;
 	    }
 	} else {
-	    aColumn = cm.getColumn(cMin);
-	    if (aColumn != draggedColumn) {
-		columnWidth = aColumn.getWidth();
-		cellRect.width = columnWidth - columnMargin;
-		cellRect.x += columnMargin;
-		paintCell(g, cellRect, cMin);
-	    }
-	    for(int column = cMin+1; column <= cMax; column++) {
+	    for(int column = cMax; column >= cMin; column--) {
 		aColumn = cm.getColumn(column);
 		columnWidth = aColumn.getWidth();
-		cellRect.width = columnWidth - columnMargin;
-		cellRect.x -= columnWidth;
+		cellRect.width = columnWidth;
 		if (aColumn != draggedColumn) {
 		    paintCell(g, cellRect, column);
 		}
+                cellRect.x += columnWidth;
 	    }
 	} 
 

@@ -1,7 +1,7 @@
 /*
- * @(#)LoggingPermission.java	1.7 03/01/23
+ * @(#)LoggingPermission.java	1.9 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import java.security.*;
  * the security policy file.
  *
  *
- * @version 1.7, 01/23/03
+ * @version 1.9, 12/19/03
  * @since 1.4
  * @see java.security.BasicPermission
  * @see java.security.Permission
@@ -36,6 +36,8 @@ import java.security.*;
  */
 
 public final class LoggingPermission extends java.security.BasicPermission {
+
+    private static final long serialVersionUID = 63564341580231582L;
 
     /**
      * Creates a new LoggingPermission object.

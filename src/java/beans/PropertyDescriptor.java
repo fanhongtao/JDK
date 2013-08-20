@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyDescriptor.java	1.59 04/08/16
+ * @(#)PropertyDescriptor.java	1.72 04/05/05
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -48,7 +48,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * @exception IntrospectionException if an exception occurs during
      *              introspection.
      */
-    public PropertyDescriptor(String propertyName, Class beanClass)
+    public PropertyDescriptor(String propertyName, Class<?> beanClass)
 		throws IntrospectionException {
 	this(propertyName, beanClass, 
 	     "is" + capitalize(propertyName), 
@@ -69,7 +69,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * @exception IntrospectionException if an exception occurs during
      *              introspection.
      */
-    public PropertyDescriptor(String propertyName, Class beanClass,
+    public PropertyDescriptor(String propertyName, Class<?> beanClass,
 		String readMethodName, String writeMethodName)
 		throws IntrospectionException {
 	if (beanClass == null) {
@@ -127,7 +127,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      * <p>
      * This is the type that will be returned by the ReadMethod.
      */
-    public synchronized Class getPropertyType() {
+    public synchronized Class<?> getPropertyType() {
 	Class type = getPropertyType0();
 	if (type  == null) {
 	    try {
@@ -176,18 +176,10 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	    // property type is.  For booleans, there can be "is" and "get"
 	    // methods.  If an "is" method exists, this is the official
 	    // reader method so look for this one first.
-	    try {
-		readMethod = Introspector.findMethod(cls, readMethodName, 0);
-	    } catch(Exception e) {
-		readMethod = null;
-	    }
+	    readMethod = Introspector.findMethod(cls, readMethodName, 0);
 	    if (readMethod == null) {
 		readMethodName = "get" + getBaseName();
-		try {
-		    readMethod = Introspector.findMethod(cls, readMethodName, 0);
-		} catch(Exception e) {
-		    readMethod = null;
-		}
+		readMethod = Introspector.findMethod(cls, readMethodName, 0);
 	    }
 	    try {
 		setReadMethod(readMethod);
@@ -250,12 +242,9 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	    if (writeMethodName == null) {
 		writeMethodName = "set" + getBaseName();
 	    }
-	    try {
-		writeMethod = Introspector.findMethod(cls, writeMethodName, 1, 
-				      (type == null) ? null : new Class[] { type });
-	    } catch (Exception e) {
-		writeMethod = null;
-	    }
+
+	    writeMethod = Introspector.findMethod(cls, writeMethodName, 1, 
+   			  (type == null) ? null : new Class[] { type });
 	    try {
 		setWriteMethod(writeMethod);
 	    } catch (IntrospectionException ex) {
@@ -354,7 +343,7 @@ public class PropertyDescriptor extends FeatureDescriptor {
      *
      * @param propertyEditorClass  The Class for the desired PropertyEditor.
      */
-    public void setPropertyEditorClass(Class propertyEditorClass) {
+    public void setPropertyEditorClass(Class<?> propertyEditorClass) {
 	propertyEditorClassRef = createReference(propertyEditorClass);
     }
 
@@ -368,9 +357,52 @@ public class PropertyDescriptor extends FeatureDescriptor {
      *		so the PropertyEditorManager should be used to locate
      *		a suitable PropertyEditor.
      */
-    public Class getPropertyEditorClass() {
+    public Class<?> getPropertyEditorClass() {
 	return (Class)getObject(propertyEditorClassRef);
     }
+
+    /**
+     * Constructs an instance of a property editor using the current
+     * property editor class.
+     * <p>
+     * If the property editor class has a public constructor that takes an
+     * Object argument then it will be invoked using the bean parameter
+     * as the argument. Otherwise, the default constructor will be invoked.
+     *
+     * @param bean the source object
+     * @return a property editor instance or null if a property editor has
+     *         not been defined or cannot be created
+     * @since 1.5
+     */
+    public PropertyEditor createPropertyEditor(Object bean) {
+	Object editor = null;
+
+	Class cls = getPropertyEditorClass();
+	if (cls != null) {
+	    Constructor ctor = null;
+	    if (bean != null) {
+		try {
+		    ctor = cls.getConstructor(new Class[] { Object.class });
+		} catch (Exception ex) {
+		    // Fall through
+		}
+	    }
+	    try {
+		if (ctor == null) {
+		    editor = cls.newInstance();
+		} else {
+		    editor = ctor.newInstance(new Object[] { bean });
+		}
+	    } catch (Exception ex) {
+		// A serious error has occured. 
+		// Proably due to an invalid property editor.
+		throw new RuntimeException("PropertyEditor not instantiated", 
+					   ex);
+	    }
+	}
+	return (PropertyEditor)editor;
+    }
+
 
     /**
      * Compares this <code>PropertyDescriptor</code> against the specified object.
@@ -578,6 +610,36 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	return propertyType;
     }
 
+
+    /**
+     * Returns a hash code value for the object. 
+     * See {@link java.lang.Object#hashCode} for a complete description.
+     *
+     * @return a hash code value for this object.
+     * @since 1.5
+     */
+    public int hashCode() {
+	int result = 7;
+
+	result = 37 * result + ((getPropertyType() == null) ? 0 : 
+				getPropertyType().hashCode());
+	result = 37 * result + ((getReadMethod() == null) ? 0 : 
+				getReadMethod().hashCode());
+	result = 37 * result + ((getWriteMethod() == null) ? 0 : 
+				getWriteMethod().hashCode());
+	result = 37 * result + ((getPropertyEditorClass() == null) ? 0 : 
+				getPropertyEditorClass().hashCode());
+	result = 37 * result + ((writeMethodName == null) ? 0 : 
+				writeMethodName.hashCode());
+	result = 37 * result + ((readMethodName == null) ? 0 : 
+				readMethodName.hashCode());
+	result = 37 * result + getName().hashCode();
+	result = 37 * result + ((bound == false) ? 0 : 1);
+	result = 37 * result + ((constrained == false) ? 0 : 1);
+
+	return result;
+    }
+
     // Calculate once since capitalize() is expensive.
     String getBaseName() {
 	if (baseName == null) {
@@ -585,4 +647,23 @@ public class PropertyDescriptor extends FeatureDescriptor {
 	}
 	return baseName;
     }
+
+    /*
+    public String toString() {
+	String message = "name=" + getName();
+	message += ", class=" + getClass0();
+	message += ", type=" + getPropertyType();
+
+	message += ", writeMethod=";
+	message += writeMethodName;
+
+	message += ", readMethod=";
+	message += readMethodName;
+
+	message += ", bound=" + bound;
+	message += ", constrained=" + constrained;
+
+	return message;
+    } 
+    */
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)ScrollPaneLayout.java	1.57 03/01/23
+ * @(#)ScrollPaneLayout.java	1.60 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import java.io.Serializable;
  * @see JScrollPane
  * @see JViewport
  *
- * @version 1.57 01/23/03
+ * @version 1.60 05/18/04
  * @author Hans Muller
  */
 public class ScrollPaneLayout
@@ -626,7 +626,7 @@ public class ScrollPaneLayout
 	    minHeight = Math.max(minHeight, size.height);
 	}
 
-	if ((hsb != null) && (hsbPolicy != VERTICAL_SCROLLBAR_NEVER)) {
+	if ((hsb != null) && (hsbPolicy != HORIZONTAL_SCROLLBAR_NEVER)) {
 	    Dimension size = hsb.getMinimumSize();
 	    minWidth = Math.max(minWidth, size.width);
 	    minHeight += size.height;
@@ -1056,6 +1056,7 @@ public class ScrollPaneLayout
      * @deprecated As of JDK version Swing1.1
      *    replaced by <code>JScrollPane.getViewportBorderBounds()</code>.
      */
+    @Deprecated
     public Rectangle getViewportBorderBounds(JScrollPane scrollpane) {
 	return scrollpane.getViewportBorderBounds();
     }

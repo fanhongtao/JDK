@@ -1,7 +1,7 @@
 /*
- * @(#)Configuration.java	1.55 03/01/23
+ * @(#)Configuration.java	1.57 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -22,14 +22,6 @@ import java.security.PrivilegedActionException;
  * This abstract class needs to be subclassed to provide an implementation
  * which reads and loads the actual <code>Configuration</code>.
  *
- * <p> When the <code>LoginContext</code> needs to read the Configuration
- * to determine which LoginModules are configured for a particular
- * application, <i>appName</i>, it makes the following calls:
- * <pre>
- *	config = Configuration.getConfiguration();
- *	entries = config.getAppConfigurationEntry(appName);
- * </pre>
- *
  * <p> A login configuration contains the following information.
  * Note that this example only represents the default syntax for the
  * <code>Configuration</code>.  Subclass implementations of this class
@@ -38,12 +30,12 @@ import java.security.PrivilegedActionException;
  * or servers.
  *
  * <pre>
- *      Application {
+ *      Name {
  *	      ModuleClass  Flag    ModuleOptions;
  *	      ModuleClass  Flag    ModuleOptions;
  *	      ModuleClass  Flag    ModuleOptions;
  *      };
- *      Application {
+ *      Name {
  *	      ModuleClass  Flag    ModuleOptions;
  *	      ModuleClass  Flag    ModuleOptions;
  *      };
@@ -54,7 +46,7 @@ import java.security.PrivilegedActionException;
  * </pre>
  *
  * <p> Each entry in the <code>Configuration</code> is indexed via an
- * application name, <i>Application</i>, and contains a list of
+ * application name, <i>Name</i>, and contains a list of
  * LoginModules configured for that application.  Each <code>LoginModule</code>
  * is specified via its fully qualified class name.
  * Authentication proceeds down the module list in the exact order specified.
@@ -154,7 +146,7 @@ import java.security.PrivilegedActionException;
  * &lt;JAVA_HOME&gt;/lib/security/java.security, where &lt;JAVA_HOME&gt;
  * refers to the directory where the JDK was installed.
  *
- * @version 1.55, 01/23/03
+ * @version 1.57, 12/19/03
  * @see javax.security.auth.login.LoginContext
  */
 public abstract class Configuration {
@@ -179,11 +171,14 @@ public abstract class Configuration {
     protected Configuration() { }
 
     /**
-     * Get the current Login Configuration.
+     * Get the Login Configuration.
      *
      * <p>
      *
-     * @return the current Login Configuration.
+     * @return the login Configuration.  If a Configuration object was set
+     *		via the <code>Configuration.setConfiguration</code> method,
+     *		then that object is returned.  Otherwise, a default
+     *		Configuration object is returned.
      *
      * @exception SecurityException if the caller does not have permission
      *				to retrieve the Configuration.
@@ -245,7 +240,7 @@ public abstract class Configuration {
     }
     
     /**
-     * Set the current Login <code>Configuration</code>.
+     * Set the Login <code>Configuration</code>.
      *
      * <p>
      *
@@ -264,33 +259,32 @@ public abstract class Configuration {
     }
 
     /**
-     * Retrieve an array of AppConfigurationEntries which corresponds to
-     *		the configuration of LoginModules for this application.
+     * Retrieve the AppConfigurationEntries for the specified <i>name</i>
+     * from this Configuration.
      *
      * <p>
      *
-     * @param applicationName the name used to index the Configuration.
+     * @param name the name used to index the Configuration.
      * 
-     * @return an array of AppConfigurationEntries which corresponds to
-     *		the configuration of LoginModules for this
-     *		application, or null if this application has no configured
-     *		LoginModules.
+     * @return an array of AppConfigurationEntries for the specified <i>name</i>
+     *		from this Configuration, or null if there are no entries
+     *		for the specified <i>name</i>
      */
     public abstract AppConfigurationEntry[] getAppConfigurationEntry
-    (String applicationName);
+							(String name);
 
     /**
      * Refresh and reload the Configuration.
      *
-     * <p> This method causes this object to refresh/reload its current
-     * Configuration. This is implementation-dependent.
-     * For example, if the Configuration object is stored
-     * a file, calling <code>refresh</code> will cause the file to be re-read.
+     * <p> This method causes this Configuration object to refresh/reload its
+     * contents in an implementation-dependent manner.
+     * For example, if this Configuration object stores its entries in a file,
+     * calling <code>refresh</code> may cause the file to be re-read.
      *
      * <p>
      *
      * @exception SecurityException if the caller does not have permission
-     *				to refresh the Configuration.
+     *				to refresh its Configuration.
      */
     public abstract void refresh();
 }

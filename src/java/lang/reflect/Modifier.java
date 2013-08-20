@@ -1,7 +1,7 @@
 /*
- * @(#)Modifier.java	1.23 03/01/23
+ * @(#)Modifier.java	1.27 04/02/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,9 +48,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>public</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>public</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>public</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -60,9 +60,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>private</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>private</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>private</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -72,9 +72,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>protected</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>protected</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>protected</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -84,9 +84,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>static</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>static</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>static</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -96,9 +96,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>final</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>final</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>final</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -108,9 +108,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>synchronized</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>synchronized</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>synchronized</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -120,9 +120,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>volatile</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>volatile</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>volatile</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -132,9 +132,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>transient</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>transient</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>transient</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -144,9 +144,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>native</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>native</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>native</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -156,9 +156,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>interface</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>interface</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>interface</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -168,9 +168,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>abstract</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>abstract</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>abstract</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -180,9 +180,9 @@ class Modifier {
 
     /**
      * Return <tt>true</tt> if the integer argument includes the
-     * <tt>strictfp</tt> modifer, <tt>false</tt> otherwise.
+     * <tt>strictfp</tt> modifier, <tt>false</tt> otherwise.
      *
-     * @param 	mod a set of modifers
+     * @param 	mod a set of modifiers
      * @return <tt>true</tt> if <code>mod</code> includes the
      * <tt>strictfp</tt> modifier; <tt>false</tt> otherwise.
      */
@@ -218,8 +218,8 @@ class Modifier {
      * possible validity of the combination of modifiers represented
      * by the input.
      *
-     * @param	mod a set of modifers
-     * @return	a string representation of the set of modifers
+     * @param	mod a set of modifiers
+     * @return	a string representation of the set of modifiers
      * represented by <code>mod</code>
      */
     public static String toString(int mod) {
@@ -324,4 +324,16 @@ class Modifier {
      */    
     public static final int STRICT           = 0x00000800;
 
+    // Bits not (yet) exposed in the public API either because they
+    // have different meanings for fields and methods and there is no
+    // way to distinguish between the two in this class, or because
+    // they are not Java programming language keywords
+    static final int BRIDGE    = 0x00000040;
+    static final int VARARGS   = 0x00000080;
+    static final int SYNTHETIC = 0x00001000;
+    static final int ANNOTATION= 0x00002000;
+    static final int ENUM      = 0x00004000;
+    static boolean isSynthetic(int mod) {
+      return (mod & SYNTHETIC) != 0;
+    }
 }

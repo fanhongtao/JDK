@@ -1,7 +1,7 @@
 /*
- * @(#)PKIXBuilderParameters.java	1.11 03/01/23
+ * @(#)PKIXBuilderParameters.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -54,7 +54,7 @@ import java.util.Set;
  *
  * @see CertPathBuilder
  * 
- * @version 	1.11 01/23/03
+ * @version 	1.15 12/19/03
  * @since 	1.4
  * @author	Sean Mullan
  */
@@ -81,7 +81,7 @@ public class PKIXBuilderParameters extends PKIXParameters {
      * <code>trustAnchors</code> are not of type 
      * <code>java.security.cert.TrustAnchor</code>
      */
-    public PKIXBuilderParameters(Set trustAnchors, CertSelector 
+    public PKIXBuilderParameters(Set<TrustAnchor> trustAnchors, CertSelector 
 	targetConstraints) throws InvalidAlgorithmParameterException
     {
         super(trustAnchors);

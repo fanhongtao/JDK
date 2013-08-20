@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsInternalFrameUI.java	1.21 03/01/31
+ * @(#)WindowsInternalFrameUI.java	1.23 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -41,7 +41,8 @@ public class WindowsInternalFrameUI extends BasicInternalFrameUI
     public void installUI(JComponent c)   {
 	super.installUI(c);
 
-	c.setOpaque(xp == null);
+        LookAndFeel.installProperty(c, "opaque", 
+				    xp == null? Boolean.TRUE : Boolean.FALSE);
     }
 
     public void uninstallDefaults() {
@@ -66,56 +67,6 @@ public class WindowsInternalFrameUI extends BasicInternalFrameUI
         return titlePane;
     }
 
-    protected LayoutManager createLayoutManager(){
-	if (XPStyle.getXP() != null) {
-	    return new BasicInternalFrameUI.InternalFrameLayout() {
-		public void layoutContainer(Container c) {
-		    Insets i = frame.getInsets();
-		    int cx, cy, cw, ch;
-
-		    cx = i.left;
-		    cy = 0;
-		    cw = frame.getWidth() - i.left - i.right;
-		    ch = frame.getHeight() - i.bottom;
-
-		    if (getNorthPane() != null) {
-			Dimension size = getNorthPane().getPreferredSize();
-			// Ignore insets when placing the title pane
-			getNorthPane().setBounds(0, 0, frame.getWidth(), size.height);
-			cy += size.height;
-			ch -= size.height;
-		    }
-
-		    if (getSouthPane() != null) {
-			Dimension size = getSouthPane().getPreferredSize();
-			getSouthPane().setBounds(cx, frame.getHeight() - i.bottom - size.height, 
-						 cw, size.height);
-			ch -= size.height;
-		    }
-
-		    if (getWestPane() != null) {
-			Dimension size = getWestPane().getPreferredSize();
-			getWestPane().setBounds(cx, cy, size.width, ch);
-			cw -= size.width;
-			cx += size.width;           
-		    }
-
-		    if (getEastPane() != null) {
-			Dimension size = getEastPane().getPreferredSize();
-			getEastPane().setBounds(cw - size.width, cy, size.width, ch);
-			cw -= size.width;           
-		    }
-
-		    if (frame.getRootPane() != null) {
-			frame.getRootPane().setBounds(cx, cy, cw, ch);
-		    }
-		}
-	    };
-	} else {
-	    return super.createLayoutManager();
-	}
-    }
-			
     private class XPBorder extends AbstractBorder {
 	private XPStyle.Skin leftSkin   = xp.getSkin("window.frameleft");
 	private XPStyle.Skin rightSkin  = xp.getSkin("window.frameright");

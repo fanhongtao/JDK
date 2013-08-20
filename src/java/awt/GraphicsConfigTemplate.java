@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsConfigTemplate.java	1.15 03/01/23
+ * @(#)GraphicsConfigTemplate.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.io.*;
  * @see GraphicsDevice
  * @see GraphicsConfiguration
  *
- * @version 	1.15, 01/23/03
+ * @version 	1.16, 12/19/03
  * @since       1.2
  */
 public abstract class GraphicsConfigTemplate implements Serializable {

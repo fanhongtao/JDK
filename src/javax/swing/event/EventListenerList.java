@@ -1,7 +1,7 @@
 /*
- * @(#)EventListenerList.java	1.34 03/01/23
+ * @(#)EventListenerList.java	1.36 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.event;
@@ -74,7 +74,7 @@ import java.lang.reflect.Array;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.34 01/23/03
+ * @version 1.36 05/05/04
  * @author Georges Saab
  * @author Hans Muller
  * @author James Gosling
@@ -114,14 +114,14 @@ public class EventListenerList implements Serializable {
      * 
      * @since 1.3
      */
-    public EventListener[] getListeners(Class t) { 
+    public <T extends EventListener> T[] getListeners(Class<T> t) {
 	Object[] lList = listenerList; 
 	int n = getListenerCount(lList, t); 
-        EventListener[] result = (EventListener[])Array.newInstance(t, n); 
+        T[] result = (T[])Array.newInstance(t, n); 
 	int j = 0; 
 	for (int i = lList.length-2; i>=0; i-=2) {
 	    if (lList[i] == t) {
-		result[j++] = (EventListener)lList[i+1];
+		result[j++] = (T)lList[i+1];
 	    }
 	}
 	return result;   
@@ -138,7 +138,7 @@ public class EventListenerList implements Serializable {
      * Returns the total number of listeners of the supplied type 
      * for this listener list.
      */
-    public int getListenerCount(Class t) {
+    public int getListenerCount(Class<?> t) {
 	Object[] lList = listenerList;
         return getListenerCount(lList, t);
     }
@@ -157,7 +157,7 @@ public class EventListenerList implements Serializable {
      * @param t the type of the listener to be added
      * @param l the listener to be added
      */
-    public synchronized void add(Class t, EventListener l) {
+    public synchronized <T extends EventListener> void add(Class<T> t, T l) {
 	if (l==null) {
 	    // In an ideal world, we would do an assertion here
 	    // to help developers know they are probably doing
@@ -190,7 +190,7 @@ public class EventListenerList implements Serializable {
      * @param t the type of the listener to be removed
      * @param l the listener to be removed
      */
-    public synchronized void remove(Class t, EventListener l) {
+    public synchronized <T extends EventListener> void remove(Class<T> t, T l) {
 	if (l ==null) {
 	    // In an ideal world, we would do an assertion here
 	    // to help developers know they are probably doing
@@ -253,7 +253,7 @@ public class EventListenerList implements Serializable {
 	while (null != (listenerTypeOrNull = s.readObject())) {
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
 	    EventListener l = (EventListener)s.readObject();
-	    add(Class.forName((String)listenerTypeOrNull, true, cl), l);
+	    add((Class<EventListener>)Class.forName((String)listenerTypeOrNull, true, cl), l);
 	}	    
     }
 

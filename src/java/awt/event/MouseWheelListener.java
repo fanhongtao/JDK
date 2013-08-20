@@ -1,7 +1,7 @@
 /*
- * @(#)MouseWheelListener.java	1.3 03/01/23
+ * @(#)MouseWheelListener.java	1.5 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,8 +11,8 @@ import java.util.EventListener;
 
 /**
  * The listener interface for receiving mouse wheel events on a component.
- * (For clicks and other mouse events, use the MouseListener.  For mouse 
- * movement and drags, use the MouseMotionListener.)
+ * (For clicks and other mouse events, use the <code>MouseListener</code>. 
+ * For mouse movement and drags, use the <code>MouseMotionListener</code>.)
  * <P>
  * The class that is interested in processing a mouse wheel event
  * implements this interface (and all the methods it contains).
@@ -22,9 +22,12 @@ import java.util.EventListener;
  * method. A mouse wheel event is generated when the mouse wheel is rotated.
  * When a mouse wheel event occurs, that object's <code>mouseWheelMoved</code>
  * method is invoked.
+ * <p>
+ * For information on how mouse wheel events are dispatched, see
+ * the class description for {@link MouseWheelEvent}.
  *
  * @author Brent Christian
- * @version 1.3 01/23/03
+ * @version 1.5 12/19/03
  * @see MouseWheelEvent
  * @since 1.4
  */

@@ -1,7 +1,7 @@
 /*
- * @(#)TableColumn.java	1.57 03/01/23
+ * @(#)TableColumn.java	1.60 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -53,7 +53,7 @@ import java.beans.PropertyChangeListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.57 01/23/03
+ * @version 1.60 05/18/04
  * @author Alan Chung
  * @author Philip Milne
  * @see javax.swing.table.TableColumnModel
@@ -155,6 +155,7 @@ public class TableColumn extends Object implements Serializable {
      *  Counter used to disable posting of resizing notifications until the
      *  end of the resize. 
      */
+    @Deprecated
     transient protected int	resizedPostingDisableCount;
 
     /**
@@ -501,11 +502,11 @@ public class TableColumn extends Object implements Serializable {
      * For details on how the widths of columns in the <code>JTable</code> 
      * (and <code>JTableHeader</code>) are calculated from the
      * <code>preferredWidth</code>, 
-     * see the <code>sizeColumnsToFit</code> method in <code>JTable</code>. 
+     * see the <code>doLayout</code> method in <code>JTable</code>. 
      *
      * @param  preferredWidth the new preferred width
      * @see	#getPreferredWidth
-     * @see     JTable#sizeColumnsToFit(int)
+     * @see     JTable#doLayout()
      * @beaninfo
      *  bound: true
      *  description: The preferred width of the column.     
@@ -662,6 +663,7 @@ public class TableColumn extends Object implements Serializable {
      * 
      * @deprecated as of Java 2 platform v1.3
      */
+    @Deprecated
     public void disableResizedPosting() {
 	resizedPostingDisableCount++;
     }
@@ -672,6 +674,7 @@ public class TableColumn extends Object implements Serializable {
      * 
      * @deprecated as of Java 2 platform v1.3
      */
+    @Deprecated
     public void enableResizedPosting() {
 	resizedPostingDisableCount--;
     }

@@ -1,7 +1,7 @@
 /*
- * @(#)SetOfIntegerSyntax.java	1.4 03/01/23
+ * @(#)SetOfIntegerSyntax.java	1.6 04/01/07
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -63,6 +63,8 @@ import java.util.Vector;
  * @author  Alan Kaminsky
  */
 public abstract class SetOfIntegerSyntax implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = 3666874174847632203L;
 
     /**
      * This set's members in canonical array form.

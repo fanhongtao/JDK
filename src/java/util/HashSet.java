@@ -1,7 +1,7 @@
 /*
- * @(#)HashSet.java	1.28 03/01/23
+ * @(#)HashSet.java	1.33 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -57,7 +57,8 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @author  Josh Bloch
- * @version 1.28, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.33, 12/19/03
  * @see	    Collection
  * @see	    Set
  * @see	    TreeSet
@@ -66,12 +67,13 @@ package java.util;
  * @since   1.2
  */
 
-public class HashSet extends AbstractSet
-		     implements Set, Cloneable, java.io.Serializable
+public class HashSet<E>
+    extends AbstractSet<E>
+    implements Set<E>, Cloneable, java.io.Serializable
 {
     static final long serialVersionUID = -5024744406713321676L;
 
-    private transient HashMap map;
+    private transient HashMap<E,Object> map;
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
@@ -81,7 +83,7 @@ public class HashSet extends AbstractSet
      * default initial capacity (16) and load factor (0.75).
      */
     public HashSet() {
-	map = new HashMap();
+	map = new HashMap<E,Object>();
     }
 
     /**
@@ -93,8 +95,8 @@ public class HashSet extends AbstractSet
      * @param c the collection whose elements are to be placed into this set.
      * @throws NullPointerException   if the specified collection is null.
      */
-    public HashSet(Collection c) {
-	map = new HashMap(Math.max((int) (c.size()/.75f) + 1, 16));
+    public HashSet(Collection<? extends E> c) {
+	map = new HashMap<E,Object>(Math.max((int) (c.size()/.75f) + 1, 16));
 	addAll(c);
     }
 
@@ -108,7 +110,7 @@ public class HashSet extends AbstractSet
      *             than zero, or if the load factor is nonpositive.
      */
     public HashSet(int initialCapacity, float loadFactor) {
-	map = new HashMap(initialCapacity, loadFactor);
+	map = new HashMap<E,Object>(initialCapacity, loadFactor);
     }
 
     /**
@@ -121,7 +123,7 @@ public class HashSet extends AbstractSet
      *             than zero.
      */
     public HashSet(int initialCapacity) {
-	map = new HashMap(initialCapacity);
+	map = new HashMap<E,Object>(initialCapacity);
     }
 
     /**
@@ -138,7 +140,7 @@ public class HashSet extends AbstractSet
      *             than zero, or if the load factor is nonpositive.
      */
     HashSet(int initialCapacity, float loadFactor, boolean dummy) {
-	map = new LinkedHashMap(initialCapacity, loadFactor);
+	map = new LinkedHashMap<E,Object>(initialCapacity, loadFactor);
     }
 
     /**
@@ -148,7 +150,7 @@ public class HashSet extends AbstractSet
      * @return an Iterator over the elements in this set.
      * @see ConcurrentModificationException
      */
-    public Iterator iterator() {
+    public Iterator<E> iterator() {
 	return map.keySet().iterator();
     }
 
@@ -188,7 +190,7 @@ public class HashSet extends AbstractSet
      * @return <tt>true</tt> if the set did not already contain the specified
      * element.
      */
-    public boolean add(Object o) {
+    public boolean add(E o) {
 	return map.put(o, PRESENT)==null;
     }
 
@@ -217,10 +219,10 @@ public class HashSet extends AbstractSet
      */
     public Object clone() {
 	try { 
-	    HashSet newSet = (HashSet)super.clone();
-	    newSet.map = (HashMap)map.clone();
+	    HashSet<E> newSet = (HashSet<E>) super.clone();
+	    newSet.map = (HashMap<E, Object>) map.clone();
 	    return newSet;
-	} catch (CloneNotSupportedException e) { 
+	} catch (CloneNotSupportedException e) {
 	    throw new InternalError();
 	}
     }
@@ -264,16 +266,16 @@ public class HashSet extends AbstractSet
         // Read in HashMap capacity and load factor and create backing HashMap
         int capacity = s.readInt();
         float loadFactor = s.readFloat();
-        map = (this instanceof LinkedHashSet ?
-               new LinkedHashMap(capacity, loadFactor) :
-               new HashMap(capacity, loadFactor));
+        map = (((HashSet)this) instanceof LinkedHashSet ?
+               new LinkedHashMap<E,Object>(capacity, loadFactor) :
+               new HashMap<E,Object>(capacity, loadFactor));
 
         // Read in size
         int size = s.readInt();
 
 	// Read in all elements in the proper order.
 	for (int i=0; i<size; i++) {
-            Object e = s.readObject();
+            E e = (E) s.readObject();
             map.put(e, PRESENT);
         }
     }

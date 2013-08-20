@@ -1,7 +1,7 @@
 /*
- * @(#)MemoryCache.java	1.13 03/01/23
+ * @(#)MemoryCache.java	1.15 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -100,10 +100,16 @@ class MemoryCache {
             if (offset == 0) {
                 cache.add(buf);
             }
-            buf = null;
 
             len -= nbytes;
             length += nbytes;
+            offset += nbytes;
+
+            if (offset >= BUFFER_LENGTH) {
+                // we've filled the current buffer, so a new one will be
+                // allocated next time around (and offset will be reset to 0)
+                buf = null;
+            }
         }
 
         return pos;

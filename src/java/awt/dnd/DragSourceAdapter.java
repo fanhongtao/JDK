@@ -1,7 +1,7 @@
 /*
- * @(#)DragSourceAdapter.java	1.4 03/01/23
+ * @(#)DragSourceAdapter.java	1.6 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,13 +23,18 @@ package java.awt.dnd;
  * a drop site, when the drop action changes, and when the drag ends, the
  * relevant method in the listener object is invoked, and the
  * <code>DragSourceEvent</code> is passed to it.
+ * <p>
+ * The drop site is <i>associated with the previous <code>dragEnter()</code>
+ * invocation</i> if the latest invocation of <code>dragEnter()</code> on this
+ * adapter corresponds to that drop site and is not followed by a
+ * <code>dragExit()</code> invocation on this adapter.
  *
  * @see DragSourceEvent
  * @see DragSourceListener
  * @see DragSourceMotionListener
  *
  * @author David Mendenhall
- * @version 1.4, 01/23/03
+ * @version 1.6, 12/19/03
  * @since 1.4
  */
 public abstract class DragSourceAdapter 
@@ -96,7 +101,8 @@ public abstract class DragSourceAdapter
      * </UL>
      * OR
      * <UL>
-     * <LI> The current drop site has rejected the drag.
+     * <LI> The drop site associated with the previous dragEnter() invocation
+     * has rejected the drag. 
      * </UL>
      * 
      * @param dse the <code>DragSourceEvent</code>

@@ -1,7 +1,7 @@
 /*
- * @(#)FileOutputStream.java	1.56 03/01/23
+ * @(#)FileOutputStream.java	1.57 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +25,7 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileWriter</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.56, 01/23/03
+ * @version 1.57, 12/19/03
  * @see     java.io.File
  * @see     java.io.FileDescriptor
  * @see     java.io.FileInputStream

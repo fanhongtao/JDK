@@ -1,7 +1,7 @@
 /*
- * @(#)IIORegistry.java	1.61 03/01/23
+ * @(#)IIORegistry.java	1.65 04/06/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,6 +24,10 @@ import com.sun.imageio.plugins.jpeg.JPEGImageReaderSpi;
 import com.sun.imageio.plugins.jpeg.JPEGImageWriterSpi;
 import com.sun.imageio.plugins.png.PNGImageReaderSpi;
 import com.sun.imageio.plugins.png.PNGImageWriterSpi;
+import com.sun.imageio.plugins.bmp.BMPImageReaderSpi;
+import com.sun.imageio.plugins.bmp.BMPImageWriterSpi;
+import com.sun.imageio.plugins.wbmp.WBMPImageReaderSpi;
+import com.sun.imageio.plugins.wbmp.WBMPImageWriterSpi;
 import sun.awt.AppContext;
 import sun.misc.Service;
 
@@ -40,7 +44,7 @@ import sun.misc.Service;
  *
  * <p> Service providers found on the system classpath (<i>e.g.</i>,
  * the <code>jre/lib/ext</code> directory in Sun's implementation of
- * J2SDK) are automatically loaded as soon as this class is
+ * JDK) are automatically loaded as soon as this class is
  * instantiated.
  *
  * <p> When the <code>registerApplicationClasspathSpis</code> method
@@ -79,7 +83,7 @@ import sun.misc.Service;
  *
  * <p> For more details on declaring service providers, and the JAR
  * format in general, see the <a
- * href="http://java.sun.com/products/jdk/1.3/docs/guide/jar/jar.html">
+ * href="{@docRoot}/../guide/jar/jar.html">
  * JAR File Specification</a>.
  *
  * @version 0.5
@@ -140,6 +144,10 @@ public final class IIORegistry extends ServiceRegistry {
     private void registerStandardSpis() {
         // Hardwire standard SPIs
         registerServiceProvider(new GIFImageReaderSpi());
+        registerServiceProvider(new BMPImageReaderSpi());
+        registerServiceProvider(new BMPImageWriterSpi());
+        registerServiceProvider(new WBMPImageReaderSpi());
+        registerServiceProvider(new WBMPImageWriterSpi());
         registerServiceProvider(new PNGImageReaderSpi());
         registerServiceProvider(new PNGImageWriterSpi());
         registerServiceProvider(new JPEGImageReaderSpi());

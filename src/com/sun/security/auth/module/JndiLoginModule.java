@@ -1,7 +1,7 @@
 /*
- * @(#)JndiLoginModule.java	1.8 03/01/23
+ * @(#)JndiLoginModule.java	1.11 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -132,7 +132,7 @@ import sun.security.util.AuthResources;
  *                  have completed.
  * </pre>
  *
- * @version 1.8, 01/23/03
+ * @version 1.11, 05/05/04
  */
 public class JndiLoginModule implements LoginModule {
 
@@ -200,7 +200,8 @@ public class JndiLoginModule implements LoginModule {
      *			<code>LoginModule</code>.
      */
     public void initialize(Subject subject, CallbackHandler callbackHandler,
-			Map sharedState, Map options) {
+			   Map<String,?> sharedState,
+			   Map<String,?> options) {
 
 	this.subject = subject;
 	this.callbackHandler = callbackHandler;
@@ -713,14 +714,19 @@ public class JndiLoginModule implements LoginModule {
 	    return false;
 
 	Crypt c = new Crypt();
-	byte oldCrypt[] = encryptedPassword.getBytes();
-	byte newCrypt[] = c.crypt(password.getBytes(),
-				oldCrypt);
-	if (newCrypt.length != oldCrypt.length)
+	try {
+	    byte oldCrypt[] = encryptedPassword.getBytes("UTF8");
+	    byte newCrypt[] = c.crypt(password.getBytes("UTF8"),
+				      oldCrypt);
+	    if (newCrypt.length != oldCrypt.length)
+	        return false;
+	    for (int i = 0; i < newCrypt.length; i++) {
+	        if (oldCrypt[i] != newCrypt[i])
+		    return false;
+	    }
+	} catch (java.io.UnsupportedEncodingException uee) {
+	    // cannot happen, but return false just to be safe
 	    return false;
-	for (int i = 0; i < newCrypt.length; i++) {
-	    if (oldCrypt[i] != newCrypt[i])
-		return false;
 	}
 	return true;
     }

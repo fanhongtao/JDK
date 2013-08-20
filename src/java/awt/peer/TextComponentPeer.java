@@ -1,13 +1,14 @@
 /*
- * @(#)TextComponentPeer.java	1.16 03/01/23
+ * @(#)TextComponentPeer.java	1.18 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt.peer;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.im.InputMethodRequests;
 
 /**
  * The peer interfaces are intended only for use in porting
@@ -28,4 +29,5 @@ public interface TextComponentPeer extends ComponentPeer {
     int getIndexAtPoint(int x, int y);
     Rectangle getCharacterBounds(int i);
     long filterEvents(long mask);
+    InputMethodRequests getInputMethodRequests();
 }

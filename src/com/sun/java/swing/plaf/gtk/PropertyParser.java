@@ -1,19 +1,20 @@
 /*
- * @(#)PropertyParser.java	1.8 03/01/23
+ * @(#)PropertyParser.java	1.10 04/06/24
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.java.swing.plaf.gtk;
 
 import java.util.HashMap;
+import java.awt.Color;
 import java.awt.Insets;
 import java.io.*;
 
 /**
  * @author  Shannon Hickey
- * @version 1.8 01/23/03
+ * @version 1.10 06/24/04
  */
 abstract class PropertyParser {
 
@@ -129,6 +130,25 @@ abstract class PropertyParser {
         }
     };
 
+    private static final PropertyParser COLOR_PARSER = new PropertyParser() {
+        public Object parse(String source) {
+            GTKScanner scanner = new GTKScanner();
+            scanner.scanReader(new StringReader(source), source);
+
+            try {
+                Color[] ret = new Color[1];
+                int token = GTKParser.parseColor(scanner, ret, 0);
+                if (token == GTKScanner.TOKEN_NONE) {
+                    return ret[0];
+                }
+            } catch (IOException ioe) {
+            } finally {
+                scanner.clearScanner();
+            }
+
+            return null;
+        }
+    };
     private static final HashMap PARSERS = new HashMap();
     
     static {
@@ -136,6 +156,7 @@ abstract class PropertyParser {
         PARSERS.put("interior-focus", BOOLEAN_PARSER);
         PARSERS.put("shadow-type", SHADOW_PARSER);
         PARSERS.put("focus-line-pattern", FOCUS_LINE_PARSER);
+        PARSERS.put("cursor-color", COLOR_PARSER);
     }
 
     public static PropertyParser getParserFor(String type) {

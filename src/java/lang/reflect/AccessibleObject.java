@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleObject.java	1.23 03/01/23
+ * @(#)AccessibleObject.java	1.26 04/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,6 +9,7 @@ package java.lang.reflect;
 
 import java.security.AccessController;
 import sun.reflect.ReflectionFactory;
+import java.lang.annotation.Annotation;
 
 /**
  * The AccessibleObject class is the base class for Field, Method and
@@ -32,8 +33,7 @@ import sun.reflect.ReflectionFactory;
  *
  * @since 1.2
  */
-public
-class AccessibleObject {
+public class AccessibleObject implements AnnotatedElement {
 
     /**
      * The Permission object that is used to check whether a client
@@ -56,9 +56,9 @@ class AccessibleObject {
      * <code>array</code> may not be changed (for example, if the element
      * object is a {@link Constructor} object for the class {@link
      * java.lang.Class}).  In the event of such a SecurityException, the
-     * accessiblity of objects is set to <code>flag</code> for array elements
+     * accessibility of objects is set to <code>flag</code> for array elements
      * upto (and excluding) the element for which the exception occurred; the
-     * accessiblity of elements beyond (and including) the element for which
+     * accessibility of elements beyond (and including) the element for which
      * the exception occurred is unchanged.
      *
      * @param array the array of AccessibleObjects
@@ -164,4 +164,22 @@ class AccessibleObject {
     static final ReflectionFactory reflectionFactory = (ReflectionFactory)
         AccessController.doPrivileged
             (new sun.reflect.ReflectionFactory.GetReflectionFactoryAction());
+
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        throw new AssertionError("All subclasses should override this method");
+    }
+
+    public boolean isAnnotationPresent(
+        Class<? extends Annotation> annotationClass)
+    {
+        return getAnnotation(annotationClass) != null;
+    }
+
+    public Annotation[] getAnnotations() { 
+        return getDeclaredAnnotations();
+    }
+
+    public Annotation[] getDeclaredAnnotations()  {
+        throw new AssertionError("All subclasses should override this method");
+    }
 }

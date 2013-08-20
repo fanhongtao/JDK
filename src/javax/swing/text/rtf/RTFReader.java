@@ -1,5 +1,5 @@
 /*
- * @(#)RTFReader.java	1.23 04/08/16
+ * @(#)RTFReader.java	1.24 04/08/07
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -568,7 +568,7 @@ static char[] readCharset(InputStream strm)
     char[] values = new char[256];
     int i;
     StreamTokenizer in = new StreamTokenizer(new BufferedReader(
-								new InputStreamReader(strm)));
+            new InputStreamReader(strm, "ISO-8859-1")));
 
     in.eolIsSignificant(false);
     in.commentChar('#');
@@ -667,9 +667,9 @@ class DiscardingDestination implements Destination
  *  fontTable dictionary. */
 class FonttblDestination implements Destination
 {
-    int nextFontNumber = -1;
-    Object fontNumberKey = null; 
-    String nextFontFamily = null;
+    int nextFontNumber;
+    Object fontNumberKey = null;
+    String nextFontFamily;
     
     public void handleBinaryBlob(byte[] data)
     { /* Discard binary blobs. */ }
@@ -683,7 +683,8 @@ class FonttblDestination implements Destination
             fontName = text.substring(0, semicolon);
         else
             fontName = text;
-
+        
+        
         /* TODO: do something with the font family. */
 
         if (nextFontNumber == -1 
@@ -916,10 +917,7 @@ class StylesheetDestination
 	}
 
 	public void close() {
-            int semicolon = 0;
-	    if (styleName != null){
-		semicolon = styleName.indexOf(';');
-	    }
+            int semicolon = (styleName == null) ? 0 : styleName.indexOf(';');
 	    if (semicolon > 0)
 		styleName = styleName.substring(0, semicolon);
 	    definedStyles.put(new Integer(number), this);

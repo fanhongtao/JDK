@@ -1,7 +1,7 @@
 /*
- * @(#)MetaMessage.java	1.22 03/01/23
+ * @(#)MetaMessage.java	1.24 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.io.IOException;
  *
  * @see MetaEventListener
  *
- * @version 1.22, 03/01/23
+ * @version 1.24, 03/12/19
  * @author David Rivas
  * @author Kara Kytle
  */
@@ -133,32 +133,6 @@ public class MetaMessage extends MidiMessage {
 	    throw new InvalidMidiDataException("length out of bounds: "+length);
 	}
 	
-	/*
-	  int oldLength=0;
-	  int oldDataLength=0;
-	  byte[] oldData=null;
-	  try {
-	  //$$fb 2001-10-06: this is a very inefficient implementation !
-	  ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	  DataOutputStream dos = new DataOutputStream(bos);
-
-	  dos.writeByte(0xFF);	// status value for MetaMessages (meta events)
-	  dos.writeByte(type);	// MetaMessage type
-
-	  writeVarInt( length, dos );   // write the length as a
-	  // variable int
-	  dos.write(data, 0, length);
-
-	  //this.data = bos.toByteArray();
-	  //this.length = this.data.length;
-	  //this.dataLength = length;
-	  oldData = bos.toByteArray();
-	  oldLength = oldData.length;
-	  oldDataLength = length;
-	  } catch (IOException e) {
-	  }
-	*/
-	
 	this.length = 2 + getVarIntLength(length) + length;
 	this.dataLength = length;
 	this.data = new byte[this.length];
@@ -168,30 +142,6 @@ public class MetaMessage extends MidiMessage {
 	if (length > 0) {
 	    System.arraycopy(data, 0, this.data, this.length - this.dataLength, this.dataLength);
 	}
-	
-	/*
-	  // check equality
-	  if (this.length != oldLength) {
-	  System.out.println("length = "+length+"   oldLength = "+oldLength);
-	  } else
-	  if (this.dataLength != oldDataLength) {
-	  System.out.println("dataLength = "+dataLength+"   oldDataLength = "+oldDataLength);
-	  } else
-	  if (this.data.length != oldData.length) {
-	  System.out.println("this.data.length = "+this.data.length+"   oldData.length = "+oldData.length);
-	  } else {
-	  boolean succ=true;
-	  for (int i=0; i<this.data.length; i++) {
-	  if (this.data[i]!=oldData[i]) {
-	  succ=false;
-	  System.out.println(" this.data["+i+"] = "+this.data[i]+"   oldData["+i+"] = "+oldData[i]);
-	  }
-	  }
-	  if (succ) {
-	  System.out.println("Message with length = "+length+" is equal.");
-	  }
-	  }
-	*/
     }
 
 
@@ -239,46 +189,6 @@ public class MetaMessage extends MidiMessage {
     }
 
     // HELPER METHODS
-
-    /*
-      private void writeVarInt(int value, DataOutputStream dos ) throws InvalidMidiDataException, IOException {
-
-      int MAX_LENGTH = 6;
-      byte bytes[] = new byte[MAX_LENGTH];
-      int length = 0;
-      int currentByte = 0;
-
-      // first make sure our array is zeroed
-      for(int i=0; i<MAX_LENGTH; i++) bytes[i] = 0;
-
-      // we fill this array up from the end so that bytes will be
-      // written to the stream msb first
-      for(int i=MAX_LENGTH-1; i >= 0; i--) {
-
-      bytes[i] = (byte) (value & 0x7F);
-      value = value >>> 7;
-      length++;
-
-      if( length>1 ) {
-      // this is not the last byte to be written to the stream,
-      // so change the msb to 1
-      bytes[i] |= 0x80;
-      }
-      if( value==0 ) {
-				// we don't need any more bytes to store this integer
-				break;
-				}
-				}
-				// make sure we terminated properly
-				if ( (bytes[MAX_LENGTH-1] & 0x80) != 0 ) {
-
-				throw new InvalidMidiDataException("Unable to create variable-length integer");
-				}
-
-				// now write our bytes, msb first, to the stream
-				dos.write(bytes, (MAX_LENGTH-length), length);
-				}
-    */
 
     private int getVarIntLength(long value) {
 	int length = 0;

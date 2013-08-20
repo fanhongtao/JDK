@@ -1,7 +1,7 @@
 /*
- * @(#)JRadioButtonMenuItem.java	1.47 03/01/23
+ * @(#)JRadioButtonMenuItem.java	1.49 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -33,9 +33,6 @@ import javax.accessibility.*;
  * <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/menu.html">How to Use Menus</a>,
  * a section in <em>The Java Tutorial.</em>
- * For the keyboard keys used by this component in the standard Look and
- * Feel (L&F) renditions, see the
- * <a href="doc-files/Key-Index.html#JRadioButtonMenuItem"><code>JRadioButtonMenuItem</code> key assignments</a>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -50,7 +47,7 @@ import javax.accessibility.*;
  *   attribute: isContainer false
  * description: A component within a group of menu items which can be selected.
  *
- * @version 1.47 01/23/03
+ * @version 1.49 12/19/03
  * @author Georges Saab
  * @author David Karlton
  * @see ButtonGroup

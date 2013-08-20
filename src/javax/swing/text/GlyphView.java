@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphView.java	1.27 06/07/26
+ * @(#)GlyphView.java	1.36 04/05/26
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -9,6 +9,8 @@ package javax.swing.text;
 import java.awt.*;
 import java.text.BreakIterator;
 import javax.swing.event.*;
+
+import com.sun.java.swing.SwingUtilities2;
 
 /**
  * A GlyphView is a styled chunk of text that represents a view
@@ -37,7 +39,7 @@ import javax.swing.event.*;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.27 07/26/06
+ * @version 1.36 05/26/04
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -50,6 +52,14 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	super(elem);
 	offset = 0;
 	length = 0;
+        Element parent = elem.getParentElement();
+        AttributeSet attr = elem.getAttributes();
+
+        //         if there was an implied CR
+        impliedCR = (attr != null && attr.getAttribute(IMPLIED_CR) != null &&
+        //         if this is non-empty paragraph
+                   parent != null && parent.getElementCount() > 1);
+        skipWidth = elem.getName().equals("br");
     }
 
     /**
@@ -258,7 +268,16 @@ public class GlyphView extends View implements TabableView, Cloneable {
      */
     public float getTabbedSpan(float x, TabExpander e) {
 	checkPainter();
+
+        TabExpander old = expander;
 	expander = e;
+
+        if (expander != old) {
+            // setting expander can change horizontal span of the view,
+            // so we have to call preferenceChanged()
+            preferenceChanged(null, true, false);
+        }
+
 	this.x = (int) x;
 	int p0 = getStartOffset();
 	int p1 = getEndOffset();
@@ -343,6 +362,13 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	Rectangle alloc = (a instanceof Rectangle) ? (Rectangle)a : a.getBounds();
 	Color bg = getBackground();
 	Color fg = getForeground();
+
+        if (c instanceof JTextComponent) {
+            JTextComponent tc = (JTextComponent) c;
+	    if  (!tc.isEnabled()) {
+		fg = tc.getDisabledTextColor();
+	    }
+        }
 	if (bg != null) {
 	    g.setColor(bg);
 	    g.fillRect(alloc.x, alloc.y, alloc.width, alloc.height);
@@ -362,68 +388,74 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	} else if(c instanceof JTextComponent) {
 	    JTextComponent tc = (JTextComponent) c;
 	    Color selFG = tc.getSelectedTextColor();
-
-	    if(selFG != null && !selFG.equals(fg)) {
-		Highlighter.Highlight[] h = tc.getHighlighter().getHighlights();
-  
-                if(h.length != 0) {
-                    boolean initialized = false;
-                    int viewSelectionCount = 0;
-                    for (int i = 0; i < h.length; i++) {
-                        Highlighter.Highlight highlight = h[i];
-                        int hStart = highlight.getStartOffset();
-                        int hEnd = highlight.getEndOffset();
-                        if (hStart > p1 || hEnd < p0) {
-                            // the selection is out of this view
+            
+	    if (// there's a highlighter (bug 4532590), and
+                (tc.getHighlighter() != null) &&
+                // selected text color is different from regular foreground
+		(selFG != null) && !selFG.equals(fg)) {
+                
+                Highlighter.Highlight[] h = tc.getHighlighter().getHighlights(); 
+                if(h.length != 0) { 
+                    boolean initialized = false; 
+                    int viewSelectionCount = 0; 
+                    for (int i = 0; i < h.length; i++) { 
+                        Highlighter.Highlight highlight = h[i]; 
+                        int hStart = highlight.getStartOffset(); 
+                        int hEnd = highlight.getEndOffset(); 
+                        if (hStart > p1 || hEnd < p0) { 
+                            // the selection is out of this view 
+                            continue; 
+                        } 
+                        if (!SwingUtilities2.useSelectedTextColor(highlight, tc)) {
                             continue;
                         }
-                        if (hStart <= p0 && hEnd >= p1){
-                            // the whole view is selected
-                            paintTextUsingColor(g, a, selFG, p0, p1);
-                            paintedText = true;
-                            break;
-                        }
-                        // the array is lazily created only when the view
-                        // is partially selected
-                        if (!initialized) {
-                            initSelections(p0, p1);
-                            initialized = true;
-                        }
-                        hStart = Math.max(p0, hStart);
-                        hEnd = Math.min(p1, hEnd);
-                        paintTextUsingColor(g, a, selFG, hStart, hEnd);
-                        // the array represents view positions [0, p1-p0+1]
-                        // later will iterate this array and sum its
-                        // elements. Positions with sum == 0 are not selected.
-                        selections[hStart-p0]++;
-                        selections[hEnd-p0]--;
+                        if (hStart <= p0 && hEnd >= p1){ 
+                            // the whole view is selected 
+                            paintTextUsingColor(g, a, selFG, p0, p1); 
+                            paintedText = true; 
+                            break; 
+                        } 
+                        // the array is lazily created only when the view 
+                        // is partially selected 
+                        if (!initialized) { 
+                            initSelections(p0, p1); 
+                            initialized = true; 
+                        } 
+                        hStart = Math.max(p0, hStart); 
+                        hEnd = Math.min(p1, hEnd); 
+                        paintTextUsingColor(g, a, selFG, hStart, hEnd); 
+                        // the array represents view positions [0, p1-p0+1] 
+                        // later will iterate this array and sum its 
+                        // elements. Positions with sum == 0 are not selected. 
+                        selections[hStart-p0]++; 
+                        selections[hEnd-p0]--; 
 
-                        viewSelectionCount++;
+                        viewSelectionCount++; 
+                    } 
+ 
+                    if (!paintedText && viewSelectionCount > 0) { 
+                        // the view is partially selected 
+                        int curPos = -1; 
+                        int startPos = 0; 
+                        int viewLen = p1 - p0; 
+                        while (curPos++ < viewLen) { 
+                            // searching for the next selection start 
+                            while(curPos < viewLen && 
+                                    selections[curPos] == 0) curPos++; 
+                            if (startPos != curPos) { 
+                                // paint unselected text 
+                                paintTextUsingColor(g, a, fg, 
+                                        p0 + startPos, p0 + curPos); 
+                            } 
+                            int checkSum = 0; 
+                            // searching for next start position of unselected text 
+                            while (curPos < viewLen && 
+                                    (checkSum += selections[curPos]) != 0) curPos++; 
+                            startPos = curPos; 
+                        } 
+                        paintedText = true;
                     }
-
-                    if (!paintedText && viewSelectionCount > 0) {
-                        // the view is partially selected
-                        int curPos = -1;
-                        int startPos = 0;
-                        int viewLen = p1 - p0;
-                        while (curPos++ < viewLen) {
-                            // searching for the next selection start
-                            while(curPos < viewLen &&
-                                    selections[curPos] == 0) curPos++;
-                            if (startPos != curPos) {
-                                // paint unselected text
-                                paintTextUsingColor(g, a, fg,
-                                        p0 + startPos, p0 + curPos);
-                            }
-                            int checkSum = 0;
-                            // searching for next start position of unselected text
-                            while (curPos < viewLen &&
-                                    (checkSum += selections[curPos]) != 0) curPos++;
-                            startPos = curPos;
-                        }
-			paintedText = true;
-		    }
-		}
+                }
 	    }
 	}
 	if(!paintedText)
@@ -490,11 +522,17 @@ public class GlyphView extends View implements TabableView, Cloneable {
      *           The parent may choose to resize or break the view.
      */
     public float getPreferredSpan(int axis) {
+        if (impliedCR) {
+            return 0;
+        }
 	checkPainter();
 	int p0 = getStartOffset();
 	int p1 = getEndOffset();
 	switch (axis) {
 	case View.X_AXIS:
+	    if (skipWidth) {
+		return 0;
+	    }
 	    float width = painter.getSpan(this, p0, p1, expander, this.x);
 	    return Math.max(width, 1);
 	case View.Y_AXIS:
@@ -632,16 +670,11 @@ public class GlyphView extends View implements TabableView, Cloneable {
 		return View.BadBreakWeight;	    
 	    }
             if (getBreakSpot(p0, p1) != -1) {
-		return View.ExcellentBreakWeight;
-	    }
-            // Nothing good to break on.
-	    // breaking on the View boundary is better than splitting it
-            if (p1 == getEndOffset()) {
-                return View.GoodBreakWeight;
-            } else {
-               return View.GoodBreakWeight - 1;
+                return View.ExcellentBreakWeight;
             }
-        }
+	    // Nothing good to break on.
+	    return View.GoodBreakWeight;
+	}
 	return super.getBreakWeight(axis, pos, len);
     }
 
@@ -812,8 +845,8 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	checkPainter();
 	Element elem = getElement();
 	GlyphView v = (GlyphView) clone();
-	v.offset = (short) (p0 - elem.getStartOffset());
-	v.length = (short) (p1 - p0);
+	v.offset = p0 - elem.getStartOffset();
+	v.length = p1 - p0;
 	v.painter = painter.getPainter(v, p0, p1);
 	return v;
     }
@@ -856,6 +889,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * @see View#insertUpdate
      */
     public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	syncCR();
 	preferenceChanged(null, true, false);
     }
 
@@ -871,6 +905,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * @see View#removeUpdate
      */
     public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	syncCR();
 	preferenceChanged(null, true, false);
     }
 
@@ -886,9 +921,18 @@ public class GlyphView extends View implements TabableView, Cloneable {
      * @see View#changedUpdate
      */
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+	syncCR();
 	preferenceChanged(null, true, true);
     }
 
+    // checks if the paragraph is empty and updates impliedCR flag 
+    // accordingly
+    private void syncCR() {
+        if (impliedCR) {
+            Element parent = getElement().getParentElement();
+            impliedCR = (parent != null && parent.getElementCount() > 1);
+        }
+    }
     // --- variables ------------------------------------------------
 
     /**
@@ -896,9 +940,13 @@ public class GlyphView extends View implements TabableView, Cloneable {
     */
     private byte[] selections = null;
 
-    short offset;
-    short length;
-
+    int offset;
+    int length;
+    // if it is an implied newline character
+    boolean impliedCR;
+    private static final String IMPLIED_CR = "CR";
+    boolean skipWidth;
+    
     /**
      * how to expand tabs
      */

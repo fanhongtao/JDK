@@ -1,7 +1,7 @@
 /*
- * @(#)PKIXCertPathChecker.java	1.5 03/01/23
+ * @(#)PKIXCertPathChecker.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -65,7 +65,7 @@ import java.util.Set;
  * @see PKIXParameters 
  * @see PKIXBuilderParameters
  *
- * @version 	1.5 01/23/03
+ * @version 	1.7 12/19/03
  * @since	1.4
  * @author	Yassir Elley
  * @author	Sean Mullan
@@ -126,7 +126,7 @@ public abstract class PKIXCertPathChecker implements Cloneable {
      * <code>PKIXCertPathChecker</code>, or <code>null</code> if no 
      * extensions are supported
      */
-    public abstract Set getSupportedExtensions();
+    public abstract Set<String> getSupportedExtensions();
 
     /**
      * Performs the check(s) on the specified certificate using its internal 
@@ -141,8 +141,9 @@ public abstract class PKIXCertPathChecker implements Cloneable {
      * @exception CertPathValidatorException if the specified certificate does 
      * not pass the check
      */
-    public abstract void check(Certificate cert, Collection unresolvedCritExts)
-	throws CertPathValidatorException;
+    public abstract void check(Certificate cert, 
+	    Collection<String> unresolvedCritExts) 
+	    throws CertPathValidatorException;
 
     /**
      * Returns a clone of this object. Calls the <code>Object.clone()</code>

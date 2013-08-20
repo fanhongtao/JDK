@@ -1,7 +1,7 @@
 /*
- * @(#)MultiUIDefaults.java	1.13 03/01/23
+ * @(#)MultiUIDefaults.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -112,6 +112,13 @@ class MultiUIDefaults extends UIDefaults
 	return new MultiUIDefaultsEnumerator(enums);
     }
 
+    protected void getUIError(String msg) {
+        if (tables.length > 0) {
+            tables[0].getUIError(msg);
+        } else {
+            super.getUIError(msg);
+        }
+    }
 
     private static class MultiUIDefaultsEnumerator implements Enumeration
     {
@@ -171,5 +178,21 @@ class MultiUIDefaults extends UIDefaults
 		table.clear();
 	    }
 	}
+    }
+
+    public synchronized String toString() {
+	StringBuffer buf = new StringBuffer();
+	buf.append("{");
+	Enumeration keys = keys();
+	while (keys.hasMoreElements()) {
+	    Object key = keys.nextElement();
+	    buf.append(key + "=" + get(key) + ", ");
+	}
+	int length = buf.length();
+	if (length > 1) {
+	    buf.delete(length-2, length);
+	}
+	buf.append("}");
+	return buf.toString();
     }
 }

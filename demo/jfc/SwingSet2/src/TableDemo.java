@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)TableDemo.java	1.17 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
- * @(#)TableDemo.java	1.12 03/01/23
+ * @(#)TableDemo.java	1.17 04/07/26
  */
 
 
@@ -49,16 +50,19 @@ import javax.accessibility.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.PrinterException;
 import java.beans.*;
 import java.util.*;
 import java.io.*;
 import java.applet.*;
 import java.net.*;
 
+import java.text.MessageFormat;
+
 /**
  * Table demo
  *
- * @version 1.12 01/23/03
+ * @version 1.17 07/26/04
  * @author Philip Milne
  * @author Steve Wilson
  */
@@ -73,7 +77,6 @@ public class TableDemo extends DemoModule {
 
     JCheckBox   isColumnSelectionAllowedCheckBox;
     JCheckBox   isRowSelectionAllowedCheckBox;
-    // JCheckBox   isRowAndColumnSelectionAllowedCheckBox;
 
     JLabel      interCellSpacingLabel;
     JLabel      rowHeightLabel;
@@ -83,6 +86,15 @@ public class TableDemo extends DemoModule {
 
     JComboBox	selectionModeComboBox = null;
     JComboBox	resizeModeComboBox = null;
+
+    JLabel      headerLabel;
+    JLabel      footerLabel;
+
+    JTextField  headerTextField;
+    JTextField  footerTextField;
+
+    JCheckBox   fitWidth;
+    JButton     printButton;
 
     JPanel      controlPanel;
     JScrollPane tableAggregate;
@@ -106,17 +118,28 @@ public class TableDemo extends DemoModule {
 	super(swingset, "TableDemo", "toolbar/JTable.gif");
 	
 	getDemoPanel().setLayout(new BorderLayout());
-	controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	JPanel column1 = new JPanel (new ColumnLayout() );
-	JPanel column2 = new JPanel (new ColumnLayout() );
-	JPanel column3 = new JPanel (new ColumnLayout() );
-	
+	controlPanel = new JPanel();
+        controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
+	JPanel cbPanel = new JPanel(new GridLayout(3, 2));
+        JPanel labelPanel = new JPanel(new GridLayout(2, 1)) {
+            public Dimension getMaximumSize() {
+                return new Dimension(getPreferredSize().width, super.getMaximumSize().height);
+            }
+        };
+        JPanel sliderPanel = new JPanel(new GridLayout(2, 1)) {
+            public Dimension getMaximumSize() {
+                return new Dimension(getPreferredSize().width, super.getMaximumSize().height);
+            }
+        };
+	JPanel comboPanel = new JPanel(new GridLayout(2, 1));
+        JPanel printPanel = new JPanel(new ColumnLayout());
+
 	getDemoPanel().add(controlPanel, BorderLayout.NORTH);
 	Vector relatedComponents = new Vector();
-	
-	// start column 1
+
+
+        // check box panel
     	isColumnReorderingAllowedCheckBox = new JCheckBox(getString("TableDemo.reordering_allowed"), true);
-        column1.add(isColumnReorderingAllowedCheckBox);
         isColumnReorderingAllowedCheckBox.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 	        boolean flag = ((JCheckBox)e.getSource()).isSelected();
@@ -124,10 +147,8 @@ public class TableDemo extends DemoModule {
                 tableView.repaint();
 	    }
         });
-	
-	
+
     	showHorizontalLinesCheckBox = new JCheckBox(getString("TableDemo.horz_lines"), true);
-        column1.add(showHorizontalLinesCheckBox);
         showHorizontalLinesCheckBox.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 	        boolean flag = ((JCheckBox)e.getSource()).isSelected();
@@ -135,9 +156,8 @@ public class TableDemo extends DemoModule {
                 tableView.repaint();
 	    }
         });
-	
+
     	showVerticalLinesCheckBox = new JCheckBox(getString("TableDemo.vert_lines"), true);
-        column1.add(showVerticalLinesCheckBox);
         showVerticalLinesCheckBox.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 	        boolean flag = ((JCheckBox)e.getSource()).isSelected();
@@ -151,14 +171,51 @@ public class TableDemo extends DemoModule {
 	relatedComponents.add(showHorizontalLinesCheckBox);
 	relatedComponents.add(showVerticalLinesCheckBox);
 	buildAccessibleGroup(relatedComponents);
-	
+
+        isRowSelectionAllowedCheckBox = new JCheckBox(getString("TableDemo.row_selection"), true);
+        isRowSelectionAllowedCheckBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean flag = ((JCheckBox)e.getSource()).isSelected();
+                tableView.setRowSelectionAllowed(flag); ;
+                tableView.repaint();
+            }
+        });
+
+        isColumnSelectionAllowedCheckBox = new JCheckBox(getString("TableDemo.column_selection"), false);
+        isColumnSelectionAllowedCheckBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean flag = ((JCheckBox)e.getSource()).isSelected();
+                tableView.setColumnSelectionAllowed(flag); ;
+                tableView.repaint();
+            }
+        });
+
+        // Show that row/column selections are related
+        relatedComponents.removeAllElements();
+        relatedComponents.add(isColumnSelectionAllowedCheckBox);
+        relatedComponents.add(isRowSelectionAllowedCheckBox);
+        buildAccessibleGroup(relatedComponents);
+
+        cbPanel.add(isColumnReorderingAllowedCheckBox);
+        cbPanel.add(isRowSelectionAllowedCheckBox);
+        cbPanel.add(showHorizontalLinesCheckBox);
+        cbPanel.add(isColumnSelectionAllowedCheckBox);
+        cbPanel.add(showVerticalLinesCheckBox);
+
+
+        // label panel
         interCellSpacingLabel = new JLabel(getString("TableDemo.intercell_spacing_colon"));
-	column1.add(interCellSpacingLabel);
-	
+	labelPanel.add(interCellSpacingLabel);
+
+        rowHeightLabel = new JLabel(getString("TableDemo.row_height_colon"));
+        labelPanel.add(rowHeightLabel);
+
+
+        // slider panel
     	interCellSpacingSlider = new JSlider(JSlider.HORIZONTAL, 0, 10, 1);
 	interCellSpacingSlider.getAccessibleContext().setAccessibleName(getString("TableDemo.intercell_spacing"));
 	interCellSpacingLabel.setLabelFor(interCellSpacingSlider);
-        column1.add(interCellSpacingSlider);
+        sliderPanel.add(interCellSpacingSlider);
         interCellSpacingSlider.addChangeListener(new ChangeListener() {
 	    public void stateChanged(ChangeEvent e) {
 	        int spacing = ((JSlider)e.getSource()).getValue();
@@ -167,55 +224,10 @@ public class TableDemo extends DemoModule {
 	    }
         });
 	
-        controlPanel.add(column1);
-	
-	// start column 2
-
- 	isColumnSelectionAllowedCheckBox = new JCheckBox(getString("TableDemo.column_selection"), false);
-        column2.add(isColumnSelectionAllowedCheckBox);
-        isColumnSelectionAllowedCheckBox.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-	        boolean flag = ((JCheckBox)e.getSource()).isSelected();
-                tableView.setColumnSelectionAllowed(flag); ;
-                tableView.repaint();
-	    }
-        });
-	
-    	isRowSelectionAllowedCheckBox = new JCheckBox(getString("TableDemo.row_selection"), true);
-        column2.add(isRowSelectionAllowedCheckBox);
-        isRowSelectionAllowedCheckBox.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-	        boolean flag = ((JCheckBox)e.getSource()).isSelected();
-                tableView.setRowSelectionAllowed(flag); ;
-                tableView.repaint();
-	    }
-        });
-
-	// Show that row/column selections are related
-	relatedComponents.removeAllElements();
-	relatedComponents.add(isColumnSelectionAllowedCheckBox);
-	relatedComponents.add(isRowSelectionAllowedCheckBox);
-	buildAccessibleGroup(relatedComponents);
-
-	/*
-    	isRowAndColumnSelectionAllowedCheckBox = new JCheckBox(getString("TableDemo.cell_selection"), false);
-        column2.add(isRowAndColumnSelectionAllowedCheckBox);
-        isRowAndColumnSelectionAllowedCheckBox.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-	        boolean flag = ((JCheckBox)e.getSource()).isSelected();
-                tableView.setCellSelectionEnabled(flag); ;
-                tableView.repaint();
-	    }
-        });
-	*/
-
-        rowHeightLabel = new JLabel(getString("TableDemo.row_height_colon"));
-	column2.add(rowHeightLabel);
-
     	rowHeightSlider = new JSlider(JSlider.HORIZONTAL, 5, 100, INITIAL_ROWHEIGHT);
 	rowHeightSlider.getAccessibleContext().setAccessibleName(getString("TableDemo.row_height"));
 	rowHeightLabel.setLabelFor(rowHeightSlider);
-        column2.add(rowHeightSlider);
+        sliderPanel.add(rowHeightSlider);
         rowHeightSlider.addChangeListener(new ChangeListener() {
 	    public void stateChanged(ChangeEvent e) {
 	        int height = ((JSlider)e.getSource()).getValue();
@@ -224,13 +236,12 @@ public class TableDemo extends DemoModule {
 	    }
         });
 
-        controlPanel.add(column2);
-        
 	// Show that spacing controls are related
 	relatedComponents.removeAllElements();
 	relatedComponents.add(interCellSpacingSlider);
 	relatedComponents.add(rowHeightSlider);
 	buildAccessibleGroup(relatedComponents);
+
 
         // Create the table.
         tableAggregate = createTable();
@@ -239,11 +250,15 @@ public class TableDemo extends DemoModule {
 
         // ComboBox for selection modes.
 	JPanel selectMode = new JPanel();
-        column3.setLayout(new ColumnLayout());
+        selectMode.setLayout(new BoxLayout(selectMode, BoxLayout.X_AXIS));
       	selectMode.setBorder(new TitledBorder(getString("TableDemo.selection_mode")));
 
 
-        selectionModeComboBox = new JComboBox();
+        selectionModeComboBox = new JComboBox() {
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+        };
         selectionModeComboBox.addItem(getString("TableDemo.single"));
         selectionModeComboBox.addItem(getString("TableDemo.one_range"));
         selectionModeComboBox.addItem(getString("TableDemo.multiple_ranges"));
@@ -255,19 +270,24 @@ public class TableDemo extends DemoModule {
 	    }
         });
 
+        selectMode.add(Box.createHorizontalStrut(2));
 	selectMode.add(selectionModeComboBox);
-        column3.add(selectMode);
+        selectMode.add(Box.createHorizontalGlue());
+        comboPanel.add(selectMode);
 
         // Combo box for table resize mode.
-
 	JPanel resizeMode = new JPanel();
-
+        resizeMode.setLayout(new BoxLayout(resizeMode, BoxLayout.X_AXIS));
 	resizeMode.setBorder(new TitledBorder(getString("TableDemo.autoresize_mode")));
 
 
-        resizeModeComboBox = new JComboBox();
+        resizeModeComboBox = new JComboBox() {
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+        };
         resizeModeComboBox.addItem(getString("TableDemo.off"));
-        resizeModeComboBox.addItem(getString("TableDemo.column_boundries"));
+        resizeModeComboBox.addItem(getString("TableDemo.column_boundaries"));
         resizeModeComboBox.addItem(getString("TableDemo.subsequent_columns"));
         resizeModeComboBox.addItem(getString("TableDemo.last_column"));
         resizeModeComboBox.addItem(getString("TableDemo.all_columns"));
@@ -279,13 +299,63 @@ public class TableDemo extends DemoModule {
 	    }
         });
 
+        resizeMode.add(Box.createHorizontalStrut(2));
 	resizeMode.add(resizeModeComboBox);
-        column3.add(resizeMode);
+        resizeMode.add(Box.createHorizontalGlue());
+        comboPanel.add(resizeMode);
 
-        controlPanel.add(column3);
+        // print panel
+        printPanel.setBorder(new TitledBorder(getString("TableDemo.printing")));
+        headerLabel = new JLabel(getString("TableDemo.header"));
+        footerLabel = new JLabel(getString("TableDemo.footer"));
+        headerTextField = new JTextField(getString("TableDemo.headerText"), 15);
+        footerTextField = new JTextField(getString("TableDemo.footerText"), 15);
+        fitWidth = new JCheckBox(getString("TableDemo.fitWidth"), true);
+        printButton = new JButton(getString("TableDemo.print"));
+        printButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                printTable();
+            }
+        });
+
+        printPanel.add(headerLabel);
+        printPanel.add(headerTextField);
+        printPanel.add(footerLabel);
+        printPanel.add(footerTextField);
+        
+        JPanel buttons = new JPanel();
+        buttons.add(fitWidth);
+        buttons.add(printButton);
+
+        printPanel.add(buttons);
+
+        // Show that printing controls are related
+        relatedComponents.removeAllElements();
+        relatedComponents.add(headerTextField);
+        relatedComponents.add(footerTextField);
+        relatedComponents.add(printButton);
+        buildAccessibleGroup(relatedComponents);
+
+        // wrap up the panels and add them
+        JPanel sliderWrapper = new JPanel();
+        sliderWrapper.setLayout(new BoxLayout(sliderWrapper, BoxLayout.X_AXIS));
+        sliderWrapper.add(labelPanel);
+        sliderWrapper.add(sliderPanel);
+        sliderWrapper.add(Box.createHorizontalGlue());
+        sliderWrapper.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+        
+        JPanel leftWrapper = new JPanel();
+        leftWrapper.setLayout(new BoxLayout(leftWrapper, BoxLayout.Y_AXIS));
+        leftWrapper.add(cbPanel);
+        leftWrapper.add(sliderWrapper);
+
+        // add everything
+        controlPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 2, 0));
+        controlPanel.add(leftWrapper);
+        controlPanel.add(comboPanel);
+        controlPanel.add(printPanel);
 
 	setTableControllers(); // Set accessibility information
-	    
     } // TableDemo()
 
     /**
@@ -437,7 +507,7 @@ public class TableDemo extends DemoModule {
 	  {"Eric", "Hawkes",      blue,        getString("TableDemo.bladerunner"), new Double(.693), pickle},
           {"Shannon", "Hickey",   green,       getString("TableDemo.shawshank"), new Integer(2), grapes},
 	  {"Earl", "Johnson",     green,       getString("TableDemo.pulpfiction"), new Double(8), carrot},
-	  {"Robi", "Kahn",        green,       getString("TableDemo.goodfellas"), new Double(89), apple},
+	  {"Robi", "Khan",        green,       getString("TableDemo.goodfellas"), new Double(89), apple},
 	  {"Robert", "Kim",       blue,        getString("TableDemo.mohicans"), new Double(655321), strawberry},
 	  {"Janet", "Koenig",     turquoise,   getString("TableDemo.lonestar"), new Double(7), peach},
 	  {"Jeff", "Kesselman",   blue,        getString("TableDemo.stuntman"), new Double(17), pineapple},
@@ -464,7 +534,7 @@ public class TableDemo extends DemoModule {
 	  {"Nancy", "Schorr",     green,       getString("TableDemo.fifthelement"), new Double(47), watermelon},
 	  {"Keith", "Sprochi",    darkgreen,   getString("TableDemo.2001"), new Integer(13), watermelon},
 	  {"Matt", "Tucker",      eblue,       getString("TableDemo.starwars"), new Integer(2), broccoli},
-	  {"Dimitri", "Trembovetsky", red,     getString("TableDemo.aliens"), new Integer(222), tomato},
+	  {"Dmitri", "Trembovetski", red,      getString("TableDemo.aliens"), new Integer(222), tomato},
 	  {"Scott", "Violet",     violet,      getString("TableDemo.raiders"), new Integer(-97), banana},
 	  {"Kathy", "Walrath",    blue,        getString("TableDemo.thinman"), new Integer(8), pear},
 	  {"Nathan", "Walrath",   black,       getString("TableDemo.chusingura"), new Integer(3), grapefruit},
@@ -538,6 +608,49 @@ public class TableDemo extends DemoModule {
         return scrollpane;
     }
 
+    private void printTable() {
+        MessageFormat headerFmt;
+        MessageFormat footerFmt;
+        JTable.PrintMode printMode = fitWidth.isSelected() ?
+                                     JTable.PrintMode.FIT_WIDTH :
+                                     JTable.PrintMode.NORMAL;
+
+        String text;
+        text = headerTextField.getText();
+        if (text != null && text.length() > 0) {
+            headerFmt = new MessageFormat(text);
+        } else {
+            headerFmt = null;
+        }
+
+        text = footerTextField.getText();
+        if (text != null && text.length() > 0) {
+            footerFmt = new MessageFormat(text);
+        } else {
+            footerFmt = null;
+        }
+
+        try {
+            boolean status = tableView.print(printMode, headerFmt, footerFmt);
+
+            if (status) {
+                JOptionPane.showMessageDialog(this, getString("TableDemo.printingComplete"),
+                                                    getString("TableDemo.printingResult"),
+                                                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, getString("TableDemo.printingCancelled"),
+                                                    getString("TableDemo.printingResult"),
+                                                    JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (PrinterException pe) {
+            String errorMessage = MessageFormat.format(getString("TableDemo.printingFailed"),
+                                                       new Object[] {pe.getMessage()});
+            JOptionPane.showMessageDialog(this, errorMessage,
+                                                getString("TableDemo.printingResult"),
+                                                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     class NamedColor extends Color {
 	String name;
 	public NamedColor(Color color, String name) {
@@ -606,5 +719,10 @@ public class TableDemo extends DemoModule {
 	public void removeLayoutComponent(Component c) {}
     }
     
-    
+    void updateDragEnabled(boolean dragEnabled) {
+        tableView.setDragEnabled(dragEnabled);
+        headerTextField.setDragEnabled(dragEnabled);
+        footerTextField.setDragEnabled(dragEnabled);
+    }
+
 }

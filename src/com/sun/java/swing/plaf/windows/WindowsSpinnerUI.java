@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsSpinnerUI.java	1.10 03/01/23
+ * @(#)WindowsSpinnerUI.java	1.12 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,31 +22,23 @@ public class WindowsSpinnerUI extends BasicSpinnerUI {
     }
 
     protected Component createPreviousButton() {
-        AbstractButton classicButton = (AbstractButton)super.createPreviousButton();
-
 	if (XPStyle.getXP() != null) {
 	    JButton xpButton = new XPStyle.GlyphButton("spin.down");
 	    xpButton.setRequestFocusEnabled(false);
-	    xpButton.addActionListener((ActionListener)getUIResource(classicButton.getActionListeners()));
-	    xpButton.addMouseListener((MouseListener)getUIResource(classicButton.getMouseListeners()));
-	    return xpButton;
-	} else {
-	    return classicButton;
-	}
+            installPreviousButtonListeners(xpButton);
+            return xpButton;
+        }
+        return super.createPreviousButton();
     }
 
     protected Component createNextButton() {
-        AbstractButton classicButton = (AbstractButton)super.createNextButton();
-
 	if (XPStyle.getXP() != null) {
 	    JButton xpButton = new XPStyle.GlyphButton("spin.up");
 	    xpButton.setRequestFocusEnabled(false);
-	    xpButton.addActionListener((ActionListener)getUIResource(classicButton.getActionListeners()));
-	    xpButton.addMouseListener((MouseListener)getUIResource(classicButton.getMouseListeners()));
+            installNextButtonListeners(xpButton);
 	    return xpButton;
-	} else {
-	    return classicButton;
-	}
+        }
+        return super.createNextButton();
     }
 
     private UIResource getUIResource(Object[] listeners) {

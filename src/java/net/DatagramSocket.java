@@ -1,7 +1,7 @@
 /*
- * @(#)DatagramSocket.java	1.90 03/01/23
+ * @(#)DatagramSocket.java	1.96 04/03/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -42,7 +42,7 @@ import java.security.PrivilegedExceptionAction;
  * UDP port 8888.
  *
  * @author  Pavani Diwanji
- * @version 1.90, 01/23/03
+ * @version 1.96, 03/05/04
  * @see     java.net.DatagramPacket
  * @see     java.nio.channels.DatagramChannel
  * @since JDK1.0
@@ -500,9 +500,10 @@ class DatagramSocket {
 
     /**
      * Returns the address of the endpoint this socket is connected to, or
-     * <code>null</null> if it is unconnected.
-     * @return a <code>SocketAddress</code> reprensenting the remote endpoint of this
-     *	       socket, or <code>null</code> if it is not connected yet.
+     * <code>null</code> if it is unconnected.
+     * @return a <code>SocketAddress</code> representing the remote
+     *         endpoint of this socket, or <code>null</code> if it is
+     *         not connected yet.
      * @see #getInetAddress()
      * @see #getPort()
      * @see #connect(SocketAddress)
@@ -821,7 +822,7 @@ class DatagramSocket {
      * to be queued by the network implementation when the send rate
      * is high. 
      * <p>
-     * Note: If {@link #send()} is used to send a 
+     * Note: If {@link #send(DatagramPacket)} is used to send a 
      * <code>DatagramPacket</code> that is larger than the setting
      * of SO_SNDBUF then it is implementation specific if the
      * packet is sent or discarded.
@@ -879,7 +880,7 @@ class DatagramSocket {
      * <p>
      * Increasing SO_RCVBUF may allow the network implementation
      * to buffer multiple packets when packets arrive faster than
-     * are being received using {@link #receive()}.
+     * are being received using {@link #receive(DatagramPacket)}.
      * <p>
      * Note: It is implementation specific if a packet larger
      * than SO_RCVBUF can be received.
@@ -929,7 +930,7 @@ class DatagramSocket {
      * For UDP sockets it may be necessary to bind more than one
      * socket to the same socket address. This is typically for the
      * purpose of receiving multicast packets
-     * (See {@link #java.net.MulticastSocket}). The
+     * (See {@link java.net.MulticastSocket}). The
      * <tt>SO_REUSEADDR</tt> socket option allows multiple
      * sockets to be bound to the same socket address if the
      * <tt>SO_REUSEADDR</tt> socket option is enabled prior
@@ -959,7 +960,7 @@ class DatagramSocket {
         if (oldImpl)
 	    getImpl().setOption(SocketOptions.SO_REUSEADDR, new Integer(on?-1:0));
 	else
-	    getImpl().setOption(SocketOptions.SO_REUSEADDR, new Boolean(on));
+	    getImpl().setOption(SocketOptions.SO_REUSEADDR, Boolean.valueOf(on));
     }
 
     /**
@@ -989,7 +990,7 @@ class DatagramSocket {
     public synchronized void setBroadcast(boolean on) throws SocketException {
 	if (isClosed())
 	    throw new SocketException("Socket is closed");
-        getImpl().setOption(SocketOptions.SO_BROADCAST, new Boolean(on));
+        getImpl().setOption(SocketOptions.SO_BROADCAST, Boolean.valueOf(on));
     }
 
     /**
@@ -1056,16 +1057,16 @@ class DatagramSocket {
      * header for packets sent from this DatagramSocket.
      * <p>
      * As the underlying network implementation may ignore the
-     * traffic class or type-of-service set using {@link #setTrafficClass()}
+     * traffic class or type-of-service set using {@link #setTrafficClass(int)}
      * this method may return a different value than was previously
-     * set using the {@link #setTrafficClass()} method on this 
+     * set using the {@link #setTrafficClass(int)} method on this 
      * DatagramSocket.
      *
      * @return the traffic class or type-of-service already set
      * @throws SocketException if there is an error obtaining the
      * traffic class or type-of-service value.
      * @since 1.4
-     * @see #setTrafficClass
+     * @see #setTrafficClass(int)
      */
     public synchronized int getTrafficClass() throws SocketException {
 	if (isClosed())
@@ -1095,7 +1096,7 @@ class DatagramSocket {
     }
  
     /**
-     * Returns wether the socket is closed or not.
+     * Returns whether the socket is closed or not.
      *
      * @return true if the socket has been closed
      * @since 1.4
@@ -1136,6 +1137,9 @@ class DatagramSocket {
      * When an application creates a new datagram socket, the socket
      * implementation factory's <code>createDatagramSocketImpl</code> method is
      * called to create the actual datagram socket implementation.
+     * <p>
+     * Passing <code>null</code> to the method is a no-op unless the factory
+     * was already set.
      * 
      * <p>If there is a security manager, this method first calls
      * the security manager's <code>checkSetFactory</code> method 

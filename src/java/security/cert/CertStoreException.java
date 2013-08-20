@@ -1,14 +1,12 @@
 /*
- * @(#)CertStoreException.java	1.4 03/01/23
+ * @(#)CertStoreException.java	1.7 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.security.cert;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.security.GeneralSecurityException;
 
 /**
@@ -29,11 +27,13 @@ import java.security.GeneralSecurityException;
  *
  * @see CertStore
  *
- * @version 	1.4 01/23/03
+ * @version 	1.7 12/19/03
  * @since	1.4
  * @author	Sean Mullan
  */
 public class CertStoreException extends GeneralSecurityException {
+
+    private static final long serialVersionUID = 2395296107471573245L;
 
     /**
      * Creates a <code>CertStoreException</code> with <code>null</code> as
@@ -67,8 +67,7 @@ public class CertStoreException extends GeneralSecurityException {
      * permitted, and indicates that the cause is nonexistent or unknown.)
      */
     public CertStoreException(Throwable cause) {
-        super();
-	initCause(cause);
+        super(cause);
     }
 
     /**
@@ -81,72 +80,7 @@ public class CertStoreException extends GeneralSecurityException {
      * permitted, and indicates that the cause is nonexistent or unknown.)
      */
     public CertStoreException(String msg, Throwable cause) {
-        super(msg);
-	initCause(cause);
+        super(msg, cause);
     }
 
-    /**
-     * Returns the detail message for this <code>CertStoreException</code>.
-     * 
-     * @return the detail message, or <code>null</code> if neither the message
-     * nor cause were specified
-     */
-    public String getMessage() {
-        return super.getMessage();
-    }
-
-    /**
-     * Returns the cause of this <code>CertStoreException</code> or 
-     * <code>null</code> if the cause is nonexistent or unknown.
-     * 
-     * @return the cause of this throwable or <code>null</code> if the cause 
-     * is nonexistent or unknown.
-     */
-    public Throwable getCause() {
-        return super.getCause();
-    }
-  
-    /**
-     * Returns a string describing this exception, including a description
-     * of the internal (wrapped) cause if there is one.
-     *
-     * @return a string representation of this
-     * <code>CertStoreException</code>
-     */
-    public String toString() {
-        if (getCause() == null)
-            return super.toString();
-        else
-            return super.toString() +
-                "; internal cause is: \n\t" +
-                getCause().toString();
-    }
-
-    /**
-     * Prints a stack trace to <code>System.err</code>, including the backtrace 
-     * of the cause, if any.
-     */
-    public void printStackTrace() {
-        printStackTrace(System.err);
-    }
-
-    /**
-     * Prints a stack trace to a <code>PrintStream</code>, including the
-     * backtrace of the cause, if any.
-     *
-     * @param ps the <code>PrintStream</code> to use for output
-     */
-    public void printStackTrace(PrintStream ps) {
-        super.printStackTrace(ps);
-    }
-
-    /**
-     * Prints a stack trace to a <code>PrintWriter</code>, including the
-     * backtrace of the cause, if any.
-     *
-     * @param pw the <code>PrintWriter</code> to use for output
-     */
-    public void printStackTrace(PrintWriter pw) {
-        super.printStackTrace(pw);
-    }
 }

@@ -1,7 +1,7 @@
 /*
- * @(#)Time.java	1.30 03/01/27
+ * @(#)Time.java	1.32 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,6 +35,7 @@ public class Time extends java.util.Date {
      * @deprecated Use the constructor that takes a milliseconds value
      *             in place of this constructor
      */
+    @Deprecated
     public Time(int hour, int minute, int second) {
 	super(70, 0, 1, hour, minute, second);
     }
@@ -133,6 +134,7 @@ public class Time extends java.util.Date {
     *           method is invoked
     * @see #setYear
     */
+    @Deprecated
     public int getYear() {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -146,6 +148,7 @@ public class Time extends java.util.Date {
     *           method is invoked
     * @see #setMonth
     */
+    @Deprecated
     public int getMonth() {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -158,6 +161,7 @@ public class Time extends java.util.Date {
     * @exception java.lang.IllegalArgumentException if this
     *           method is invoked
     */
+    @Deprecated
     public int getDay() {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -171,6 +175,7 @@ public class Time extends java.util.Date {
     *           method is invoked
     * @see #setDate
     */
+    @Deprecated
     public int getDate() {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -184,6 +189,7 @@ public class Time extends java.util.Date {
     *           method is invoked
     * @see #getYear
     */
+    @Deprecated
     public void setYear(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -197,6 +203,7 @@ public class Time extends java.util.Date {
     *           method is invoked
     * @see #getMonth
     */
+    @Deprecated
     public void setMonth(int i) {
 	throw new java.lang.IllegalArgumentException();
     }
@@ -210,6 +217,7 @@ public class Time extends java.util.Date {
     *           method is invoked
     * @see #getDate
     */
+    @Deprecated
     public void setDate(int i) {
 	throw new java.lang.IllegalArgumentException();
     }

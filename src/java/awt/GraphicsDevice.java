@@ -1,7 +1,7 @@
 /*
- * @(#)GraphicsDevice.java	1.27 03/01/23
+ * @(#)GraphicsDevice.java	1.30 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -47,7 +47,7 @@ import java.awt.image.ColorModel;
  * </pre>                           
  * @see GraphicsEnvironment
  * @see GraphicsConfiguration
- * @version 1.27, 01/23/03
+ * @version 1.30, 12/19/03
  */
 public abstract class GraphicsDevice {
 
@@ -174,16 +174,24 @@ public abstract class GraphicsDevice {
      * <code>false</code>, full-screen exclusive mode is simulated by resizing
      * the window to the size of the screen and positioning it at (0,0).
      * <p>
+     * When entering full-screen exclusive mode, if the window to be used as the 
+     * full-screen window is not visible, this method will make it visible. 
+     * It will remain visible when returning to windowed mode.  
+     * <p>
      * When returning to windowed mode from an exclusive full-screen window, any
      * display changes made by calling <code>setDisplayMode</code> are
      * automatically restored to their original state.
      *
      * @param w a window to use as the full-screen window; <code>null</code>
-     * if returning to windowed mode.
+     * if returning to windowed mode.  Some platforms expect the
+     * fullscreen window to be a top-level component (i.e., a Frame);
+     * therefore it is preferable to use a Frame here rather than a
+     * Window. 
      * @see #isFullScreenSupported
      * @see #getFullScreenWindow
      * @see #setDisplayMode
      * @see Component#enableInputMethods
+     * @see Component#setVisible
      * @since 1.4
      */
     public void setFullScreenWindow(Window w) {
@@ -210,7 +218,8 @@ public abstract class GraphicsDevice {
     /**
      * Returns the <code>Window</code> object representing the 
      * full-screen window if the device is in full-screen mode.
-     * @return the full-screen window, <code>null</code> if the device is
+     * 
+     * @return the full-screen window, or <code>null</code> if the device is
      * not in full-screen mode.
      * @see #setFullScreenWindow(Window)
      * @since 1.4

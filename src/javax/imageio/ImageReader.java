@@ -1,7 +1,7 @@
 /*
- * @(#)ImageReader.java	1.138 03/01/23
+ * @(#)ImageReader.java	1.140 03/08/27
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -120,7 +120,7 @@ public abstract class ImageReader {
      * <code>null</code>, which is synonymous with an empty
      * <code>List</code>.
      */
-    protected List warningListeners = null;
+    protected List<IIOReadWarningListener> warningListeners = null;
 
     /**
      * A <code>List</code> of the <code>Locale</code>s associated with
@@ -128,7 +128,7 @@ public abstract class ImageReader {
      * initialized by default to <code>null</code>, which is
      * synonymous with an empty <code>List</code>.
      */
-    protected List warningLocales = null;
+    protected List<Locale> warningLocales = null;
 
     /**
      * A <code>List</code> of currently registered
@@ -136,7 +136,7 @@ public abstract class ImageReader {
      * to <code>null</code>, which is synonymous with an empty
      * <code>List</code>.
      */
-    protected List progressListeners = null;
+    protected List<IIOReadProgressListener> progressListeners = null;
 
     /**
      * A <code>List</code> of currently registered
@@ -144,7 +144,7 @@ public abstract class ImageReader {
      * <code>null</code>, which is synonymous with an empty
      * <code>List</code>.
      */
-    protected List updateListeners = null;
+    protected List<IIOReadUpdateListener> updateListeners = null;
     
     /**
      * If <code>true</code>, the current read operation should be
@@ -693,7 +693,8 @@ public abstract class ImageReader {
      * @see ImageReadParam#setDestination(BufferedImage)
      * @see ImageReadParam#setDestinationType(ImageTypeSpecifier)
      */
-    public abstract Iterator getImageTypes(int imageIndex) throws IOException;
+    public abstract Iterator<ImageTypeSpecifier>
+	getImageTypes(int imageIndex) throws IOException;
 
     /**
      * Returns a default <code>ImageReadParam</code> object
@@ -768,8 +769,10 @@ public abstract class ImageReader {
      * is <code>null</code>.
      * @exception IOException if an error occurs during reading.
      */
-    public IIOMetadata getStreamMetadata(String formatName, Set nodeNames)
-        throws IOException {
+    public IIOMetadata getStreamMetadata(String formatName,
+					 Set<String> nodeNames)
+        throws IOException
+    {
         return getMetadata(formatName, nodeNames, true, 0);
     }
 
@@ -878,7 +881,8 @@ public abstract class ImageReader {
      * @exception IOException if an error occurs during reading.
      */
     public IIOMetadata getImageMetadata(int imageIndex,
-                                        String formatName, Set nodeNames)
+                                        String formatName,
+					Set<String> nodeNames)
         throws IOException {
         return getMetadata(formatName, nodeNames, false, imageIndex);
     }
@@ -950,7 +954,8 @@ public abstract class ImageReader {
      * <code>IllegalArgumentException</code> is thrown.
      *
      * <p> If the supplied <code>ImageReadParam</code> contains
-     * optional setting values not supported by this reader, they will
+     * optional setting values not supported by this reader (<i>e.g.</i>
+     * source render size or any format-specific settings), they will
      * be ignored.
      *
      * @param imageIndex the index of the image to be retrieved.
@@ -1011,7 +1016,8 @@ public abstract class ImageReader {
      * the region settings.
      *
      * <p> If the supplied <code>ImageReadParam</code> contains
-     * optional setting values not supported by this reader, those
+     * optional setting values not supported by this reader (<i>e.g.</i>
+     * source render size or any format-specific settings), those
      * values will be ignored.
      *
      * @param imageIndex the index of the image to be retrieved.
@@ -1043,10 +1049,13 @@ public abstract class ImageReader {
         
         BufferedImage im = read(imageIndex, param);
 
-        List thumbnails = null;
+        ArrayList thumbnails = null;
         int numThumbnails = getNumThumbnails(imageIndex);
-        for (int j = 0; j < numThumbnails; j++) {
-            thumbnails.add(readThumbnail(imageIndex, j));
+        if (numThumbnails > 0) {
+            thumbnails = new ArrayList();
+            for (int j = 0; j < numThumbnails; j++) {
+                thumbnails.add(readThumbnail(imageIndex, j));
+            }
         }
 
         IIOMetadata metadata = getImageMetadata(imageIndex);
@@ -1100,7 +1109,8 @@ public abstract class ImageReader {
      * region settings.
      *
      * <p> If any of the supplied <code>ImageReadParam</code>s contain
-     * optional setting values not supported by this reader, they will
+     * optional setting values not supported by this reader (<i>e.g.</i>
+     * source render size or any format-specific settings), they will
      * be ignored.
      *
      * @param params an <code>Iterator</code> containing
@@ -1126,7 +1136,10 @@ public abstract class ImageReader {
      * @see ImageReadParam
      * @see IIOImage
      */
-    public Iterator readAll(Iterator params) throws IOException {
+    public Iterator<IIOImage>
+	readAll(Iterator<? extends ImageReadParam> params)
+	throws IOException
+    {
         List output = new ArrayList();
 
         int imageIndex = getMinIndex();
@@ -1158,10 +1171,13 @@ public abstract class ImageReader {
                 break;
             }
 
-            List thumbnails = null;
+            ArrayList thumbnails = null;
             int numThumbnails = getNumThumbnails(imageIndex);
-            for (int j = 0; j < numThumbnails; j++) {
-                thumbnails.add(readThumbnail(imageIndex, j));
+            if (numThumbnails > 0) {
+                thumbnails = new ArrayList();
+                for (int j = 0; j < numThumbnails; j++) {
+                    thumbnails.add(readThumbnail(imageIndex, j));
+                }
             }
 
             IIOMetadata metadata = getImageMetadata(imageIndex);
@@ -1224,7 +1240,8 @@ public abstract class ImageReader {
      * <code>UnsupportedOperationException</code>.
      *
      * <p> If the supplied <code>ImageReadParam</code> contains
-     * optional setting values not supported by this reader, they will
+     * optional setting values not supported by this reader (<i>e.g.</i>
+     * source render size or any format-specific settings), they will
      * be ignored.
      *
      * <p> The default implementation throws an 
@@ -1510,7 +1527,8 @@ public abstract class ImageReader {
      * returned, or indeed at any time.
      *
      * <p> If the supplied <code>ImageReadParam</code> contains
-     * optional setting values not supported by this reader, they will
+     * optional setting values not supported by this reader (<i>e.g.</i>
+     * source render size or any format-specific settings), they will
      * be ignored.
      *
      * <p> The default implementation just calls {@link #read
@@ -1827,7 +1845,8 @@ public abstract class ImageReader {
             warningListeners.remove(index);
             warningLocales.remove(index);
             if (warningListeners.size() == 0) {
-                warningListeners = warningLocales = null;
+                warningListeners = null;
+		warningLocales = null;
             }
         }
     }
@@ -2416,14 +2435,35 @@ public abstract class ImageReader {
             IIOReadWarningListener listener =
                 (IIOReadWarningListener)warningListeners.get(i);
             Locale locale = (Locale)warningLocales.get(i);
+	    if (locale == null) {
+		locale = Locale.getDefault();
+	    }
+
+	    /**
+             * If an applet supplies an implementation of ImageReader and
+	     * resource bundles, then the resource bundle will need to be
+	     * accessed via the applet class loader. So first try the context
+	     * class loader to locate the resource bundle.
+	     * If that throws MissingResourceException, then try the
+	     * system class loader.
+	     */
+	    ClassLoader loader = (ClassLoader)
+	    	java.security.AccessController.doPrivileged(
+		   new java.security.PrivilegedAction() {
+		      public Object run() {
+                        return Thread.currentThread().getContextClassLoader();
+		      }
+                });
 
             ResourceBundle bundle = null;
             try {
-                bundle = (locale == null) 
-                    ? ResourceBundle.getBundle(baseName)
-                    : ResourceBundle.getBundle(baseName, locale);
+                bundle = ResourceBundle.getBundle(baseName, locale, loader);
             } catch (MissingResourceException mre) {
-                throw new IllegalArgumentException("Bundle not found!");
+		try {
+		    bundle = ResourceBundle.getBundle(baseName, locale);
+		} catch (MissingResourceException mre1) {
+		    throw new IllegalArgumentException("Bundle not found!");
+		}
             }
 
             String warning = null;
@@ -2771,10 +2811,10 @@ public abstract class ImageReader {
      * <code>width</code> and <code>height</code> is greater than
      * <code>Integer.MAX_VALUE</code>.
      */
-    protected static BufferedImage getDestination(ImageReadParam param,
-                                                  Iterator imageTypes,
-                                                  int width,
-                                                  int height)
+    protected static BufferedImage
+	getDestination(ImageReadParam param,
+		       Iterator<ImageTypeSpecifier> imageTypes,
+		       int width, int height)
         throws IIOException {
         if (imageTypes == null || !imageTypes.hasNext()) {
             throw new IllegalArgumentException("imageTypes null or empty!");

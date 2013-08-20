@@ -1,7 +1,7 @@
 /*
- * @(#)AccessibleState.java	1.33 03/01/27
+ * @(#)AccessibleState.java	1.38 04/04/15
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import java.util.ResourceBundle;
  * to describe the role of an object, a subclass should be generated
  * from this class and it should provide constants in a similar manner.
  *
- * @version     1.27 10/12/99 14:48:59
+ * @version     1.38 04/15/04
  * @author      Willie Walker
  * @author	Peter Korn
  */
@@ -298,10 +298,46 @@ public class AccessibleState extends AccessibleBundle {
      * example, those objects underneath lists, tables, and trees in Swing,
      * where only one actual UI Component does shared rendering duty for
      * all of the data objects underneath the actual list/table/tree elements).
+     *
+     * @since 1.5
      * 
      */
     public static final AccessibleState TRANSIENT
             = new AccessibleState("transient");
+
+    /**
+     * Indicates this object is responsible for managing its
+     * subcomponents.  This is typically used for trees and tables
+     * that have a large number of subcomponents and where the
+     * objects are created only when needed and otherwise remain virtual.
+     * The application should not manage the subcomponents directly.
+     *
+     * @since 1.5
+     */
+    public static final AccessibleState MANAGES_DESCENDANTS
+            = new AccessibleState ("managesDescendants"); 
+ 
+    /**
+     * Indicates that the object state is indeterminate.  An example
+     * is selected text that is partially bold and partially not
+     * bold. In this case the attributes associated with the selected
+     * text are indeterminate.
+     *
+     * @since 1.5
+     */
+    public static final AccessibleState INDETERMINATE
+           = new AccessibleState ("indeterminate"); 
+
+    /**
+     * A state indicating that text is truncated by a bounding rectangle
+     * and that some of the text is not displayed on the screen.  An example
+     * is text in a spreadsheet cell that is truncated by the bounds of
+     * the cell.
+     *
+     * @since 1.5
+     */
+    static public final AccessibleState TRUNCATED
+           =  new AccessibleState("truncated");
 
     /**
      * Creates a new AccessibleState using the given locale independent key.

@@ -1,7 +1,7 @@
 /*
- * @(#)StyledEditorKit.java	1.42 03/01/23
+ * @(#)StyledEditorKit.java	1.45 04/02/04
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -25,7 +25,7 @@ import javax.swing.UIManager;
  * provides a minimal set of actions for editing styled text.
  *
  * @author  Timothy Prinzing
- * @version 1.42 01/23/03
+ * @version 1.45 02/04/04
  */
 public class StyledEditorKit extends DefaultEditorKit {
 
@@ -271,12 +271,16 @@ public class StyledEditorKit extends DefaultEditorKit {
      */
     protected void createInputAttributes(Element element,
 					 MutableAttributeSet set) {
-	set.removeAttributes(set);
-	set.addAttributes(element.getAttributes());
-	set.removeAttribute(StyleConstants.ComponentAttribute);
-	set.removeAttribute(StyleConstants.IconAttribute);
-	set.removeAttribute(AbstractDocument.ElementNameAttribute);
-	set.removeAttribute(StyleConstants.ComposedTextAttribute);
+        if (element.getAttributes().getAttributeCount() > 0
+            || element.getEndOffset() - element.getStartOffset() > 1
+            || element.getEndOffset() < element.getDocument().getLength()) {
+	    set.removeAttributes(set);
+	    set.addAttributes(element.getAttributes());
+	    set.removeAttribute(StyleConstants.ComponentAttribute);
+	    set.removeAttribute(StyleConstants.IconAttribute);
+	    set.removeAttribute(AbstractDocument.ElementNameAttribute);
+	    set.removeAttribute(StyleConstants.ComposedTextAttribute);
+	}
     }
 
     // ---- default ViewFactory implementation ---------------------

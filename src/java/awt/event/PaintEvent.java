@@ -1,7 +1,7 @@
 /*
- * @(#)PaintEvent.java	1.18 03/01/23
+ * @(#)PaintEvent.java	1.20 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.awt.Rectangle;
  * render themselves properly.
  *
  * @author Amy Fowler
- * @version 1.18, 01/23/03
+ * @version 1.20, 12/19/03
  * @since 1.1
  */
 public class PaintEvent extends ComponentEvent {
@@ -67,11 +67,14 @@ public class PaintEvent extends ComponentEvent {
      * Constructs a <code>PaintEvent</code> object with the specified
      * source component and type.
      * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior.
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      *
      * @param source     the object where the event originated
      * @param id         the event type
      * @param updateRect the rectangle area which needs to be repainted
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     public PaintEvent(Component source, int id, Rectangle updateRect) {
         super(source, id);

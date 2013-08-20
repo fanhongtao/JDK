@@ -1,14 +1,16 @@
 /*
- * @(#)ImageInputStream.java	1.44 03/01/23
+ * @(#)ImageInputStream.java	1.47 04/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.imageio.stream;
 
 import java.io.DataInput;
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.UTFDataFormatException;
 import java.nio.ByteOrder;
 
 /**
@@ -289,7 +291,7 @@ public interface ImageInputStream extends DataInput {
     /**
      * Reads 4 bytes from the stream, and (conceptually) concatenates
      * them according to the current byte order, converts the result
-     * to a long, masks it with <code>0xffffffff</code> in order to
+     * to a long, masks it with <code>0xffffffffL</code> in order to
      * strip off any sign-extension bits, and returns the result as an
      * unsigned <code>long</code> value.
      *
@@ -395,10 +397,12 @@ public interface ImageInputStream extends DataInput {
     String readLine() throws IOException;
 
     /**
-     * Reads in a string that has been encoded using a modified UTF-8
+     * Reads in a string that has been encoded using a
+     * <a href="../../../java/io/DataInput.html#modified-utf-8">modified
+     * UTF-8</a>
      * format.  The general contract of <code>readUTF</code> is that
      * it reads a representation of a Unicode character string encoded
-     * in Java modified UTF-8 format; this string of characters is
+     * in modified UTF-8 format; this string of characters is
      * then returned as a <code>String</code>.
      *
      * <p> First, two bytes are read and used to construct an unsigned
@@ -461,12 +465,17 @@ public interface ImageInputStream extends DataInput {
      * <p> The bit offset within the stream is reset to zero before
      * the read occurs.
      *
-     * @return a UTF-encoded String from the stream.
+     * <p><strong>Note:</strong> This method should not be used in
+     * the  implementation of image formats that use standard UTF-8,
+     * because  the modified UTF-8 used here is incompatible with
+     * standard UTF-8.
+     *
+     * @return a String read from the stream.
      *
      * @exception  EOFException  if this stream reaches the end
      * before reading all the bytes.
      * @exception  UTFDataFormatException if the bytes do not represent a
-     * valid UTF-8 encoding of a string.
+     * valid modified UTF-8 encoding of a string.
      * @exception IOException if an I/O error occurs.
      */
     String readUTF() throws IOException;

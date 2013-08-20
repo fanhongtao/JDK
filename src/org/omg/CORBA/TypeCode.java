@@ -1,7 +1,7 @@
 /*
  * @(#)TypeCode.java	1.51 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -169,14 +169,13 @@ public abstract class TypeCode implements IDLEntity {
 	 * Tests to see if the given <code>TypeCode</code> object is 
 	 * equivalent to this <code>TypeCode</code> object.
 	 * <P>
-	 * Not implemented; see package comments.
+	 * 
 	 *
 	 * @param tc the typecode to compare with this typecode
 	 *
 	 * @return <code>true</code> if the given typecode is equivalent to
 	 *         this typecode; <code>false</code> otherwise
-     * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
-     *      comments for unimplemented features</a>
+     * 
      */
     public abstract boolean equivalent(TypeCode tc);
 

@@ -1,11 +1,13 @@
 /*
- * @(#)BeanDescriptor.java	1.19 03/01/23
+ * @(#)BeanDescriptor.java	1.23 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.beans;
+
+import java.lang.ref.Reference;
 
 /**
  * A BeanDescriptor provides global information about a "bean",
@@ -17,13 +19,16 @@ package java.beans;
 
 public class BeanDescriptor extends FeatureDescriptor {
 
+    private Reference beanClassRef;
+    private Reference customizerClassRef;
+
     /**
      * Create a BeanDescriptor for a bean that doesn't have a customizer.
      *
      * @param beanClass  The Class object of the Java class that implements
      *		the bean.  For example sun.beans.OurButton.class.
      */
-    public BeanDescriptor(Class beanClass) {
+    public BeanDescriptor(Class<?> beanClass) {
 	this(beanClass, null);
     }
 
@@ -35,9 +40,10 @@ public class BeanDescriptor extends FeatureDescriptor {
      * @param customizerClass  The Class object of the Java class that implements
      *		the bean's Customizer.  For example sun.beans.OurButtonCustomizer.class.
      */
-    public BeanDescriptor(Class beanClass, Class customizerClass) {
-	this.beanClass = beanClass;
-	this.customizerClass = customizerClass;
+    public BeanDescriptor(Class<?> beanClass, Class<?> customizerClass) {
+	beanClassRef = createReference(beanClass);
+	customizerClassRef = createReference(customizerClass);
+
 	String name = beanClass.getName();
 	while (name.indexOf('.') >= 0) {
 	    name = name.substring(name.indexOf('.')+1);
@@ -50,8 +56,8 @@ public class BeanDescriptor extends FeatureDescriptor {
      *
      * @return The Class object for the bean.
      */
-    public Class getBeanClass() {
-	return beanClass;
+    public Class<?> getBeanClass() {
+	return (Class)getObject(beanClassRef);
     }
 
     /**
@@ -60,8 +66,8 @@ public class BeanDescriptor extends FeatureDescriptor {
      * @return The Class object for the bean's customizer.  This may
      * be null if the bean doesn't have a customizer.
      */
-    public Class getCustomizerClass() {
-	return customizerClass;
+    public Class<?> getCustomizerClass() {
+	return (Class)getObject(customizerClassRef);
     }
 
     /*
@@ -70,11 +76,7 @@ public class BeanDescriptor extends FeatureDescriptor {
      */
     BeanDescriptor(BeanDescriptor old) {
 	super(old);
-	beanClass = old.beanClass;
-	customizerClass = old.customizerClass;
+	beanClassRef = old.beanClassRef;
+	customizerClassRef = old.customizerClassRef;
     }
-
-    private Class beanClass;
-    private Class customizerClass;
-
 }

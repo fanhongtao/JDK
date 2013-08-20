@@ -1,7 +1,7 @@
 /*
- * @(#)JarURLConnection.java	1.29 03/01/23
+ * @(#)JarURLConnection.java	1.31 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -49,6 +49,9 @@ import java.security.Permission;
  * Manifest manifest = jarConnection.getManifest();
  * </pre>
  *
+ * <p>JarURLConnection instances can only be used to read from JAR files.
+ * It is not possible to get a {@link java.io.OutputStream} to modify or write 
+ * to the underlying JAR file using this class.
  * <p>Examples:
  * 
  * <dl>
@@ -184,9 +187,7 @@ public abstract class JarURLConnection extends URLConnection {
     }
 
     /**   
-     * Return the JAR file for this connection. The returned object is
-     * not modifiable, and will throw UnsupportedOperationException
-     * if the caller attempts to modify it.
+     * Return the JAR file for this connection. 
      *
      * @return the JAR file for this connection. If the connection is
      * a connection to an entry of a JAR file, the JAR file object is
@@ -200,10 +201,7 @@ public abstract class JarURLConnection extends URLConnection {
     public abstract JarFile getJarFile() throws IOException;
 
     /**
-     * Returns the Manifest for this connection, or null if none. The
-     * returned object is not modifiable, and will throw
-     * UnsupportedOperationException if the caller attempts to modify
-     * it.
+     * Returns the Manifest for this connection, or null if none.
      *
      * @return the manifest object corresponding to the JAR file object
      * for this connection.
@@ -220,10 +218,7 @@ public abstract class JarURLConnection extends URLConnection {
     /**  
      * Return the JAR entry object for this connection, if any. This
      * method returns null if the JAR file URL corresponding to this
-     * connection points to a JAR file and not a JAR file entry. The
-     * returned object is not modifiable, and will throw
-     * UnsupportedOperationException if the caller attempts to modify
-     * it.  
+     * connection points to a JAR file and not a JAR file entry.
      *
      * @return the JAR entry object for this connection, or null if
      * the JAR URL for this connection points to a JAR file.

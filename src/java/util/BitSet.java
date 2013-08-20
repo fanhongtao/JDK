@@ -1,7 +1,7 @@
 /*
- * @(#)BitSet.java	1.55 03/01/23
+ * @(#)BitSet.java	1.60 04/02/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Michael McCloskey
- * @version 1.55, 01/23/03
+ * @version 1.60, 02/19/04
  * @since   JDK1.0
  */
 public class BitSet implements Cloneable, java.io.Serializable {
@@ -56,7 +56,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
      * The bits in this BitSet.  The ith bit is stored in bits[i/64] at
      * bit position i % 64 (where bit position 0 refers to the least
      * significant bit and 63 refers to the most significant bit).
-     * INVARIANT: The words in bits[] above unitInUse-1 are zero.
+     * INVARIANT: The words in bits[] above unitsInUse-1 are zero.
      *
      * @serial
      */
@@ -140,7 +140,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
     }
 
     /**
-     * Sets the bit at the specified index to to the complement of its
+     * Sets the bit at the specified index to the complement of its
      * current value.
      * 
      * @param   bitIndex the index of the bit to flip.
@@ -605,7 +605,7 @@ public class BitSet implements Cloneable, java.io.Serializable {
 
     /*
      * trailingZeroTable[i] is the number of trailing zero bits in the binary
-     * representaion of i.
+     * representation of i.
      */
     private final static byte trailingZeroTable[] = {
       -25, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0,

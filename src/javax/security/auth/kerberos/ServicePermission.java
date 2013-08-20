@@ -1,7 +1,7 @@
 /*
- * @(#)ServicePermission.java	1.7 03/01/23
+ * @(#)ServicePermission.java	1.12 04/03/29
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,6 +35,7 @@ import java.io.IOException;
  * <code>KereberosPrincipal</code> supplying the service, that is
  * the KerberosPrincipal represents a Kerberos service
  * principal. This name is treated in a case sensitive manner.
+ * An asterisk may appear by itself, to signify any service principal.
  * <p>
  * Granting this permission implies that the caller can use a cached
  * credential (TGT, service ticket or secret key) within the context
@@ -81,6 +82,8 @@ import java.io.IOException;
 public final class ServicePermission extends Permission
     implements java.io.Serializable {
 
+    private static final long serialVersionUID = -1227585031618624935L;
+
     /**
      * Initiate a security context to the specified service
      */
@@ -118,13 +121,14 @@ public final class ServicePermission extends Permission
      * with the specified <code>servicePrincipal</code>
      * and <code>action</code>.
      *
-     * @param servicePrinicipal the name of the service principal
+     * @param servicePrincipal the name of the service principal.
+     * An asterisk may appear by itself, to signify any service principal.
      * <p>
      * @param action the action string
      */
-    public ServicePermission(String servicePrinicipal, String action) {
-	super(servicePrinicipal);
-	init(servicePrinicipal, getMask(action));
+    public ServicePermission(String servicePrincipal, String action) {
+	super(servicePrincipal);
+	init(servicePrincipal, getMask(action));
     }
 
 
@@ -214,7 +218,7 @@ public final class ServicePermission extends Permission
      */
     private static String getActions(int mask)
     {
-	StringBuffer sb = new StringBuffer();
+	StringBuilder sb = new StringBuilder();
         boolean comma = false;
 
 	if ((mask & INITIATE) == INITIATE) {
@@ -465,21 +469,23 @@ final class KrbServicePermissionCollection extends PermissionCollection
 	int effective = 0;
 	int needed = desired;
 
-	int len = perms.size();
+	synchronized (this) {
+	    int len = perms.size();
 	
-	// need to deal with the case where the needed permission has
-	// more than one action and the collection has individual permissions
-	// that sum up to the needed.
+	    // need to deal with the case where the needed permission has
+	    // more than one action and the collection has individual permissions
+	    // that sum up to the needed.
 
-	for (int i = 0; i < len; i++) {
-	    ServicePermission x = (ServicePermission) perms.get(i);
+	    for (int i = 0; i < len; i++) {
+		ServicePermission x = (ServicePermission) perms.get(i);
 
-	    //System.out.println("  trying "+x);
-	    if (((needed & x.getMask()) != 0) && x.impliesIgnoreMask(np)) {
-		effective |=  x.getMask();
-		if ((effective & desired) == desired)
-		    return true;
-		needed = (desired ^ effective);
+		//System.out.println("  trying "+x);
+		if (((needed & x.getMask()) != 0) && x.impliesIgnoreMask(np)) {
+		    effective |=  x.getMask();
+		    if ((effective & desired) == desired)
+			return true;
+		    needed = (desired ^ effective);
+		}
 	    }
 	}
 	return false;
@@ -505,7 +511,9 @@ final class KrbServicePermissionCollection extends PermissionCollection
 	if (isReadOnly())
 	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
-	perms.add(0, permission);
+	synchronized (this) {
+	    perms.add(0, permission);
+	}
     }
 
     /**
@@ -517,7 +525,9 @@ final class KrbServicePermissionCollection extends PermissionCollection
 
     public Enumeration elements() {
         // Convert Iterator into Enumeration
-	return Collections.enumeration(perms);
+	synchronized (this) {
+	    return Collections.enumeration(perms);
+	}
     }
 
     private static final long serialVersionUID = -4118834211490102011L;
@@ -546,7 +556,10 @@ final class KrbServicePermissionCollection extends PermissionCollection
 
 	// Write out Vector
 	Vector permissions = new Vector(perms.size());
-	permissions.addAll(perms);
+
+	synchronized (this) {
+	    permissions.addAll(perms);
+	}
 
         ObjectOutputStream.PutField pfields = out.putFields();
         pfields.put("permissions", permissions);

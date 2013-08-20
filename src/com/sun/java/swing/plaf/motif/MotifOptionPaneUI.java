@@ -1,7 +1,7 @@
 /*
- * @(#)MotifOptionPaneUI.java	1.16 03/01/23
+ * @(#)MotifOptionPaneUI.java	1.17 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.awt.Rectangle;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  * 
- * @version 1.16 01/23/03
+ * @version 1.17 12/19/03
  * @author Scott Violet
  */
 public class MotifOptionPaneUI extends BasicOptionPaneUI

@@ -1,7 +1,7 @@
 /*
- * @(#)ObjID.java	1.28 03/01/23
+ * @(#)ObjID.java	1.29 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -47,7 +47,7 @@ import java.util.Random;
  *
  * @author	Ann Wollrath
  * @author	Peter Jones
- * @version	1.28, 03/01/23
+ * @version	1.29, 03/12/19
  * @since	JDK1.1
  */
 public final class ObjID implements java.io.Serializable {

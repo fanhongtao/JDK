@@ -1,7 +1,7 @@
 /*
- * @(#)DropTargetListener.java	1.20 03/01/23
+ * @(#)DropTargetListener.java	1.22 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -35,8 +35,18 @@ import java.awt.dnd.DropTargetDropEvent;
  * obscured by an overlapping top-level window or by another 
  * <code>Component</code> higher in the Z-order that has an associated active 
  * <code>DropTarget</code>.
+ * <p>
+ * During the drag, the data associated with the current drag operation can be
+ * retrieved by calling <code>getTransferable()</code> on 
+ * <code>DropTargetDragEvent</code> instances passed to the listener's
+ * methods. 
+ * <p>
+ * Note that <code>getTransferable()</code> on the 
+ * <code>DropTargetDragEvent</code> instance should only be called within the
+ * respective listener's method and all the necessary data should be retrieved
+ * from the returned <code>Transferable</code> before that method returns.
  *
- * @version 	1.20, 01/23/03
+ * @version 	1.22, 12/19/03
  * @since 1.2
  */
 

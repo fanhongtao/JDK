@@ -1,7 +1,7 @@
 /*
- * @(#)FilteredImageSource.java	1.25 03/01/23
+ * @(#)FilteredImageSource.java	1.28 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import java.awt.image.ColorModel;
  *
  * @see ImageProducer
  *
- * @version	1.25 01/23/03
+ * @version	1.28 12/19/03
  * @author 	Jim Graham
  */
 public class FilteredImageSource implements ImageProducer {
@@ -54,8 +54,25 @@ public class FilteredImageSource implements ImageProducer {
     private Hashtable proxies;
 
     /**
-     * Adds an ImageConsumer to the list of consumers interested in
-     * data for this image.
+     * Adds the specified <code>ImageConsumer</code> 
+     * to the list of consumers interested in data for the filtered image.
+     * An instance of the original <code>ImageFilter</code>
+     * is created 
+     * (using the filter's <code>getFilterInstance</code> method)
+     * to manipulate the image data
+     * for the specified <code>ImageConsumer</code>.
+     * The newly created filter instance
+     * is then passed to the <code>addConsumer</code> method
+     * of the original <code>ImageProducer</code>.
+     *
+     * <p>
+     * This method is public as a side effect
+     * of this class implementing
+     * the <code>ImageProducer</code> interface.
+     * It should not be called from user code, 
+     * and its behavior if called from user code is unspecified.
+     *
+     * @param ic  the consumer for the filtered image
      * @see ImageConsumer
      */
     public synchronized void addConsumer(ImageConsumer ic) {
@@ -72,6 +89,14 @@ public class FilteredImageSource implements ImageProducer {
     /**
      * Determines whether an ImageConsumer is on the list of consumers 
      * currently interested in data for this image.
+     *
+     * <p>
+     * This method is public as a side effect
+     * of this class implementing
+     * the <code>ImageProducer</code> interface.
+     * It should not be called from user code, 
+     * and its behavior if called from user code is unspecified.
+     *
      * @param ic the specified <code>ImageConsumer</code>
      * @return true if the ImageConsumer is on the list; false otherwise
      * @see ImageConsumer
@@ -83,6 +108,14 @@ public class FilteredImageSource implements ImageProducer {
     /**
      * Removes an ImageConsumer from the list of consumers interested in
      * data for this image.
+     *
+     * <p>
+     * This method is public as a side effect
+     * of this class implementing
+     * the <code>ImageProducer</code> interface.
+     * It should not be called from user code, 
+     * and its behavior if called from user code is unspecified.
+     *
      * @see ImageConsumer
      */
     public synchronized void removeConsumer(ImageConsumer ic) {
@@ -99,9 +132,26 @@ public class FilteredImageSource implements ImageProducer {
     }
 
     /**
-     * Adds an ImageConsumer to the list of consumers interested in
-     * data for this image, and immediately starts delivery of the
-     * image data through the ImageConsumer interface.
+     * Starts production of the filtered image.
+     * If the specified <code>ImageConsumer</code>
+     * isn't already a consumer of the filtered image,
+     * an instance of the original <code>ImageFilter</code>
+     * is created 
+     * (using the filter's <code>getFilterInstance</code> method)
+     * to manipulate the image data
+     * for the <code>ImageConsumer</code>.
+     * The filter instance for the <code>ImageConsumer</code>
+     * is then passed to the <code>startProduction</code> method
+     * of the original <code>ImageProducer</code>.
+     *
+     * <p>
+     * This method is public as a side effect
+     * of this class implementing
+     * the <code>ImageProducer</code> interface.
+     * It should not be called from user code, 
+     * and its behavior if called from user code is unspecified.
+     *
+     * @param ic  the consumer for the filtered image
      * @see ImageConsumer
      */
     public void startProduction(ImageConsumer ic) {
@@ -121,6 +171,14 @@ public class FilteredImageSource implements ImageProducer {
      * one more time in top-down, left-right order.  The request is
      * handed to the ImageFilter for further processing, since the
      * ability to preserve the pixel ordering depends on the filter.
+     *
+     * <p>
+     * This method is public as a side effect
+     * of this class implementing
+     * the <code>ImageProducer</code> interface.
+     * It should not be called from user code, 
+     * and its behavior if called from user code is unspecified.
+     *
      * @see ImageConsumer
      */
     public void requestTopDownLeftRightResend(ImageConsumer ic) {

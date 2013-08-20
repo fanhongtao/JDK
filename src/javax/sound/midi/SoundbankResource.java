@@ -1,7 +1,7 @@
 /*
- * @(#)SoundbankResource.java	1.12 03/01/23
+ * @(#)SoundbankResource.java	1.15 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -44,7 +44,7 @@ package javax.sound.midi;
  * brightness).  Also, more than one <code>Instrument</code> can use the same 
  * sample.
  *
- * @version 1.12, 03/01/23
+ * @version 1.15, 04/05/05
  * @author Kara Kytle
  */
 
@@ -88,7 +88,7 @@ public abstract class SoundbankResource {
      * @see #getDataClass
      * @see #getData
      */
-    protected SoundbankResource(Soundbank soundBank, String name, Class dataClass) {
+    protected SoundbankResource(Soundbank soundBank, String name, Class<?> dataClass) {
 
 	this.soundBank = soundBank;
 	this.name = name;
@@ -107,8 +107,7 @@ public abstract class SoundbankResource {
 
     /**
      * Obtains the name of the resource.  This should generally be a string 
-     * descriptive of the resource, and it should be unique within a given 
-     * soundbank, so that a user can select an instrument based on its name.
+     * descriptive of the resource.
      * @return the instrument's name
      */
     public String getName() {
@@ -124,7 +123,7 @@ public abstract class SoundbankResource {
      * @return the class used to represent the sample's data, or 
      * null if the data is not accessible
      */
-    public Class getDataClass() {
+    public Class<?> getDataClass() {
 	return dataClass;
     }
 

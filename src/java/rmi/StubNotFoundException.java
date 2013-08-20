@@ -1,7 +1,7 @@
 /*
- * @(#)StubNotFoundException.java	1.14 03/01/23
+ * @(#)StubNotFoundException.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,7 +14,7 @@ package java.rmi;
  * thrown when an activatable object is registered via the
  * <code>java.rmi.activation.Activatable.register</code> method.
  * 
- * @version 1.14, 01/23/03
+ * @version 1.16, 12/19/03
  * @author  Roger Riggs
  * @since   JDK1.1
  * @see	    java.rmi.server.UnicastRemoteObject
@@ -27,7 +27,7 @@ public class StubNotFoundException extends RemoteException {
 
     /**
      * Constructs a <code>StubNotFoundException</code> with the specified
-     * detail message and nested exception.
+     * detail message.
      *
      * @param s the detail message
      * @since JDK1.1

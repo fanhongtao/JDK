@@ -1,7 +1,7 @@
 /*
- * @(#)BufferedImage.java	1.89 03/01/23
+ * @(#)BufferedImage.java	1.101 04/07/16
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,9 @@ package java.awt.image;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
+import java.awt.ImageCapabilities;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.Point;
@@ -36,6 +38,12 @@ import sun.awt.image.OffScreenImageSource;
  * All <code>BufferedImage</code> objects have an upper left corner
  * coordinate of (0,&nbsp;0).  Any <code>Raster</code> used to construct a
  * <code>BufferedImage</code> must therefore have minX=0 and minY=0. 
+ *
+ * <p>
+ * This class relies on the data fetching and setting methods
+ * of <code>Raster</code>,
+ * and on the color characterization methods of <code>ColorModel</code>.
+ *
  * @see ColorModel
  * @see Raster
  * @see WritableRaster
@@ -43,7 +51,7 @@ import sun.awt.image.OffScreenImageSource;
  */
 
 public class BufferedImage extends java.awt.Image
-                           implements WritableRenderedImage
+                           implements WritableRenderedImage, Transparency
 {
     int        imageType = TYPE_CUSTOM;
     ColorModel colorModel;
@@ -54,7 +62,7 @@ public class BufferedImage extends java.awt.Image
     boolean    isAlphaPremultiplied;// If true, alpha has been premultiplied in
     // color channels
 
-    sun.java2d.SurfaceData sData;
+    sun.awt.image.SurfaceManager surfaceManager;
 
     /**
      * Image Type Constants
@@ -71,6 +79,12 @@ public class BufferedImage extends java.awt.Image
      * Represents an image with 8-bit RGB color components packed into
      * integer pixels.  The image has a {@link DirectColorModel} without
      * alpha.
+     * When data with non-opaque alpha is stored
+     * in an image of this type,
+     * the color data must be adjusted to a non-premultiplied form
+     * and the alpha discarded,
+     * as described in the
+     * {@link java.awt.AlphaComposite} documentation.
      */
     public static final int TYPE_INT_RGB = 1;
 
@@ -98,6 +112,12 @@ public class BufferedImage extends java.awt.Image
      * to a Windows- or Solaris- style BGR color model, with the colors
      * Blue, Green, and Red packed into integer pixels.  There is no alpha.
      * The image has a {@link DirectColorModel}.
+     * When data with non-opaque alpha is stored
+     * in an image of this type,
+     * the color data must be adjusted to a non-premultiplied form
+     * and the alpha discarded,
+     * as described in the
+     * {@link java.awt.AlphaComposite} documentation.
      */
     public static final int TYPE_INT_BGR = 4;
 
@@ -106,6 +126,12 @@ public class BufferedImage extends java.awt.Image
      * to a Windows-style BGR color model) with the colors Blue, Green,
      * and Red stored in 3 bytes.  There is no alpha.  The image has a
      * <code>ComponentColorModel</code>.
+     * When data with non-opaque alpha is stored
+     * in an image of this type,
+     * the color data must be adjusted to a non-premultiplied form
+     * and the alpha discarded,
+     * as described in the
+     * {@link java.awt.AlphaComposite} documentation.
      */
     public static final int TYPE_3BYTE_BGR = 5;
 
@@ -134,6 +160,12 @@ public class BufferedImage extends java.awt.Image
      * Represents an image with 5-6-5 RGB color components (5-bits red,
      * 6-bits green, 5-bits blue) with no alpha.  This image has
      * a <code>DirectColorModel</code>.
+     * When data with non-opaque alpha is stored
+     * in an image of this type,
+     * the color data must be adjusted to a non-premultiplied form
+     * and the alpha discarded,
+     * as described in the
+     * {@link java.awt.AlphaComposite} documentation.
      */
     public static final int TYPE_USHORT_565_RGB = 8;
     
@@ -141,6 +173,12 @@ public class BufferedImage extends java.awt.Image
      * Represents an image with 5-5-5 RGB color components (5-bits red,
      * 5-bits green, 5-bits blue) with no alpha.  This image has
      * a <code>DirectColorModel</code>.
+     * When data with non-opaque alpha is stored
+     * in an image of this type,
+     * the color data must be adjusted to a non-premultiplied form
+     * and the alpha discarded,
+     * as described in the
+     * {@link java.awt.AlphaComposite} documentation.
      */
     public static final int TYPE_USHORT_555_RGB = 9;
 
@@ -148,6 +186,12 @@ public class BufferedImage extends java.awt.Image
      * Represents a unsigned byte grayscale image, non-indexed.  This
      * image has a <code>ComponentColorModel</code> with a CS_GRAY
      * {@link ColorSpace}.
+     * When data with non-opaque alpha is stored
+     * in an image of this type,
+     * the color data must be adjusted to a non-premultiplied form
+     * and the alpha discarded,
+     * as described in the
+     * {@link java.awt.AlphaComposite} documentation.
      */
     public static final int TYPE_BYTE_GRAY = 10;
     
@@ -155,6 +199,12 @@ public class BufferedImage extends java.awt.Image
      * Represents an unsigned short grayscale image, non-indexed).  This
      * image has a <code>ComponentColorModel</code> with a CS_GRAY
      * <code>ColorSpace</code>.
+     * When data with non-opaque alpha is stored
+     * in an image of this type,
+     * the color data must be adjusted to a non-premultiplied form
+     * and the alpha discarded,
+     * as described in the
+     * {@link java.awt.AlphaComposite} documentation.
      */
     public static final int TYPE_USHORT_GRAY = 11;
     
@@ -177,6 +227,13 @@ public class BufferedImage extends java.awt.Image
      * <p> Images with 8 bits per pixel should use the image types
      * <code>TYPE_BYTE_INDEXED</code> or <code>TYPE_BYTE_GRAY</code>
      * depending on their <code>ColorModel</code>.
+
+     * <p> When color data is stored in an image of this type,
+     * the closest color in the colormap is determined 
+     * by the <code>IndexColorModel</code> and the resulting index is stored.
+     * Approximation and loss of alpha or color components
+     * can result, depending on the colors in the 
+     * <code>IndexColorModel</code> colormap.
      */
     public static final int TYPE_BYTE_BINARY = 12;
 
@@ -189,6 +246,13 @@ public class BufferedImage extends java.awt.Image
      * a 256-color 6/6/6 color cube palette with the rest of the colors
      * from 216-255 populated by grayscale values in the
      * default sRGB ColorSpace.
+     *
+     * <p> When color data is stored in an image of this type,
+     * the closest color in the colormap is determined 
+     * by the <code>IndexColorModel</code> and the resulting index is stored.
+     * Approximation and loss of alpha or color components
+     * can result, depending on the colors in the 
+     * <code>IndexColorModel</code> colormap.
      */
     public static final int TYPE_BYTE_INDEXED = 13;
     
@@ -543,7 +607,7 @@ public class BufferedImage extends java.awt.Image
     public BufferedImage (ColorModel cm,
                           WritableRaster raster,
                           boolean isRasterPremultiplied,
-                          Hashtable properties) {
+                          Hashtable<?,?> properties) {
 
         if (!cm.isCompatibleRaster(raster)) {
             throw new
@@ -787,6 +851,13 @@ public class BufferedImage extends java.awt.Image
      * the image <code>ColorModel</code>.  There are only 8-bits of
      * precision for each color component in the returned data when using
      * this method.
+     *
+     * <p>
+     *
+     * An <code>ArrayOutOfBoundsException</code> may be thrown
+     * if the coordinates are not in bounds.
+     * However, explicit bounds checking is not guaranteed.
+     *
      * @param x,&nbsp;y the coordinates of the pixel from which to get
      *          the pixel in the default RGB color model and sRGB
      *          color space
@@ -808,9 +879,17 @@ public class BufferedImage extends java.awt.Image
      * each color component in the returned data when
      * using this method.  With a specified coordinate (x,&nbsp;y) in the
      * image, the ARGB pixel can be accessed in this way:
+     * </p>
+     *
      * <pre>
-     *    pixel   = rgbArray[offset + (y-startY)*scansize + (x-startX)];
-     * </pre>
+     *    pixel   = rgbArray[offset + (y-startY)*scansize + (x-startX)]; </pre>
+     *
+     * <p>
+     *
+     * An <code>ArrayOutOfBoundsException</code> may be thrown
+     * if the region is not in bounds.
+     * However, explicit bounds checking is not guaranteed.
+     *
      * @param startX,&nbsp;startY the starting coordinates
      * @param w           width of region
      * @param h           height of region
@@ -819,8 +898,6 @@ public class BufferedImage extends java.awt.Image
      * @param offset      offset into the <code>rgbArray</code>
      * @param scansize    scanline stride for the <code>rgbArray</code>
      * @return            array of RGB pixels. 
-     * @exception <code>IllegalArgumentException</code> if an unknown
-     *		datatype is specified
      * @see #setRGB(int, int, int)
      * @see #setRGB(int, int, int, int, int[], int, int)
      */
@@ -875,6 +952,13 @@ public class BufferedImage extends java.awt.Image
      * model, TYPE_INT_ARGB, and default sRGB color space.  For images
      * with an <code>IndexColorModel</code>, the index with the nearest
      * color is chosen.
+     *
+     * <p>
+     *
+     * An <code>ArrayOutOfBoundsException</code> may be thrown
+     * if the coordinates are not in bounds.
+     * However, explicit bounds checking is not guaranteed.
+     *
      * @param x,&nbsp;y the coordinates of the pixel to set
      * @param rgb the RGB value 
      * @see #getRGB(int, int)
@@ -897,6 +981,12 @@ public class BufferedImage extends java.awt.Image
      *    pixel   = rgbArray[offset + (y-startY)*scansize + (x-startX)];
      * </pre>
      * WARNING: No dithering takes place.
+     *
+     * <p>
+     *
+     * An <code>ArrayOutOfBoundsException</code> may be thrown
+     * if the region is not in bounds.
+     * However, explicit bounds checking is not guaranteed.
      *
      * @param startX,&nbsp;startY the starting coordinates
      * @param w           width of the region
@@ -965,7 +1055,10 @@ public class BufferedImage extends java.awt.Image
      */
     public ImageProducer getSource() {
         if (osis == null) {
-            osis = new OffScreenImageSource(this);
+	    if (properties == null) {
+		properties = new Hashtable();
+	    }
+            osis = new OffScreenImageSource(this, properties);
         }
         return osis;
     }
@@ -987,6 +1080,7 @@ public class BufferedImage extends java.awt.Image
      * @return an {@link Object} that is the property referred to by the
      *          specified <code>name</code> or <code>null</code> if the   
      *          properties of this image are not yet known. 
+     * @throws <code>NullPointerException<code> if the property name is null.
      * @see ImageObserver
      * @see java.awt.Image#UndefinedProperty
      */
@@ -999,10 +1093,14 @@ public class BufferedImage extends java.awt.Image
      * @param name the property name
      * @return an <code>Object</code> that is the property referred to by
      *          the specified <code>name</code>. 
+     * @throws <code>NullPointerException<code> if the property name is null.
      */
     public Object getProperty(String name) {
+ 	if (name == null) {
+ 	    throw new NullPointerException("null property name is not allowed");
+ 	}
 	if (properties == null) {
-            return null;
+            properties = new Hashtable();
 	}
 	Object o = properties.get(name);
 	if (o == null) {
@@ -1016,8 +1114,10 @@ public class BufferedImage extends java.awt.Image
      * The underlying pixel data is unaffected.
      */
     public void flush() {
+        if (surfaceManager != null) {
+            surfaceManager.flush();
+        }
     }
-
 
     /**
      * This method returns a {@link Graphics2D}, but is here
@@ -1066,8 +1166,7 @@ public class BufferedImage extends java.awt.Image
 
     /**
      * Returns whether or not the alpha has been premultiplied.  It
-     * returns <code>true</code> if there is no alpha since the
-     * default alpha is OPAQUE.
+     * returns <code>false</code> if there is no alpha.
      * @return <code>true</code> if the alpha has been premultiplied;   
      *          <code>false</code> otherwise. 
      */
@@ -1118,7 +1217,7 @@ public class BufferedImage extends java.awt.Image
      *          <code>Vector</code> if this <code>BufferedImage</code>   
      *          has no immediate sources. 
      */
-    public Vector getSources() {
+    public Vector<RenderedImage> getSources() {
         return null;
     }
 
@@ -1480,6 +1579,34 @@ public class BufferedImage extends java.awt.Image
    * @param tileY the y index of the tile
    */
     public void releaseWritableTile (int tileX, int tileY) {
+    }
+
+    /**
+     * Returns the transparency.  Returns either OPAQUE, BITMASK,
+     * or TRANSLUCENT.
+     * @return the transparency of this <code>BufferedImage</code>.
+     * @see Transparency#OPAQUE
+     * @see Transparency#BITMASK
+     * @see Transparency#TRANSLUCENT
+     * @since 1.5
+     */
+    public int getTransparency() {
+	return colorModel.getTransparency();
+    }
+
+    /**
+     * This overrides Image.getCapabilities(gc) to get the capabilities
+     * of its surfaceManager.  This means that BufferedImage objects that
+     * are accelerated may return a caps object that will indicate this
+     * acceleration.
+     */
+    public ImageCapabilities getCapabilities(GraphicsConfiguration gc) {
+	if (surfaceManager != null) {
+	    return surfaceManager.getCapabilities(gc);
+	}
+	// should not reach here unless the surfaceManager for this image
+	// has not yet been created
+	return super.getCapabilities(gc);
     }
 }
 

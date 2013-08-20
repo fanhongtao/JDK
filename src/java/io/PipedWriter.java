@@ -1,7 +1,7 @@
 /*
- * @(#)PipedWriter.java	1.15 03/01/23
+ * @(#)PipedWriter.java	1.16 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,7 +11,7 @@ package java.io;
 /**
  * Piped character-output streams.
  *
- * @version 	1.15, 03/01/23
+ * @version 	1.16, 03/12/19
  * @author	Mark Reinhold
  * @since	JDK1.1
  */

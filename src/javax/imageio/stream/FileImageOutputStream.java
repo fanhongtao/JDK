@@ -1,7 +1,7 @@
 /*
- * @(#)FileImageOutputStream.java	1.12 03/01/23
+ * @(#)FileImageOutputStream.java	1.14 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,8 +34,8 @@ public class FileImageOutputStream extends ImageOutputStreamImpl {
      * <code>null</code>.
      * @exception SecurityException if a security manager exists
      * and does not allow write access to the file.
-     * @exception FileNotFoundException if <code>f</code> is a
-     * directory or cannot be opened for reading and writing for any
+     * @exception FileNotFoundException if <code>f</code> does not denote
+     * a regular file or it cannot be opened for reading and writing for any
      * other reason.
      * @exception IOException if an I/O error occurs.
      */

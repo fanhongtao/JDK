@@ -1,7 +1,7 @@
 /*
- * @(#)Hashtable.java	1.95 03/01/23
+ * @(#)Hashtable.java	1.105 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,9 +24,9 @@ import java.io.*;
  * collision", a single bucket stores multiple entries, which must be searched
  * sequentially.  The <i>load factor</i> is a measure of how full the hash
  * table is allowed to get before its capacity is automatically increased.
- * When the number of entries in the hashtable exceeds the product of the load
- * factor and the current capacity, the capacity is increased by calling the
- * <code>rehash</code> method.<p>
+ * The initial capacity and load factor parameters are merely hints to 
+ * the implementation.  The exact details as to when and whether the rehash 
+ * method is invoked are implementation-dependent.<p>
  *
  * Generally, the default load factor (.75) offers a good tradeoff between
  * time and space costs.  Higher values decrease the space overhead but
@@ -91,7 +91,8 @@ import java.io.*;
  *
  * @author  Arthur van Hoff
  * @author  Josh Bloch
- * @version 1.95, 01/23/03
+ * @author  Neal Gafter
+ * @version 1.105, 12/19/03
  * @see     Object#equals(java.lang.Object)
  * @see     Object#hashCode()
  * @see     Hashtable#rehash()
@@ -101,12 +102,14 @@ import java.io.*;
  * @see	    TreeMap
  * @since JDK1.0
  */
-public class Hashtable extends Dictionary implements Map, Cloneable,
-                                                   java.io.Serializable {
+public class Hashtable<K,V>
+    extends Dictionary<K,V>
+    implements Map<K,V>, Cloneable, java.io.Serializable {
+
     /**
      * The hash table data.
      */
-    private transient Entry table[];
+    private transient Entry[] table;
 
     /**
      * The total number of entries in the hash table.
@@ -120,7 +123,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @serial
      */
     private int threshold;
-							 
+
     /**
      * The load factor for the hashtable.
      *
@@ -193,7 +196,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @throws NullPointerException if the specified map is null.
      * @since   1.2
      */
-    public Hashtable(Map t) {
+    public Hashtable(Map<? extends K, ? extends V> t) {
 	this(Math.max(2*t.size(), 11), 0.75f);
 	putAll(t);
     }
@@ -226,8 +229,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @see	#keySet()
      * @see	Map
      */
-    public synchronized Enumeration keys() {
-	return getEnumeration(KEYS);
+    public synchronized Enumeration<K> keys() {
+	return this.<K>getEnumeration(KEYS);
     }
 
     /**
@@ -241,8 +244,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @see	#values()
      * @see	Map
      */
-    public synchronized Enumeration elements() {
-	return getEnumeration(VALUES);
+    public synchronized Enumeration<V> elements() {
+	return this.<V>getEnumeration(VALUES);
     }
 
     /**
@@ -270,7 +273,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
 	Entry tab[] = table;
 	for (int i = tab.length ; i-- > 0 ;) {
-	    for (Entry e = tab[i] ; e != null ; e = e.next) {
+	    for (Entry<K,V> e = tab[i] ; e != null ; e = e.next) {
 		if (e.value.equals(value)) {
 		    return true;
 		}
@@ -310,7 +313,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	Entry tab[] = table;
 	int hash = key.hashCode();
 	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (Entry e = tab[index] ; e != null ; e = e.next) {
+	for (Entry<K,V> e = tab[index] ; e != null ; e = e.next) {
 	    if ((e.hash == hash) && e.key.equals(key)) {
 		return true;
 	    }
@@ -328,11 +331,11 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @throws  NullPointerException  if the key is <code>null</code>.
      * @see     #put(Object, Object)
      */
-    public synchronized Object get(Object key) {
+    public synchronized V get(Object key) {
 	Entry tab[] = table;
 	int hash = key.hashCode();
 	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (Entry e = tab[index] ; e != null ; e = e.next) {
+	for (Entry<K,V> e = tab[index] ; e != null ; e = e.next) {
 	    if ((e.hash == hash) && e.key.equals(key)) {
 		return e.value;
 	    }
@@ -349,18 +352,18 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      */
     protected void rehash() {
 	int oldCapacity = table.length;
-	Entry oldMap[] = table;
+	Entry[] oldMap = table;
 
 	int newCapacity = oldCapacity * 2 + 1;
-	Entry newMap[] = new Entry[newCapacity];
+	Entry[] newMap = new Entry[newCapacity];
 
 	modCount++;
 	threshold = (int)(newCapacity * loadFactor);
 	table = newMap;
 
 	for (int i = oldCapacity ; i-- > 0 ;) {
-	    for (Entry old = oldMap[i] ; old != null ; ) {
-		Entry e = old;
+	    for (Entry<K,V> old = oldMap[i] ; old != null ; ) {
+		Entry<K,V> e = old;
 		old = old.next;
 
 		int index = (e.hash & 0x7FFFFFFF) % newCapacity;
@@ -387,7 +390,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @see     Object#equals(Object)
      * @see     #get(Object)
      */
-    public synchronized Object put(Object key, Object value) {
+    public synchronized V put(K key, V value) {
 	// Make sure the value is not null
 	if (value == null) {
 	    throw new NullPointerException();
@@ -397,9 +400,9 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	Entry tab[] = table;
 	int hash = key.hashCode();
 	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (Entry e = tab[index] ; e != null ; e = e.next) {
+	for (Entry<K,V> e = tab[index] ; e != null ; e = e.next) {
 	    if ((e.hash == hash) && e.key.equals(key)) {
-		Object old = e.value;
+		V old = e.value;
 		e.value = value;
 		return old;
 	    }
@@ -415,8 +418,8 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	} 
 
 	// Creates the new entry.
-	Entry e = new Entry(hash, key, value, tab[index]);
-	tab[index] = e;
+	Entry<K,V> e = tab[index];
+	tab[index] = new Entry<K,V>(hash, key, value, e);
 	count++;
 	return null;
     }
@@ -430,11 +433,11 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      *          or <code>null</code> if the key did not have a mapping.
      * @throws  NullPointerException  if the key is <code>null</code>.
      */
-    public synchronized Object remove(Object key) {
+    public synchronized V remove(Object key) {
 	Entry tab[] = table;
 	int hash = key.hashCode();
 	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (Entry e = tab[index], prev = null ; e != null ; prev = e, e = e.next) {
+	for (Entry<K,V> e = tab[index], prev = null ; e != null ; prev = e, e = e.next) {
 	    if ((e.hash == hash) && e.key.equals(key)) {
 		modCount++;
 		if (prev != null) {
@@ -443,7 +446,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 		    tab[index] = e.next;
 		}
 		count--;
-		Object oldValue = e.value;
+		V oldValue = e.value;
 		e.value = null;
 		return oldValue;
 	    }
@@ -460,10 +463,10 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @throws NullPointerException if the specified map is null.
      * @since 1.2
      */
-    public synchronized void putAll(Map t) {
-	Iterator i = t.entrySet().iterator();
+    public synchronized void putAll(Map<? extends K, ? extends V> t) {
+	Iterator<? extends Map.Entry<? extends K, ? extends V>> i = t.entrySet().iterator();
 	while (i.hasNext()) {
-	    Map.Entry e = (Map.Entry) i.next();
+	    Map.Entry<? extends K, ? extends V> e = i.next();
 	    put(e.getKey(), e.getValue());
 	}
     }
@@ -488,11 +491,11 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      */
     public synchronized Object clone() {
 	try { 
-	    Hashtable t = (Hashtable)super.clone();
+	    Hashtable<K,V> t = (Hashtable<K,V>) super.clone();
 	    t.table = new Entry[table.length];
 	    for (int i = table.length ; i-- > 0 ; ) {
 		t.table[i] = (table[i] != null) 
-		    ? (Entry)table[i].clone() : null;
+		    ? (Entry<K,V>) table[i].clone() : null;
 	    }
 	    t.keySet = null;
 	    t.entrySet = null;
@@ -519,15 +522,15 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
     public synchronized String toString() {
 	int max = size() - 1;
 	StringBuffer buf = new StringBuffer();
-	Iterator it = entrySet().iterator();
+	Iterator<Map.Entry<K,V>> it = entrySet().iterator();
 
 	buf.append("{");
 	for (int i = 0; i <= max; i++) {
-	    Map.Entry e = (Map.Entry) (it.next());
-            Object key = e.getKey();
-            Object value = e.getValue();
-            buf.append((key   == this ? "(this Map)" : key) + "=" + 
-                       (value == this ? "(this Map)" : value));
+	    Map.Entry<K,V> e = it.next();
+            K key = e.getKey();
+            V value = e.getValue();
+            buf.append((key   == this ? "(this Map)" : (""+key)) + "=" + 
+                       (value == this ? "(this Map)" : (""+value)));
 
 	    if (i < max)
 		buf.append(", ");
@@ -537,19 +540,19 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
     }
 
 
-    private Enumeration getEnumeration(int type) {
+    private <T> Enumeration<T> getEnumeration(int type) {
 	if (count == 0) {
-	    return emptyEnumerator;
+	    return (Enumeration<T>)emptyEnumerator;
 	} else {
-	    return new Enumerator(type, false);
+	    return new Enumerator<T>(type, false);
 	}
     }
 
-    private Iterator getIterator(int type) {
+    private <T> Iterator<T> getIterator(int type) {
 	if (count == 0) {
-	    return emptyIterator;
+	    return (Iterator<T>) emptyIterator;
 	} else {
-	    return new Enumerator(type, true);
+	    return new Enumerator<T>(type, true);
 	}
     }
 
@@ -560,9 +563,9 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * appropriate view the first time this view is requested.  The views are
      * stateless, so there's no reason to create more than one of each.
      */
-    private transient volatile Set keySet = null;
-    private transient volatile Set entrySet = null;
-    private transient volatile Collection values = null;
+    private transient volatile Set<K> keySet = null;
+    private transient volatile Set<Map.Entry<K,V>> entrySet = null;
+    private transient volatile Collection<V> values = null;
 
     /**
      * Returns a Set view of the keys contained in this Hashtable.  The Set
@@ -574,14 +577,14 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @return a set view of the keys contained in this map.
      * @since 1.2
      */
-    public Set keySet() {
+    public Set<K> keySet() {
 	if (keySet == null)
 	    keySet = Collections.synchronizedSet(new KeySet(), this);
 	return keySet;
     }
 
-    private class KeySet extends AbstractSet {
-        public Iterator iterator() {
+    private class KeySet extends AbstractSet<K> {
+        public Iterator<K> iterator() {
 	    return getIterator(KEYS);
         }
         public int size() {
@@ -610,23 +613,27 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @see   Map.Entry
      * @since 1.2
      */
-    public Set entrySet() {
+    public Set<Map.Entry<K,V>> entrySet() {
 	if (entrySet==null)
 	    entrySet = Collections.synchronizedSet(new EntrySet(), this);
 	return entrySet;
     }
 
-    private class EntrySet extends AbstractSet {
-        public Iterator iterator() {
+    private class EntrySet extends AbstractSet/*<Map.Entry<K,V>>*/ {
+        public Iterator/*<Map.Entry<K,V>>*/ iterator() {
 	    return getIterator(ENTRIES);
         }
+
+	public boolean add(Object/*Map.Entry<K,V>*/ o) {
+	    return super.add(o);
+	}
 
         public boolean contains(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
             Map.Entry entry = (Map.Entry)o;
             Object key = entry.getKey();
-            Entry tab[] = table;
+            Entry[] tab = table;
             int hash = key.hashCode();
             int index = (hash & 0x7FFFFFFF) % tab.length;
 
@@ -639,13 +646,13 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
         public boolean remove(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
-            Map.Entry entry = (Map.Entry)o;
-            Object key = entry.getKey();
-            Entry tab[] = table;
+            Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
+	    K key = entry.getKey();
+            Entry[] tab = table;
             int hash = key.hashCode();
             int index = (hash & 0x7FFFFFFF) % tab.length;
 
-            for (Entry e = tab[index], prev = null; e != null;
+            for (Entry<K,V> e = tab[index], prev = null; e != null;
                  prev = e, e = e.next) {
                 if (e.hash==hash && e.equals(entry)) {
                     modCount++;
@@ -681,15 +688,15 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * @return a collection view of the values contained in this map.
      * @since 1.2
      */
-    public Collection values() {
+    public Collection<V> values() {
 	if (values==null)
 	    values = Collections.synchronizedCollection(new ValueCollection(),
                                                         this);
         return values;
     }
 
-    private class ValueCollection extends AbstractCollection {
-        public Iterator iterator() {
+    private class ValueCollection extends AbstractCollection<V> {
+        public Iterator<V> iterator() {
 	    return getIterator(VALUES);
         }
         public int size() {
@@ -720,16 +727,16 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
 	if (!(o instanceof Map))
 	    return false;
-	Map t = (Map) o;
+	Map<K,V> t = (Map<K,V>) o;
 	if (t.size() != size())
 	    return false;
 
         try {
-            Iterator i = entrySet().iterator();
+            Iterator<Map.Entry<K,V>> i = entrySet().iterator();
             while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                Object key = e.getKey();
-                Object value = e.getValue();
+                Map.Entry<K,V> e = i.next();
+                K key = e.getKey();
+                V value = e.getValue();
                 if (value == null) {
                     if (!(t.get(key)==null && t.containsKey(key)))
                         return false;
@@ -770,7 +777,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
             return h;  // Returns zero
 
         loadFactor = -loadFactor;  // Mark hashCode computation in progress
-        Entry tab[] = table;
+        Entry[] tab = table;
         for (int i = 0; i < tab.length; i++)
             for (Entry e = tab[i]; e != null; e = e.next)
                 h += e.key.hashCode() ^ e.value.hashCode();
@@ -823,7 +830,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	int elements = s.readInt();
 
 	// Compute new size with a bit of room 5% to grow but
-	// No larger than the original size.  Make the length
+	// no larger than the original size.  Make the length
 	// odd if it's large enough, this helps distribute the entries.
 	// Guard against the length ending up zero, that's not valid.
 	int length = (int)(elements * loadFactor) + (elements / 20) + 3;
@@ -837,23 +844,56 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 
 	// Read the number of elements and then all the key/value objects
 	for (; elements > 0; elements--) {
-	    Object key = s.readObject();
-	    Object value = s.readObject();
-	    put(key, value);  // synch could be eliminated for performance
+	    K key = (K)s.readObject();
+	    V value = (V)s.readObject();
+            // synch could be eliminated for performance
+            reconstitutionPut(key, value); 
 	}
     }
 
+    /**
+     * The put method used by readObject. This is provided because put
+     * is overridable and should not be called in readObject since the
+     * subclass will not yet be initialized.
+     *
+     * <p>This differs from the regular put method in several ways. No
+     * checking for rehashing is necessary since the number of elements
+     * initially in the table is known. The modCount is not incremented
+     * because we are creating a new instance. Also, no return value
+     * is needed.
+     */
+    private void reconstitutionPut(K key, V value)
+        throws StreamCorruptedException
+    {
+        if (value == null) {
+            throw new java.io.StreamCorruptedException();
+        }
+        // Makes sure the key is not already in the hashtable.
+        // This should not happen in deserialized version.
+        Entry[] tab = table;
+        int hash = key.hashCode();
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (Entry<K,V> e = tab[index] ; e != null ; e = e.next) {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                throw new java.io.StreamCorruptedException();
+            }
+        }
+        // Creates the new entry.
+        Entry<K,V> e = tab[index];
+        tab[index] = new Entry<K,V>(hash, key, value, e);
+        count++;
+    }
 
     /**
      * Hashtable collision list.
      */
-    private static class Entry implements Map.Entry {
+    private static class Entry<K,V> implements Map.Entry<K,V> {
 	int hash;
-	Object key;
-	Object value;
-	Entry next;
+	K key;
+	V value;
+	Entry<K,V> next;
 
-	protected Entry(int hash, Object key, Object value, Entry next) {
+	protected Entry(int hash, K key, V value, Entry<K,V> next) {
 	    this.hash = hash;
 	    this.key = key;
 	    this.value = value;
@@ -861,25 +901,25 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	}
 
 	protected Object clone() {
-	    return new Entry(hash, key, value,
-			     (next==null ? null : (Entry)next.clone()));
+	    return new Entry<K,V>(hash, key, value,
+				  (next==null ? null : (Entry<K,V>) next.clone()));
 	}
 
 	// Map.Entry Ops 
 
-	public Object getKey() {
+	public K getKey() {
 	    return key;
 	}
 
-	public Object getValue() {
+	public V getValue() {
 	    return value;
 	}
 
-	public Object setValue(Object value) {
+	public V setValue(V value) {
 	    if (value == null)
 		throw new NullPointerException();
 
-	    Object oldValue = this.value;
+	    V oldValue = this.value;
 	    this.value = value;
 	    return oldValue;
 	}
@@ -914,11 +954,11 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
      * to avoid unintentionally increasing the capabilities granted a user
      * by passing an Enumeration.
      */
-    private class Enumerator implements Enumeration, Iterator {
+    private class Enumerator<T> implements Enumeration<T>, Iterator<T> {
 	Entry[] table = Hashtable.this.table;
 	int index = table.length;
-	Entry entry = null;
-	Entry lastReturned = null;
+	Entry<K,V> entry = null;
+	Entry<K,V> lastReturned = null;
 	int type;
 
 	/**
@@ -940,9 +980,9 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	}
 
 	public boolean hasMoreElements() {
-	    Entry e = entry;
+	    Entry<K,V> e = entry;
 	    int i = index;
-	    Entry t[] = table;
+	    Entry[] t = table;
 	    /* Use locals for faster loop iteration */
 	    while (e == null && i > 0) { 
 		e = t[--i];
@@ -952,10 +992,10 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	    return e != null;
 	}
 
-	public Object nextElement() {
-	    Entry et = entry;
+	public T nextElement() {
+	    Entry<K,V> et = entry;
 	    int i = index;
-	    Entry t[] = table;
+	    Entry[] t = table;
 	    /* Use locals for faster loop iteration */
 	    while (et == null && i > 0) { 
 		et = t[--i];
@@ -963,9 +1003,9 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	    entry = et;
 	    index = i;
 	    if (et != null) {
-		Entry e = lastReturned = entry;
+		Entry<K,V> e = lastReturned = entry;
 		entry = e.next;
-		return type == KEYS ? e.key : (type == VALUES ? e.value : e);
+		return type == KEYS ? (T)e.key : (type == VALUES ? (T)e.value : (T)e);
 	    }
 	    throw new NoSuchElementException("Hashtable Enumerator");
 	}
@@ -975,7 +1015,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 	    return hasMoreElements();
 	}
 
-	public Object next() {
+	public T next() {
 	    if (modCount != expectedModCount)
 		throw new ConcurrentModificationException();
 	    return nextElement();
@@ -993,7 +1033,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
 		Entry[] tab = Hashtable.this.table;
 		int index = (lastReturned.hash & 0x7FFFFFFF) % tab.length;
 
-		for (Entry e = tab[index], prev = null; e != null;
+		for (Entry<K,V> e = tab[index], prev = null; e != null;
 		     prev = e, e = e.next) {
 		    if (e == lastReturned) {
 			modCount++;
@@ -1013,14 +1053,14 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
     }
 
    
-    private static EmptyEnumerator emptyEnumerator = new EmptyEnumerator();
-    private static EmptyIterator emptyIterator = new EmptyIterator();
+    private static Enumeration emptyEnumerator = new EmptyEnumerator();
+    private static Iterator emptyIterator = new EmptyIterator();
 
     /**
      * A hashtable enumerator class for empty hash tables, specializes
      * the general Enumerator
      */
-    private static class EmptyEnumerator implements Enumeration {
+    private static class EmptyEnumerator implements Enumeration<Object> {
 
 	EmptyEnumerator() {
 	}
@@ -1038,7 +1078,7 @@ public class Hashtable extends Dictionary implements Map, Cloneable,
     /**
      * A hashtable iterator class for empty hash tables
      */
-    private static class EmptyIterator implements Iterator {
+    private static class EmptyIterator implements Iterator<Object> {
 
 	EmptyIterator() {
 	}

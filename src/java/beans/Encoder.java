@@ -1,7 +1,7 @@
 /*
- * @(#)Encoder.java	1.18 05/04/29
+ * @(#)Encoder.java	1.20 04/05/05
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -59,7 +59,8 @@ public class Encoder {
      * The exception handler is notified when this stream catches recoverable 
      * exceptions.
      * 
-     * @param exceptionListener The exception handler for this stream. 
+     * @param exceptionListener The exception handler for this stream;
+     *       if <code>null</code> the default exception listener will be used.
      *
      * @see #getExceptionListener
      */ 
@@ -70,7 +71,8 @@ public class Encoder {
     /**
      * Gets the exception handler for this stream. 
      * 
-     * @return The exception handler for this stream. 
+     * @return The exception handler for this stream;
+     *    Will return the default exception listener if this has not explicitly been set.
      *
      * @see #setExceptionListener
      */ 
@@ -123,7 +125,7 @@ public class Encoder {
      * @see java.beans.Introspector#getBeanInfo
      * @see java.beans.BeanInfo#getBeanDescriptor
      */    
-    public PersistenceDelegate getPersistenceDelegate(Class type) { 
+    public PersistenceDelegate getPersistenceDelegate(Class<?> type) { 
         return MetaData.getPersistenceDelegate(type); 
     } 
     
@@ -138,7 +140,9 @@ public class Encoder {
      * @see java.beans.Introspector#getBeanInfo
      * @see java.beans.BeanInfo#getBeanDescriptor
      */
-    public void setPersistenceDelegate(Class type, PersistenceDelegate persistenceDelegate) {
+    public void setPersistenceDelegate(Class<?> type,
+				       PersistenceDelegate persistenceDelegate)
+    {
         MetaData.setPersistenceDelegate(type, persistenceDelegate); 
     } 
     
@@ -168,8 +172,8 @@ public class Encoder {
      * @return The object, null if the object has not been seen before. 
      */
     public Object get(Object oldInstance) { 
-        if (oldInstance == null || oldInstance == this ||
-            oldInstance.getClass() == String.class) { 
+        if (oldInstance == null || oldInstance == this || 
+	    oldInstance.getClass() == String.class) { 
             return oldInstance; 
         }
         Expression exp = (Expression)bindings.get(oldInstance); 
@@ -225,13 +229,12 @@ public class Encoder {
         // System.out.println("writeStatement: " + oldExp); 
         Statement newStm = cloneStatement(oldStm); 
         if (oldStm.getTarget() != this && executeStatements) { 
-            try {  
-                newStm.execute();  
-            } catch (Exception e) {  
-                getExceptionListener().exceptionThrown (
-                  new Exception ("Encoder: discarding statement " + newStm, e));
-            } 
-
+	    try { 
+		newStm.execute(); 
+	    } catch (Exception e) { 
+		getExceptionListener().exceptionThrown(new Exception("Encoder: discarding statement " 
+								     + newStm, e)); 
+	    }
         }
     } 
     

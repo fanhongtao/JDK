@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultPreviewPanel.java	1.11 03/01/23
+ * @(#)DefaultPreviewPanel.java	1.13 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -17,6 +17,7 @@ import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
+import com.sun.java.swing.SwingUtilities2;
 
 
 /**
@@ -31,7 +32,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.11 01/23/03
+ * @version 1.13 12/19/03
  * @author Steve Wilson
  * @see JColorChooser
  */
@@ -50,14 +51,21 @@ class DefaultPreviewPanel extends JPanel {
 
     private Color oldColor = null;
 
+    private JColorChooser getColorChooser() {
+        return (JColorChooser)SwingUtilities.getAncestorOfClass(
+                                   JColorChooser.class, this);
+    }
 
     public Dimension getPreferredSize() {
-
-	FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(getFont());
+        JComponent host = getColorChooser();
+        if (host == null) {
+            host = this;
+        }
+	FontMetrics fm = host.getFontMetrics(getFont());
 
 	int ascent = fm.getAscent();
 	int height = fm.getHeight();
-	int width = fm.stringWidth(sampleText);
+	int width = SwingUtilities2.stringWidth(host, fm, sampleText);
 
         int y = height*3 + textGap*3;
 	int x = squareSize * 3 + squareGap*2 + swatchWidth + width + textGap*3;
@@ -94,11 +102,15 @@ class DefaultPreviewPanel extends JPanel {
 
     private int paintText(Graphics g, int offsetX) {
 	g.setFont(getFont());
-	FontMetrics fm = g.getFontMetrics();
+        JComponent host = getColorChooser();
+        if (host == null) {
+            host = this;
+        }
+	FontMetrics fm = SwingUtilities2.getFontMetrics(host, g);
 
 	int ascent = fm.getAscent();
 	int height = fm.getHeight();
-	int width = fm.stringWidth(sampleText);
+	int width = SwingUtilities2.stringWidth(host, fm, sampleText);
 
 	int textXOffset = offsetX + textGap;
 
@@ -106,7 +118,8 @@ class DefaultPreviewPanel extends JPanel {
 
 	g.setColor(color);
 
-	g.drawString(sampleText, textXOffset+(textGap/2), ascent+2);
+        SwingUtilities2.drawString(host, g, sampleText,textXOffset+(textGap/2),
+                                   ascent+2);
 
 	g.fillRect(textXOffset,
 		   ( height) + textGap, 
@@ -114,7 +127,7 @@ class DefaultPreviewPanel extends JPanel {
 		   height +2);
 
 	g.setColor(Color.black);
-	g.drawString(sampleText, 
+	SwingUtilities2.drawString(host, g, sampleText, 
 		     textXOffset+(textGap/2), 
 		     height+ascent+textGap+2);
 
@@ -127,7 +140,7 @@ class DefaultPreviewPanel extends JPanel {
 		   height +2);
 
 	g.setColor(color);
-	g.drawString(sampleText,
+	SwingUtilities2.drawString(host, g, sampleText,
 		     textXOffset+(textGap/2), 
 		     ((height+textGap) * 2)+ascent+2);
 

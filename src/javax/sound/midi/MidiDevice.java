@@ -1,30 +1,93 @@
 /*
- * @(#)MidiDevice.java	1.34 03/01/27
+ * @(#)MidiDevice.java	1.38 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.sound.midi;
 
+import java.util.List;
 
-/**
+ /**
  * <code>MidiDevice</code> is the base interface for all MIDI devices.
  * Common devices include synthesizers, sequencers, MIDI input ports, and MIDI
- * output ports.  A <code>MidiDevice</code>
- * can be a transmitter or a receiver of MIDI events, or both.  To this end, it
- * typically also implements the <code>{@link Transmitter}</code> or
- * <code>{@link Receiver}</code> interface (or both), or has access to objects that do.
+ * output ports.  
+ *
+ * <p>A <code>MidiDevice</code> can be a transmitter or a receiver of
+ * MIDI events, or both. Therefore, it can provide {@link Transmitter}
+ * or {@link Receiver} instances (or both). Typically, MIDI IN ports
+ * provide transmitters, MIDI OUT ports and synthesizers provide
+ * receivers. A Sequencer typically provides transmitters for playback
+ * and receivers for recording.
+ *
+ * <p>A <code>MidiDevice</code> can be opened and closed explicitly as
+ * well as implicitly. Explicit opening is accomplished by calling
+ * {@link #open}, explicit closing is done by calling {@link
+ * #close} on the <code>MidiDevice</code> instance.
+ * If an application opens a <code>MidiDevice</code>
+ * explicitly, it has to close it explicitly to free system resources
+ * and enable the application to exit cleanly. Implicit opening is
+ * done by calling {@link javax.sound.midi.MidiSystem#getReceiver
+ * MidiSystem.getReceiver} and {@link
+ * javax.sound.midi.MidiSystem#getTransmitter
+ * MidiSystem.getTransmitter}. The <code>MidiDevice</code> used by
+ * <code>MidiSystem.getReceiver</code> and
+ * <code>MidiSystem.getTransmitter</code> is implementation-dependant
+ * unless the properties <code>javax.sound.midi.Receiver</code>
+ * and <code>javax.sound.midi.Transmitter</code> are used (see the
+ * description of properties to select default providers in
+ * {@link javax.sound.midi.MidiSystem}). A <code>MidiDevice</code>
+ * that was opened implicitly, is closed implicitly by closing the
+ * <code>Receiver</code> or <code>Transmitter</code> that resulted in
+ * opening it. If more than one implicitly opening
+ * <code>Receiver</code> or <code>Transmitter</code> were obtained by
+ * the application, the decive is closed after the last
+ * <code>Receiver</code> or <code>Transmitter</code> has been
+ * closed. On the other hand, calling <code>getReceiver</code> or
+ * <code>getTransmitter</code> on the device instance directly does
+ * not open the device implicitly. Closing these
+ * <code>Transmitter</code>s and <code>Receiver</code>s does not close
+ * the device implicitly. To use a device with <code>Receiver</code>s
+ * or <code>Transmitter</code>s obtained this way, the device has to
+ * be opened and closed explicitly.
+ *
+ * <p>If implicit and explicit opening and closing are mixed on the
+ * same <code>MidiDevice</code> instance, the following rules apply:
+ *
+ * <ul>
+ * <li>After an explicit open (either before or after implicit
+ * opens), the device will not be closed by implicit closing. The only
+ * way to close an explicitly opened device is an explicit close.</li>
+ *
+ * <li>An explicit close always closes the device, even if it also has
+ * been opened implicitly. A subsequent implicit close has no further
+ * effect.</li>
+ * </ul>
+ *
+ * To detect if a MidiDevice represents a hardware MIDI port, the
+ * following programming technique can be used:
+ *
+ * <pre>
+ * MidiDevice device = ...;
+ * if ( ! (device instanceof Sequencer) && ! (device instanceof Synthesizer)) {
+ *   // we're now sure that device represents a MIDI port
+ *   // ...
+ * }
+ * </pre>
+ *
  * <p>
  * A <code>MidiDevice</code> includes a <code>{@link MidiDevice.Info}</code> object
  * to provide manufacturer information and so on.
  *
  * @see Synthesizer
  * @see Sequencer
- * @see MidiChannel#setMono(boolean)
+ * @see Receiver
+ * @see Transmitter
  *
- * @version 1.34, 03/01/27
+ * @version 1.38, 03/12/19
  * @author Kara Kytle
+ * @author Florian Bomers
  */
 
 public interface MidiDevice {
@@ -42,6 +105,12 @@ public interface MidiDevice {
     /**
      * Opens the device, indicating that it should now acquire any
      * system resources it requires and become operational.
+     *
+     * <p>An application opening a device explicitly with this call
+     * has to close the device by calling {@link #close}. This is
+     * necessary to release system resources and allow applications to
+     * exit cleanly.
+     *
      * <p>
      * Note that some devices, once closed, cannot be reopened.  Attempts
      * to reopen such a device will always result in a MidiUnavailableException.
@@ -61,6 +130,10 @@ public interface MidiDevice {
      * Closes the device, indicating that the device should now release
      * any system resources it is using.
      *
+     * <p>All <code>Receiver</code> and <code>Transmitter</code> instances
+     * open from this device are closed. This includes instances retrieved
+     * via <code>MidiSystem</code>.
+     * 
      * @see #open
      * @see #isOpen
      */
@@ -68,12 +141,11 @@ public interface MidiDevice {
 
 
     /**
-     * Reports whether the device is open.  The mechanism for
-     * opening particular devices is defined by subinterfaces
-     * and/or by classes implementing this interface.
+     * Reports whether the device is open.
      *
      * @return <code>true</code> if the device is open, otherwise
      * <code>false</code>
+     * @see #open
      * @see #close
      */
     public boolean isOpen();
@@ -111,17 +183,16 @@ public interface MidiDevice {
 
 
     /**
-     * Obtains the maximum number of MIDI THRU connections available on this
-     * MIDI device for transmitting MIDI data.
-     * @return maximum number of MIDI THRU connections
-     */
-    //public int getMaxThruTransmitters();
-
-
-    /**
      * Obtains a MIDI IN receiver through which the MIDI device may receive
      * MIDI data.  The returned receiver must be closed when the application
      * has finished using it.
+     *
+     * <p>Obtaining a <code>Receiver</code> with this method does not
+     * open the device. To be able to use the device, it has to be
+     * opened explicitly by calling {@link #open}. Also, closing the
+     * <code>Receiver</code> does not close the device. It has to be
+     * closed explicitly by calling {@link #close}.
+     *
      * @return a receiver for the device.
      * @throws MidiUnavailableException thrown if a receiver is not available
      * due to resource restrictions
@@ -131,9 +202,27 @@ public interface MidiDevice {
 
 
     /**
+     * Returns all currently active, non-closed receivers
+     * connected with this MidiDevice.
+     * A receiver can be removed
+     * from the device by closing it.
+     * @return an unmodifiable list of the open receivers
+     * @since 1.5
+     */
+    List<Receiver> getReceivers();
+
+
+    /**
      * Obtains a MIDI OUT connection from which the MIDI device will transmit
      * MIDI data  The returned transmitter must be closed when the application
      * has finished using it.
+     *
+     * <p>Obtaining a <code>Transmitter</code> with this method does not
+     * open the device. To be able to use the device, it has to be
+     * opened explicitly by calling {@link #open}. Also, closing the
+     * <code>Transmitter</code> does not close the device. It has to be
+     * closed explicitly by calling {@link #close}.
+     *
      * @return a MIDI OUT transmitter for the device.
      * @throws MidiUnavailableException thrown if a transmitter is not available
      * due to resource restrictions
@@ -143,16 +232,16 @@ public interface MidiDevice {
 
 
     /**
-     * Obtains a MIDI THRU connection from which the MIDI device will transmit
-     * MIDI data  The returned transmitter must be closed when the application
-     * has finished using it.
-     * @return a MIDI THRU transmitter for the device.
-     * @throws MidiUnavailableException thrown if a transmitter is not available
-     * due to resource restrictions
-     * @see Transmitter#close()
+     * Returns all currently active, non-closed transmitters
+     * connected with this MidiDevice.
+     * A transmitter can be removed
+     * from the device by closing it.
+     * @return an unmodifiable list of the open transmitters
+     * @since 1.5
      */
-    //public Transmitter getThruTransmitter() throws MidiUnavailableException;
-
+    List<Transmitter> getTransmitters();
+ 
+ 
 
     /**
      * A <code>MidiDevice.Info</code> object contains assorted
@@ -269,86 +358,5 @@ public interface MidiDevice {
 	}
     } // class Info
 
-
-    // OLD
-
-
-    /**
-     * MIDI Mode 1: Omni On/Poly.
-     *
-     * @see #setMode(int)
-     */
-    //public static final int OMNI_ON_POLY	= 1;
-
-
-    /**
-     * MIDI Mode 2: Omni On/Mono.
-     *
-     * @see #setMode(int)
-     */
-    //public static final int OMNI_ON_MONO	= 2;
-
-
-    /**
-     * MIDI Mode 3: Omni Off/Poly.
-     *
-     * @see #setMode(int)
-     */
-    //public static final int OMNI_OFF_POLY	= 3;
-
-
-    /**
-     * MIDI Mode 4: Omni Off/Mono.
-     *
-     * @see #setMode(int)
-     */
-    //public static final int OMNI_OFF_MONO	= 4;
-
-
-    /**
-     * Sets the current omni and mono/poly mode.  The argument should be
-     * one of the integers returned by <code>getModes()</code>.  Any other
-     * value will be ignored, leaving the current mode unchanged.
-     *
-     * @param mode the desired new mode
-     *
-     * @see #OMNI_ON_POLY
-     * @see #OMNI_ON_MONO
-     * @see #OMNI_OFF_POLY
-     * @see #OMNI_OFF_MONO
-     * @see #getMode
-     * @see #getModes
-     */
-    //public void setMode(int mode);
-
-
-    /**
-     * Obtains the current omni and mono/poly mode.
-     *
-     * @return the current mode
-     *
-     * @see #OMNI_ON_POLY
-     * @see #OMNI_ON_MONO
-     * @see #OMNI_OFF_POLY
-     * @see #OMNI_OFF_MONO
-     * @see #setMode(int)
-     * @see #getModes
-     */
-    //public int getMode();
-
-
-    /**
-     * Obtains the set of omni and mono/poly modes supported by this device.
-     *
-     * @return the list of supported modes
-     *
-     * @see #OMNI_ON_POLY
-     * @see #OMNI_ON_MONO
-     * @see #OMNI_OFF_POLY
-     * @see #OMNI_OFF_MONO
-     * @see #getMode
-     * @see #setMode(int)
-     */
-    //public int[] getModes();
 
 }

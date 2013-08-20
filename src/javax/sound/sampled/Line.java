@@ -1,7 +1,7 @@
 /*
- * @(#)Line.java	1.25 03/01/23
+ * @(#)Line.java	1.29 04/07/14
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ package javax.sound.sampled;
  * resource.
  *
  * @author Kara Kytle
- * @version 1.25, 03/01/23
+ * @version 1.29, 04/07/14
  *
  * @see LineEvent
  * @since 1.3
@@ -84,12 +84,16 @@ public interface Line {
      * <code>{@link TargetDataLine}</code> objects, this means that the line is
      * opened with default settings.  For a <code>{@link Clip}</code>, however,
      * the buffer size is determined when data is loaded.  Since this method does not
-     * allow the application to specify any data to load, it allocates
-     * resources for a clip with zero frames of data, and there is no
-     * means for subsequently loading data into that clip.  Therefore,
-     * you should instead use one of the <code>open</code> methods provided in
-     * the <code>Clip</code> interface to load data into the <code>Clip</code>.
+     * allow the application to specify any data to load, an IllegalArgumentException
+     * is thrown. Therefore, you should instead use one of the <code>open</code> methods
+     * provided in the <code>Clip</code> interface to load data into the <code>Clip</code>.
+     * <p>
+     * For <code>DataLine</code>'s, if the <code>DataLine.Info</code>
+     * object which was used to retrieve the line, specifies at least
+     * one fully qualified audio format, the last one will be used
+     * as the default format.
      *
+     * @throws IllegalArgumentException if this method is called on a Clip instance.
      * @throws LineUnavailableException if the line cannot be
      * opened due to resource restrictions.
      * @throws SecurityException if the line cannot be
@@ -202,7 +206,7 @@ public interface Line {
      * are available and to obtain them.
      *
      * @author Kara Kytle
-     * @version 1.25, 03/01/23
+     * @version 1.29, 04/07/14
      *
      * @see Line#getLineInfo
      * @see Mixer#getSourceLineInfo
@@ -231,7 +235,7 @@ public interface Line {
 	 * describe a desired line.
 	 * @param lineClass the class of the line that the new Line.Info object describes
 	 */
-	public Info(Class lineClass) {
+	public Info(Class<?> lineClass) {
 
 	    if (lineClass == null) {
 		this.lineClass = Line.class;
@@ -246,7 +250,7 @@ public interface Line {
 	 * Obtains the class of the line that this Line.Info object describes.
 	 * @return the described line's class
 	 */
-	public Class getLineClass() {
+	public Class<?> getLineClass() {
 	    return lineClass;
 	}
 

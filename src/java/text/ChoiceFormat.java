@@ -1,7 +1,7 @@
 /*
- * @(#)ChoiceFormat.java	1.32 03/01/23
+ * @(#)ChoiceFormat.java	1.34 03/12/19
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -148,6 +148,9 @@ import sun.text.Utility;
  * @author       Mark Davis
  */
 public class ChoiceFormat extends NumberFormat {
+
+    // Proclaim serial compatibility with 1.1 FCS
+    private static final long serialVersionUID = 1795184449645032964L;
 
     /**
      * Sets the pattern.

@@ -1,7 +1,7 @@
 /*
- * @(#)InputEvent.java	1.31 05/08/30
+ * @(#)InputEvent.java	1.34 04/06/02
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -24,7 +24,7 @@ import java.awt.Toolkit;
  * activated.
  *
  * @author Carl Quinn
- * @version 1.31 08/30/05
+ * @version 1.34 06/02/04
  *
  * @see KeyEvent
  * @see KeyAdapter
@@ -74,12 +74,14 @@ public abstract class InputEvent extends ComponentEvent {
     /**
      * The Mouse Button2 modifier constant.
      * It is recommended that BUTTON2_DOWN_MASK be used instead.
+     * Note that BUTTON2_MASK has the same value as ALT_MASK.
      */
     public static final int BUTTON2_MASK = Event.ALT_MASK;
 
     /**
      * The Mouse Button3 modifier constant.
      * It is recommended that BUTTON3_DOWN_MASK be used instead.
+     * Note that BUTTON3_MASK has the same value as META_MASK.
      */
     public static final int BUTTON3_MASK = Event.META_MASK;
 
@@ -154,11 +156,11 @@ public abstract class InputEvent extends ComponentEvent {
      * @see java.awt.event.MouseEvent
      */
     int modifiers;
-  
-      /*
-       * A flag that indicates that this instance can be used to access 
-       * the system clipboard. 
-       */
+
+    /*
+     * A flag that indicates that this instance can be used to access 
+     * the system clipboard. 
+     */
     private transient boolean canAccessSystemClipboard;
 
     static {
@@ -178,12 +180,17 @@ public abstract class InputEvent extends ComponentEvent {
     /**
      * Constructs an InputEvent object with the specified source component,
      * modifiers, and type.
+     * <p>Note that passing in an invalid <code>id</code> results in
+     * unspecified behavior. This method throws an
+     * <code>IllegalArgumentException</code> if <code>source</code>
+     * is <code>null</code>.
      * 
      * @param source the object where the event originated
      * @param id the event type
      * @param when the time the event occurred
      * @param modifiers represents the modifier keys and mouse buttons down 
      *                  while the event occurred
+     * @throws IllegalArgumentException if <code>source</code> is null
      */
     InputEvent(Component source, int id, long when, int modifiers) {
         super(source, id);

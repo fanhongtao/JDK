@@ -1,36 +1,37 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All  Rights Reserved.
+ * @(#)DemoGroup.java	1.36 04/07/26
+ * 
+ * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * modification, are permitted provided that the following conditions are met:
  * 
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
+ * -Redistribution of source code must retain the above copyright notice, this
+ *  list of conditions and the following disclaimer.
  * 
- * -Redistribution in binary form must reproduct the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the distribution.
+ * -Redistribution in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of contributors
- * may be used to endorse or promote products derived from this software
- * without specific prior written permission.
+ * Neither the name of Sun Microsystems, Inc. or the names of contributors may 
+ * be used to endorse or promote products derived from this software without 
+ * specific prior written permission.
  * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
+ * This software is provided "AS IS," without a warranty of any kind. ALL 
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
  * ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN AND ITS LICENSORS SHALL NOT
- * BE LIABLE FOR ANY DAMAGES OR LIABILITIES SUFFERED BY LICENSEE AS A RESULT
- * OF OR RELATING TO USE, MODIFICATION OR DISTRIBUTION OF THE SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
- * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
- * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
- * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE SOFTWARE, EVEN
- * IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+ * AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ * AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST 
+ * REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, 
+ * INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY 
+ * OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, 
+ * EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  * 
- * You acknowledge that Software is not designed, licensed or intended for
- * use in the design, construction, operation or maintenance of any nuclear
- * facility.
+ * You acknowledge that this software is not designed, licensed or intended
+ * for use in the design, construction, operation or maintenance of any
+ * nuclear facility.
  */
 
 /*
@@ -134,8 +135,9 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
                 c.setDemoBorder(clonePanels[i]);
                 if (c.surface != null) {
                     c.surface.setMonitor(Java2Demo.performancemonitor != null);
+                    Image cloneImg = DemoImages.getImage("clone.gif", this);
                     c.tools.cloneB = 
-                        c.tools.addTool("clone.gif","Clone the Surface",this);
+                        c.tools.addTool(cloneImg,"Clone the Surface",this);
                     Dimension d = c.tools.toolbar.getPreferredSize();
                     c.tools.toolbar.setPreferredSize(
                         new Dimension(d.width+27, d.height));
@@ -222,7 +224,7 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
                 Tools t = dp.tools;
                 t.setVisible(isValid());
                 t.issueRepaint = issueRepaint;
-                JButton b[] = {t.toggleB, t.aliasB, t.renderB,
+                JToggleButton b[] = {t.toggleB, t.aliasB, t.renderB,
                                t.textureB, t.compositeB};
                 JCheckBox cb[] = {c.toolBarCB, c.aliasCB, c.renderCB,
                                   c.textureCB, c.compositeCB};
@@ -278,8 +280,9 @@ public class DemoGroup extends JPanel implements MouseListener, ChangeListener, 
         if (columns == 2) {
             clone.setDemoBorder(clonePanels[i]);
         }
+        Image removeImg = DemoImages.getImage("remove.gif", this);
         clone.tools.cloneB = 
-              clone.tools.addTool("remove.gif","Remove the Surface",this);
+              clone.tools.addTool(removeImg,"Remove the Surface",this);
         Dimension d = clone.tools.toolbar.getPreferredSize();
         clone.tools.toolbar.setPreferredSize(
                         new Dimension(d.width+27, d.height));

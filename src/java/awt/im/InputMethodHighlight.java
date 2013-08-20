@@ -1,12 +1,13 @@
 /*
- * @(#)InputMethodHighlight.java	1.19 03/01/23
+ * @(#)InputMethodHighlight.java	1.21 04/05/05
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package java.awt.im;
 
+import java.awt.font.TextAttribute;
 import java.util.Map;
 
 /**
@@ -43,7 +44,7 @@ import java.util.Map;
 * attribute. They may be wrapped into {@link java.text.Annotation Annotation}
 * instances to indicate separate text segments.
 *
-* @version 	1.19, 01/23/03
+* @version 	1.21, 05/05/04
 * @see java.text.AttributedCharacterIterator
 * @since 1.2
 */
@@ -125,7 +126,9 @@ public class InputMethodHighlight {
      * @exception IllegalArgumentException if a state other than RAW_TEXT or CONVERTED_TEXT is given
      * @since 1.3
      */
-    public InputMethodHighlight(boolean selected, int state, int variation, Map style) {
+    public InputMethodHighlight(boolean selected, int state, int variation,
+				Map<TextAttribute,?> style)
+    {
         this.selected = selected;
         if (!(state == RAW_TEXT || state == CONVERTED_TEXT)) {
             throw new IllegalArgumentException("unknown input method highlight state");
@@ -163,7 +166,7 @@ public class InputMethodHighlight {
      * Returns the rendering style attributes for the text range, or null.
      * @since 1.3
      */
-    public Map getStyle() {
+    public Map<TextAttribute,?> getStyle() {
         return style;
     }
 

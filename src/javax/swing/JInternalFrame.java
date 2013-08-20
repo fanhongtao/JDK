@@ -1,7 +1,7 @@
 /*
- * @(#)JInternalFrame.java	1.139 03/01/23
+ * @(#)JInternalFrame.java	1.147 04/05/18
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,25 +45,22 @@ import java.io.IOException;
  * <p>
  * The <code>JInternalFrame</code> content pane
  * is where you add child components.
- * So, to create a <code>JInternalFrame</code> that has a number of
- * buttons arranged 
- * with the content pane's default <code>BorderLayout</code> object,
- * you might do something like this:
+ * As a conveniance <code>add</code> and its variants, <code>remove</code> and
+ * <code>setLayout</code> have been overridden to forward to the
+ * <code>contentPane</code> as necessary. This means you can write:
  * <pre>
- *    JComponent c = (JComponent) internalFrame.getContentPane();
- *    c.add(new JButton(), BorderLayout.NORTH);
- *    c.add(new JButton(), BorderLayout.CENTER);
+ *       internalFrame.add(child);
  * </pre>
+ * And the child will be added to the contentPane.
  * The content pane is actually managed by an instance of
  * <code>JRootPane</code>,
  * which also manages a layout pane, glass pane, and 
  * optional menu bar for the internal frame. Please see the
  * <code>JRootPane</code> 
  * documentation for a complete description of these components.
- * <p>
- * For the keyboard keys used by this component in the standard look and
- * feel renditions, see the
- * <a href="doc-files/Key-Index.html#JInternalFrame"><code>JInternalFrame</code> key assignments</a>.
+ * Refer to {@link javax.swing.RootPaneContainer}
+ * for details on adding, removing and setting the <code>LayoutManager</code>
+ * of a <code>JInternalFrame</code>.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -79,8 +76,9 @@ import java.io.IOException;
  * @see DesktopManager
  * @see JInternalFrame.JDesktopIcon
  * @see JRootPane
+ * @see javax.swing.RootPaneContainer
  *
- * @version 1.139 01/23/03
+ * @version 1.147 05/18/04
  * @author David Kloba
  * @author Rich Schiavi
  * @beaninfo
@@ -111,8 +109,14 @@ public class JInternalFrame extends JComponent implements
     protected JRootPane rootPane;
 
     /**
-     * If <code>true</code> then calls to <code>add</code> and <code>setLayout</code>
-     * cause an exception to be thrown.  
+     * If true then calls to <code>add</code> and <code>setLayout</code>
+     * will be forwarded to the <code>contentPane</code>. This is initially
+     * false, but is set to true when the <code>JInternalFrame</code> is
+     * constructed.
+     *
+     * @see #isRootPaneCheckingEnabled
+     * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean rootPaneCheckingEnabled = false;
 
@@ -284,6 +288,7 @@ public class JInternalFrame extends JComponent implements
         setRootPaneCheckingEnabled(true);
         desktopIcon = new JDesktopIcon(this);
 	updateUI();
+        sun.awt.SunToolkit.checkAndSetPolicy(this, true);
     }
 
     /** 
@@ -375,72 +380,62 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * Returns whether calls to <code>add</code> and 
-     * <code>setLayout</code> cause an exception to be thrown. 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
      *
-     * @return <code>true</code> if <code>add</code> and <code>setLayout</code> 
-     *         are checked
+     * @return true if <code>add</code> and <code>setLayout</code> 
+     *         are fowarded; false otherwise
+     *
      * @see #addImpl
      * @see #setLayout
      * @see #setRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
      */
     protected boolean isRootPaneCheckingEnabled() {
         return rootPaneCheckingEnabled;
     }
 
     /**
-     * Determines whether calls to <code>add</code> and 
-     * <code>setLayout</code> cause an exception to be thrown. 
+     * Sets whether calls to <code>add</code> and 
+     * <code>setLayout</code> are forwarded to the <code>contentPane</code>.
      * 
-     * @param enabled  a boolean value, <code>true</code> if checking is to be
-     *        enabled, which cause the exceptions to be thrown
+     * @param enabled  true if <code>add</code> and <code>setLayout</code>
+     *        are forwarded, false if they should operate directly on the
+     *        <code>JInternalFrame</code>.
      *
      * @see #addImpl
      * @see #setLayout
      * @see #isRootPaneCheckingEnabled
+     * @see javax.swing.RootPaneContainer
+     * @beaninfo
+     *      hidden: true
+     * description: Whether the add and setLayout methods are forwarded
      */
     protected void setRootPaneCheckingEnabled(boolean enabled) {
         rootPaneCheckingEnabled = enabled;
     }
 
     /**
-     * Creates and returns a runtime exception with a message like:
-     * <pre>
-     * "Do not use JFrame.add() use JFrame.getContentPane().add() instead"
-     * </pre>
-     *
-     * @param op  a <code>String</code> indicating the attempted operation;
-     *		in the example above, the operation string is "add"
-     */
-    private Error createRootPaneException(String op) {
-        String type = getClass().getName();
-        return new Error(
-            "Do not use " + type + "." + op + "() use " 
-                          + type + ".getContentPane()." + op + "() instead");
-    }
-
-
-    /**
-     * Ensures that, by default, children cannot be added
-     * directly to this component.
-     * Instead, children must be added to its content pane.
-     * For example:
-     * <pre>
-     *thisComponent.getContentPane().add(child)
-     * </pre>
-     * An attempt to add to directly to this component will cause a
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * Adds the specified child <code>Component</code>.
+     * This method is overridden to conditionally forwad calls to the
+     * <code>contentPane</code>.
+     * By default, children are added to the <code>contentPane</code> instead
+     * of the frame, refer to {@link javax.swing.RootPaneContainer} for
+     * details.
      * 
-     * @param comp  the <code>Component</code> to be added
-     * @param constraints  the object containing the constraints, if any
-     * @param index  the index
+     * @param comp the component to be enhanced
+     * @param constraints the constraints to be respected
+     * @param index the index
+     * @exception IllegalArgumentException if <code>index</code> is invalid
+     * @exception IllegalArgumentException if adding the container's parent
+     *			to itself
+     * @exception IllegalArgumentException if adding a window to a container
+     * 
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with <code>isRootPaneChecking</code> <code>true</code>
+     * @see javax.swing.RootPaneContainer
      */
-    protected void addImpl(Component comp, Object constraints, int index) 
-    {
+    protected void addImpl(Component comp, Object constraints, int index) {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("add");
+            getContentPane().add(comp, constraints, index);
         }
         else {
             super.addImpl(comp, constraints, index);
@@ -448,16 +443,19 @@ public class JInternalFrame extends JComponent implements
     }
 
     /** 
-     * Removes the specified component from this container.
+     * Removes the specified component from the container. If
+     * <code>comp</code> is not a child of the <code>JInternalFrame</code>
+     * this will forward the call to the <code>contentPane</code>.
+     *
      * @param comp the component to be removed
+     * @throws NullPointerException if <code>comp</code> is null
      * @see #add
+     * @see javax.swing.RootPaneContainer
      */
     public void remove(Component comp) {
 	int oldCount = getComponentCount();
 	super.remove(comp);
 	if (oldCount == getComponentCount()) {
-	    // Client mistake, but we need to handle it to avoid a
-	    // common object leak in client applications.
 	    getContentPane().remove(comp);
 	}
     }
@@ -465,22 +463,17 @@ public class JInternalFrame extends JComponent implements
 
     /**
      * Ensures that, by default, the layout of this component cannot be set.
-     * Instead, the layout of its content pane should be set.
-     * For example:
-     * <pre>
-     * thisComponent.getContentPane().setLayout(new GridLayout(1,2))
-     * </pre>
-     * An attempt to set the layout of this component will cause an
-     * runtime exception to be thrown.  Subclasses can disable this
-     * behavior.
+     * Overridden to conditionally forward the call to the
+     * <code>contentPane</code>.
+     * Refer to {@link javax.swing.RootPaneContainer} for
+     * more information.
      * 
      * @param manager the <code>LayoutManager</code>
      * @see #setRootPaneCheckingEnabled
-     * @exception Error if called with <code>isRootPaneChecking</code> <code>true</code>
      */
     public void setLayout(LayoutManager manager) {
         if(isRootPaneCheckingEnabled()) {
-            throw createRootPaneException("setLayout");
+            getContentPane().setLayout(manager);
         }
         else {
             super.setLayout(manager);
@@ -501,6 +494,7 @@ public class JInternalFrame extends JComponent implements
      * @deprecated As of Swing version 1.0.3,
      * replaced by <code>getJMenuBar()</code>.
      */
+    @Deprecated
     public JMenuBar getMenuBar() {
       return getRootPane().getMenuBar();
     }
@@ -525,6 +519,7 @@ public class JInternalFrame extends JComponent implements
      * @deprecated As of Swing version 1.0.3
      *  replaced by <code>setJMenuBar(JMenuBar m)</code>.
      */
+    @Deprecated
     public void setMenuBar(JMenuBar m) {
         JMenuBar oldValue = getMenuBar();
         getRootPane().setJMenuBar(m);
@@ -1168,8 +1163,7 @@ public class JInternalFrame extends JComponent implements
              // Try to do the right thing
              JLayeredPane.putLayer(this, layer.intValue());
              if(getParent() != null)
-                getParent().repaint(_bounds.x, _bounds.y, 
-                                    _bounds.width, _bounds.height);
+                 getParent().repaint(getX(), getY(), getWidth(), getHeight());
         }
     }
 
@@ -1377,61 +1371,6 @@ public class JInternalFrame extends JComponent implements
         lastFocusOwner.requestFocus();
     }
 
-    /*
-     * Creates a new <code>EventDispatchThread</code> to dispatch events
-     * from. This method returns when <code>stopModal</code> is invoked.
-     */
-    synchronized void startModal() {
-	/* Since all input will be blocked until this dialog is dismissed,
-	 * make sure its parent containers are visible first (this component
-	 * is tested below).  This is necessary for JApplets, because
-	 * because an applet normally isn't made visible until after its
-	 * start() method returns -- if this method is called from start(),
-	 * the applet will appear to hang while an invisible modal frame
-	 * waits for input.
-	 */
-	if (isVisible() && !isShowing()) {
-	    Container parent = this.getParent();
-	    while (parent != null) {
-		if (parent.isVisible() == false) {
-		    parent.setVisible(true);
-		}
-		parent = parent.getParent();
-	    }
-	}
-
-        try {
-            if (SwingUtilities.isEventDispatchThread()) {
-                EventQueue theQueue = getToolkit().getSystemEventQueue();
-                while (isVisible()) {
-                    // This is essentially the body of EventDispatchThread
-                    AWTEvent event = theQueue.getNextEvent();
-                    Object src = event.getSource();
-                    // can't call theQueue.dispatchEvent, so I pasted its body here
-                    if (event instanceof ActiveEvent) {
-                        ((ActiveEvent) event).dispatch();
-                    } else if (src instanceof Component) {
-                        ((Component) src).dispatchEvent(event);
-                    } else if (src instanceof MenuComponent) {
-                        ((MenuComponent) src).dispatchEvent(event);
-                    } else {
-                        System.err.println("unable to dispatch event: " + event);
-                    }
-                }
-            } else
-                while (isVisible())
-                    wait();
-        } catch(InterruptedException e){}
-    }
-  
-    /*
-     * Stops the event dispatching loop created by a previous call to
-     * <code>startModal</code>.
-     */
-    synchronized void stopModal() {
-        notifyAll();
-    }
-  
     /**
      * Moves and resizes this component.  Unlike other components,
      * this implementation also forces re-layout, so that frame
@@ -2049,12 +1988,12 @@ public class JInternalFrame extends JComponent implements
          * @return <code>true</code> if the value was set
          */
         public boolean setCurrentAccessibleValue(Number n) {
-            if (n instanceof Integer) {
-                setLayer((Integer) n);
-                return true;
-            } else {
-                return false;
-            }
+	    // TIGER - 4422535 
+	    if (n == null) {
+		return false;
+	    }
+	    setLayer(new Integer(n.intValue()));
+	    return true;
         }
 
         /**
@@ -2324,6 +2263,10 @@ public class JInternalFrame extends JComponent implements
              * @return <code>true</code> if the value was set
              */
             public boolean setCurrentAccessibleValue(Number n) {
+		// TIGER - 4422535 
+		if (n == null) {
+		    return false;
+		}
                 AccessibleContext a = JDesktopIcon.this.getInternalFrame().getAccessibleContext();
                 AccessibleValue v = a.getAccessibleValue();
                 if (v != null) {

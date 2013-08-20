@@ -1,27 +1,23 @@
+// $Id: SAXResult.java,v 1.2.24.1 2004/07/13 22:27:50 jsuttor Exp $
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)SAXResult.java	1.11 03/01/23
+ * @(#)SAXResult.java	1.13 04/07/13
  */
 package javax.xml.transform.sax;
 
-import javax.xml.transform.*;
-
-import java.lang.String;
-
-import java.io.OutputStream;
-import java.io.Writer;
+import javax.xml.transform.Result;
 
 import org.xml.sax.ContentHandler;
-import org.xml.sax.ext.DeclHandler;
 import org.xml.sax.ext.LexicalHandler;
 
-
 /**
- * Acts as an holder for a transformation Result.
+ * <p>Acts as an holder for a transformation Result.</p>
+ * 
+ * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
  */
 public class SAXResult implements Result {
 
@@ -36,7 +32,8 @@ public class SAXResult implements Result {
     /**
      * Zero-argument default constructor.
      */
-    public SAXResult() {}
+    public SAXResult() {
+    }
 
     /**
      * Create a SAXResult that targets a SAX2 {@link org.xml.sax.ContentHandler}.
