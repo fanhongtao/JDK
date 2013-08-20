@@ -1,7 +1,7 @@
 /*
- * @(#)MotifFileChooserUI.java	1.45 05/05/18
+ * @(#)MotifFileChooserUI.java	1.47 08/05/13
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.45 05/18/05
+ * @version 1.47 05/13/08
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -226,7 +226,9 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
     }
 
     public void uninstallUI(JComponent c) {
-	getFileChooser().removeAll();
+	c.removePropertyChangeListener(filterComboBoxModel);
+	approveButton.removeActionListener(getApproveSelectionAction());
+	filenameTextField.removeActionListener(getApproveSelectionAction());
 	super.uninstallUI(c);
     }
 
@@ -437,6 +439,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
     public void uninstallComponents(JFileChooser fc) {
 	fc.removeAll();
+	directoryPanel = null;
     }
 
     protected void installStrings(JFileChooser fc) {

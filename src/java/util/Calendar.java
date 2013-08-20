@@ -1,7 +1,7 @@
 /*
- * @(#)Calendar.java	1.75 05/11/29
+ * @(#)Calendar.java	1.77 08/05/13
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -260,7 +260,7 @@ import java.security.PrivilegedExceptionAction;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.75, 11/29/05 
+ * @version      1.77, 05/13/08 
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -692,6 +692,11 @@ public abstract class Calendar implements Serializable, Cloneable {
     private TimeZone        zone;
 
     /**
+     * true if zone references to a shared TimeZone object.
+     */
+    transient private boolean sharedZone = false;
+
+    /**
      * The first day of the week, with possible values <code>SUNDAY</code>,
      * <code>MONDAY</code>, etc.  This is a locale-dependent value.
      * @serial
@@ -773,7 +778,8 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     protected Calendar()
     {
-        this(TimeZone.getDefault(), Locale.getDefault());
+	this(TimeZone.getDefaultRef(), Locale.getDefault());
+        sharedZone = true;
     }
 
     /**
@@ -800,7 +806,9 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     public static Calendar getInstance()
     {
-        return createCalendar(TimeZone.getDefault(), Locale.getDefault());
+	Calendar cal = createCalendar(TimeZone.getDefaultRef(), Locale.getDefault());
+        cal.sharedZone = true;
+        return cal;
     }
 
     /**
@@ -826,7 +834,9 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     public static Calendar getInstance(Locale aLocale)
     {
-        return createCalendar(TimeZone.getDefault(), aLocale);
+	Calendar cal = createCalendar(TimeZone.getDefaultRef(), aLocale);
+        cal.sharedZone = true;
+        return cal;
     }
 
     /**
@@ -1252,6 +1262,7 @@ public abstract class Calendar implements Serializable, Cloneable {
     public void setTimeZone(TimeZone value)
     {
         zone = value;
+	sharedZone = false;
         /* Recompute the fields from the time using the new zone.  This also
          * works if isTimeSet is false (after a call to set()).  In that case
          * the time will be computed from the fields using the new zone, then
@@ -1270,6 +1281,12 @@ public abstract class Calendar implements Serializable, Cloneable {
      */
     public TimeZone getTimeZone()
     {
+        // If the TimeZone object is shared by other instances, then create a
+        // clone.
+        if (sharedZone) {
+            zone = (TimeZone) zone.clone();
+            sharedZone = false;
+        }
         return zone;
     }
 

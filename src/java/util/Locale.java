@@ -1,7 +1,7 @@
 /*
  * @(#)Locale.java	1.69 03/01/23
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -848,16 +848,14 @@ public final class Locale implements Cloneable, Serializable {
      * Since Locales are often used in hashtables, caches the value
      * for speed.
      */
-      // XXX Depending on performance of synchronized, may want to
-      // XXX just compute in constructor.
-    public synchronized int hashCode() {
-        if (hashcode == -1) {
-            hashcode =
-        language.hashCode() ^
-        country.hashCode() ^
-        variant.hashCode();
-        }
-        return hashcode;
+    public int hashCode() {
+	int hc = hashCodeValue;
+        if (hc == 0) {
+	    hc = (language.hashCode() << 8) ^ country.hashCode() ^ (variant.hashCode() << 4);
+            hashCodeValue = hc;
+         }
+
+	return hc;
     }
 
     // Overrides
@@ -873,16 +871,13 @@ public final class Locale implements Cloneable, Serializable {
     public boolean equals(Object obj) {
         if (this == obj)                      // quick check
             return true;
-        if (!(obj instanceof Locale))         // (1) same object?
+        if (!(obj instanceof Locale))         
             return false;
         Locale other = (Locale) obj;
-        if (hashCode() != other.hashCode()) return false;       // quick check
-        if (language != other.language) return false;
-        if (country != other.country) return false;
-        if (variant != other.variant) return false;
-        return true; // we made it through the guantlet.
-        // (1)  We don't check super.equals since it is Object.
-        //      Since Locale is final, we don't have to check both directions.
+
+	return language == other.language
+	    && country == other.country
+	    && variant == other.variant;
     }
 
     // ================= privates =====================================
@@ -912,7 +907,12 @@ public final class Locale implements Cloneable, Serializable {
      * Placeholder for the object's hash code.  Always -1.
      * @serial
      */
-    private int hashcode = -1;        // lazy evaluated
+    private volatile int hashcode = -1;        // lazy evaluated
+
+    /**
+     * Calculated hashcode
+     */
+    private transient volatile int hashCodeValue = 0;
 
     private static Locale defaultLocale = null;
 
@@ -1014,19 +1014,9 @@ public final class Locale implements Cloneable, Serializable {
      * the <code>Locale</code>'s hash code must be recomputed.
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
-        // hashcode is semantically transient.  We couldn't define it as transient
-        // because versions of this class that DIDN'T declare it as transient have
-        // already shipped.  What we're doing here is making sure that the written-out
-        // version of hashcode is always -1, regardless of what's really stored there
-        // (we hold onto the original value just in case someone might want it again).
-        // Writing -1 ensures that version 1.1 Locales will always recalculate their
-        // hash codes after being streamed back in.  This is necessary because
-        // String.hashCode() calculates its hash code differently in 1.2 than it did
-        // in 1.1.
-        int temp = hashcode;
-        hashcode = -1;
+	// hashcode is no longer used except for the serialization
+	// compatibility to fix 4518797.
         out.defaultWriteObject();
-        hashcode = temp;
     }
 
     /**
@@ -1041,13 +1031,9 @@ public final class Locale implements Cloneable, Serializable {
      * recomputed.
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        // hashcode is semantically transient.  We couldn't define it as transient
-        // because versions of this class that DIDN'T declare is as transient have
-        // already shipped.  This code makes sure that whatever value for hashcode
-        // was written on the stream, we ignore it and recalculate it on demand.  This
-        // is necessary because String.hashCode() calculates is hash code differently
-        // in version 1.2 than it did in 1.1.
         in.defaultReadObject();
+	// hashcode is no longer used except for the serialization
+	// compatibility to fix 4518797.
         hashcode = -1;
         language = convertOldISOCodes(language);
         country = country.intern();
@@ -1111,19 +1097,21 @@ public final class Locale implements Cloneable, Serializable {
         + "TMTKM,TNTUN,TOTON,TPTMP,TRTUR,TTTTO,TVTUV,TWTWN,TZTZA,UAUKR,UGUGA,UMUMI,USUSA,"
         + "UYURY,UZUZB,VAVAT,VCVCT,VEVEN,VGVGB,VIVIR,VNVNM,VUVUT,WFWLF,WSWSM,YEYEM,YTMYT,"
         + "YUYUG,ZAZAF,ZMZMB,ZRZAR,ZWZWE";
+ 
+
 
     /*
      * Locale needs its own, locale insenitive version of toLowerCase to
      * avoid circularity problems between Locale and String.
      * The most straightforward algorithm is used. Look at optimizations later.
      */
-    private String toLowerCase(String str) {
-        char[] buf = str.toCharArray();
-        for (int i = 0; i < buf.length; i++) {
-            buf[i] = Character.toLowerCase( buf[i] );
-        }
-        return new String( buf );
-    }
+     private String toLowerCase(String str) {
+ 	char[] buf = new char[str.length()];
+         for (int i = 0; i < buf.length; i++) {
+	    buf[i] = Character.toLowerCase(str.charAt(i));
+         }
+         return new String( buf );
+     }
 
     /*
      * Locale needs its own, locale insensitive version of toUpperCase to
@@ -1131,11 +1119,11 @@ public final class Locale implements Cloneable, Serializable {
      * The most straightforward algorithm is used. Look at optimizations later.
      */
     private String toUpperCase(String str) {
-        char[] buf = str.toCharArray();
-        for (int i = 0; i < buf.length; i++) {
-            buf[i] = Character.toUpperCase( buf[i] );
-        }
-        return new String( buf );
+	char[] buf = new char[str.length()];
+         for (int i = 0; i < buf.length; i++) {
+	    buf[i] = Character.toUpperCase(str.charAt(i));
+         }
+         return new String( buf );
     }
 
     private String findStringMatch(String[][] languages,

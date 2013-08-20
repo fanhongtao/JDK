@@ -1,7 +1,7 @@
 /*
- * @(#)Krb5LoginModule.java	1.24 07/04/04
+ * @(#)Krb5LoginModule.java	1.26 08/05/13
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -603,7 +603,7 @@ public class Krb5LoginModule implements LoginModule {
 		if (encKey == null) {	
 		    promptForPass(getPasswdFromSharedState);
 		    encKey = new EncryptionKey(
-				     new StringBuffer().append(password),
+				     (password==null) ? null : new StringBuffer().append(password),
 				     principal.getSalt());
 		
 		    // Get the TGT using AS Exchange
@@ -613,11 +613,13 @@ public class Krb5LoginModule implements LoginModule {
 		        if (debug)
 		            System.out.println("Acquire TGT using AS Exchange");
 
-		        cred = Credentials.acquireTGT(principal, encKey,
-		                                      new StringBuffer().append(password));
+			 cred = Credentials.acquireTGT(principal, encKey,
+                                       (password==null) ? null : new StringBuffer().append(password));
+
 
 		        // update keys after pre-auth
-		        encKey = new EncryptionKey(new StringBuffer().append(password), principal.getSalt());
+		        encKey = new EncryptionKey((password==null) ? null : new StringBuffer().append(password), 
+							principal.getSalt());
 		    }
 		} else {
 		    if (isInitiator) {
@@ -625,7 +627,7 @@ public class Krb5LoginModule implements LoginModule {
 		            System.out.println("Acquire TGT using AS Exchange");
 
 		        cred = Credentials.acquireTGT(principal, encKey,
-		                                      new StringBuffer().append(password));
+		                       (password==null) ? null : new StringBuffer().append(password));
 		    }
 		}
 

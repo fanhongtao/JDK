@@ -1,7 +1,7 @@
 /*
- * @(#)TimeZone.java	1.63 03/01/23
+ * @(#)TimeZone.java	1.65 08/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -108,7 +108,7 @@ import sun.util.calendar.ZoneInfoFile;
  * @see          Calendar
  * @see          GregorianCalendar
  * @see          SimpleTimeZone
- * @version      1.63 01/23/03
+ * @version      1.65 05/13/08
  * @author       Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since        JDK1.1
  */
@@ -493,62 +493,70 @@ abstract public class TimeZone implements Serializable, Cloneable {
      * @return a default <code>TimeZone</code>.
      * @see #setDefault
      */
-    public static synchronized TimeZone getDefault() {
-      out:
-        if (defaultZone == null) {
-            // get the time zone ID from the system properties
-	    String zoneID = (String) AccessController.doPrivileged(
-		new GetPropertyAction("user.timezone"));
-
-	    // if the time zone ID is not set (yet), perform the
-	    // platform to Java time zone ID mapping.
-	    if (zoneID == null || zoneID.equals("")) { 
-		String country = (String) AccessController.doPrivileged(
-		    new GetPropertyAction("user.country"));
-		String javaHome = (String) AccessController.doPrivileged(
-		    new GetPropertyAction("java.home"));
-		try {
-		    zoneID = getSystemTimeZoneID(javaHome, country);
-		    if (zoneID == null) {
-			zoneID = GMT_ID;
-		    }
-		}
-		catch (NullPointerException e) {
-		    zoneID = GMT_ID;
-		}
-
-		// Get the time zone for zoneID. But not fall back to
-		// "GMT" here.
-		defaultZone = getTimeZone(zoneID, false);
-
-		if (defaultZone == null) {
-		    // If the given zone ID is unknown in Java, try to
-		    // get the GMT-offset-based time zone ID,
-		    // a.k.a. custom time zone ID (e.g., "GMT-08:00").
-		    String gmtOffsetID = getSystemGMTOffsetID();
-		    if (gmtOffsetID != null) {
-			zoneID = gmtOffsetID;
-		    }
-		}
-
-		final String id = zoneID;
-		AccessController.doPrivileged(new PrivilegedAction() {
-		    public Object run() {
-			System.setProperty("user.timezone", id);
-			return null;
-		    }
-		});
-
-		if (defaultZone != null) {
-		    break out;
-		}
-	    }
-            defaultZone = getTimeZone(zoneID, true);
-        }
-        return (TimeZone) defaultZone.clone();
+    public static TimeZone getDefault() {
+	return (TimeZone) getDefaultRef().clone();
     }
 
     /**
+     * Returns the reference to the default TimeZone object. This
+     * method doesn't create a clone.
+     */
+    static synchronized TimeZone getDefaultRef() {
+        if (defaultZone == null) {
+          setDefaultZone();
+      }
+      return defaultZone;
+    }
+
+   private static void setDefaultZone() {
+       TimeZone tz = null;
+       // get the time zone ID from the system properties
+       String zoneID = (String) AccessController.doPrivileged(
+               new GetPropertyAction("user.timezone"));
+
+       // if the time zone ID is not set (yet), perform the
+       // platform to Java time zone ID mapping.
+       if (zoneID == null || zoneID.equals("")) { 
+           String country = (String) AccessController.doPrivileged(
+                   new GetPropertyAction("user.country"));
+           String javaHome = (String) AccessController.doPrivileged(
+                   new GetPropertyAction("java.home"));
+           try {
+               zoneID = getSystemTimeZoneID(javaHome, country);
+               if (zoneID == null) {
+                   zoneID = GMT_ID;
+               }
+           } catch (NullPointerException e) {
+               zoneID = GMT_ID;
+           }
+	}	
+
+           // Get the time zone for zoneID. But not fall back to
+           // "GMT" here.
+           tz = getTimeZone(zoneID, false);
+
+           if (tz == null) {
+               // If the given zone ID is unknown in Java, try to
+               // get the GMT-offset-based time zone ID,
+               // a.k.a. custom time zone ID (e.g., "GMT-08:00").
+               String gmtOffsetID = getSystemGMTOffsetID();
+               if (gmtOffsetID != null) {
+                   zoneID = gmtOffsetID;
+               }
+               tz = getTimeZone(zoneID, true);
+           }
+	   assert tz != null;
+           final String id = zoneID;
+           AccessController.doPrivileged(new PrivilegedAction() {
+                   public Object run() {
+                       System.setProperty("user.timezone", id);
+                       return null;
+                   }
+               });
+       defaultZone = tz;
+   }
+
+   /**
      * Sets the <code>TimeZone</code> that is
      * returned by the <code>getDefault</code> method.  If <code>zone</code>
      * is null, reset the default to the value it had originally when the

@@ -1,7 +1,7 @@
 /*
- * @(#)Date.java	1.74 03/01/23
+ * @(#)Date.java	1.76 08/05/13
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -100,7 +100,7 @@ import java.lang.ref.SoftReference;
  * @author  James Gosling
  * @author  Arthur van Hoff
  * @author  Alan Liu
- * @version 1.74, 01/23/03
+ * @version 1.76, 05/13/08
  * @see     java.text.DateFormat
  * @see     java.util.Calendar
  * @see     java.util.TimeZone
@@ -241,7 +241,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
         if (staticCal == null)
             makeStaticCalendars();
         synchronized (staticCal) {
-            staticCal.setTimeZone(TimeZone.getDefault());
+	    staticCal.setTimeZone(TimeZone.getDefaultRef());
             staticCal.clear();
             staticCal.set(year + 1900, month, date, hrs, min, sec);
             fastTime = staticCal.getTimeInMillis();
@@ -983,7 +983,7 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
 	    simpleFormatter = new SoftReference(formatter);
 	}
         synchronized (formatter) {
-            formatter.setTimeZone(TimeZone.getDefault());
+            formatter.setTimeZone(TimeZone.getDefaultRef());
             return formatter.format(this);
         }
     }
@@ -1093,17 +1093,17 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
             if (staticCal == null)
                 makeStaticCalendars();
             synchronized (staticCal) {
-                staticCal.setTimeZone(TimeZone.getDefault());
+                staticCal.setTimeZone(TimeZone.getDefaultRef());
                 staticCal.setTimeInMillis(getTime());
                 offset = staticCal.get(Calendar.ZONE_OFFSET) +
                     staticCal.get(Calendar.DST_OFFSET);
             }
         }
         else {
-            TimeZone defaultZone = TimeZone.getDefault();
+            TimeZone defaultZone = TimeZone.getDefaultRef();
             if (!defaultZone.equals(cal.getTimeZone())) {
                 long ms = cal.getTimeInMillis();
-                cal.setTimeZone(TimeZone.getDefault());
+                cal.setTimeZone(TimeZone.getDefaultRef());
                 cal.setTimeInMillis(ms);
             }
             offset = cal.get(Calendar.ZONE_OFFSET) +
@@ -1147,16 +1147,16 @@ public class Date implements java.io.Serializable, Cloneable, Comparable {
             if (staticCal == null)
                 makeStaticCalendars();
             synchronized (staticCal) {
-                staticCal.setTimeZone(TimeZone.getDefault());
+                staticCal.setTimeZone(TimeZone.getDefaultRef());
                 staticCal.setTimeInMillis(fastTime);
                 return staticCal.get(field);
             }
         }
         else {
-            TimeZone defaultZone = TimeZone.getDefault();
+            TimeZone defaultZone = TimeZone.getDefaultRef();
             if (!defaultZone.equals(cal.getTimeZone())) {
                 long ms = cal.getTimeInMillis();
-                cal.setTimeZone(TimeZone.getDefault());
+                cal.setTimeZone(TimeZone.getDefaultRef());
                 cal.setTimeInMillis(ms);
             }
             return cal.get(field);
