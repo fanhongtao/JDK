@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_event.c	1.27 05/03/03
+ * @(#)hprof_event.c	1.28 05/03/18
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -311,8 +311,8 @@ event_class_load(JNIEnv *env, jthread thread, jclass klass, jobject loader)
 	     *    would be NULL, or it was a jclass created that didn't get
 	     *    reported to us, like an array class or a primitive class?
 	     */
-	    trace_index  = gdata->system_trace_index;
-	    thread_serial_num = gdata->system_thread_serial_num;
+	    trace_index       = gdata->system_trace_index;
+	    thread_serial_num = gdata->unknown_thread_serial_num;
 	} else {
 	    TlsIndex     tls_index;
 	    
@@ -372,10 +372,16 @@ event_thread_start(JNIEnv *env, jthread thread)
 
 	size = (jint)getObjectSize(thread);
 	site_index = site_find_or_create(gdata->thread_cnum, trace_index);
+	/*  We create a new object with this thread's serial number */
 	object_index = object_new(site_index, size, OBJECT_NORMAL,
 					      thread_serial_num);
     } else {
 	object_index = tag_extract(tag);
+	/* Normally the Thread object is created and tagged before we get
+	 *   here, but the thread_serial_number on this object isn't what
+	 *   we want. So we update it to the serial number of this thread.
+	 */
+	object_set_thread_serial_number(object_index, thread_serial_num);
     }
     tls_set_thread_object_index(tls_index, object_index);
     

@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_trace.c	1.32 04/07/27
+ * @(#)hprof_trace.c	1.35 05/05/27
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -181,6 +181,7 @@ clear_cost(TableIndex i, void *key_ptr, int key_len, void *info_ptr, void *arg)
     HPROF_ASSERT(key_len>0);
     HPROF_ASSERT(info_ptr!=NULL);
     info = (TraceInfo *)info_ptr;
+    info->num_hits = 0;
     info->total_cost = 0;
     info->self_cost = 0;
 }
@@ -338,7 +339,7 @@ collect_iterator(TableIndex index, void *key_ptr, int key_len, void *info_ptr, v
     iterate = (IterateInfo *)arg;
     info = (TraceInfo *)info_ptr;
     iterate->traces[iterate->count++] = index;
-    iterate->grand_total_cost += info->total_cost;
+    iterate->grand_total_cost += info->self_cost;
 }
 
 static int 
@@ -356,7 +357,7 @@ qsort_compare_cost(const void *p_trace1, const void *p_trace2)
     info1 = get_info(trace1);
     info2 = get_info(trace2);
     /*LINTED*/
-    return (int)(info2->total_cost - info1->total_cost);
+    return (int)(info2->self_cost - info1->self_cost);
 }
 
 static int 
@@ -629,6 +630,7 @@ trace_increment_all_sample_costs(jint thread_count, jthread *threads,
 		
 		info              = get_info(traces[i]);
 		info->num_hits   += 1;
+	        info->self_cost  += (jlong)1;
 		info->total_cost += (jlong)1;
 	    }
 	}
@@ -681,7 +683,7 @@ trace_output_cost(JNIEnv *env, double cutoff)
             if (info->num_hits == 0 ) {
                 break;
             }
-            percent = (double)info->total_cost / (double)iterate.grand_total_cost;
+            percent = (double)info->self_cost / (double)iterate.grand_total_cost;
             if (percent < cutoff) {
                 break;
             }
@@ -707,7 +709,7 @@ trace_output_cost(JNIEnv *env, double cutoff)
             trace_index = iterate.traces[i];
             info = get_info(trace_index);
             key = get_pkey(trace_index);
-            percent = ((double)info->total_cost / (double)iterate.grand_total_cost) * 100.0;
+            percent = ((double)info->self_cost / (double)iterate.grand_total_cost) * 100.0;
             accum += percent;
             
             csig = NULL;
@@ -720,7 +722,7 @@ trace_output_cost(JNIEnv *env, double cutoff)
             }
             
             io_write_cpu_samples_elem(i+1, percent, accum, info->num_hits,
-			(jint)info->total_cost, info->serial_num,
+			(jint)info->self_cost, info->serial_num,
                         key->n_frames, csig, mname);
             
 	    jvmtiDeallocate(csig);

@@ -1,7 +1,7 @@
 /*
- * @(#)DynamicMetaDataImpl.java	1.27 04/05/03
+ * @(#)DynamicMetaDataImpl.java	1.29 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import com.sun.jmx.trace.Trace;
  * @since 1.5
  * @since.unbundled JMX RI 1.2
  */
-public class DynamicMetaDataImpl extends BaseMetaDataImpl {
+class DynamicMetaDataImpl extends BaseMetaDataImpl {
 
     /** The name of this class to be used for tracing */
     private final static String dbgTag = "DynamicMetaDataImpl";

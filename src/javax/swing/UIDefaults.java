@@ -32,6 +32,8 @@ import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.security.PrivilegedAction;
 
+import sun.reflect.misc.MethodUtil;
+
 /**
  * A table of defaults for Swing components.  Applications can set/get
  * default values via the <code>UIManager</code>.
@@ -726,7 +728,7 @@ public class UIDefaults extends Hashtable<Object,Object>
 		    m = uiClass.getMethod("createUI", new Class[]{acClass});
 		    put(uiClass, m);
 		}
-		uiObject = m.invoke(null, new Object[]{target});
+		uiObject = MethodUtil.invoke(m, null, new Object[]{target});
             }
             catch (NoSuchMethodException e) {
                 getUIError("static createUI() method not found in " + uiClass);
@@ -1058,7 +1060,7 @@ public class UIDefaults extends Hashtable<Object,Object>
                         if (methodName != null) {
                             Class[] types = getClassArray(args);
                             Method m = c.getMethod(methodName, types);
-                            return m.invoke(c, args);
+                            return MethodUtil.invoke(m, c, args);
                         } else {
                             Class[] types = getClassArray(args);
                             Constructor constructor = c.getConstructor(types);

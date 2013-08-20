@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_object.c	1.21 04/07/27
+ * @(#)hprof_object.c	1.23 05/05/27
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -48,6 +48,13 @@
  *     heap=sites, and a new one when heap=dump.
  *   Objects that are freed, need the tag converted to an ObjectIndex,
  *     so they can be freed, but only when heap=dump.
+ *   The thread serial number is for the thread associated with this
+ *     object. If the object is a Thread object, it should be the serial
+ *     number for that thread. The ThreadStart event is responsible
+ *     for making sure the thread serial number is correct, but between the
+ *     initial allocation of a Thread object and it's ThreadStart event
+ *     the thread serial number could be for the thread that allocated
+ *     the Thread object.
  *
  * This will likely be the largest table when using heap=dump, when
  *   there is one table entry per object.
@@ -260,6 +267,16 @@ object_cleanup(void)
 {
     table_cleanup(gdata->object_table, NULL, NULL);
     gdata->object_table = NULL;
+}
+
+void
+object_set_thread_serial_number(ObjectIndex index, 
+				SerialNumber thread_serial_num)
+{
+    ObjectInfo *info;
+    
+    info = get_info(index);
+    info->thread_serial_num = thread_serial_num;
 }
 
 SerialNumber

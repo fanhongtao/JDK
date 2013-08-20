@@ -1,5 +1,5 @@
 /*
- * @(#)Provider.java	1.63 05/03/03
+ * @(#)Provider.java	1.64 05/04/08
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -9,6 +9,7 @@ package java.security;
 
 import java.io.*;
 import java.util.*;
+import static java.util.Locale.ENGLISH;
 import java.lang.ref.*;
 import java.lang.reflect.*;
 
@@ -61,7 +62,7 @@ import java.security.cert.CertStoreParameters;
  *     <td><code>provider.getClass().getName()</code></td>
  * </table>
  *
- * @version 1.63, 03/03/05
+ * @version 1.64, 04/08/05
  * @author Benjamin Renaud
  * @author Andreas Sterbenz
  */
@@ -446,7 +447,7 @@ public abstract class Provider extends Properties {
 	private ServiceKey(String type, String algorithm, boolean intern) {
 	    this.type = type;
 	    this.originalAlgorithm = algorithm;
-	    algorithm = algorithm.toUpperCase();
+	    algorithm = algorithm.toUpperCase(ENGLISH);
 	    this.algorithm = intern ? algorithm.intern() : algorithm;
 	}
 	public int hashCode() {
@@ -518,10 +519,11 @@ public abstract class Provider extends Properties {
     }
     
     private final static String ALIAS_PREFIX = "Alg.Alias.";
+    private final static String ALIAS_PREFIX_LOWER = "alg.alias.";
     private final static int ALIAS_LENGTH = ALIAS_PREFIX.length();
     
     private void parseLegacyPut(String name, String value) {
-	if (name.startsWith(ALIAS_PREFIX)) {
+	if (name.toLowerCase(ENGLISH).startsWith(ALIAS_PREFIX_LOWER)) {
 	    // e.g. put("Alg.Alias.MessageDigest.SHA", "SHA-1");
 	    // aliasKey ~ MessageDigest.SHA
 	    String stdAlg = value;
@@ -530,7 +532,7 @@ public abstract class Provider extends Properties {
 	    if (typeAndAlg == null) {
 		return;
 	    }
-	    String type = typeAndAlg[0].intern();
+	    String type = getEngineName(typeAndAlg[0]);
 	    String aliasAlg = typeAndAlg[1].intern();
 	    ServiceKey key = new ServiceKey(type, stdAlg, true);
 	    Service s = (Service)legacyMap.get(key);
@@ -550,7 +552,7 @@ public abstract class Provider extends Properties {
 	    int i = typeAndAlg[1].indexOf(' ');
 	    if (i == -1) {
 		// e.g. put("MessageDigest.SHA-1", "sun.security.provider.SHA");
-		String type = typeAndAlg[0].intern();
+		String type = getEngineName(typeAndAlg[0]);
 		String stdAlg = typeAndAlg[1].intern();
 		String className = value;
 		ServiceKey key = new ServiceKey(type, stdAlg, true);
@@ -565,7 +567,7 @@ public abstract class Provider extends Properties {
 	    } else { // attribute
 		// e.g. put("MessageDigest.SHA-1 ImplementedIn", "Software");
 		String attributeValue = value;
-		String type = typeAndAlg[0].intern();
+		String type = getEngineName(typeAndAlg[0]);
 		String attributeString = typeAndAlg[1];
 		String stdAlg = attributeString.substring(0, i).intern();
 		String attributeName = attributeString.substring(i + 1);
@@ -725,7 +727,7 @@ public abstract class Provider extends Properties {
 	for (String alias : s.getAliases()) {
 	    super.put(ALIAS_PREFIX + type + "." + alias, algorithm);
 	}
-	for (Map.Entry<String,String> entry : s.attributes.entrySet()) {
+	for (Map.Entry<UString,String> entry : s.attributes.entrySet()) {
 	    String key = type + "." + algorithm + " " + entry.getKey();
 	    super.put(key, entry.getValue());
 	}
@@ -743,7 +745,7 @@ public abstract class Provider extends Properties {
 	for (String alias : s.getAliases()) {
 	    super.remove(ALIAS_PREFIX + type + "." + alias);
 	}
-	for (Map.Entry<String,String> entry : s.attributes.entrySet()) {
+	for (Map.Entry<UString,String> entry : s.attributes.entrySet()) {
 	    String key = type + "." + algorithm + " " + entry.getKey();
 	    super.remove(key);
 	}
@@ -806,7 +808,104 @@ public abstract class Provider extends Properties {
 	}
 	removePropertyStrings(s);
     }
+
+    // Wrapped String that behaves in a case insensitive way for equals/hashCode
+    private static class UString {
+	final String string;
+	final String lowerString;
+	
+	UString(String s) {
+	    this.string = s;
+	    this.lowerString = s.toLowerCase(ENGLISH);
+	}
+	
+	public int hashCode() {
+	    return lowerString.hashCode();
+	}
+	
+	public boolean equals(Object obj) {
+	    if (this == obj) {
+		return true;
+	    }
+	    if (obj instanceof UString == false) {
+		return false;
+	    }
+	    UString other = (UString)obj;
+	    return lowerString.equals(other.lowerString);
+	}
+	
+	public String toString() {
+	    return string;
+	}
+    }
+
+    // describe relevant properties of a type of engine
+    private static class EngineDescription {
+	final String name;
+	final boolean constructor;
+	final boolean supportsParameter;
+	
+	EngineDescription(String name, boolean constructor, boolean sp) {
+	    this.name = name;
+	    this.constructor = constructor;
+	    this.supportsParameter = sp;
+	}
+    }
     
+    // built in knowledge of the engine types shipped as part of the JDK
+    private static final Map<String,EngineDescription> knownEngines;
+    
+    private static void addEngine(String name, boolean cons, boolean sp) {
+	EngineDescription ed = new EngineDescription(name, cons, sp);
+	// also index by canonical name to avoid toLowerCase() for some lookups
+	knownEngines.put(name.toLowerCase(ENGLISH), ed);
+	knownEngines.put(name, ed);
+    }
+    
+    static {
+	knownEngines = new HashMap<String,EngineDescription>();
+	// JCA
+	addEngine("AlgorithmParameterGenerator",	false, false);
+	addEngine("AlgorithmParameters",		false, false);
+	addEngine("KeyFactory",				false, false);
+	addEngine("KeyPairGenerator",			false, false);
+	addEngine("KeyStore",				false, false);
+	addEngine("MessageDigest",			false, false);
+	addEngine("SecureRandom",			false, false);
+	addEngine("Signature",				false, true);
+	addEngine("CertificateFactory",			false, false);
+	addEngine("CertPathBuilder",			false, false);
+	addEngine("CertPathValidator",			false, false);
+	addEngine("CertStore",				true,  false);
+	// JCE
+	addEngine("Cipher",				false, true);
+	addEngine("ExemptionMechanism",			false, false);
+	addEngine("Mac",				false, true);
+	addEngine("KeyAgreement",			false, true);
+	addEngine("KeyGenerator",			false, false);
+	addEngine("SecretKeyFactory",			false, false);
+	// JSSE
+	addEngine("KeyManagerFactory",			false, false);
+	addEngine("SSLContext",				false, false);
+	addEngine("TrustManagerFactory",		false, false);
+	// JGSS
+	addEngine("GssApiMechanism",			false, false);
+	// SASL
+	addEngine("SaslClientFactory",			false, false);
+	addEngine("SaslServerFactory",			false, false);
+    }
+    
+    // get the "standard" (mixed-case) engine name for arbitary case engine name
+    // if there is no known engine by that name, return s
+    private static String getEngineName(String s) {
+	// try original case first, usually correct
+	EngineDescription e = knownEngines.get(s);
+	if (e == null) {
+	    e = knownEngines.get(s.toLowerCase(ENGLISH));
+	}
+	return (e == null) ? s : e.name;
+    }
+	
     /**
      * The description of a security service. It encapsulates the properties
      * of a service and contains a factory method to obtain new implementation
@@ -839,7 +938,7 @@ public abstract class Provider extends Properties {
 	private String type, algorithm, className;
 	private final Provider provider;
 	private List<String> aliases;
-	private Map<String,String> attributes;
+	private Map<UString,String> attributes;
 
 	// Reference to the cached implementation Class object
 	private volatile Reference<Class> classRef;
@@ -864,7 +963,7 @@ public abstract class Provider extends Properties {
 	private Service(Provider provider) {
 	    this.provider = provider;
 	    aliases = Collections.<String>emptyList();
-	    attributes = Collections.<String,String>emptyMap();
+	    attributes = Collections.<UString,String>emptyMap();
 	}
 
 	private boolean isValid() {
@@ -872,17 +971,17 @@ public abstract class Provider extends Properties {
 	}
 	
 	private void addAlias(String alias) {
-	    if (aliases == Collections.EMPTY_LIST) {
+	    if (aliases.isEmpty()) {
 		aliases = new ArrayList<String>(2);
 	    }
 	    aliases.add(alias);
 	}
 	
 	void addAttribute(String type, String value) {
-	    if (attributes == Collections.EMPTY_MAP) {
-		attributes = new HashMap<String,String>(8);
+	    if (attributes.isEmpty()) {
+		attributes = new HashMap<UString,String>(8);
 	    }
-	    attributes.put(type, value);
+	    attributes.put(new UString(type), value);
 	}
 	
 	/**
@@ -907,7 +1006,7 @@ public abstract class Provider extends Properties {
 		throw new NullPointerException();
 	    }
 	    this.provider = provider;
-	    this.type = type;
+	    this.type = getEngineName(type);
 	    this.algorithm = algorithm;
 	    this.className = className;
 	    if (aliases == null) {
@@ -916,9 +1015,12 @@ public abstract class Provider extends Properties {
 		this.aliases = new ArrayList<String>(aliases);
 	    }
 	    if (attributes == null) {
-		this.attributes = Collections.<String,String>emptyMap();
+		this.attributes = Collections.<UString,String>emptyMap();
 	    } else {
-		this.attributes = new HashMap<String,String>(attributes);
+		this.attributes = new HashMap<UString,String>();
+		for (Map.Entry<String,String> entry : attributes.entrySet()) {
+		    this.attributes.put(new UString(entry.getKey()), entry.getValue());
+		}
 	    }
 	}
 	
@@ -979,54 +1081,7 @@ public abstract class Provider extends Properties {
 	    if (name == null) {
 		throw new NullPointerException();
 	    }
-	    return attributes.get(name);
-	}
-	
-	// built in knowledge of the engine types shipped within J2SE
-	// this is for the argument checks in the newInstance() and
-	// supportsParameter() methods
-	
-	// Map<String,Object>
-	private static final Map<String,Object> knownEngines;
-	
-	// use no-args constructor, supportsParameter() not used
-	private static final Object S_NEITHER = "neither";
-	// special constructor used, supportsParameter() not used
-	private static final Object S_CONS = "constructor";
-	// use no-args constructor, supportsParameter() IS used
-	private static final Object S_SUPP = "supports";
-	
-	static {
-	    knownEngines = new HashMap<String,Object>();
-	    // JCA
-	    knownEngines.put("AlgorithmParameterGenerator", S_NEITHER);
-	    knownEngines.put("AlgorithmParameters", S_NEITHER);
-	    knownEngines.put("KeyFactory", S_NEITHER);
-	    knownEngines.put("KeyPairGenerator", S_NEITHER);
-	    knownEngines.put("KeyStore", S_NEITHER);
-	    knownEngines.put("MessageDigest", S_NEITHER);
-	    knownEngines.put("SecureRandom", S_NEITHER);
-	    knownEngines.put("Signature", S_SUPP);
-	    knownEngines.put("CertificateFactory", S_NEITHER);
-	    knownEngines.put("CertPathBuilder", S_NEITHER);
-	    knownEngines.put("CertPathValidator", S_NEITHER);
-	    knownEngines.put("CertStore", S_CONS);
-	    // JCE
-	    knownEngines.put("Cipher", S_SUPP);
-	    knownEngines.put("ExemptionMechanism", S_NEITHER);
-	    knownEngines.put("Mac", S_SUPP);
-	    knownEngines.put("KeyAgreement", S_SUPP);
-	    knownEngines.put("KeyGenerator", S_NEITHER);
-	    knownEngines.put("SecretKeyFactory", S_NEITHER);
-	    // JSSE
-	    knownEngines.put("KeyManagerFactory", S_NEITHER);
-	    knownEngines.put("SSLContext", S_NEITHER);
-	    knownEngines.put("TrustManagerFactory", S_NEITHER);
-	    // JGSS
-	    knownEngines.put("GssApiMechanism", S_NEITHER);
-	    // SASL
-	    knownEngines.put("SaslClientFactory", S_NEITHER);
-	    knownEngines.put("SaslServerFactory", S_NEITHER);
+	    return attributes.get(new UString(name));
 	}
 	
 	/**
@@ -1058,14 +1113,14 @@ public abstract class Provider extends Properties {
 	public Object newInstance(Object constructorParameter) 
 		throws NoSuchAlgorithmException {
 	    try {
-		Object cap = knownEngines.get(type);
+		EngineDescription cap = knownEngines.get(type);
 		if (cap == null) {
 		    // unknown engine type, use generic code
 		    // this is the code path future for non-core
 		    // optional packages
 		    return newInstanceGeneric(constructorParameter);
 		}
-		if (cap != S_CONS) {
+		if (cap.constructor == false) {
 		    if (constructorParameter != null) {
 			throw new InvalidParameterException
 			    ("constructorParameter not used with " + type
@@ -1186,12 +1241,12 @@ public abstract class Provider extends Properties {
 	 * used with this type of service
 	 */
 	public boolean supportsParameter(Object parameter) {
-	    Object cap = knownEngines.get(type);
+	    EngineDescription cap = knownEngines.get(type);
 	    if (cap == null) {
 		// unknown engine type, return true by default
 		return true;
 	    }
-	    if (cap != S_SUPP) {
+	    if (cap.supportsParameter == false) {
 		throw new InvalidParameterException("supportsParameter() not "
 		    + "used with " + type + " engines");
 	    }

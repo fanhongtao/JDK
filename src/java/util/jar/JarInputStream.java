@@ -1,7 +1,7 @@
 /*
- * @(#)JarInputStream.java	1.33 04/04/21
+ * @(#)JarInputStream.java	1.35 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -19,7 +19,7 @@ import sun.security.util.ManifestEntryVerifier;
  * can be used to store meta-information about the JAR file and its entries.
  *
  * @author  David Connelly
- * @version 1.33, 04/21/04
+ * @version 1.35, 05/27/05
  * @see	    Manifest
  * @see	    java.util.zip.ZipInputStream
  * @since   1.2
@@ -67,7 +67,7 @@ class JarInputStream extends ZipInputStream {
             //man.read(new BufferedInputStream(this));
             closeEntry();
             if (verify) {
-                jv = new JarVerifier(man, bytes);
+                jv = new JarVerifier(bytes);
                 mev = new ManifestEntryVerifier(man);
             }
             first = getNextJarEntry();

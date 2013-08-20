@@ -1,7 +1,7 @@
 /*
- * @(#)SampleTreeCellRenderer.java	1.18 04/07/26
+ * @(#)SampleTreeCellRenderer.java	1.20 05/03/25
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)SampleTreeCellRenderer.java	1.18 04/07/26
+ * @(#)SampleTreeCellRenderer.java	1.20 05/03/25
  */
 
 import javax.swing.Icon;
@@ -67,8 +67,8 @@ public class SampleTreeCellRenderer extends JLabel implements TreeCellRenderer
 	    defaultFont = new Font("SansSerif", 0, 12);
 	} catch (Exception e) {}
 	try {
-	    collapsedIcon = new ImageIcon("images/collapsed.gif");
-	    expandedIcon = new ImageIcon("images/expanded.gif");
+	    collapsedIcon = new ImageIcon(SampleTreeCellRenderer.class.getResource("/resources/images/collapsed.gif"));
+            expandedIcon = new ImageIcon(SampleTreeCellRenderer.class.getResource("/resources/images/expanded.gif"));
 	} catch (Exception e) {
 	    System.out.println("Couldn't load images: " + e);
 	}

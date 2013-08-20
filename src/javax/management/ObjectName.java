@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectName.java	1.68 05/01/06
+ * @(#)ObjectName.java	1.69 05/03/03
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 

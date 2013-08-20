@@ -1,7 +1,7 @@
 /*
- * @(#)ClassLoaderRepositorySupport.java	1.23 03/12/19
+ * @(#)ClassLoaderRepositorySupport.java	1.25 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import com.sun.jmx.trace.Trace;
  * @since 1.5
  * @since.unbundled JMX RI 1.2
  */
-public final class ClassLoaderRepositorySupport 
+final class ClassLoaderRepositorySupport 
     implements ModifiableClassLoaderRepository {
 
     /* We associate an optional ObjectName with each entry so that

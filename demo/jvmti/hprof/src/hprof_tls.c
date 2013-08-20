@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_tls.c	1.48 05/02/07
+ * @(#)hprof_tls.c	1.49 05/03/18
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -217,10 +217,6 @@ search_item(TableIndex index, void *key_ptr, int key_len,
 	    data->found = index;
 	}
 	deleteLocalReference(data->env, lref);
-    } else {
-	delete_globalref(data->env, info);
-	clean_info(info);
-	table_free_entry(gdata->tls_table, index);
     }
 }
 
@@ -239,6 +235,36 @@ search(JNIEnv *env, jthread thread)
     return data.found;
 }
 
+static void
+garbage_collect_item(TableIndex index, void *key_ptr, int key_len, 
+			void *info_ptr, void *arg)
+{
+    TlsInfo     *info;
+    JNIEnv      *env;
+    jobject      lref;
+    
+    HPROF_ASSERT(info_ptr!=NULL);
+    HPROF_ASSERT(arg!=NULL);
+    info        = (TlsInfo*)info_ptr;
+    env 	= (JNIEnv*)arg;
+    lref        = newLocalReference(env, info->globalref);
+    if ( lref == NULL ) {
+	delete_globalref(env, info);
+	clean_info(info);
+	table_free_entry(gdata->tls_table, index);
+    } else {
+	deleteLocalReference(env, lref);
+    }
+}
+
+void
+tls_garbage_collect(JNIEnv *env)
+{
+    HPROF_ASSERT(env!=NULL);
+    rawMonitorEnter(gdata->data_access_lock); {
+        table_walk_items(gdata->tls_table, &garbage_collect_item, (void*)env);
+    } rawMonitorExit(gdata->data_access_lock);
+}
 
 static void
 sum_sample_status_item(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void *arg)
@@ -258,7 +284,7 @@ setup_trace_buffers(TlsInfo *info, int max_depth)
     int nbytes;
     int max_frames;
 
-    if ( info->buffer_depth >= max_depth ) {
+    if ( info->frames_buffer != NULL && info->buffer_depth >= max_depth ) {
 	return;
     }
     if ( info->frames_buffer != NULL ) {
@@ -434,7 +460,6 @@ pop_method(TlsIndex index, jlong current_time, jmethodID method, FrameIndex fram
     TlsInfo  *    info;
     StackElement  element;
     void         *p;
-    StackElement  parent;
     int           depth;
     int           trace_depth;
     jlong         total_time;
@@ -491,8 +516,7 @@ pop_method(TlsIndex index, jlong current_time, jmethodID method, FrameIndex fram
     /* Update stats */
     p = stack_top(info->stack);
     if ( p != NULL ) {
-        parent = *(StackElement*)p;
-        adjust_stats(total_time, self_time, trace_index, &parent);
+        adjust_stats(total_time, self_time, trace_index, (StackElement*)p);
     } else {
         adjust_stats(total_time, self_time, trace_index, NULL);
     }
@@ -603,28 +627,6 @@ dump_monitor_state(TlsIndex index, void *key_ptr, int key_len, void *info_ptr, v
 	jvmtiDeallocate(objects);
 	deleteLocalReference(env, thread);
     }
-}
-
-static void
-output_heap_thread(TlsIndex index, void *key_ptr, int key_len, 
-			void *info_ptr, void *arg)
-{
-    TlsInfo     *info;
-    SerialNumber trace_serial_num;
-    
-    HPROF_ASSERT(info_ptr!=NULL);
-    info           = (TlsInfo*)info_ptr;
-    /* A 0 trace at this time means the thread is in unknown territory.
-     *   The trace serial number MUST be a valid serial number, so we use
-     *   the system trace (empty) just so it has a valid trace.
-     */
-    if ( info->last_trace == 0 ) {
-	trace_serial_num = trace_get_serial_number(gdata->system_trace_index);
-    } else {
-	trace_serial_num = trace_get_serial_number(info->last_trace);
-    }
-    io_heap_root_thread_object(info->thread_object_index,
-		 info->thread_serial_num, trace_serial_num);
 }
 
 static jlong
@@ -788,7 +790,7 @@ tls_set_thread_object_index(TlsIndex index, ObjectIndex thread_object_index)
 SerialNumber
 tls_get_thread_serial_number(TlsIndex index)
 {
-    TlsInfo *   info;
+    TlsInfo *info;
 
     if ( index == 0 ) {
 	return 0;
@@ -816,21 +818,13 @@ tls_cleanup(void)
 void
 tls_delete_global_references(JNIEnv *env)
 {
-    table_walk_items(gdata->tls_table, &delete_ref_item, (JNIEnv*)env);
+    table_walk_items(gdata->tls_table, &delete_ref_item, (void*)env);
 }
 
 void
 tls_thread_ended(JNIEnv *env, TlsIndex index)
 {
-    ObjectIndex  thread_object_index;
-    SerialNumber thread_serial_num;
-    SerialNumber trace_serial_num;
-    
     HPROF_ASSERT(env!=NULL);
-   
-    thread_object_index = 0;
-    thread_serial_num   = 0;
-    trace_serial_num    = 0;
    
     /* Sample thread stack for last time, do NOT free the entry yet. */
     table_lock_enter(gdata->tls_table); {
@@ -840,15 +834,10 @@ tls_thread_ended(JNIEnv *env, TlsIndex index)
 	info = get_info(index);
 	thread = newLocalReference(env, info->globalref);
 	if (gdata->heap_dump && thread!=NULL) {
-            TraceIndex  trace_index;
-	    
 	    setup_trace_buffers(info, gdata->max_trace_depth);
-	    trace_index = get_trace(thread, info->thread_serial_num,
+	    info->last_trace = get_trace(thread, info->thread_serial_num,
 				    gdata->max_trace_depth, JNI_FALSE,
 				    info->frames_buffer, info->jframes_buffer);
-	    thread_object_index = info->thread_object_index;
-	    thread_serial_num   = info->thread_serial_num;
-	    trace_serial_num    = trace_get_serial_number(trace_index);
 	}
 	if ( thread != NULL ) {
 	    deleteLocalReference(env, thread);
@@ -1071,14 +1060,6 @@ tls_dump_monitor_state(JNIEnv *env)
 	table_walk_items(gdata->tls_table, &dump_thread_state, (void*)env);
 	table_walk_items(gdata->tls_table, &dump_monitor_state, (void*)env);
 	io_write_monitor_dump_footer();
-    } rawMonitorExit(gdata->data_access_lock);
-}
-
-void         
-tls_output_heap_threads(void)
-{
-    rawMonitorEnter(gdata->data_access_lock); {
-        table_walk_items(gdata->tls_table, &output_heap_thread, NULL);
     } rawMonitorExit(gdata->data_access_lock);
 }
 

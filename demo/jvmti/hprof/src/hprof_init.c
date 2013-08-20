@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_init.c	1.83 05/02/07
+ * @(#)hprof_init.c	1.84 05/03/18
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -185,6 +185,7 @@ get_gdata(void)
     data.object_serial_number_counter = data.object_serial_number_start;
     data.gref_serial_number_counter   = data.gref_serial_number_start;
 
+    data.unknown_thread_serial_num    = data.thread_serial_number_counter++;
     return &data;
 }
 
@@ -1019,6 +1020,9 @@ gc_finish_watcher(jvmtiEnv *jvmti, JNIEnv *env, void *p)
 	     *   VM_DEATH thread.
 	     */
 	    object_free_cleanup(env, JNI_FALSE);
+
+	    /* Cleanup the tls table where the Thread objects were GC'd */
+	    tls_garbage_collect(env);
 	}
 
     }
@@ -1109,7 +1113,6 @@ cbVMInit(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
         
 	/* Issue fake system thread start */
 	tls_index = tls_find_or_create(env, thread);
-	gdata->system_thread_serial_num = tls_get_thread_serial_number(tls_index);
 	
 	/* Setup the Tracker class (should be first class in table) */
 	tracker_setup_class();
@@ -1269,11 +1272,6 @@ cbVMDeath(jvmtiEnv *jvmti, JNIEnv *env)
 	    cpu_sample_term(env);	
 	}
 
-	/* Disable all events and callbacks now, all of them */
-	set_callbacks(JNI_FALSE);
-	setup_event_mode(JNI_FALSE, JVMTI_DISABLE);
-	setup_event_mode(JNI_TRUE, JVMTI_DISABLE);
-    
 	/* Time to dump the final data */
 	rawMonitorEnter(gdata->dump_lock); {
 
@@ -1298,6 +1296,16 @@ cbVMDeath(jvmtiEnv *jvmti, JNIEnv *env)
 	    dump_all_data(env);
 	}
 
+	/* Disable all events and callbacks now, all of them.
+	 *   NOTE: It's important that this be done after the dump
+	 *         it prevents other threads from messing up the data
+	 *         because they will block on ThreadStart and ThreadEnd
+	 *         events due to the CALLBACK block.
+	 */
+	set_callbacks(JNI_FALSE);
+	setup_event_mode(JNI_FALSE, JVMTI_DISABLE);
+	setup_event_mode(JNI_TRUE, JVMTI_DISABLE);
+    
     } rawMonitorExit(gdata->callbackBlock);
 	
     /* Shutdown the listener thread and socket, or flush I/O buffers */

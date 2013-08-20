@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_tls.h	1.17 05/03/03
+ * @(#)hprof_tls.h	1.18 05/03/18
  * 
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -43,6 +43,7 @@ void         tls_agent_thread(JNIEnv *env, jthread thread);
 SerialNumber tls_get_thread_serial_number(TlsIndex index);
 void         tls_list(void);
 void         tls_delete_global_references(JNIEnv *env);
+void         tls_garbage_collect(JNIEnv *env);
 void         tls_cleanup(void);
 void         tls_thread_ended(JNIEnv *env, TlsIndex index);
 void         tls_sample_all_threads(JNIEnv *env);
@@ -62,7 +63,6 @@ void         tls_set_sample_status(ObjectIndex object_index, jint sample_status)
 jint         tls_sum_sample_status(void);
 
 void         tls_dump_traces(JNIEnv *env);
-void         tls_output_heap_threads(void);
 
 void         tls_monitor_start_timer(TlsIndex index);
 jlong        tls_monitor_stop_timer(TlsIndex index);

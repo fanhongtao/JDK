@@ -1,7 +1,7 @@
 /*
- * @(#)GTKPainter.java	1.67 04/06/09
+ * @(#)GTKPainter.java	1.69 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -15,7 +15,7 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 
 /**
- * @version 1.67, 06/09/04
+ * @version 1.69, 05/27/05
  * @author Joshua Outwater
  * @author Scott Violet
  */
@@ -1344,7 +1344,21 @@ class GTKPainter extends SynthPainter {
     // Refer to GTKLookAndFeel for details on this.
     static class ListTableFocusBorder extends AbstractBorder implements
                           UIResource {
- 
+
+        private boolean selectedCell;
+
+        public static ListTableFocusBorder getSelectedCellBorder() {
+            return new ListTableFocusBorder(true); 
+        }
+        
+        public static ListTableFocusBorder getUnselectedCellBorder() {
+            return new ListTableFocusBorder(false); 
+        }
+        
+        public ListTableFocusBorder(boolean selectedCell) {
+            this.selectedCell = selectedCell;
+        }
+
         private SynthContext getContext(Component c) {
             SynthContext context = null;
             
@@ -1372,10 +1386,12 @@ class GTKPainter extends SynthPainter {
         public void paintBorder(Component c, Graphics g, int x, int y,
                                 int w, int h) {
             SynthContext context = getContext(c);
+            int state = (selectedCell? SynthConstants.SELECTED:
+                         SynthConstants.FOCUSED | SynthConstants.ENABLED);
+
             if (context != null) {
                 ((GTKStyle)context.getStyle()).getEngine(context).
-                    paintFocus(context, g, SynthConstants.SELECTED, 
-                            "", x, y, w, h);
+                    paintFocus(context, g, state, "", x, y, w, h);
             } else {
                 g.setColor(Color.BLACK);
                 GTKEngine.INSTANCE._paintFocus(

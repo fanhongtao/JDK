@@ -1,7 +1,7 @@
 /*
- * @(#)MBeanInstantiatorImpl.java	1.29 03/12/19
+ * @(#)MBeanInstantiatorImpl.java	1.31 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -26,7 +26,7 @@ import com.sun.jmx.trace.Trace;
  * @since 1.5
  * @since.unbundled JMX RI 1.2
  */
-public class MBeanInstantiatorImpl implements MBeanInstantiator {
+class MBeanInstantiatorImpl implements MBeanInstantiator {
 
     private final ModifiableClassLoaderRepository clr; 
     //    private MetaData meta = null;
@@ -158,8 +158,12 @@ public class MBeanInstantiatorImpl implements MBeanInstantiator {
 		NoSuchMethodException("No such constructor"));
         }
         // Instantiate the new object
-        try {     
-            moi= cons.newInstance(null);
+        try {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPackageAccess(theClass.getName());
+            }
+            moi= cons.newInstance((Object[]) null);
         } catch (InvocationTargetException e) {
             // Wrap the exception.
             Throwable t = e.getTargetException();
@@ -227,6 +231,10 @@ public class MBeanInstantiatorImpl implements MBeanInstantiator {
 		NoSuchMethodException("No such constructor"));
         }
         try {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                sm.checkPackageAccess(theClass.getName());
+            }
             moi = cons.newInstance(params);     
         } 
         catch (NoSuchMethodError error) {

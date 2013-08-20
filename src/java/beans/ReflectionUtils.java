@@ -1,5 +1,5 @@
 /*
- * @(#)ReflectionUtils.java	1.7 03/12/19
+ * @(#)ReflectionUtils.java	1.8 05/05/29
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,6 +17,9 @@ import java.lang.ref.SoftReference;
 import java.util.*;
 
 import com.sun.beans.ObjectHandler;
+import sun.reflect.misc.MethodUtil;
+import sun.reflect.misc.ConstructorUtil;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * A utility class for reflectively finding methods, constuctors and fields
@@ -107,13 +110,15 @@ class ReflectionUtils {
         // avoids the expensive call to getMethods().
         if (argClasses.length == 0) {
             try {
-                return declaringClass.getMethod(methodName, argClasses);
+                return MethodUtil.getMethod(declaringClass, methodName, argClasses);
             }
             catch (NoSuchMethodException e) {
             	  return null;
-            }
+            } catch (SecurityException se) {
+		// fall through
+	    }
         }
-        Method[] methods = declaringClass.getMethods();
+        Method[] methods = MethodUtil.getPublicMethods(declaringClass);
 	List list = new ArrayList();
         for(int i = 0; i < methods.length; i++) {
 	    // Collect all the methods which match the signature.
@@ -326,8 +331,12 @@ class ReflectionUtils {
 
 	Method method = null;
 	Map methodCache = null;
+	boolean cache = false;
+	if (ReflectUtil.isPackageAccessible(targetClass)) {
+	    cache = true;
+	}
 
-	if (methodCacheRef != null && 
+	if (cache && methodCacheRef != null && 
 	    (methodCache = (Map)methodCacheRef.get()) != null) {
 	    method = (Method)methodCache.get(signature);
 	    if (method != null) {
@@ -335,7 +344,7 @@ class ReflectionUtils {
 	    }
 	}
 	method = findMethod(targetClass, methodName, argClasses);
-        if (method != null) {
+        if (cache && method != null) {
 	    if (methodCache == null) {
 		methodCache = new HashMap();
 		methodCacheRef = new SoftReference(methodCache);
@@ -354,7 +363,7 @@ class ReflectionUtils {
 	Constructor constructor = null;
 
 	// PENDING: Implement the resolutuion of ambiguities properly.
-	Constructor[] ctors = cls.getConstructors();
+	Constructor[] ctors = ConstructorUtil.getConstructors(cls);
 	for(int i = 0; i < ctors.length; i++) {
 	    if (matchArguments(args, ctors[i].getParameterTypes())) {
 		constructor = ctors[i];

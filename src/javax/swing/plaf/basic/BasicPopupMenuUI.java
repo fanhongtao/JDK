@@ -1,7 +1,7 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.119 04/04/16
+ * @(#)BasicPopupMenuUI.java	1.121 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,7 +36,7 @@ import sun.swing.UIAction;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.119 04/16/04
+ * @version 1.121 05/27/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -102,6 +102,7 @@ public class BasicPopupMenuUI extends PopupMenuUI {
             }
             MenuSelectionManager msm = MenuSelectionManager.defaultManager();
             msm.addChangeListener(menuKeyboardHelper);
+            menuKeyboardHelperInstalled = true;
         }
     }
 

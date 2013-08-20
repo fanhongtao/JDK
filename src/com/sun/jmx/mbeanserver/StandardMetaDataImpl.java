@@ -1,7 +1,7 @@
 /*
- * @(#)StandardMetaDataImpl.java	1.22 04/05/03
+ * @(#)StandardMetaDataImpl.java	1.24 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -34,7 +34,7 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * @since 1.5
  * @since.unbundled JMX RI 1.2
  */
-public class StandardMetaDataImpl extends BaseMetaDataImpl {
+class StandardMetaDataImpl extends BaseMetaDataImpl {
 
 
     /** The name of this class to be used for tracing */
@@ -96,7 +96,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
         this(true);
     }
 
-    protected StandardMetaDataImpl(boolean wrapRuntimeExceptions) {
+    StandardMetaDataImpl(boolean wrapRuntimeExceptions) {
 	this.wrapRuntimeExceptions = wrapRuntimeExceptions;
     }
 
@@ -513,7 +513,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
     * <code>getMBeanInterfaceFromClass(instance.getClass());</code>
     * @param instance the MBean instance.
     */ 
-    protected Class getMBeanInterfaceFromInstance(Object instance) {
+    Class getMBeanInterfaceFromInstance(Object instance) {
 	if (instance == null) return null;
 	return getMBeanInterfaceFromClass(instance.getClass());
     }
@@ -541,7 +541,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
      *        interface <var>mbeanInterface</var>.
      *
      **/
-    protected void cacheMBeanInfo(Class c, Class mbeanInterface, 
+    void cacheMBeanInfo(Class c, Class mbeanInterface, 
 				  MBeanInfo info) 
 	throws NotCompliantMBeanException {
 	if (info != null) {
@@ -565,7 +565,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
      * @param  c The concrete MBean class.
      * @return The cached MBean interface if found, null otherwise.
      **/
-    protected Class getCachedMBeanInterface(Class c) {
+    Class getCachedMBeanInterface(Class c) {
 	synchronized (mbeanInterfaceCache) {
 	    return (Class)(((WeakReference)mbeanInterfaceCache.get(c)).get());
 	}
@@ -576,7 +576,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
      * @param  c The concrete MBean class.
      * @return The cached MBeanInfo if found, null otherwise.
      **/
-    protected MBeanInfo getCachedMBeanInfo(Class c) {
+    MBeanInfo getCachedMBeanInfo(Class c) {
         synchronized (mbeanInfoCache) {
 	    return (MBeanInfo)mbeanInfoCache.get(c);
 	}
@@ -585,7 +585,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
     /**
      * Find a class using the specified ClassLoader.
      **/
-    protected Class findClass(String className, ClassLoader loader) 
+    Class findClass(String className, ClassLoader loader) 
 	throws ReflectionException {
 	return MBeanInstantiatorImpl.loadClass(className, 
 					       loader);
@@ -594,7 +594,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
     /**
      * Find the classes from a signature using the specified ClassLoader.
      **/
-    protected Class[] findSignatureClasses(String[] signature, 
+    Class[] findSignatureClasses(String[] signature, 
 					   ClassLoader loader) 
 	throws ReflectionException {
 	return ((signature == null)?null:
@@ -604,7 +604,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
     /**
      * Invoke getAttribute through reflection on a standard MBean instance.
      **/
-    protected Object getAttribute(Object instance, String attribute, 
+    Object getAttribute(Object instance, String attribute, 
 				  Class mbeanClass)  
 	throws MBeanException, AttributeNotFoundException, 
 	       ReflectionException {
@@ -634,7 +634,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
         }                 
         Object result= null;
         try {
-            result = meth.invoke(instance,null);      
+            result = meth.invoke(instance, (Object[]) null);      
         } catch (InvocationTargetException e) {
             Throwable t = e.getTargetException();
             if (t instanceof RuntimeException) {
@@ -679,7 +679,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
     /**
      * Invoke setAttribute through reflection on a standard MBean instance.
      **/
-    protected Object setAttribute(Object instance, Attribute attribute, 
+    Object setAttribute(Object instance, Attribute attribute, 
 				  Class mbeanClass)  
 	throws AttributeNotFoundException, InvalidAttributeValueException, 
 	       MBeanException, ReflectionException {
@@ -780,7 +780,7 @@ public class StandardMetaDataImpl extends BaseMetaDataImpl {
      * Returns the MBeanNotificationInfo of the MBeans that implement
      * the NotificationBroadcaster interface.
      */
-    protected MBeanNotificationInfo[] findNotifications(Object moi) {
+    MBeanNotificationInfo[] findNotifications(Object moi) {
         
         if (moi instanceof javax.management.NotificationBroadcaster) {       
             MBeanNotificationInfo[] mbn = 

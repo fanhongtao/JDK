@@ -1,7 +1,7 @@
 /*
- * @(#)BaseMetaDataImpl.java	1.14 03/12/19
+ * @(#)BaseMetaDataImpl.java	1.16 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -210,7 +210,7 @@ abstract class BaseMetaDataImpl implements MetaData {
 	}
     }
 
-    protected Class findClass(String className, ClassLoader loader) 
+    Class findClass(String className, ClassLoader loader) 
 	throws ReflectionException {
 	try {
 	    if (loader == null) 

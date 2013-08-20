@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_site.c	1.32 04/09/22
+ * @(#)hprof_site.c	1.34 05/03/18
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -245,6 +245,38 @@ find_cnum(jlong class_tag)
     return cnum;
 }
 
+/* Setup tag on root object */
+static void
+setup_tag_on_root(jlong *tag_ptr, jlong class_tag, jlong size,
+		  SerialNumber thread_serial_num,
+                  ObjectIndex *pindex, SiteIndex *psite)
+{
+    ObjectIndex object_index;
+    SiteIndex   object_site_index;
+    
+    if ( (*tag_ptr) != (jlong)0 ) {
+	object_index      = tag_extract(*tag_ptr);
+	if ( psite != NULL ) {
+	    object_site_index = object_get_site(object_index);
+	}
+    } else {
+	object_site_index = site_find_or_create(
+				 find_cnum(class_tag), 
+				 gdata->system_trace_index);
+	object_index      = object_new(object_site_index, 
+				 (jint)size, OBJECT_SYSTEM, 
+				 thread_serial_num);
+	/* Create and set the tag. */
+	*tag_ptr = tag_create(object_index);
+    }
+    if ( pindex != NULL ) {
+        *pindex = object_index;
+    }
+    if ( psite != NULL ) {
+	*psite = object_site_index;
+    }
+}
+
 /* JVMTI callback function. */
 static jvmtiIterationControl JNICALL 
 root_object(jvmtiHeapRootKind root_kind, jlong class_tag, jlong size, 
@@ -259,42 +291,36 @@ root_object(jvmtiHeapRootKind root_kind, jlong class_tag, jlong size,
     SiteIndex     object_site_index;
     
     HPROF_ASSERT(tag_ptr!=NULL);
-    if ( (*tag_ptr) != (jlong)0 ) {
-	object_index      = tag_extract(*tag_ptr);
-	object_site_index = object_get_site(object_index);
-    } else {
-        object_site_index = site_find_or_create(find_cnum(class_tag), 
-				gdata->system_trace_index);
-	object_index      = object_new(object_site_index, (jint)size, 
-			    OBJECT_SYSTEM, gdata->system_thread_serial_num);
-	/* Create and set the tag. */
-	*tag_ptr = tag_create(object_index);
-    }
-
+    
     switch ( root_kind ) {
         case JVMTI_HEAP_ROOT_JNI_GLOBAL: {
 		SerialNumber trace_serial_num;
 		SerialNumber gref_serial_num;
+		TraceIndex   trace_index;
 		
+                setup_tag_on_root(tag_ptr, class_tag, size,
+			          gdata->unknown_thread_serial_num,
+                                  &object_index, &object_site_index);
 		if ( object_site_index != 0 ) {
 		    SiteKey     *pkey;
-		    TraceIndex  trace_index;
 		    
 		    pkey = get_pkey(object_site_index);
 		    trace_index = pkey->trace_index;
-		    trace_serial_num = trace_get_serial_number(trace_index);
 		} else {
-		    trace_serial_num = 
-			trace_get_serial_number(gdata->system_trace_index);
+		    trace_index = gdata->system_trace_index;
 		}
-		gref_serial_num = gdata->gref_serial_number_counter++;
+		trace_serial_num = trace_get_serial_number(trace_index);
+		gref_serial_num  = gdata->gref_serial_number_counter++;
 		io_heap_root_jni_global(object_index, gref_serial_num, 
 					trace_serial_num);
 		break;
 	    }
         case JVMTI_HEAP_ROOT_SYSTEM_CLASS: {
-		char *sig;
-
+		char        *sig;
+    
+                setup_tag_on_root(tag_ptr, class_tag, size,
+			          gdata->unknown_thread_serial_num,
+                                  &object_index, &object_site_index);
 		sig = "Unknown";
 		if ( object_site_index != 0 ) {
 		    SiteKey *pkey;
@@ -306,27 +332,59 @@ root_object(jvmtiHeapRootKind root_kind, jlong class_tag, jlong size,
 		break;
 	    }
         case JVMTI_HEAP_ROOT_MONITOR: {
+                setup_tag_on_root(tag_ptr, class_tag, size, 
+			          gdata->unknown_thread_serial_num,
+		                  &object_index, NULL);
 		io_heap_root_monitor(object_index);
 		break;
 	    }
         case JVMTI_HEAP_ROOT_THREAD: {
 		SerialNumber thread_serial_num;
-
-		if ( object_index != 0 ) {
-		    thread_serial_num = 
-			  object_get_thread_serial_number(object_index);
+		SerialNumber trace_serial_num;
+		TraceIndex   trace_index;
+		
+		if ( (*tag_ptr) != (jlong)0 ) {
+		    setup_tag_on_root(tag_ptr, class_tag, size, 0,
+				      &object_index, &object_site_index);
+		    trace_index       = site_get_trace_index(object_site_index);
+		    /* Hopefully the ThreadStart event put this thread's
+		     *   correct serial number on it's object.
+		     */
+		    thread_serial_num = object_get_thread_serial_number(object_index);
 		} else {
-		    thread_serial_num = gdata->system_thread_serial_num;
+		    /* Rare situation that a Thread object is not tagged.
+		     *   Create special unique thread serial number in this
+		     *   case, probably means we never saw a thread start
+		     *   or thread end, or even an allocation of the thread
+		     *   object.
+		     */
+		    thread_serial_num = gdata->thread_serial_number_counter++;
+		    setup_tag_on_root(tag_ptr, class_tag, size,
+			              thread_serial_num,
+				      &object_index, &object_site_index);
+		    trace_index = gdata->system_trace_index;
 		}
+		trace_serial_num = trace_get_serial_number(trace_index);
+		/* Issue thread object (must be before thread root) */
+		io_heap_root_thread_object(object_index,
+				 thread_serial_num, trace_serial_num);
+		/* Issue thread root */
 		io_heap_root_thread(object_index, thread_serial_num);
 		break;
 	    }
         case JVMTI_HEAP_ROOT_OTHER: {
+                setup_tag_on_root(tag_ptr, class_tag, size,
+			          gdata->unknown_thread_serial_num,
+		                  &object_index, NULL);
 		io_heap_root_unknown(object_index);
 		break;
 	    }
-	default:
-	    break;
+	default: {
+                setup_tag_on_root(tag_ptr, class_tag, size,
+			          gdata->unknown_thread_serial_num,
+		                  NULL, NULL);
+	        break;
+	    }
     }
     return JVMTI_ITERATION_CONTINUE;
 }
@@ -345,7 +403,7 @@ stack_object(jvmtiHeapRootKind root_kind,
 
     ObjectIndex  object_index;
     SerialNumber thread_serial_num;
-    
+
     HPROF_ASSERT(tag_ptr!=NULL);
     if ( (*tag_ptr) != (jlong)0 ) {
 	object_index = tag_extract(*tag_ptr);
@@ -362,7 +420,7 @@ stack_object(jvmtiHeapRootKind root_kind,
 	    thread_serial_num = 
 	           object_get_thread_serial_number(thread_object_index);
 	} else {
-	    thread_serial_num = gdata->system_thread_serial_num;
+	    thread_serial_num = gdata->unknown_thread_serial_num;
 	}
 	object_index = object_new(site_index, (jint)size, OBJECT_SYSTEM,
 			    thread_serial_num);
@@ -420,7 +478,7 @@ reference_object(jvmtiObjectReferenceKind reference_kind,
         site_index = site_find_or_create(find_cnum(class_tag), 
 			gdata->system_trace_index);
 	object_index = object_new(site_index, (jint)size, OBJECT_SYSTEM,
-				gdata->system_thread_serial_num);
+				gdata->unknown_thread_serial_num);
 	object_tag = tag_create(object_index);
 	*tag_ptr   = object_tag;
     }
@@ -645,15 +703,22 @@ site_heapdump(JNIEnv *env)
 	/* Write header for heap dump */
 	io_heap_header(gdata->total_live_instances, gdata->total_live_bytes);
 
-	/* Write out the thread roots first (threads that ended already did) */
-	tls_output_heap_threads();
-
 	/* Setup a clean reference table */
 	reference_init();
 	
 	/* Walk over all reachable objects and dump out roots */
 	gdata->gref_serial_number_counter = gdata->gref_serial_number_start;
-	iterateOverReachableObjects(&root_object, &stack_object, &reference_object, (void*)&user_data);
+
+	/* Issue thread object for fake non-existent unknown thread
+	 *   just in case someone refers to it. Real threads are handled
+	 *   during iterate over reachable objects.
+	 */
+	io_heap_root_thread_object(0, gdata->unknown_thread_serial_num, 
+			trace_get_serial_number(gdata->system_trace_index));
+
+	/* Iterate over heap and get the real stuff */
+	iterateOverReachableObjects(&root_object, &stack_object, 
+			&reference_object, (void*)&user_data);
 
 	/* Process reference information. */
 	object_reference_dump(env);

@@ -1,7 +1,7 @@
 /*
- * @(#)JRootPane.java	1.86 04/05/18
+ * @(#)JRootPane.java	1.88 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -169,7 +169,7 @@ import javax.swing.border.*;
  * @see <a href="http://java.sun.com/products/jfc/swingdoc-archive/mixing.html">
  * Mixing Heavy and Light Components</a>
  *
- * @version 1.86 05/18/04
+ * @version 1.88 05/27/05
  * @author David Kloba
  */
 /// PENDING(klobad) Who should be opaque in this component?
@@ -991,23 +991,15 @@ public class JRootPane extends JComponent implements Accessible {
             return AccessibleRole.ROOT_PANE;
         }
 
-        // TIGER - 4771367
         /**
          * Returns the number of accessible children of the object.
          *
          * @return the number of accessible children of the object.
          */
         public int getAccessibleChildrenCount() {
-            // The JRootPane has only one Accessible child,
-            // the content pane.
-            if (JRootPane.this.getContentPane() != null) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return super.getAccessibleChildrenCount();
         }
 
-        // TIGER - 4771367
         /**
          * Returns the specified Accessible child of the object.  The Accessible
          * children of an Accessible object are zero-based, so the first child
@@ -1019,17 +1011,7 @@ public class JRootPane extends JComponent implements Accessible {
          * @see #getAccessibleChildrenCount
          */
         public Accessible getAccessibleChild(int i) {
-            // The JRootPane has only one Accessible child,
-            // the content pane.
-            if (i != 0) {
-                return null;
-            }
-            Container c = JRootPane.this.getContentPane();
-            if (c instanceof Accessible) {
-                return (Accessible)c;
-            } else {
-                return null;
-            }
+            return super.getAccessibleChild(i);
         }
     } // inner class AccessibleJRootPane
 }

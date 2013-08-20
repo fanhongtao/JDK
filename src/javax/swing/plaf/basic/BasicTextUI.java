@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTextUI.java	1.103 04/05/26
+ * @(#)BasicTextUI.java	1.105 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -22,9 +22,7 @@ import javax.swing.text.*;
 import javax.swing.event.*;
 import javax.swing.border.Border;
 import javax.swing.plaf.UIResource;
-import sun.awt.AppContext;
 import sun.swing.DefaultLookup;
-import com.sun.java.swing.SwingUtilities2;
 
 /**
  * <p>
@@ -88,7 +86,7 @@ import com.sun.java.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.103 05/26/04
+ * @version 1.105 05/27/05
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -772,17 +770,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     public final void paint(Graphics g, JComponent c) {
 	if ((rootView.getViewCount() > 0) && (rootView.getView(0) != null)) {
-            Graphics2D g2d = SwingUtilities2.getGraphics2D(g);
-            boolean frcStored = false;
-            if (g2d != null) {
-                FontRenderContext deviceFRC = g2d.getFontRenderContext();
-                FontRenderContext frc = SwingUtilities2.getFontRenderContext(c);
-                if (!SwingUtilities2.
-                    isFontRenderContextCompatible(deviceFRC,frc)) {
-                    AppContext.getAppContext().put(SwingUtilities2.FRC_KEY,frc);
-                    frcStored = true;
-                }
-            }
 	    Document doc = editor.getDocument();
 	    if (doc instanceof AbstractDocument) {
 		((AbstractDocument)doc).readLock();
@@ -793,9 +780,6 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
 		if (doc instanceof AbstractDocument) {
 		    ((AbstractDocument)doc).readUnlock();
 		}
-                if (frcStored) {
-                    AppContext.getAppContext().remove(SwingUtilities2.FRC_KEY);
-                }
 	    }
 	}
     }

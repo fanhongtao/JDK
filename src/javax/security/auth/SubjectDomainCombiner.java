@@ -1,7 +1,7 @@
 /*
- * @(#)SubjectDomainCombiner.java	1.45 03/12/19
+ * @(#)SubjectDomainCombiner.java	1.47 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,18 +21,21 @@ import java.lang.ClassLoader;
 import java.security.Security;
 import java.util.Set;
 import java.util.Iterator;
+import java.util.WeakHashMap;
+import java.lang.ref.WeakReference;
 
 /**
  * A <code>SubjectDomainCombiner</code> updates ProtectionDomains
  * with Principals from the <code>Subject</code> associated with this
  * <code>SubjectDomainCombiner</code>.
  *
- * @version 1.45, 12/19/03 
+ * @version 1.47, 05/27/05
  */
 public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
     private Subject subject;
-    private java.util.Map cachedPDs = new java.util.WeakHashMap();
+    private WeakKeyValueMap<ProtectionDomain, ProtectionDomain> cachedPDs =
+		new WeakKeyValueMap<ProtectionDomain, ProtectionDomain>();
     private Set principalSet;
     private Principal[] principals;
 
@@ -218,14 +221,14 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	    for (int i = 0; i < cLen; i++) {
 		ProtectionDomain pd = currentDomains[i];
 
-		subjectPd = (ProtectionDomain) cachedPDs.get(pd);
+		subjectPd = cachedPDs.getValue(pd);
 
 		if (subjectPd == null) {
 		    subjectPd = new ProtectionDomain(pd.getCodeSource(),
 						pd.getPermissions(), 
 						pd.getClassLoader(),
 						principals);
-		    cachedPDs.put(pd, subjectPd);
+		    cachedPDs.putValue(pd, subjectPd);
 		} else {
 		    allNew = false;
 		}
@@ -318,8 +321,7 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 
 	    for (int i = 0; i < cLen; i++) {
 		ProtectionDomain pd = currentDomains[i];
-		ProtectionDomain subjectPd =
-				(ProtectionDomain)cachedPDs.get(pd);
+		ProtectionDomain subjectPd = cachedPDs.getValue(pd);
 
 		if (subjectPd == null) {
 
@@ -372,7 +374,7 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 		    subjectPd = new ProtectionDomain(finalCs, perms);
 
 		    if (allowCaching)
-			cachedPDs.put(pd, subjectPd);
+			cachedPDs.putValue(pd, subjectPd);
 		}
 		newDomains[i] = subjectPd;
 	    }
@@ -458,8 +460,8 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 	    }
 	});
 	if (s != null) {
-	    Boolean b = new Boolean(s);
-	    return b.booleanValue();
+	    Boolean b = new Boolean(s); 
+	    return b.booleanValue(); 
 	}
 
 	// cache by default
@@ -531,5 +533,41 @@ public class SubjectDomainCombiner implements java.security.DomainCombiner {
 		return pd.toString();
 	    }
 	});
+    }
+
+    /**
+     * A HashMap that has weak keys and values.
+     *
+     * Key objects in this map are the "current" ProtectionDomain instances
+     * received via the combine method.  Each "current" PD is mapped to a
+     * new PD instance that holds both the contents of the "current" PD,
+     * as well as the principals from the Subject associated with this combiner.
+     *
+     * The newly created "principal-based" PD values must be stored as
+     * WeakReferences since they contain strong references to the
+     * corresponding key object (the "current" non-principal-based PD),
+     * which will prevent the key from being GC'd.  Specifically,
+     * a "principal-based" PD contains strong references to the CodeSource,
+     * signer certs, PermissionCollection and ClassLoader objects
+     * in the "current PD".
+     */
+    private static class WeakKeyValueMap<K,V> extends
+					WeakHashMap<K,WeakReference<V>> {
+
+	public V getValue(K key) {
+	    WeakReference<V> wr = super.get(key);
+	    if (wr != null) {
+		return wr.get();
+	    }
+	    return null;
+	}
+
+	public V putValue(K key, V value) {
+	    WeakReference<V> wr = super.put(key, new WeakReference<V>(value));
+	    if (wr != null) {
+		return wr.get();
+	    }
+	    return null;
+	}
     }
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities2.java	1.23 05/01/04
+ * @(#)SwingUtilities2.java	1.25 05/03/09
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -37,7 +37,7 @@ import java.io.*;
  * releases and even patch releases. You should not rely on this class even
  * existing.
  *
- * @version 1.23 01/04/05
+ * @version 1.25 03/09/05
  */
 public class SwingUtilities2 {
     // Maintain a cache of CACHE_SIZE fonts and the left side bearing
@@ -52,8 +52,6 @@ public class SwingUtilities2 {
     // LSBCacheEntry used to search in fontCache to see if we already
     // have an entry for a particular font
     private static LSBCacheEntry searchKey;
-
-    public static final Object FRC_KEY = new StringBuilder("FontRenderContext");
 
     // getLeftSideBearing will consult all characters that fall in the
     // range MIN_CHAR_INDEX to MAX_CHAR_INDEX.
@@ -335,13 +333,20 @@ public class SwingUtilities2 {
     }
 
     /**
-     * Returns the FontRenderContext for the passed in FontMetrics.
+     * Returns the FontRenderContext for the passed in FontMetrics or
+     * for the passed in JComponent if FontMetrics is null
      */
     private static FontRenderContext getFRC(JComponent c, FontMetrics fm) {
         // c may be null.
         if (fm instanceof FontDesignMetrics) {
             return ((FontDesignMetrics)fm).getFRC();
         }
+        if (fm == null && c != null) {
+            //we do it this way because we need first case to 
+            //work as fast as possible
+            return getFRC(c, c.getFontMetrics(c.getFont()));
+        }
+
         // PENDING: This shouldn't really happen, but if it does we
         // should try and handle AA as necessary.
         assert false;
@@ -498,8 +503,10 @@ public class SwingUtilities2 {
             if (g2d != null) {
                 FontRenderContext deviceFontRenderContext = g2d.
                     getFontRenderContext();
-                FontRenderContext frc = (FontRenderContext)AppContext.
-                    getAppContext().get(FRC_KEY);
+                FontRenderContext frc = getFRC(c, null);
+                if (frc.isAntiAliased() || frc.usesFractionalMetrics()) {
+                    frc = new FontRenderContext(frc.getTransform(), false, false);
+                }
                 if (frc != null  
                     && ! isFontRenderContextCompatible(deviceFontRenderContext,
                                                        frc)) {
@@ -568,8 +575,10 @@ public class SwingUtilities2 {
         } else {
             FontRenderContext frc;
             if (isPrinting) {
-                frc = (FontRenderContext)AppContext.getAppContext().
-                    get(FRC_KEY);
+                frc = getFRC(c, null);
+                if (frc.isAntiAliased() || frc.usesFractionalMetrics()) {
+                    frc = new FontRenderContext(frc.getTransform(), false, false);
+                }
             } else if (drawTextAntialiased(c)) {
                 frc = AA_FRC;
             } else {
@@ -611,18 +620,15 @@ public class SwingUtilities2 {
     }
 
     /*
-     * Returns FontRendedrContext associated with JComponent
-     * see JComponent.getFontMetrics
-     */
-    public static FontRenderContext getFontRenderContext(Component c) {
-        FontMetrics fontMetrics = c.getFontMetrics(c.getFont());
-        FontRenderContext frc = null;
-        if (fontMetrics instanceof sun.font.FontDesignMetrics) {
-            frc = ((sun.font.FontDesignMetrics)fontMetrics).getFRC();
+     * Returns FontRendedrContext associated with JComponent 
+     * see JComponent.getFontMetrics 
+     */ 
+    public static FontRenderContext getFontRenderContext(Component c) { 
+        if (c == null) {
+            return DEFAULT_FRC;
         } else {
-            frc = DEFAULT_FRC;
+            return getFRC(null, c.getFontMetrics(c.getFont()));
         }
-        return frc;
     }
 
     /*
@@ -756,8 +762,7 @@ public class SwingUtilities2 {
                 canAccess = true;
             } else {
                 try {
-                    sm.checkPermission(SecurityConstants.
-                                       ACCESS_CLIPBOARD_PERMISSION);
+                    sm.checkSystemClipboardAccess();
                     canAccess = true;  
                 } catch (SecurityException e) {
                 }

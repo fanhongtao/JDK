@@ -1,7 +1,7 @@
 /*
- * @(#)JarVerifier.java	1.35 03/12/19
+ * @(#)JarVerifier.java	1.37 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import sun.security.util.Debug;
 
 /**
  *
- * @version 	1.35 03/12/19
+ * @version 	1.37 05/05/27
  * @author	Roland Schemers
  */
 class JarVerifier {
@@ -55,9 +55,6 @@ class JarVerifier {
     /* Are there are files to verify? */
     private boolean anyToVerify = true;
 
-    /* The manifest file */
-    private Manifest manifest;
-
     /* The output stream to use when keeping track of files we are interested
        in */
     private ByteArrayOutputStream baos;
@@ -68,16 +65,13 @@ class JarVerifier {
     /** the bytes for the manDig object */
     byte manifestRawBytes[] = null;
 
-    /**
-     */
-    public JarVerifier(Manifest manifest, byte rawBytes[]) {
+    public JarVerifier(byte rawBytes[]) {
 	manifestRawBytes = rawBytes;
 	sigFileSigners = new Hashtable();
 	verifiedSigners = new Hashtable();
 	sigFileData = new Hashtable(11);
 	pendingBlocks = new ArrayList();
 	baos = new ByteArrayOutputStream();
-	this.manifest = manifest;
     }
 
     /**

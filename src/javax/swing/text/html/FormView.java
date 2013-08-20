@@ -1,7 +1,7 @@
 /*
- * @(#)FormView.java	1.26 04/05/18
+ * @(#)FormView.java	1.28 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -85,7 +85,7 @@ import javax.swing.text.*;
  *
  * @author Timothy Prinzing
  * @author Sunita Mani
- * @version 1.26 05/18/04
+ * @version 1.28 05/27/05
  */
 public class FormView extends ComponentView implements ActionListener {
 
@@ -225,16 +225,12 @@ public class FormView extends ComponentView implements ActionListener {
 	} else if (type.equals("checkbox")) {
 	    c = new JCheckBox();
 	    if (model != null) {
-		boolean checked = (attr.getAttribute(HTML.Attribute.CHECKED) != null);
-		((JToggleButton.ToggleButtonModel) model).setSelected(checked);
-		((JCheckBox)c).setModel((JToggleButton.ToggleButtonModel)model);
+		((JCheckBox)c).setModel((JToggleButton.ToggleButtonModel) model);
 	    }
             maxIsPreferred = 3;
 	} else if (type.equals("radio")) {
 	    c = new JRadioButton();
 	    if (model != null) {
-		boolean checked = (attr.getAttribute(HTML.Attribute.CHECKED) != null);
-		((JToggleButton.ToggleButtonModel)model).setSelected(checked);
 		((JRadioButton)c).setModel((JToggleButton.ToggleButtonModel)model);
 	    }
             maxIsPreferred = 3;
@@ -255,11 +251,6 @@ public class FormView extends ComponentView implements ActionListener {
 	    if (model != null) {
 		field.setDocument((Document) model);
 	    }
-	    String value = (String) 
-		attr.getAttribute(HTML.Attribute.VALUE);
-	    if (value != null) {
-		field.setText(value);
-	    }
 	    field.addActionListener(this);
             maxIsPreferred = 3;
 	} else if (type.equals("password")) {
@@ -272,11 +263,6 @@ public class FormView extends ComponentView implements ActionListener {
 						     HTML.Attribute.SIZE,
 						     -1);
             field.setColumns((size > 0) ? size : 20);
-	    String value = (String) 
-		attr.getAttribute(HTML.Attribute.VALUE);
-	    if (value != null) {
-		field.setText(value);
-	    }
 	    field.addActionListener(this);
             maxIsPreferred = 3;
 	} else if (type.equals("file")) {

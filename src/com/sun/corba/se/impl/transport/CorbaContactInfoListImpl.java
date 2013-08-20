@@ -1,7 +1,7 @@
 /*
- * @(#)CorbaContactInfoListImpl.java	1.35 04/06/21
+ * @(#)CorbaContactInfoListImpl.java	1.37 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -38,8 +38,6 @@ public class CorbaContactInfoListImpl
     protected IOR targetIOR;
     protected IOR effectiveTargetIOR;
     protected List effectiveTargetIORContactInfoList;
-    protected boolean isCachedHashValue = false;
-    protected int cachedHashValue;
     protected ContactInfo primaryContactInfo;
 
     // XREVISIT - is this used?
@@ -76,7 +74,6 @@ public class CorbaContactInfoListImpl
     {
 	this.targetIOR = targetIOR;
 	setEffectiveTargetIOR(targetIOR);
-	this.isCachedHashValue = false; // Very important.
     }
 
     public synchronized IOR getTargetIOR()
@@ -122,11 +119,7 @@ public class CorbaContactInfoListImpl
 
     public synchronized int hashCode()
     {
-	if (! isCachedHashValue) {
-	    cachedHashValue = targetIOR.stringify().hashCode();
-	    isCachedHashValue = true;
-	}
-	return cachedHashValue;
+	    return targetIOR.hashCode();
     }
 
     ////////////////////////////////////////////////////

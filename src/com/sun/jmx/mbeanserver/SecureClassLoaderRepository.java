@@ -1,7 +1,7 @@
 /*
- * @(#)SecureClassLoaderRepository.java	1.8 03/12/19
+ * @(#)SecureClassLoaderRepository.java	1.10 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.jmx.mbeanserver;
@@ -16,7 +16,7 @@ import javax.management.loading.ClassLoaderRepository;
  *
  * @since 1.5
  */
-public final class SecureClassLoaderRepository 
+final class SecureClassLoaderRepository 
     implements ClassLoaderRepository {
 
     private final ClassLoaderRepository clr;

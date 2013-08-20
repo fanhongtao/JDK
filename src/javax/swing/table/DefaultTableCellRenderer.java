@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultTableCellRenderer.java	1.38 04/03/05
+ * @(#)DefaultTableCellRenderer.java	1.40 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.38 03/05/04
+ * @version 1.40 05/27/05
  * @author Philip Milne 
  * @see JTable
  */
@@ -154,7 +154,15 @@ public class DefaultTableCellRenderer extends JLabel
 	setFont(table.getFont());
 
 	if (hasFocus) {
-	    setBorder( UIManager.getBorder("Table.focusCellHighlightBorder") );
+            Border border = null;
+            if (isSelected) {
+                border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
+            }
+            if (border == null) {
+                border = UIManager.getBorder("Table.focusCellHighlightBorder");
+            }
+            setBorder(border);
+
 	    if (!isSelected && table.isCellEditable(row, column)) {
                 Color col;
                 col = UIManager.getColor("Table.focusCellForeground");

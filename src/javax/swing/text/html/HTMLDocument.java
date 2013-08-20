@@ -1,7 +1,7 @@
 /*
- * @(#)HTMLDocument.java	1.167 04/05/05
+ * @(#)HTMLDocument.java	1.170 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -69,7 +69,7 @@ import java.text.Bidi;
  * @author  Timothy Prinzing
  * @author  Scott Violet
  * @author  Sunita Mani
- * @version 1.167 05/05/04
+ * @version 1.170 05/27/05
  */
 public class HTMLDocument extends DefaultStyledDocument {
     /**
@@ -2797,7 +2797,7 @@ public class HTMLDocument extends DefaultStyledDocument {
 		    // named anchor point and we don't want to throw
 		    // it away.
 		    char[] one = new char[1];
-		    one[0] = ' ';
+		    one[0] = '\n';
 		    addContent(one, 0, 1);
 		}
 		super.end(t);
@@ -3021,7 +3021,13 @@ public class HTMLDocument extends DefaultStyledDocument {
                     else {
                         doc = new PlainDocument();
                     }
-		    attr.addAttribute(StyleConstants.ModelAttribute, doc);
+                    String value = (String) 
+                        attr.getAttribute(HTML.Attribute.VALUE);
+                    try {
+                        doc.insertString(0, value, null);
+                    } catch (BadLocationException e) {
+                    }
+                    attr.addAttribute(StyleConstants.ModelAttribute, doc);
                 } else if (type.equals("file")) {
 		    // plain text model
 		    attr.addAttribute(StyleConstants.ModelAttribute,
@@ -3041,6 +3047,8 @@ public class HTMLDocument extends DefaultStyledDocument {
 			}
 			model.setGroup(radioButtonGroup);
 		    }
+                    boolean checked = (attr.getAttribute(HTML.Attribute.CHECKED) != null);
+                    model.setSelected(checked);
 		    attr.addAttribute(StyleConstants.ModelAttribute, model);
 		}
 	    }

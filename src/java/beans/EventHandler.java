@@ -1,5 +1,5 @@
 /*
- * @(#)EventHandler.java	1.14 04/05/05
+ * @(#)EventHandler.java	1.15 05/05/29
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,8 +10,12 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Method;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import java.util.EventObject;
+import sun.reflect.misc.MethodUtil;
 
 /**
  * The <code>EventHandler</code> class provides 
@@ -206,6 +210,7 @@ public class EventHandler implements InvocationHandler {
     private String action;
     private String eventPropertyName;
     private String listenerMethodName; 
+    private AccessControlContext acc;
     
     /**
      * Creates a new <code>EventHandler</code> object;
@@ -225,6 +230,7 @@ public class EventHandler implements InvocationHandler {
      * @see #getListenerMethodName
      */
     public EventHandler(Object target, String action, String eventPropertyName, String listenerMethodName) {
+	this.acc = AccessController.getContext();
         this.target = target;
         this.action = action;
         this.eventPropertyName = eventPropertyName;
@@ -306,7 +312,7 @@ public class EventHandler implements InvocationHandler {
 		throw new RuntimeException("No method called: " + first + 
 					   " defined on " + target); 
             } 
-            Object newTarget = getter.invoke(target, new Object[]{}); 
+            Object newTarget = MethodUtil.invoke(getter, target, new Object[]{}); 
             return applyGetters(newTarget, rest); 
         } 
         catch (Throwable e) { 
@@ -326,8 +332,15 @@ public class EventHandler implements InvocationHandler {
      * 
      * @see EventHandler
      */
-    public Object invoke(Object proxy, Method method, Object[] arguments) {
+    public Object invoke(final Object proxy, final Method method, final Object[] arguments) {
+	return AccessController.doPrivileged(new PrivilegedAction() {
+	    public Object run() {
+	        return invokeInternal(proxy, method, arguments);
+	    }
+	}, acc);
+    }
 
+    private Object invokeInternal(Object proxy, Method method, Object[] arguments) {
         String methodName = method.getName();
         if (method.getDeclaringClass() == Object.class)  {
             // Handle the Object public methods.
@@ -368,14 +381,14 @@ public class EventHandler implements InvocationHandler {
 					       target.getClass() + " with argument "
 					       + argTypes[0]); 
                 }
-                return targetMethod.invoke(target, newArgs);
+                return MethodUtil.invoke(targetMethod, target, newArgs);
             } 
             catch (IllegalAccessException ex) {
                 throw new RuntimeException(ex);
             }
             catch (InvocationTargetException ex) {
                 throw new RuntimeException(ex.getTargetException());
-            }
+	    }
         }
         return null;
     }

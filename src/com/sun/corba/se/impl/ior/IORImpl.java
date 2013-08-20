@@ -1,7 +1,7 @@
 /*
- * @(#)IORImpl.java	1.30 03/12/19
+ * @(#)IORImpl.java	1.32 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,6 +64,8 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
 {
     private String typeId;
     private ORB factory = null ;
+    private boolean isCachedHashValue = false;
+    private int cachedHashValue;
     IORSystemException wrapper ;
 
     public ORB getORB()
@@ -94,9 +96,13 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
 	return super.equals( obj ) && typeId.equals( other.getTypeId() ) ;
     }
 
-    public int hashCode() 
+    public synchronized int hashCode() 
     {
-	return super.hashCode() ^ typeId.hashCode() ;
+        if (! isCachedHashValue) {
+		cachedHashValue =  (super.hashCode() ^ typeId.hashCode());
+		isCachedHashValue = true;
+	}
+	return cachedHashValue;
     }
 
     /** Construct an empty IOR.  This is needed for null object references.

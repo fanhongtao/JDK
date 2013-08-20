@@ -1,7 +1,7 @@
 /*
- * @(#)Parser.java	1.38 03/12/19
+ * @(#)Parser.java	1.43 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +56,7 @@ import sun.misc.MessageUtils;
  * @see DTD
  * @see TagElement
  * @see SimpleAttributeSet
- * @version 1.38, 12/19/03
+ * @version 1.43, 05/27/05
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
@@ -468,6 +468,7 @@ class Parser implements DTDConstants {
 	    ((elemName.equals("font")) &&
 	     (stackElement.equals("ul") || stackElement.equals("ol"))) ||
 	    (elemName.equals("meta") && stack != null) ||
+	    (elemName.equals("style") && seenBody) ||
 	    (stackElement.equals("table") && elemName.equals("a"))) {
 	    return true;
 	}
@@ -885,45 +886,64 @@ class Parser implements DTDConstants {
 	int pos = strpos;
 
 	if ((ch = readCh()) == '#') {
-	    int n = 0;
-	    ch = readCh();
-	    if ((ch >= '0') && (ch <= '9')) {
-		while ((ch >= '0') && (ch <= '9')) {
-		    n = (n * 10) + ch - '0';
-		    ch = readCh();
-		}
-		switch (ch) {
-		  case '\n':
-		    ln++;
-		    ch = readCh();
-		    lfCount++;
-		    break;
+            int n = 0;
+            ch = readCh();
+            if ((ch >= '0') && (ch <= '9') ||
+                    ch == 'x' || ch == 'X') {
 
-		  case '\r':
-		    ln++;
-		    if ((ch = readCh()) == '\n') {
-			ch = readCh();
-			crlfCount++;
-		    }
-		    else {
-			crCount++;
-		    }
-		    break;
+                if ((ch >= '0') && (ch <= '9')) {
+                    // parse decimal reference
+                    while ((ch >= '0') && (ch <= '9')) {
+                        n = (n * 10) + ch - '0';
+                        ch = readCh();
+                    }
+                } else {
+                    // parse hexadecimal reference
+                    ch = readCh();
+                    char lch = (char) Character.toLowerCase(ch);
+                    while ((lch >= '0') && (lch <= '9') ||
+                            (lch >= 'a') && (lch <= 'f')) {
+                        if (lch >= '0' && lch <= '9') {
+                            n = (n * 16) + lch - '0';
+                        } else {
+                            n = (n * 16) + lch - 'a' + 10;
+                        }
+                        ch = readCh();
+                        lch = (char) Character.toLowerCase(ch);
+                    }
+                }
+                switch (ch) {
+                    case '\n':
+                        ln++;
+                        ch = readCh();
+                        lfCount++;
+                        break;
 
-		  case ';':
-		    ch = readCh();
-		    break;
-		}
-		char data[] = {mapNumericReference((char)n)};
-		return data;
-	    }
-	    addString('#');
-	    if (!parseIdentifier(false)) {
-		error("ident.expected");
-		strpos = pos;
-		char data[] = {'&', '#'};
-		return data;
-	    }
+                    case '\r':
+                        ln++;
+                        if ((ch = readCh()) == '\n') {
+                            ch = readCh();
+                            crlfCount++;
+                        } 
+                        else {
+                            crCount++;
+                        }
+                        break;
+
+                    case ';':
+                        ch = readCh();
+                        break;
+                }
+                char data[] = {mapNumericReference((char) n)};
+                return data;
+            }
+            addString('#');
+            if (!parseIdentifier(false)) {
+                error("ident.expected");
+                strpos = pos;
+                char data[] = {'&', '#'};
+                return data;
+            }
 	} else if (!parseIdentifier(false)) {
 	    char data[] = {'&'};
 	    return data;

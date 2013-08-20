@@ -1,7 +1,7 @@
 /*
- * @(#)hprof.h	1.41 04/09/17
+ * @(#)hprof.h	1.43 05/03/18
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -344,7 +344,7 @@ typedef struct {
 
     /* Index to some common items */
     LoaderIndex         system_loader;
-    SerialNumber        system_thread_serial_num;
+    SerialNumber        unknown_thread_serial_num;
     TraceIndex          system_trace_index;
     SiteIndex           system_object_site_index;
     jint                system_class_size;

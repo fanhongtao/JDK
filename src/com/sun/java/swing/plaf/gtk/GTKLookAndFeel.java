@@ -1,5 +1,5 @@
 /*
- * @(#)GTKLookAndFeel.java	1.73 05/03/25
+ * @(#)GTKLookAndFeel.java	1.74 05/03/30
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.io.IOException;
 import sun.security.action.GetPropertyAction;
 
 /**
- * @version 1.73, 03/25/05
+ * @version 1.74, 03/30/05
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -211,9 +211,20 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         // populate the table with the values from basic.
         super.initComponentDefaults(table);
 
-        Object tempBorder = new GTKStyle.GTKLazyValue(
-            "com.sun.java.swing.plaf.gtk.GTKPainter$ListTableFocusBorder");
+        Object focusBorder = new GTKStyle.GTKLazyValue(
+            "com.sun.java.swing.plaf.gtk.GTKPainter$ListTableFocusBorder",
+            "getUnselectedCellBorder");
+        Object focusSelectedBorder = new GTKStyle.GTKLazyValue(
+            "com.sun.java.swing.plaf.gtk.GTKPainter$ListTableFocusBorder",
+            "getSelectedCellBorder");
 
+        GTKStyleFactory factory = (GTKStyleFactory)getStyleFactory(); 
+        GTKStyle tableStyle = (GTKStyle)factory.getStyle("GtkTreeView");
+        Color tableFocusCellBg = tableStyle.getColorForState(null, Region.TABLE,
+                SynthConstants.ENABLED, GTKColorType.BACKGROUND);
+        Color tableFocusCellFg = tableStyle.getColorForState(null, Region.TABLE,
+                SynthConstants.ENABLED, GTKColorType.FOREGROUND);
+        
         Integer caretBlinkRate = new Integer(500);
         Insets zeroInsets = new InsetsUIResource(0, 0, 0, 0);
 
@@ -509,7 +520,8 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
             "Label.font", new FontLazyValue(Region.LABEL), 
 
-            "List.focusCellHighlightBorder", tempBorder,
+            "List.focusCellHighlightBorder", focusBorder,
+            "List.focusSelectedCellHighlightBorder", focusSelectedBorder,
 	    "List.focusInputMap",
 	       new UIDefaults.LazyInputMap(new Object[] {
                            "ctrl C", "copy",
@@ -843,8 +855,10 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "TabbedPane.selectionFollowsFocus", Boolean.FALSE,
             "TabbedPane.font", new FontLazyValue(Region.TABBED_PANE),
 
-
-            "Table.focusCellHighlightBorder", tempBorder,
+            "Table.focusCellBackground", tableFocusCellBg,
+            "Table.focusCellForeground", tableFocusCellFg,
+            "Table.focusCellHighlightBorder", focusBorder,
+            "Table.focusSelectedCellHighlightBorder", focusSelectedBorder,
             "Table.ancestorInputMap", 
                     new UIDefaults.LazyInputMap(new Object[] {
                                "ctrl C", "copy",

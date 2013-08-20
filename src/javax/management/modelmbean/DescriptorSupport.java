@@ -1,8 +1,8 @@
 /*
  * @(#)file      DescriptorSupport.java
  * @(#)author    IBM Corp.
- * @(#)version   1.48
- * @(#)lastedit      04/03/26
+ * @(#)version   1.50
+ * @(#)lastedit      05/05/27
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -13,11 +13,11 @@
  * liable for any damages suffered by you or any third party claim against
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2005 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation.
  *
@@ -1197,6 +1197,12 @@ public class DescriptorSupport
 	try {
 	    final ClassLoader contextClassLoader =
 		Thread.currentThread().getContextClassLoader();
+            if (contextClassLoader == null) {
+                SecurityManager sm = System.getSecurityManager();
+                if (sm != null) {
+                    sm.checkPackageAccess(className);
+                }
+            }
 	    final Class c =
 		Class.forName(className, false, contextClassLoader);
 	    constr = c.getConstructor(new Class[] {String.class});

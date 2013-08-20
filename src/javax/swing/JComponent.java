@@ -1,7 +1,7 @@
 /*
- * @(#)JComponent.java	2.245 04/06/28
+ * @(#)JComponent.java	2.247 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing;
@@ -35,6 +35,8 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.io.ObjectInputValidation;
 import java.io.InvalidObjectException;
+
+import java.lang.reflect.Method;
 
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -1334,6 +1336,37 @@ public abstract class JComponent extends Container implements Serializable
 	Component focusOwner =
 	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
 	        getFocusOwner();
+
+        if (focusOwner == null) {
+            // If we are moving focus from another window, we should detect
+            // what element was in focus in the window that will be focused now.
+            // To do this, static package private method 
+            // KeyboardFocusManager.getMostRecentFocusOwner() will be called. 
+            // We will use AccessController.doPrivileged() to make package 
+            // private method accessible. 
+            Window window = SwingUtilities.getWindowAncestor(this); 
+            if (window != null) { 
+                try { 
+                    Method accessibleMethod = 
+                    java.security.AccessController.doPrivileged( 
+                        new java.security.PrivilegedExceptionAction<Method>() { 
+                            public Method run() throws Exception { 
+                                Method method = 
+                                    KeyboardFocusManager.class.getDeclaredMethod( 
+                                        "getMostRecentFocusOwner", Window.class); 
+                                method.setAccessible(true); 
+                                return method; 
+                            }
+                        }
+                    );
+                    focusOwner = (Component)(accessibleMethod.invoke(null,
+                                                                     window));
+                }
+                catch (Exception e) {           
+                    focusOwner = null;
+                }
+            }
+        }
 
         if (focusOwner == this) {
             return true;

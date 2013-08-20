@@ -1,19 +1,17 @@
 /*
- * @(#)StandardMBean.java	1.21 04/05/03
+ * @(#)StandardMBean.java	1.23 05/05/27
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package javax.management;
 
+import com.sun.jmx.mbeanserver.StandardMBeanMetaDataImpl;
+import com.sun.jmx.trace.Trace;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
-
-import com.sun.jmx.trace.Trace; 
-import com.sun.jmx.mbeanserver.MetaData;
-import com.sun.jmx.mbeanserver.StandardMetaDataImpl;
 
 /**
  * <p>An MBean whose management interface is determined by reflection
@@ -91,102 +89,6 @@ public class StandardMBean implements DynamicMBean {
     private final static String dbgTag = "StandardMBean";
 
     /**
-     * Override StandardMetaDataImpl in order to redefine the caching
-     * of MBean Information.
-     **/
-    private final class StandardMBeanMeta extends StandardMetaDataImpl {
-	/** Constructor... **/
-	public StandardMBeanMeta() {
-	    super(false);
-	}
-
-	/**
-	 * We need to override this method because some methods 
-	 * from BaseMetaDataImpl rely on MetaData#getMBeanInfo().
-	 * <p>
-	 * The default caching implemented in StandardMetaDataImpl 
-	 * will not work if two instances of class <var>c</var> can have 
-	 * different management interfaces, which is made possible
-	 * by {@link StandardMBean}
-	 * 
-	 * @return StandardMBean.this.getMBeanInfo();
-	 **/
-	protected MBeanInfo getCachedMBeanInfo(Class beanClass) { 
-	    if (beanClass == null) return null;
-
-	    // Need the synchronized block as long as implementation
-	    // and mbeanInterface are not final.
-	    //
-	    synchronized (StandardMBean.this) {
-		// Consistency checking: beanClass must be equal
-		// to StandardMBean.this.getImplementationClass().
-		//
-		final Class implementationClass = 
-		    StandardMBean.this.getImplementationClass();
-		if (implementationClass == null) return null;
-		if (!beanClass.equals(implementationClass)) return null;
-
-		// Should always come here (null cases excepted)...
-		//
-		return StandardMBean.this.getMBeanInfo();
-	    }
-	}
-
-	/**
-	 * We need to override this method because some methods 
-	 * from StandardMetaDataImpl rely on it.
-	 * <p>
-	 * The default caching implemented in StandardMetaDataImpl 
-	 * will not work if two instances of class <var>c</var> can have 
-	 * different management interfaces, which is made possible
-	 * by {@link StandardMBean}
-	 * 
-	 * @return StandardMBean.this.getMBeanInterface();
-	 **/
-	protected Class getCachedMBeanInterface(Class beanClass) {
-	    // Need the synchronized block as long as implementation
-	    // and mbeanInterface are not final.
-	    //
-	    synchronized (StandardMBean.this) {
-		// Consistency checking: beanClass must be equal
-		// to StandardMBean.this.getImplementationClass().
-		//
-		final Class implementationClass = 
-		    StandardMBean.this.getImplementationClass();
-		if (implementationClass == null) return null;
-		if (!beanClass.equals(implementationClass)) return null;
-
-		// Should always come here (null cases excepted)...
-		//
-		return StandardMBean.this.getMBeanInterface();
-	    }
-	}
-
-	/**
-	 * Need to override this method because default caching implemented
-	 * in StandardMetaDataImpl will not work if two instances of class
-	 * <var>c</var> can have different <var>mbeanInterface</var>.
-	 * <p>
-	 * The default caching mechanism in StandardMetaDataImpl uses
-	 * class static {@link java.util.WeakHashMap WeakHashMaps} - and
-	 * is common to all instance of StandardMetaData - hence to
-	 * all MBeanServer.
-	 * <p>
-	 * As this default mechanism might not always work for 
-	 * StandardMBean objects (may have several instances of class
-	 * <var>c</var> with different MBean interfaces), we disable
-	 * this default caching by defining an empty 
-	 * <code>cacheMBeanInfo()</code> method. 
-	 * <p>
-	 * Caching in our case is no longer performed by the MetaData
-	 * object, but by the StandardMBean object.
-	 **/
-	protected void cacheMBeanInfo(Class c,Class mbeanInterface,
-				      MBeanInfo mbeanInfo) {
-	}
-    }
-
-    /**
      * The management interface.
      **/
     private Class     mbeanInterface;
@@ -199,7 +101,7 @@ public class StandardMBean implements DynamicMBean {
     /**
      * The MetaData object used for invoking reflection.
      **/
-    private final StandardMetaDataImpl meta;
+    private final StandardMBeanMetaDataImpl meta;
 
     /**
      * The cached MBeanInfo.
@@ -235,7 +137,7 @@ public class StandardMBean implements DynamicMBean {
 	    if (nullImplementationAllowed) implementation = this;
 	    else throw new IllegalArgumentException("implementation is null");
 	}
-	this.meta = new StandardMBeanMeta();
+	this.meta = new StandardMBeanMetaDataImpl(this);
 	setImplementation(implementation,mbeanInterface);
     }
 
@@ -737,7 +639,7 @@ public class StandardMBean implements DynamicMBean {
      * @param info The default MBeanInfo derived by reflection.
      * @return the MBeanNotificationInfo[] for the new MBeanInfo.
      **/
-    // Private because not needed - the StandardMBeanMetaDataImpl allready
+    // Private because not needed - the StandardMBeanMetaDataImpl already
     // calls getNotificationInfo() on the implementation....
     private MBeanNotificationInfo[] 
 	getNotifications(MBeanInfo info) {

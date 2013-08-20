@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultListCellRenderer.java	1.25 03/12/19
+ * @(#)DefaultListCellRenderer.java	1.27 05/05/27
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -48,7 +48,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.25 12/19/03
+ * @version 1.27 05/27/05
  * @author Philip Milne
  * @author Hans Muller
  */
@@ -100,7 +100,19 @@ public class DefaultListCellRenderer extends JLabel
 
 	setEnabled(list.isEnabled());
 	setFont(list.getFont());
-	setBorder((cellHasFocus) ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
+
+        Border border = null;
+        if (cellHasFocus) {
+            if (isSelected) {
+                border = UIManager.getBorder("List.focusSelectedCellHighlightBorder");
+            }
+            if (border == null) {
+                border = UIManager.getBorder("List.focusCellHighlightBorder");
+            }
+        } else {
+            border = noFocusBorder;
+        }
+	setBorder(border);
 
 	return this;
     }

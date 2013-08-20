@@ -1,8 +1,8 @@
 /*
  * @(#)file      RequiredModelMBean.java
  * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.50
- * @(#)lastedit      04/02/11
+ * @(#)version   1.53
+ * @(#)lastedit      05/05/27
  *
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
  *
@@ -12,11 +12,11 @@
  * liable for any damages suffered by you or any third party claim against
  * you regarding the Program.
  *
- * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * Copyright 2004 Sun Microsystems, Inc.  Tous droits reserves.
+ * Copyright 2005 Sun Microsystems, Inc.  Tous droits reserves.
  * Ce logiciel est propriete de Sun Microsystems, Inc.
  * Distribue par des licences qui en restreignent l'utilisation.
  *
@@ -74,6 +74,7 @@ import javax.management.RuntimeOperationsException;
 import javax.management.ServiceNotFoundException;
 import javax.management.NotificationEmitter;
 import javax.management.loading.ClassLoaderRepository;
+import sun.reflect.misc.MethodUtil;
 
 import com.sun.jmx.trace.Trace;
 
@@ -1067,7 +1068,7 @@ public class RequiredModelMBean
 				Object targetObject, Object[] opArgs)
 	    throws MBeanException, ReflectionException {
 	try {
-	    return method.invoke(targetObject, opArgs);
+	    return MethodUtil.invoke(method, targetObject, opArgs);
 	} catch (RuntimeErrorException ree) {
 	    throw new RuntimeOperationsException(ree,
 		      "RuntimeException occured in RequiredModelMBean "+

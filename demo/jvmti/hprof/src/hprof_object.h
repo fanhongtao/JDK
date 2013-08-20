@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_object.h	1.8 04/07/27
+ * @(#)hprof_object.h	1.10 05/05/27
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -47,6 +47,8 @@ ObjectKind   object_free(ObjectIndex index);
 void         object_list(void);
 void         object_cleanup(void);
   
+void         object_set_thread_serial_number(ObjectIndex index, 
+					     SerialNumber thread_serial_num);
 SerialNumber object_get_thread_serial_number(ObjectIndex index);
 RefIndex     object_get_references(ObjectIndex index);
 void         object_set_references(ObjectIndex index, RefIndex ref_index);
