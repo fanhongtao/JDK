@@ -1,5 +1,5 @@
 /*
- * @(#)TransferHandler.java	1.29 04/06/02
+ * @(#)TransferHandler.java	1.30 05/08/26
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,6 +18,7 @@ import javax.swing.plaf.UIResource;
 import javax.swing.event.*;
 
 import com.sun.java.swing.SwingUtilities2;
+import sun.reflect.misc.MethodUtil;
 
 /**
  * This class is used to handle the transfer of a <code>Transferable</code>
@@ -48,7 +49,7 @@ import com.sun.java.swing.SwingUtilities2;
  * 
  *
  * @author  Timothy Prinzing
- * @version 1.29 06/02/04
+ * @version 1.30 08/26/05
  * @since 1.4
  */
 public class TransferHandler implements Serializable {
@@ -266,7 +267,7 @@ public class TransferHandler implements Serializable {
 		try {
 		    Object value = t.getTransferData(flavor);
 		    Object[] args = { value };
-		    writer.invoke(comp, args);
+		    MethodUtil.invoke(writer, comp, args);
 		    return true;
 		} catch (Exception ex) {
 		    System.err.println("Invocation failed");
@@ -519,7 +520,7 @@ public class TransferHandler implements Serializable {
 	    Method reader = property.getReadMethod();
 	    Object value = null;
 	    try {
-		value = reader.invoke(component, null);
+		value = MethodUtil.invoke(reader, component, null);
 	    } catch (Exception ex) {
 		throw new IOException("Property read failed: " + property.getName());
 	    }

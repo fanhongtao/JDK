@@ -1,7 +1,7 @@
 /*
- * @(#)Adler32.java	1.27 03/12/19
+ * @(#)Adler32.java	1.29 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,20 +13,12 @@ package java.util.zip;
  * can be computed much faster.
  *
  * @see		Checksum
- * @version 	1.27, 12/19/03
+ * @version 	1.29, 08/09/05
  * @author 	David Connelly
  */
 public
 class Adler32 implements Checksum {
     private int adler = 1;
-
-    /*
-     * Loads the ZLIB library.
-     */
-    static {
-	java.security.AccessController.doPrivileged(
-		  new sun.security.action.LoadLibraryAction("zip"));
-    }
 
     /**
      * Creates a new Adler32 object.

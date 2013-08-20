@@ -1,7 +1,7 @@
 /*
- * @(#)Deflater.java	1.40 03/12/19
+ * @(#)Deflater.java	1.42 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -43,7 +43,7 @@ package java.util.zip;
  * </pre></blockquote>
  * 
  * @see		Inflater
- * @version 	1.40, 12/19/03
+ * @version 	1.42, 08/09/05
  * @author 	David Connelly
  */
 public
@@ -98,12 +98,8 @@ class Deflater {
      */
     public static final int DEFAULT_STRATEGY = 0;
 
-    /*
-     * Loads the ZLIB library.
-     */
     static {
-	java.security.AccessController.doPrivileged(
-		  new sun.security.action.LoadLibraryAction("zip"));
+	/* Zip library is loaded from System.initializeSystemClass */
 	initIDs();
     }
 

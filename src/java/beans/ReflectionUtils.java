@@ -1,7 +1,7 @@
 /*
- * @(#)ReflectionUtils.java	1.8 05/05/29
+ * @(#)ReflectionUtils.java	1.10 05/08/26
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -97,6 +97,20 @@ class ReflectionUtils {
 	    }
 	}
         return match;
+    }
+
+    /**
+     * @return the method which best matches the signature or throw an exception
+     *         if it can't be found or the method is ambiguous.
+     */
+    static Method getPublicMethod(Class declaringClass, String methodName, 
+					   Class[] argClasses) throws NoSuchMethodException {
+	Method m;
+
+	m = findPublicMethod(declaringClass, methodName, argClasses);
+	if (m == null)
+	    throw new NoSuchMethodException(declaringClass.getName() + "." + methodName);
+	return m;
     }
 
     /**

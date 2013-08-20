@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCaret.java	1.138 04/06/24
+ * @(#)DefaultCaret.java	1.140 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -85,7 +85,7 @@ import com.sun.java.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.138 06/24/04
+ * @version 1.140 08/09/05
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -519,7 +519,10 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
      * @see MouseListener#mouseReleased
      */
     public void mouseReleased(MouseEvent e) {
-        if (shouldHandleRelease && SwingUtilities.isLeftMouseButton(e)) {
+        if (!e.isConsumed()
+                && shouldHandleRelease
+                && SwingUtilities.isLeftMouseButton(e)) {
+
             adjustCaretAndFocus(e);
         }
     }

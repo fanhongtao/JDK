@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.175 05/03/03
+ * @(#)BasicTreeUI.java	1.177 05/05/06
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,6 +27,9 @@ import javax.swing.plaf.UIResource;
 import javax.swing.plaf.TreeUI;
 import javax.swing.tree.*;
 import javax.swing.text.Position;
+import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
+import com.sun.java.swing.SwingUtilities2;
+import static com.sun.java.swing.SwingUtilities2.DRAG_FIX;
 
 import sun.swing.DefaultLookup;
 import sun.swing.UIAction;
@@ -35,8 +38,9 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.175 03/03/05
+ * @version 1.177 05/06/05
  * @author Scott Violet
+ * @author Shannon Hickey (improved drag recognition)
  */
 
 public class BasicTreeUI extends TreeUI
@@ -188,6 +192,12 @@ public class BasicTreeUI extends TreeUI
     private long timeFactor = 1000L;
 
     private Handler handler;
+
+    /**
+     * A temporary variable for communication between startEditingOnRelease
+     * and startEditing.
+     */
+    private MouseEvent releaseEvent;
 
     public static ComponentUI createUI(JComponent x) {
 	return new BasicTreeUI();
@@ -718,8 +728,10 @@ public class BasicTreeUI extends TreeUI
 	     != null ) {
 	    tree.addPropertyChangeListener(propertyChangeListener);
 	}
-	tree.addMouseListener(defaultDragRecognizer);
-	tree.addMouseMotionListener(defaultDragRecognizer);
+        if (!DRAG_FIX) {
+            tree.addMouseListener(defaultDragRecognizer);
+            tree.addMouseMotionListener(defaultDragRecognizer);
+        }
         if ( (mouseListener = createMouseListener()) != null ) {
 	    tree.addMouseListener(mouseListener);
 	    if (mouseListener instanceof MouseMotionListener) {
@@ -835,7 +847,7 @@ public class BasicTreeUI extends TreeUI
 
     private Handler getHandler() {
         if (handler == null) {
-            handler = new Handler();
+            handler = DRAG_FIX ? new DragFixHandler() : new Handler();
         }
         return handler;
     }
@@ -1010,8 +1022,10 @@ public class BasicTreeUI extends TreeUI
         if (propertyChangeListener != null) {
 	    tree.removePropertyChangeListener(propertyChangeListener);
 	}
-	tree.removeMouseListener(defaultDragRecognizer);
-	tree.removeMouseMotionListener(defaultDragRecognizer);
+        if (!DRAG_FIX) {
+            tree.removeMouseListener(defaultDragRecognizer);
+            tree.removeMouseMotionListener(defaultDragRecognizer);
+        }
         if (mouseListener != null) {
 	    tree.removeMouseListener(mouseListener);
 	    if (mouseListener instanceof MouseMotionListener) {
@@ -1983,6 +1997,19 @@ public class BasicTreeUI extends TreeUI
 	}
     }
 
+    // cover method for startEditing that allows us to pass extra
+    // information into that method via a class variable
+    private boolean startEditingOnRelease(TreePath path,
+                                          MouseEvent event,
+                                          MouseEvent releaseEvent) {
+        this.releaseEvent = releaseEvent;
+        try {
+            return startEditing(path, event);
+        } finally {
+            this.releaseEvent = null;
+        }
+    }
+
     /**
       * Will start editing for node if there is a cellEditor and
       * shouldSelectCell returns true.<p>
@@ -2046,8 +2073,10 @@ public class BasicTreeUI extends TreeUI
 		    stopEditingInCompleteEditing = true;
 		}
 
-		BasicLookAndFeel.compositeRequestFocus(editingComponent);
-		
+		Component focusedComponent = BasicLookAndFeel.
+		                 compositeRequestFocus(editingComponent);
+		boolean selectAll = true;
+
 		if(event != null && event instanceof MouseEvent) {
 		    /* Find the component that will get forwarded all the
 		       mouse events until mouseReleased. */
@@ -2064,8 +2093,19 @@ public class BasicTreeUI extends TreeUI
 			            getDeepestComponentAt(editingComponent,
 				       componentPoint.x, componentPoint.y);
 		    if (activeComponent != null) {
-			new MouseInputHandler(tree, activeComponent, event);
+                        MouseInputHandler handler =
+                            new MouseInputHandler(tree, activeComponent,
+                                                  event, focusedComponent);
+
+                        if (releaseEvent != null) {
+                            handler.mouseReleased(releaseEvent);
+                        }
+
+                        selectAll = false;
 		    }
+		}
+		if (selectAll && focusedComponent instanceof JTextField) {
+		    ((JTextField)focusedComponent).selectAll();
 		}
 		return true;
 	    }
@@ -2954,9 +2994,16 @@ public class BasicTreeUI extends TreeUI
 	protected Component        source;
 	/** Destination that receives all events. */
 	protected Component        destination;
+	private Component          focusComponent;
+	private boolean            dispatchedEvent;
 
 	public MouseInputHandler(Component source, Component destination,
 	                              MouseEvent event){
+	    this(source, destination, event, null);
+	}
+
+	MouseInputHandler(Component source, Component destination,
+	                  MouseEvent event, Component focusComponent) {
 	    this.source = source;
 	    this.destination = destination;
 	    this.source.addMouseListener(this);
@@ -2964,12 +3011,15 @@ public class BasicTreeUI extends TreeUI
 	    /* Dispatch the editing event! */
 	    destination.dispatchEvent(SwingUtilities.convertMouseEvent
 					  (source, event, destination));
+	    this.focusComponent = focusComponent;
 	}
 
 	public void mouseClicked(MouseEvent e) {
-	    if(destination != null)
+	    if(destination != null) {
+		dispatchedEvent = true;
 		destination.dispatchEvent(SwingUtilities.convertMouseEvent
 					  (source, e, destination));
+	    }
 	}
 
 	public void mousePressed(MouseEvent e) {
@@ -2995,9 +3045,11 @@ public class BasicTreeUI extends TreeUI
 	}
 
 	public void mouseDragged(MouseEvent e) {
-	    if(destination != null)
+	    if(destination != null) {
+		dispatchedEvent = true;
 		destination.dispatchEvent(SwingUtilities.convertMouseEvent
 					  (source, e, destination));
+	    }
 	}
 
 	public void mouseMoved(MouseEvent e) {
@@ -3008,13 +3060,19 @@ public class BasicTreeUI extends TreeUI
 	    if(source != null) {
 		source.removeMouseListener(this);
 		source.removeMouseMotionListener(this);
+		if (focusComponent != null &&
+		      focusComponent == destination && !dispatchedEvent &&
+		      (focusComponent instanceof JTextField)) {
+		     ((JTextField)focusComponent).selectAll();
+		}
 	    }
 	    source = destination = null;
 	}
 
     } // End of class BasicTreeUI.MouseInputHandler
 
-    private static final TreeDragGestureRecognizer defaultDragRecognizer = new TreeDragGestureRecognizer();
+    private static final TreeDragGestureRecognizer defaultDragRecognizer =
+        DRAG_FIX ? null : new TreeDragGestureRecognizer();
 
     /**
      * Drag gesture recognizer for JTree components
@@ -3414,39 +3472,38 @@ public class BasicTreeUI extends TreeUI
                     return;
                 }
 
-                if (tree.isRequestFocusEnabled()) {
-		    tree.requestFocus();
-                }
+                SwingUtilities2.adjustFocus(tree);
+
 		TreePath     path = getClosestPathForLocation(tree, e.getX(),
 							      e.getY());
 
-		if(path != null) {
-		    Rectangle       bounds = getPathBounds(tree, path);
+                handleSelectionImpl(e, path);
+            }
+        }
+        
+        protected void handleSelectionImpl(MouseEvent e, TreePath path) {
+            if(path != null) {
+		Rectangle       bounds = getPathBounds(tree, path);
 
-		    if(e.getY() > (bounds.y + bounds.height)) {
-			return;
-		    }
+		if(e.getY() > (bounds.y + bounds.height)) {
+		    return;
+		}
 
-		    // Preferably checkForClickInExpandControl could take
-		    // the Event to do this it self!
-		    if(SwingUtilities.isLeftMouseButton(e))
-			checkForClickInExpandControl(path, e.getX(), e.getY());
+		// Preferably checkForClickInExpandControl could take
+		// the Event to do this it self!
+		if(SwingUtilities.isLeftMouseButton(e))
+                    checkForClickInExpandControl(path, e.getX(), e.getY());
 		    
-		    int x = e.getX();
+		int x = e.getX();
 		    
-		    // Perhaps they clicked the cell itself. If so,
-		    // select it.
-		    if (x > bounds.x) {
-			if (x <= (bounds.x + bounds.width) && 
-			    !startEditing(path, e)) {
-			    selectPathForEvent(path, e);
-			}
+		// Perhaps they clicked the cell itself. If so,
+		// select it.
+		if (x > bounds.x && x <= (bounds.x + bounds.width)) {
+                    if ((DRAG_FIX && tree.getDragEnabled())
+                             || !startEditing(path, e)) {
+
+		        selectPathForEvent(path, e);
 		    }
-		    // PENDING: Should select on mouse down, start a drag if
-		    // the mouse moves, and fire selection change notice on
-		    // mouse up. That is, the explorer highlights on mouse
-		    // down, but doesn't update the pane to the right (and
-		    // open the folder icon) until mouse up.
 		}
 	    }
 	}
@@ -3672,6 +3729,172 @@ public class BasicTreeUI extends TreeUI
 	}
     }
 
+
+    private class DragFixHandler extends Handler implements MouseMotionListener,
+                                                            BeforeDrag {
+
+        // Whether or not the mouse press (which is being considered as part
+        // of a drag sequence) also caused the selection change to be fully
+        // processed.
+        private boolean dragPressDidSelection;
+
+        // Set to true when a drag gesture has been fully recognized and DnD
+        // begins. Use this to ignore further mouse events which could be
+        // delivered if DnD is cancelled (via ESCAPE for example)
+        private boolean dragStarted;
+
+        // The path over which the press occurred and the press event itself
+        private TreePath pressedPath;
+        private MouseEvent pressedEvent;
+
+        // Used to detect whether the press event causes a selection change.
+        // If it does, we won't try to start editing on the release.
+        private boolean valueChangedOnPress;
+
+        private boolean isActualPath(TreePath path, int x, int y) {
+            if (path == null) {
+                return false;
+            }
+
+            Rectangle bounds = getPathBounds(tree, path);
+            if (y > (bounds.y + bounds.height)) {
+                return false;
+            }
+
+            return (x >= bounds.x) && (x <= (bounds.x + bounds.width));
+        }
+        /**
+         * Invoked when a mouse button has been pressed on a component.
+         */
+        public void mousePressed(MouseEvent e) {
+            if (SwingUtilities2.shouldIgnore(e, tree)) {
+                return;
+            }
+
+            // if we can't stop any ongoing editing, do nothing
+            if (isEditing(tree) && tree.getInvokesStopCellEditing()
+                                && !stopEditing(tree)) {
+                return;
+            }
+
+            completeEditing();
+
+            pressedPath = getClosestPathForLocation(tree, e.getX(), e.getY());
+
+            if (tree.getDragEnabled()) {
+                mousePressedDND(e);
+            } else {
+                SwingUtilities2.adjustFocus(tree);
+                handleSelectionImpl(e, pressedPath);
+            }
+        }
+
+        private void mousePressedDND(MouseEvent e) {
+            pressedEvent = e;
+            boolean grabFocus = true;
+            dragStarted = false;
+            valueChangedOnPress = false;
+
+            // if we have a valid path and this is a drag initiating event
+            if (isActualPath(pressedPath, e.getX(), e.getY()) &&
+                    DragRecognitionSupport.mousePressed(e)) {
+
+                dragPressDidSelection = false;
+                
+                if (e.isControlDown()) {
+                    // do nothing for control - will be handled on release
+                    // or when drag starts
+                    return;
+                } else if (!e.isShiftDown() && tree.isPathSelected(pressedPath)) {
+                    // clicking on something that's already selected
+                    // and need to make it the lead now
+                    setAnchorSelectionPath(pressedPath);
+                    setLeadSelectionPath(pressedPath, true);
+                    return;
+                }
+
+                dragPressDidSelection = true;
+
+                // could be a drag initiating event - don't grab focus
+                grabFocus = false;
+            }
+
+            if (grabFocus) {
+                SwingUtilities2.adjustFocus(tree);
+            }
+
+            handleSelectionImpl(e, pressedPath);
+        }
+
+        public void dragStarting(MouseEvent me) {
+            dragStarted = true;
+
+            if (me.isControlDown()) {
+                tree.addSelectionPath(pressedPath);
+                setAnchorSelectionPath(pressedPath);
+                setLeadSelectionPath(pressedPath, true);
+            }
+
+            pressedEvent = null;
+            pressedPath = null;
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            if (SwingUtilities2.shouldIgnore(e, tree)) {
+                return;
+            }
+
+            if (tree.getDragEnabled()) {
+                DragRecognitionSupport.mouseDragged(e, this);
+            }
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            if (SwingUtilities2.shouldIgnore(e, tree)) {
+                return;
+            }
+
+            if (tree.getDragEnabled()) {
+                mouseReleasedDND(e);
+            }
+
+            pressedEvent = null;
+            pressedPath = null;
+        }
+
+        private void mouseReleasedDND(MouseEvent e) {
+            MouseEvent me = DragRecognitionSupport.mouseReleased(e);
+            if (me != null) {
+                SwingUtilities2.adjustFocus(tree);
+                if (!dragPressDidSelection) {
+                    handleSelectionImpl(me, pressedPath);
+                }
+            }
+
+            if (!dragStarted) {
+                
+                // Note: We don't give the tree a chance to start editing if the
+                // mouse press caused a selection change. Otherwise the default
+                // tree cell editor will start editing on EVERY press and
+                // release. If it turns out that this affects some editors, we
+                // can always parameterize this with a client property. ex:
+                //
+                // if (pressedPath != null &&
+                //         (Boolean.TRUE == tree.getClientProperty("Tree.DnD.canEditOnValueChange") ||
+                //          !valueChangedOnPress) && ...
+                if (pressedPath != null && !valueChangedOnPress &&
+                        isActualPath(pressedPath, pressedEvent.getX(), pressedEvent.getY())) {
+
+                    startEditingOnRelease(pressedPath, pressedEvent, e);
+                }
+            }
+        }
+
+        public void valueChanged(TreeSelectionEvent event) {
+            valueChangedOnPress = true;
+            super.valueChanged(event);
+        }
+    }
 
 
     private static class Actions extends UIAction {

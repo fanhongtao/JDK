@@ -1,5 +1,5 @@
 /*
- * @(#)BasicLookAndFeel.java	1.240 05/01/04
+ * @(#)BasicLookAndFeel.java	1.241 05/05/03
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,7 +68,7 @@ import javax.swing.text.DefaultEditorKit;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.240 01/04/05
+ * @version 1.241 05/03/05
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -1932,7 +1932,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
     // At this point we need this method here. But we assume that there
     // will be a common method for this purpose in the future releases.
-    static boolean compositeRequestFocus(Component component) {
+    static Component compositeRequestFocus(Component component) {
  	if (component instanceof Container) {
  	    Container container = (Container)component;
  	    if (container.isFocusCycleRoot()) {
@@ -1940,7 +1940,7 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
  		Component comp = policy.getDefaultComponent(container);
  		if (comp!=null) {
  		    comp.requestFocus();
- 		    return true;
+ 		    return comp;
  		}
  	    }
  	    Container rootAncestor = container.getFocusCycleRootAncestor();
@@ -1950,15 +1950,15 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
  		
  		if (comp!=null && SwingUtilities.isDescendingFrom(comp, container)) {
  		    comp.requestFocus();
- 		    return true;
+ 		    return comp;
  		}
  	    }
  	}
         if (component.isFocusable()) {
  	    component.requestFocus();
-            return true;
+            return component;
         }
-        return false;
+        return null;
     }
 
     /**

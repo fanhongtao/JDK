@@ -1,7 +1,7 @@
 /*
- * @(#)XPStyle.java	1.20 04/09/07
+ * @(#)XPStyle.java	1.22 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -39,7 +39,7 @@ import sun.security.action.GetPropertyAction;
 /**
  * Implements Windows XP Styles for the Windows Look and Feel.
  *
- * @version 1.20 09/07/04
+ * @version 1.22 08/09/05
  * @author Leif Samuelsson
  */
 class XPStyle {
@@ -502,7 +502,7 @@ class XPStyle {
 	    }
 	    if (nScaledImages > 0) {
 		int index = (nScaledImages / 2) + 1;
-		imageSelectType = getString(category+".imageselecttype").toLowerCase();
+		imageSelectType = getString(category+".imageselecttype").toLowerCase(Locale.ENGLISH);
 		if ("dpi".equals(imageSelectType)) {
 		    int dpi = Toolkit.getDefaultToolkit().getScreenResolution();
 		    index = 1;

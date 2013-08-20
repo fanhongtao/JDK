@@ -1,5 +1,5 @@
 /*
- * @(#)SwingUtilities2.java	1.25 05/03/09
+ * @(#)SwingUtilities2.java	1.27 05/05/03
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,6 +20,7 @@ import javax.swing.plaf.*;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.table.TableCellRenderer;
 import sun.swing.PrintColorUIResource;
 import sun.print.ProxyPrintGraphics;
 import sun.awt.AppContext;
@@ -37,7 +38,7 @@ import java.io.*;
  * releases and even patch releases. You should not rely on this class even
  * existing.
  *
- * @version 1.25 03/09/05
+ * @version 1.27 05/03/05
  */
 public class SwingUtilities2 {
     // Maintain a cache of CACHE_SIZE fonts and the left side bearing
@@ -94,6 +95,14 @@ public class SwingUtilities2 {
     public static final Object AA_TEXT_PROPERTY_KEY =
                           new StringBuffer("AATextPropertyKey");
 
+    /**
+     * Whether or not the system proprety 'sun.swing.enableImprovedDragGesture'
+     * is defined, indicating that we should enable the fix for 4521075
+     * and start drag recognition on the first press without requiring a
+     * selection.
+     */
+    public static final boolean DRAG_FIX;
+
     // security stuff
     private static Field inputEvent_CanAccessSystemClipboard_Field = null;
     private static final String UntrustedClipboardAccess = 
@@ -106,6 +115,10 @@ public class SwingUtilities2 {
         AA_TEXT_DEFINED = (aa != null);
         AA_TEXT = "true".equals(aa);
         AA_FRC = new FontRenderContext(null, true, false);
+
+        Object dragFix = java.security.AccessController.doPrivileged(
+            new GetPropertyAction("sun.swing.enableImprovedDragGesture"));
+        DRAG_FIX = (dragFix != null);
     }
 
     //
@@ -481,6 +494,55 @@ public class SwingUtilities2 {
 	return cellBounds.contains(point);
     }
 
+
+    /**
+     * Returns true if the given point is outside the preferredSize of the
+     * item at the given row of the table.  (Column must be 0).
+     * Does not check the "Table.isFileList" property. That should be checked
+     * before calling this method.
+     * This is used to make WindowsL&F JFileChooser act like native dialogs.
+     */
+    public static boolean pointOutsidePrefSize(JTable table, int row, int column, Point p) {
+        if (table.convertColumnIndexToModel(column) != 0 || row == -1) {
+            return true;
+        }
+        TableCellRenderer tcr = table.getCellRenderer(row, column);
+        Object value = table.getValueAt(row, column);
+        Component cell = tcr.getTableCellRendererComponent(table, value, false,
+                false, row, column);
+        Dimension itemSize = cell.getPreferredSize();
+        Rectangle cellBounds = table.getCellRect(row, column, false);
+        cellBounds.width = itemSize.width;
+        cellBounds.height = itemSize.height;
+
+        // See if coords are inside
+        // ASSUME: mouse x,y will never be < cell's x,y
+        assert (p.x >= cellBounds.x && p.y >= cellBounds.y);
+        if (p.x > cellBounds.x + cellBounds.width ||
+                p.y > cellBounds.y + cellBounds.height) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Ignore mouse events if the component is null, not enabled, or the event
+     * is not associated with the left mouse button.
+     */
+    public static boolean shouldIgnore(MouseEvent me, JComponent c) {
+        return c == null || !c.isEnabled()
+                         || !SwingUtilities.isLeftMouseButton(me);
+    }
+
+    /**
+     * Request focus on the given component if it doesn't already have it
+     * and <code>isRequestFocusEnabled()</code> returns true.
+     */
+    public static void adjustFocus(JComponent c) {
+        if (!c.hasFocus() && c.isRequestFocusEnabled()) {
+            c.requestFocus();
+        }
+    }
 
     /**
      * The following draw functions have the same semantic as the

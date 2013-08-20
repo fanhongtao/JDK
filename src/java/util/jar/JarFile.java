@@ -1,5 +1,5 @@
 /*
- * @(#)JarFile.java	1.61 05/04/12
+ * @(#)JarFile.java	1.62 05/06/30
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,7 +31,7 @@ import sun.misc.SharedSecrets;
  * thrown.
  *
  * @author  David Connelly
- * @version 1.61, 04/12/05
+ * @version 1.62, 06/30/05
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -152,7 +152,9 @@ class JarFile extends ZipFile {
 		if (verify) {
 		    byte[] b = getBytes(manEntry);
  		    man = new Manifest(new ByteArrayInputStream(b));
-		    jv = new JarVerifier(b);
+		    if (!jvInitialized) {
+		        jv = new JarVerifier(b);
+		    }
 		} else {
 		    man = new Manifest(super.getInputStream(manEntry));
 		}

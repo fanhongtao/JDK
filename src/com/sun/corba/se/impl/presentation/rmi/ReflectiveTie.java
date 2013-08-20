@@ -1,5 +1,5 @@
 /*
- * @(#)ReflectiveTie.java	1.12 04/06/21
+ * @(#)ReflectiveTie.java	1.13 05/08/26
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -34,7 +34,7 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
 
 import com.sun.corba.se.impl.oa.poa.POAManagerImpl ;
 
-public class ReflectiveTie extends Servant implements Tie 
+public final class ReflectiveTie extends Servant implements Tie 
 {
     private Remote target = null ;
     private PresentationManager pm ;
@@ -43,6 +43,10 @@ public class ReflectiveTie extends Servant implements Tie
 
     public ReflectiveTie( PresentationManager pm, ORBUtilSystemException wrapper )
     {
+        SecurityManager s = System.getSecurityManager();
+        if (s != null) {
+            s.checkPermission(new DynamicAccessPermission("access"));
+        }
 	this.pm = pm ;
 	this.wrapper = wrapper ;
     }

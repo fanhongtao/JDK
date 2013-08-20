@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.108 05/03/03
+ * @(#)BasicListUI.java	1.110 05/05/03
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,14 +27,17 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
 import com.sun.java.swing.SwingUtilities2;
+import static com.sun.java.swing.SwingUtilities2.DRAG_FIX;
+import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
 
 /**
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.108 03/03/05
+ * @version 1.110 05/03/05
  * @author Hans Muller
  * @author Philip Milne
+ * @author Shannon Hickey (improved drag recognition)
  */
 public class BasicListUI extends ListUI
 {
@@ -488,8 +491,10 @@ public class BasicListUI extends ListUI
         listDataListener = createListDataListener();
 
         list.addFocusListener(focusListener);
-	list.addMouseListener(defaultDragRecognizer);
-	list.addMouseMotionListener(defaultDragRecognizer);
+        if (!DRAG_FIX) {
+            list.addMouseListener(defaultDragRecognizer);
+            list.addMouseMotionListener(defaultDragRecognizer);
+        }
         list.addMouseListener(mouseInputListener);
         list.addMouseMotionListener(mouseInputListener);
         list.addPropertyChangeListener(propertyChangeListener);
@@ -519,8 +524,10 @@ public class BasicListUI extends ListUI
     protected void uninstallListeners()
     {
         list.removeFocusListener(focusListener);
-	list.removeMouseListener(defaultDragRecognizer);
-	list.removeMouseMotionListener(defaultDragRecognizer);
+        if (!DRAG_FIX) {
+            list.removeMouseListener(defaultDragRecognizer);
+            list.removeMouseMotionListener(defaultDragRecognizer);
+        }
         list.removeMouseListener(mouseInputListener);
         list.removeMouseMotionListener(mouseInputListener);
         list.removePropertyChangeListener(propertyChangeListener);
@@ -1259,7 +1266,7 @@ public class BasicListUI extends ListUI
 
     private Handler getHandler() {
         if (handler == null) {
-            handler = new Handler();
+            handler = DRAG_FIX ? new DragFixHandler() : new Handler();
         }
         return handler;
     }
@@ -2263,10 +2270,12 @@ public class BasicListUI extends ListUI
 	     * before the lists selection is updated IF requestFocus() is
 	     * synchronous (it is on Windows).  See bug 4122345
 	     */
-            if (!list.hasFocus() && list.isRequestFocusEnabled()) {
-                list.requestFocus();
-            }
+            SwingUtilities2.adjustFocus(list);
 
+            adjustSelection(e);
+        }
+
+        protected void adjustSelection(MouseEvent e) {
             int row = SwingUtilities2.loc2IndexFileList(list, e.getPoint());
             if (row < 0) {
                 // If shift is down in multi-select, we should do nothing.
@@ -2279,9 +2288,10 @@ public class BasicListUI extends ListUI
                 }
             }
             else {
-
-		        boolean adjusting = (e.getID() == MouseEvent.MOUSE_PRESSED) ? true : false;
-                list.setValueIsAdjusting(adjusting);
+                if (!DRAG_FIX) {
+                    boolean adjusting = (e.getID() == MouseEvent.MOUSE_PRESSED) ? true : false;
+                    list.setValueIsAdjusting(adjusting);
+                }
                 int anchorIndex = list.getAnchorSelectionIndex();
                 if (e.isControlDown()) {
                     if (e.isShiftDown() && anchorIndex != -1) {
@@ -2318,6 +2328,11 @@ public class BasicListUI extends ListUI
 	    if (!list.isEnabled()) {
 		return;
 	    }
+
+            mouseDraggedImpl(e);
+        }
+
+        protected void mouseDraggedImpl(MouseEvent e) {
             if (e.isShiftDown() || e.isControlDown()) {
                 return;
             }
@@ -2325,7 +2340,7 @@ public class BasicListUI extends ListUI
             int row = locationToIndex(list, e.getPoint());
             if (row != -1) {
                 // 4835633.  Dragging onto a File should not select it.
-		if (isFileList) {
+                if (isFileList) {
                     return;
                 }
                 Rectangle cellBounds = getCellBounds(list, row, row);
@@ -2379,7 +2394,100 @@ public class BasicListUI extends ListUI
     }
 
 
-    private static final ListDragGestureRecognizer defaultDragRecognizer = new ListDragGestureRecognizer();
+    private class DragFixHandler extends Handler implements BeforeDrag {
+
+        // Whether or not the mouse press (which is being considered as part
+        // of a drag sequence) also caused the selection change to be fully
+        // processed.
+        private boolean dragPressDidSelection;
+
+        public void mousePressed(MouseEvent e) {
+            if (SwingUtilities2.shouldIgnore(e, list)) {
+                return;
+            }
+
+            boolean dragEnabled = list.getDragEnabled();
+            boolean grabFocus = true;
+
+            // different behavior if drag is enabled
+            if (dragEnabled) {
+                int row = SwingUtilities2.loc2IndexFileList(list, e.getPoint());
+                // if we have a valid row and this is a drag initiating event
+                if (row != -1 && DragRecognitionSupport.mousePressed(e)) {
+                    dragPressDidSelection = false;
+
+                    if (e.isControlDown()) {
+                        // do nothing for control - will be handled on release
+                        // or when drag starts
+                        return;
+                    } else if (!e.isShiftDown() && list.isSelectedIndex(row)) {
+                        // clicking on something that's already selected
+                        // and need to make it the lead now
+                        list.addSelectionInterval(row, row);
+                        return;
+                    }
+
+                    // could be a drag initiating event - don't grab focus
+                    grabFocus = false;
+
+                    dragPressDidSelection = true;
+                }
+            } else {
+                // When drag is enabled mouse drags won't change the selection
+                // in the list, so we only set the isAdjusting flag when it's
+                // not enabled
+                list.setValueIsAdjusting(true);
+            }
+
+            if (grabFocus) {
+                SwingUtilities2.adjustFocus(list);
+            }
+
+            adjustSelection(e);
+        }
+
+        public void dragStarting(MouseEvent me) {
+            if (me.isControlDown()) {
+                int row = SwingUtilities2.loc2IndexFileList(list, me.getPoint());
+                list.addSelectionInterval(row, row);
+            }
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            if (SwingUtilities2.shouldIgnore(e, list)) {
+                return;
+            }
+
+            if (list.getDragEnabled()) {
+                DragRecognitionSupport.mouseDragged(e, this);
+                return;
+            }
+
+            mouseDraggedImpl(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            if (SwingUtilities2.shouldIgnore(e, list)) {
+                return;
+            }
+
+            if (list.getDragEnabled()) {
+                MouseEvent me = DragRecognitionSupport.mouseReleased(e);
+                if (me != null) {
+                    SwingUtilities2.adjustFocus(list);
+                    if (!dragPressDidSelection) {
+                        adjustSelection(me);
+                    }
+                }
+            } else {
+                list.setValueIsAdjusting(false);
+            }
+        }
+    }
+
+
+    private static final ListDragGestureRecognizer defaultDragRecognizer =
+        DRAG_FIX ? null : new ListDragGestureRecognizer();
 
     /**
      * Drag gesture recognizer for JList components

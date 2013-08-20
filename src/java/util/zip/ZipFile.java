@@ -1,5 +1,5 @@
 /*
- * @(#)ZipFile.java	1.69 05/01/04
+ * @(#)ZipFile.java	1.70 05/04/25
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.lang.reflect.*;
  * or method in this class will cause a {@link NullPointerException} to be
  * thrown.
  *
- * @version   1.69, 01/04/05 
+ * @version   1.70, 04/25/05 
  * @author	David Connelly
  */
 public
@@ -59,8 +59,7 @@ class ZipFile implements ZipConstants {
     public static final int OPEN_DELETE = 0x4;
     
     static {
-	AccessController.doPrivileged(
-			  new sun.security.action.LoadLibraryAction("zip"));
+	/* Zip library is loaded from System.initializeSystemClass */
 	initIDs();
     }
 

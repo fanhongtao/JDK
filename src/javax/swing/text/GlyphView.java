@@ -1,7 +1,7 @@
 /*
- * @(#)GlyphView.java	1.36 04/05/26
+ * @(#)GlyphView.java	1.38 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -39,7 +39,7 @@ import com.sun.java.swing.SwingUtilities2;
  * @since 1.3
  *
  * @author  Timothy Prinzing
- * @version 1.36 05/26/04
+ * @version 1.38 08/09/05
  */
 public class GlyphView extends View implements TabableView, Cloneable {
 
@@ -533,8 +533,7 @@ public class GlyphView extends View implements TabableView, Cloneable {
 	    if (skipWidth) {
 		return 0;
 	    }
-	    float width = painter.getSpan(this, p0, p1, expander, this.x);
-	    return Math.max(width, 1);
+	    return painter.getSpan(this, p0, p1, expander, this.x);
 	case View.Y_AXIS:
 	    float h = painter.getHeight(this);
 	    if (isSuperscript()) {

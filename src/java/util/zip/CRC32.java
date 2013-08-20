@@ -1,7 +1,7 @@
 /*
- * @(#)CRC32.java	1.30 03/12/19
+ * @(#)CRC32.java	1.32 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -11,20 +11,12 @@ package java.util.zip;
  * A class that can be used to compute the CRC-32 of a data stream.
  *
  * @see		Checksum
- * @version 	1.30, 12/19/03
+ * @version 	1.32, 08/09/05
  * @author 	David Connelly
  */
 public
 class CRC32 implements Checksum {
     private int crc;
-
-    /*
-     * Loads the ZLIB library.
-     */
-    static {
-	java.security.AccessController.doPrivileged(
-		  new sun.security.action.LoadLibraryAction("zip"));
-    }
 
     /**
      * Creates a new CRC32 object.

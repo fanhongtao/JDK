@@ -50,7 +50,7 @@ import com.sun.corba.se.spi.orbutil.proxy.LinkedInvocationHandler ;
 
 import com.sun.corba.se.impl.corba.CORBAObjectImpl ;
 
-public class StubInvocationHandlerImpl implements LinkedInvocationHandler  
+public final class StubInvocationHandlerImpl implements LinkedInvocationHandler  
 {
     private transient PresentationManager.ClassData classData ;
     private transient PresentationManager pm ;
@@ -70,6 +70,10 @@ public class StubInvocationHandlerImpl implements LinkedInvocationHandler
     public StubInvocationHandlerImpl( PresentationManager pm,
 	PresentationManager.ClassData classData, org.omg.CORBA.Object stub ) 
     {
+	SecurityManager s = System.getSecurityManager();
+	if (s != null) {
+	    s.checkPermission(new DynamicAccessPermission("access"));
+	}
 	this.classData = classData ;
 	this.pm = pm ;
 	this.stub = stub ;

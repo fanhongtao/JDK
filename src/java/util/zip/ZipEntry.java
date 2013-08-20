@@ -1,7 +1,7 @@
 /*
- * @(#)ZipEntry.java	1.36 03/12/19
+ * @(#)ZipEntry.java	1.38 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,7 +12,7 @@ import java.util.Date;
 /**
  * This class is used to represent a ZIP file entry.
  *
- * @version	1.36, 12/19/03
+ * @version	1.38, 08/09/05
  * @author	David Connelly
  */
 public
@@ -41,9 +41,7 @@ class ZipEntry implements ZipConstants, Cloneable {
     public static final int DEFLATED = 8;
 
     static {
-        /* load the zip library */
-	java.security.AccessController.doPrivileged(
-		  new sun.security.action.LoadLibraryAction("zip"));
+	/* Zip library is loaded from System.initializeSystemClass */
 	initIDs();
     }
 

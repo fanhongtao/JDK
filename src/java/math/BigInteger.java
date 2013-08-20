@@ -1,10 +1,10 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 /*
- * @(#)BigInteger.java	1.68 04/04/29
+ * @(#)BigInteger.java	1.70 05/08/09
  */
 
 package java.math;
@@ -71,7 +71,7 @@ import java.io.*;
  * a null object reference for any input parameter.
  *
  * @see     BigDecimal
- * @version 1.68, 04/29/04
+ * @version 1.70, 08/09/05
  * @author  Josh Bloch
  * @author  Michael McCloskey
  * @since JDK1.1
@@ -2770,7 +2770,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      */
     public float floatValue() {
 	// Somewhat inefficient, but guaranteed to work.
-	return Float.valueOf(this.toString()).floatValue();
+	return Float.parseFloat(this.toString());
     }
 
     /**
@@ -2791,7 +2791,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      */
     public double doubleValue() {
 	// Somewhat inefficient, but guaranteed to work.
-	return Double.valueOf(this.toString()).doubleValue();
+	return Double.parseDouble(this.toString());
     }
 
     /**

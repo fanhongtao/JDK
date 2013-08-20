@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultCellEditor.java	1.50 03/12/19
+ * @(#)DefaultCellEditor.java	1.52 05/08/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -16,6 +16,7 @@ import javax.swing.event.*;
 import java.util.EventObject;
 import javax.swing.tree.*;
 import java.io.Serializable;
+import static com.sun.java.swing.SwingUtilities2.DRAG_FIX;
 
 /**
  * The default editor for table and tree cells.
@@ -29,7 +30,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.50 12/19/03
+ * @version 1.52 08/09/05
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -103,6 +104,10 @@ public class DefaultCellEditor extends AbstractCellEditor
 	    }
         };
 	checkBox.addActionListener(delegate);
+
+        if (DRAG_FIX) {
+            checkBox.setRequestFocusEnabled(false);
+        }
     }
 
     /**

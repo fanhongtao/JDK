@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.121 05/05/27
+ * @(#)BasicPopupMenuUI.java	1.122 05/06/06
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import sun.swing.UIAction;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.121 05/27/05
+ * @version 1.122 06/06/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -47,6 +47,9 @@ public class BasicPopupMenuUI extends PopupMenuUI {
     private MenuKeyListener menuKeyListener = null;
     static boolean menuKeyboardHelperInstalled = false;
     static MenuKeyboardHelper menuKeyboardHelper = null;
+
+    private static boolean checkedUnpostPopup;
+    private static boolean unpostPopup;
 
     public static ComponentUI createUI(JComponent x) {
 	return new BasicPopupMenuUI();
@@ -185,6 +188,24 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 	}
 	
 	return me;
+    }
+
+    private static boolean doUnpostPopupOnDeactivation() {
+        if (!checkedUnpostPopup) {
+            Boolean b = java.security.AccessController.doPrivileged(
+                new java.security.PrivilegedAction <Boolean> () {
+                    public Boolean run() {
+                        String pKey =
+                            "sun.swing.unpostPopupsOnWindowDeactivation";
+                        String value = System.getProperty(pKey, "true");
+                        return Boolean.valueOf(value);
+                    }
+                }
+            );
+            unpostPopup = b.booleanValue();
+            checkedUnpostPopup = true;
+        }
+        return unpostPopup;
     }
 
     static JPopupMenu getLastPopup() {
@@ -819,7 +840,9 @@ public class BasicPopupMenuUI extends PopupMenuUI {
             cancelPopupMenu();
         }
         public void windowDeactivated(WindowEvent e) {
-            cancelPopupMenu();
+            if(doUnpostPopupOnDeactivation()) {
+                cancelPopupMenu();
+            }
         }
         public void windowOpened(WindowEvent e) {}
         public void windowDeiconified(WindowEvent e) {}

@@ -1,5 +1,5 @@
 /*
- * @(#)RMIServerImpl.java	1.54 04/06/03
+ * @(#)RMIServerImpl.java	1.55 05/08/24
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,7 +15,10 @@ import java.rmi.server.RemoteServer;
 import java.rmi.server.ServerNotActiveException;
 import java.security.Principal;
 import java.security.AccessController;
+import java.security.AccessControlContext;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
+import java.security.PrivilegedActionException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -63,6 +66,9 @@ public abstract class RMIServerImpl implements RMIServer {
      */
     public RMIServerImpl(Map<String,?> env) {
         this.env = (env == null) ? Collections.EMPTY_MAP : env;
+
+	callerACC = AccessController.getContext();
+
 	if (logger.debugOn()) 
 	    logger.trace("RMIServerImpl","class="+this.getClass().getName());
     }
@@ -185,6 +191,21 @@ public abstract class RMIServerImpl implements RMIServer {
      * is null.
      */
     public RMIConnection newClient(Object credentials) throws IOException {
+	try {
+	    final Object o = credentials;
+	    return AccessController.doPrivileged(
+		new PrivilegedExceptionAction<RMIConnection>() {
+		    public RMIConnection run() throws IOException {
+			return doNewClient(o);
+		    }
+	        }, callerACC);
+	} catch (PrivilegedActionException pae) {
+	    throw (IOException) pae.getCause();
+	}
+    }
+
+    private RMIConnection doNewClient(Object credentials) throws IOException {
+
 	final boolean tracing = logger.traceOn();
 
 	if (tracing) logger.trace("newClient","making new client");
@@ -508,4 +529,6 @@ public abstract class RMIServerImpl implements RMIServer {
     private static int connectionIdNumber;
 
     private NotificationBuffer notifBuffer;
+
+    private final AccessControlContext callerACC;
 }

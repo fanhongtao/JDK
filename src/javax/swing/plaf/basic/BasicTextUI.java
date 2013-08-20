@@ -1,5 +1,5 @@
 /*
- * @(#)BasicTextUI.java	1.105 05/05/27
+ * @(#)BasicTextUI.java	1.106 05/06/03
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,6 +23,8 @@ import javax.swing.event.*;
 import javax.swing.border.Border;
 import javax.swing.plaf.UIResource;
 import sun.swing.DefaultLookup;
+import sun.awt.AppContext;
+import javax.swing.plaf.basic.DragRecognitionSupport.BeforeDrag;
 
 /**
  * <p>
@@ -85,8 +87,9 @@ import sun.swing.DefaultLookup;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @author  Timothy Prinzing
- * @version 1.105 05/27/05
+ * @author Timothy Prinzing
+ * @author Shannon Hickey (drag recognition)
+ * @version 1.106 06/03/05
  */
 public abstract class BasicTextUI extends TextUI implements ViewFactory {
 
@@ -256,8 +259,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     }
 
     private void installDefaults2() {
-	editor.addMouseListener(defaultDragRecognizer);
-	editor.addMouseMotionListener(defaultDragRecognizer);
+        editor.addMouseListener(dragListener);
+        editor.addMouseMotionListener(dragListener);
 	
         String prefix = getPropertyPrefix();
 
@@ -302,8 +305,8 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
      */
     protected void uninstallDefaults() 
     {
-	editor.removeMouseListener(defaultDragRecognizer);
-	editor.removeMouseMotionListener(defaultDragRecognizer);
+        editor.removeMouseListener(dragListener);
+        editor.removeMouseMotionListener(dragListener);
 
         if (editor.getCaretColor() instanceof UIResource) {
             editor.setCaretColor(null);
@@ -1204,7 +1207,7 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
     transient UpdateHandler updateHandler = new UpdateHandler();
     private static final TransferHandler defaultTransferHandler = new TextTransferHandler();
     private static DropTargetListener defaultDropTargetListener = null;
-    private static final TextDragGestureRecognizer defaultDragRecognizer = new TextDragGestureRecognizer();
+    private final DragListener dragListener = getDragListener();
     private static final Position.Bias[] discardBias = new Position.Bias[1];
 
     /**
@@ -1983,44 +1986,90 @@ public abstract class BasicTextUI extends TextUI implements ViewFactory {
         }
     }
 
-    /**
-     * Drag gesture recognizer for text components.
-     */
-    static class TextDragGestureRecognizer extends BasicDragGestureRecognizer {
+    private static DragListener getDragListener() {
+        synchronized(DragListener.class) {
+            DragListener listener =
+                (DragListener)AppContext.getAppContext().
+                    get(DragListener.class);
 
-	/**
-	 * Determines if the following are true:
-	 * <ul>
-	 * <li>the press event is located over a selection
-	 * <li>the dragEnabled property is true
-	 * <li>A TranferHandler is installed
-	 * </ul>
-	 * <p>
-	 * This is implemented to check for a TransferHandler.
-	 * Subclasses should perform the remaining conditions.
-	 */
+            if (listener == null) {
+                listener = new DragListener();
+                AppContext.getAppContext().put(DragListener.class, listener);
+            }
+
+            return listener;
+        }
+    }
+
+    /**
+     * Listens for mouse events for the purposes of detecting drag gestures.
+     * BasicTextUI will maintain one of these per AppContext.
+     */
+    static class DragListener extends MouseInputAdapter
+                              implements BeforeDrag {
+
+        private boolean dragStarted;
+
+        public void dragStarting(MouseEvent me) {
+            dragStarted = true;
+        }
+
+        public void mousePressed(MouseEvent e) {
+            JTextComponent c = (JTextComponent)e.getSource();
+            if (c.getDragEnabled()) {
+                dragStarted = false;
+                if (isDragPossible(e) && DragRecognitionSupport.mousePressed(e)) {
+                    e.consume();
+                }
+            }
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            JTextComponent c = (JTextComponent)e.getSource();
+            if (c.getDragEnabled()) {
+                if (dragStarted) {
+                    e.consume();
+                }
+
+                DragRecognitionSupport.mouseReleased(e);
+            }
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            JTextComponent c = (JTextComponent)e.getSource();
+            if (c.getDragEnabled()) {
+                if (dragStarted || DragRecognitionSupport.mouseDragged(e, this)) {
+                    e.consume();
+                }
+            }
+        }
+
+        /**
+         * Determines if the following are true:
+         * <ul>
+         * <li>the component is enabled
+         * <li>the press event is located over a selection
+         * </ul>
+         */
         protected boolean isDragPossible(MouseEvent e) {
-	    if (super.isDragPossible(e)) {
-		JTextComponent c = (JTextComponent) this.getComponent(e);
-		if (c.getDragEnabled()) {
-		    Caret caret = c.getCaret();
-		    int dot = caret.getDot();
-		    int mark = caret.getMark();
-		    if (dot != mark) {
-			Point p = new Point(e.getX(), e.getY());
-			int pos = c.viewToModel(p);
-			
-			int p0 = Math.min(dot, mark);
-			int p1 = Math.max(dot, mark);
-			if ((pos >= p0) && (pos < p1)) {
-			    return true;
-			}
-		    }
-		}
-		
-	    }
-	    return false;
-	}
+            JTextComponent c = (JTextComponent)e.getSource();
+            if (c.isEnabled()) {
+                Caret caret = c.getCaret();
+                int dot = caret.getDot();
+                int mark = caret.getMark();
+                if (dot != mark) {
+                    Point p = new Point(e.getX(), e.getY());
+                    int pos = c.viewToModel(p);
+
+                    int p0 = Math.min(dot, mark);
+                    int p1 = Math.max(dot, mark);
+                    if ((pos >= p0) && (pos < p1)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
 
     /**
