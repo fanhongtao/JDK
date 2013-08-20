@@ -1,7 +1,7 @@
 /*
- * @(#)Cursor.java	1.39 03/01/23
+ * @(#)Cursor.java	1.41 07/05/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -26,7 +26,7 @@ import sun.awt.DebugHelper;
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.39, 01/23/03
+ * @version 	1.41, 05/17/07
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -184,6 +184,38 @@ public class Cursor implements java.io.Serializable {
      * Hook into native data.
      */
     private transient long pData;
+
+    private transient Object anchor = new Object();
+
+    static class CursorDisposer extends sun.java2d.DisposerRecord {
+        volatile long pData;
+        public CursorDisposer(long pData) {
+            this.pData = pData;
+        }
+        public void dispose() {
+            if (pData != 0) {
+                finalizeImpl(pData);
+            }
+        }
+    }
+
+    transient CursorDisposer disposer;
+    private void setPData(long pData) {
+        this.pData = pData;
+        if (GraphicsEnvironment.isHeadless()) {
+            return;
+        }
+        if (disposer == null) {
+            disposer = new CursorDisposer(pData);
+            // anchor is null after deserialization
+            if (anchor == null) {
+                anchor = new Object();
+            }
+            sun.java2d.Disposer.addRecord(anchor, disposer);
+        } else {
+            disposer.pData = pData;
+        }
+    }
 
     /**
      * The user-visible name of the cursor.
@@ -395,14 +427,6 @@ public class Cursor implements java.io.Serializable {
     	}
     }
 
-    // This won't really throw an exception, but it must match the 
-    // signature of Object.finalize
-    protected void finalize() throws Throwable {
-        if (!GraphicsEnvironment.isHeadless()) {
-            finalizeImpl();
-        }
-    }
-
-    private native void finalizeImpl() throws Throwable;
+    private native static void finalizeImpl(long pData);
 }
 

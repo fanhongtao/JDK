@@ -1,7 +1,7 @@
 /*
  * @(#)Window.java	1.184 03/01/28
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -1767,8 +1767,21 @@ public class Window extends Container implements Accessible {
       throws ClassNotFoundException, IOException, HeadlessException
     {
       GraphicsEnvironment.checkHeadless();
-      s.defaultReadObject();
-
+      setWarningString(); 
+      inputContextLock = new Object(); 
+           
+      // Deserialized Windows are not yet visible.
+      visible = false;
+      weakThis = new WeakReference(this); 
+      ObjectInputStream.GetField f = s.readFields();
+       
+      syncLWRequests = f.get("syncLWRequests", systemSyncLWRequests);
+      state = f.get("state", 0);
+      focusableWindowState = f.get("focusableWindowState", true);  
+      windowSerializedDataVersion = f.get("windowSerializedDataVersion", 1);
+      // Note: 1.4 (or later) doesn't use focusMgr
+      focusMgr = (FocusManager)f.get("focusMgr", null);
+      ownedWindowList = new Vector();
       if (windowSerializedDataVersion < 2) {
 	  // Translate old-style focus tracking to new model. For 1.4 and
 	  // later releases, we'll rely on the Window's initial focusable
@@ -1784,13 +1797,7 @@ public class Window extends Container implements Accessible {
 	  // However, the default value is insufficient, so we need to set
 	  // it explicitly for object data streams prior to 1.4.
         focusableWindowState = true;
-      }
-  
-      // 1.4 doesn't use this field, so just null it out.
-      focusMgr = null;
-  
-      ownedWindowList = new Vector();
-
+      }       
       Object keyOrNull;
       while(null != (keyOrNull = s.readObject())) {
 	  String key = ((String)keyOrNull).intern();
@@ -1820,12 +1827,6 @@ public class Window extends Container implements Accessible {
 	  // 1.1 serialized form
 	  // ownedWindowList will be updated by Frame.readObject
       }
-
-      setWarningString();
-      inputContextLock = new Object();
-
-      // Deserialized Windows are not yet visible.
-      visible = false;
     }
 
     /*

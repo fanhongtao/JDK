@@ -1,7 +1,7 @@
 /*
- * @(#)LogManager.java	1.28 04/06/08
+ * @(#)LogManager.java	1.31 07/05/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,10 +33,10 @@ import sun.security.action.GetPropertyAction;
  * The LogManager object is created during class initialization and
  * cannot subsequently be changed.
  * <p>
- * At startup the LogManager class is located using the 
+ * At startup the LogManager class is located using the
  * java.util.logging.manager system property.
  * <p>
- * By default, the LogManager reads its initial configuration from 
+ * By default, the LogManager reads its initial configuration from
  * a properties file "lib/logging.properties" in the JRE directory.
  * If you edit that property file you can change the default logging
  * configuration for all uses of that JRE.
@@ -65,7 +65,7 @@ import sun.security.action.GetPropertyAction;
  * initial logging configuration will be read from this file.
  * <p>
  * If neither of these properties is defined then, as described
- * above, the LogManager will read its initial configuration from 
+ * above, the LogManager will read its initial configuration from
  * a properties file "lib/logging.properties" in the JRE directory.
  * <p>
  * The properties for loggers and Handlers will have names starting
@@ -99,15 +99,15 @@ import sun.security.action.GetPropertyAction;
  * All properties whose names end with ".level" are assumed to define
  * log levels for Loggers.  Thus "foo.level" defines a log level for
  * the logger called "foo" and (recursively) for any of its children
- * in the naming hierarchy.  Log Levels are applied in the order they 
+ * in the naming hierarchy.  Log Levels are applied in the order they
  * are defined in the properties file.  Thus level settings for child
  * nodes in the tree should come after settings for their parents.
  * The property name ".level" can be used to set the level for the
  * root of the tree.
- * <p> 
+ * <p>
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.28, 06/08/04
+ * @version 1.31, 05/17/07
  * @since 1.4
 */
 
@@ -170,6 +170,11 @@ public class LogManager {
                     manager.rootLogger = manager.new RootLogger();
                     manager.addLogger(manager.rootLogger);
 
+                    // Adding the global Logger. Doing so in the Logger.<clinit>
+		    // would deadlock with the LogManager.<clinit>.
+		    Logger.global.setLogManager(manager);
+                    manager.addLogger(Logger.global);
+
                     // We don't call readConfiguration() here, as we may be running
                     // very early in the JVM startup sequence.  Instead readConfiguration
                     // will be called lazily in getLogManager().
@@ -183,6 +188,10 @@ public class LogManager {
     // It does a "reset" to close all open handlers.
     private class Cleaner extends Thread {
 	public void run() {
+	    // This is to ensure the LogManager.<clinit> is completed
+	    // before synchronized block. Otherwise deadlocks are possible.
+	    LogManager mgr = manager;
+
 	    // If the global handlershaven't been initialized yet, we
 	    // don't want to initialize them just so we can close them!
 	    synchronized (LogManager.this) {
@@ -197,7 +206,7 @@ public class LogManager {
     }
 
 
-    /**     
+    /**
      * Protected constructor.  This is protected so that container applications
      * (such as J2EE containers) can subclass the object.  It is non-public as
      * it is intended that there only be one LogManager object, whose value is
@@ -267,8 +276,8 @@ public class LogManager {
      * Remove an event listener for property change events.
      * <P>
      * Returns silently if the given listener is not found.
-     * 
-     * @param l  event listener 
+     *
+     * @param l  event listener
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have LoggingPermission("control").
      */
@@ -284,7 +293,7 @@ public class LogManager {
      * The Logger factory methods call this method to register each
      * newly created Logger.
      * <p>
-     * The application should retain its own reference to the Logger 
+     * The application should retain its own reference to the Logger
      * object to avoid it being garbage collected.  The LogManager
      * may only retain a weak reference.
      *
@@ -363,7 +372,7 @@ public class LogManager {
 	    // There is no security manager, so things are easy.
 	    logger.setLevel(level);
 	    return;
-	} 
+	}
 	// There is a security manager.  Raise privilege before
 	// calling setLevel.
 	AccessController.doPrivileged(new PrivilegedAction() {
@@ -383,7 +392,7 @@ public class LogManager {
 	    // There is no security manager, so things are easy.
 	    logger.setParent(parent);
 	    return;
-	} 
+	}
 	// There is a security manager.  Raise privilege before
 	// calling setParent.
 	AccessController.doPrivileged(new PrivilegedAction() {
@@ -430,7 +439,7 @@ public class LogManager {
      * arbitrary names this method should not be relied on to
      * find Loggers for security sensitive logging.
      * <p>
-     * @param name name of the logger 
+     * @param name name of the logger
      * @return  matching logger or null if none is found
      */
     public synchronized Logger getLogger(String name) {
@@ -456,11 +465,11 @@ public class LogManager {
      * as are used at startup.  So normally the logging properties will
      * be re-read from the same file that was used at startup.
      * <P>
-     * Any log level definitions in the new configuration file will be 
+     * Any log level definitions in the new configuration file will be
      * applied using Logger.setLevel(), if the target Logger exists.
      * <p>
      * A PropertyChangeEvent will be fired after the properties are read.
-     * 
+     *
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have LoggingPermission("control").
      * @exception  IOException if there are IO problems reading the configuration.
@@ -476,12 +485,12 @@ public class LogManager {
 		// Instantiate the named class.  It its contructor's
 		// repsonsibility to initialize the logging configuration, by
 		// calling readConfiguration(InputStream) with a suitable stream.
-		try {	
+		try {
 		    Class clz = ClassLoader.getSystemClassLoader().loadClass(cname);
 		    clz.newInstance();
 		    return;
 		} catch (ClassNotFoundException ex) {
-			   if (null != contextLoadingConfig) {	
+			   if (null != contextLoadingConfig) {
 		    		Class clz = Thread.currentThread().getContextClassLoader().loadClass(cname);
 		    		clz.newInstance();
 				return;
@@ -491,7 +500,7 @@ public class LogManager {
 		}
 	    } catch (Exception ex) {
 	        System.err.println("Logging configuration class \"" + cname + "\" failed");
-	        System.err.println("" + ex);	    
+	        System.err.println("" + ex);
 	        // keep going and useful config file.
 	    }
 	}
@@ -605,9 +614,9 @@ public class LogManager {
      * from the given stream, which should be in java.util.Properties format.
      * A PropertyChangeEvent will be fired after the properties are read.
      * <p>
-     * Any log level definitions in the new configuration file will be 
+     * Any log level definitions in the new configuration file will be
      * applied using Logger.setLevel(), if the target Logger exists.
-     * 
+     *
      * @param ins	stream to read properties from
      * @exception  SecurityException  if a security manager exists and if
      *             the caller does not have LoggingPermission("control").
@@ -640,7 +649,7 @@ public class LogManager {
 	// Notify any interested parties that our properties have changed.
 	changes.firePropertyChange(null, null, null);
 
-	// Note that we need to reinitialize global handles when 
+	// Note that we need to reinitialize global handles when
    	// they are first referenced.
 	synchronized (this) {
 	    initializedGlobalHandlers = false;
@@ -715,7 +724,7 @@ public class LogManager {
     }
 
     // Package private method to get a filter property.
-    // We return an instance of the class named by the "name" 
+    // We return an instance of the class named by the "name"
     // property. If the property is not defined or has problems
     // we return the defaultValue.
     Filter getFilterProperty(String name, Filter defaultValue) {
@@ -736,7 +745,7 @@ public class LogManager {
 
 
     // Package private method to get a formatter property.
-    // We return an instance of the class named by the "name" 
+    // We return an instance of the class named by the "name"
     // property. If the property is not defined or has problems
     // we return the defaultValue.
     Formatter getFormatterProperty(String name, Formatter defaultValue) {

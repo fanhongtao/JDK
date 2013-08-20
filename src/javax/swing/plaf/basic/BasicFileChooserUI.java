@@ -1,7 +1,7 @@
 /*
- * @(#)BasicFileChooserUI.java	1.51 06/03/17
+ * @(#)BasicFileChooserUI.java	1.53 07/05/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -300,6 +300,9 @@ public class BasicFileChooserUI extends FileChooserUI {
     }
 
     protected void createModel() {
+	if (model != null) {
+	    model.invalidateFileCache();
+	}
 	model = new BasicDirectoryModel(getFileChooser());
     }
 

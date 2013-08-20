@@ -1,7 +1,7 @@
 /*
- * @(#)Krb5LoginModule.java	1.21 03/01/23
+ * @(#)Krb5LoginModule.java	1.24 07/04/04
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -66,6 +66,11 @@ import sun.security.util.AuthResources;
  *
  * <p> The following are the list of configuration options supported 
  * for <code>Krb5LoginModule</code>
+ * <dl>
+ * <code>refreshKrb5Config</code>:
+ * Set this to true, if you want the configuration
+ * to be refreshed before the <code>login</code> method is called.
+ * </dl>
  *<p><code>useTicketCache</code>: Set this to true, if you want the 
  * TGT to be obtained
  * from the ticket cache. Set this option 
@@ -124,6 +129,11 @@ import sun.security.util.AuthResources;
  * credentials for multiple principals in the
  * <code>keyTab</code> or when you want a specific ticket cache only.  
  *
+ * <P>
+ * <dt><b><code>isInitiator</code></b>:</dt> 
+ * <dd>Set this to true, if initiator. Set this to false, if acceptor only.
+ * (Default is true).
+ * Note: Do not set this value to false for initiators.</dd>
  * <p> This LoginModule also recognizes the following additional 
  * <code>Configuration</code>
  * options that enable you to share username and passwords across different 
@@ -276,6 +286,18 @@ import sun.security.util.AuthResources;
  * in the ticket cache, it will be obtained using the authentication
  * exchange and added to the Subject's private credentials.
  *
+ * <ul>
+ * <p><code>isInitiator</code> = false 
+ *</ul>
+ * <p>Configured to act as acceptor only, credentials are not acquired
+ * via AS exchange. For acceptors only, set this value to false. 
+ * For initiators, do not set this value to false.
+ * <ul>
+ * <p><code>isInitiator</code> = true 
+ *</ul>
+ * <p>Configured to act as initiator, credentials are acquired
+ * via AS exchange. For initiators, set this value to true, or leave this
+ * option unset, in which case default value (true) will be used.
  *
  * @version 1.18, 01/11/00
  * @author Ram Marti
@@ -304,6 +326,10 @@ public class Krb5LoginModule implements LoginModule {
     private boolean storePass = false;
     private boolean clearPass = false;
     private boolean refreshKrb5Config = false;
+
+    // specify if initiator.
+    // perform authentication exchange if initiator
+    private boolean isInitiator = true;
 
     // the authentication status
     private boolean succeeded = false;
@@ -364,6 +390,15 @@ public class Krb5LoginModule implements LoginModule {
 	princName = (String)options.get("principal");
 	refreshKrb5Config =
 	    "true".equalsIgnoreCase((String)options.get("refreshKrb5Config"));
+
+        // check isInitiator value
+        String isInitiatorValue = ((String)options.get("isInitiator"));
+        if (isInitiatorValue == null) {
+            // use default, if value not set
+        } else {
+            isInitiator = "true".equalsIgnoreCase(isInitiatorValue);
+        }
+
 	tryFirstPass =
 	    "true".equalsIgnoreCase
 	    ((String)options.get("tryFirstPass"));
@@ -381,6 +416,7 @@ public class Krb5LoginModule implements LoginModule {
 			     + " useKeyTab " + useKeyTab
 			     + " doNotPrompt " + doNotPrompt
 			     + " ticketCache is " + ticketCacheName
+			     + " isInitiator " + isInitiator
 			     + " KeyTab is " + keyTabName
 			     + " refreshKrb5Config is " + refreshKrb5Config
 		     	     + " principal is " + princName
@@ -569,19 +605,32 @@ public class Krb5LoginModule implements LoginModule {
 		    encKey = new EncryptionKey(
 				     new StringBuffer().append(password),
 				     principal.getSalt());
-		}
-		// Get the TGT using AS Exchange
-		if (debug)
-		    System.out.println("principal is " + principal);
-		cred = Credentials.acquireTGT(principal, encKey, 
-						new StringBuffer().append(password));
+		
+		    // Get the TGT using AS Exchange
+		    if (debug)
+		        System.out.println("principal is " + principal);
+		    if (isInitiator) {
+		        if (debug)
+		            System.out.println("Acquire TGT using AS Exchange");
 
-		// update keys after pre-auth
-		encKey = new EncryptionKey(new StringBuffer().append(password),
-						principal.getSalt());
+		        cred = Credentials.acquireTGT(principal, encKey,
+		                                      new StringBuffer().append(password));
+
+		        // update keys after pre-auth
+		        encKey = new EncryptionKey(new StringBuffer().append(password), principal.getSalt());
+		    }
+		} else {
+		    if (isInitiator) {
+		        if (debug)
+		            System.out.println("Acquire TGT using AS Exchange");
+
+		        cred = Credentials.acquireTGT(principal, encKey,
+		                                      new StringBuffer().append(password));
+		    }
+		}
 
 		// we should hava a  non-null cred 
-		if (cred == null) {
+		if (isInitiator && (cred == null)) {
 		    throw new LoginException 
 			("TGT Can not be obtained from the KDC ");
 		}
@@ -797,24 +846,26 @@ public class Krb5LoginModule implements LoginModule {
 	    Set princSet  = subject.getPrincipals();
 	    kerbClientPrinc = new KerberosPrincipal(principal.getName());
 	    
-	    if (cred == null) {
+	    if (isInitiator && (cred == null)) {
 		succeeded = false;
 		throw new LoginException("Null Client Credential");
 	    }
-	    EncryptionKey sessionKey = cred.getSessionKey();
-	    kerbTicket  = new KerberosTicket
-		(cred.getEncoded(),
-		 new KerberosPrincipal(cred.getClient().getName()),
-		 new KerberosPrincipal(cred.getServer().getName()),
-		 sessionKey.getBytes(), 
-		 sessionKey.getEType(), 
-		 cred.getFlags(), 
-		 cred.getAuthTime(), 
-		 cred.getStartTime(), 
-		 cred.getEndTime(), 
-		 cred.getRenewTill(), 
-		 cred.getClientAddresses());
-	    
+	    if (isInitiator) {
+	        EncryptionKey sessionKey = cred.getSessionKey();
+	        kerbTicket  = new KerberosTicket
+		    (cred.getEncoded(),
+		     new KerberosPrincipal(cred.getClient().getName()),
+		     new KerberosPrincipal(cred.getServer().getName()),
+		     sessionKey.getBytes(), 
+		     sessionKey.getEType(), 
+		     cred.getFlags(), 
+		     cred.getAuthTime(), 
+		     cred.getStartTime(), 
+		     cred.getEndTime(), 
+		     cred.getRenewTill(), 
+		     cred.getClientAddresses());
+	    }
+
 	    if (storeKey) {
 		if (encKey == null) {
 		    succeeded = false;
@@ -832,8 +883,11 @@ public class Krb5LoginModule implements LoginModule {
 	    // storeKey is true)
 	    if (!princSet.contains(princSet))
 		princSet.add(kerbClientPrinc);
-	    if (!privCredSet.contains(kerbTicket)) 	
-		privCredSet.add(kerbTicket);
+	    // add the TGT
+	    if (kerbTicket != null) {
+	        if (!privCredSet.contains(kerbTicket)) 	
+		    privCredSet.add(kerbTicket);
+	    }
 	    if (storeKey) {
 		if (!privCredSet.contains(kerbKey)) {	
 		    privCredSet.add(kerbKey);

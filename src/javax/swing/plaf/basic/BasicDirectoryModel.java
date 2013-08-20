@@ -1,7 +1,7 @@
 /*
- * @(#)BasicDirectoryModel.java	1.28 03/01/23
+ * @(#)BasicDirectoryModel.java	1.30 07/05/17
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -45,13 +45,29 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	   prop == JFileChooser.FILE_HIDING_CHANGED_PROPERTY ||
 	   prop == JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY) {
 	    validateFileCache();
+	} else if ("UI".equals(prop)) {
+	    Object old = e.getOldValue();
+	    if (old instanceof BasicFileChooserUI) {
+		BasicFileChooserUI ui = (BasicFileChooserUI) old;
+		BasicDirectoryModel model = ui.getModel();
+		if (model != null) {
+		    model.invalidateFileCache();
+		}
+	    }
+	} else if ("JFileChooserDialogIsClosingProperty".equals(prop)) {
+	    invalidateFileCache();
 	}
     }
 
     /**
-     * Obsolete - not used.
+     * This method is used to interrupt file loading thread.
      */
     public void invalidateFileCache() {
+	if (loadThread != null) {
+	    loadThread.interrupt();
+	    loadThread.cancelRunnables();
+	    loadThread = null;
+	}
     }
 
     public Vector getDirectories() {
@@ -94,6 +110,7 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	}
 	if (loadThread != null) {
 	    loadThread.interrupt();
+	    loadThread.cancelRunnables();
 	}
 	fetchID++;
 	loadThread = new LoadFilesThread(currentDirectory, fetchID);
@@ -287,6 +304,10 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	    for(int i = 0; i < runnables.size(); i++) {
 		((DoChangeContents)runnables.elementAt(i)).cancel();
 	    }
+	}
+
+	private void cancelRunnables() {
+	    cancelRunnables(runnables);
 	}
     }
 
