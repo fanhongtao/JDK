@@ -1,7 +1,7 @@
 /*
- * @(#)OceanTheme.java	1.13 04/03/17
+ * @(#)OceanTheme.java	1.16 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,8 @@ import java.net.URL;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
+import com.sun.java.swing.SwingUtilities2;
+import sun.swing.PrintColorUIResource;
 
 /**
  * This class provides an updated look for applications using
@@ -22,7 +24,7 @@ import javax.swing.plaf.*;
  * when they wish to customize the "Ocean" look, or force
  * it to be the current theme, regardless of future updates.
  *
- * @version 1.13 03/17/04
+ * @version 1.16 01/04/05
  * @since 1.5
  * @see MetalLookAndFeel#setCurrentTheme
  */
@@ -41,13 +43,13 @@ public class OceanTheme extends DefaultMetalTheme {
                               new ColorUIResource(0xEEEEEE);
 
     private static final ColorUIResource CONTROL_TEXT_COLOR =
-                              new ColorUIResource(0x333333);
+                              new PrintColorUIResource(0x333333, Color.BLACK);
     private static final ColorUIResource INACTIVE_CONTROL_TEXT_COLOR =
                               new ColorUIResource(0x999999);
     private static final ColorUIResource MENU_DISABLED_FOREGROUND =
                               new ColorUIResource(0x999999);
     private static final ColorUIResource OCEAN_BLACK =
-                              new ColorUIResource(0x333333);
+                              new PrintColorUIResource(0x333333, Color.BLACK);
 
     // ComponentOrientation Icon
     // Delegates to different icons based on component orientation
@@ -195,7 +197,7 @@ public class OceanTheme extends DefaultMetalTheme {
                          }
                      },
             // menubutton3
-            "InternalFrame.menuIcon",
+            "InternalFrame.icon",
                      getIconResource("icons/ocean/menu.gif"),
             // maximize2
             "InternalFrame.maximizeIcon",
@@ -416,7 +418,7 @@ public class OceanTheme extends DefaultMetalTheme {
     }
 
     private Object getIconResource(String iconID) {
-        return LookAndFeel.makeIcon(getClass(), iconID);
+        return SwingUtilities2.makeIcon(getClass(), OceanTheme.class, iconID);
     }
 
     // makes use of getIconResource() to fetch an icon and then hastens it

@@ -1,7 +1,7 @@
 /*
- * @(#)Formatter.java	1.14 04/07/16
+ * @(#)Formatter.java	1.16 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1798,7 +1798,7 @@ import sun.misc.FormattedFloatingDecimal;
  * NullPointerException} to be thrown.
  *
  * @author  Iris Garcia
- * @version 	1.14, 07/16/04
+ * @version 	1.16, 01/04/05
  * @since 1.5
  */
 public final class Formatter implements Closeable, Flushable {
@@ -1846,7 +1846,7 @@ public final class Formatter implements Closeable, Flushable {
      *         <tt>null</tt> then a {@link StringBuilder} will be created.
      */
     public Formatter(Appendable a) {
-	init(a, Locale.getDefault());	
+	init(a, Locale.getDefault());
     }
 
     /**
@@ -2108,7 +2108,7 @@ public final class Formatter implements Closeable, Flushable {
      *
      * <p> Characters are written to the given {@link java.io.PrintStream
      * PrintStream} object and are therefore encoded using that object's
-     * charset. 
+     * charset.
      *
      * @param  ps
      *         The stream to use as the destination of this formatter.
@@ -3771,7 +3771,7 @@ public final class Formatter implements Closeable, Flushable {
 	    case DateTime.HOUR:        { // 'l' (1 - 12) -- like I
 		int i = t.get(Calendar.HOUR_OF_DAY);
 		if (c == DateTime.HOUR_0 || c == DateTime.HOUR)
-		    i = (i == 0 ? 12 : i % 12);
+		    i = (i == 0 || i == 12 ? 12 : i % 12);
 		Flags flags = (c == DateTime.HOUR_OF_DAY_0
 			       || c == DateTime.HOUR_0
 			       ? Flags.ZERO_PAD

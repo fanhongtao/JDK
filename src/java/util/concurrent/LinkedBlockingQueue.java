@@ -1,7 +1,7 @@
 /*
- * @(#)LinkedBlockingQueue.java	1.7 04/06/11
+ * @(#)LinkedBlockingQueue.java	1.9 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -58,7 +58,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
      * items have been entered since the signal. And symmetrically for
      * takes signalling puts. Operations such as remove(Object) and
      * iterators acquire both locks.
-    */
+     */
 
     /**
      * Linked list node class
@@ -190,8 +190,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
      */
     public LinkedBlockingQueue(Collection<? extends E> c) {
         this(Integer.MAX_VALUE);
-        for (Iterator<? extends E> it = c.iterator(); it.hasNext();)
-            add(it.next());
+        for (E e : c)
+            add(e);
     }
 
 
@@ -526,6 +526,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         fullyLock();
         try {
             head.next = null;
+	    assert head.item == null;
+	    last = head;
             if (count.getAndSet(0) == capacity)
                 notFull.signalAll();
         } finally {
@@ -543,6 +545,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         try {
             first = head.next;
             head.next = null;
+	    assert head.item == null;
+	    last = head;
             if (count.getAndSet(0) == capacity)
                 notFull.signalAll();
         } finally {
@@ -563,8 +567,6 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             throw new NullPointerException();
         if (c == this)
             throw new IllegalArgumentException();
-        if (maxElements <= 0)
-            return 0;
         fullyLock();
         try {
             int n = 0;
@@ -577,6 +579,9 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             }
             if (n != 0) {
                 head.next = p;
+		assert head.item == null;
+		if (p == null)
+		    last = head;
                 if (count.getAndAdd(-n) == capacity)
                     notFull.signalAll();
             }

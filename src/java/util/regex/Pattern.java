@@ -1,7 +1,7 @@
 /*
- * \x20@(#)Pattern.java	1.109 04/06/28
+ * \x20@(#)Pattern.java	1.111 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -587,7 +587,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.109, 04/06/28
+ * @version 	1.111, 05/01/04
  * @since       1.4
  * @spec	JSR-51
  */
@@ -4021,7 +4021,8 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
             upper = n & 0xFFFF;
         }
         CINotRange(int lower, int upper) {
-	    super(lower, upper);
+            this.lower = lower;
+            this.upper = upper;
 	}
         Node dup(boolean not) {
             if (not) {

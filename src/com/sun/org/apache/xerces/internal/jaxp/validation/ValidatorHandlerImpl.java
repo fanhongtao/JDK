@@ -2,7 +2,7 @@
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +18,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +26,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -64,6 +64,7 @@ import com.sun.org.apache.xerces.internal.impl.XMLEntityManager;
 import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
 import com.sun.org.apache.xerces.internal.impl.dv.XSSimpleType;
 import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
+import com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter;
 import com.sun.org.apache.xerces.internal.util.DraconianErrorHandler;
 import com.sun.org.apache.xerces.internal.util.LocatorWrapper;
 import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
@@ -133,7 +134,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
     private final XMLEntityManager entityManager = new XMLEntityManager();
     
     /** error reporter is used to format error messages. */
-    private final XMLErrorReporter errorReporter = new XMLErrorReporter();
+    private final XMLErrorReporter errorReporter = new XMLErrorReporter();    
     
     /** User-specified error handler. Maybe null. */
     private ErrorHandler errorHandler;
@@ -166,13 +167,18 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
     ValidatorHandlerImpl( InsulatedValidatorComponent validator ) {
         this.validator = validator;
         this.validatorFilter = validator.getValidator();
+
+        // format error message with Schema aware formatter
+        errorReporter.putMessageFormatter(
+                XSMessageFormatter.SCHEMA_DOMAIN,
+                new XSMessageFormatter());
     }
     
     /**
      * Obtains the current augmentation.
      * <p>
      * used for {@link javax.xml.validation.TypeInfoProvider}.
-     * 
+     *
      * @return
      *      may return null.
      */
@@ -182,7 +188,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
     
     /**
      * Obtains the current attributes.
-     * 
+     *
      * @throws IllegalStateException
      */
     private final XMLAttributes getCurrentAttributes() {
@@ -195,7 +201,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
             return namespacePrefixesFeature;
         return super.getFeature(name);
     }
-
+    
     public void setFeature(String name, boolean value) throws SAXNotRecognizedException, SAXNotSupportedException {
         if( name.equals("http://xml.org/sax/features/namespace-prefixes") ) {
             namespacePrefixesFeature = value;
@@ -203,7 +209,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
         }
         super.setFeature(name, value);
     }
-
+    
     
     
     //
@@ -242,7 +248,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
         return xni2sax.getContentHandler();
     }
     
-
+    
     
     
     //
@@ -266,7 +272,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
                 return entityManager;
             
             throw new XMLConfigurationException(
-                    XMLConfigurationException.NOT_RECOGNIZED, propName );
+            XMLConfigurationException.NOT_RECOGNIZED, propName );
         }
         public boolean getFeature( String propName ) {
             //       if( propName.equals(XercesConstants.SCHEMA_VALIDATION) )
@@ -276,7 +282,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
                 return true;//TODO:: Configure
             
             throw new XMLConfigurationException(
-                    XMLConfigurationException.NOT_RECOGNIZED, propName );
+            XMLConfigurationException.NOT_RECOGNIZED, propName );
         }
     };
     
@@ -295,27 +301,27 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
             errorReporter.setDocumentLocator(xmlLocator);
             
             validatorFilter.startDocument(
-                xmlLocator,
-                null,
-                nsContext,
-                null);
+            xmlLocator,
+            null,
+            nsContext,
+            null);
         } catch( WrappedSAXException e ) {
             throw e.exception;
         }
     }
     
     /**
-	 * Resets the components we use internally.
-	 */
-	private void resetComponents() {
+     * Resets the components we use internally.
+     */
+    private void resetComponents() {
         // reset the error flag when we start a new validation.
         xercesErrorHandler.reset();
         nsContext.reset();
         errorReporter.reset(manager);
         validator.reset(manager);
-	}
-
-	public void endDocument() throws SAXException {
+    }
+    
+    public void endDocument() throws SAXException {
         try {
             validatorFilter.endDocument(null);
         } catch( WrappedSAXException e ) {
@@ -397,7 +403,7 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
     
     /**
      * {@link TypeInfoProvider} implementation.
-     * 
+     *
      * REVISIT: I'm not sure if this code should belong here.
      */
     private final TypeInfoProvider typeInfoProvider = new TypeInfoProvider() {
@@ -426,17 +432,17 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
             AttributePSVI psvi = (AttributePSVI)augs.getItem(Constants.ATTRIBUTE_PSVI);
             return getTypeInfoFromPSVI(psvi);
         }
-
+        
         public TypeInfo getAttributeTypeInfo(String attributeUri, String attributeLocalName) {
             checkState();
             return getAttributeTypeInfo(getCurrentAttributes().getIndex(attributeUri,attributeLocalName));
         }
-
+        
         public TypeInfo getAttributeTypeInfo(String attributeQName) {
             checkState();
             return getAttributeTypeInfo(getCurrentAttributes().getIndex(attributeQName));
         }
-
+        
         public TypeInfo getElementTypeInfo() {
             checkState();
             Augmentations augs = getCurrentAugmentation();
@@ -461,14 +467,14 @@ final class ValidatorHandlerImpl extends ValidatorHandler {
             if(t!=null)         return t; // TODO: can t be null?
             return null;
         }
-
+        
         public boolean isIdAttribute(int index) {
             checkState();
             XSSimpleType type = (XSSimpleType)getAttributeType(index);
             if(type==null)  return false;
             return type.isIDType();
         }
-
+        
         public boolean isSpecified(int index) {
             checkState();
             return getCurrentAttributes().isSpecified(index);

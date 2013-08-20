@@ -1,7 +1,7 @@
 /*
- * @(#)FlowView.java	1.43 04/06/24
+ * @(#)FlowView.java	1.45 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -27,7 +27,7 @@ import javax.swing.SizeRequirements;
  * </ul>
  *
  * @author  Timothy Prinzing
- * @version 1.43 06/24/04
+ * @version 1.45 01/04/05
  * @see     View
  */
 public abstract class FlowView extends BoxView {
@@ -334,8 +334,7 @@ public abstract class FlowView extends BoxView {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
 	    } else {
-		fv.layoutChanged(View.X_AXIS);
-		fv.layoutChanged(View.Y_AXIS);
+		fv.preferenceChanged(null, true, true);
 	    }
 	}
 
@@ -354,8 +353,7 @@ public abstract class FlowView extends BoxView {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
 	    } else {
-		fv.layoutChanged(View.X_AXIS);
-		fv.layoutChanged(View.Y_AXIS);
+		fv.preferenceChanged(null, true, true);
 	    }
 	}
 
@@ -376,8 +374,7 @@ public abstract class FlowView extends BoxView {
 		    host.repaint(alloc.x, alloc.y, alloc.width, alloc.height);
 		}
 	    } else {
-		fv.layoutChanged(View.X_AXIS);
-		fv.layoutChanged(View.Y_AXIS);
+		fv.preferenceChanged(null, true, true);
 	    }
 	}
 

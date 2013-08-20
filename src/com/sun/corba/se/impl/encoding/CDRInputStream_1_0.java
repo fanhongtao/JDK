@@ -1,7 +1,7 @@
 /*
- * @(#)CDRInputStream_1_0.java	1.132 04/06/21
+ * @(#)CDRInputStream_1_0.java	1.134 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -895,30 +895,40 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
         }
     }
 
+    private String readRepositoryIds(int valueTag,
+                                     Class expectedType,
+                                     String expectedTypeRepId) {
+	return readRepositoryIds(valueTag, expectedType,
+				 expectedTypeRepId, null);
+    }
+
     /**
      * Examines the valuetag to see how many (if any) repository IDs
      * are present on the wire.  If no repository ID information
      * is on the wire but the expectedType or expectedTypeRepId
      * is known, it will return one of those (favoring the
-     * expectedType's repId).
+     * expectedType's repId). Failing that, it uses the supplied 
+     * BoxedValueHelper to obtain the repository ID, as a last resort.
      */
     private String readRepositoryIds(int valueTag,
                                      Class expectedType,
-                                     String expectedTypeRepId) 
-    {
+                                     String expectedTypeRepId,
+				     BoxedValueHelper factory) {
         switch(repIdUtil.getTypeInfo(valueTag)) {
             case RepositoryIdUtility.NO_TYPE_INFO :
                 // Throw an exception if we have no repository ID info and
                 // no expectedType to work with.  Otherwise, how would we
                 // know what to unmarshal?
                 if (expectedType == null) {
-                    if (expectedTypeRepId != null)
+                    if (expectedTypeRepId != null) {
                         return expectedTypeRepId;
-                    else
+                    } else if (factory != null) {
+			return factory.get_id();
+		    } else {
 			throw wrapper.expectedTypeNullAndNoRepId( 
 			    CompletionStatus.COMPLETED_MAYBE);
+		    }
                 }
-                
                 return repIdStrs.createForAnyType(expectedType);
             case RepositoryIdUtility.SINGLE_REP_TYPE_INFO :
                 return read_repositoryId(); 
@@ -1104,7 +1114,7 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
 
             // Read repository id
             String repositoryIDString
-                = readRepositoryIds(vType, null, null);
+                = readRepositoryIds(vType, null, null, factory);
 
             // Compare rep. ids to see if we should use passed helper
             if (!repositoryIDString.equals(factory.get_id()))

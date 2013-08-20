@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.182 04/06/15
+ * @(#)WindowsLookAndFeel.java	1.184 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,6 +50,7 @@ import sun.font.FontManager;
 import sun.security.action.GetPropertyAction;
 
 import sun.swing.SwingLazyValue;
+import com.sun.java.swing.SwingUtilities2;
 
 /**
  * Implements the Windows95/98/NT/2000 Look and Feel.
@@ -63,7 +64,7 @@ import sun.swing.SwingLazyValue;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.182 06/15/04
+ * @version 1.184 01/04/05
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -759,11 +760,21 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 		     "ENTER", "approveSelection"
 		 }),
 
-	    "FileView.directoryIcon", LookAndFeel.makeIcon(getClass(), "icons/Directory.gif"),
-	    "FileView.fileIcon", LookAndFeel.makeIcon(getClass(), "icons/File.gif"),
-	    "FileView.computerIcon", LookAndFeel.makeIcon(getClass(), "icons/Computer.gif"),
-	    "FileView.hardDriveIcon", LookAndFeel.makeIcon(getClass(), "icons/HardDrive.gif"),
-	    "FileView.floppyDriveIcon", LookAndFeel.makeIcon(getClass(), "icons/FloppyDrive.gif"),
+            "FileView.directoryIcon", SwingUtilities2.makeIcon(getClass(),
+                                                               WindowsLookAndFeel.class,
+                                                               "icons/Directory.gif"),
+            "FileView.fileIcon", SwingUtilities2.makeIcon(getClass(),
+                                                          WindowsLookAndFeel.class,
+                                                          "icons/File.gif"),
+            "FileView.computerIcon", SwingUtilities2.makeIcon(getClass(),
+                                                              WindowsLookAndFeel.class,
+                                                              "icons/Computer.gif"),
+            "FileView.hardDriveIcon", SwingUtilities2.makeIcon(getClass(),
+                                                               WindowsLookAndFeel.class,
+                                                               "icons/HardDrive.gif"),
+            "FileView.floppyDriveIcon", SwingUtilities2.makeIcon(getClass(),
+                                                                 WindowsLookAndFeel.class,
+                                                                 "icons/FloppyDrive.gif"),
 
             "InternalFrame.titleFont", WindowFont,
             "InternalFrame.titlePaneHeight",   TitlePaneHeight,
@@ -825,8 +836,8 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 		    // The constructor takes one arg: an array of UIDefaults.LazyValue
 		    // representing the icons
 		    new Object[][] { {
-			LookAndFeel.makeIcon(BasicLookAndFeel.class, "icons/JavaCup16.png"),
-			LookAndFeel.makeIcon(getClass(), "icons/JavaCup32.png")
+                        SwingUtilities2.makeIcon(getClass(), BasicLookAndFeel.class, "icons/JavaCup16.png"),
+                        SwingUtilities2.makeIcon(getClass(), WindowsLookAndFeel.class, "icons/JavaCup32.png")
 		    } }),
 
 	    // Internal Frame Auditory Cue Mappings
@@ -1867,7 +1878,9 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 		    return new ImageIcon(image);
 		}
 	    }
-	    return LookAndFeel.makeIcon(getClass(), resource);
+            return SwingUtilities2.makeIcon(getClass(),
+                                            WindowsLookAndFeel.class,
+                                            resource);
 	}
     }
 

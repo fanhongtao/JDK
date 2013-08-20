@@ -1,7 +1,7 @@
 /*
- * @(#)InputStreamHook.java	1.18 04/03/01
+ * @(#)InputStreamHook.java	1.20 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -382,8 +382,14 @@ public abstract class InputStreamHook extends ObjectInputStream
         }
 
         public void readData(InputStreamHook stream) throws IOException {
-	    ORB orb = (com.sun.corba.se.spi.orb.ORB)stream.getOrbStream().orb();
-	    ORBVersion clientOrbVersion = orb.getORBVersion();
+	    org.omg.CORBA.ORB orb = stream.getOrbStream().orb();
+	    if ((orb == null) ||
+		    !(orb instanceof com.sun.corba.se.spi.orb.ORB)) {
+		throw new StreamCorruptedException(
+				     "Default data must be read first");
+	    }
+	    ORBVersion clientOrbVersion = 
+		((com.sun.corba.se.spi.orb.ORB)orb).getORBVersion();
 
 	    // Fix Date interop bug. For older versions of the ORB don't do
 	    // anything for readData(). Before this used to throw 

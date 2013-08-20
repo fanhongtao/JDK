@@ -1,7 +1,7 @@
 /*
- * @(#)CDROutputStream_1_0.java	1.112 04/06/21
+ * @(#)CDROutputStream_1_0.java	1.114 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -660,8 +660,8 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
     }
 
     private void writeWStringValue(String string) {
-				
-        int indirection = writeValueTag(mustChunk, false, null);
+
+        int indirection = writeValueTag(mustChunk, true, null);
             
         // Write WStringValue's repository ID
         write_repositoryId(repIdStrs.getWStringValueRepId());
@@ -692,7 +692,8 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
             valueHandler = ORBUtility.createValueHandler(orb); //d11638
 
         // Write value_tag
-        int indirection = writeValueTag(mustChunk, false, Util.getCodebase(clazz));
+        int indirection = writeValueTag(mustChunk, true,
+					Util.getCodebase(clazz));
 				
         // Write repository ID
         write_repositoryId(repIdStrs.createSequenceRepID(clazz));
@@ -727,7 +728,7 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
         mustChunk = true;
 			
         // Write value_tag
-        int indirection = writeValueTag(true, false, Util.getCodebase(clazz));
+        int indirection = writeValueTag(true, true, Util.getCodebase(clazz));
 			
         // Get rep id
         String repId = ((ValueBase)object)._truncatable_ids()[0];
@@ -779,7 +780,7 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
         }
 				
         // Write value_tag
-        int indirection = writeValueTag(mustChunk, false, Util.getCodebase(clazz));
+        int indirection = writeValueTag(mustChunk, true, Util.getCodebase(clazz));
 				
         // Write rep. id
         write_repositoryId(repIdStrs.createForJavaType(clazz));
@@ -901,11 +902,16 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 			
 	    if (inBlock)
 		end_block();
-			
+
 	    // Write value_tag
-	    int indirection = writeValueTag(true, false, Util.getCodebase(object.getClass()));
+	    int indirection = writeValueTag(true,
+					    orb.getORBData().useRepId(),
+					    Util.getCodebase(object.getClass())
+					   );
 			
-	    write_repositoryId(factory.get_id());
+	    if (orb.getORBData().useRepId()) {
+		write_repositoryId(factory.get_id());
+	    }
 			
 	    // Add indirection for object to indirection table
 	    updateIndirectionTable(indirection, object, object);
@@ -925,9 +931,14 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 	}
 	else {
 	    // Write value_tag
-	    int indirection = writeValueTag(false, false, Util.getCodebase(object.getClass()));
+	    int indirection = writeValueTag(false,
+					    orb.getORBData().useRepId(),
+					    Util.getCodebase(object.getClass())
+					   );
 			
-	    write_repositoryId(factory.get_id());
+	    if (orb.getORBData().useRepId()) {
+		write_repositoryId(factory.get_id());
+	    }
 			
 	    // Add indirection for object to indirection table
 	    updateIndirectionTable(indirection, object, object);
@@ -1316,11 +1327,10 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
         }
     }
 
-    private final int writeValueTag(boolean chunkIt, boolean repNotWritten, 
+    private final int writeValueTag(boolean chunkIt, boolean useRepId, 
 				    String codebase) {
 	int indirection = 0;
-
-	if (chunkIt && repNotWritten){
+	if (chunkIt && !useRepId){
 	    if (codebase == null) {
 		write_long(repIdUtil.getStandardRMIChunkedNoRepStrId());
 		indirection = get_offset() - 4;
@@ -1329,7 +1339,7 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 		indirection = get_offset() - 4;
 		write_codebase(codebase, get_offset());
 	    }
-	} else if (chunkIt && !repNotWritten){
+	} else if (chunkIt && useRepId){
 	    if (codebase == null) {
 		write_long(repIdUtil.getStandardRMIChunkedId());
 		indirection = get_offset() - 4;
@@ -1338,7 +1348,16 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 		indirection = get_offset() - 4;
 		write_codebase(codebase, get_offset());
 	    }
-	} else {
+	} else if (!chunkIt && !useRepId) {
+	    if (codebase == null) {
+		write_long(repIdUtil.getStandardRMIUnchunkedNoRepStrId());
+		indirection = get_offset() - 4;
+	    } else {			
+		write_long(repIdUtil.getCodeBaseRMIUnchunkedNoRepStrId());
+		indirection = get_offset() - 4;
+		write_codebase(codebase, get_offset());
+	    }
+	} else if (!chunkIt && useRepId) {
 	    if (codebase == null) {
 		write_long(repIdUtil.getStandardRMIUnchunkedId());
 		indirection = get_offset() - 4;
@@ -1348,7 +1367,6 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 		write_codebase(codebase, get_offset());
 	    }
 	}
-
         return indirection;
     }
 
@@ -1446,7 +1464,7 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
             repository_id = repIdStrs.getClassDescValueRepId();
 
         // Write value_tag
-        int indirection = writeValueTag(mustChunk, false, null);
+        int indirection = writeValueTag(mustChunk, true, null);
         updateIndirectionTable(indirection, clz, clz);
             			
         write_repositoryId(repository_id);
@@ -1510,7 +1528,7 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 	String codebase = Util.getCodebase(clazz); 
 		
 	// Write value_tag
-	int indirection = writeValueTag(true, false, codebase);
+	int indirection = writeValueTag(true, true, codebase);
 	updateIndirectionTable(indirection, object, object);
 		
 	// Write rep. id
@@ -1808,7 +1826,7 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 	    end_block();
         
         // Write value_tag
-        writeValueTag(true, false, null);
+        writeValueTag(true, true, null);
 				
         // Write rep. id
         write_repositoryId(rep_id);

@@ -1,7 +1,7 @@
 /*
- * @(#)Component.java	1.387 04/06/18
+ * @(#)Component.java	1.389 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -148,7 +148,7 @@ import sun.awt.im.CompositionArea;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.387, 06/18/04
+ * @version     1.389, 01/04/05
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -7322,15 +7322,16 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     private void doSwingSerialization() {
         Package swingPackage = Package.getPackage("javax.swing");
-        // Find the first Swing class. Swing classes MUST be loaded by
-        // the bootstrap class loader, otherwise we don't consider them.
-        Class klass = Component.this.getClass();
-        while (klass != null && klass.getPackage() != swingPackage && 
-               klass.getClassLoader() == null) {
-            klass = klass.getSuperclass();
-        }
-        while (klass != null && klass.getClassLoader() == null) {
-            if (klass.getPackage() == swingPackage) {
+        // For Swing serialization to correctly work Swing needs to
+        // be notified before Component does it's serialization.  This
+        // hack accomodates this.
+        //
+        // Swing classes MUST be loaded by the bootstrap class loader,
+        // otherwise we don't consider them.
+        for (Class klass = Component.this.getClass(); klass != null;
+                   klass = klass.getSuperclass()) {
+            if (klass.getPackage() == swingPackage &&
+                      klass.getClassLoader() == null) {
                 final Class swingClass = klass;
                 // Find the first override of the compWriteObjectNotify method
                 Method[] methods = (Method[])AccessController.doPrivileged(
@@ -7362,7 +7363,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
                     }
                 }
             }
-            klass = klass.getSuperclass();
         }
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)java_md.c	1.54 04/05/05
+ * @(#)java_md.c	1.56 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,13 +30,13 @@
 
 /*
  * If a processor / os combination has the ability to run binaries of
- * with two data models and cohabitation of jre/jdk bits with both 
- * data models is supported, then DUAL_MODE is defined.  When 
- * DUAL_MODE is defined, the architecture names for the narrow and 
- * wide version of the architecture are defined in BIG_ARCH and 
- * SMALL_ARCH.  Currently only SPARC/Solaris is DUAL_MODE; linux 
- * i586/amd64 could be defined as DUAL_MODE; but that is not the 
- * current policy. 
+ * two data models and cohabitation of jre/jdk bits with both data
+ * models is supported, then DUAL_MODE is defined.  When DUAL_MODE is
+ * defined, the architecture names for the narrow and wide version of
+ * the architecture are defined in BIG_ARCH and SMALL_ARCH.  Currently
+ * only Solaris on sparc/sparcv9 and i586/amd64 is DUAL_MODE; linux
+ * i586/amd64 could be defined as DUAL_MODE but that is not the
+ * current policy.
  */
 
 #ifdef _LP64
@@ -49,24 +49,31 @@
 #    define ARCH "sparcv9"
 #  else
 #    define ARCH "unknown" /* unknown 64-bit architecture */
-#endif
+#  endif
 
 #else /* 32-bit data model */
 
 #  ifdef i586
 #    define ARCH "i386"
+#  elif defined(__sparc)
+#    define ARCH "sparc"
 #  endif
+
 #endif /* _LP64 */
 
-#ifdef __sparc
+#ifdef __sun
 #  define DUAL_MODE
-#  define BIG_ARCH "sparcv9"
-#  define SMALL_ARCH "sparc"
+#  ifdef __sparc
+#    define BIG_ARCH "sparcv9"
+#    define SMALL_ARCH "sparc"
+#  else
+#    define BIG_ARCH "amd64"
+#    define SMALL_ARCH "i386"
+#  endif
 #  include <sys/systeminfo.h>
 #  include <sys/elf.h>
 #  include <stdio.h>
 #else
-
 #  ifndef ARCH
 #    include <sys/systeminfo.h>
 #  endif
@@ -560,7 +567,7 @@ CreateExecutionEnvironment(int *_argcp,
 #endif
 
 	execve(newexec, argv, newenvp);
-	perror("execv()");
+	perror("execve()");
 
 	fprintf(stderr, "Error trying to exec %s.\n", newexec);
 	fprintf(stderr, "Check if file exists and permissions are set correctly.\n");
@@ -569,12 +576,18 @@ CreateExecutionEnvironment(int *_argcp,
 	if (running != wanted) {
 	  fprintf(stderr, "Failed to start a %d-bit JVM process from a %d-bit JVM.\n",
 		  wanted, running);
-#ifdef __sparc
+#  ifdef __sun
+
+#    ifdef __sparc
 	  fprintf(stderr, "Verify all necessary J2SE components have been installed.\n" );
 	  fprintf(stderr,
 		  "(Solaris SPARC 64-bit components must be installed after 32-bit components.)\n" );
-#endif
+#    else 
+	  fprintf(stderr, "Either 64-bit processes are not supported by this platform\n");
+	  fprintf(stderr, "or the 64-bit components have not been installed.\n");
+#    endif
 	}
+#  endif
 #endif
 
       }
@@ -774,7 +787,7 @@ GetApplicationHome(char *buf, jint bufsize)
 	return JNI_FALSE;
     }
     if (strcmp("/bin", buf + strlen(buf) - 4) != 0) 
-	*(strrchr(buf, '/')) = '\0';	/* sparcv9              */
+	*(strrchr(buf, '/')) = '\0';	/* sparcv9 or amd64     */
     if (strlen(buf) < 4 || strcmp("/bin", buf + strlen(buf) - 4) != 0) {
 	buf[0] = '\0';
 	return JNI_FALSE;
@@ -1056,7 +1069,7 @@ solaris_sparc_ServerClassMachine(void) {
     }
   }
   if (_launcher_debug) {
-    printf("solaris_sparc_ServerClassMachine: %s\n",
+    printf("solaris_" ARCH "_ServerClassMachine: %s\n",
            (result == JNI_TRUE ? "JNI_TRUE" : "JNI_FALSE"));
   }
   return result;
@@ -1077,11 +1090,27 @@ get_cpuid(uint32_t arg,
           uint32_t* ebxp,
           uint32_t* ecxp,
           uint32_t* edxp) {
+#ifdef _LP64
+  asm(
+  /* rbx is a callee-saved register */
+      " movq    %rbx, %r11  \n"
+  /* rdx and rcx are 3rd and 4th argument registers */
+      " movq    %rdx, %r10  \n"
+      " movq    %rcx, %r9   \n"
+      " movl    %edi, %eax  \n"
+      " cpuid               \n"
+      " movl    %eax, (%rsi)\n"
+      " movl    %ebx, (%r10)\n"
+      " movl    %ecx, (%r9) \n"
+      " movl    %edx, (%r8) \n"
+  /* Restore rbx */
+      " movq    %r11, %rbx");
+#else
   /* EBX is a callee-saved register */
   asm(" pushl   %ebx");
   /* Need ESI for storing through arguments */
   asm(" pushl   %esi");
-  asm(" movl     8(%ebp), %eax  \n"
+  asm(" movl    8(%ebp), %eax   \n"
       " cpuid                   \n"
       " movl    12(%ebp), %esi  \n"
       " movl    %eax, (%esi)    \n"
@@ -1095,6 +1124,7 @@ get_cpuid(uint32_t arg,
   asm(" popl    %esi");
   /* Restore EBX */
   asm(" popl    %ebx");
+#endif
 }
 
 #endif /* __sun && i586 */
@@ -1112,6 +1142,25 @@ get_cpuid(uint32_t arg,
           uint32_t* ebxp,
           uint32_t* ecxp,
           uint32_t* edxp) {
+#ifdef _LP64
+  __asm__ volatile (/* Instructions */
+                    "	movl	%4, %%eax  \n"
+                    "	cpuid              \n"
+                    "	movl    %%eax, (%0)\n"
+                    "	movl    %%ebx, (%1)\n"
+                    "	movl    %%ecx, (%2)\n"
+                    "	movl    %%edx, (%3)\n"
+                    : /* Outputs */
+                    : /* Inputs */
+                    "r" (eaxp),
+                    "r" (ebxp),
+                    "r" (ecxp),
+                    "r" (edxp),
+                    "r" (arg)
+                    : /* Clobbers */
+                    "%rax", "%rbx", "%rcx", "%rdx", "memory"
+                    );
+#else
   uint32_t value_of_eax = 0;
   uint32_t value_of_ebx = 0;
   uint32_t value_of_ecx = 0;
@@ -1128,8 +1177,9 @@ get_cpuid(uint32_t arg,
                     "	movl    %%edx, %3  \n"
                         /* restore ebx */
                     "   popl    %%ebx      \n"
+
                     : /* Outputs */
-                    "=m" (value_of_eax), 
+                    "=m" (value_of_eax),
                     "=m" (value_of_ebx),
                     "=m" (value_of_ecx),
                     "=m" (value_of_edx)
@@ -1142,6 +1192,7 @@ get_cpuid(uint32_t arg,
   *ebxp = value_of_ebx;
   *ecxp = value_of_ecx;
   *edxp = value_of_edx;
+#endif
 }
 
 #endif /* __linux__ && i586 */
@@ -1292,7 +1343,7 @@ physical_processors(void) {
 
 #if defined(__sun) && defined(i586)
 
-/* The definition of a server-class machine for solaris-i586 */
+/* The definition of a server-class machine for solaris-i586/amd64 */
 jboolean
 solaris_i586_ServerClassMachine(void) {
   jboolean            result            = JNI_FALSE;
@@ -1315,7 +1366,7 @@ solaris_i586_ServerClassMachine(void) {
     }
   }
   if (_launcher_debug) {
-    printf("solaris_i586_ServerClassMachine: %s\n",
+    printf("solaris_" ARCH "_ServerClassMachine: %s\n",
            (result == JNI_TRUE ? "true" : "false"));
   }
   return result;
@@ -1348,7 +1399,7 @@ linux_i586_ServerClassMachine(void) {
     }
   }
   if (_launcher_debug) {
-    printf("linux_i586_ServerClassMachine: %s\n",
+    printf("linux_" ARCH "_ServerClassMachine: %s\n",
            (result == JNI_TRUE ? "true" : "false"));
   }
   return result;

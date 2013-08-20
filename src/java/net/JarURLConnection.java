@@ -1,7 +1,7 @@
 /*
- * @(#)JarURLConnection.java	1.31 03/12/19
+ * @(#)JarURLConnection.java	1.33 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,6 +13,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.security.Permission;
+import sun.net.www.ParseUtil;
 
 /** 
  * A URL Connection to a Java ARchive (JAR) file or an entry in a JAR
@@ -163,6 +164,7 @@ public abstract class JarURLConnection extends URLConnection {
 	/* if ! is the last letter of the innerURL, entryName is null */
 	if (++separator != spec.length()) {
 	    entryName = spec.substring(separator, spec.length());
+	    entryName = ParseUtil.decode (entryName);
 	}
     }
 

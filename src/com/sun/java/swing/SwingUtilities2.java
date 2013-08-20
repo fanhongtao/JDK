@@ -1,7 +1,7 @@
 /*
- * @(#)SwingUtilities2.java	1.20 04/08/03
+ * @(#)SwingUtilities2.java	1.23 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,12 +20,14 @@ import javax.swing.plaf.*;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.DefaultHighlighter;
+import sun.swing.PrintColorUIResource;
 import sun.print.ProxyPrintGraphics;
 import sun.awt.AppContext;
 import sun.font.FontDesignMetrics;
 import sun.java2d.SunGraphics2D;
 import sun.security.action.GetPropertyAction;
 import sun.security.util.SecurityConstants;
+import java.io.*;
 
 /**
  * A collection of utility methods for Swing.
@@ -35,7 +37,7 @@ import sun.security.util.SecurityConstants;
  * releases and even patch releases. You should not rely on this class even
  * existing.
  *
- * @version 1.20 08/03/04
+ * @version 1.23 01/04/05
  */
 public class SwingUtilities2 {
     // Maintain a cache of CACHE_SIZE fonts and the left side bearing
@@ -371,7 +373,17 @@ public class SwingUtilities2 {
             if (g2d != null) {
                 TextLayout layout = new TextLayout(text, g2d.getFont(),
                                                    DEFAULT_FRC);
+
+                /* Use alternate print color if specified */
+                Color col = g2d.getColor();
+                if (col instanceof PrintColorUIResource) {
+                    g2d.setColor(((PrintColorUIResource)col).getPrintColor());
+                }
+
                 layout.draw(g2d, x, y);
+                
+                g2d.setColor(col);
+
                 return;
             }
         } 
@@ -495,7 +507,17 @@ public class SwingUtilities2 {
                         new TextLayout(new String(data,offset,length),
                                        g2d.getFont(),
                                        frc);
+
+                    /* Use alternate print color if specified */
+                    Color col = g2d.getColor();
+                    if (col instanceof PrintColorUIResource) {
+                        g2d.setColor(((PrintColorUIResource)col).getPrintColor());
+                    }
+
                     layout.draw(g2d,x,y);
+
+                    g2d.setColor(col);
+
                     return nextX;
                 }  
             }
@@ -525,15 +547,27 @@ public class SwingUtilities2 {
                                    AttributedCharacterIterator iterator,
                                    int x,
                                    int y) {
+
+        float retVal;
+        boolean isPrinting = isPrinting(g);
+        Color col = g.getColor();
+
+        if (isPrinting) {
+            /* Use alternate print color if specified */
+            if (col instanceof PrintColorUIResource) {
+                g.setColor(((PrintColorUIResource)col).getPrintColor());
+            }
+        }
+
         Graphics2D g2d = getGraphics2D(g);
         if (g2d == null) {
             g.drawString(iterator,x,y); //for the cases where advance
                                         //matters it should not happen
-            return x;                   
+            retVal = x;                   
 
         } else {
             FontRenderContext frc;
-            if (isPrinting(g)) {
+            if (isPrinting) {
                 frc = (FontRenderContext)AppContext.getAppContext().
                     get(FRC_KEY);
             } else if (drawTextAntialiased(c)) {
@@ -543,8 +577,14 @@ public class SwingUtilities2 {
             }
             TextLayout layout = new TextLayout(iterator, frc);
             layout.draw(g2d, x, y);
-            return layout.getAdvance();
+            retVal = layout.getAdvance();
         }
+
+        if (isPrinting) {
+            g.setColor(col);
+        }
+
+        return retVal;
     }
 
     /*
@@ -905,5 +945,92 @@ public class SwingUtilities2 {
         }
         rule.append(" }");
         return rule.toString();
+    }
+
+    /**
+     * Utility method that creates a <code>UIDefaults.LazyValue</code> that
+     * creates an <code>ImageIcon</code> <code>UIResource</code> for the
+     * specified image file name. The image is loaded using
+     * <code>getResourceAsStream</code>, starting with a call to that method
+     * on the base class parameter. If it cannot be found, searching will
+     * continue through the base class' inheritance hierarchy, up to and
+     * including <code>rootClass</code>.
+     *
+     * @param baseClass the first class to use in searching for the resource
+     * @param rootClass an ancestor of <code>baseClass</code> to finish the
+     *                  search at
+     * @param imageFile the name of the file to be found
+     * @return a lazy value that creates the <code>ImageIcon</code>
+     *         <code>UIResource</code> for the image,
+     *         or null if it cannot be found
+     */
+    public static Object makeIcon(final Class<?> baseClass,
+                                  final Class<?> rootClass,
+                                  final String imageFile) {
+
+        return new UIDefaults.LazyValue() {
+            public Object createValue(UIDefaults table) {
+                /* Copy resource into a byte array.  This is
+                 * necessary because several browsers consider
+                 * Class.getResource a security risk because it
+                 * can be used to load additional classes.
+                 * Class.getResourceAsStream just returns raw
+                 * bytes, which we can convert to an image.
+                 */
+                byte[] buffer = (byte[])
+                    java.security.AccessController.doPrivileged(
+                        new java.security.PrivilegedAction() {
+                    public Object run() {
+                        try {
+                            InputStream resource = null;
+                            Class<?> srchClass = baseClass;
+
+                            while (srchClass != null) {
+                                resource = srchClass.getResourceAsStream(imageFile);
+
+                                if (resource != null || srchClass == rootClass) {
+                                    break;
+                                }
+
+                                srchClass = srchClass.getSuperclass();
+                            }
+
+                            if (resource == null) {
+                                return null; 
+                            }
+
+                            BufferedInputStream in = 
+                                new BufferedInputStream(resource);
+                            ByteArrayOutputStream out = 
+                                new ByteArrayOutputStream(1024);
+                            byte[] buffer = new byte[1024];
+                            int n;
+                            while ((n = in.read(buffer)) > 0) {
+                                out.write(buffer, 0, n);
+                            }
+                            in.close();
+                            out.flush();
+                            return out.toByteArray();
+                        } catch (IOException ioe) {
+                            System.err.println(ioe.toString());
+                        }
+                        return null;
+                    }
+                });
+
+                if (buffer == null) {
+                    System.err.println(baseClass.getName() + "/" + 
+                                       imageFile + " not found.");
+                    return null;
+                }
+                if (buffer.length == 0) {
+                    System.err.println("warning: " + imageFile + 
+                                       " is zero-length");
+                    return null;
+                }
+
+                return new IconUIResource(new ImageIcon(buffer));
+            }
+        };
     }
 }

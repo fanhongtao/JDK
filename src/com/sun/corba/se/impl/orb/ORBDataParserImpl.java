@@ -1,7 +1,7 @@
 /*
- * @(#)ORBDataParserImpl.java	1.30 04/06/21
+ * @(#)ORBDataParserImpl.java	1.32 05/01/04
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -90,6 +90,7 @@ public class ORBDataParserImpl extends ParserImplTableBase implements ORBData
     private ReadTimeouts readTimeouts;
     private boolean disableDirectByteBufferUse;
     private boolean enableJavaSerialization;
+    private boolean useRepId;
 
     // This is not initialized from ParserTable.
     private CodeSetComponentInfo codesets ;
@@ -374,6 +375,10 @@ public class ORBDataParserImpl extends ParserImplTableBase implements ORBData
     public boolean disableDirectByteBufferUse() 
     {
 	return disableDirectByteBufferUse ;
+    }
+    public boolean useRepId() 
+    {
+	return useRepId;
     }
     
 // Methods for constructing and initializing this object ===========================================

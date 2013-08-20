@@ -1,7 +1,7 @@
 /*
- * @(#)MotifLookAndFeel.java	1.168 04/09/10
+ * @(#)MotifLookAndFeel.java	1.170 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,6 +28,8 @@ import javax.swing.plaf.basic.BasicBorders;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 
+import com.sun.java.swing.SwingUtilities2;
+
 /**
  * Implements the Motif Look and Feel.
  * UI classes not implemented specifically for Motif will
@@ -40,7 +42,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.168 09/10/04
+ * @version 1.170 01/04/05
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -436,11 +438,13 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 
         // *** Tree
 
-        Object treeOpenIcon = LookAndFeel.makeIcon(getClass(), 
-                                                           "icons/TreeOpen.gif");
+        Object treeOpenIcon = SwingUtilities2.makeIcon(getClass(),
+                                                       MotifLookAndFeel.class,
+                                                       "icons/TreeOpen.gif");
 
-        Object treeClosedIcon = LookAndFeel.makeIcon(getClass(), 
-                                                             "icons/TreeClosed.gif");
+        Object treeClosedIcon = SwingUtilities2.makeIcon(getClass(),
+                                                         MotifLookAndFeel.class,
+                                                         "icons/TreeClosed.gif");
 
         Object treeLeafIcon = new UIDefaults.LazyValue() {
             public Object createValue(UIDefaults table) {
@@ -728,8 +732,9 @@ public class MotifLookAndFeel extends BasicLookAndFeel
                  "ctrl shift SPACE", "moveSelectionTo"
 		 }),
 
-            "DesktopIcon.icon", LookAndFeel.makeIcon(getClass(), 
-                                                             "icons/DesktopIcon.gif"),
+            "DesktopIcon.icon", SwingUtilities2.makeIcon(getClass(),
+                                                         MotifLookAndFeel.class,
+                                                         "icons/DesktopIcon.gif"),
 	    "DesktopIcon.border", null,
 	    // These are a little odd, MotifInternalFrameUI isntalls em!
 	    "DesktopIcon.windowBindings", new Object[]
@@ -1215,14 +1220,18 @@ public class MotifLookAndFeel extends BasicLookAndFeel
             "OptionPane.border", optionPaneBorder,
             "OptionPane.messageAreaBorder", optionPaneMessageAreaBorder,
             "OptionPane.buttonAreaBorder", optionPaneButtonAreaBorder,
-            "OptionPane.errorIcon", LookAndFeel.makeIcon(getClass(), 
-                                                         "icons/Error.gif"),
-            "OptionPane.informationIcon", LookAndFeel.makeIcon(getClass(), 
-                                                               "icons/Inform.gif"),
-            "OptionPane.warningIcon", LookAndFeel.makeIcon(getClass(), 
-                                                           "icons/Warn.gif"),
-            "OptionPane.questionIcon", LookAndFeel.makeIcon(getClass(), 
-                                                            "icons/Question.gif"),
+            "OptionPane.errorIcon", SwingUtilities2.makeIcon(getClass(),
+                                                             MotifLookAndFeel.class,
+                                                             "icons/Error.gif"),
+            "OptionPane.informationIcon", SwingUtilities2.makeIcon(getClass(),
+                                                                   MotifLookAndFeel.class,
+                                                                   "icons/Inform.gif"),
+            "OptionPane.warningIcon", SwingUtilities2.makeIcon(getClass(),
+                                                               MotifLookAndFeel.class,
+                                                               "icons/Warn.gif"),
+            "OptionPane.questionIcon", SwingUtilities2.makeIcon(getClass(),
+                                                                MotifLookAndFeel.class,
+                                                                "icons/Question.gif"),
 	    "OptionPane.windowBindings", new Object[] {
 		"ESCAPE", "close" },
 

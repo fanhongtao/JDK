@@ -1,12 +1,13 @@
 /*
- * @(#)IIOPEndpointInfo.java	1.4 03/12/19
+ * @(#)IIOPEndpointInfo.java	1.6 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.corba.se.impl.naming.namingutil;
 
+import com.sun.corba.se.impl.orbutil.ORBConstants;
 
 /** 
  *  EndpointInfo is used internally by CorbaLoc object to store the
@@ -26,12 +27,12 @@ public class IIOPEndpointInfo
 
     IIOPEndpointInfo( ) {
 	// Default IIOP Version 
-	major = NamingConstants.DEFAULT_INS_GIOP_MAJOR_VERSION;
-	minor = NamingConstants.DEFAULT_INS_GIOP_MINOR_VERSION;
+	major = ORBConstants.DEFAULT_INS_GIOP_MAJOR_VERSION;
+	minor = ORBConstants.DEFAULT_INS_GIOP_MINOR_VERSION;
 	// Default host is localhost
-	host = "localhost";
+	host = ORBConstants.DEFAULT_INS_HOST;
 	// Default INS Port
-	port = NamingConstants.DEFAULT_INS_PORT;
+	port = ORBConstants.DEFAULT_INS_PORT;
     }
 
     public void setHost( String theHost ) {

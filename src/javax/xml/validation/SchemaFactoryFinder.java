@@ -1,17 +1,17 @@
 
-// $Id: SchemaFactoryFinder.java,v 1.11.6.1.2.1.4.1.2.1 2004/09/16 09:24:47 nb131165 Exp $
+// $Id: SchemaFactoryFinder.java,v 1.14 2004/11/24 23:32:37 jsuttor Exp $
 
 /*
- * @(#)SchemaFactoryFinder.java	1.10 04/10/19
- * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * @(#)SchemaFactoryFinder.java	1.12 05/01/04
+ *
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
  */
 
 package javax.xml.validation;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -25,7 +25,7 @@ import java.util.Properties;
  * Implementation of {@link SchemaFactory#newInstance(String)}.
  * 
  * @author <a href="Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.11.6.1.2.1.4.1.2.1 $, $Date: 2004/09/16 09:24:47 $
+ * @version $Revision: 1.14 $, $Date: 2004/11/24 23:32:37 $
  * @since 1.5
  */
 class SchemaFactoryFinder  {
@@ -112,8 +112,8 @@ class SchemaFactoryFinder  {
      * schema language.</p>
      * 
      * @param schemaLanguage
-     *      See <a href="SchemaFactory.html#schemaLanguage">
-     *      the list of available schema languages</a>
+     *      See {@link SchemaFactory Schema Language} table in <code>SchemaFactory</code>
+     *      for the list of available schema languages.
      * 
      * @return <code>null</code> if the callee fails to create one.
      * 

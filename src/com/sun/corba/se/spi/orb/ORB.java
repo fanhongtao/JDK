@@ -1,7 +1,7 @@
 /*
- * @(#)ORB.java	1.53 04/06/21
+ * @(#)ORB.java	1.55 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -10,7 +10,7 @@ package com.sun.corba.se.spi.orb;
 import java.util.Map ;
 import java.util.HashMap ;
 import java.util.Properties ;
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger ;
 
 import java.security.AccessController ;
@@ -151,7 +151,7 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     // representing LogDomain and ExceptionGroup.
     private Map wrapperMap ; 
 
-    private static Map staticWrapperMap = new HashMap() ; 
+    private static Map staticWrapperMap = new ConcurrentHashMap();
 
     private MonitoringManager monitoringManager;
 
@@ -230,7 +230,7 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     {
 	// Initialize logging first, since it is needed nearly 
 	// everywhere (for example, in TypeCodeImpl).
-	wrapperMap = new HashMap() ;
+	wrapperMap = new ConcurrentHashMap();
 	wrapper = ORBUtilSystemException.get( this, 
 	    CORBALogDomains.RPC_PRESENTATION ) ;
 	omgWrapper = OMGSystemException.get( this, 
@@ -455,7 +455,7 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     /** get the log wrapper class (its type is dependent on the exceptionGroup) for the
      * given log domain and exception group in this ORB instance.
      */
-    public synchronized LogWrapperBase getLogWrapper( String logDomain, 
+    public LogWrapperBase getLogWrapper( String logDomain, 
         String exceptionGroup, LogWrapperFactory factory ) 
     {
         StringPair key = new StringPair( logDomain, exceptionGroup ) ;
@@ -472,7 +472,7 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     /** get the log wrapper class (its type is dependent on the exceptionGroup) for the
      * given log domain and exception group in this ORB instance.
      */
-    public synchronized static LogWrapperBase staticGetLogWrapper( String logDomain, 
+    public static LogWrapperBase staticGetLogWrapper( String logDomain, 
         String exceptionGroup, LogWrapperFactory factory ) 
     {
         StringPair key = new StringPair( logDomain, exceptionGroup ) ;

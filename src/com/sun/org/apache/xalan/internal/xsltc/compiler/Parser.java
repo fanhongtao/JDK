@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Parser.java,v 1.64 2004/02/23 10:29:35 aruny Exp $
+ * $Id: Parser.java,v 1.66 2004/12/10 18:46:42 santiagopg Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -126,7 +126,7 @@ public class Parser implements Constants, ContentHandler {
 	if (_output != null) {
 	    if (_output.getImportPrecedence() <= output.getImportPrecedence()) {
 		String cdata = _output.getCdata();
-		output.mergeCdata(cdata);
+                output.mergeOutput(_output);
 		_output.disable();
 		_output = output;
 	    }
@@ -355,7 +355,7 @@ public class Parser implements Constants, ContentHandler {
 		stylesheet = new Stylesheet();
 		stylesheet.setSimplified();
 		stylesheet.addElement(element);
-		stylesheet.setAttributes(element.getAttributes());
+		stylesheet.setAttributes((AttributeList) element.getAttributes());
 
 		// Map the default NS if not already defined
 		if (element.lookupNamespace(EMPTYSTRING) == null) {
@@ -1251,7 +1251,7 @@ public class Parser implements Constants, ContentHandler {
 	    parent.addElement(element);
 	    element.setParent(parent);
 	}
-	element.setAttributes((Attributes)new AttributeList(attributes));
+	element.setAttributes(new AttributeList(attributes));
 	element.setPrefixMapping(_prefixMapping);
 	
 	if (element instanceof Stylesheet) {

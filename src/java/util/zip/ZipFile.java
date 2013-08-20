@@ -1,7 +1,7 @@
 /*
- * @(#)ZipFile.java	1.67 04/05/05
+ * @(#)ZipFile.java	1.69 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -28,7 +28,7 @@ import java.lang.reflect.*;
  * or method in this class will cause a {@link NullPointerException} to be
  * thrown.
  *
- * @version   1.67, 05/05/04 
+ * @version   1.69, 01/04/05 
  * @author	David Connelly
  */
 public
@@ -315,7 +315,10 @@ class ZipFile implements ZipConstants {
 	    return zfin;
 	case DEFLATED:
 	    // MORE: Compute good size for inflater stream:
-	    return new InflaterInputStream(zfin, getInflater()) {
+            long size = getSize(jzentry);
+            if (size > 65536) size = 8192;
+            if (size <= 0) size = 4096;
+            return new InflaterInputStream(zfin, getInflater(), (int)size) {
                 private boolean isClosed = false;
                 
 		public void close() throws IOException {

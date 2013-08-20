@@ -1,7 +1,7 @@
 /*
- * @(#)BasicLookAndFeel.java	1.238 04/03/05
+ * @(#)BasicLookAndFeel.java	1.240 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -29,6 +29,7 @@ import java.lang.reflect.*;
 import javax.sound.sampled.*;
 
 import sun.swing.SwingLazyValue;
+import com.sun.java.swing.SwingUtilities2;
 
 import javax.swing.LookAndFeel;
 import javax.swing.AbstractAction;
@@ -67,7 +68,7 @@ import javax.swing.text.DefaultEditorKit;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.238 03/05/04
+ * @version 1.240 01/04/05
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -387,16 +388,36 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 
 	// *** FileChooser / FileView value objects
 
-	Object newFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/NewFolder.gif");
-	Object upFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/UpFolder.gif");
-	Object homeFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/HomeFolder.gif");
-	Object detailsViewIcon = LookAndFeel.makeIcon(getClass(), "icons/DetailsView.gif");
-	Object listViewIcon = LookAndFeel.makeIcon(getClass(), "icons/ListView.gif");
-	Object directoryIcon = LookAndFeel.makeIcon(getClass(), "icons/Directory.gif");
-	Object fileIcon = LookAndFeel.makeIcon(getClass(), "icons/File.gif");
-	Object computerIcon = LookAndFeel.makeIcon(getClass(), "icons/Computer.gif");
-	Object hardDriveIcon = LookAndFeel.makeIcon(getClass(), "icons/HardDrive.gif");
-	Object floppyDriveIcon = LookAndFeel.makeIcon(getClass(), "icons/FloppyDrive.gif");
+        Object newFolderIcon = SwingUtilities2.makeIcon(getClass(),
+                                                        BasicLookAndFeel.class,
+                                                        "icons/NewFolder.gif");
+        Object upFolderIcon = SwingUtilities2.makeIcon(getClass(),
+                                                       BasicLookAndFeel.class,
+                                                       "icons/UpFolder.gif");
+        Object homeFolderIcon = SwingUtilities2.makeIcon(getClass(),
+                                                         BasicLookAndFeel.class,
+                                                         "icons/HomeFolder.gif");
+        Object detailsViewIcon = SwingUtilities2.makeIcon(getClass(),
+                                                          BasicLookAndFeel.class,
+                                                          "icons/DetailsView.gif");
+        Object listViewIcon = SwingUtilities2.makeIcon(getClass(),
+                                                       BasicLookAndFeel.class,
+                                                       "icons/ListView.gif");
+        Object directoryIcon = SwingUtilities2.makeIcon(getClass(),
+                                                        BasicLookAndFeel.class,
+                                                        "icons/Directory.gif");
+        Object fileIcon = SwingUtilities2.makeIcon(getClass(),
+                                                   BasicLookAndFeel.class,
+                                                   "icons/File.gif");
+        Object computerIcon = SwingUtilities2.makeIcon(getClass(),
+                                                       BasicLookAndFeel.class,
+                                                       "icons/Computer.gif");
+        Object hardDriveIcon = SwingUtilities2.makeIcon(getClass(),
+                                                        BasicLookAndFeel.class,
+                                                        "icons/HardDrive.gif");
+        Object floppyDriveIcon = SwingUtilities2.makeIcon(getClass(),
+                                                          BasicLookAndFeel.class,
+                                                          "icons/FloppyDrive.gif");
 
 
 	// *** InternalFrame value objects
@@ -691,7 +712,9 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "InternalFrame.borderHighlight", controlLtHighlight,
 	    "InternalFrame.borderLight", controlHighlight,
 	    "InternalFrame.border", internalFrameBorder,
-            "InternalFrame.icon",   LookAndFeel.makeIcon(BasicLookAndFeel.class, "icons/JavaCup16.png"),
+            "InternalFrame.icon",   SwingUtilities2.makeIcon(getClass(),
+                                                             BasicLookAndFeel.class,
+                                                             "icons/JavaCup16.png"),
 
             /* Default frame icons are undefined for Basic. */
             "InternalFrame.maximizeIcon", 
@@ -986,10 +1009,18 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
             "OptionPane.messageAreaBorder", zeroBorder,
             "OptionPane.buttonAreaBorder", optionPaneButtonAreaBorder,
             "OptionPane.minimumSize", optionPaneMinimumSize,
-	    "OptionPane.errorIcon", LookAndFeel.makeIcon(getClass(), "icons/Error.gif"),
-	    "OptionPane.informationIcon", LookAndFeel.makeIcon(getClass(), "icons/Inform.gif"),
-	    "OptionPane.warningIcon", LookAndFeel.makeIcon(getClass(), "icons/Warn.gif"),
-	    "OptionPane.questionIcon", LookAndFeel.makeIcon(getClass(), "icons/Question.gif"),
+            "OptionPane.errorIcon", SwingUtilities2.makeIcon(getClass(),
+                                                             BasicLookAndFeel.class,
+                                                             "icons/Error.gif"),
+            "OptionPane.informationIcon", SwingUtilities2.makeIcon(getClass(),
+                                                                   BasicLookAndFeel.class,
+                                                                   "icons/Inform.gif"),
+            "OptionPane.warningIcon", SwingUtilities2.makeIcon(getClass(),
+                                                               BasicLookAndFeel.class,
+                                                               "icons/Warn.gif"),
+            "OptionPane.questionIcon", SwingUtilities2.makeIcon(getClass(),
+                                                                BasicLookAndFeel.class,
+                                                                "icons/Question.gif"),
 	    "OptionPane.windowBindings", new Object[] {
 		"ESCAPE", "close" },
 	         // OptionPane Auditory Cue Mappings
@@ -1500,9 +1531,15 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
 	    "Tree.rightChildIndent", new Integer(13),
 	    "Tree.rowHeight", new Integer(16),
 	    "Tree.scrollsOnExpand", Boolean.TRUE,
-	    "Tree.openIcon", LookAndFeel.makeIcon(getClass(), "icons/TreeOpen.gif"),
-	    "Tree.closedIcon", LookAndFeel.makeIcon(getClass(), "icons/TreeClosed.gif"),
-	    "Tree.leafIcon", LookAndFeel.makeIcon(getClass(), "icons/TreeLeaf.gif"),
+            "Tree.openIcon", SwingUtilities2.makeIcon(getClass(),
+                                                      BasicLookAndFeel.class,
+                                                      "icons/TreeOpen.gif"),
+            "Tree.closedIcon", SwingUtilities2.makeIcon(getClass(),
+                                                        BasicLookAndFeel.class,
+                                                        "icons/TreeClosed.gif"),
+            "Tree.leafIcon", SwingUtilities2.makeIcon(getClass(),
+                                                      BasicLookAndFeel.class,
+                                                      "icons/TreeLeaf.gif"),
 	    "Tree.expandedIcon", null,
 	    "Tree.collapsedIcon", null,
 	    "Tree.changeSelectionWithFocus", Boolean.TRUE,

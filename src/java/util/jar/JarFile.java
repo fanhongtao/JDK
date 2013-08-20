@@ -1,7 +1,7 @@
 /*
- * @(#)JarFile.java	1.58 04/05/05
+ * @(#)JarFile.java	1.60 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import sun.misc.SharedSecrets;
  * thrown.
  *
  * @author  David Connelly
- * @version 1.58, 05/05/04
+ * @version 1.60, 01/04/05
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -389,8 +389,12 @@ class JarFile extends ZipFile {
 	}
 
 	// wrap a verifier stream around the real stream
-	return new JarVerifier.VerifierStream(man, (JarEntry)ze,
-					      super.getInputStream(ze), jv);
+	return new JarVerifier.VerifierStream(
+	    man,
+	    ze instanceof JarFileEntry ?
+	    (JarEntry) ze : getJarEntry(ze.getName()),
+	    super.getInputStream(ze),
+	    jv);
     }
 
     // Statics for hand-coded Boyer-Moore search in hasClassPathAttribute()

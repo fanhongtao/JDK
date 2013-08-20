@@ -1,7 +1,7 @@
 /*
- * @(#)RepIdDelegator_1_3.java	1.6 03/12/19
+ * @(#)RepIdDelegator_1_3.java	1.8 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -99,6 +99,14 @@ public final class RepIdDelegator_1_3
 
     public int getCodeBaseRMIUnchunkedId() {
         return RepositoryId.kPreComputed_CodeBaseRMIUnchunked;
+    }
+
+    public int getStandardRMIUnchunkedNoRepStrId() {
+	return RepositoryId.kPreComputed_StandardRMIUnchunked_NoRep;
+    }
+
+    public int getCodeBaseRMIUnchunkedNoRepStrId() {
+        return RepositoryId.kPreComputed_CodeBaseRMIUnchunked_NoRep;
     }
 
     // RepositoryIdInterface methods

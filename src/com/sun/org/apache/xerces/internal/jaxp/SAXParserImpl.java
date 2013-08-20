@@ -137,12 +137,12 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
             String propertyId = (String)keys.nextElement();
             Object value = parserFeatures.get(propertyId);
             if(value instanceof Boolean){
-                System.out.println("Remvoing feature = " + propertyId + " with value = " + parserConfiguration.getFeatureDefaultValue(propertyId));
+                //System.out.println("Remvoing feature = " + propertyId + " with value = " + parserConfiguration.getFeatureDefaultValue(propertyId));
                 //this means it is a feature, we have to get default value from the configuration
                 xmlReader.setFeature(propertyId, parserConfiguration.getFeatureDefaultValue(propertyId));
             }
             else{//it's a property
-                System.out.println("Remvoing property = " + propertyId);
+                //System.out.println("Remvoing property = " + propertyId);
                 //null value should delete the property from underlying implementation.
                 xmlReader.setProperty(propertyId, null);
             }
@@ -337,7 +337,7 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
                     
                 }
                 else{
-                    System.out.println("Property = " + name + "is not set");
+                    //System.out.println("Property = " + name + "is not set");
                 }
                 
             } else if (value == null) {
@@ -426,5 +426,6 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
     public boolean isSecureProcessing(){
         return secureProcessing!=null;
     }
+
     
 }

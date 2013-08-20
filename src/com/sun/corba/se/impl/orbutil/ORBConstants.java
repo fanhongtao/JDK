@@ -1,7 +1,7 @@
 /*
- * @(#)ORBConstants.java	1.69 03/08/21
+ * @(#)ORBConstants.java	1.63 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -147,6 +147,8 @@ public class ORBConstants {
     public static final String OLD_ORB_ID_PROPERTY		= SUN_PREFIX + "ORBid" ;
     public static final String ORB_SERVER_ID_PROPERTY	        = ORG_OMG_CORBA_PREFIX + "ORBServerId" ;
     public static final String DEBUG_PROPERTY			= SUN_PREFIX + "ORBDebug" ;
+    // Property for setting use of repository Ids during serialization.
+    public static final String USE_REP_ID = SUN_PREFIX + "ORBUseRepId";
 
     // NOTE: This is an internal property.  It should never be set by
     // a user.  That is the reason it has spaces in its name - to make it
@@ -301,11 +303,15 @@ public class ORBConstants {
 
     public static final int DEFAULT_INITIAL_PORT                 = 900;
 
+    public static final String DEFAULT_INS_HOST = "localhost";
+
     public static final int DEFAULT_INS_PORT                     = 2089;
 
     public static final int DEFAULT_INS_GIOP_MAJOR_VERSION       = 1;
 
-    public static final int DEFAULT_INS_GIOP_MINOR_VERSION       = 2;
+    // http://www.omg.org/cgi-bin/doc?ptc/00-08-07 [ Section 13.6.7.3 ]
+    // defines the default GIOP minor version to be 0.
+    public static final int DEFAULT_INS_GIOP_MINOR_VERSION       = 0;
 
 
     // Constants for INS properties ********************************************

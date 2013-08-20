@@ -1,7 +1,7 @@
 /*
- * @(#)GregorianCalendar.java	1.84 04/04/25
+ * @(#)GregorianCalendar.java	1.86 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -275,7 +275,7 @@ import sun.util.calendar.ZoneInfo;
  * </blockquote>
  *
  * @see          TimeZone
- * @version      1.84
+ * @version      1.86
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -1317,9 +1317,39 @@ public class GregorianCalendar extends Calendar {
 	    }
 
         case DAY_OF_WEEK:
-	    set(WEEK_OF_YEAR, internalGet(WEEK_OF_YEAR));
-	    max = SATURDAY;
-	    break;
+	    {
+		if (!isCutoverYear(cdate.getNormalizedYear())) {
+		    // If the week of year is in the same year, we can
+		    // just change DAY_OF_WEEK.
+		    int weekOfYear = internalGet(WEEK_OF_YEAR);
+		    if (weekOfYear > 1 && weekOfYear < 52) {
+			set(WEEK_OF_YEAR, weekOfYear); // update stamp[WEEK_OF_YEAR]
+			max = SATURDAY;
+			break;
+		    }
+		}
+
+		// We need to handle it in a different way around year
+		// boundaries and in the cutover year. Note that
+		// changing era and year values violates the roll
+		// rule: not changing larger calendar fields...
+		amount %= 7;
+		if (amount == 0) {
+		    return;
+		}
+		long fd = getCurrentFixedDate();
+		long dowFirst = calsys.getDayOfWeekDateOnOrBefore(fd, getFirstDayOfWeek());
+		fd += amount;
+		if (fd < dowFirst) {
+		    fd += 7;
+		} else if (fd >= dowFirst + 7) {
+		    fd -= 7;
+		}
+		BaseCalendar.Date d = getCalendarDate(fd);
+		set(ERA, (d.getNormalizedYear() <= 0 ? BCE : CE));
+		set(d.getYear(), d.getMonth() - 1, d.getDayOfMonth());
+		return;
+	    }
 
         case DAY_OF_WEEK_IN_MONTH:
             {

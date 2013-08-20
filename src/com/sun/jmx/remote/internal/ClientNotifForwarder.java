@@ -1,7 +1,7 @@
 /*
- * @(#)ClientNotifForwarder.java	1.34 04/04/23
+ * @(#)ClientNotifForwarder.java	1.39 05/01/04
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,11 +9,11 @@ package com.sun.jmx.remote.internal;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
-import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -23,14 +23,12 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.NotificationFilter;
 import javax.management.ObjectName;
-import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServerNotification;
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
 
 import javax.management.remote.NotificationResult;
 import javax.management.remote.TargetedNotification;
-import javax.management.remote.JMXConnectionNotification;
 
 import com.sun.jmx.remote.util.ClassLogger;
 import com.sun.jmx.remote.util.EnvHelp;
@@ -41,11 +39,78 @@ public abstract class ClientNotifForwarder {
 	this(null, env);
     }
 
+    private static int threadId;
+
+    /* An Executor that allows at most one executing and one pending
+       Runnable.  It uses at most one thread -- as soon as there is
+       no pending Runnable the thread can exit.  Another thread is
+       created as soon as there is a new pending Runnable.  This
+       Executor is adapted for use in a situation where each Runnable
+       usually schedules up another Runnable.  On return from the
+       first one, the second one is immediately executed.  So this
+       just becomes a complicated way to write a while loop, but with
+       the advantage that you can replace it with another Executor,
+       for instance one that you are using to execute a bunch of other
+       unrelated work.
+
+       You might expect that a java.util.concurrent.ThreadPoolExecutor 
+       with corePoolSize=0 and maximumPoolSize=1 would have the same
+       behaviour, but it does not.  A ThreadPoolExecutor only creates
+       a new thread when a new task is submitted and the number of
+       existing threads is < corePoolSize.  This can never happen when
+       corePoolSize=0, so new threads are never created.  Surprising,
+       but there you are.
+    */
+    private static class LinearExecutor implements Executor {
+	public synchronized void execute(Runnable command) {
+	    if (this.command != null)
+		throw new IllegalArgumentException("More than one command");
+	    this.command = command;
+	    if (thread == null) {
+		thread = new Thread() {
+		    public void run() {
+			while (true) {
+			    Runnable r;
+			    synchronized (LinearExecutor.this) {
+				if (LinearExecutor.this.command == null) {
+				    thread = null;
+				    return;
+				} else {
+				    r = LinearExecutor.this.command;
+				    LinearExecutor.this.command = null;
+				}
+			    }
+			    r.run();
+			}
+		    }
+		};
+		thread.setDaemon(true);
+		thread.setName("ClientNotifForwarder-" + ++threadId);
+		thread.start();
+	    }
+	}
+
+	private Runnable command;
+	private Thread thread;
+    }
+
     public ClientNotifForwarder(ClassLoader defaultClassLoader, Map env) {
 	maxNotifications = EnvHelp.getMaxFetchNotifNumber(env);
 	timeout = EnvHelp.getFetchTimeout(env);
 
+        /* You can supply an Executor in which the remote call to
+           fetchNotifications will be made.  The Executor's execute
+           method reschedules another task, so you must not use
+           an Executor that executes tasks in the caller's thread.  */
+	Executor ex = (Executor)
+	    env.get("jmx.remote.x.fetch.notifications.executor");
+	if (ex == null)
+            ex = new LinearExecutor();
+        else if (logger.traceOn())
+            logger.trace("ClientNotifForwarder", "executor is " + ex);
+
 	this.defaultClassLoader = defaultClassLoader;
+	this.executor = ex;
     }
 
     /**
@@ -207,6 +272,13 @@ public abstract class ClientNotifForwarder {
 
 	infoList.clear();
 
+	if (currentFetchThread == Thread.currentThread()) {
+	    /* we do not need to stop the fetching thread, because this thread is
+	       used to do restarting and it will not be used to do fetching during
+	       the re-registering the listeners.*/
+	    return tmp;
+	}
+
 	while (state == STARTING) {
 	    try {
 		wait();
@@ -220,13 +292,6 @@ public abstract class ClientNotifForwarder {
 
 	if (state == STARTED) {
 	    setState(STOPPING);
-
-	    // we remove Thread.innterrup because of thebug 4956080:
-	    // BrokenConnectionTest.java fails under jtreg; runs OK standalone
-// 	    if (Thread.currentThread() != notifFetcher.fetchThread) {
-// 		notifFetcher.fetchThread.interrupt();
-// 	    }
-
 	}
 
 	return tmp;
@@ -270,7 +335,20 @@ public abstract class ClientNotifForwarder {
 	beingReconnected = false;
 	notifyAll();
 
-	if (listenerInfos.length > 0) { // old listeners re-registered
+	if (currentFetchThread == Thread.currentThread()) {
+	    // no need to init, simply get the id
+	    try {
+		mbeanRemovedNotifID = addListenerForMBeanRemovedNotif();
+	    } catch (Exception e) {
+		final String msg =
+		    "Failed to register a listener to the mbean " +
+		    "server: the client will not do clean when an MBean " +
+		    "is unregistered";
+		if (logger.traceOn()) {
+		    logger.trace("init", msg, e);
+		}		 
+	    } 
+	} else if (listenerInfos.length > 0) { // old listeners re-registered
 	    init(true);
 	} else if (infoList.size() > 0) {
 	    // but new listeners registered during reconnection
@@ -300,24 +378,26 @@ public abstract class ClientNotifForwarder {
     //
     private class NotifFetcher implements Runnable {
 	public void run() {
-	    fetchThread = Thread.currentThread();
+            synchronized (ClientNotifForwarder.this) {
+		currentFetchThread = Thread.currentThread();
 
-	    setState(STARTED);
+                if (state == STARTING)
+                    setState(STARTED);
+            }
 
 	    if (defaultClassLoader != null) {
 		AccessController.doPrivileged(new PrivilegedAction() {
 			public Object run() {
-			    fetchThread.
+			    Thread.currentThread().
 				setContextClassLoader(defaultClassLoader);
 			    return null;
 			}
 		    });
 	    }
 
-	    while (!shouldStop()) {
-		NotificationResult nr = fetchNotifs();
-
-		if (nr == null) break; // nr == null means got exception
+	    NotificationResult nr = null;
+	    if (!shouldStop() && (nr = fetchNotifs()) != null) {
+		// nr == null means got exception
 
 		final TargetedNotification[] notifs =
 		    nr.getTargetedNotifications();
@@ -383,8 +463,16 @@ public abstract class ClientNotifForwarder {
 		}
 	    }
 
-	    // tell that the thread is REALLY stopped
-	    setState(STOPPED);
+            synchronized (ClientNotifForwarder.this) {
+		currentFetchThread = null;
+	    }
+
+	    if (nr == null || shouldStop()) {
+		// tell that the thread is REALLY stopped
+		setState(STOPPED);
+	    } else {
+		executor.execute(this);
+	    }
 	}
 
 	void dispatchNotification(TargetedNotification tn, 
@@ -543,9 +631,6 @@ public abstract class ClientNotifForwarder {
 		return false;
 	    }
 	}
-
-	// the thread executing fetch job
-	private Thread fetchThread;
     }
 
 
@@ -637,10 +722,7 @@ public abstract class ClientNotifForwarder {
 	    setState(STARTING);
 
 	    // start fetching
-	    notifFetcher = new NotifFetcher();
-	    Thread t = new Thread(notifFetcher);
-	    t.setDaemon(true);
-	    t.start();
+	    executor.execute(new NotifFetcher());
 
 	    return;
 	default:
@@ -678,9 +760,10 @@ public abstract class ClientNotifForwarder {
 // private variables
 // -------------------------------------------------
 
-    private ClassLoader defaultClassLoader = null;
+    private final ClassLoader defaultClassLoader;
+    private final Executor executor;
 
-    private HashMap infoList = new HashMap();
+    private final HashMap infoList = new HashMap();
     // Integer -> ClientListenerInfo
 
     // notif stuff
@@ -688,8 +771,9 @@ public abstract class ClientNotifForwarder {
     private final int maxNotifications;
     private final long timeout;
 
-    private NotifFetcher notifFetcher;
     private Integer mbeanRemovedNotifID = null;
+
+    private Thread currentFetchThread;
 
     // admin stuff
     private boolean inited = false;

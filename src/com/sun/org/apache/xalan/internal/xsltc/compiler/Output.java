@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Output.java,v 1.25 2004/02/24 03:55:48 zongaro Exp $
+ * $Id: Output.java,v 1.27 2004/12/10 18:46:42 santiagopg Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -58,9 +58,8 @@ final class Output extends TopLevelElement {
     private String  _cdata;
     private boolean _indent = false;
     private String  _mediaType;
-    private String  _cdataToMerge;
     private String _indentamount;
-
+    
     // Disables this output element (when other element has higher precedence)
     private boolean _disabled = false;
 
@@ -98,8 +97,41 @@ final class Output extends TopLevelElement {
     	return _method;
     }
     
-    public void mergeCdata(String cdata) {
-	_cdataToMerge = cdata;
+    private void transferAttribute(Output previous, String qname) {
+        if (!hasAttribute(qname) && previous.hasAttribute(qname)) {
+            addAttribute(qname, previous.getAttribute(qname));            
+        }        
+    }
+    
+    public void mergeOutput(Output previous) {
+        // Transfer attributes from previous xsl:output
+        transferAttribute(previous, "version");
+        transferAttribute(previous, "method");
+        transferAttribute(previous, "encoding");
+        transferAttribute(previous, "doctype-system");
+        transferAttribute(previous, "doctype-public");      
+        transferAttribute(previous, "media-type");
+        transferAttribute(previous, "indent");        
+        transferAttribute(previous, "omit-xml-declaration");
+        transferAttribute(previous, "standalone");
+        
+        // Merge cdata-section-elements
+        if (previous.hasAttribute("cdata-section-elements")) {
+            // addAttribute works as a setter if it already exists
+            addAttribute("cdata-section-elements",
+                previous.getAttribute("cdata-section-elements") + ' ' +
+                getAttribute("cdata-section-elements"));
+        }
+
+        // Transfer non-standard attributes as well
+        String prefix = lookupPrefix("http://xml.apache.org/xalan");
+        if (prefix != null) {
+            transferAttribute(previous, prefix + ':' + "indent-amount");
+        }
+        prefix = lookupPrefix("http://xml.apache.org/xslt");
+        if (prefix != null) {
+            transferAttribute(previous, prefix + ':' + "indent-amount");
+        }                
     }
 
     /**
@@ -118,7 +150,7 @@ final class Output extends TopLevelElement {
 
 	// Get the output version
 	_version = getAttribute("version");
-	if (_version == null || _version.equals(Constants.EMPTYSTRING)) {
+	if (_version.equals(Constants.EMPTYSTRING)) {
 	    _version = null;
 	}
 	else {
@@ -150,8 +182,8 @@ final class Output extends TopLevelElement {
 	else {
 	    try {
 		// Create a write to verify encoding support
-        String canonicalEncoding;
-        canonicalEncoding = Encodings.convertMime2JavaEncoding(_encoding);
+                String canonicalEncoding;
+                canonicalEncoding = Encodings.convertMime2JavaEncoding(_encoding);
 		OutputStreamWriter writer =
 		    new OutputStreamWriter(System.out, canonicalEncoding); 
 	    }
@@ -165,7 +197,7 @@ final class Output extends TopLevelElement {
 
 	// Should the XML header be omitted - translate to true/false
 	attrib = getAttribute("omit-xml-declaration");
-	if (attrib != null && !attrib.equals(Constants.EMPTYSTRING)) {
+	if (!attrib.equals(Constants.EMPTYSTRING)) {
 	    if (attrib.equals("yes")) {
 		_omitHeader = true;
 	    }
@@ -201,7 +233,7 @@ final class Output extends TopLevelElement {
 
 	// Names the elements of whose text contents should be output as CDATA
 	_cdata = getAttribute("cdata-section-elements");
-	if (_cdata != null && _cdata.equals(Constants.EMPTYSTRING)) {
+	if (_cdata.equals(Constants.EMPTYSTRING)) {
 	    _cdata = null;
 	}
 	else {
@@ -219,16 +251,13 @@ final class Output extends TopLevelElement {
         	   parser.getQName(qname).toString()).append(' ');
 	    }
 	    _cdata = expandedNames.toString();
-	    if (_cdataToMerge != null) {
-		_cdata = _cdata + _cdataToMerge;
-	    }
 	    outputProperties.setProperty(OutputKeys.CDATA_SECTION_ELEMENTS, 
 		_cdata);
 	}
 
 	// Get the indent setting - only has effect for xml and html output
 	attrib = getAttribute("indent");
-	if (attrib != null && !attrib.equals(EMPTYSTRING)) {
+	if (!attrib.equals(EMPTYSTRING)) {
 	    if (attrib.equals("yes")) {
 		_indent = true;
 	    }
@@ -237,16 +266,19 @@ final class Output extends TopLevelElement {
 	else if (_method != null && _method.equals("html")) {
 	    _indent = true;
 	}
-    // indent-amount: extension attribute of xsl:output
-    _indentamount = getAttributes().getValue(lookupPrefix("http://xml.apache.org/xalan"),"indent-amount");
-    //  Hack for supporting Old Namespace URI.
-    if(_indentamount == null || _indentamount.equals(EMPTYSTRING)){
-        _indentamount = getAttributes().getValue(lookupPrefix("http://xml.apache.org/xslt"),"indent-amount");
-    }
-    if(_indentamount != null && !_indentamount.equals(EMPTYSTRING)) {
-        outputProperties.setProperty("indent_amount", _indentamount);
-    }
-
+	
+        // indent-amount: extension attribute of xsl:output
+        _indentamount = getAttribute(
+            lookupPrefix("http://xml.apache.org/xalan"), "indent-amount");
+        //  Hack for supporting Old Namespace URI.
+        if (_indentamount.equals(EMPTYSTRING)){
+            _indentamount = getAttribute(
+                lookupPrefix("http://xml.apache.org/xslt"), "indent-amount");
+        }
+        if (!_indentamount.equals(EMPTYSTRING)) {
+            outputProperties.setProperty("indent_amount", _indentamount);
+        }
+        
 	// Get the MIME type for the output file
 	_mediaType = getAttribute("media-type");
 	if (_mediaType.equals(Constants.EMPTYSTRING)) {
@@ -358,14 +390,14 @@ final class Output extends TopLevelElement {
 	    il.append(new PUTFIELD(field));
 	}
 
-   //Compile code to set indent amount.
-    if(_indentamount != null && !_indentamount.equals(EMPTYSTRING)){
-        field = cpg.addFieldref(TRANSLET_CLASS, "_indentamount", "I");
+        //Compile code to set indent amount.
+        if(_indentamount != null && !_indentamount.equals(EMPTYSTRING)){
+            field = cpg.addFieldref(TRANSLET_CLASS, "_indentamount", "I");
 	    il.append(DUP);
 	    il.append(new PUSH(cpg, Integer.parseInt(_indentamount)));
 	    il.append(new PUTFIELD(field));
-    }
-
+        }
+        
 	// Forward to the translet any elements that should be output as CDATA
 	if (_cdata != null) {
 	    int index = cpg.addMethodref(TRANSLET_CLASS,

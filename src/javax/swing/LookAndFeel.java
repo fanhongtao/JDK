@@ -1,7 +1,7 @@
 /*
- * @(#)LookAndFeel.java	1.36 04/05/05
+ * @(#)LookAndFeel.java	1.38 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,7 +20,7 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 
 import java.net.URL;
-import java.io.*;
+import com.sun.java.swing.SwingUtilities2;
 
 import java.util.StringTokenizer;
 
@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
  * Completely characterizes a look and feel from the point of view
  * of the pluggable look and feel components.  
  * 
- * @version 1.36 05/05/04
+ * @version 1.38 01/04/05
  * @author Tom Ball
  * @author Hans Muller
  */
@@ -247,58 +247,7 @@ public abstract class LookAndFeel
      * filename.
      */
     public static Object makeIcon(final Class<?> baseClass, final String gifFile) {
-	return new UIDefaults.LazyValue() {
-	    public Object createValue(UIDefaults table) {
-		/* Copy resource into a byte array.  This is
-		 * necessary because several browsers consider
-		 * Class.getResource a security risk because it
-		 * can be used to load additional classes.
-		 * Class.getResourceAsStream just returns raw
-		 * bytes, which we can convert to an image.
-		 */
-                byte[] buffer = (byte[])
-                    java.security.AccessController.doPrivileged(
-                        new java.security.PrivilegedAction() {
-		    public Object run() {
-			try {
-			    InputStream resource = 
-				baseClass.getResourceAsStream(gifFile);
-			    if (resource == null) {
-				return null; 
-			    }
-			    BufferedInputStream in = 
-				new BufferedInputStream(resource);
-			    ByteArrayOutputStream out = 
-				new ByteArrayOutputStream(1024);
-			    byte[] buffer = new byte[1024];
-			    int n;
-			    while ((n = in.read(buffer)) > 0) {
-				out.write(buffer, 0, n);
-			    }
-			    in.close();
-			    out.flush();
-			    return out.toByteArray();
-			} catch (IOException ioe) {
-			    System.err.println(ioe.toString());
-			}
-                        return null;
-		    }
-		});
-
-		if (buffer == null) {
-		    System.err.println(baseClass.getName() + "/" + 
-				       gifFile + " not found.");
-		    return null;
-		}
-		if (buffer.length == 0) {
-		    System.err.println("warning: " + gifFile + 
-				       " is zero-length");
-		    return null;
-		}
-
-                return new IconUIResource(new ImageIcon(buffer));
-	    }
-	};
+        return SwingUtilities2.makeIcon(baseClass, baseClass, gifFile);
     }
 
     /**

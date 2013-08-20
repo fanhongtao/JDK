@@ -1,7 +1,7 @@
 /*
- * @(#)ServerCommunicatorAdmin.java	1.15 03/12/19
+ * @(#)ServerCommunicatorAdmin.java	1.18 05/01/04
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -22,10 +22,15 @@ public abstract class ServerCommunicatorAdmin {
 	this.timeout = timeout;
 
 	timestamp = 0;
-	adminor = new Adminor();
-	final Thread t = new Thread(adminor);
-	t.setDaemon(true);
-	t.start();
+        if (timeout < Long.MAX_VALUE) {
+            Runnable timeoutTask = new Timeout();
+            final Thread t = new Thread(timeoutTask);
+            t.setName("JMX server connection timeout " + t.getId());
+            // If you change this name you will need to change a unit test
+	    // (NoServerTimeoutTest)
+            t.setDaemon(true);
+            t.start();
+        }
     }
 
     /**
@@ -98,7 +103,7 @@ public abstract class ServerCommunicatorAdmin {
 
 	    terminated = true;
 
-	    // tell Adminor to terminate
+	    // tell Timeout to terminate
 	    lock.notify();
 	}
     }
@@ -106,7 +111,7 @@ public abstract class ServerCommunicatorAdmin {
 // --------------------------------------------------------------
 // private classes 
 // --------------------------------------------------------------
-    private class Adminor implements Runnable {
+    private class Timeout implements Runnable {
 	public void run() {
 	    boolean stopping = false;
 
@@ -120,7 +125,7 @@ public abstract class ServerCommunicatorAdmin {
 			// wait until there is no more job
 			while(!terminated && currentJobs != 0) {
 			    if (logger.traceOn()) {
-				logger.trace("Adminor-run", 
+				logger.trace("Timeout-run", 
 					     "Waiting without timeout.");
 			    }
 			    
@@ -129,15 +134,15 @@ public abstract class ServerCommunicatorAdmin {
 
 			if (terminated) return;
 
-			final long remaining =  timeout + (timestamp - 
-				System.currentTimeMillis());
+			final long remaining =
+			    timeout - (System.currentTimeMillis() - timestamp);
 			    
 			logtime("Admin: remaining timeout=",remaining);
 
 			if (remaining > 0) {
 				
 			    if (logger.traceOn()) {
-				logger.trace("Adminor-run", 
+				logger.trace("Timeout-run", 
 					     "Waiting with timeout: "+
 					     remaining + " ms remaining");
 			    }
@@ -153,7 +158,7 @@ public abstract class ServerCommunicatorAdmin {
 
 			if (!terminated && elapsed > timeout) {
 			    if (logger.traceOn()) {
-				logger.trace("Adminor-run", 
+				logger.trace("Timeout-run", 
 					     "timeout elapsed");
 			    }
 			    logtime("Admin: timeout elapsed! "+
@@ -165,9 +170,9 @@ public abstract class ServerCommunicatorAdmin {
 			    break;
 			}
 		    } catch (InterruptedException ire) {
-			logger.warning("Adminor-run","Unexpected Exception: "+
+			logger.warning("Timeout-run","Unexpected Exception: "+
 				       ire);
-			logger.debug("Adminor-run",ire);
+			logger.debug("Timeout-run",ire);
 			return;
 		    }	
 		}
@@ -175,7 +180,7 @@ public abstract class ServerCommunicatorAdmin {
 
 	    if (stopping) {
 		if (logger.traceOn()) {
-		    logger.trace("Adminor-run", "Call the doStop.");
+		    logger.trace("Timeout-run", "Call the doStop.");
 		}
 		
 		doStop();
@@ -190,8 +195,6 @@ public abstract class ServerCommunicatorAdmin {
 // --------------------------------------------------------------
 // private variables
 // --------------------------------------------------------------
-    private final Adminor adminor;
-
     private long    timestamp;
 
     private final int[] lock = new int[0];

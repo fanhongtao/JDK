@@ -1,7 +1,7 @@
 /*
- * @(#)RepositoryIdUtility.java	1.6 03/12/19
+ * @(#)RepositoryIdUtility.java	1.8 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -36,4 +36,6 @@ public interface RepositoryIdUtility
     int getCodeBaseRMIChunkedId();
     int getStandardRMIUnchunkedId();
     int getCodeBaseRMIUnchunkedId();
+    int getStandardRMIUnchunkedNoRepStrId();
+    int getCodeBaseRMIUnchunkedNoRepStrId();
 }

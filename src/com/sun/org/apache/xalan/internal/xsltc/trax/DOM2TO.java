@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DOM2TO.java,v 1.9 2004/02/20 19:30:40 bhakti Exp $
+ * $Id: DOM2TO.java,v 1.10 2004/12/10 18:39:15 santiagopg Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -137,25 +137,34 @@ public class DOM2TO implements XMLReader, Locator {
 	    final String qname = node.getNodeName();
 	    _handler.startElement(null, null, qname);
 
+            int colon;
 	    String prefix;
 	    final NamedNodeMap map = node.getAttributes();
 	    final int length = map.getLength();
 
-	    // Process all other attributes
-            NamespaceMappings nm = new NamespaceMappings();
+	    // Process all namespace attributes first
 	    for (int i = 0; i < length; i++) {
-		int colon;
 		final Node attr = map.item(i);
 		final String qnameAttr = attr.getNodeName();
 
+                // Is this a namespace declaration?
 		if (qnameAttr.startsWith(XMLNS_PREFIX)) {
 		    final String uriAttr = attr.getNodeValue();
 		    colon = qnameAttr.lastIndexOf(':');
 		    prefix = (colon > 0) ? qnameAttr.substring(colon + 1) 
-			: EMPTYSTRING;
+			                 : EMPTYSTRING;
 		    _handler.namespaceAfterStartElement(prefix, uriAttr);
 		}
-		else {
+	    }
+            
+	    // Process all non-namespace attributes next
+            NamespaceMappings nm = new NamespaceMappings();
+	    for (int i = 0; i < length; i++) {
+		final Node attr = map.item(i);
+		final String qnameAttr = attr.getNodeName();
+
+                // Is this a regular attribute?
+		if (!qnameAttr.startsWith(XMLNS_PREFIX)) {
 		    final String uriAttr = attr.getNamespaceURI();
 		    // Uri may be implicitly declared
 		    if (uriAttr != null && !uriAttr.equals(EMPTYSTRING) ) {	
@@ -171,8 +180,8 @@ public class DOM2TO implements XMLReader, Locator {
 			prefix = (colon > 0) ? qnameAttr.substring(0, colon) 
 			    : newPrefix;
 			_handler.namespaceAfterStartElement(prefix, uriAttr);
-		        _handler.addAttribute((prefix + ":" + qnameAttr)
-                            , attr.getNodeValue());
+		        _handler.addAttribute((prefix + ":" + qnameAttr),
+                            attr.getNodeValue());
 		    } else {
                          _handler.addAttribute(qnameAttr, attr.getNodeValue());
                     }
@@ -185,7 +194,7 @@ public class DOM2TO implements XMLReader, Locator {
 
 	    // Uri may be implicitly declared
 	    if (uri != null) {	
-		final int colon = qname.lastIndexOf(':');
+		colon = qname.lastIndexOf(':');
 		prefix = (colon > 0) ? qname.substring(0, colon) : EMPTYSTRING;
 		_handler.namespaceAfterStartElement(prefix, uri);
 	    }else {

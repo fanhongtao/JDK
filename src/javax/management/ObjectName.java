@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectName.java	1.67 04/04/19
+ * @(#)ObjectName.java	1.68 05/01/06
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1046,22 +1046,29 @@ public class ObjectName implements QueryExp, Serializable {
      */
     private void readObject(ObjectInputStream in)
 	throws IOException, ClassNotFoundException {
+
+	String cn;
 	if (compat) {
 	    // Read an object serialized in the old serial form
 	    //
-	    in.defaultReadObject();
+	    //in.defaultReadObject();
+	    final ObjectInputStream.GetField fields = in.readFields();
+	    cn = (String)fields.get("domain", "default")+
+		":"+
+		(String)fields.get("propertyListString", "");
 	} else {
 	    // Read an object serialized in the new serial form
 	    //
 	    in.defaultReadObject();
-	    String s = (String)in.readObject();
-	    try {
-		construct(s);
-	    } catch (NullPointerException e) {
-		throw new InvalidObjectException(e.toString());
-	    } catch (MalformedObjectNameException e) {
-		throw new InvalidObjectException(e.toString());
-	    }
+	    cn = (String)in.readObject();
+	}
+
+	try {
+	    construct(cn);
+	} catch (NullPointerException e) {
+	    throw new InvalidObjectException(e.toString());
+	} catch (MalformedObjectNameException e) {
+	    throw new InvalidObjectException(e.toString());
 	}
     }
 

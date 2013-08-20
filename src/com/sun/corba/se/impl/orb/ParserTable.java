@@ -1,7 +1,7 @@
 /*
- * @(#)ParserTable.java	1.48 04/06/21
+ * @(#)ParserTable.java	1.50 05/01/04
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -410,6 +410,11 @@ public class ParserTable {
 		OperationFactory.booleanAction(), 
 	        "enableJavaSerialization", Boolean.FALSE,
 		Boolean.FALSE, "false"),
+	    ParserDataFactory.make(
+		ORBConstants.USE_REP_ID,
+		OperationFactory.booleanAction(), 
+	        "useRepId", Boolean.TRUE,
+		Boolean.TRUE, "true"),
 	    ParserDataFactory.make( ORBConstants.ORB_INIT_REF_PROPERTY,  
 		OperationFactory.identityAction(), 
 		"orbInitialReferences", new StringPair[0],
