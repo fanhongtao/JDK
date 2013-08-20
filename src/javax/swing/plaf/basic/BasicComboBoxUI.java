@@ -1,5 +1,5 @@
 /*
- * @(#)BasicComboBoxUI.java	1.170 03/12/19
+ * @(#)BasicComboBoxUI.java	1.171 04/09/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import sun.swing.UIAction;
  * KeyStroke bindings. See the article <a href="http://java.sun.com/products/jfc/tsc/special_report/kestrel/keybindings.html">Keyboard Bindings in Swing</a>
  * at <a href="http://java.sun.com/products/jfc/tsc"><em>The Swing Connection</em></a>.
  *
- * @version 1.170 12/19/03
+ * @version 1.171 09/10/04
  * @author Arnaud Weber
  * @author Tom Santos
  * @author Mark Davidson
@@ -1317,9 +1317,12 @@ public class BasicComboBoxUI extends ComboBoxUI {
             }
             else if (key == DOWN_2) {
 		// Special case in which pressing the arrow keys will not 
-		// make the popup appear - except for editable combo boxes.
+                // make the popup appear - except for editable combo boxes
+                // and combo boxes inside a table.
                 if (comboBox.isShowing() ) {
-                    if ( comboBox.isEditable() && !comboBox.isPopupVisible() ) {
+                    if ( (comboBox.isEditable() ||
+                            (ui != null && ui.isTableCellEditor()))
+                         && !comboBox.isPopupVisible() ) {
                         comboBox.setPopupVisible(true);
                     } else {
                         if (ui != null) {

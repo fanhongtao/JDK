@@ -1,5 +1,5 @@
 /*
- * @(#)CSS.java	1.54 04/07/24
+ * @(#)CSS.java	1.57 04/09/15
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -91,7 +91,7 @@ import javax.swing.text.*;
  *
  * @author  Timothy Prinzing
  * @author  Scott Violet
- * @version 1.54 07/24/04
+ * @version 1.57 09/15/04
  * @see StyleSheet
  */
 public class CSS implements Serializable {
@@ -169,7 +169,7 @@ public class CSS implements Serializable {
 	    new Attribute("border-bottom-width", "medium", false);
 
 	public static final Attribute BORDER_COLOR =
-	    new Attribute("border-color", null, false);
+	    new Attribute("border-color", "black", false);
 
 	public static final Attribute BORDER_LEFT =
 	    new Attribute("border-left", null, false);
@@ -199,7 +199,7 @@ public class CSS implements Serializable {
 	    new Attribute("clear", "none", false);
 
 	public static final Attribute COLOR =
-	    new Attribute("color", null, true);
+	    new Attribute("color", "black", true);
 
 	public static final Attribute DISPLAY =
 	    new Attribute("display", "block", false);
@@ -257,6 +257,28 @@ public class CSS implements Serializable {
 
 	public static final Attribute MARGIN_RIGHT =
 	    new Attribute("margin-right", "0", false);
+
+        /* 
+         * made up css attributes to describe orientation depended
+         * margins. used for <dir>, <menu>, <ul> etc. see
+         * 5088268 for more details
+         */
+        static final Attribute MARGIN_LEFT_LTR =
+            new Attribute("margin-left-ltr", 
+                          Integer.toString(Integer.MIN_VALUE), false);
+
+        static final Attribute MARGIN_LEFT_RTL =
+            new Attribute("margin-left-rtl", 
+                          Integer.toString(Integer.MIN_VALUE), false);
+        
+        static final Attribute MARGIN_RIGHT_LTR =
+            new Attribute("margin-right-ltr", 
+                          Integer.toString(Integer.MIN_VALUE), false);
+
+        static final Attribute MARGIN_RIGHT_RTL =
+            new Attribute("margin-right-rtl", 
+                          Integer.toString(Integer.MIN_VALUE), false);
+
 
 	public static final Attribute MARGIN_TOP =
 	    new Attribute("margin-top", "0", false);
@@ -320,7 +342,8 @@ public class CSS implements Serializable {
 	    MARGIN_TOP, PADDING, PADDING_BOTTOM, PADDING_LEFT, PADDING_RIGHT,
 	    PADDING_TOP, TEXT_ALIGN, TEXT_DECORATION, TEXT_INDENT, TEXT_TRANSFORM,
 	    VERTICAL_ALIGN, WORD_SPACING, WHITE_SPACE, WIDTH, 
-	    BORDER_SPACING, CAPTION_SIDE
+            BORDER_SPACING, CAPTION_SIDE, 
+            MARGIN_LEFT_LTR, MARGIN_LEFT_RTL, MARGIN_RIGHT_LTR, MARGIN_RIGHT_RTL
 	};
 
 	private static final Attribute[] ALL_MARGINS =
@@ -405,7 +428,11 @@ public class CSS implements Serializable {
 	valueConvertor.put(CSS.Attribute.MARGIN_TOP, lv);
 	valueConvertor.put(CSS.Attribute.MARGIN_BOTTOM, lv);
 	valueConvertor.put(CSS.Attribute.MARGIN_LEFT, lv);
+        valueConvertor.put(CSS.Attribute.MARGIN_LEFT_LTR, lv);
+        valueConvertor.put(CSS.Attribute.MARGIN_LEFT_RTL, lv);
 	valueConvertor.put(CSS.Attribute.MARGIN_RIGHT, lv);
+        valueConvertor.put(CSS.Attribute.MARGIN_RIGHT_LTR, lv);
+        valueConvertor.put(CSS.Attribute.MARGIN_RIGHT_RTL, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_TOP, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_BOTTOM, lv);
 	valueConvertor.put(CSS.Attribute.PADDING_LEFT, lv);
@@ -571,6 +598,7 @@ public class CSS implements Serializable {
      * the font once the size, name and style have been determined.
      */
     Font getFont(StyleContext sc, AttributeSet a, int defaultSize, StyleSheet ss) {
+        ss = getStyleSheet(ss);
 	int size = getFontSize(a, defaultSize, ss);
 
 	/*
@@ -641,6 +669,7 @@ public class CSS implements Serializable {
      */
     float getPointSize(String size, StyleSheet ss) {
 	int relSize, absSize, diff, index;
+        ss = getStyleSheet(ss);
 	if (size != null) {
 	    if (size.startsWith("+")) {
 		relSize = Integer.valueOf(size.substring(1)).intValue();
@@ -661,8 +690,10 @@ public class CSS implements Serializable {
      * key <code>key</code>.
      */
     float getLength(AttributeSet a, CSS.Attribute key, StyleSheet ss) {
+        ss = getStyleSheet(ss);
 	LengthValue lv = (LengthValue) a.getAttribute(key);
-	float len = (lv != null) ? lv.getValue(ss.isW3CLengthUnits()) : 0;
+        boolean isW3CLengthUnits = (ss == null) ? false : ss.isW3CLengthUnits();
+        float len = (lv != null) ? lv.getValue(isW3CLengthUnits) : 0;
 	return len;
     }
 
@@ -1161,7 +1192,9 @@ public class CSS implements Serializable {
     }
 
     static int getIndexOfSize(float pt, StyleSheet ss) {
-        return getIndexOfSize(pt, ss.getSizeMap());
+        int[] sizeMap = (ss != null) ? ss.getSizeMap() : 
+            StyleSheet.sizeMapDefault;
+        return getIndexOfSize(pt, sizeMap);
     }
 
 
@@ -1201,6 +1234,7 @@ public class CSS implements Serializable {
      * are 1-7.
      */
     float getPointSize(int index, StyleSheet ss) {
+        ss = getStyleSheet(ss);
         int[] sizeMap = (ss != null) ? ss.getSizeMap() : 
             StyleSheet.sizeMapDefault;
         --index;
@@ -1660,6 +1694,7 @@ public class CSS implements Serializable {
 	 *  resolve hierarchy if it's relative.
 	 */
 	float getValue(AttributeSet a, StyleSheet ss) {
+            ss = getStyleSheet(ss);
 	    if (index) {
 		// it's an index, translate from size table
 		return getPointSize((int) value, ss);
@@ -1669,7 +1704,8 @@ public class CSS implements Serializable {
 	    }
 	    else {
 		if (lu.type == 0) {
-		    return lu.getValue(ss.isW3CLengthUnits());
+                    boolean isW3CLengthUnits = (ss == null) ? false : ss.isW3CLengthUnits();
+                    return lu.getValue(isW3CLengthUnits);
 		}
 		if (a != null) {
 		    AttributeSet resolveParent = a.getResolveParent();
@@ -2240,15 +2276,8 @@ public class CSS implements Serializable {
     static class BorderWidthValue extends LengthValue { 
 	BorderWidthValue(String svalue, int index) {
 	    this.svalue = svalue;
-	    this.index = index;
-	}
-
-	float getValue() {
-	    return values[index];
-	}
-
-	float getValue(float currentValue) {
-	    return values[index];
+            span = values[index];
+            percentage = false;
 	}
 
 	Object parseCssValue(String value) {
@@ -2274,8 +2303,6 @@ public class CSS implements Serializable {
 	    return parseCssValue(value);
 	}
 
-	/** Index into values. */
-	private int index;
 	/** Values used to represent border width. */
 	private static final float[] values = { 1, 2, 4 };
    }
@@ -3192,6 +3219,24 @@ public class CSS implements Serializable {
 	}
     }
 
+
+    /*
+     * we need StyleSheet for resolving lenght units. (see
+     * isW3CLengthUnits)
+     * we can not pass stylesheet for handling relative sizes. (do not
+     * think changing public API is necessary)
+     * CSS is not likely to be accessed from more then one thread.
+     * Having local storage for StyleSheet for resolving relative
+     * sizes is safe 
+     * 
+     * idk 08/30/2004
+     */
+    private StyleSheet getStyleSheet(StyleSheet ss) {
+        if (ss != null) {
+            styleSheet = ss;
+        }
+        return styleSheet;
+    }
     //
     // Instance variables
     //
@@ -3201,6 +3246,8 @@ public class CSS implements Serializable {
 
     /** Size used for relative units. */
     private int baseFontSize;
+
+    private transient StyleSheet styleSheet = null;
 
     static int baseFontSizeIndex = 3;
 }

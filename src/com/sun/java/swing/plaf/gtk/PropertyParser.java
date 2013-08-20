@@ -1,5 +1,5 @@
 /*
- * @(#)PropertyParser.java	1.10 04/06/24
+ * @(#)PropertyParser.java	1.11 04/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,9 +14,17 @@ import java.io.*;
 
 /**
  * @author  Shannon Hickey
- * @version 1.10 06/24/04
+ * @version 1.11 08/10/04
  */
 abstract class PropertyParser {
+
+    // Whether or not simple strings passed from GTKParser need to be escaped
+    // for rescanning/parsing by this parser. The default is false since most
+    // property parsers either get complex values to parse, or simple string
+    // values.
+    public boolean needSimpleStringsEscaped() {
+        return false;
+    }
 
     private static final PropertyParser INSETS_PARSER = new PropertyParser() {
         public Object parse(String source) {
@@ -131,6 +139,12 @@ abstract class PropertyParser {
     };
 
     private static final PropertyParser COLOR_PARSER = new PropertyParser() {
+        // We may receive simple strings such as "red" or "#CCCCCC". These need
+        // to be escaped by GTKParser first so we can rescan/parse them here.
+        public boolean needSimpleStringsEscaped() {
+            return true;
+        }
+
         public Object parse(String source) {
             GTKScanner scanner = new GTKScanner();
             scanner.scanReader(new StringReader(source), source);

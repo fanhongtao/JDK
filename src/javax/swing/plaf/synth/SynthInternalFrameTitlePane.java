@@ -1,5 +1,5 @@
 /*
- * @(#)SynthInternalFrameTitlePane.java	1.21 04/04/16
+ * @(#)SynthInternalFrameTitlePane.java	1.22 04/09/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,7 +24,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * The class that manages a synth title bar
  *
- * @version 1.21 04/16/04
+ * @version 1.22 09/10/04
  * @author David Kloba
  * @author Joshua Outwater
  * @author Steve Wilson
@@ -124,7 +124,8 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
         super.uninstallDefaults();
     }
 
-    private static class JPopupMenuUIResource extends JPopupMenu implements UIResource { }
+    private static class JPopupMenuUIResource extends JPopupMenu implements
+        UIResource { }
 
     protected void assembleSystemMenu() {
         systemPopupMenu = new JPopupMenuUIResource();
@@ -134,24 +135,7 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
 	menuButton.setIcon(frame.getFrameIcon());
         menuButton.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                Dimension dim = new Dimension();
-                Border border = frame.getBorder();
-                if (border != null) {
-                    dim.width += border.getBorderInsets(frame).left +
-                                 border.getBorderInsets(frame).right;
-                    dim.height += border.getBorderInsets(frame).bottom +
-                                  border.getBorderInsets(frame).top;
-                }
-                if (!frame.isIcon()) {
-                    systemPopupMenu.show(e.getComponent(),
-                        getX() - dim.width,
-                        getY() + getHeight() - dim.height);
-                } else {
-                    systemPopupMenu.show(e.getComponent(),
-                        getX() - dim.width,
-                        getY() - systemPopupMenu.getPreferredSize().height -
-                            dim.height);
-                }
+                showSystemMenu();
             }
         });
 	JPopupMenu p = frame.getComponentPopupMenu();
@@ -182,6 +166,23 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
 	menu.add(new JSeparator());
 	mi = (JMenuItem)menu.add(closeAction);
 	mi.setMnemonic('C');
+    }
+
+    protected void showSystemMenu() {
+        Dimension dim = new Dimension();
+        Insets insets = frame.getInsets();
+        dim.width += insets.left + insets.right;
+        dim.height += insets.bottom + insets.top;
+        if (!frame.isIcon()) {
+            systemPopupMenu.show(menuButton,
+                getX() - dim.width,
+                getY() + getHeight() - dim.height);
+        } else {
+            systemPopupMenu.show(menuButton,
+                getX() - dim.width,
+                getY() - systemPopupMenu.getPreferredSize().height -
+                    dim.height);
+        }
     }
 
     // SynthInternalFrameTitlePane has no UI, we'll invoke paint on it.

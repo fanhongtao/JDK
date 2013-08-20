@@ -1,6 +1,6 @@
-// This file was generated AUTOMATICALLY from a template file Wed Sep 15 04:34:15 PDT 2004
+// This file was generated AUTOMATICALLY from a template file Mon Dec 06 21:18:21 PST 2004
 
-/* @(#)CharacterDataLatin1.java.template	1.5 03/07/26
+/* @(#)CharacterDataLatin1.java.template	1.6 04/09/14
  *
  * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -241,7 +241,7 @@ class CharacterDataLatin1 {
                 switch(ch) {
                     // map overflow characters
                     case 0x00B5 : mapChar = 0x039C; break;
-                    default       : mapChar = Character.CHAR_ERROR; break;
+                    default       : mapChar = Character.ERROR; break;
                 }
             }
         }
@@ -260,7 +260,7 @@ class CharacterDataLatin1 {
 
 
     // The following tables and code generated using:
-  // java GenerateCharacter -template ../../tools/GenerateCharacter/CharacterDataLatin1.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk1.5.0/control/build/linux-i586/gensrc/java/lang/CharacterDataLatin1.java -string -usecharforbyte -latin1 8
+  // java GenerateCharacter -template ../../tools/GenerateCharacter/CharacterDataLatin1.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk1.5.0_01/control/build/linux-i586/gensrc/java/lang/CharacterDataLatin1.java -string -usecharforbyte -latin1 8
   // The A table has 256 entries for a total of 1024 bytes.
 
   static final int A[] = new int[256];

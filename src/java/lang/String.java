@@ -1,5 +1,5 @@
 /*
- * @(#)String.java	1.187 04/07/13
+ * @(#)String.java	1.188 04/09/14
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -79,7 +79,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.187, 07/13/04
+ * @version 1.188, 09/14/04
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuilder
@@ -2240,9 +2240,9 @@ public final class String
             } else {
                 lowerChar = Character.toLowerCase(srcChar);
             }
-            if ((lowerChar == Character.CHAR_ERROR) ||
+            if ((lowerChar == Character.ERROR) ||
                     Character.isSupplementaryCodePoint(lowerChar)) {
-                if (lowerChar == Character.CHAR_ERROR) {
+                if (lowerChar == Character.ERROR) {
                     lowerCharArray =
                         ConditionalSpecialCasing.toLowerCaseCharArray(this, i, locale);
                 } else {
@@ -2340,7 +2340,7 @@ public final class String
                     firstLower += Character.charCount(c)) {
 		c = codePointAt(firstLower);
                 int upperCaseChar = Character.toUpperCaseEx(c);
-                if (upperCaseChar == (int)Character.CHAR_ERROR || c != upperCaseChar) {
+                if (upperCaseChar == Character.ERROR || c != upperCaseChar) {
                     break scan;
                 }
             }
@@ -2369,9 +2369,9 @@ public final class String
             } else {
                 upperChar = Character.toUpperCaseEx(srcChar);
             }
-            if ((upperChar == Character.CHAR_ERROR) ||
+            if ((upperChar == Character.ERROR) ||
                     Character.isSupplementaryCodePoint(upperChar)) {
-                if (upperChar == Character.CHAR_ERROR) {
+                if (upperChar == Character.ERROR) {
                     if (localeDependent) {
                         upperCharArray =
                             ConditionalSpecialCasing.toUpperCaseCharArray(this, i, locale);

@@ -1,5 +1,5 @@
 /*
- * @(#)hprof.h	1.39 04/07/27
+ * @(#)hprof.h	1.41 04/09/17
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -53,14 +53,24 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <time.h>
+#include <errno.h>
 
 /* General JVM/Java functions, types and macros. */
 
 #include <sys/types.h>
 #include "jni.h"
-#include "jvm.h"
 #include "jvmti.h"
-#include "jlong.h"
+#include "classfile_constants.h"
+
+/* Macros to extract the upper and lower 32 bits of a jlong */
+
+#define jlong_high(a)    ((jint)((a)>>32))
+#define jlong_low(a)     ((jint)(a))
+#define jlong_to_jint(a)  ((jint)(a))
+#define jint_to_jlong(a) ((jlong)(a))
+
+#define jlong_add(a, b) ((a) + (b))
+
 
 /* The type used to contain a generic 32bit "serial number". */
 
@@ -357,6 +367,7 @@ typedef struct {
     /* Handles to java_crw_demo library */
     void * java_crw_demo_library;
     void * java_crw_demo_function;
+    void * java_crw_demo_classname_function;
 
 } GlobalData;
 

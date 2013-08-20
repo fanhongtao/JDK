@@ -1,5 +1,5 @@
 /*
- * @(#)NotificationBroadcasterSupport.java	1.55 04/02/10
+ * @(#)NotificationBroadcasterSupport.java	1.56 04/09/08
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -88,7 +88,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
 	   add/removeNotificationListener.  A simpler but less
 	   efficient solution would be to clone the listener list
 	   every time a notification is sent.  */
-	synchronized (this) {
+	synchronized (lock) {
 	    List newList = new ArrayList(listenerList.size() + 1);
 	    newList.addAll(listenerList);
 	    newList.add(new ListenerInfo(listener, filter, handback));
@@ -99,7 +99,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
     public void removeNotificationListener(NotificationListener listener)
         throws ListenerNotFoundException {
 
-	synchronized (this) {
+	synchronized (lock) {
 	    List newList = new ArrayList(listenerList);
 	    /* We scan the list of listeners in reverse order because
 	       in forward order we would have to repeat the loop with
@@ -123,7 +123,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
 
 	boolean found = false;
 
-	synchronized (this) {
+	synchronized (lock) {
 	    List newList = new ArrayList(listenerList);
 	    final int size = newList.size();
 	    for (int i = 0; i < size; i++) {
@@ -170,7 +170,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
 	}
         
 	List currentList;
-	synchronized (this) {
+	synchronized (lock) {
 	    currentList = listenerList;
 	}
 
@@ -249,11 +249,30 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * Current list of listeners, a List of ListenerInfo.  The object
      * referenced by this field is never modified.  Instead, the field
      * is set to a new object when a listener is added or removed,
-     * within a synchronized(this).  In this way, there is no need to
+     * within a synchronized(lock).  In this way, there is no need to
      * synchronize when traversing the list to send a notification to
      * the listeners in it.  That avoids potential deadlocks if the
      * listeners end up depending on other threads that are themselves
      * accessing this NotificationBroadcasterSupport.
      */
     private List listenerList = Collections.EMPTY_LIST;
+
+    /**
+     * We don't want to synchronize on "this", since a subclass might
+     * use the "this" lock for its own purposes and we could get a
+     * deadlock (bug 5093922).  We can't synchronize on listenerList
+     * because when we want to change it we would be replacing the
+     * object we are synchronizing on.  (In fact, it *might* be possible
+     * to synchronize on listenerList provided the code verified after
+     * getting the lock that the listenerList field still corresponds
+     * to the object synchronized on.  This is the sort of thing that
+     * might be all right with the new memory model.  But let's not
+     * make life unnecessarily difficult for ourselves just to save
+     * one field.
+     * In a future version we will use CopyOnWriteArrayList instead,
+     * since it does pretty much exactly what we want.  There are a
+     * few tricky details related to the semantics of the two
+     * removeNotificationListener operations, however.
+     */
+    private final Object lock = new Object();
 }

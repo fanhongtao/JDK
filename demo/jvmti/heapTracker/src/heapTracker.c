@@ -1,5 +1,5 @@
 /*
- * @(#)heapTracker.c	1.7 04/07/27
+ * @(#)heapTracker.c	1.8 04/09/24
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -791,11 +791,27 @@ cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env,
 	/* It's possible we get here right after VmDeath event, be careful */
 	if ( !gdata->vmDead ) {
 
-            *new_class_data_len = 0;
+	    const char * classname;
+
+	    /* Name can be NULL, make sure we avoid SEGV's */
+	    if ( name == NULL ) {
+		classname = java_crw_demo_classname(class_data, class_data_len,
+				NULL);
+		if ( classname == NULL ) {
+		    fatal_error("ERROR: No classname in classfile\n");
+		}
+            } else {
+	        classname = strdup(name);
+		if ( classname == NULL ) {
+		    fatal_error("ERROR: Ran out of malloc() space\n");
+		}
+            }
+
+	    *new_class_data_len = 0;
             *new_class_data     = NULL;
 
             /* The tracker class itself? */
-            if ( strcmp(name, STRING(HEAP_TRACKER_class)) != 0 ) {
+            if ( strcmp(classname, STRING(HEAP_TRACKER_class)) != 0 ) {
                 jint           cnum;
                 int            systemClass;
                 unsigned char *newImage;
@@ -818,7 +834,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env,
 
                 /* Call the class file reader/write demo code */
                 java_crw_demo(cnum,
-                    name,
+                    classname,
                     class_data,
                     class_data_len,
                     systemClass,
@@ -850,6 +866,8 @@ cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env,
                     (void)free((void*)newImage); /* Free malloc() space with free() */
                 }
             }
+	
+	    (void)free((void*)classname);
 	}
     } exitCriticalSection(jvmti);
 }

@@ -1,5 +1,5 @@
 /*
- * @(#)BasicListUI.java	1.104 04/03/30
+ * @(#)BasicListUI.java	1.106 04/09/15
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -32,7 +32,7 @@ import com.sun.java.swing.SwingUtilities2;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.104 03/30/04
+ * @version 1.106 09/15/04
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -583,8 +583,22 @@ public class BasicListUI extends ListUI
 	Long l = (Long)UIManager.get("List.timeFactor");
 	timeFactor = (l!=null) ? l.longValue() : 1000L;
 
-	isFileList = Boolean.TRUE.equals(list.getClientProperty("List.isFileList"));
+        updateIsFileList();
 	isLeftToRight = list.getComponentOrientation().isLeftToRight();
+    }
+
+    private void updateIsFileList() {
+        boolean b = Boolean.TRUE.equals(list.getClientProperty("List.isFileList"));
+        if (b != isFileList) {
+            isFileList = b;
+            Font oldFont = list.getFont();
+            if (oldFont == null || oldFont instanceof UIResource) {
+                Font newFont = UIManager.getFont(b ? "FileChooser.listFont" : "List.font");
+                if (newFont != null && newFont != oldFont) {
+                    list.setFont(newFont);
+                }
+            }
+        }
     }
 
 
@@ -1877,14 +1891,19 @@ public class BasicListUI extends ListUI
 
 	private int getNextColumnIndex(JList list, BasicListUI ui,
                                        int amount) {
-            if (list.getLayoutOrientation() != JList.VERTICAL && ui != null &&
-                     ui.columnCount > 1) {
+            if (list.getLayoutOrientation() != JList.VERTICAL) {
                 int index = list.getLeadSelectionIndex();
+                int size = list.getModel().getSize();
 
                 if (index == -1) {
                     return 0;
+                } else if (size == 1) {
+                    // there's only one item so we should select it
+                    return 0;
+                } else if (ui == null || ui.columnCount <= 1) {
+                    return -1;
                 }
-                int size = list.getModel().getSize();
+
                 int column = ui.convertModelToColumn(index);
                 int row = ui.convertModelToRow(index);
 
@@ -1916,17 +1935,17 @@ public class BasicListUI extends ListUI
 			index = size - 1;
 		    }
 		}
-	    }
-	    else {
-                if (list.getLayoutOrientation() == JList.HORIZONTAL_WRAP) {
-                    if (ui != null) {
-                        index += ui.columnCount * amount;
-                    }
+            } else if (size == 1) { 
+                // there's only one item so we should select it
+                index = 0; 
+            } else if (list.getLayoutOrientation() == JList.HORIZONTAL_WRAP) { 
+                if (ui != null) {
+                    index += ui.columnCount * amount;
                 }
-                else {
-                    index += amount;
-                }
+            } else {
+                index += amount;
             }
+
             return index;
         }
     }
@@ -2127,7 +2146,7 @@ public class BasicListUI extends ListUI
 		SwingUtilities.replaceUIInputMap(list, JComponent.WHEN_FOCUSED,
 						 inputMap);
 	    } else if ("List.isFileList" == propertyName) {
-		isFileList = Boolean.TRUE.equals(list.getClientProperty("List.isFileList"));
+                updateIsFileList();
 		redrawList();
             } else if ("transferHandler" == propertyName) {
                 DropTarget dropTarget = list.getDropTarget();

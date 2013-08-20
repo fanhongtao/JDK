@@ -1,5 +1,5 @@
 /*
- * @(#)GTKParser.java	1.87 04/06/24
+ * @(#)GTKParser.java	1.88 04/08/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -18,7 +18,7 @@ import javax.swing.plaf.synth.SynthConstants;
 
 /**
  * @author  Shannon Hickey
- * @version 1.87 06/24/04
+ * @version 1.88 08/10/04
  */
 class GTKParser {
     
@@ -1547,9 +1547,16 @@ class GTKParser {
                 info.addProperty(klass, prop,
                         val instanceof String ? val : val.toString());
             } else {
-                String toParse = val instanceof String ?
-                        '"' + escapeString((String) val) + '"' :
-                        val.toString();
+                String toParse;
+                if (val instanceof String) {
+                    if (pp.needSimpleStringsEscaped()) {
+                        toParse = '"' + escapeString((String) val) + '"';
+                    } else {
+                        toParse = (String)val;
+                    }
+                } else {
+                    toParse = val.toString();
+                }
 
                 Object parsedVal = pp.parse(toParse);
                 if (parsedVal == null) {

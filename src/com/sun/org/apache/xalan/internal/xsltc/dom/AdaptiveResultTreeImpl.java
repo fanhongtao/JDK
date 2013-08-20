@@ -571,8 +571,10 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
 	   int index;
 	   if ((index =_openElementName.indexOf(":")) < 0)
 	       _dom.startElement(null, _openElementName, _openElementName, _attributes);
-	   else
-	       _dom.startElement(null, _openElementName.substring(index+1), _openElementName, _attributes);
+	   else {
+           	String uri =_dom.getNamespaceURI(_openElementName.substring(0,index));
+		_dom.startElement(uri, _openElementName.substring(index+1), _openElementName, _attributes);
+           }
 
 
 	    _openElementName = null;

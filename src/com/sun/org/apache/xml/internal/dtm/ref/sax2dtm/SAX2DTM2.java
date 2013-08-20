@@ -3296,7 +3296,7 @@ protected final void copyAttributes(final int nodeID, SerializationHandler handl
         String qname = null;
         int dataIndex = _dataOrQName(nodeID);
         int valueIndex = dataIndex;
-        if (uri.length() != 0) {
+        
             if (dataIndex <= 0) {
                 int prefixIndex = m_data.elementAt(-dataIndex);
                 valueIndex = m_data.elementAt(-dataIndex+1);
@@ -3306,8 +3306,9 @@ protected final void copyAttributes(final int nodeID, SerializationHandler handl
                     prefix = qname.substring(0, colonIndex);
                 }
             }
-            handler.namespaceAfterStartElement(prefix, uri);           
-        }
+            if (uri.length() != 0) {
+                handler.namespaceAfterStartElement(prefix, uri);           
+            }
         
         String nodeName = (prefix != null) ? qname : localName;
         String nodeValue = (String)m_values.elementAt(valueIndex);

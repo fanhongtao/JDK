@@ -1,5 +1,5 @@
 /*
- * @(#)Character.java	1.30 04/06/28
+ * @(#)Character.java	1.31 04/09/14
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -373,10 +373,9 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
         FINAL_QUOTE_PUNCTUATION     = 30;
 
     /**
-     * Error or non-char flag
-     * @since 1.4
+     * Error flag. Use int (code point) to avoid confusion with U+FFFF.
      */
-     static final char CHAR_ERROR = '\uFFFF';
+     static final int ERROR = 0xFFFFFFFF;
 
 
     /**
@@ -5361,7 +5360,7 @@ class Character extends Object implements java.io.Serializable, Comparable<Chara
      *
      * @param   codePoint   the character (Unicode code point) to be converted.
      * @return  either the uppercase equivalent of the character, if 
-     *          any, or an error flag (<code>Character.CHAR_ERROR</code>) 
+     *          any, or an error flag (<code>Character.ERROR</code>) 
      *          that indicates that a 1:M <code>char</code> mapping exists.
      * @see     java.lang.Character#isLowerCase(char)
      * @see     java.lang.Character#isUpperCase(char)

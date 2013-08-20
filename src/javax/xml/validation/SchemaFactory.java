@@ -1,7 +1,7 @@
-// $Id: SchemaFactory.java,v 1.20.10.1.2.2 2004/06/11 14:59:49 ndw Exp $
 
+// $Id: SchemaFactory.java,v 1.20.10.1.2.3 2004/09/16 09:24:47 nb131165 Exp $
 /*
- * @(#)SchemaFactory.java	1.10 04/07/26
+ * @(#)SchemaFactory.java	1.12 04/10/19
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -88,11 +88,13 @@ import org.xml.sax.SAXNotSupportedException;
  * </table>
  * 
  * @author  <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.20.10.1.2.2 $, $Date: 2004/06/11 14:59:49 $
+ * @version $Revision: 1.20.10.1.2.3 $, $Date: 2004/09/16 09:24:47 $
  * @since 1.5
  */
 public abstract class SchemaFactory {
-    
+
+     private static SecuritySupport ss = new SecuritySupport();
+     
     /**
      * <p>Constructor for derived classes.</p>
      * 
@@ -170,15 +172,13 @@ public abstract class SchemaFactory {
      *      If the <tt>schemLanguage</tt> parameter is null.
      */
     public static final SchemaFactory newInstance(String schemaLanguage) {
-        ClassLoader cl;
-        try {
-            // prior to JDK1.2, this will throw NoSuchMethodError.
-            cl = Thread.currentThread().getContextClassLoader();
-        } catch (Throwable t) {
-            cl = null;
-        }
+        ClassLoader cl;        
+        cl = ss.getContextClassLoader();
+        
         if (cl == null) {
-            cl = ClassLoader.getSystemClassLoader();
+            //cl = ClassLoader.getSystemClassLoader();
+            //use the current class loader
+            cl = SchemaFactory.class.getClassLoader();
         } 
 
         SchemaFactory f = new SchemaFactoryFinder(cl).newFactory(schemaLanguage);

@@ -1,5 +1,5 @@
 /*
- * @(#)mtrace.c	1.23 04/07/27
+ * @(#)mtrace.c	1.24 04/09/24
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -269,7 +269,13 @@ mnum_callbacks(unsigned cnum, const char **names, const char**sigs, int mcount)
 
 	mp            = cp->methods + mnum;
         mp->name      = (const char *)strdup(names[mnum]);
+	if ( mp->name == NULL ) {
+	    fatal_error("ERROR: Out of malloc memory\n");
+	}
         mp->signature = (const char *)strdup(sigs[mnum]);
+	if ( mp->signature == NULL ) {
+	    fatal_error("ERROR: Out of malloc memory\n");
+	}
     }
 }
 
@@ -523,12 +529,28 @@ cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env,
 	/* It's possible we get here right after VmDeath event, be careful */
 	if ( !gdata->vm_is_dead ) {
 
-            *new_class_data_len = 0;
+	    const char *classname;
+
+            /* Name could be NULL */
+	    if ( name == NULL ) {
+		classname = java_crw_demo_classname(class_data, class_data_len,
+			NULL);
+		if ( classname == NULL ) {
+		    fatal_error("ERROR: No classname inside classfile\n");
+		}
+	    } else {
+		classname = strdup(name);
+		if ( classname == NULL ) {
+		    fatal_error("ERROR: Out of malloc memory\n");
+		}
+	    }
+	    
+	    *new_class_data_len = 0;
             *new_class_data     = NULL;
 
             /* The tracker class itself? */
-            if ( interested((char*)name, "", gdata->include, gdata->exclude) 
-		     &&  strcmp(name, STRING(MTRACE_class)) != 0 ) {
+            if ( interested((char*)classname, "", gdata->include, gdata->exclude) 
+		  &&  strcmp(classname, STRING(MTRACE_class)) != 0 ) {
                 jint           cnum;
                 int            system_class;
                 unsigned char *new_image;
@@ -551,7 +573,10 @@ cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env,
 		    fatal_error("ERROR: Out of malloc memory\n");
 		}
 		cp           = gdata->classes + cnum;
-		cp->name     = (const char *)strdup(name);
+		cp->name     = (const char *)strdup(classname);
+		if ( cp->name == NULL ) {
+		    fatal_error("ERROR: Out of malloc memory\n");
+		}
 		cp->calls    = 0;
 		cp->mcount   = 0;
 		cp->methods  = NULL;
@@ -570,7 +595,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env,
 
                 /* Call the class file reader/write demo code */
                 java_crw_demo(cnum,
-                    name,
+                    classname,
                     class_data,
                     class_data_len,
                     system_class,
@@ -601,6 +626,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv* env,
                     (void)free((void*)new_image); /* Free malloc() space with free() */
                 }
             }
+	    (void)free((void*)classname);
 	}
     } exit_critical_section(jvmti);
 }

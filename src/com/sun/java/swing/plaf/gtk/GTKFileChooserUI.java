@@ -1,5 +1,5 @@
 /*
- * @(#)GTKFileChooserUI.java	1.26 04/06/01
+ * @(#)GTKFileChooserUI.java	1.29 04/09/15
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -240,7 +240,17 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 
     protected void doDirectoryChanged(PropertyChangeEvent e) {
 	directoryList.clearSelection();
+        ListSelectionModel sm = directoryList.getSelectionModel();
+        if (sm instanceof DefaultListSelectionModel) {
+            ((DefaultListSelectionModel)sm).moveLeadSelectionIndex(0);       
+            ((DefaultListSelectionModel)sm).setAnchorSelectionIndex(0);
+        }
 	fileList.clearSelection();
+        sm = fileList.getSelectionModel();
+        if (sm instanceof DefaultListSelectionModel) {
+            ((DefaultListSelectionModel)sm).moveLeadSelectionIndex(0);       
+            ((DefaultListSelectionModel)sm).setAnchorSelectionIndex(0);
+        }
 
 	File currentDirectory = getFileChooser().getCurrentDirectory();
 	if (currentDirectory != null) {
@@ -353,6 +363,19 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 		}
 	    }
 	}
+
+        public void mouseEntered(MouseEvent evt) {
+            if (list != null) {
+                TransferHandler th1 = getFileChooser().getTransferHandler();
+                TransferHandler th2 = list.getTransferHandler();
+                if (th1 != th2) {
+                    list.setTransferHandler(th1);
+                }
+                if (getFileChooser().getDragEnabled() != list.getDragEnabled()) {
+                    list.setDragEnabled(getFileChooser().getDragEnabled());
+                }
+            }
+        }
     }
 
     protected MouseListener createDoubleClickListener(JFileChooser fc, JList list) {
@@ -778,6 +801,7 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 	}
 	
 	fileList.setModel(new GTKFileListModel());
+        fileList.getSelectionModel().removeSelectionInterval(0, 0);
 	fileList.setCellRenderer(new FileCellRenderer());
 	fileList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 	fileList.addMouseListener(createDoubleClickListener(getFileChooser(), fileList));
@@ -798,6 +822,7 @@ class GTKFileChooserUI extends SynthFileChooserUI {
 
 	directoryList.setCellRenderer(new DirectoryCellRenderer());
         directoryListModel = new GTKDirectoryListModel();
+        directoryList.getSelectionModel().removeSelectionInterval(0, 0);
 	directoryList.setModel(directoryListModel);
 	directoryList.addMouseListener(createDoubleClickListener(getFileChooser(), directoryList));
 	directoryList.addListSelectionListener(createListSelectionListener(getFileChooser()));
@@ -1136,6 +1161,12 @@ class GTKFileChooserUI extends SynthFileChooserUI {
                 }
                 if (getFileChooser().getCurrentDirectory().equals(dir)) {
                     directoryList.clearSelection();
+                    fileList.clearSelection();
+                    ListSelectionModel sm = fileList.getSelectionModel();
+                    if (sm instanceof DefaultListSelectionModel) {
+                        ((DefaultListSelectionModel)sm).moveLeadSelectionIndex(0);       
+                        ((DefaultListSelectionModel)sm).setAnchorSelectionIndex(0);
+                    }
                     rescanCurrentDirectory(getFileChooser());
                     return;
                 }

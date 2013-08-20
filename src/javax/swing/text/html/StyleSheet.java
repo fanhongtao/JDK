@@ -1,5 +1,5 @@
 /*
- * @(#)StyleSheet.java	1.84 04/07/23
+ * @(#)StyleSheet.java	1.85 04/09/14
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -107,7 +107,7 @@ import javax.swing.text.*;
  * @author  Sunita Mani
  * @author  Sara Swanson
  * @author  Jill Nakata
- * @version 1.84 07/23/04
+ * @version 1.85 09/14/04
  */
 public class StyleSheet extends StyleContext {
     // As the javadoc states, this class maintains a mapping between
@@ -1824,12 +1824,14 @@ public class StyleSheet extends StyleContext {
 	    float inset = 0;
 	    switch(side) {
 	    case View.LEFT:
-		inset += leftMargin;
+                inset += getOrientationMargin(HorizontalMargin.LEFT, 
+                                              leftMargin, a, isLeftToRight(v));
 		inset += binsets.left;
 		inset += getLength(CSS.Attribute.PADDING_LEFT, a);
 		break;
 	    case View.RIGHT:
-		inset += rightMargin;
+                inset += getOrientationMargin(HorizontalMargin.RIGHT, 
+                                              rightMargin, a, isLeftToRight(v));
 		inset += binsets.right;
 		inset += getLength(CSS.Attribute.PADDING_RIGHT, a);
 		break;
@@ -1874,10 +1876,18 @@ public class StyleSheet extends StyleContext {
             float dy = 0;                                                 
             float dw = 0;                                                 
             float dh = 0;                                                 
+            AttributeSet a = v.getAttributes();
+            boolean isLeftToRight = isLeftToRight(v);
+            float localLeftMargin = getOrientationMargin(HorizontalMargin.LEFT,
+                                                         leftMargin, 
+                                                         a, isLeftToRight);
+            float localRightMargin = getOrientationMargin(HorizontalMargin.RIGHT, 
+                                                          rightMargin, 
+                                                          a, isLeftToRight);
             if (!(v instanceof HTMLEditorKit.HTMLFactory.BodyBlockView)) {
-                dx = leftMargin;                                          
+                dx = localLeftMargin;                                          
                 dy = topMargin;                                           
-                dw = -(leftMargin + rightMargin);                         
+                dw = -(localLeftMargin + localRightMargin);                         
                 dh = -(topMargin + bottomMargin);                         
             }                                                             
             if (bg != null) {                                             
@@ -1890,9 +1900,9 @@ public class StyleSheet extends StyleContext {
             if (bgPainter != null) {                                      
                 bgPainter.paint(g, x + dx, y + dy, w + dw, h + dh, v);    
             }                                                             
-	    x += leftMargin;
+            x += localLeftMargin;
 	    y += topMargin;
-	    w -= leftMargin + rightMargin;
+            w -= localLeftMargin + localRightMargin;
 	    h -= topMargin + bottomMargin;
 	    border.paintBorder(null, g, (int) x, (int) y, (int) w, (int) h);
 	}
@@ -1900,6 +1910,87 @@ public class StyleSheet extends StyleContext {
 	float getLength(CSS.Attribute key, AttributeSet a) {
 	    return css.getLength(a, key, ss);
 	}
+
+        static boolean isLeftToRight(View v) {
+            boolean ret = true;
+            if (isOrientationAware(v)) {
+                Container container = null;
+                if (v != null && (container = v.getContainer()) != null) {
+                    ret = container.getComponentOrientation().isLeftToRight();
+                }
+            }
+            return ret;
+        }
+
+        /*
+         * only certain tags are concerned about orientation
+         * <dir>, <menu>, <ul>, <ol>
+         * for all others we return true. It is implemented this way
+         * for performance purposes
+         */
+        static boolean isOrientationAware(View v) {
+            boolean ret = false;
+            AttributeSet attr = null;
+            Object obj = null;
+            if (v != null 
+                && (attr = v.getElement().getAttributes()) != null
+                && (obj = attr.getAttribute(StyleConstants.NameAttribute)) instanceof HTML.Tag
+                && (obj == HTML.Tag.DIR 
+                    || obj == HTML.Tag.MENU
+                    || obj == HTML.Tag.UL
+                    || obj == HTML.Tag.OL)) {
+                ret = true;
+            }
+
+            return ret;
+        }
+
+        static enum HorizontalMargin { LEFT, RIGHT };
+
+        /**
+         * for <dir>, <menu>, <ul> etc.
+         * margins are Left-To-Right/Right-To-Left depended.
+         * see 5088268 for more details
+         * margin-(left|right)-(ltr|rtl) were introduced to describe it
+         * if margin-(left|right) is present we are to use it.
+         *
+         * @param side The horizontal side to fetch margin for
+         *  This can be HorizontalMargin.LEFT or HorizontalMargin.RIGHT
+         * @param cssMargin margin from css
+         * @param a AttributeSet for the View we getting margin for
+         * @param isLeftToRight 
+         * @return orientation depended margin
+         */
+        float getOrientationMargin(HorizontalMargin side, float cssMargin,
+                                   AttributeSet a, boolean isLeftToRight) {
+            float margin = cssMargin;
+            float orientationMargin = cssMargin;
+            Object cssMarginValue = null;
+            switch (side) {
+            case RIGHT: 
+                {
+                    orientationMargin = (isLeftToRight) ? 
+                        getLength(CSS.Attribute.MARGIN_RIGHT_LTR, a) :
+                        getLength(CSS.Attribute.MARGIN_RIGHT_RTL, a);
+                    cssMarginValue = a.getAttribute(CSS.Attribute.MARGIN_RIGHT);
+                }
+                break;
+            case LEFT : 
+                {
+                    orientationMargin = (isLeftToRight) ?
+                        getLength(CSS.Attribute.MARGIN_LEFT_LTR, a) :
+                        getLength(CSS.Attribute.MARGIN_LEFT_RTL, a);
+                    cssMarginValue = a.getAttribute(CSS.Attribute.MARGIN_LEFT);
+                }
+                break;
+            }
+                
+            if (cssMarginValue == null 
+                && orientationMargin != Integer.MIN_VALUE) {
+                margin = orientationMargin;
+            }
+            return margin;
+        }
 
 	float topMargin;
 	float bottomMargin;

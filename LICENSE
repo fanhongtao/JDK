@@ -5,8 +5,8 @@ for the JAVA 2 PLATFORM STANDARD EDITION DEVELOPMENT KIT 5.0
 SUN MICROSYSTEMS, INC. ("SUN") IS WILLING TO LICENSE THE SOFTWARE
 IDENTIFIED BELOW TO YOU ONLY UPON THE CONDITION THAT YOU ACCEPT
 ALL OF THE TERMS CONTAINED IN THIS BINARY CODE LICENSE AGREEMENT AND
-SUPPLEMENTAL LICENSE TERMS (COLLECTIVELY "AGREEMENT").  PLEASE READ THE
-AGREEMENT CAREFULLY.  BY DOWNLOADING OR INSTALLING THIS SOFTWARE, YOU
+SUPPLEMENTAL LICENSE TERMS (COLLECTIVELY "AGREEMENT"). PLEASE READ THE
+AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING THIS SOFTWARE, YOU
 ACCEPT THE TERMS OF THE AGREEMENT. INDICATE ACCEPTANCE BY SELECTING THE
 "ACCEPT" BUTTON AT THE BOTTOM OF THE AGREEMENT. IF YOU ARE NOT WILLING
 TO BE BOUND BY ALL THE TERMS, SELECT THE "DECLINE" BUTTON AT THE BOTTOM
@@ -34,7 +34,7 @@ Terms.
 Software and all associated intellectual property rights is retained
 by Sun and/or its licensors. Unless enforcement is prohibited by
 applicable law, you may not modify, decompile, or reverse engineer
-Software.  You acknowledge that Licensed Software is not designed or
+Software. You acknowledge that Licensed Software is not designed or
 intended for use in the design, construction, operation or maintenance
 of any nuclear facility. Sun Microsystems, Inc. disclaims any express
 or implied warranty of fitness for such uses. No right, title or
@@ -43,11 +43,11 @@ of Sun or its licensors is granted under this Agreement. Additional
 restrictions for developers and/or publishers licenses are set forth
 in the Supplemental License Terms.
 
-4. LIMITED WARRANTY.  Sun warrants to you that for a period of ninety
+4. LIMITED WARRANTY. Sun warrants to you that for a period of ninety
 (90) days from the date of purchase, as evidenced by a copy of the
 receipt, the media on which Software is furnished (if any) will be free
-of defects in materials and workmanship under normal use.  Except for
-the foregoing, Software is provided "AS IS".  Your exclusive remedy
+of defects in materials and workmanship under normal use. Except for
+the foregoing, Software is provided "AS IS". Your exclusive remedy
 and Sun's entire liability under this limited warranty will be at
 Sun's option to replace Software media or refund the fee paid for
 Software. Any implied warranties on the Software are limited to 90
@@ -56,29 +56,29 @@ warranty, so the above may not apply to you. This limited warranty
 gives you specific legal rights. You may have others, which vary from
 state to state.
 
-5. DISCLAIMER OF WARRANTY.  UNLESS SPECIFIED IN THIS AGREEMENT,
+5. DISCLAIMER OF WARRANTY. UNLESS SPECIFIED IN THIS AGREEMENT,
 ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
 INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
 PARTICULAR PURPOSE OR NON-INFRINGEMENT ARE DISCLAIMED, EXCEPT TO THE
 EXTENT THAT THESE DISCLAIMERS ARE HELD TO BE LEGALLY INVALID.
 
-6. LIMITATION OF LIABILITY.  TO THE EXTENT NOT PROHIBITED BY LAW,
+6. LIMITATION OF LIABILITY. TO THE EXTENT NOT PROHIBITED BY LAW,
 IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE,
 PROFIT OR DATA, OR FOR SPECIAL, INDIRECT, CONSEQUENTIAL, INCIDENTAL OR
 PUNITIVE DAMAGES, HOWEVER CAUSED REGARDLESS OF THE THEORY OF LIABILITY,
 ARISING OUT OF OR RELATED TO THE USE OF OR INABILITY TO USE SOFTWARE,
-EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.  In no
+EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. In no
 event will Sun's liability to you, whether in contract, tort (including
 negligence), or otherwise, exceed the amount paid by you for Software
-under this Agreement.  The foregoing limitations will apply even if
+under this Agreement. The foregoing limitations will apply even if
 the above stated warranty fails of its essential purpose. Some states
 do not allow the exclusion of incidental or consequential damages,
 so some of the terms above may not be applicable to you.
 
-7. TERMINATION.  This Agreement is effective until terminated.  You
+7. TERMINATION. This Agreement is effective until terminated. You
 may terminate this Agreement at any time by destroying all copies of
-Software.  This Agreement will terminate immediately without notice
-from Sun if you fail to comply with any provision of this Agreement. 
+Software. This Agreement will terminate immediately without notice
+from Sun if you fail to comply with any provision of this Agreement.
 Either party may terminate this Agreement immediately should any
 Software become, or in either party's opinion be likely to become,
 the subject of a claim of infringement of any intellectual property
@@ -86,7 +86,7 @@ right. Upon Termination, you must destroy all copies of Software.
 
 8. EXPORT REGULATIONS. All Software and technical data delivered
 under this Agreement are subject to US export control laws and may be
-subject to export or import regulations in other countries.  You agree
+subject to export or import regulations in other countries. You agree
 to comply strictly with all such laws and regulations and acknowledge
 that you have the responsibility to obtain such licenses to export,
 re-export, or import as may be required after delivery to you.
@@ -100,7 +100,7 @@ the Sun Trademark and Logo Usage Requirements currently located at
 http://www.sun.com/policies/trademarks. Any use you make of the Sun
 Marks inures to Sun's benefit.
 
-10. U.S. GOVERNMENT RESTRICTED RIGHTS.  If Software is being acquired
+10. U.S. GOVERNMENT RESTRICTED RIGHTS. If Software is being acquired
 by or on behalf of the U.S. Government or by a U.S. Government prime
 contractor or subcontractor (at any tier), then the Government's
 rights in Software and accompanying documentation will be only as set
@@ -108,8 +108,8 @@ forth in this Agreement; this is in accordance with 48 CFR 227.7201
 through 227.7202-4 (for Department of Defense (DOD) acquisitions)
 and with 48 CFR 2.101 and 12.212 (for non-DOD acquisitions).
 
-11. GOVERNING LAW.  Any action related to this Agreement will be
-governed by California law and controlling U.S. federal law.  No
+11. GOVERNING LAW. Any action related to this Agreement will be
+governed by California law and controlling U.S. federal law. No
 choice of law rules of any jurisdiction will apply.
 
 12. SEVERABILITY. If any provision of this Agreement is held to be
@@ -117,13 +117,13 @@ unenforceable, this Agreement will remain in effect with the provision
 omitted, unless omission would frustrate the intent of the parties,
 in which case this Agreement will immediately terminate.
 
-13. INTEGRATION.  This Agreement is the entire agreement between
-you and Sun relating to its subject matter.  It supersedes all
+13. INTEGRATION. This Agreement is the entire agreement between
+you and Sun relating to its subject matter. It supersedes all
 prior or contemporaneous oral or written communications, proposals,
 representations and warranties and prevails over any conflicting
 or additional terms of any quote, order, acknowledgment, or other
 communication between the parties relating to its subject matter during
-the term of this Agreement.  No modification of this Agreement will be
+the term of this Agreement. No modification of this Agreement will be
 binding, unless in writing and signed by an authorized representative
 of each party.
 

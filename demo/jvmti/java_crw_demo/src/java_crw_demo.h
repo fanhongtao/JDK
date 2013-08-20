@@ -1,5 +1,5 @@
 /*
- * @(#)java_crw_demo.h	1.13 04/07/27
+ * @(#)java_crw_demo.h	1.15 04/09/17
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -158,6 +158,28 @@ JNIEXPORT void JNICALL java_crw_demo(
 				/*   class. NULL means skip this call. */
 	   
 	   );
+
+
+/* External to read the class name out of a class file .
+ *
+ *   WARNING: If You change the typedef, you MUST change
+ *            multiple things in this file, including this name.
+ */
+
+#define JAVA_CRW_DEMO_CLASSNAME_SYMBOLS \
+	 { "java_crw_demo_classname", "_java_crw_demo_classname@12" }
+
+/* Typedef needed for type casting in dynamic access situations. */
+
+typedef char * (JNICALL *JavaCrwDemoClassname)(
+	 const unsigned char *file_image, 
+	 long file_len, 
+	 FatalErrorHandler fatal_error_handler);
+
+JNIEXPORT char * JNICALL java_crw_demo_classname(
+         const unsigned char *file_image, 
+	 long file_len, 
+	 FatalErrorHandler fatal_error_handler);
 
 #endif
 

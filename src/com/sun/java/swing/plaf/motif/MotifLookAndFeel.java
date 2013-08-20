@@ -1,5 +1,5 @@
 /*
- * @(#)MotifLookAndFeel.java	1.167 04/03/19
+ * @(#)MotifLookAndFeel.java	1.168 04/09/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.167 03/19/04
+ * @version 1.168 09/10/04
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -1184,7 +1184,8 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 	    "FileChooser.enterFileNameLabelMnemonic", new Integer (KeyEvent.VK_N), // 'n'
 	    "FileChooser.ancestorInputMap", 
 	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "cancelSelection"
+                     "ESCAPE", "cancelSelection",
+                     "ENTER", "approveSelection"
 		 }),
 
 

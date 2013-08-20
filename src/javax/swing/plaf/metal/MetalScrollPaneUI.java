@@ -1,5 +1,5 @@
 /*
- * @(#)MetalScrollPaneUI.java	1.19 03/12/19
+ * @(#)MetalScrollPaneUI.java	1.20 04/09/08
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import java.awt.event.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 12/19/03
+ * @version 1.20 09/08/04
  * @author Steve Wilson
  */
 public class MetalScrollPaneUI extends BasicScrollPaneUI
@@ -47,8 +47,6 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
         super.installUI(c);
 
 	JScrollPane sp = (JScrollPane)c;
-	JScrollBar hsb = sp.getHorizontalScrollBar();
-	JScrollBar vsb = sp.getVerticalScrollBar();
         updateScrollbarsFreeStanding();
     }
 
@@ -58,8 +56,12 @@ public class MetalScrollPaneUI extends BasicScrollPaneUI
 	JScrollPane sp = (JScrollPane)c;
 	JScrollBar hsb = sp.getHorizontalScrollBar();
 	JScrollBar vsb = sp.getVerticalScrollBar();
-	hsb.putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, null);
-	vsb.putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, null);	
+        if (hsb != null) {
+            hsb.putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, null);
+        }
+        if (vsb != null) {
+            vsb.putClientProperty( MetalScrollBarUI.FREE_STANDING_PROP, null);	
+        }
     }
 
 

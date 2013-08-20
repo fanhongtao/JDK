@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_site.c	1.31 04/07/27
+ * @(#)hprof_site.c	1.32 04/09/22
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -635,7 +635,10 @@ site_heapdump(JNIEnv *env)
 	struct { int i; } user_data; /* FIXUP */
 
 	user_data.i = 0;
-    
+   
+	/* Remove class dumped status, all classes must be dumped */
+	class_all_status_remove(CLASS_DUMPED);
+
 	/* Dump the last thread traces and get the lists back we need */
 	tls_dump_traces(env);
        

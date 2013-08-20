@@ -1,7 +1,7 @@
-// $Id: XPathFactory.java,v 1.13.10.1 2004/05/07 00:34:05 jsuttor Exp $
+// $Id: XPathFactory.java,v 1.13.10.1.2.1 2004/09/16 09:25:15 nb131165 Exp $
 
 /*
- * @(#)XPathFactory.java	1.7 04/07/26
+ * @(#)XPathFactory.java	1.9 04/10/19
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,11 +17,12 @@ package javax.xml.xpath;
  *
  * @author  <a href="mailto:Norman.Walsh@Sun.com">Norman Walsh</a>
  * @author  <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.13.10.1 $, $Date: 2004/05/07 00:34:05 $
+ * @version $Revision: 1.13.10.1.2.1 $, $Date: 2004/09/16 09:25:15 $
  * @since 1.5
  */
 public abstract class XPathFactory {
 
+    
     /**
      * <p>The default property name according to the JAXP spec.</p>
      */
@@ -32,6 +33,11 @@ public abstract class XPathFactory {
      */
     public static final String DEFAULT_OBJECT_MODEL_URI = "http://java.sun.com/jaxp/xpath/dom";
 
+    /**
+     *<p> Take care of restrictions imposed by java security model </p>
+     */    
+    private static SecuritySupport ss = new SecuritySupport() ;
+    
     /**
      * <p>Protected constructor as {@link #newInstance()} or {@link #newInstance(String uri)}
      * should be used to create a new instance of an <code>XPathFactory</code>.</p>
@@ -134,7 +140,12 @@ public abstract class XPathFactory {
 			);
 		}
 		
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		ClassLoader classLoader = ss.getContextClassLoader();
+        
+        if (classLoader == null) {            
+            //use the current class loader
+            classLoader = XPathFactory.class.getClassLoader();
+        } 
 		
 		XPathFactory xpathFactory = new XPathFactoryFinder(classLoader).newFactory(uri);
 		

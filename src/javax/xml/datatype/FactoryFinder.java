@@ -1,6 +1,6 @@
-// $Id: FactoryFinder.java,v 1.1 2004/03/06 00:22:24 jsuttor Exp $
+// $Id: FactoryFinder.java,v 1.1.10.2 2004/09/21 12:59:26 nb131165 Exp $
 /*
- * @(#)FactoryFinder.java	1.2 04/07/26
+ * @(#)FactoryFinder.java	1.4 04/10/19
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -8,85 +8,131 @@
 
 package javax.xml.datatype;
 
-import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 import java.util.Properties;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URL;
 
 /**
- * This class is duplicated for each JAXP subpackage so keep it in
- * sync.  It is package private.
+ * <p>Implement pluggabile Datatypes.</p>
+ * 
+ * <p>This class is duplicated for each JAXP subpackage so keep it in
+ * sync.  It is package private for secure class loading.</p>
  *
- * This code is designed to implement the JAXP 1.1 spec pluggability
- * feature and is designed to run on JDK version 1.1 and later including
- * JVMs that perform early linking like the Microsoft JVM in IE 5.  Note
- * however that it must be compiled on a JDK version 1.2 or later system
- * since it calls Thread#getContextClassLoader().  The code also runs both
- * as part of an unbundled jar file and when bundled as part of the JDK.
+ * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
+ * @version $Revision: 1.1.10.2 $, $Date: 2004/09/21 12:59:26 $
+ * @since 1.5
  */
 class FactoryFinder {
-    /** Temp debug code - this will be removed after we test everything
+	
+	/**
+	 * <p>Name of class to display in output messages.</p>
+	 */
+	private static final String CLASS_NAME = "javax.xml.datatype.FactoryFinder";
+	
+    /**
+     * <p>Debug flag to trace loading process.</p>
      */
     private static boolean debug = false;
-	static Properties cacheProps= new Properties();
-	static boolean firstTime = true;
+    
+    /**
+     * <p>Cache properties for performance.</p>
+     */
+	private static Properties cacheProps = new Properties();
+	
+	/**
+	 * <p>First time requires initialization overhead.</p>
+	 */
+	private static boolean firstTime = true;
+    
+    /**
+     *<p> Take care of restrictions imposed by java security model </p>
+     */
+    private static SecuritySupport ss = new SecuritySupport();
+	
+	/**
+	 * <p>Check to see if debugging enabled by property.</p>
+	 * 
+	 * <p>Use try/catch block to support applets, which throws
+     * SecurityException out of this code.</p>
+	 * 
+	 */
     static {
-        // Use try/catch block to support applets
         try {
-            debug = System.getProperty("jaxp.debug") != null;
+            debug = ss.getSystemProperty("jaxp.debug") != null;
         } catch (Exception x) {
+        	; // NOP, ignore exception
         }
     }
 
+	/**
+	 * <p>Output debugging messages.</p>
+	 * 
+	 * @param msg <code>String</code> to print to <code>stderr</code>.
+	 */
     private static void debugPrintln(String msg) {
         if (debug) {
-            System.err.println("JAXP: " + msg);
+            System.err.println(
+            	CLASS_NAME
+            	+ ":"
+            	+ msg);
         }
     }
 
     /**
-     * Figure out which ClassLoader to use.  For JDK 1.2 and later use the
-     * context ClassLoader if possible.  Note: we defer linking the class
-     * that calls an API only in JDK 1.2 until runtime so that we can catch
-     * LinkageError so that this code will run in older non-Sun JVMs such
-     * as the Microsoft JVM in IE.
+     * <p>Find the appropriate <code>ClassLoader</code> to use.</p>
+     * 
+     * <p>The context ClassLoader is prefered.</p>
+     * 
+     * @return <code>ClassLoader</code> to use.
+     * 
+     * @throws ConfigurationError If a valid <code>ClassLoader</code> cannot be identified. 
      */
     private static ClassLoader findClassLoader()
-        throws ConfigurationError
-    {
+        throws ConfigurationError {
         ClassLoader classLoader;
-        try {
-            // Construct the name of the concrete class to instantiate
-            Class clazz = Class.forName(FactoryFinder.class.getName()
-                                        + "$ClassLoaderFinderConcrete");
-            ClassLoaderFinder clf = (ClassLoaderFinder) clazz.newInstance();
-            classLoader = clf.getContextClassLoader();
-        } catch (LinkageError le) {
-            // Assume that we are running JDK 1.1, use the current ClassLoader
+
+        // Figure out which ClassLoader to use for loading the provider
+        // class.  If there is a Context ClassLoader then use it.
+
+        classLoader = ss.getContextClassLoader();            
+
+        debugPrintln(
+            "Using context class loader: "
+            + classLoader);
+
+        if (classLoader == null) {
+            // if we have no Context ClassLoader
+            // so use the current ClassLoader
             classLoader = FactoryFinder.class.getClassLoader();
-        } catch (ClassNotFoundException x) {
-            // This case should not normally happen.  MS IE can throw this
-            // instead of a LinkageError the second time Class.forName() is
-            // called so assume that we are running JDK 1.1 and use the
-            // current ClassLoader
-            classLoader = FactoryFinder.class.getClassLoader();
-        } catch (Exception x) {
-            // Something abnormal happened so throw an error
-            throw new ConfigurationError(x.toString(), x);
+            debugPrintln(
+                "Using the class loader of FactoryFinder: "
+                + classLoader);                
         }
+                    
         return classLoader;
     }
 
     /**
-     * Create an instance of a class using the specified ClassLoader
+     * <p>Create an instance of a class using the specified ClassLoader.</p>
+     * 
+     * @param className Name of class to create.
+     * @param classLoader ClassLoader to use to create named class.
+     * 
+     * @return New instance of specified class created using the specified ClassLoader.
+     * 
+     * @throws ConfigurationError If class could not be created.
      */
-    private static Object newInstance(String className,
-                                      ClassLoader classLoader)
-        throws ConfigurationError
-    {
+    private static Object newInstance(
+    	String className,
+        ClassLoader classLoader)
+        throws ConfigurationError {
+        	
         try {
             Class spiClass;
             if (classLoader == null) {
@@ -94,6 +140,11 @@ class FactoryFinder {
             } else {
                 spiClass = classLoader.loadClass(className);
             }
+            
+            if (debug) {
+            	debugPrintln("Loaded " + className + " from " + which(spiClass));
+            }
+             
             return spiClass.newInstance();
         } catch (ClassNotFoundException x) {
             throw new ConfigurationError(
@@ -108,81 +159,64 @@ class FactoryFinder {
     /**
      * Finds the implementation Class object in the specified order.  Main
      * entry point.
-     * @return Class object of factory, never null
-     *
-     * @param factoryId             Name of the factory to find, same as
-     *                              a property name
-     * @param fallbackClassName     Implementation class name, if nothing else
-     *                              is found.  Use null to mean no fallback.
-     *
      * Package private so this code can be shared.
+     *
+     * @param factoryId Name of the factory to find, same as a property name
+     * @param fallbackClassName Implementation class name, if nothing else is found.  Use null to mean no fallback.
+     *
+     * @return Class Object of factory, never null
+     * 
+     * @throws ConfigurationError If Class cannot be found.
      */
     static Object find(String factoryId, String fallbackClassName)
-        throws ConfigurationError
-    {
+        throws ConfigurationError {
+        	
         ClassLoader classLoader = findClassLoader();
 
         // Use the system property first
         try {
-            String systemProp =
-                System.getProperty( factoryId );
-            if( systemProp!=null) {
-                debugPrintln("found system property" + systemProp);
+            String systemProp = ss.getSystemProperty(factoryId);
+            if (systemProp != null) {
+                debugPrintln("found " + systemProp + " in the system property " + factoryId);
                 return newInstance(systemProp, classLoader);
             }
         } catch (SecurityException se) {
+        	; // NOP, explicitly ignore SecurityException
         }
 
         // try to read from $java.home/lib/jaxp.properties
         try {
-            String javah=System.getProperty( "java.home" );
-            String configFile = javah + File.separator +
-                "lib" + File.separator + "jaxp.properties";
+            String javah = ss.getSystemProperty("java.home");
+            String configFile = javah + File.separator + "lib" + File.separator + "jaxp.properties";
 			String factoryClassName = null;
-			if(firstTime){
-            	File f=new File( configFile );
-				firstTime = false;
-            	if( f.exists()) {
-            		debugPrintln("Read properties file");
-                	cacheProps.load( new FileInputStream(f));
-            	}
+			if (firstTime) {
+				synchronized (cacheProps) {
+					if (firstTime) {
+						File f = new File(configFile);
+						firstTime = false;
+						if (ss.doesFileExist(f)) {
+							debugPrintln("Read properties file " + f);
+							cacheProps.load(ss.getFileInputStream(f));
+						}
+					}
+				}
 			}
 			factoryClassName = cacheProps.getProperty(factoryId);
-            debugPrintln("found java.home property " + factoryClassName); 
+            debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties"); 
 			
-			if(factoryClassName != null){
+			if (factoryClassName != null) {
 				return newInstance(factoryClassName, classLoader);
 			}
-        } catch(Exception ex ) {
-            if( debug ) ex.printStackTrace();
+        } catch (Exception ex) {
+            if (debug) {
+            	ex.printStackTrace();
+            } 
         }
-
-        String serviceId = "META-INF/services/" + factoryId;
-        // try to find services in CLASSPATH
-        try {
-            InputStream is=null;
-            if (classLoader == null) {
-                is=ClassLoader.getSystemResourceAsStream( serviceId );
-            } else {
-                is=classLoader.getResourceAsStream( serviceId );
-            }
         
-            if( is!=null ) {
-                debugPrintln("found " + serviceId);
-                BufferedReader rd =
-                    new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        
-                String factoryClassName = rd.readLine();
-                rd.close();
-
-                if (factoryClassName != null &&
-                    ! "".equals(factoryClassName)) {
-                    debugPrintln("loaded from services: " + factoryClassName);
-                    return newInstance(factoryClassName, classLoader);
-                }
-            }
-        } catch( Exception ex ) {
-            if( debug ) ex.printStackTrace();
+        // Try Jar Service Provider Mechanism
+        Object provider = findJarServiceProvider(factoryId);
+        if (provider != null) {
+            return provider;
         }
 
         if (fallbackClassName == null) {
@@ -194,33 +228,166 @@ class FactoryFinder {
         return newInstance(fallbackClassName, classLoader);
     }
 
+    /*
+     * Try to find provider using Jar Service Provider Mechanism
+     *
+     * @return instance of provider class if found or null
+     */
+    private static Object findJarServiceProvider(String factoryId)
+        throws ConfigurationError
+    {
+
+        String serviceId = "META-INF/services/" + factoryId;
+        InputStream is = null;
+
+        // First try the Context ClassLoader
+        ClassLoader cl = ss.getContextClassLoader();
+        if (cl != null) {
+            is = ss.getResourceAsStream(cl, serviceId);
+
+            // If no provider found then try the current ClassLoader
+            if (is == null) {
+                cl = FactoryFinder.class.getClassLoader();
+                is = ss.getResourceAsStream(cl, serviceId);
+            }
+        } else {
+            // No Context ClassLoader, try the current
+            // ClassLoader
+            cl = FactoryFinder.class.getClassLoader();
+            is = ss.getResourceAsStream(cl, serviceId);
+        }
+
+        if (is == null) {
+            // No provider found
+            return null;
+        }
+
+        debugPrintln("found jar resource=" + serviceId +
+               " using ClassLoader: " + cl);
+
+        BufferedReader rd;
+        try {
+            rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+        } catch (java.io.UnsupportedEncodingException e) {
+            rd = new BufferedReader(new InputStreamReader(is));
+        }
+        
+        String factoryClassName = null;
+        try {
+            // XXX Does not handle all possible input as specified by the
+            // Jar Service Provider specification
+            factoryClassName = rd.readLine();
+            rd.close();
+        } catch (IOException x) {
+            // No provider found
+            return null;
+        }
+
+        if (factoryClassName != null &&
+            ! "".equals(factoryClassName)) {
+            debugPrintln("found in resource, value="
+                   + factoryClassName);
+
+            return newInstance(factoryClassName, cl);
+        }
+
+        // No provider found
+        return null;
+    }
+    
+	/**
+	 * <p>Configuration Error.</p>
+	 */
     static class ConfigurationError extends Error {
+    	
+    	/**
+    	 * <p>Exception that caused the error.</p>
+    	 */
         private Exception exception;
 
         /**
-         * Construct a new instance with the specified detail string and
-         * exception.
+         * <p>Construct a new instance with the specified detail string and
+         * exception.</p>
+         * 
+         * @param msg Detail message for this error.
+         * @param x Exception that caused the error.
          */
         ConfigurationError(String msg, Exception x) {
             super(msg);
             this.exception = x;
         }
 
+		/**
+		 * <p>Get the Exception that caused the error.</p>
+		 * 
+		 * @return Exception that caused the error.
+		 */
         Exception getException() {
             return exception;
         }
     }
 
-    /*
+
+
+    /**
+     * Returns the location where the given Class is loaded from.
+     * 
+     * @param clazz Class to find load location.
+     * 
+     * @return Location where class would be loaded from.
+     */
+    private static String which(Class clazz) {
+        try {
+            String classnameAsResource = clazz.getName().replace('.', '/') + ".class";
+    
+            ClassLoader loader = clazz.getClassLoader();
+            
+            URL it;
+    
+            if (loader != null) {
+            	it = loader.getResource(classnameAsResource);
+            } else {
+            	it = ClassLoader.getSystemResource(classnameAsResource);
+            } 
+    
+            if (it != null) {
+            	return it.toString();
+            } 
+        } catch (Throwable t) {
+            // work defensively.
+            if (debug) {
+            	t.printStackTrace();
+            } 
+        }
+        return "unknown location";
+    }
+
+
+
+    /**
      * The following nested classes allow getContextClassLoader() to be
      * called only on JDK 1.2 and yet run in older JDK 1.1 JVMs
      */
-
-    private static abstract class ClassLoaderFinder {
+    private abstract static class ClassLoaderFinder {
+    	
+    	/**
+    	 * <p>Get Context Class loader.</p>
+    	 * 
+    	 * @return Context class loader.
+    	 */
         abstract ClassLoader getContextClassLoader();
     }
 
+	/**
+	 * <p>Actual ClassLoader finder implementation.</p>
+	 */
     static class ClassLoaderFinderConcrete extends ClassLoaderFinder {
+    	
+    	/**
+    	 * <p>Get Context Class loader.</p>
+    	 * 
+    	 * @return Context class loader.
+    	 */
         ClassLoader getContextClassLoader() {
             return Thread.currentThread().getContextClassLoader();
         }

@@ -1,5 +1,5 @@
 /*
- * @(#)XPStyle.java	1.19 03/12/19
+ * @(#)XPStyle.java	1.20 04/09/07
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import sun.security.action.GetPropertyAction;
 /**
  * Implements Windows XP Styles for the Windows Look and Feel.
  *
- * @version 1.19 12/19/03
+ * @version 1.20 09/07/04
  * @author Leif Samuelsson
  */
 class XPStyle {
@@ -260,7 +260,7 @@ class XPStyle {
 		int g = parseInt(tok.nextToken(), 0);
 		int b = parseInt(tok.nextToken(), 0);
 		if (r >= 0 && g >=0 && b >= 0) {
-		    color = new Color(r, g, b);
+		    color = new ColorUIResource(r, g, b);
 		    map.put("Color "+key, color);
 		}
 	    }

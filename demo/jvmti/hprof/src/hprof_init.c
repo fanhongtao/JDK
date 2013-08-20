@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_init.c	1.80 04/07/27
+ * @(#)hprof_init.c	1.81 04/09/24
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -267,7 +267,7 @@ make_unique_filename(char **filename)
 	md_close(fd);
 	
 	/* Make filename name.PID[.txt] */
-	pid = (int)getpid();
+	pid = md_getpid();
 	old_name = *filename;
 	new_len = (int)strlen(old_name)+64;
 	new_name = HPROF_MALLOC(new_len);
@@ -1373,7 +1373,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
 
     /* WARNING: This will be called before VM_INIT. */
 
-    LOG2("cbClassFileLoadHook:",name);
+    LOG2("cbClassFileLoadHook:",(name==NULL?"Unknown":name));
     
     if (!gdata->bci) {
         return;
@@ -1381,7 +1381,8 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
     
     BEGIN_CALLBACK() {
 	rawMonitorEnter(gdata->data_access_lock); {
-	
+	    const char *classname;
+	    
 	    if ( gdata->bci_counter == 0 ) {
 		/* Prime the system classes */
 		class_prime_system_classes();
@@ -1392,8 +1393,23 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
 	    *new_class_data_len = 0;
 	    *new_class_data     = NULL;
 
+	    /* Name could be NULL */
+	    if ( name == NULL ) {
+		classname = ((JavaCrwDemoClassname)
+			     (gdata->java_crw_demo_classname_function))
+		    (class_data, class_data_len, &my_crw_fatal_error_handler);
+		if ( classname == NULL ) {
+		    HPROF_ERROR(JNI_TRUE, "No classname in classfile");
+		}
+	    } else {
+		classname = strdup(name);
+		if ( classname == NULL ) {
+		    HPROF_ERROR(JNI_TRUE, "Ran out of malloc() space");
+		}
+	    }
+	    
 	    /* The tracker class itself? */
-	    if ( strcmp(name,"sun/tools/hprof/Tracker") != 0 ) {
+	    if ( strcmp(classname,"sun/tools/hprof/Tracker") != 0 ) {
 		ClassIndex            cnum;
 		int                   system_class;
 		unsigned char *       new_image;
@@ -1402,13 +1418,13 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
                 char                 *signature;
 		LoaderIndex           loader_index;
 		
-		LOG2("cbClassFileLoadHook injecting class" , name);
+		LOG2("cbClassFileLoadHook injecting class" , classname);
 		
 		/* Define a unique class number for this class */
-		len              = (int)strlen(name);
+		len              = (int)strlen(classname);
 		signature        = HPROF_MALLOC(len+3);
 		signature[0]     = JVM_SIGNATURE_CLASS;
-		(void)memcpy(signature+1, name, len);
+		(void)memcpy(signature+1, classname, len);
 		signature[len+1] = JVM_SIGNATURE_ENDCLASS;
 		signature[len+2] = 0;
 		loader_index = loader_find_or_create(env,loader);
@@ -1430,7 +1446,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
 		     && ( ( class_get_status(cnum) & CLASS_SYSTEM) != 0
 			    || gdata->bci_counter < 8 ) ) {
 		    system_class = 1;
-		    LOG2(name, " is a system class");
+		    LOG2(classname, " is a system class");
 		}
 
 		new_image = NULL;
@@ -1439,7 +1455,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
 		/* Call the class file reader/write demo code */
 		((JavaCrwDemo)(gdata->java_crw_demo_function))(
 		    cnum, 
-		    name, 
+		    classname, 
 		    class_data, 
 		    class_data_len, 
 	            system_class,
@@ -1461,13 +1477,13 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
 		if ( new_length > 0 ) {
 		    unsigned char *jvmti_space;
 		    
-		    LOG2("cbClassFileLoadHook DID inject this class", name);
+		    LOG2("cbClassFileLoadHook DID inject this class", classname);
 		    jvmti_space = (unsigned char *)jvmtiAllocate((jint)new_length);
 		    (void)memcpy((void*)jvmti_space, (void*)new_image, (int)new_length);
 		    *new_class_data_len = (jint)new_length;
 		    *new_class_data     = jvmti_space; /* VM will deallocate */
 		} else {
-		    LOG2("cbClassFileLoadHook DID NOT inject this class", name);
+		    LOG2("cbClassFileLoadHook DID NOT inject this class", classname);
 		    *new_class_data_len = 0;
 		    *new_class_data     = NULL;
 	        }
@@ -1475,6 +1491,7 @@ cbClassFileLoadHook(jvmtiEnv *jvmti_env, JNIEnv* env,
 		    (void)free((void*)new_image); /* Free malloc() space with free() */
 		}
 	    }
+	    (void)free((void*)classname);
 	} rawMonitorExit(gdata->data_access_lock);
     } END_CALLBACK();
 }
@@ -1781,6 +1798,58 @@ getCapabilities(void)
 
 }
 
+/* Dynamic library loading */
+static void *
+load_library(char *name)
+{
+    char  lname[FILENAME_MAX+1];
+    char  err_buf[256+FILENAME_MAX+1];
+    char *boot_path;
+    void *handle;
+
+    handle = NULL;
+
+    /* The library may be located in different ways, try both, but
+     *   if it comes from outside the SDK/jre it isn't ours.
+     */
+    getSystemProperty("sun.boot.library.path", &boot_path);
+    md_build_library_name(lname, FILENAME_MAX, boot_path, name);
+    handle = md_load_library(lname, err_buf, (int)sizeof(err_buf));
+    if ( handle == NULL ) {
+	/* This may be necessary on Windows. */
+	md_build_library_name(lname, FILENAME_MAX, "", name);
+	handle = md_load_library(lname, err_buf, (int)sizeof(err_buf));
+	if ( handle == NULL ) {
+	    HPROF_ERROR(JNI_TRUE, err_buf);
+	}
+    }
+    return handle;
+}
+
+/* Lookup dynamic function pointer in shared library */
+static void *
+lookup_library_symbol(void *library, char **symbols, int nsymbols)
+{
+    void *addr;
+    int   i;
+
+    addr = NULL;
+    for( i = 0 ; i < nsymbols; i++ ) {
+	addr = md_find_library_entry(library, symbols[i]);
+	if ( addr != NULL ) {
+	    break;
+	}
+    }
+    if ( addr == NULL ) {
+	char errmsg[256];
+	
+	(void)md_snprintf(errmsg, sizeof(errmsg), 
+		    "Cannot find library symbol '%s'", symbols[0]);
+	HPROF_ERROR(JNI_TRUE, errmsg);
+    }
+    return addr;
+}
+
 /* ------------------------------------------------------------------- */
 /* The OnLoad interface */
 
@@ -1859,41 +1928,22 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 
     /* Load java_crw_demo library and find function "java_crw_demo" */
     if ( gdata->bci ) {
-	static char *symbols[] = JAVA_CRW_DEMO_SYMBOLS; /* "java_crw_demo" */
-	char         lname[FILENAME_MAX+1];
-	char         err_buf[256+FILENAME_MAX+1];
-	char        *boot_path;
-	int          i;
 
-	/* The library may be located in different ways, try both, but
-	 *   if it comes from outside the SDK/jre it isn't ours.
-	 *   But with a name like java_crw_demo, what are the odds?
-	 */
-	getSystemProperty("sun.boot.library.path", &boot_path);
-	md_build_library_name(lname, FILENAME_MAX, boot_path, "java_crw_demo");
-	gdata->java_crw_demo_library = 
-	         md_load_library(lname, err_buf, (int)sizeof(err_buf));
-	if ( gdata->java_crw_demo_library == NULL ) {
-	    /* This may be necessary on Windows. */
-	    md_build_library_name(lname, FILENAME_MAX, "", "java_crw_demo");
-	    gdata->java_crw_demo_library = 
-		     md_load_library(lname, err_buf, (int)sizeof(err_buf));
-	    if ( gdata->java_crw_demo_library == NULL ) {
-		HPROF_ERROR(JNI_TRUE, err_buf);
-	    }
-	}
+	/* Load the library or get the handle to it */
+	gdata->java_crw_demo_library = load_library("java_crw_demo"); 
 	
-	/* The function may have different names, we find the first one */
-	for( i = 0 ; i < (int)(sizeof(symbols)/sizeof(char*)) ; i++ ) {
+	{ /* "java_crw_demo" */
+	    static char *symbols[]  = JAVA_CRW_DEMO_SYMBOLS;
 	    gdata->java_crw_demo_function = 
-	      md_find_library_entry(gdata->java_crw_demo_library, symbols[i]);
-	    if ( gdata->java_crw_demo_function != NULL ) {
-		break;
-	    }
+	           lookup_library_symbol(gdata->java_crw_demo_library, 
+			      symbols, (int)(sizeof(symbols)/sizeof(char*)));
 	}
-	if ( gdata->java_crw_demo_function == NULL ) {
-	    HPROF_ERROR(JNI_TRUE, "Cannot find java_crw_demo function.");
-	}
+	{ /* "java_crw_demo_classname" */
+	    static char *symbols[] = JAVA_CRW_DEMO_CLASSNAME_SYMBOLS;
+	    gdata->java_crw_demo_classname_function = 
+	           lookup_library_symbol(gdata->java_crw_demo_library, 
+			      symbols, (int)(sizeof(symbols)/sizeof(char*)));
+        }
     }
     
     return JNI_OK;

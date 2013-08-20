@@ -1,5 +1,5 @@
 /*
- * @(#)SourceOrderDeclScanner.java	1.4 04/05/03
+ * @(#)SourceOrderDeclScanner.java	1.5 04/09/16
  *
  * Copyright 2004 Sun Microsystems, Inc.  All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
@@ -26,26 +26,92 @@ import java.util.TreeSet;
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.4 04/05/03
+ * @version 1.5 04/09/16
  * @since 1.5
  */
 class SourceOrderDeclScanner extends DeclarationScanner {
     static class SourceOrderComparator implements java.util.Comparator<Declaration> {
 	SourceOrderComparator(){}
+
 	
+	static boolean equals(Declaration d1, Declaration d2) {
+	    return d1 == d2 || (d1 != null && d1.equals(d2));
+	}
+
+	private static class DeclPartialOrder extends com.sun.mirror.util.SimpleDeclarationVisitor {
+	    private int value = 1000;
+	    private static int staticAdjust(Declaration d) {
+		return d.getModifiers().contains(Modifier.STATIC)?0:1;
+	    }
+
+	    DeclPartialOrder() {}
+	    
+	    public int getValue() { return value; }
+
+	    @Override
+	    public void visitTypeParameterDeclaration(TypeParameterDeclaration d) {value = 0;}
+
+	    @Override
+	    public void visitEnumConstantDeclaration(EnumConstantDeclaration d) {value = 1;}
+
+	    @Override
+	    public void visitClassDeclaration(ClassDeclaration d) {value = 2 + staticAdjust(d);}
+
+	    @Override
+	    public void visitInterfaceDeclaration(InterfaceDeclaration d) {value = 4;}
+
+	    @Override
+	    public void visitEnumDeclaration(EnumDeclaration d) {value = 6;}
+
+	    @Override
+	    public void visitAnnotationTypeDeclaration(AnnotationTypeDeclaration d) {value = 8;}
+
+	    @Override
+	    public void visitFieldDeclaration(FieldDeclaration d) {value = 10 + staticAdjust(d);}
+
+	    @Override
+	    public void visitConstructorDeclaration(ConstructorDeclaration d) {value = 12;}
+
+	    @Override
+	    public void visitMethodDeclaration(MethodDeclaration d) {value = 14 + staticAdjust(d);} 
+	}
+	
+	private int compareEqualPosition(Declaration d1, Declaration d2) {
+	    assert d1.getPosition() == d2.getPosition();
+
+	    DeclPartialOrder dpo1 = new DeclPartialOrder();
+	    DeclPartialOrder dpo2 = new DeclPartialOrder();
+
+	    d1.accept(dpo1);
+	    d2.accept(dpo2);
+
+	    int difference = dpo1.getValue() - dpo2.getValue();
+	    if (difference != 0)
+		return difference;
+	    else {
+		int result = d1.getSimpleName().compareTo(d2.getSimpleName());
+		if (result != 0)
+		    return result;
+		return (int)( Long.signum((long)System.identityHashCode(d1) -
+					  (long)System.identityHashCode(d2)));
+	    }
+	}
+
 	public int compare(Declaration d1, Declaration d2) {
-	    if (d1 == d2)
+	    if (equals(d1, d2))
 		return 0;
 
 	    SourcePosition p1 = d1.getPosition();
 	    SourcePosition p2 = d2.getPosition();
 
-	    if (p1 == null)
-		return (p2 == null) ?0:1 ;
+	    if (p1 == null && p2 != null)
+		return 1;
+	    else if (p1 != null && p2 == null)
+		return -1;
+	    else if(p1 == null && p2 == null)
+		return compareEqualPosition(d1, d2);
 	    else {
-		if (p2 == null)
-		    return -1;
-		
+		assert p1 != null && p2 != null;
 		int fileComp = p1.file().compareTo(p2.file()) ;
 		if (fileComp == 0) {
 		    long diff = (long)p1.line() - (long)p2.line();
@@ -57,8 +123,7 @@ class SourceOrderDeclScanner extends DeclarationScanner {
 			    // declarations may be two
 			    // compiler-generated members with the
 			    // same source position
-			    return (int)( Long.signum((long)System.identityHashCode(d1) -
-						      (long)System.identityHashCode(d2)));
+			    return compareEqualPosition(d1, d2);
 			}
 		    } else
 			return (diff<0)? -1:1;

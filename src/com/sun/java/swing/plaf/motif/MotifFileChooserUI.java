@@ -1,5 +1,5 @@
 /*
- * @(#)MotifFileChooserUI.java	1.42 04/03/11
+ * @(#)MotifFileChooserUI.java	1.44 04/09/10
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Motif FileChooserUI.
  *
- * @version 1.42 03/11/04
+ * @version 1.44 09/10/04
  * @author Jeff Dinkins
  */
 public class MotifFileChooserUI extends BasicFileChooserUI {
@@ -156,7 +156,17 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
             }
 		} else if(prop.equals(JFileChooser.DIRECTORY_CHANGED_PROPERTY)) {
 		    directoryList.clearSelection();
+                    ListSelectionModel sm = directoryList.getSelectionModel();
+                    if (sm instanceof DefaultListSelectionModel) {
+                        ((DefaultListSelectionModel)sm).moveLeadSelectionIndex(0);       
+                        ((DefaultListSelectionModel)sm).setAnchorSelectionIndex(0);
+                    }
 		    fileList.clearSelection();
+                    sm = fileList.getSelectionModel();
+                    if (sm instanceof DefaultListSelectionModel) {
+                        ((DefaultListSelectionModel)sm).moveLeadSelectionIndex(0);
+                        ((DefaultListSelectionModel)sm).setAnchorSelectionIndex(0);
+                    }
 		    File currentDirectory = getFileChooser().getCurrentDirectory();
 		    if(currentDirectory != null) {
 			try {
@@ -491,6 +501,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 	}
 	
 	fileList.setModel(new MotifFileListModel());
+        fileList.getSelectionModel().removeSelectionInterval(0, 0);
 	fileList.setCellRenderer(new FileCellRenderer());
 	fileList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 	fileList.addMouseListener(createDoubleClickListener(getFileChooser(), fileList));
@@ -508,6 +519,7 @@ public class MotifFileChooserUI extends BasicFileChooserUI {
 
 	directoryList.setCellRenderer(new DirectoryCellRenderer());
 	directoryList.setModel(new MotifDirectoryListModel());
+        directoryList.getSelectionModel().removeSelectionInterval(0, 0);
 	directoryList.addMouseListener(createDoubleClickListener(getFileChooser(), directoryList));
 	directoryList.addListSelectionListener(createListSelectionListener(getFileChooser()));
 

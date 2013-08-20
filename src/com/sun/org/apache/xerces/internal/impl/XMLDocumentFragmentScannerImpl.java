@@ -849,7 +849,7 @@ public class XMLDocumentFragmentScannerImpl
 
             // attributes
             scanAttribute(fAttributes);
-            if (fAttributes.getLength() > fElementAttributeLimit){                
+            if (fSecurityManager != null && fAttributes.getLength() > fElementAttributeLimit){                
                 fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                              "ElementAttributeLimit",
                                              new Object[]{rawname, new Integer(fAttributes.getLength()) },

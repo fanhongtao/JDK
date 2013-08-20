@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ObjectFactory.java,v 1.2 2004/03/11 00:58:39 bhakti Exp $
+ * $Id: ObjectFactory.java,v 1.3 2004/06/03 11:43:37 ay131335 Exp $
  */
 
 package com.sun.org.apache.xpath.internal.functions;
@@ -35,15 +35,15 @@ import java.io.InputStreamReader;
  * <p>
  * This code is designed to implement the JAXP 1.1 spec pluggability
  * feature and is designed to run on JDK version 1.1 and
- * later, and to compile on JDK 1.2 and onward.  
+ * later, and to compile on JDK 1.2 and onward.
  * The code also runs both as part of an unbundled jar file and
  * when bundled as part of the JDK.
  * <p>
  * This class was moved from the <code>javax.xml.parsers.ObjectFactory</code>
- * class and modified to be used as a general utility for creating objects 
+ * class and modified to be used as a general utility for creating objects
  * dynamically.
  *
- * @version $Id: ObjectFactory.java,v 1.2 2004/03/11 00:58:39 bhakti Exp $
+ * @version $Id: ObjectFactory.java,v 1.3 2004/06/03 11:43:37 ay131335 Exp $
  */
 class ObjectFactory {
 
@@ -123,7 +123,7 @@ class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Object createObject(String factoryId, 
+    static Object createObject(String factoryId,
                                       String propertiesFilename,
                                       String fallbackClassName)
         throws ConfigurationError
@@ -170,7 +170,7 @@ class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Class lookUpFactoryClass(String factoryId) 
+    static Class lookUpFactoryClass(String factoryId)
         throws ConfigurationError
     {
         return lookUpFactoryClass(factoryId, null, null);
@@ -372,7 +372,7 @@ class ObjectFactory {
      */
     static ClassLoader findClassLoader()
         throws ConfigurationError
-    { 
+    {
         SecuritySupport ss = SecuritySupport.getInstance();
 
         // Figure out which ClassLoader to use for loading the provider
@@ -428,7 +428,7 @@ class ObjectFactory {
 
     /**
      * Create an instance of a class using the specified ClassLoader
-     */ 
+     */
     static Object newInstance(String className, ClassLoader cl,
                                       boolean doFallback)
         throws ConfigurationError
@@ -452,26 +452,23 @@ class ObjectFactory {
 
     /**
      * Find a Class using the specified ClassLoader
-     */ 
+     */
     static Class findProviderClass(String className, ClassLoader cl,
                                            boolean doFallback)
         throws ClassNotFoundException, ConfigurationError
-    {   
+    {
         //throw security exception if the calling thread is not allowed to access the
         //class. Restrict the access to the package classes as specified in java.security policy.
         SecurityManager security = System.getSecurityManager();
-        try{
-            if (security != null){
-                final int lastDot = className.lastIndexOf(".");
-                String packageName = className;
-                if (lastDot != -1)
-                    packageName = className.substring(0, lastDot);
-                security.checkPackageAccess(packageName);
-             }   
-        }catch(SecurityException e){
-            throw e;
+        if (security != null){
+            final int lastDot = className.lastIndexOf(".");
+            String packageName = className;
+            if (lastDot != -1)
+                packageName = className.substring(0, lastDot);
+            security.checkPackageAccess(packageName);
         }
-        
+
+
         Class providerClass;
         if (cl == null) {
             // XXX Use the bootstrap ClassLoader.  There is no way to
@@ -563,7 +560,7 @@ class ObjectFactory {
         } catch (java.io.UnsupportedEncodingException e) {
             rd = new BufferedReader(new InputStreamReader(is));
         }
-        
+
         String factoryClassName = null;
         try {
             // XXX Does not handle all possible input as specified by the
@@ -598,7 +595,7 @@ class ObjectFactory {
     /**
      * A configuration error.
      */
-    static class ConfigurationError 
+    static class ConfigurationError
         extends Error {
 
         //

@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_md.c	1.21 04/07/27
+ * @(#)hprof_md.c	1.22 04/09/24
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -56,11 +56,21 @@
 #include <netinet/in.h>
 #include <sys/param.h>
 #include <time.h>
-#include "typedefs.h"
 
 #include "jni.h"
-#include "jlong.h"
 #include "hprof.h"
+
+int 
+md_getpid(void)
+{
+    static int pid = -1;
+    
+    if ( pid >= 0 ) {
+	return pid;
+    }
+    pid = getpid();
+    return pid;
+}
 
 void
 md_init(void)
@@ -74,7 +84,7 @@ md_init(void)
 
 	/* Turn on micro state accounting, once per process */
 	(void)md_snprintf(proc_ctl_fn, sizeof(proc_ctl_fn),
-		"/proc/%d/ctl", getpid());
+		"/proc/%d/ctl", md_getpid());
      
 	procfd = open(proc_ctl_fn, O_WRONLY);
 	if (procfd >= 0) {

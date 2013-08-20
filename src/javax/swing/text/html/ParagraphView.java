@@ -1,5 +1,5 @@
 /*
- * @(#)ParagraphView.java	1.28 03/12/19
+ * @(#)ParagraphView.java	1.29 04/09/14
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import javax.swing.text.JTextComponent;
  * configuration.
  *
  * @author  Timothy Prinzing
- * @version 1.28 12/19/03
+ * @version 1.29 09/14/04
  */
 
 public class ParagraphView extends javax.swing.text.ParagraphView {
@@ -210,6 +210,10 @@ public class ParagraphView extends javax.swing.text.ParagraphView {
      * @see View#paint
      */
     public void paint(Graphics g, Shape a) {
+        if (a == null) {
+            return;
+        }
+
 	Rectangle r;
 	if (a instanceof Rectangle) {
 	    r = (Rectangle) a;

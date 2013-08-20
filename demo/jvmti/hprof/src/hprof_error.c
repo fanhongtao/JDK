@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_error.c	1.12 04/07/27
+ * @(#)hprof_error.c	1.13 04/09/16
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -106,7 +106,7 @@ terminate_everything(jint exit_code)
                 char cmd[256];
                 pid_t pid;
                 
-                pid = getpid();
+                pid = (pid_t)md_getpid();
                 (void)md_snprintf(cmd, sizeof(cmd), 
                         "precrash -p %d > /tmp/%s.%d", 
                         /*LINTED*/
@@ -141,7 +141,7 @@ void
 error_do_pause(void)
 {
     #ifdef _ALLOW_PAUSE
-        pid_t pid = getpid();
+        pid_t pid = (pid_t)md_getpid();
         int timeleft = 600; /* 10 minutes max */
         int interval = 10;  /* 10 second message check */
 

@@ -1,7 +1,8 @@
-// $Id: SchemaFactoryFinder.java,v 1.11.6.1.2.1.4.1 2004/05/07 01:22:37 jsuttor Exp $
+
+// $Id: SchemaFactoryFinder.java,v 1.11.6.1.2.1.4.1.2.1 2004/09/16 09:24:47 nb131165 Exp $
 
 /*
- * @(#)SchemaFactoryFinder.java	1.8 04/07/26
+ * @(#)SchemaFactoryFinder.java	1.10 04/10/19
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,17 +25,31 @@ import java.util.Properties;
  * Implementation of {@link SchemaFactory#newInstance(String)}.
  * 
  * @author <a href="Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.11.6.1.2.1.4.1 $, $Date: 2004/05/07 01:22:37 $
+ * @version $Revision: 1.11.6.1.2.1.4.1.2.1 $, $Date: 2004/09/16 09:24:47 $
  * @since 1.5
  */
 class SchemaFactoryFinder  {
 
     /** debug support code. */
     private static boolean debug = false;
+    /**
+     *<p> Take care of restrictions imposed by java security model </p>
+     */
+    private static SecuritySupport ss = new SecuritySupport();
+    /**
+     * <p>Cache properties for performance.</p>
+     */
+	private static Properties cacheProps = new Properties();
+    
+	/**
+	 * <p>First time requires initialization overhead.</p>
+	 */
+	private static boolean firstTime = true;
+    
     static {
         // Use try/catch block to support applets
         try {
-            debug = System.getProperty("jaxp.debug") != null;
+            debug = ss.getSystemProperty("jaxp.debug") != null;
         } catch (Exception _) {
             debug = false;
         }
@@ -76,7 +91,7 @@ class SchemaFactoryFinder  {
     
     private void debugDisplayClassLoader() {
         try {
-            if( classLoader==Thread.currentThread().getContextClassLoader() ) {
+            if( classLoader == ss.getContextClassLoader() ) {
                 debugPrintln("using thread context class loader ("+classLoader+") for search");
                 return;
             }
@@ -131,7 +146,7 @@ class SchemaFactoryFinder  {
         // system property look up
         try {
             debugPrintln("Looking up system property '"+propertyName+"'" );
-            String r = System.getProperty(propertyName);
+            String r = ss.getSystemProperty(propertyName);
             if(r!=null) {
                 debugPrintln("The value is '"+r+"'");
                 sf = createInstance(r);
@@ -144,14 +159,50 @@ class SchemaFactoryFinder  {
                 t.printStackTrace();
             }
         }
-        
+
+        String javah = ss.getSystemProperty( "java.home" );
+        String configFile = javah + File.separator +
+        "lib" + File.separator + "jaxp.properties";
+
+        String factoryClassName = null ;
+
         // try to read from $java.home/lib/jaxp.properties
         try {
-            String javah=System.getProperty( "java.home" );
+            if(firstTime){
+                synchronized(cacheProps){
+                    if(firstTime){
+                        File f=new File( configFile );
+                        firstTime = false;
+                        if(ss.doesFileExist(f)){
+                            debugPrintln("Read properties file " + f);                                
+                            cacheProps.load(ss.getFileInputStream(f));
+                        }
+                    }
+                }
+            }
+            factoryClassName = cacheProps.getProperty(propertyName);            
+            debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties"); 
+
+            if (factoryClassName != null) {
+                sf = createInstance(factoryClassName);
+                if(sf != null){
+                    return sf;
+                }
+            }
+        } catch (Exception ex) {
+            if (debug) {
+                ex.printStackTrace();
+            } 
+        }
+
+        /**
+        // try to read from $java.home/lib/jaxp.properties
+        try {
+            String javah = ss.getSystemProperty( "java.home" );
             String configFile = javah + File.separator +
             "lib" + File.separator + "jaxp.properties";
-            File f=new File( configFile );
-            if( f.exists()) {
+            File f = new File( configFile );
+            if( ss.doesFileExist(f)) {
                 sf = loadFromProperty(
                         propertyName,f.getAbsolutePath(), new FileInputStream(f));
                 if(sf!=null)    return sf;
@@ -164,6 +215,7 @@ class SchemaFactoryFinder  {
                 e.printStackTrace();
             }
         }
+         */
         
         // try META-INF/services files
         Iterator sitr = createServiceFileIterator();
@@ -171,7 +223,8 @@ class SchemaFactoryFinder  {
             URL resource = (URL)sitr.next();
             debugPrintln("looking into " + resource);
             try {
-                sf = loadFromProperty(schemaLanguage,resource.toExternalForm(),resource.openStream());
+                //sf = loadFromProperty(schemaLanguage,resource.toExternalForm(),resource.openStream());
+                sf = loadFromProperty(schemaLanguage,resource.toExternalForm(),ss.getURLInputStream(resource));
                 if(sf!=null)    return sf;
             } catch(IOException e) {
                 if( debug ) {
@@ -269,12 +322,15 @@ class SchemaFactoryFinder  {
         if (classLoader == null) {
             return new SingleIterator() {
                 protected Object value() {
-                    return (ClassLoader.getSystemResource( SERVICE_ID ));
+                    ClassLoader classLoader = SchemaFactoryFinder.class.getClassLoader();
+                    //return (ClassLoader.getSystemResource( SERVICE_ID ));
+                    return ss.getResourceAsURL(classLoader, SERVICE_ID);
                 }
             };
         } else {
             try {
-                final Enumeration e = classLoader.getResources(SERVICE_ID);
+                //final Enumeration e = classLoader.getResources(SERVICE_ID);
+                final Enumeration e = ss.getResources(classLoader, SERVICE_ID);
                 if(!e.hasMoreElements()) {
                     debugPrintln("no "+SERVICE_ID+" file was found");
                 }
@@ -324,7 +380,8 @@ class SchemaFactoryFinder  {
         
         if( loader==null )  loader = ClassLoader.getSystemClassLoader();
         
-        URL it = loader.getResource(classnameAsResource);
+        //URL it = loader.getResource(classnameAsResource);
+        URL it = ss.getResourceAsURL(loader, classnameAsResource);
         if (it != null) {
             return it.toString();
         } else {

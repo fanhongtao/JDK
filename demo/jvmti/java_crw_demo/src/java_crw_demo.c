@@ -1,5 +1,5 @@
 /*
- * @(#)java_crw_demo.c	1.20 04/07/27
+ * @(#)java_crw_demo.c	1.24 04/10/04
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -55,15 +55,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Get Java and class file and bytecode information from javavm area. */
+/* Get Java and class file and bytecode information. */
 
 #include <jni.h>
-#include <jvm.h>
-#include "opcodes.h"
 
-#define const static
-#include "opcodes.length" /* Declared as const array, static is better */
-#undef const
+#include "classfile_constants.h"
+
 
 /* Include our own interface for cross check */
 
@@ -285,6 +282,21 @@ allocate(CrwClassImage *ci, int nbytes)
     void * ptr;
    
     ptr = malloc(nbytes);
+    if ( ptr == NULL ) {
+	CRW_FATAL(ci, "Ran out of malloc memory"); 
+    }
+    return ptr;
+}
+
+static void *
+reallocate(CrwClassImage *ci, void *optr, int nbytes)
+{
+    void * ptr;
+   
+    ptr = realloc(optr, nbytes);
+    if ( ptr == NULL ) {
+	CRW_FATAL(ci, "Ran out of malloc memory"); 
+    }
     return ptr;
 }
 
@@ -293,8 +305,10 @@ allocate_clean(CrwClassImage *ci, int nbytes)
 {
     void * ptr;
    
-    ptr = allocate(ci, nbytes);
-    (void)memset(ptr, 0, nbytes);
+    ptr = calloc(nbytes, 1);
+    if ( ptr == NULL ) {
+	CRW_FATAL(ci, "Ran out of malloc memory"); 
+    }
     return ptr;
 }
 
@@ -356,7 +370,9 @@ static void
 writeU1(CrwClassImage *ci, unsigned val)  /* Only writes out lower 8 bits */
 {
     CRW_ASSERT_CI(ci);
-    ci->output[ci->output_position++] = val & 0xFF;
+    if ( ci->output != NULL ) {
+        ci->output[ci->output_position++] = val & 0xFF;
+    }
 }
 
 static void 
@@ -407,9 +423,11 @@ static void
 copy(CrwClassImage *ci, unsigned count) 
 {
     CRW_ASSERT_CI(ci);
-    (void)memcpy(ci->output+ci->output_position, 
-                 ci->input+ci->input_position, count);
-    ci->output_position += count;
+    if ( ci->output != NULL ) {
+	(void)memcpy(ci->output+ci->output_position, 
+		     ci->input+ci->input_position, count);
+	ci->output_position += count;
+    }
     ci->input_position += count;
     CRW_ASSERT_CI(ci);
 }
@@ -435,8 +453,10 @@ write_bytes(CrwClassImage *ci, void *bytes, unsigned count)
 {
     CRW_ASSERT_CI(ci);
     CRW_ASSERT(ci, bytes!=NULL);
-    (void)memcpy(ci->output+ci->output_position, bytes, count);
-    ci->output_position += count;
+    if ( ci->output != NULL ) {
+	(void)memcpy(ci->output+ci->output_position, bytes, count);
+	ci->output_position += count;
+    }
 }
 
 static void 
@@ -666,8 +686,10 @@ cpool_setup(CrwClassImage *ci)
 	}
     }
 
-    ci->tracker_class_index = 
+    if (  ci->tclass_name != NULL ) {
+	ci->tracker_class_index = 
                 add_new_class_cpool_entry(ci, ci->tclass_name);
+    }
     if (ci->obj_init_name != NULL) {
         ci->object_init_tracker_index = add_new_method_cpool_entry(ci, 
                     ci->tracker_class_index, 
@@ -1030,6 +1052,19 @@ verify_opc_wide(CrwClassImage *ci, ClassOpcode wopcode)
             break;
     }
 }
+
+static unsigned
+opcode_length(CrwClassImage *ci, ClassOpcode opcode)
+{
+    /* Define array that holds length of an opcode */
+    static unsigned char _opcode_length[opc_MAX+1] = 
+			  JVM_OPCODE_LENGTH_INITIALIZER;
+    
+    if ( opcode > opc_MAX ) {
+	CRW_FATAL(ci, "Invalid opcode supplied to opcode_length()");
+    }
+    return _opcode_length[opcode];
+}
     
 /* Walk one instruction and inject instrumentation */
 static void 
@@ -1090,7 +1125,7 @@ inject_for_opcode(MethodImage *mi)
                 skip(ci, npairs * 8);
                 break;
             default:
-                instr_len = opcode_length[opcode];
+                instr_len = opcode_length(ci, opcode);
                 skip(ci, instr_len-1);
                 break;
         }
@@ -1248,7 +1283,7 @@ adjust_instruction(MethodImage *mi)
             break;
                     
         default:
-            instr_len = opcode_length[opcode];
+            instr_len = opcode_length(ci, opcode);
             skip(ci, instr_len-1);
             break;
         }
@@ -1454,7 +1489,7 @@ write_instruction(MethodImage *mi)
                 break;
                         
             default:
-                instr_len = opcode_length[opcode];
+                instr_len = opcode_length(ci, opcode);
                 writeU1(ci, opcode); 
                 copy(ci, instr_len-1);
                 break;
@@ -2121,7 +2156,7 @@ java_crw_demo(unsigned class_number,
 
     /* Do the injection */
     max_length = file_len*2 + 512; /* Twice as big + 512 */
-    new_image = malloc((int)max_length);
+    new_image = allocate(&ci, (int)max_length);
     new_length = inject_class(&ci, 
 				 system_class, 
 				 tclass_name,     
@@ -2139,10 +2174,10 @@ java_crw_demo(unsigned class_number,
    
     /* Dispose or shrink the space to be returned. */
     if ( new_length == 0 ) {
-	(void)free(new_image);
+	deallocate(&ci, (void*)new_image);
 	new_image = NULL;
     } else {
-        new_image = (void*)realloc((void*)new_image, (int)new_length);
+        new_image = (void*)reallocate(&ci, (void*)new_image, (int)new_length);
     }
    
     /* Return the new class image */
@@ -2153,3 +2188,57 @@ java_crw_demo(unsigned class_number,
     cleanup(&ci);
 }
 
+/* Return the classname for this class which is inside the classfile image. */
+JNIEXPORT char * JNICALL 
+java_crw_demo_classname(const unsigned char *file_image, long file_len,
+	FatalErrorHandler fatal_error_handler)
+{
+    CrwClassImage               ci;
+    CrwConstantPoolEntry        cs;
+    CrwCpoolIndex               this_class;
+    unsigned                    magic;
+    char *                      name;
+
+    name = NULL;
+    
+    if ( file_len==0 || file_image==NULL ) {
+	return name;
+    }
+
+    /* The only fields we need filled in are the image pointer and the error
+     *    handler.
+     *    By not adding an output buffer pointer, no output is created.
+     */
+    (void)memset(&ci, 0, (int)sizeof(CrwClassImage));
+    ci.input     = file_image;
+    ci.input_len = file_len;
+    ci.fatal_error_handler = fatal_error_handler;
+
+    /* Read out the bytes from the classfile image */
+
+    magic = readU4(&ci); /* magic number */
+    CRW_ASSERT(&ci, magic==0xCAFEBABE);
+    if ( magic != 0xCAFEBABE ) {
+	return name;
+    }
+    (void)readU2(&ci); /* minor version number */
+    (void)readU2(&ci); /* major version number */
+   
+    /* Read in constant pool. Since no output setup, writes are NOP's */
+    cpool_setup(&ci);
+
+    (void)readU2(&ci); /* access flags */
+    this_class = readU2(&ci); /* 'this' class */
+   
+    /* Get 'this' constant pool entry */
+    cs = cpool_entry(&ci, (CrwCpoolIndex)(cpool_entry(&ci, this_class).index1));
+    
+    /* Duplicate the name */
+    name = (char *)duplicate(&ci, cs.ptr, cs.len);
+    
+    /* Cleanup before we leave. */
+    cleanup(&ci);
+
+    /* Return malloc space */
+    return name;
+}

@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultSynthStyleFactory.java	1.6 03/12/19
+ * @(#)DefaultSynthStyleFactory.java	1.7 04/09/15
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,7 +20,7 @@ import sun.swing.BakedArrayList;
  * and the <code>Region</code> associated with the <code>JComponent</code>.
  * Lookup is done using regular expressions.
  *
- * @version 1.6, 12/19/03
+ * @version 1.7, 09/15/04
  * @author Scott Violet
  */
 class DefaultSynthStyleFactory extends SynthStyleFactory {
@@ -34,15 +34,10 @@ class DefaultSynthStyleFactory extends SynthStyleFactory {
     public static final int REGION = 1;
 
     /**
-     * List containing set of StyleAssociations that are to match based on
-     * Component name.
+     * List containing set of StyleAssociations used in determining matching
+     * styles.
      */
-    private List _nameStyles;
-    /**
-     * List containing set of StyleAssociations that are to match based on
-     * Region.
-     */
-    private List _regionStyles;
+    private List<StyleAssociation> _styles;
     /**
      * Used during lookup.
      */
@@ -61,6 +56,7 @@ class DefaultSynthStyleFactory extends SynthStyleFactory {
 
     DefaultSynthStyleFactory() {
         _tmpList = new BakedArrayList(5);
+        _styles = new ArrayList<StyleAssociation>();
         _resolvedStyles = new HashMap();
     }
 
@@ -71,18 +67,12 @@ class DefaultSynthStyleFactory extends SynthStyleFactory {
             path = ".*";
         }
         if (type == NAME) {
-            if (_nameStyles == null) {
-                _nameStyles = new ArrayList();
-            }
-            _nameStyles.add(StyleAssociation.createStyleAssociation(
-                                path, style));
+            _styles.add(StyleAssociation.createStyleAssociation(
+                            path, style, type));
         }
         else if (type == REGION) {
-            if (_regionStyles == null) {
-                _regionStyles = new ArrayList();
-            }
-            _regionStyles.add(StyleAssociation.createStyleAssociation(
-                                path.toLowerCase(), style));
+            _styles.add(StyleAssociation.createStyleAssociation(
+                            path.toLowerCase(), style, type));
         }
     }
 
@@ -133,25 +123,22 @@ class DefaultSynthStyleFactory extends SynthStyleFactory {
      */
     private void getMatchingStyles(java.util.List matches, JComponent c,
                                    Region id) {
-        // First match on REGION
-        if (_regionStyles != null) {
-            getMatches(id.getLowerCaseName(), _regionStyles, matches);
-        }
-        // Then match on name
-        if (_nameStyles != null) {
-            String name = c.getName();
+        String idName = id.getLowerCaseName();
+        String cName = c.getName();
 
-            if (name == null) {
-                name = "";
+        if (cName == null) {
+            cName = "";
+        }
+        for (int counter = _styles.size() - 1; counter >= 0; counter--){
+            StyleAssociation sa = _styles.get(counter);
+            String path;
+
+            if (sa.getID() == NAME) {
+                path = cName;
             }
-            getMatches(name, _nameStyles, matches);
-        }
-    }
-
-    private void getMatches(CharSequence path, java.util.List styles,
-                            java.util.List matches) {
-        for (int counter = styles.size() - 1; counter >= 0; counter--){
-            StyleAssociation sa = (StyleAssociation)styles.get(counter);
+            else {
+                path = idName;
+            }
 
             if (sa.matches(path) && matches.indexOf(sa.getStyle()) == -1) {
                 matches.add(sa.getStyle());

@@ -1,7 +1,8 @@
-// $Id: XPathFactoryFinder.java,v 1.2.8.1 2004/05/07 00:34:05 jsuttor Exp $
+
+// $Id: XPathFactoryFinder.java,v 1.2.8.1.2.1 2004/09/16 09:25:16 nb131165 Exp $
 
 /*
- * @(#)XPathFactoryFinder.java	1.2 04/07/26
+ * @(#)XPathFactoryFinder.java	1.4 04/10/19
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -24,22 +25,33 @@ import java.util.Properties;
  * Implementation of {@link XPathFactory#newInstance(String)}.
  * 
  * @author <a href="Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.2.8.1 $, $Date: 2004/05/07 00:34:05 $
+ * @version $Revision: 1.2.8.1.2.1 $, $Date: 2004/09/16 09:25:16 $
  * @since 1.5
  */
 class XPathFactoryFinder  {
 
+    private static SecuritySupport ss = new SecuritySupport() ;
     /** debug support code. */
     private static boolean debug = false;
     static {
         // Use try/catch block to support applets
         try {
-            debug = System.getProperty("jaxp.debug") != null;
+            debug = ss.getSystemProperty("jaxp.debug") != null;
         } catch (Exception _) {
             debug = false;
         }
     }
 
+    /**
+     * <p>Cache properties for performance.</p>
+     */
+	private static Properties cacheProps = new Properties();
+    
+	/**
+	 * <p>First time requires initialization overhead.</p>
+	 */
+	private static boolean firstTime = true;
+    
     /**
      * <p>Conditional debug printing.</p>
      * 
@@ -76,7 +88,7 @@ class XPathFactoryFinder  {
     
     private void debugDisplayClassLoader() {
         try {
-            if( classLoader==Thread.currentThread().getContextClassLoader() ) {
+            if( classLoader == ss.getContextClassLoader() ) {
                 debugPrintln("using thread context class loader ("+classLoader+") for search");
                 return;
             }
@@ -130,7 +142,7 @@ class XPathFactoryFinder  {
         // system property look up
         try {
             debugPrintln("Looking up system property '"+propertyName+"'" );
-            String r = System.getProperty(propertyName);
+            String r = ss.getSystemProperty(propertyName);
             if(r!=null) {
                 debugPrintln("The value is '"+r+"'");
                 sf = createInstance(r);
@@ -144,33 +156,49 @@ class XPathFactoryFinder  {
             }
         }
         
+        String javah = ss.getSystemProperty( "java.home" );
+        String configFile = javah + File.separator +
+        "lib" + File.separator + "jaxp.properties";
+
+        String factoryClassName = null ;
+
         // try to read from $java.home/lib/jaxp.properties
         try {
-            String javah=System.getProperty( "java.home" );
-            String configFile = javah + File.separator +
-            "lib" + File.separator + "jaxp.properties";
-            File f=new File( configFile );
-            if( f.exists()) {
-                sf = loadFromProperty(
-                        propertyName,f.getAbsolutePath(), new FileInputStream(f));
-                if(sf!=null)    return sf;
-            } else {
-                debugPrintln("Tried to read "+ f.getAbsolutePath()+", but it doesn't exist.");
+            if(firstTime){
+                synchronized(cacheProps){
+                    if(firstTime){
+                        File f=new File( configFile );
+                        firstTime = false;
+                        if(ss.doesFileExist(f)){
+                            debugPrintln("Read properties file " + f);                                
+                            cacheProps.load(ss.getFileInputStream(f));
+                        }
+                    }
+                }
             }
-        } catch(Throwable e) {
-            if( debug ) {
-                debugPrintln("failed to read $java.home/lib/jaxp.properties");
-                e.printStackTrace();
+            factoryClassName = cacheProps.getProperty(propertyName);            
+            debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties"); 
+
+            if (factoryClassName != null) {
+                sf = createInstance(factoryClassName);
+                if(sf != null){
+                    return sf;
+                }
             }
+        } catch (Exception ex) {
+            if (debug) {
+                ex.printStackTrace();
+            } 
         }
-        
+                    
         // try META-INF/services files
         Iterator sitr = createServiceFileIterator();
         while(sitr.hasNext()) {
             URL resource = (URL)sitr.next();
             debugPrintln("looking into " + resource);
             try {
-                sf = loadFromProperty(uri,resource.toExternalForm(),resource.openStream());
+                //sf = loadFromProperty(uri,resource.toExternalForm(),resource.openStream());
+                sf = loadFromProperty(uri,resource.toExternalForm(),ss.getURLInputStream(resource));
                 if(sf!=null)    return sf;
             } catch(IOException e) {
                 if( debug ) {
@@ -247,7 +275,7 @@ class XPathFactoryFinder  {
         throws IOException {
         debugPrintln("Reading "+resourceName );
         
-        Properties props=new Properties();
+        Properties props = new Properties();
         props.load(in);
         in.close();
         String factoryClassName = props.getProperty(keyName);
@@ -268,12 +296,15 @@ class XPathFactoryFinder  {
         if (classLoader == null) {
             return new SingleIterator() {
                 protected Object value() {
-                    return (ClassLoader.getSystemResource( SERVICE_ID ));
+                    ClassLoader classLoader = XPathFactoryFinder.class.getClassLoader();
+                    return ss.getResourceAsURL(classLoader, SERVICE_ID);
+                    //return (ClassLoader.getSystemResource( SERVICE_ID ));
                 }
             };
         } else {
             try {
-                final Enumeration e = classLoader.getResources(SERVICE_ID);
+                //final Enumeration e = classLoader.getResources(SERVICE_ID);
+                final Enumeration e = ss.getResources(classLoader, SERVICE_ID);
                 if(!e.hasMoreElements()) {
                     debugPrintln("no "+SERVICE_ID+" file was found");
                 }
@@ -323,7 +354,8 @@ class XPathFactoryFinder  {
         
         if( loader==null )  loader = ClassLoader.getSystemClassLoader();
         
-        URL it = loader.getResource(classnameAsResource);
+        //URL it = loader.getResource(classnameAsResource);
+        URL it = ss.getResourceAsURL(loader, classnameAsResource);
         if (it != null) {
             return it.toString();
         } else {

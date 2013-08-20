@@ -1,5 +1,5 @@
 /*
- * @(#)Metacity.java	1.22 04/06/24
+ * @(#)Metacity.java	1.23 04/08/31
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -26,7 +26,7 @@ import org.xml.sax.SAXException;
 import org.w3c.dom.*;
 
 /**
- * @version 1.22, 06/24/04
+ * @version 1.23, 08/31/04
  */
 class Metacity implements SynthConstants {
     // Tutorial:
@@ -1405,13 +1405,30 @@ class Metacity implements SynthConstants {
     // XML Parsing
 
 
-    protected static Document getXMLDoc(URL xmlFile)
-				throws IOException, ParserConfigurationException, SAXException {
+    protected static Document getXMLDoc(final URL xmlFile)
+				throws IOException,
+                                       ParserConfigurationException,
+                                       SAXException {
 	if (documentBuilder == null) {
-	    documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+	    documentBuilder =
+                DocumentBuilderFactory.newInstance().newDocumentBuilder();
 	}
-	InputStream inputStream = new BufferedInputStream(xmlFile.openStream());
-	return documentBuilder.parse(inputStream);
+	InputStream inputStream =
+            (InputStream)AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    try { 
+                        return new BufferedInputStream(xmlFile.openStream());
+                    } catch (IOException ex) {
+                        return null;
+                    }
+                }
+            });
+
+        Document doc = null;
+        if (inputStream != null) {
+	    doc = documentBuilder.parse(inputStream);
+        }
+        return doc;
     }
 
 

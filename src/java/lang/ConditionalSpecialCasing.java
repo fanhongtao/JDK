@@ -1,5 +1,5 @@
 /*
- * @(#)ConditionalSpecialCasing.java	1.3 03/12/19
+ * @(#)ConditionalSpecialCasing.java	1.4 04/09/14
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -92,7 +92,7 @@ final class ConditionalSpecialCasing {
 	    if (result.length == 1) {
 		return result[0];
 	    } else {
-		return Character.CHAR_ERROR;
+		return Character.ERROR;
 	    }
 	} else {
 	    // default to Character class' one
@@ -107,7 +107,7 @@ final class ConditionalSpecialCasing {
 	    if (result.length == 1) {
 		return result[0];
 	    } else {
-		return Character.CHAR_ERROR;
+		return Character.ERROR;
 	    }
 	} else {
 	    // default to Character class' one

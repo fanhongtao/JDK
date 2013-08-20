@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_tls.c	1.45 04/07/27
+ * @(#)hprof_tls.c	1.46 04/09/24
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -831,18 +831,14 @@ tls_free(JNIEnv *env, TlsIndex index)
 	    trace_serial_num    = trace_get_serial_number(trace_index);
 	}
 	delete_globalref(env, info);
-	info->thread_serial_num = -1;
 	clean_info(info);
-	table_free_entry(gdata->tls_table, index);
+	/* Never free the system thread tls entry */
+	if ( info->thread_serial_num != gdata->system_thread_serial_num ) {
+	    info->thread_serial_num = -1;
+	    table_free_entry(gdata->tls_table, index);
+	}
     } table_lock_exit(gdata->tls_table);
 
-    /* Issue heap record (outside lock on TLS table) */
-    if (gdata->heap_dump && thread_object_index != 0 ) {
-	rawMonitorEnter(gdata->data_access_lock); {
-	    io_heap_root_thread_object(thread_object_index, thread_serial_num, 
-				       trace_serial_num);
-	} rawMonitorExit(gdata->data_access_lock);
-    }
 }
 
 /* Sample ALL threads and update the trace costs */

@@ -1,5 +1,5 @@
 /*
- * @(#)hprof_md.h	1.13 04/07/27
+ * @(#)hprof_md.h	1.14 04/09/16
  * 
  * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
  * 
@@ -38,6 +38,7 @@
 #define HPROF_MD_H
 
 void    md_init(void);
+int     md_getpid(void);
 int     md_connect(char *hostname, unsigned short port);
 int     md_recv(int f, char *buf, int len, int option);
 int     md_shutdown(int filedes, int option);

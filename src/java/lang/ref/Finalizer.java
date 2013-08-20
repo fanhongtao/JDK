@@ -1,5 +1,5 @@
 /*
- * @(#)Finalizer.java	1.20 03/12/19
+ * @(#)Finalizer.java	1.21 04/09/20
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -79,7 +79,7 @@ final class Finalizer extends FinalReference { /* Package-private; must be in
 	}
 	try {
 	    Object finalizee = this.get();
-	    if (finalizee != null) {
+	    if (finalizee != null && !(finalizee instanceof java.lang.Enum)) {
 		invokeFinalizeMethod(finalizee);
 		/* Clear stack slot containing this variable, to decrease
 		   the chances of false retention with a conservative GC */

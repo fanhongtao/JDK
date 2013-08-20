@@ -1,5 +1,5 @@
 /*
- * @(#)GlyphPainter2.java	1.21 04/06/28
+ * @(#)GlyphPainter2.java	1.22 04/09/01
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * rendering.
  *
  * @author  Timothy Prinzing
- * @version 1.21 06/28/04
+ * @version 1.22 09/01/04
  * @see GlyphView
  */
 class GlyphPainter2 extends GlyphView.GlyphPainter {
@@ -181,15 +181,15 @@ class GlyphPainter2 extends GlyphView.GlyphPainter {
     public int getBoundedPosition(GlyphView v, int p0, float x, float len) {
         if( len < 0 )
             throw new IllegalArgumentException("Length must be >= 0.");
-
-        TextHitInfo hit = layout.hitTestChar(len, 0);
-
-        if( (hit.getCharIndex() == -1) && !layout.isLeftToRight() ) {
-            return v.getEndOffset();
+        // note: this only works because swing uses TextLayouts that are
+        // only pure rtl or pure ltr
+        TextHitInfo hit;
+        if (layout.isLeftToRight()) {
+            hit = layout.hitTestChar(len, 0);
+        } else {
+            hit = layout.hitTestChar(layout.getAdvance() - len, 0);
         }
-	int pos = (hit.isLeadingEdge()) ? hit.getInsertionIndex()
-                  : hit.getInsertionIndex() - 1;
-	return pos + v.getStartOffset(); 
+        return v.getStartOffset() + hit.getCharIndex();
     }
     
     /**

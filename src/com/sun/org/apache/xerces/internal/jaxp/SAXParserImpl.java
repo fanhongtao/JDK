@@ -129,19 +129,20 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
         init();
     }
 
-    //initialize the features as per factory settings.
-    void init() throws SAXNotSupportedException, SAXNotRecognizedException {
-        
+    /** Reset this instance back to factory settings */
+    void resetSettings() throws SAXNotSupportedException, SAXNotRecognizedException {
         Enumeration keys  = parserFeatures.keys();        
         
         while(keys.hasMoreElements()){
             String propertyId = (String)keys.nextElement();
             Object value = parserFeatures.get(propertyId);
             if(value instanceof Boolean){
+                System.out.println("Remvoing feature = " + propertyId + " with value = " + parserConfiguration.getFeatureDefaultValue(propertyId));
                 //this means it is a feature, we have to get default value from the configuration
                 xmlReader.setFeature(propertyId, parserConfiguration.getFeatureDefaultValue(propertyId));
             }
             else{//it's a property
+                System.out.println("Remvoing property = " + propertyId);
                 //null value should delete the property from underlying implementation.
                 xmlReader.setProperty(propertyId, null);
             }
@@ -149,6 +150,11 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
         //clear the hashtable once we have removed all the properties.
         parserFeatures.clear();
         
+    }
+    
+    //initialize the features as per factory settings.
+    void init() throws SAXNotSupportedException, SAXNotRecognizedException {
+                
         schemaLanguage = null ;
         this.isXIncludeAware = spf.isXIncludeAware();
 		if(features != null ){
@@ -243,12 +249,10 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
     public void reset(){
         if(xmlReader != null){
             try{
-                //we dont need to worry about any properties being set on this object because 
-                //DocumentBuilder doesn't provide any way to set the properties
-                //once it is created.
                 xmlReader.reset();
                 //set the object back to its factory settings
-                init();
+                resetSettings();
+                
             }
             //xxx: underlying implementation reset throws XNIException what should we do in this case ?
             //if there was any propery that is not being supported
@@ -332,6 +336,9 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
                     parserFeatures.put(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
                     
                 }
+                else{
+                    System.out.println("Property = " + name + "is not set");
+                }
                 
             } else if (value == null) {
                 schemaLanguage = null;
@@ -351,16 +358,19 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
             }
         } 
         else if(JAXP_SCHEMA_SOURCE.equals(name)) {
-            String val = (String)getProperty(JAXP_SCHEMA_LANGUAGE);
-            if ( val != null && W3C_XML_SCHEMA.equals(val) ) {
-                xmlReader.setProperty(name, value);
-                parserFeatures.put(name, value);
-            }
-            else {
-                throw new SAXNotSupportedException(
-                    SAXMessageFormatter.formatMessage(null, 
-                    "jaxp-order-not-supported", 
-                    new Object[] {JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCE}));
+            //If we are not validating then don't check for  JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCED            
+            if ( isValidating() ) {
+                String val = (String)getProperty(JAXP_SCHEMA_LANGUAGE);
+                if ( val != null && W3C_XML_SCHEMA.equals(val) ) {
+                    xmlReader.setProperty(name, value);
+                    parserFeatures.put(name, value);
+                }
+                else {
+                    throw new SAXNotSupportedException(
+                        SAXMessageFormatter.formatMessage(null, 
+                        "jaxp-order-not-supported", 
+                        new Object[] {JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCE}));
+                }
             }
 		}
 		/*else if(name.equlas(Constants.ENTITY_EXPANSION_LIMIT)){
@@ -416,6 +426,5 @@ public class SAXParserImpl extends javax.xml.parsers.SAXParser
     public boolean isSecureProcessing(){
         return secureProcessing!=null;
     }
-
     
 }

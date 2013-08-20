@@ -1,6 +1,6 @@
-// This file was generated AUTOMATICALLY from a template file Wed Sep 15 04:34:17 PDT 2004
+// This file was generated AUTOMATICALLY from a template file Mon Dec 06 21:18:22 PST 2004
 
-/* @(#)CharacterData00.java.template	1.3 03/07/26
+/* @(#)CharacterData00.java.template	1.4 04/09/14
  *
  * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -421,7 +421,7 @@ class CharacterData00 {
                     case 0x00B5 : mapChar = 0x039C; break;
                     case 0x017F : mapChar = 0x0053; break;
                     case 0x1FBE : mapChar = 0x0399; break;
-                    default       : mapChar = Character.CHAR_ERROR; break;
+                    default       : mapChar = Character.ERROR; break;
                 }
             }
         }
@@ -468,7 +468,7 @@ class CharacterData00 {
 
 
     // The following tables and code generated using:
-  // java GenerateCharacter -plane 0 -template ../../tools/GenerateCharacter/CharacterData00.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk1.5.0/control/build/linux-i586/gensrc/java/lang/CharacterData00.java -string -usecharforbyte 11 4 1
+  // java GenerateCharacter -plane 0 -template ../../tools/GenerateCharacter/CharacterData00.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk1.5.0_01/control/build/linux-i586/gensrc/java/lang/CharacterData00.java -string -usecharforbyte 11 4 1
       static final char[][][] charMap;
 // The X table has 2048 entries for a total of 4096 bytes.
 
