@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsTabbedPaneUI.java	1.16 03/12/19
+ * @(#)WindowsTabbedPaneUI.java	1.18 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -78,7 +78,8 @@ public class WindowsTabbedPaneUI extends BasicTabbedPaneUI {
 	    super.setRolloverTab(index);
 	    Rectangle r1 = null;
 	    Rectangle r2 = null;
-	    if (oldRolloverTab >= 0) {
+	    if ( (oldRolloverTab >= 0) &&
+                 (oldRolloverTab < tabPane.getTabCount()) ) {
 		r1 = getTabBounds(tabPane, oldRolloverTab);
 	    }
 	    if (index >= 0) {

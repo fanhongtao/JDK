@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_event.c	1.25 04/07/27
+ * @(#)hprof_event.c	1.27 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -45,11 +45,11 @@
 
 /* Return a TraceIndex for the given thread. */
 static TraceIndex
-get_current(TlsIndex tls_index, jboolean skip_init)
+get_current(TlsIndex tls_index, JNIEnv *env, jboolean skip_init)
 {
     TraceIndex trace_index;
     
-    trace_index  = tls_get_trace(tls_index, gdata->max_trace_depth, skip_init);
+    trace_index  = tls_get_trace(tls_index, env, gdata->max_trace_depth, skip_init);
     return trace_index;
 }
 
@@ -224,7 +224,7 @@ event_exception_catch(JNIEnv *env, jthread thread, jmethodID method,
     if ( tls_get_tracker_status(env, thread, JNI_FALSE, 
 	     &pstatus, &tls_index, NULL, NULL) == 0 ) {
 	(*pstatus) = 1;
-	 tls_pop_exception_catch(tls_index, method);
+	 tls_pop_exception_catch(tls_index, thread, method);
 	(*pstatus) = 0;
     }
 }
@@ -252,7 +252,7 @@ event_return(JNIEnv *env, jthread thread, ClassIndex cnum, MethodIndex mnum)
 	(*pstatus) = 1;
 	method      = class_get_methodID(env, cnum, mnum);
 	HPROF_ASSERT(method!=NULL);
-	tls_pop_method(tls_index, method);
+	tls_pop_method(tls_index, thread, method);
 	(*pstatus) = 0;
     }
 }
@@ -317,7 +317,7 @@ event_class_load(JNIEnv *env, jthread thread, jclass klass, jobject loader)
 	    TlsIndex     tls_index;
 	    
 	    tls_index    = tls_find_or_create(env, thread);
-	    trace_index  = get_current(tls_index, JNI_FALSE);
+	    trace_index  = get_current(tls_index, env, JNI_FALSE);
 	    thread_serial_num = tls_get_thread_serial_number(tls_index);
         }
 
@@ -363,7 +363,7 @@ event_thread_start(JNIEnv *env, jthread thread)
     
     tls_index = tls_find_or_create(env, thread);
     thread_serial_num = tls_get_thread_serial_number(tls_index);
-    trace_index = get_current(tls_index, JNI_FALSE);
+    trace_index = get_current(tls_index, env, JNI_FALSE);
     
     tag = getTag(thread);
     if ( tag == (jlong)0 ) {
@@ -418,7 +418,7 @@ event_thread_end(JNIEnv *env, jthread thread)
     rawMonitorEnter(gdata->data_access_lock); {
 	io_write_thread_end(tls_get_thread_serial_number(tls_index));
     } rawMonitorExit(gdata->data_access_lock);
-    tls_free(env, tls_index);
+    tls_thread_ended(env, tls_index);
     setThreadLocalStorage(thread, (void*)NULL);
 }
 

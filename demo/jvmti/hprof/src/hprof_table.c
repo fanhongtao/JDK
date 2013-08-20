@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_table.c	1.34 04/07/27
+ * @(#)hprof_table.c	1.36 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -758,6 +758,9 @@ table_walk_items(LookupTable *ltable, LookupTableIterator func, void* arg)
 		get_key(ltable, index, &key_ptr, &key_len);
 		info = get_info(ltable, index);
 		(*func)(SANITY_ADD_HARE(index, ltable->hare), key_ptr, key_len, info, arg);
+		if ( is_freed_entry(ltable, index) ) {
+		    fcount++;
+		}
 	    } else {
 		fcount++;
 	    }

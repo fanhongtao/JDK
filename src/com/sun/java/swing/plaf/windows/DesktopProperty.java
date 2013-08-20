@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.windows;
@@ -17,7 +17,7 @@ import javax.swing.plaf.*;
  * will force the UIs to update all known Frames. You can invoke
  * <code>invalidate</code> to force the value to be fetched again.
  *
- * @version @(#)DesktopProperty.java	1.7 03/12/19
+ * @version @(#)DesktopProperty.java	1.9 05/03/25
  */
 // NOTE: Don't rely on this class staying in this location. It is likely
 // to move to a different package in the future.
@@ -161,7 +161,7 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
             this.toolkit = Toolkit.getDefaultToolkit();
         }
         Object value = toolkit.getDesktopProperty(getKey());
-        pcl = new WeakPCL(this, toolkit, getKey());
+        pcl = new WeakPCL(this, toolkit, getKey(), UIManager.getLookAndFeel());
         toolkit.addPropertyChangeListener(getKey(), pcl);
         return value;
     }
@@ -246,17 +246,19 @@ public class DesktopProperty implements UIDefaults.ActiveValue {
                                implements PropertyChangeListener {
         private Toolkit kit;
         private String key;
+        private LookAndFeel laf;
 
-        WeakPCL(Object target, Toolkit kit, String key) {
+        WeakPCL(Object target, Toolkit kit, String key, LookAndFeel laf) { 
             super(target, queue);
             this.kit = kit;
             this.key = key;
+            this.laf = laf;
         }
 
         public void propertyChange(PropertyChangeEvent pce) {
             DesktopProperty property = (DesktopProperty)get();
 
-            if (property == null) {
+            if (property == null || laf != UIManager.getLookAndFeel()) { 
                 // The property was GC'ed, we're no longer interested in
                 // PropertyChanges, remove the listener.
                 dispose();

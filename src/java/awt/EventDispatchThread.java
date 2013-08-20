@@ -1,7 +1,7 @@
 /*
- * @(#)EventDispatchThread.java	1.52 03/12/19
+ * @(#)EventDispatchThread.java	1.54 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +37,7 @@ import sun.awt.dnd.SunDragSourceContextPeer;
  * @author Fred Ecks
  * @author David Mendenhall
  * 
- * @version 1.52, 12/19/03
+ * @version 1.54, 03/03/05
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
@@ -212,12 +212,20 @@ class EventDispatchThread extends Thread {
                             // continue to pump it's events.
                         } else if (o instanceof Component) {
                             Component c = (Component) o;
+                            boolean modalExcluded = false;
                             if (modalComponent instanceof Container) {
                                 while (c != modalComponent && c != null) {
+                                    if ((c instanceof Window) &&
+                                        (sun.awt.SunToolkit.isModalExcluded((Window)c))) {
+                                            // Exclude this window and all its children from
+                                            //  modality and continue to pump it's events.
+                                        modalExcluded = true;
+                                        break;
+                                    }
                                     c = c.getParent();
                                 }
                             }
-                            if (c != modalComponent) {
+                            if (!modalExcluded && (c != modalComponent)) {
                                 eventOK = false;
                             }
                         }

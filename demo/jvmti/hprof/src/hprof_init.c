@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_init.c	1.81 04/09/24
+ * @(#)hprof_init.c	1.83 05/02/07
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -826,6 +826,8 @@ reset_all_data(void)
     }
 }
 
+static void reset_class_load_status(JNIEnv *env, jthread thread);
+
 static void 
 dump_all_data(JNIEnv *env)
 {
@@ -837,6 +839,8 @@ dump_all_data(JNIEnv *env)
     }
     if (gdata->heap_dump) {
         verbose_message(" Java heap ...");
+	/* Update the class table */
+	reset_class_load_status(env, NULL);
         site_heapdump(env); 
     }
     if (gdata->alloc_sites) {
@@ -1114,13 +1118,13 @@ cbVMInit(jvmtiEnv *jvmti, JNIEnv *env, jthread thread)
 	gdata->system_class_size = 0;
 	cnum = class_find_or_create("Ljava/lang/Object;", loader_index);
 
-	gdata->system_trace_index = tls_get_trace(tls_index, 
+	gdata->system_trace_index = tls_get_trace(tls_index, env,
 				gdata->max_trace_depth, JNI_FALSE);
 	gdata->system_object_site_index = site_find_or_create(
 		    cnum, gdata->system_trace_index);
 	
 	/* Used to ID HPROF generated items */
-	gdata->hprof_trace_index = tls_get_trace(tls_index, 
+	gdata->hprof_trace_index = tls_get_trace(tls_index, env,
 				gdata->max_trace_depth, JNI_FALSE);
 	gdata->hprof_site_index	= site_find_or_create(
 		    cnum, gdata->hprof_trace_index);

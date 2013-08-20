@@ -1,7 +1,7 @@
 /*
- * @(#)Charset-X-Coder.java	1.40 04/06/19
+ * @(#)Charset-X-Coder.java	1.42 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -105,7 +105,7 @@ import java.nio.charset.CoderMalfunctionError;			// javadoc
  * threads.  </p>
  *
  *
- * @version 1.40, 04/06/19
+ * @version 1.42, 05/03/03
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
  * @since 1.4
@@ -316,8 +316,10 @@ public abstract class CharsetEncoder {
 	    dec.reset();
 	}
 	ByteBuffer bb = ByteBuffer.wrap(repl);
+	// We need to perform double, not float, arithmetic; otherwise
+	// we lose low order bits when src is larger than 2**24.
 	CharBuffer cb = CharBuffer.allocate((int)(bb.remaining()
-						  * dec.maxCharsPerByte()));
+						  * (double)dec.maxCharsPerByte()));
 	CoderResult cr = dec.decode(bb, cb, true);
 	return !cr.isError();
     }

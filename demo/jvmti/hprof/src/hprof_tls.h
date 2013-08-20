@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_tls.h	1.15 04/07/27
+ * @(#)hprof_tls.h	1.17 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -44,8 +44,8 @@ SerialNumber tls_get_thread_serial_number(TlsIndex index);
 void         tls_list(void);
 void         tls_delete_global_references(JNIEnv *env);
 void         tls_cleanup(void);
-void         tls_free(JNIEnv *env, TlsIndex index);
-void         tls_sample_all_threads(void);
+void         tls_thread_ended(JNIEnv *env, TlsIndex index);
+void         tls_sample_all_threads(JNIEnv *env);
 
 MonitorIndex tls_get_monitor(TlsIndex index);
 void         tls_set_monitor(TlsIndex index, MonitorIndex monitor_index);
@@ -70,9 +70,10 @@ jlong        tls_monitor_stop_timer(TlsIndex index);
 void         tls_dump_monitor_state(JNIEnv *env);
 
 void         tls_push_method(TlsIndex index, jmethodID method);
-void         tls_pop_method(TlsIndex index, jmethodID method);
-void         tls_pop_exception_catch(TlsIndex index, jmethodID method);
+void         tls_pop_method(TlsIndex index, jthread thread, jmethodID method);
+void         tls_pop_exception_catch(TlsIndex index, jthread thread, jmethodID method);
 
-TraceIndex   tls_get_trace(TlsIndex index, int depth, jboolean skip_init);
+TraceIndex   tls_get_trace(TlsIndex index, JNIEnv *env,
+			   int depth, jboolean skip_init);
 
 #endif

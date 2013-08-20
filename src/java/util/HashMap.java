@@ -1,7 +1,7 @@
 /*
- * @(#)HashMap.java	1.63 04/02/19
+ * @(#)HashMap.java	1.65 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -89,7 +89,7 @@ import  java.io.*;
  * @author  Josh Bloch
  * @author  Arthur van Hoff
  * @author  Neal Gafter
- * @version 1.63, 02/19/04
+ * @version 1.65, 03/03/05
  * @see     Object#hashCode()
  * @see     Collection
  * @see	    Map
@@ -967,6 +967,8 @@ public class HashMap<K,V>
     private void writeObject(java.io.ObjectOutputStream s)
         throws IOException
     {
+	Iterator<Map.Entry<K,V>> i = entrySet().iterator();
+
 	// Write out the threshold, loadfactor, and any hidden stuff
 	s.defaultWriteObject();
 
@@ -977,7 +979,7 @@ public class HashMap<K,V>
 	s.writeInt(size);
 
         // Write out keys and values (alternating)
-        for (Iterator<Map.Entry<K,V>> i = entrySet().iterator(); i.hasNext(); ) {
+	while (i.hasNext()) { 
             Map.Entry<K,V> e = i.next();
             s.writeObject(e.getKey());
             s.writeObject(e.getValue());

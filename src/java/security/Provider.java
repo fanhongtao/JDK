@@ -1,7 +1,7 @@
 /*
- * @(#)Provider.java	1.61 04/05/05
+ * @(#)Provider.java	1.63 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -61,7 +61,7 @@ import java.security.cert.CertStoreParameters;
  *     <td><code>provider.getClass().getName()</code></td>
  * </table>
  *
- * @version 1.61, 05/05/04
+ * @version 1.63, 03/03/05
  * @author Benjamin Renaud
  * @author Andreas Sterbenz
  */
@@ -1077,7 +1077,8 @@ public abstract class Provider extends Properties {
 		if (type.equals("CertStore") == false) {
 		    throw new AssertionError("Unknown engine: " + type);
 		}
-		if (!(constructorParameter instanceof CertStoreParameters)) {
+		if (constructorParameter != null &&
+		    !(constructorParameter instanceof CertStoreParameters)) {
 		    throw new InvalidParameterException
 		    	("constructorParameter must be instanceof "
 			+ "CertStoreParameters for CertStores");

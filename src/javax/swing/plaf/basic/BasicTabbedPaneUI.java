@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTabbedPaneUI.java	1.151 04/06/16
+ * @(#)BasicTabbedPaneUI.java	1.153 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -195,6 +195,7 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         this.tabPane = (JTabbedPane)c;
 
         rolloverTabIndex = -1;
+        focusIndex = -1;
         c.setLayout(createLayoutManager());
         installComponents();
         installDefaults(); 
@@ -1737,21 +1738,42 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
     private void navigateTo(int index) {
         if (DefaultLookup.getBoolean(tabPane, this,
                              "TabbedPane.selectionFollowsFocus", true)) {
-            setFocusIndex(index);
             tabPane.setSelectedIndex(index);
         } else {
             // Just move focus (not selection)
-            int oldFocusIndex = focusIndex;
-            setFocusIndex(index);
-            tabPane.repaint(getTabBounds(tabPane, focusIndex));
-            if (oldFocusIndex != -1) {
-                tabPane.repaint(getTabBounds(tabPane, oldFocusIndex));
-            }
+            setFocusIndex(index, true);
         }
     }
 
-    void setFocusIndex(int index) {
-        focusIndex = index;
+    void setFocusIndex(int index, boolean repaint) {
+        if (repaint && !isRunsDirty) {
+            repaintTab(focusIndex);
+            focusIndex = index;
+            repaintTab(focusIndex);
+        }
+        else {
+            focusIndex = index;
+        }
+    }
+
+    /**
+     * Repaints the specified tab.
+     */
+    private void repaintTab(int index) {
+        // If we're not valid that means we will shortly be validated and
+        // painted, which means we don't have to do anything here.
+        if (!isRunsDirty && index >= 0 && index < tabPane.getTabCount()) {
+            tabPane.repaint(getTabBounds(tabPane, index));
+        }
+    }
+
+    /**
+     * Makes sure the focusIndex is valid.
+     */
+    private void validateFocusIndex() {
+        if (focusIndex >= tabPane.getTabCount()) {
+            setFocusIndex(tabPane.getSelectedIndex(), false);
+        }
     }
 
     /**
@@ -3173,6 +3195,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             tabPane.revalidate();
             tabPane.repaint();
 
+            setFocusIndex(tabPane.getSelectedIndex(), false);
+
             if (scrollableTabLayoutEnabled()) {
                 int index = tabPane.getSelectedIndex();
                 if (index < rects.length && index != -1) {
@@ -3206,16 +3230,16 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             int tabIndex = tabForCoordinate(tabPane, e.getX(), e.getY());
             if (tabIndex >= 0 && tabPane.isEnabledAt(tabIndex)) {
                 if (tabIndex != tabPane.getSelectedIndex()) {
+                    // Clicking on unselected tab, change selection, do NOT
+                    // request focus.
+                    // This will trigger the focusIndex to change by way
+                    // of stateChanged.
                     tabPane.setSelectedIndex(tabIndex);
                 }
-                if (tabPane.isRequestFocusEnabled() && tabIndex != focusIndex) {
+                else if (tabPane.isRequestFocusEnabled()) {
+                    // Clicking on selected tab, try and give the tabbedpane
+                    // focus.  Repaint will occur in focusGained.
                     tabPane.requestFocus();
-                    int oldFocusIndex = focusIndex;
-                    setFocusIndex(tabIndex);
-                    tabPane.repaint(getTabBounds(tabPane, focusIndex));
-                    if (oldFocusIndex != -1) {
-                        tabPane.repaint(getTabBounds(tabPane, oldFocusIndex));
-                    }
                 }
             }
         }
@@ -3234,30 +3258,10 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
         // FocusListener
         //
         public void focusGained(FocusEvent e) { 
-           JTabbedPane tabPane = (JTabbedPane)e.getSource();
-           int tabCount = tabPane.getTabCount();
-           int focusIndex = getFocusIndex();
-           if (focusIndex == -1) {
-               focusIndex = tabPane.getSelectedIndex();
-               setFocusIndex(focusIndex);
-           }
-           if (focusIndex != -1 && tabCount > 0
-                   && tabCount == rects.length) {
-               tabPane.repaint(getTabBounds(tabPane, focusIndex));
-           }
+           setFocusIndex(tabPane.getSelectedIndex(), true);
         }            
         public void focusLost(FocusEvent e) {
-           JTabbedPane tabPane = (JTabbedPane)e.getSource();
-           int tabCount = tabPane.getTabCount();
-           int focusIndex = getFocusIndex();
-           if (focusIndex != -1 && tabCount > 0
-                   && tabCount == rects.length) {
-               //PENDING(aim): this gets called unexplicably when an unselected
-               // tab is clicked when the tabbedpane doesn't have focus. 
-               // need to investigate further!
-               tabPane.repaint(getTabBounds(tabPane, focusIndex));
-               setFocusIndex(-1);
-           }
+            repaintTab(focusIndex);
         }
 
 
@@ -3341,6 +3345,8 @@ public class BasicTabbedPaneUI extends TabbedPaneUI implements SwingConstants {
             }
             isRunsDirty = true;
             updateMnemonics();
+
+            validateFocusIndex();
         }
     }
 

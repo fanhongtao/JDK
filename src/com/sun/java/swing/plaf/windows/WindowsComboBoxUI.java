@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.44 04/05/18
+ * @(#)WindowsComboBoxUI.java	1.46 05/03/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,11 +25,13 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.44, 05/18/04
+ * @version 1.46, 03/25/05
  * @author Tom Santos
  */
 
 public class WindowsComboBoxUI extends BasicComboBoxUI {
+
+    MouseListener rolloverListener;
 
     public static ComponentUI createUI(JComponent c) {
         return new WindowsComboBoxUI();
@@ -38,6 +40,17 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
     public void installUI( JComponent c ) {
         super.installUI( c );
         comboBox.setRequestFocusEnabled( true );
+        if (XPStyle.getXP() != null  && arrowButton != null) {
+            rolloverListener = new RolloverListener();
+            comboBox.addMouseListener(rolloverListener);
+        }
+    }
+
+    public void uninstallUI(JComponent c) {
+        if (XPStyle.getXP() != null) {
+            comboBox.removeMouseListener(rolloverListener);
+        }
+        super.uninstallUI( c );
     }
 
     /**
@@ -145,6 +158,26 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
         }
     }
 
+    class RolloverListener extends MouseAdapter {
+        public void mouseEntered(MouseEvent e) {
+            ButtonModel m = null;
+            if (arrowButton != null) {
+                m = arrowButton.getModel();
+            }
+            if (m != null) {
+                m.setRollover(true);
+            }
+        }
+        public void mouseExited(MouseEvent e) {
+            ButtonModel m = null;
+            if (arrowButton != null) {
+                m = arrowButton.getModel();
+            }
+            if (m != null) {
+                m.setRollover(false);
+            }
+        }
+    }
 
     /** 
      * Subclassed to add Windows specific Key Bindings.

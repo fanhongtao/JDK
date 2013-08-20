@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_util.c	1.48 04/07/27
+ * @(#)hprof_util.c	1.50 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -389,6 +389,26 @@ deleteGlobalReference(JNIEnv *env, jobject object)
     HPROF_ASSERT(env!=NULL);
     HPROF_ASSERT(object!=NULL);
     JNI_FUNC_PTR(env,DeleteGlobalRef)(env, object);
+}
+
+jobject
+newLocalReference(JNIEnv *env, jobject object)
+{
+    jobject lref;
+
+    HPROF_ASSERT(env!=NULL);
+    HPROF_ASSERT(object!=NULL);
+    lref = JNI_FUNC_PTR(env,NewLocalRef)(env, object);
+    /* Possible for a non-null weak reference to return a NULL localref */
+    return lref;
+}
+
+void
+deleteLocalReference(JNIEnv *env, jobject object)
+{
+    HPROF_ASSERT(env!=NULL);
+    HPROF_ASSERT(object!=NULL);
+    JNI_FUNC_PTR(env,DeleteLocalRef)(env, object);
 }
 
 void

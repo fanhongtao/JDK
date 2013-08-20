@@ -1,7 +1,7 @@
 /*
- * @(#)StringCoding.java	1.13	03/12/19
+ * @(#)StringCoding.java	1.15	05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -76,6 +76,12 @@ class StringCoding {
 	return tca;
     }
 
+    private static int scale(int len, float expansionFactor) {
+      // We need to perform double, not float, arithmetic; otherwise
+      // we lose low order bits when len is larger than 2**24.
+      return (int)(len * (double)expansionFactor);
+    }
+
     private static Charset lookupCharset(String csn) {
 	if (Charset.isSupported(csn)) {
 	    try {
@@ -132,7 +138,7 @@ class StringCoding {
 	}
 
 	char[] decode(byte[] ba, int off, int len) {
-	    int en = btc.getMaxCharsPerByte() * len;
+	    int en = scale(len, btc.getMaxCharsPerByte());
 	    char[] ca = new char[en];
 	    if (len == 0)
 		return ca;
@@ -173,7 +179,7 @@ class StringCoding {
 	}
 
 	char[] decode(byte[] ba, int off, int len) {
-	    int en = (int)(cd.maxCharsPerByte() * len);
+	    int en = scale(len, cd.maxCharsPerByte());
 	    char[] ca = new char[en];
 	    if (len == 0)
 		return ca;
@@ -280,7 +286,7 @@ class StringCoding {
 	}
 
 	byte[] encode(char[] ca, int off, int len) {
-	    int en = ctb.getMaxBytesPerChar() * len;
+	    int en = scale(len, ctb.getMaxBytesPerChar());
 	    byte[] ba = new byte[en];
 	    if (len == 0)
 		return ba;
@@ -324,7 +330,7 @@ class StringCoding {
 	}
 
 	byte[] encode(char[] ca, int off, int len) {
-	    int en = (int)(ce.maxBytesPerChar() * len);
+	    int en = scale(len, ce.maxBytesPerChar());
 	    byte[] ba = new byte[en];
 	    if (len == 0)
 		return ba;

@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_util.h	1.22 04/07/27
+ * @(#)hprof_util.h	1.24 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -76,6 +76,8 @@ JNIEnv *   getEnv(void);
 jobject    newGlobalReference(JNIEnv *env, jobject object);
 jobject    newWeakGlobalReference(JNIEnv *env, jobject object);
 void       deleteGlobalReference(JNIEnv *env, jobject object);
+jobject	   newLocalReference(JNIEnv *env, jobject object);
+void	   deleteLocalReference(JNIEnv *env, jobject object);
 void       deleteWeakGlobalReference(JNIEnv *env, jobject object);
 jclass     getObjectClass(JNIEnv *env, jobject object);
 jmethodID  getMethodID(JNIEnv *env, jclass clazz, const char* name, 

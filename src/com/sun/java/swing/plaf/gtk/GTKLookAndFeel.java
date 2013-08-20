@@ -1,7 +1,7 @@
 /*
- * @(#)GTKLookAndFeel.java	1.71 04/07/16
+ * @(#)GTKLookAndFeel.java	1.73 05/03/25
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -27,7 +27,7 @@ import java.io.IOException;
 import sun.security.action.GetPropertyAction;
 
 /**
- * @version 1.71, 07/16/04
+ * @version 1.73, 03/25/05
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -1279,7 +1279,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         public void propertyChange(final PropertyChangeEvent pce) {
             final GTKLookAndFeel lnf = (GTKLookAndFeel)get();
 
-            if (lnf == null) {
+            if (lnf == null || UIManager.getLookAndFeel() != lnf) { 
                 // The property was GC'ed, we're no longer interested in
                 // PropertyChanges, remove the listener.
                 dispose();

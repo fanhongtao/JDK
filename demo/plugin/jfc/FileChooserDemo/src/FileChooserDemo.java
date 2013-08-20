@@ -1,7 +1,7 @@
 /*
- * @(#)FileChooserDemo.java	1.26 04/07/26
+ * @(#)FileChooserDemo.java	1.28 05/03/25
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)FileChooserDemo.java	1.26 04/07/26
+ * @(#)FileChooserDemo.java	1.28 05/03/25
  */
 
 import javax.swing.*;
@@ -51,7 +51,7 @@ import java.beans.*;
  *
  * A demo which makes extensive use of the file chooser.
  *
- * 1.26 07/26/04
+ * 1.28 03/25/05
  * @author Jeff Dinkins
  */
 public class FileChooserDemo extends JPanel implements ActionListener {
@@ -122,8 +122,8 @@ public class FileChooserDemo extends JPanel implements ActionListener {
 
 	// Create Custom FileView
 	fileView = new ExampleFileView();
-	fileView.putIcon("jpg", new ImageIcon("images/jpgIcon.jpg"));
-	fileView.putIcon("gif", new ImageIcon("images/gifIcon.gif"));
+	fileView.putIcon("jpg", new ImageIcon(getClass().getResource("/resources/images/jpgIcon.jpg")));
+	fileView.putIcon("gif", new ImageIcon(getClass().getResource("/resources/images/gifIcon.gif")));
 
 	// create a radio listener to listen to option changes
 	OptionListener optionListener = new OptionListener();

@@ -1,7 +1,7 @@
 /*
- * @(#)Window.java	1.208 04/06/28
+ * @(#)Window.java	1.210 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -104,7 +104,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.208, 06/28/04
+ * @version 	1.210, 03/03/05
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -204,6 +204,13 @@ public class Window extends Container implements Accessible {
     private static final DebugHelper dbg = DebugHelper.create(Window.class);
 
     private static final boolean locationByPlatformProp;
+
+    /**
+     * Indicates whether this Window is modal excluded, i. e. is not
+     * blocked by modal dialogs
+     * @since 1.5
+     */
+    private transient boolean modalExcluded = false;
 
     static {
         /* ensure that the necessary native libraries are loaded */
@@ -409,6 +416,7 @@ public class Window extends Container implements Accessible {
 	this.parent = owner;
 	this.weakThis = new WeakReference(this);
 	owner.addOwnedWindow(weakThis);
+        modalExcluded = owner.modalExcluded;
     }
 
     /**

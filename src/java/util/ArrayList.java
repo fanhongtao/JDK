@@ -1,7 +1,7 @@
 /*
- * @(#)ArrayList.java	1.47 03/12/19
+ * @(#)ArrayList.java	1.49 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -71,7 +71,7 @@ package java.util;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.47, 12/19/03
+ * @version 1.49, 03/03/05
  * @see	    Collection
  * @see	    List
  * @see	    LinkedList
@@ -558,6 +558,7 @@ public class ArrayList<E> extends AbstractList<E>
      */
     private void writeObject(java.io.ObjectOutputStream s)
         throws java.io.IOException{
+	int expectedModCount = modCount;
 	// Write out element count, and any hidden stuff
 	s.defaultWriteObject();
 
@@ -567,6 +568,10 @@ public class ArrayList<E> extends AbstractList<E>
 	// Write out all elements in the proper order.
 	for (int i=0; i<size; i++)
             s.writeObject(elementData[i]);
+
+ 	if (modCount != expectedModCount) {
+	    throw new ConcurrentModificationException();
+	}
     }
 
     /**

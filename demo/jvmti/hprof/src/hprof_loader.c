@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_loader.c	1.15 04/07/27
+ * @(#)hprof_loader.c	1.17 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -137,12 +137,18 @@ search_item(TableIndex index, void *key_ptr, int key_len, void *info_ptr, void *
 	data->found = index;
     } else if ( data->env != NULL && data->loader != NULL &&
 		info->globalref != NULL ) {
-	if ( isSameObject(data->env, info->globalref, NULL) ) {
+	jobject lref;
+	
+	lref = newLocalReference(data->env, info->globalref);
+	if ( lref == NULL ) {
 	    /* Object went away, free reference and entry */
             free_entry(data->env, index); 
-	} else if ( isSameObject(data->env, data->loader, info->globalref) ) {
+	} else if ( isSameObject(data->env, data->loader, lref) ) {
 	    HPROF_ASSERT(data->found==0); /* Did we find more than one? */
 	    data->found = index;
+	}
+	if ( lref != NULL ) {
+	    deleteLocalReference(data->env, lref);
 	}
     }
 

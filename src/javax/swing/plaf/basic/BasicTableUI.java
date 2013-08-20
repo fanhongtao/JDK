@@ -1,7 +1,7 @@
 /*
- * @(#)BasicTableUI.java	1.140 04/06/14
+ * @(#)BasicTableUI.java	1.142 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -31,7 +31,7 @@ import sun.swing.UIAction;
 /**
  * BasicTableUI implementation
  *
- * @version 1.140 06/14/04
+ * @version 1.142 03/03/05
  * @author Philip Milne
  */
 public class BasicTableUI extends TableUI
@@ -933,7 +933,31 @@ public class BasicTableUI extends TableUI
                         true : false;
                 setValueIsAdjusting(adjusting);
                 boolean ctrl = e.isControlDown();
-                table.changeSelection(row, column, ctrl, !ctrl && e.isShiftDown());
+
+                // Apply the selection state of the anchor to all cells between it and the
+                // current cell, and then select the current cell.
+                // For mustang, where API changes are allowed, this logic will moved to
+                // JTable.changeSelection()
+                if (ctrl && e.isShiftDown()) {
+                    ListSelectionModel rm = table.getSelectionModel();
+                    ListSelectionModel cm = table.getColumnModel().getSelectionModel();
+                    int anchorRow = rm.getAnchorSelectionIndex();
+                    int anchorCol = cm.getAnchorSelectionIndex();
+
+                    if (table.isCellSelected(anchorRow, anchorCol)) {
+                        rm.addSelectionInterval(anchorRow, row);
+                        cm.addSelectionInterval(anchorCol, column);
+                    } else {
+                        rm.removeSelectionInterval(anchorRow, row);
+                        rm.addSelectionInterval(row, row);
+                        rm.setAnchorSelectionIndex(anchorRow);
+                        cm.removeSelectionInterval(anchorCol, column);
+                        cm.addSelectionInterval(column, column);
+                        cm.setAnchorSelectionIndex(anchorCol);
+                    }
+                } else {
+                    table.changeSelection(row, column, ctrl, !ctrl && e.isShiftDown());
+                }
 	    }
         }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)KeyboardFocusManager.java	1.58 04/05/05
+ * @(#)KeyboardFocusManager.java	1.60 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -67,7 +67,7 @@ import java.security.PrivilegedAction;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.58, 05/05/04 
+ * @version 1.60, 03/03/05 
  *
  * @see Window
  * @see Frame
@@ -2855,7 +2855,7 @@ public abstract class KeyboardFocusManager
         return (wto != wfrom);
     }
 
-    private static Component getHeavyweight(Component comp) {
+    static Component getHeavyweight(Component comp) {
         if (comp == null || comp.getPeer() == null) {
             return null;
         } else if (comp.getPeer() instanceof LightweightPeer) {

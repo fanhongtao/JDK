@@ -1,7 +1,7 @@
 /*
- * @(#)MetalworksHelp.java	1.12 04/07/26
+ * @(#)MetalworksHelp.java	1.14 05/03/25
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@
  */
 
 /*
- * @(#)MetalworksHelp.java	1.12 04/07/26
+ * @(#)MetalworksHelp.java	1.14 05/03/25
  */
 
 import javax.swing.*;
@@ -47,7 +47,7 @@ import javax.swing.text.*;
 import javax.swing.event.*;
 
 /*
- * @version 1.12 07/26/04
+ * @version 1.14 03/25/05
  * @author Steve Wilson
  */
 public class MetalworksHelp extends JInternalFrame {
@@ -69,11 +69,8 @@ class HtmlPane extends JScrollPane implements HyperlinkListener {
 
     public HtmlPane() {
 	try {
-	    File f = new File ("HelpFiles/toc.html");
-	    String s = f.getAbsolutePath();
-	    s = "file:"+s;
-	    URL url = new URL(s);
-	    html = new JEditorPane(s);
+            URL url = getClass().getResource("/resources/HelpFiles/toc.html");
+            html = new JEditorPane(url);
 	    html.setEditable(false);
 	    html.addHyperlinkListener(this);
 

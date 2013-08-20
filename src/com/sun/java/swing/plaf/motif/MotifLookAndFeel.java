@@ -1,5 +1,5 @@
 /*
- * @(#)MotifLookAndFeel.java	1.170 05/01/04
+ * @(#)MotifLookAndFeel.java	1.171 05/02/08
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -42,7 +42,7 @@ import com.sun.java.swing.SwingUtilities2;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.170 01/04/05
+ * @version 1.171 02/08/05
  * @author unattributed
  */
 public class MotifLookAndFeel extends BasicLookAndFeel
@@ -1123,7 +1123,9 @@ public class MotifLookAndFeel extends BasicLookAndFeel
 		     "DOWN", "selectNext",
 		  "KP_DOWN", "selectNext",
 		       "UP", "selectPrevious",
-		    "KP_UP", "selectPrevious"
+		    "KP_UP", "selectPrevious",
+                    "SPACE", "spacePopup",
+                    "ENTER", "enterPressed"
 	      }),
 
             "TextField.caretForeground", black,

@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_cpu.c	1.19 04/07/27
+ * @(#)hprof_cpu.c	1.21 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -134,7 +134,7 @@ cpu_loop_function(jvmtiEnv *jvmti, JNIEnv *env, void *p)
         
 	/* Sample all the threads and update trace costs */
 	if ( !gdata->pause_cpu_sampling) {
-            tls_sample_all_threads();
+            tls_sample_all_threads(env);
 	}
 
 	/* Check to see if we need to finish */

@@ -1,7 +1,7 @@
 /*
- * @(#)BasicListUI.java	1.106 04/09/15
+ * @(#)BasicListUI.java	1.108 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -32,7 +32,7 @@ import com.sun.java.swing.SwingUtilities2;
  * A Windows L&F implementation of ListUI.
  * <p>
  *
- * @version 1.106 09/15/04
+ * @version 1.108 03/03/05
  * @author Hans Muller
  * @author Philip Milne
  */
@@ -2284,7 +2284,15 @@ public class BasicListUI extends ListUI
                 list.setValueIsAdjusting(adjusting);
                 int anchorIndex = list.getAnchorSelectionIndex();
                 if (e.isControlDown()) {
-                    if (list.isSelectedIndex(row)) {
+                    if (e.isShiftDown() && anchorIndex != -1) {
+                        if (list.isSelectedIndex(anchorIndex)) {
+                            list.addSelectionInterval(anchorIndex, row);
+                        } else {
+                            list.removeSelectionInterval(anchorIndex, row);
+                            list.addSelectionInterval(row, row);
+                            list.getSelectionModel().setAnchorSelectionIndex(anchorIndex);
+                        }
+                    } else if (list.isSelectedIndex(row)) {
                         list.removeSelectionInterval(row, row);
                     }
                     else {

@@ -1,7 +1,7 @@
 /*
- * @(#)hprof_monitor.c	1.32 04/07/27
+ * @(#)hprof_monitor.c	1.34 05/03/03
  * 
- * Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -197,11 +197,11 @@ clear_item(MonitorIndex index, void *key_ptr, int key_len, void *info_ptr, void 
 }
 
 static TraceIndex
-get_trace(TlsIndex tls_index)
+get_trace(TlsIndex tls_index, JNIEnv *env)
 {
     TraceIndex trace_index;
     
-    trace_index = tls_get_trace(tls_index, gdata->max_trace_depth, JNI_FALSE);
+    trace_index = tls_get_trace(tls_index, env, gdata->max_trace_depth, JNI_FALSE);
     return trace_index;
 }
 
@@ -340,7 +340,7 @@ monitor_contended_enter_event(JNIEnv *env, jthread thread, jobject object)
     
     tls_index =  tls_find_or_create(env, thread);
     HPROF_ASSERT(tls_get_monitor(tls_index)==0);
-    trace_index = get_trace(tls_index);
+    trace_index = get_trace(tls_index, env);
     index = find_or_create_entry(env, trace_index, object);
     tls_monitor_start_timer(tls_index);
     tls_set_monitor(tls_index, index);
@@ -382,7 +382,7 @@ monitor_wait_event(JNIEnv *env, jthread thread, jobject object, jlong timeout)
     tls_index =  tls_find_or_create(env, thread);
     HPROF_ASSERT(tls_index!=0);
     HPROF_ASSERT(tls_get_monitor(tls_index)==0);
-    trace_index = get_trace(tls_index);
+    trace_index = get_trace(tls_index, env);
     index = find_or_create_entry(env, trace_index, object);
     pkey = get_pkey(index);
     tls_monitor_start_timer(tls_index);
@@ -423,7 +423,7 @@ monitor_waited_event(JNIEnv *env, jthread thread,
 	TraceIndex trace_index;
 	
 	HPROF_ERROR(JNI_FALSE, "MonitorWaitedEvent missing MonitorWaitEvent?");
-        trace_index = get_trace(tls_index);
+        trace_index = get_trace(tls_index, env);
 	index = find_or_create_entry(env, trace_index, object);
 #endif
 

@@ -1,7 +1,7 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.31 03/12/19
+ * @(#)DefaultKeyboardFocusManager.java	1.33 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -35,7 +35,7 @@ import sun.awt.SunToolkit;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.31, 12/19/03
+ * @version 1.33, 03/03/05
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -466,6 +466,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     }
                 }
 
+                setNativeFocusOwner(getHeavyweight(newFocusOwner));
+
                 Component realOppositeComponent = this.realOppositeComponent;
                 if (realOppositeComponent != null &&
                     realOppositeComponent != fe.getOppositeComponent()) {
@@ -517,6 +519,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                         owningWindow.setTemporaryLostComponent(currentFocusOwner);
                     }
                 }
+
+                setNativeFocusOwner(null);
 
                 fe.setSource(currentFocusOwner);
 

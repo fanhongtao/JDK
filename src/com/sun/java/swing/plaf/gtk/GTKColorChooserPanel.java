@@ -1,7 +1,7 @@
 /*
- * @(#)GTKColorChooserPanel.java	1.8 04/04/16
+ * @(#)GTKColorChooserPanel.java	1.10 05/03/03
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.java.swing.plaf.gtk;
@@ -18,7 +18,7 @@ import javax.swing.plaf.*;
  * A color chooser panel mimicking that of GTK's: a color wheel showing
  * hue and a triangle that varies saturation and brightness.
  *
- * @version 1.8, 04/16/04
+ * @version 1.10, 03/03/05
  * @author Scott Violet
  */
 class GTKColorChooserPanel extends AbstractColorChooserPanel implements
@@ -166,7 +166,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
         lastLabel.setMaximumSize(new Dimension(67, 32));
 
         hueSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 360, 1));
-        // configureSpinner(hueSpinner, "GTKColorChooserPanel.hueSpinner");
+        configureSpinner(hueSpinner, "GTKColorChooserPanel.hueSpinner");
         saturationSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 255, 1));
         configureSpinner(saturationSpinner,
                          "GTKColorChooserPanel.saturationSpinner");
