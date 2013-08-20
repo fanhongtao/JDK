@@ -1,7 +1,7 @@
 /*
- * @(#)EventHandler.java	1.13 05/06/07
+ * @(#)EventHandler.java	1.15 07/01/12
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans; 
@@ -310,19 +310,16 @@ public class EventHandler implements InvocationHandler {
 						   new Class[]{}); 
             } 
             if (getter == null) { 
-                System.err.println("No method called: " + first +
-				   " defined on " + target); 
-                return null; 
+                throw new RuntimeException("No method called: " + first +
+                                           " defined on " + target);
             } 
             Object newTarget = MethodUtil.invoke(getter, target, new Object[]{});
             return applyGetters(newTarget, rest); 
         } 
         catch (Throwable e) { 
-            System.out.println(e); 
-            System.err.println("Failed to call method: " + first +
-			       " on " + target); 
-        }
-        return null; 
+            throw new RuntimeException("Failed to call method: " + first +
+                                       " on " + target, e); 
+        } 
     }
     
     /**
@@ -380,18 +377,23 @@ public class EventHandler implements InvocationHandler {
                     targetMethod = ReflectionUtils.getMethod(target.getClass(),
                         "set" + NameGenerator.capitalize(action), argTypes);
                 }
-                if (targetMethod == null) { 
-                    System.err.println("No target method called: " + action +
-			" defined on class " + target.getClass() +
-			" with argument type " + argTypes[0]); 
+                if (targetMethod == null) {
+                    String argTypeString = (argTypes.length == 0)
+                                           ? " with no arguments"
+                                           : " with argument " + argTypes[0];
+                    throw new RuntimeException("No method called: " +
+                                               action +
+                                               " on " +
+                                               target.getClass() +
+                                               argTypeString);
                 }
                 return MethodUtil.invoke(targetMethod, target, newArgs);
             } 
             catch (IllegalAccessException ex) {
-                ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
             catch (InvocationTargetException ex) {
-                ex.getTargetException().printStackTrace();
+                throw new RuntimeException(ex.getTargetException());
             }
         }
         return null;

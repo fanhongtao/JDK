@@ -573,7 +573,12 @@ public class Krb5LoginModule implements LoginModule {
 		// Get the TGT using AS Exchange
 		if (debug)
 		    System.out.println("principal is " + principal);
-		cred = Credentials.acquireTGT(principal, encKey);
+		cred = Credentials.acquireTGT(principal, encKey, 
+						new StringBuffer().append(password));
+
+		// update keys after pre-auth
+		encKey = new EncryptionKey(new StringBuffer().append(password),
+						principal.getSalt());
 
 		// we should hava a  non-null cred 
 		if (cred == null) {

@@ -1,7 +1,7 @@
 /*
- * @(#)Buffer.java	1.29 03/01/23
+ * @(#)Buffer.java	1.31 07/01/12
  *
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -150,7 +150,7 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.29, 03/01/23
+ * @version 1.31, 07/01/12
  * @since 1.4
  */
 
@@ -175,7 +175,7 @@ public abstract class Buffer {
 	this.capacity = cap;
 	limit(lim);
 	position(pos);
-	if (mark > 0) {
+	if (mark >= 0) {
 	    if (mark > pos)
 		throw new IllegalArgumentException();
 	    this.mark = mark;
