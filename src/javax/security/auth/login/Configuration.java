@@ -1,7 +1,7 @@
 /*
- * @(#)Configuration.java	1.57 03/12/19
+ * @(#)Configuration.java	1.58 09/06/26
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2004-2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -146,7 +146,7 @@ import java.security.PrivilegedActionException;
  * &lt;JAVA_HOME&gt;/lib/security/java.security, where &lt;JAVA_HOME&gt;
  * refers to the directory where the JDK was installed.
  *
- * @version 1.57, 12/19/03
+ * @version 1.58, 06/26/09
  * @see javax.security.auth.login.LoginContext
  */
 public abstract class Configuration {
@@ -185,12 +185,13 @@ public abstract class Configuration {
      *
      * @see #setConfiguration
      */
-    public static synchronized Configuration getConfiguration() {
-
+    public static Configuration getConfiguration() {
+ 
 	SecurityManager sm = System.getSecurityManager();
 	if (sm != null)
 	    sm.checkPermission(new AuthPermission("getLoginConfiguration"));
 
+        synchronized (Configuration.class) {
 	if (configuration == null) {
 	    String config_class = null;
 	    config_class = (String)
@@ -237,6 +238,7 @@ public abstract class Configuration {
 	    }
 	}
 	return configuration;
+      }
     }
     
     /**
