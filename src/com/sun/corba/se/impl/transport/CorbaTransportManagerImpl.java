@@ -1,5 +1,5 @@
 /*
- * @(#)CorbaTransportManagerImpl.java	1.13 03/12/19
+ * @(#)CorbaTransportManagerImpl.java	1.14 06/09/15
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -31,6 +31,8 @@ import com.sun.corba.se.spi.ior.ObjectAdapterId;
 import com.sun.corba.se.spi.orb.ORB;
 import com.sun.corba.se.spi.transport.CorbaAcceptor;
 import com.sun.corba.se.spi.transport.CorbaTransportManager;
+import com.sun.corba.se.pept.transport.Connection;
+import com.sun.corba.se.pept.transport.ConnectionCache;
 
 // REVISIT - impl/poa specific:
 import com.sun.corba.se.impl.oa.poa.Policies;
@@ -164,7 +166,32 @@ public class CorbaTransportManagerImpl
 	    if (orb.transportDebugFlag) {
 		dprint(".close->");
 	    }
-	    getSelector(0).close();
+	    getSelector(0).close();	    
+	    Collection c = getOutboundConnectionCaches();
+	    Iterator iter=c.iterator();
+	    
+	    for (;iter.hasNext();) {
+		CorbaConnectionCacheBase cc = (CorbaConnectionCacheBase)iter.next();
+		Iterator iterator = cc.values().iterator();
+		
+		// Find any used and not busy connection in cache and close it.
+		while (iterator.hasNext()) { 
+		    Connection conn = (Connection) iterator.next();
+		    if (!conn.isBusy()) { 
+			try {
+			    conn.close();
+			    iterator = cc.values().iterator();
+			} catch (Exception ex) { // REVISIT - log
+			    if (orb.transportDebugFlag) {
+				dprint("Exception while closing connection" + conn);
+				//the idea is to ease troubleshooting in case of probelm while closing
+				// connection
+			    }
+			}
+		    }
+   		}
+	    }
+			
 	} finally {
 	    if (orb.transportDebugFlag) {
 		dprint(".close<-");

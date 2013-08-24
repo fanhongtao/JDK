@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.247 05/05/27
+ * @(#)JComponent.java	2.248 06/05/23
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,6 +45,7 @@ import javax.accessibility.*;
 
 import com.sun.java.swing.SwingUtilities2;
 import sun.font.FontDesignMetrics;
+import sun.swing.AccessibleMethod; 
 
 /**
  * The base class for all Swing components except top-level containers.
@@ -1328,14 +1329,30 @@ public abstract class JComponent extends Container implements Serializable
     }
   
     private boolean runInputVerifier() {
+        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        boolean inActivation;
+        try {
+            AccessibleMethod accessibleMethod
+                = new AccessibleMethod(KeyboardFocusManager.class,
+                                       "isInActivation");
+            inActivation = (Boolean) (accessibleMethod.invokeNoChecked(kfm));
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(
+                "Couldn't locate method KeyboardFocusManager.isInActivation()");
+        }
+
+        if (inActivation) {
+            // Focus automatically returned back from another window
+            // no need to process input verifier again
+            return true;
+        }
+
         if (inInputVerifier) {
             // We're already running the InputVerifier, assume the
             // developer knows what they're doing.
             return true;
         }
-	Component focusOwner =
-	    KeyboardFocusManager.getCurrentKeyboardFocusManager().
-	        getFocusOwner();
+        Component focusOwner = kfm.getFocusOwner();
 
         if (focusOwner == null) {
             // If we are moving focus from another window, we should detect
@@ -1346,24 +1363,16 @@ public abstract class JComponent extends Container implements Serializable
             // private method accessible. 
             Window window = SwingUtilities.getWindowAncestor(this); 
             if (window != null) { 
-                try { 
-                    Method accessibleMethod = 
-                    java.security.AccessController.doPrivileged( 
-                        new java.security.PrivilegedExceptionAction<Method>() { 
-                            public Method run() throws Exception { 
-                                Method method = 
-                                    KeyboardFocusManager.class.getDeclaredMethod( 
-                                        "getMostRecentFocusOwner", Window.class); 
-                                method.setAccessible(true); 
-                                return method; 
-                            }
-                        }
-                    );
-                    focusOwner = (Component)(accessibleMethod.invoke(null,
-                                                                     window));
-                }
-                catch (Exception e) {           
-                    focusOwner = null;
+                try {
+                    AccessibleMethod accessibleMethod
+                        = new AccessibleMethod(KeyboardFocusManager.class,
+                                               "getMostRecentFocusOwner",
+                                               Window.class);
+                    focusOwner = (Component) (accessibleMethod.invokeNoChecked(null,
+                                                                               window));
+                } catch (NoSuchMethodException e) {
+                    throw new AssertionError("Couldn't locate method " +
+                            "KeyboardFocusManager.getMostRecentFocusOwner()");
                 }
             }
         }

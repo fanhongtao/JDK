@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.33 05/03/03
+ * @(#)DefaultKeyboardFocusManager.java	1.35 06/07/19
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.awt.SunToolkit;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.33, 03/03/05
+ * @version 1.35, 07/19/06
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -329,6 +329,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                         focusLog.log(Level.FINER, "tempLost {0}, toFocus {1}", 
                                      new Object[]{tempLost, toFocus});
                     }
+                    setInActivation(true);
                     if (tempLost != null) {
                         tempLost.requestFocusInWindow();
                     }
@@ -338,6 +339,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                         // was inactive it expects to receive focus after activation.
                         toFocus.requestFocusInWindow();
                     }
+                    setInActivation(false);
                 }
 
                 Window realOppositeWindow = this.realOppositeWindow;
@@ -394,6 +396,9 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                 if (oldFocusOwner == newFocusOwner) {
                     if (focusLog.isLoggable(Level.FINE)) focusLog.log(Level.FINE, "Skipping {0} because focus owner is the same",
                                                                         new Object[] {e});
+                    // We can't just drop the event - there could be
+                    // type-ahead markers associated with it.
+                    dequeueKeyEvents(-1, newFocusOwner);
                     break;
                 }
 
@@ -744,6 +749,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                         }
                     }
                     if (ke != null) {
+                        focusLog.log(Level.FINER, "Pumping approved event {0}", new Object[] {ke});
                         enqueuedKeyEvents.removeFirst();
                     }
                 }
@@ -758,17 +764,18 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
      * Dumps the list of type-ahead queue markers to stderr
      */
     void dumpMarkers() {
-        System.err.println(">>> Markers dump, time: " + System.currentTimeMillis());
-        synchronized (this) {
-            if (typeAheadMarkers.size() != 0) {
-                Iterator iter = typeAheadMarkers.iterator();
-                while (iter.hasNext()) {
-                    TypeAheadMarker marker = (TypeAheadMarker)iter.next();
-                    System.err.println(marker);
+        if (focusLog.isLoggable(Level.FINEST)) {
+            focusLog.log(Level.FINEST, ">>> Markers dump, time: {0}", System.currentTimeMillis());
+            synchronized (this) {
+                if (typeAheadMarkers.size() != 0) {
+                    Iterator iter = typeAheadMarkers.iterator();
+                    while (iter.hasNext()) {
+                        TypeAheadMarker marker = (TypeAheadMarker)iter.next();
+                        focusLog.log(Level.FINEST, "    {0}", marker);
+                    }
                 }
             }
         }
-        System.err.println("");
     }
 
     private boolean typeAheadAssertions(Component target, AWTEvent e) {
@@ -788,6 +795,7 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                         TypeAheadMarker marker = (TypeAheadMarker)
                             typeAheadMarkers.getFirst();
                         if (ke.getWhen() > marker.after) {
+                            focusLog.log(Level.FINER, "Storing event {0} because of marker {1}", new Object[] {ke, marker});
                             enqueuedKeyEvents.addLast(ke);
                             return true;
                         }
@@ -799,7 +807,8 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
             }
 
             case FocusEvent.FOCUS_GAINED:
-
+                focusLog.log(Level.FINEST, "Markers before FOCUS_GAINED on {0}", new Object[] {target});
+                dumpMarkers();
                 // Search the marker list for the first marker tied to
                 // the Component which just gained focus. Then remove
                 // that marker, any markers which immediately follow
@@ -825,8 +834,13 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                             }
                             iter.remove();
                         }
+                    } else {
+                        // Exception condition - event without marker
+                        focusLog.log(Level.FINER, "Event without marker {0}", e);
                     }
                 }
+                focusLog.log(Level.FINEST, "Markers after FOCUS_GAINED");
+                dumpMarkers();
 
                 redispatchEvent(target, e);
 
@@ -1050,6 +1064,9 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
         if (untilFocused == null) {
             return;
         }
+        
+        focusLog.log(Level.FINER, "Enqueue at {0} for {1}",
+                     new Object[] {after, untilFocused});
 
         int insertionIndex = 0,
             i = typeAheadMarkers.size();
@@ -1087,6 +1104,9 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
         if (untilFocused == null) {
             return;
         }
+
+        focusLog.log(Level.FINER, "Dequeue at {0} for {1}",
+                     new Object[] {after, untilFocused});
 
         TypeAheadMarker marker;
         ListIterator iter = typeAheadMarkers.listIterator

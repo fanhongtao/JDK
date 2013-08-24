@@ -1,5 +1,5 @@
 /*
- * @(#)AbstractSelectionKey.java	1.11 03/12/19
+ * @(#)AbstractSelectionKey.java	1.12 06/07/15
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,7 +17,7 @@ import java.nio.channels.*;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.11, 03/12/19
+ * @version 1.12, 06/07/15
  * @since 1.4
  */
 
@@ -47,9 +47,14 @@ public abstract class AbstractSelectionKey
      * selector's cancelled-key set while synchronized on that set.  </p>
      */
     public final void cancel() {
-	if (valid) {
-            valid = false;
-            ((AbstractSelector)selector()).cancel(this);
-        }
+        // Synchronizing "this" to prevent this key from getting canceled
+        // multiple times by different threads, which might cause race
+        // condition between selector's select() and channel's close().
+        synchronized (this) {
+	    if (valid) {
+                valid = false;
+                ((AbstractSelector)selector()).cancel(this);
+	    }
+	}
     }
 }

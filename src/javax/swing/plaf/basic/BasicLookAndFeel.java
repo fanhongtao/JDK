@@ -1,5 +1,5 @@
 /*
- * @(#)BasicLookAndFeel.java	1.241 05/05/03
+ * @(#)BasicLookAndFeel.java	1.242 06/08/16
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -28,6 +28,8 @@ import java.util.*;
 import java.lang.reflect.*;
 import javax.sound.sampled.*;
 
+import sun.awt.AppContext;
+
 import sun.swing.SwingLazyValue;
 import com.sun.java.swing.SwingUtilities2;
 
@@ -52,6 +54,9 @@ import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.DefaultEditorKit;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+
 
 /**
  * Implements the a standard base LookAndFeel class from which
@@ -68,7 +73,7 @@ import javax.swing.text.DefaultEditorKit;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.241 05/03/05
+ * @version 1.242 08/16/06
  * @author unattributed
  */
 public abstract class BasicLookAndFeel extends LookAndFeel implements Serializable
@@ -88,6 +93,11 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
     private Clip clipPlaying;
 
     PopupInvocationHelper invocator = null;
+
+    /*
+     * Listen for our AppContext being disposed
+     */
+    private PropertyChangeListener disposer = null;
 
     public UIDefaults getDefaults() {
 	UIDefaults table = new UIDefaults();
@@ -118,6 +128,17 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         if(invocator != null) {
             AccessController.doPrivileged(invocator);
             invocator = null;
+        }
+
+        if (disposer != null) {
+            // Note that we're likely calling removePropertyChangeListener()
+            // during the course of AppContext.firePropertyChange().
+            // However, EventListenerAggreggate has code to safely modify
+            // the list under such circumstances.
+            AppContext.getAppContext().removePropertyChangeListener(
+                                                        AppContext.GUI_DISPOSED,
+                                                        disposer);
+            disposer = null;
         }
     }
 
@@ -1970,6 +1991,18 @@ public abstract class BasicLookAndFeel extends LookAndFeel implements Serializab
         if (invocator == null) {
             invocator = new PopupInvocationHelper();
             hasPopups = true;
+
+            // Add a PropertyChangeListener to our AppContext so we're alerted
+            // when the AppContext is disposed(), at which time this laf should
+            // be uninitialize()d.
+            disposer = new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent prpChg) {
+                    uninitialize();
+                }
+            };
+            AppContext.getAppContext().addPropertyChangeListener(
+                                                        AppContext.GUI_DISPOSED,
+                                                        disposer);
         }
     }
 

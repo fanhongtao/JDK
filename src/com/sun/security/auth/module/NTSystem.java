@@ -1,7 +1,7 @@
 /*
- * @(#)NTSystem.java	1.9 03/12/19
+ * @(#)NTSystem.java	1.10 06/06/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,7 +13,7 @@ import javax.security.auth.login.LoginException;
  * <p> This class implementation retrieves and makes available NT
  * security information for the current user.
  * 
- * @version 1.9, 12/19/03
+ * @version 1.10, 06/23/06
  */
 public class NTSystem {
     
@@ -27,8 +27,6 @@ public class NTSystem {
     private String primaryGroupID;
     private long   impersonationToken;
     
-    static boolean loadedLibrary = false;
-
     /**
      * Instantiate an <code>NTSystem</code> and load
      * the native library to access the underlying system information.
@@ -42,10 +40,7 @@ public class NTSystem {
      * the native library to access the underlying system information.
      */
     NTSystem(boolean debug) {
-        if (!loadedLibrary) {
-            loadNative();
-            loadedLibrary = true;
-        }
+	loadNative();
 	getCurrent(debug);
     }
     

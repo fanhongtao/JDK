@@ -1,7 +1,7 @@
 /*
- * @(#)TableView.java	1.38 03/12/19
+ * @(#)TableView.java	1.39 06/06/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text.html;
@@ -9,6 +9,7 @@ package javax.swing.text.html;
 import java.awt.*;
 import java.util.BitSet;
 import java.util.Vector;
+import java.util.Arrays;
 import javax.swing.SizeRequirements;
 import javax.swing.event.DocumentEvent;
 
@@ -18,7 +19,7 @@ import javax.swing.text.*;
  * HTML table view.  
  * 
  * @author  Timothy Prinzing
- * @version 1.38 12/19/03
+ * @version 1.39 06/30/06
  * @see     View
  */
 /*public*/ class TableView extends BoxView implements ViewFactory {
@@ -351,6 +352,9 @@ import javax.swing.text.*;
      */
     protected void layoutColumns(int targetSpan, int[] offsets, int[] spans, 
 				 SizeRequirements[] reqs) {
+        //clean offsets and spans
+        Arrays.fill(offsets, 0);
+        Arrays.fill(spans, 0);
 	colIterator.setLayoutArrays(offsets, spans, targetSpan);
 	CSS.calculateTiledLayout(colIterator, targetSpan);
     }
@@ -370,6 +374,12 @@ import javax.swing.text.*;
      * into consideration any constraining maximums.
      */
     void calculateColumnRequirements(int axis) {
+        // clean columnRequirements
+        for (SizeRequirements req : columnRequirements) {
+            req.minimum = 0;
+            req.preferred = 0;
+            req.maximum = Integer.MAX_VALUE;
+        }
 	Container host = getContainer();
 	if (host != null) {
 	    if (host instanceof JTextComponent) {
@@ -1015,9 +1025,9 @@ import javax.swing.text.*;
 			    if (lv.isPercentage()) {
 				// add a percentage requirement
 				percentages[col+i] = Math.max(percentages[col+i], len);
-				adjustmentWeights[col+i] = WorstAdjustmentWeight;
+				adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight);
 			    } else {
-				adjustmentWeights[col+i] = WorstAdjustmentWeight - 1;
+				adjustmentWeights[col + i] = Math.max(adjustmentWeights[col + i], WorstAdjustmentWeight - 1);	
 			    }
 			}
 		    }
@@ -1070,7 +1080,7 @@ import javax.swing.text.*;
 
 	public float getPreferredSpan(float parentSpan) {
 	    if ((percentages != null) && (percentages[col] != 0)) {
-		return Math.max(percentages[col], columnRequirements[col].preferred);
+		return Math.max(percentages[col], columnRequirements[col].minimum);
 	    }
 	    return columnRequirements[col].preferred;
 	}
@@ -1756,6 +1766,21 @@ import javax.swing.text.*;
 	    req.maximum = Integer.MAX_VALUE;
 	    return req;
 	}
+
+        @Override
+        protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+            SizeRequirements rv = super.calculateMinorAxisRequirements(axis, r);
+            //for the cell the minimum should be derived from the child views 
+            //the parent behaviour is to use CSS for that
+            int n = getViewCount();
+            int min = 0;
+            for (int i = 0; i < n; i++) {
+                View v = getView(i);
+                min = Math.max((int) v.getMinimumSpan(axis), min);                
+            }            
+            rv.minimum = Math.min(rv.minimum, min);
+            return rv;
+        }
     }
 
 }

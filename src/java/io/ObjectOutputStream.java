@@ -1,5 +1,5 @@
 /*
- * @(#)ObjectOutputStream.java	1.146 05/12/01
+ * @(#)ObjectOutputStream.java	1.147 06/07/26
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -128,7 +128,7 @@ import static java.io.ObjectStreamClass.processQueue;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version     1.146, 05/12/01
+ * @version     1.147, 06/07/26
  * @see java.io.DataOutput
  * @see java.io.ObjectInputStream
  * @see java.io.Serializable
@@ -1493,6 +1493,9 @@ public class ObjectOutputStream
 	     * instance.  Applications which write unshared objects using the
 	     * PutField API must use OOS.writeFields().
 	     */
+	    if (ObjectOutputStream.this != out) {
+		throw new IllegalArgumentException("wrong stream");
+	    } 
 	    out.write(primVals, 0, primVals.length);
 	    
 	    ObjectStreamField[] fields = desc.getFields(false);

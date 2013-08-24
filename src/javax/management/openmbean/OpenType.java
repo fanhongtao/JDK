@@ -1,5 +1,5 @@
 /*
- * @(#)OpenType.java	3.27 03/12/19
+ * @(#)OpenType.java	3.28 06/07/27
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,6 +14,10 @@ package javax.management.openmbean;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 // jmx import
 //
@@ -32,7 +36,7 @@ import java.io.Serializable;
  *  <li>its description.</li>
  * </ul>
  * 
- * @version     3.27  03/12/19
+ * @version     3.28  06/07/27
  * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
@@ -43,6 +47,32 @@ public abstract class OpenType implements Serializable {
     /* Serial version */    
     static final long serialVersionUID = -9195195325186646468L;
 
+
+    /**
+     * The ALLOWED_CLASSNAMES array is kept for compatibility reasons, but:
+     * our implementation should use only ALLOWED_CLASSNAMES_LIST which is
+     * unmodifiable, and not use the ALLOWED_CLASSNAMES array which is
+     * modifiable by external code.
+     */
+    static final List<String> ALLOWED_CLASSNAMES_LIST = 
+      Collections.unmodifiableList(
+        Arrays.asList(
+	  "java.lang.Void",
+	  "java.lang.Boolean",
+	  "java.lang.Character",
+	  "java.lang.Byte",
+	  "java.lang.Short",
+	  "java.lang.Integer",
+	  "java.lang.Long",
+	  "java.lang.Float",
+	  "java.lang.Double",
+	  "java.lang.String",
+	  "java.math.BigDecimal",
+	  "java.math.BigInteger",
+	  "java.util.Date",
+	  "javax.management.ObjectName",
+	  CompositeData.class.getName(),	// better refer to these two class names like this, rather than hardcoding a string,
+	  TabularData.class.getName()) );	// in case the package of these classes should change (who knows...)
 
     /**
      * List of the fully qualified names of the Java classes allowed for open data values.
@@ -68,24 +98,8 @@ public abstract class OpenType implements Serializable {
        </pre>
      *
      */
-    public static final String[] ALLOWED_CLASSNAMES = { 
-	"java.lang.Void",
-	"java.lang.Boolean",
-	"java.lang.Character",
-	"java.lang.Byte",
-	"java.lang.Short",
-	"java.lang.Integer",
-	"java.lang.Long",
-	"java.lang.Float",
-	"java.lang.Double",
-	"java.lang.String",
-	"java.math.BigDecimal",
-	"java.math.BigInteger",
-	"java.util.Date",
-	"javax.management.ObjectName",
-	CompositeData.class.getName(),	// better refer to these two class names like this, rather than hardcoding a string,
-	TabularData.class.getName() } ;	// in case the package of these classes should change (who knows...)
-
+    public static final String[] ALLOWED_CLASSNAMES = 
+	ALLOWED_CLASSNAMES_LIST.toArray(new String[0]);
 
     /**
      * @serial The fully qualified Java class name of open data values this type describes.
@@ -176,14 +190,7 @@ public abstract class OpenType implements Serializable {
 
 	// Check that eltClassName's value is one of the allowed basic data types for open data
 	//
-	boolean ok = false;
-	for (int i=0; i<ALLOWED_CLASSNAMES.length; i++) {
-	    if (ALLOWED_CLASSNAMES[i].equals(eltClassName)) {
-		ok = true;
-		break;
-	    }
-	}
-	if ( ! ok ) {
+	if ( ! ALLOWED_CLASSNAMES_LIST.contains(eltClassName) ) {
 	    throw new OpenDataException("Argument className=\""+ className +
 					"\" is not one of the allowed Java class names for open data.");
 	}

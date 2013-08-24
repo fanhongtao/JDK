@@ -1,5 +1,5 @@
 /*
- * @(#)INSURLOperationImpl.java	1.86 04/06/21
+ * @(#)INSURLOperationImpl.java	1.88 06/09/28
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,6 +36,7 @@ import com.sun.corba.se.spi.resolver.Resolver;
 
 import com.sun.corba.se.impl.encoding.EncapsInputStream;
 import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
+import com.sun.corba.se.impl.logging.OMGSystemException ;
 import com.sun.corba.se.impl.naming.namingutil.INSURLHandler;
 import com.sun.corba.se.impl.naming.namingutil.IIOPEndpointInfo;
 import com.sun.corba.se.impl.naming.namingutil.INSURL;
@@ -58,6 +59,7 @@ public class INSURLOperationImpl implements Operation
 {
     ORB orb;
     ORBUtilSystemException wrapper ;
+    OMGSystemException omgWrapper ;
     Resolver bootstrapResolver ;
 
     // Root Naming Context for default resolution of names.
@@ -71,6 +73,8 @@ public class INSURLOperationImpl implements Operation
     {
 	this.orb = orb ;
 	wrapper = ORBUtilSystemException.get( orb,
+	    CORBALogDomains.ORB_RESOLVER ) ;
+	omgWrapper = OMGSystemException.get( orb,
 	    CORBALogDomains.ORB_RESOLVER ) ;
 	this.bootstrapResolver = bootstrapResolver ;
     }
@@ -108,6 +112,8 @@ public class INSURLOperationImpl implements Operation
 		return getIORFromString( str ) ;
 	    else {
 		INSURL insURL = insURLHandler.parseURL( str ) ;
+		if (insURL == null)
+		    throw omgWrapper.soBadSchemeName() ;
 		return resolveINSURL( insURL ) ;
 	    }
 	}

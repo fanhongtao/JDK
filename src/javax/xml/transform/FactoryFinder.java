@@ -1,6 +1,6 @@
 // $Id: FactoryFinder.java,v 1.8 2004/03/17 10:31:30 nb131165 Exp $
 /*
- * @(#)FactoryFinder.java	1.8 04/07/26
+ * @(#)FactoryFinder.java	1.9 06/09/06
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -90,7 +90,7 @@ class FactoryFinder {
                     if (doFallback) {
                         // Fall back to current classloader
                         cl = FactoryFinder.class.getClassLoader();
-                        providerClass = cl.loadClass(className);
+                        providerClass = Class.forName(className, true, cl);
                     } else {
                         throw x;
                     }

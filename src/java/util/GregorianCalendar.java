@@ -1,5 +1,5 @@
 /*
- * @(#)GregorianCalendar.java	1.89 05/12/14
+ * @(#)GregorianCalendar.java	1.90 06/07/31
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -275,7 +275,7 @@ import sun.util.calendar.ZoneInfo;
  * </blockquote>
  *
  * @see          TimeZone
- * @version      1.89
+ * @version      1.90
  * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -652,19 +652,20 @@ public class GregorianCalendar extends Calendar {
         this.set(DAY_OF_MONTH, dayOfMonth);
 
 	// Set AM_PM and HOUR here to set their stamp values before
-	// setting HOUR_OF_DAY (6178071). The stamp values of AM_PM
-	// and HOUR must be lower than the HOUR_OF_DAY value.
+	// setting HOUR_OF_DAY (6178071).
 	if (hourOfDay >= 12 && hourOfDay <= 23) {
 	    // If hourOfDay is a valid PM hour, set the correct PM values
 	    // so that it won't throw an exception in case it's set to
 	    // non-lenient later.
-	    this.set(AM_PM, PM);
-	    this.set(HOUR, hourOfDay - 12);
+	    this.internalSet(AM_PM, PM);
+	    this.internalSet(HOUR, hourOfDay - 12);
 	} else {
-	    this.set(AM_PM, AM);
+	    // The default value for AM_PM is AM.
 	    // We don't care any out of range value here for leniency.
-	    this.set(HOUR, hourOfDay);
+	    this.internalSet(HOUR, hourOfDay);
 	}
+	// The stamp values of AM_PM and HOUR must be COMPUTED. (6440854)
+	setFieldsComputed(HOUR_MASK|AM_PM_MASK);
 
         this.set(HOUR_OF_DAY, hourOfDay);
         this.set(MINUTE, minute);

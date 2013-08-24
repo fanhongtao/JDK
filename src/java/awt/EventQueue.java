@@ -1,5 +1,5 @@
 /*
- * @(#)EventQueue.java	1.96 04/06/28
+ * @(#)EventQueue.java	1.97 06/07/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -73,7 +73,7 @@ import sun.awt.AppContext;
  * @author Fred Ecks
  * @author David Mendenhall
  *
- * @version 	1.96, 06/28/04
+ * @version 	1.97, 07/19/06
  * @since 	1.1
  */
 public class EventQueue {
@@ -779,19 +779,21 @@ public class EventQueue {
         //
         // In tiger, we will probably give timestamps to all events, so this
         // will no longer be an issue.
+        long mostRecentEventTime2 = Long.MIN_VALUE;
         if (e instanceof InputEvent) {
             InputEvent ie = (InputEvent)e;
-            mostRecentEventTime = ie.getWhen();
+            mostRecentEventTime2 = ie.getWhen(); 
         } else if (e instanceof InputMethodEvent) {
             InputMethodEvent ime = (InputMethodEvent)e;
-            mostRecentEventTime = ime.getWhen();
+            mostRecentEventTime2 = ime.getWhen(); 
         } else if (e instanceof ActionEvent) {
             ActionEvent ae = (ActionEvent)e;
-            mostRecentEventTime = ae.getWhen();
+            mostRecentEventTime2 = ae.getWhen(); 
         } else if (e instanceof InvocationEvent) {
             InvocationEvent ie = (InvocationEvent)e;
-            mostRecentEventTime = ie.getWhen();
+            mostRecentEventTime2 = ie.getWhen(); 
         }
+        mostRecentEventTime = Math.max(mostRecentEventTime, mostRecentEventTime2);
     }
 
     /**

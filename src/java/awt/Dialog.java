@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.100 05/10/19
+ * @(#)Dialog.java	1.101 06/07/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -17,6 +17,7 @@ import sun.awt.SunToolkit;
 import sun.awt.PeerEvent;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A Dialog is a top-level window with a title and a border
@@ -67,7 +68,7 @@ import java.security.PrivilegedAction;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.100, 10/19/05
+ * @version 	1.101, 07/19/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -435,7 +436,7 @@ public class Dialog extends Window {
     /**
      * @return true if we actually showed, false if we just called toFront()
      */
-    private boolean conditionalShow() {
+    private boolean conditionalShow(Component toFocus, AtomicLong time) {
         boolean retval;
 
         synchronized (getTreeLock()) {
@@ -448,6 +449,15 @@ public class Dialog extends Window {
                 retval = false;
             } else {
                 visible = retval = true;
+                if (toFocus != null && time != null && isFocusable() && isEnabled())
+                {
+                    // keep the KeyEvents from being dispatched
+                    // until the focus has been transfered
+                    time.set(Toolkit.getEventQueue().getMostRecentEventTimeEx());
+                    KeyboardFocusManager.getCurrentKeyboardFocusManager().
+                        enqueueKeyEvents(time.get(), toFocus);
+                }
+
                 peer.show(); // now guaranteed never to block
 		createHierarchyEvents(HierarchyEvent.HIERARCHY_CHANGED,
 				      this, parent,
@@ -485,7 +495,7 @@ public class Dialog extends Window {
     public void show() {
         beforeFirstShow = false;
         if (!isModal()) {
-            conditionalShow();
+            conditionalShow(null, null);
         } else {
             // Set this variable before calling conditionalShow(). That
             // way, if the Dialog is hidden right after being shown, we
@@ -499,13 +509,11 @@ public class Dialog extends Window {
 
             // keep the KeyEvents from being dispatched
             // until the focus has been transfered
-            long time = Toolkit.getEventQueue().getMostRecentEventTimeEx();
+            AtomicLong time = new AtomicLong();
             Component predictedFocusOwner = getMostRecentFocusOwner();
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                enqueueKeyEvents(time, predictedFocusOwner); 
 
             try {
-                if (conditionalShow()) {
+                if (conditionalShow(predictedFocusOwner, time)) {
                     // We have two mechanisms for blocking: 1. If we're on the
                     // EventDispatchThread, start a new event pump. 2. If we're
                     // on any other thread, call wait() on the treelock.
@@ -570,7 +578,7 @@ public class Dialog extends Window {
             } finally {
                 // Restore normal key event dispatching
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                    dequeueKeyEvents(time, predictedFocusOwner);
+                    dequeueKeyEvents(time.get(), predictedFocusOwner);
             }
         }
     }

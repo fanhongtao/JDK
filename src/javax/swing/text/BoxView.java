@@ -1,5 +1,5 @@
 /*
- * @(#)BoxView.java	1.61 04/03/05
+ * @(#)BoxView.java	1.63 06/07/28
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -39,7 +39,7 @@ import javax.swing.SizeRequirements;
  * likely need to be reimplemented.
  *
  * @author  Timothy Prinzing
- * @version 1.61 03/05/04
+ * @version 1.63 07/28/06
  */
 public class BoxView extends CompositeView {
 
@@ -403,7 +403,7 @@ public class BoxView extends CompositeView {
 	    tempRect.y = y + getOffset(Y_AXIS, i);
 	    tempRect.width = getSpan(X_AXIS, i);
 	    tempRect.height = getSpan(Y_AXIS, i);
-	    if (tempRect.intersects(clip)) {
+            if (tempRect.intersects(clip)) {
 		paintChild(g, tempRect, i);
 	    }
 	}

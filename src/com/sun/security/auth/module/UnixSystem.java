@@ -1,7 +1,7 @@
 /*
- * @(#)UnixSystem.java	1.5 03/12/19
+ * @(#)UnixSystem.java	1.6 06/06/23
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -14,13 +14,11 @@ import javax.security.auth.login.*;
  * <p> This class implementation retrieves and makes available Unix
  * UID/GID/groups information for the current user.
  * 
- * @version 1.5, 12/19/03
+ * @version 1.6, 06/23/06
  */
 public class UnixSystem {
 
     private native void getUnixInfo();
-
-    private static boolean loadedLibrary = false;
 
     protected String username;
     protected long uid;
@@ -32,10 +30,7 @@ public class UnixSystem {
      * the native library to access the underlying system information.
      */
     public UnixSystem() {
-	if (loadedLibrary == false) {
-	    System.loadLibrary("jaas_unix");
-	    loadedLibrary = true;
-	}
+	System.loadLibrary("jaas_unix");
 	getUnixInfo();
     }
 

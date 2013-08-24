@@ -1,5 +1,5 @@
 /*
- * \x20@(#)Pattern.java	1.111 05/01/04
+ * \x20@(#)Pattern.java	1.112 06/07/26
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -587,7 +587,7 @@ import java.util.HashMap;
  * @author      Mike McCloskey
  * @author      Mark Reinhold
  * @author	JSR-51 Expert Group
- * @version 	1.111, 05/01/04
+ * @version 	1.112, 06/07/26
  * @since       1.4
  * @spec	JSR-51
  */
@@ -3366,13 +3366,14 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 return new SingleA(ch);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (i < matcher.to) {
+            if (i >= matcher.to) {
+                matcher.hitEnd = true;
+            } else {
                 int c = seq.charAt(i);
                 if (c == ch || ASCII.toLower(c) == ch) {
                     return next.match(matcher, i+1, seq);
                 }
             }
-            matcher.hitEnd = true;
             return false;
         }
 
@@ -3395,13 +3396,14 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 return new NotSingleA(ch);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (i < matcher.to) {
+            if (i >= matcher.to) {
+                matcher.hitEnd = true;
+            } else {
                 int c = Character.codePointAt(seq, i);
                 if (c != ch && ASCII.toLower(c) != ch) {
                     return next.match(matcher, i+Character.charCount(c), seq);
                 }
             }
-            matcher.hitEnd = true;
             return false;
         }
 
@@ -3429,7 +3431,9 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 return new SingleU(ch);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (i < matcher.to) {
+            if (i >=  matcher.to) {
+                matcher.hitEnd = true;
+            } else {
                 int c = Character.codePointAt(seq, i);
                 if (c == ch)
                     return next.match(matcher, i+len, seq);
@@ -3438,7 +3442,6 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 if (cc == ch)
                     return next.match(matcher, i+Character.charCount(c), seq);
             }
-            matcher.hitEnd = true;
             return false;
         }
         boolean study(TreeInfo info) {
@@ -3463,16 +3466,18 @@ loop:   for(int x=0, offset=0; x<nCodePoints; x++, offset+=len) {
                 return new NotSingleU(ch);
         }
         boolean match(Matcher matcher, int i, CharSequence seq) {
-            if (i < matcher.to) {
+            if (i >= matcher.to) {
+                matcher.hitEnd = true;
+            } else {
                 int c = Character.codePointAt(seq, i);
                 if (c == ch)
                     return false;
                 int cc = Character.toUpperCase(c);
                 cc = Character.toLowerCase(cc);
+
                 if (cc != ch)
                     return next.match(matcher, i+Character.charCount(c), seq);
             }
-            matcher.hitEnd = true;
             return false;
         }
         boolean study(TreeInfo info) {

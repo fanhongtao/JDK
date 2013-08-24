@@ -1,5 +1,5 @@
 /*
- * @(#)Policy.java	1.94 04/06/28
+ * @(#)Policy.java	1.95 06/09/18
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -136,20 +136,20 @@ public abstract class Policy {
 		policy_class = "sun.security.provider.PolicyFile";
 	    }
 
+	/**
+          * Install a bootstrap (sandbox) policy to avoid recursion
+          * while the configured policy implementation initializes itself.
+          * After the configured implementation loads, install it over
+          * the bootstrap policy.
+          */
+        policy = new sun.security.provider.PolicyFile(true);
+
 	    try {
 		policy = (Policy)
 		    Class.forName(policy_class).newInstance();
 	    } catch (Exception e) {
-		/*
-		 * The policy_class seems to be an extension
-		 * so we have to bootstrap loading it via a policy
-		 * provider that is on the bootclasspath
-		 * If it loads then shift gears to using the configured
-		 * provider. 
-		 */
 
-		// install the bootstrap provider to avoid recursion
-		policy = new sun.security.provider.PolicyFile();
+		// policy_class seems to be an extension 
 			
 		final String pc = policy_class;
 		Policy p = (Policy)
@@ -174,7 +174,7 @@ public abstract class Policy {
 		    });
 		/*
 		 * if it loaded install it as the policy provider. Otherwise
-		 * continue to use the system default implementation
+		 * continue to use the bootstrap implementation
 		 */
 		if (p != null) 
 		    policy = p;

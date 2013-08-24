@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.389 05/01/04
+ * @(#)Component.java	1.390 06/07/27
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -148,7 +148,7 @@ import sun.awt.im.CompositionArea;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.389, 01/04/05
+ * @version     1.390, 07/27/06
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -3884,30 +3884,43 @@ public abstract class Component implements ImageObserver, MenuContainer,
         /*
          * 4. Allow input methods to process the event
          */
-        if (areInputMethodsEnabled()
-            && (
-                // We need to pass on InputMethodEvents since some host
-                // input method adapters send them through the Java
-                // event queue instead of directly to the component,
-                // and the input context also handles the Java composition window
-                ((e instanceof InputMethodEvent) && !(this instanceof CompositionArea))
-                ||
-                // Otherwise, we only pass on input and focus events, because
-                // a) input methods shouldn't know about semantic or component-level events
-                // b) passing on the events takes time
-                // c) isConsumed() is always true for semantic events.
-                (e instanceof InputEvent) || (e instanceof FocusEvent))) {
-            InputContext inputContext = getInputContext();
-            if (inputContext != null) {
-                inputContext.dispatchEvent(e);
-                if (e.isConsumed()) {
-                    if (e instanceof FocusEvent && focusLog.isLoggable(Level.FINER)) {
-                        focusLog.finer("3579: Skipping " + e);
-                    }
-                    return;
-                }
-            }
-        }
+        if (areInputMethodsEnabled()) {
+	    // We need to pass on InputMethodEvents since some host
+	    // input method adapters send them through the Java
+	    // event queue instead of directly to the component,
+	    // and the input context also handles the Java composition window
+	    if(((e instanceof InputMethodEvent) && !(this instanceof CompositionArea))
+	       ||
+	       // Otherwise, we only pass on input and focus events, because
+	       // a) input methods shouldn't know about semantic or component-level events
+	       // b) passing on the events takes time
+	       // c) isConsumed() is always true for semantic events.
+	       (e instanceof InputEvent) || (e instanceof FocusEvent)) {
+		InputContext inputContext = getInputContext();
+
+
+		if (inputContext != null) {
+		    inputContext.dispatchEvent(e);
+		    if (e.isConsumed()) {
+			if (e instanceof FocusEvent && focusLog.isLoggable(Level.FINER)) {
+			    focusLog.finer("3579: Skipping " + e);
+			}
+			return;
+		    }                
+		}
+	    }
+	} else {
+	    // When non-clients get focus, we need to explicitly disable the native
+	    // input method. The native input method is actually not disabled when 
+	    // the active/passive/peered clients loose focus.
+	    if (id == FocusEvent.FOCUS_GAINED) {
+		InputContext inputContext = getInputContext();
+		if (inputContext != null && inputContext instanceof sun.awt.im.InputContext) {
+		    ((sun.awt.im.InputContext)inputContext).disableNativeIM();
+		}
+	    }
+	}   
+
 
         /*
          * 5. Pre-process any special events before delivery

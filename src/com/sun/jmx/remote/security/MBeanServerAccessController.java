@@ -1,13 +1,15 @@
 /*
- * @(#)MBeanServerAccessController.java	1.7 03/12/19
+ * @(#)MBeanServerAccessController.java	1.8 06/06/29
  * 
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.jmx.remote.security;
 
+import com.sun.jmx.mbeanserver.GetPropertyAction;
 import java.io.ObjectInputStream;
+import java.security.AccessController;
 import java.util.Set;
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -51,7 +53,7 @@ import javax.management.remote.MBeanServerForwarder;
  * the checking methods does anything.  To be useful, it must be
  * subclassed and at least one of the checking methods overridden to
  * do some checking.  Some or all of the MBeanServer methods may also
- * be overridden, for instance if the default checking behaviour is
+ * be overridden, for instance if the default checking behavior is
  * inappropriate.</p>
  *
  * <p>If there is no SecurityManager, then the access controller will refuse
@@ -425,7 +427,7 @@ public abstract class MBeanServerAccessController
 	MBeanException,
 	ReflectionException {
 	checkWrite();
-	checkMLetAddURL(name, operationName);
+        checkMLetMethods(name, operationName);
 	return getMBeanServer().invoke(name, operationName, params, signature);
     }
 
@@ -577,18 +579,45 @@ public abstract class MBeanServerAccessController
 					"manager is installed.");
     }
 
-    private void checkMLetAddURL(ObjectName name, String operationName)
-	throws InstanceNotFoundException {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm == null) {
-	    if (operationName.equals("addURL") &&
-		getMBeanServer().isInstanceOf(name,
-					      "javax.management.loading.MLet"))
-		throw new SecurityException("Access denied! MLet method " +
-					    "addURL cannot be invoked " +
-					    "unless a security manager " +
-					    "is installed.");
-	}
+    private void checkMLetMethods(ObjectName name, String operation)
+    throws InstanceNotFoundException {
+        // Check if security manager installed
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            return;
+        }
+        // Check for addURL and getMBeansFromURL methods
+        if (!operation.equals("addURL") &&
+                !operation.equals("getMBeansFromURL")) {
+            return;
+        }
+        // Check if MBean is instance of MLet
+        if (!getMBeanServer().isInstanceOf(name,
+                "javax.management.loading.MLet")) {
+            return;
+        }
+        // Throw security exception
+        if (operation.equals("addURL")) { // addURL
+            throw new SecurityException("Access denied! MLet method addURL " +
+                    "cannot be invoked unless a security manager is installed.");
+        } else { // getMBeansFromURL
+            // Whether or not calling getMBeansFromURL is allowed is controlled
+            // by the value of the "jmx.remote.x.mlet.allow.getMBeansFromURL"
+            // system property. If the value of this property is true, calling
+            // the MLet's getMBeansFromURL method is allowed. The default value
+            // for this property is false.
+            final String propName = "jmx.remote.x.mlet.allow.getMBeansFromURL";
+            GetPropertyAction propAction = new GetPropertyAction(propName);
+            String propValue = (String) AccessController.doPrivileged(propAction);
+            boolean allowGetMBeansFromURL = "true".equalsIgnoreCase(propValue);
+            if (!allowGetMBeansFromURL) {
+                throw new SecurityException("Access denied! MLet method " +
+                        "getMBeansFromURL cannot be invoked unless a " +
+                        "security manager is installed or the system property " +
+                        "-Djmx.remote.x.mlet.allow.getMBeansFromURL=true " +
+                        "is specified.");
+            }
+        }
     }
 
     //------------------
