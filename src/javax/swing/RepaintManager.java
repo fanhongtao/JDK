@@ -1,5 +1,5 @@
 /*
- * @(#)RepaintManager.java	1.60 04/02/18
+ * @(#)RepaintManager.java	1.61 08/02/12
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ import sun.security.action.GetPropertyAction;
  * of repaints to be minimized, for example by collapsing multiple 
  * requests into a single repaint for members of a component tree.
  *
- * @version 1.60 02/18/04
+ * @version 1.61 02/12/08
  * @author Arnaud Weber
  */
 public class RepaintManager 
@@ -674,7 +674,15 @@ public class RepaintManager
     public Dimension getDoubleBufferMaximumSize() {
 	if (doubleBufferMaxSize == null) {
 	    try {
-	        doubleBufferMaxSize = Toolkit.getDefaultToolkit().getScreenSize();
+                Rectangle virtualBounds = new Rectangle();
+                GraphicsEnvironment ge = GraphicsEnvironment.
+                                                 getLocalGraphicsEnvironment();
+                for (GraphicsDevice gd : ge.getScreenDevices()) {
+                    GraphicsConfiguration gc = gd.getDefaultConfiguration();
+                    virtualBounds = virtualBounds.union(gc.getBounds());
+                }
+            doubleBufferMaxSize = new Dimension(virtualBounds.width,
+                                                    virtualBounds.height);
 	    } catch (HeadlessException e) {
 		doubleBufferMaxSize = new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
 	    }

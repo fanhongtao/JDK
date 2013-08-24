@@ -1,5 +1,5 @@
 /*
- * @(#)Channels.java	1.23 03/12/19
+ * @(#)Channels.java	1.24 08/02/21
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -40,7 +40,7 @@ import sun.nio.cs.StreamEncoder;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.23, 03/12/19
+ * @version 1.24, 08/02/21
  * @since 1.4
  */
 
@@ -49,21 +49,41 @@ public final class Channels {
     private Channels() { }		// No instantiation
 
 
-    private static int write(WritableByteChannel ch, ByteBuffer bb)
-	throws IOException
-    {
-	if (ch instanceof SelectableChannel) {
-	    SelectableChannel sc = (SelectableChannel)ch;
-	    synchronized (sc.blockingLock()) {
-		if (!sc.isBlocking())
-		    throw new IllegalBlockingModeException();
-		return ch.write(bb);
-	    }
-	} else {
-	    return ch.write(bb);
-	}
-    }
+     /* Write all remaining bytes in buffer to the given channel.
+      * If the channel is selectable then it must be configured blocking.
+      */
+     private static void writeFullyImpl(WritableByteChannel ch, ByteBuffer bb)
+     throws IOException
+       {
+            while (bb.remaining() > 0) {
+                int n = ch.write(bb);
+                if (n <= 0)
+                    throw new RuntimeException("no bytes written");
+            }
+       }
 
+
+
+     /**
+      * Write all remaining bytes in buffer to the given channel.
+      *
+      * @throws  IllegalBlockingException
+      *          If the channel is selectable and configured non-blocking.
+      */
+      private static void writeFully(WritableByteChannel ch, ByteBuffer bb)
+          throws IOException
+      {
+          if (ch instanceof SelectableChannel) {
+              SelectableChannel sc = (SelectableChannel)ch;
+              synchronized (sc.blockingLock()) {
+                  if (!sc.isBlocking())
+                      throw new IllegalBlockingModeException();
+                      writeFullyImpl(ch, bb);
+              }
+          } else {
+              writeFullyImpl(ch, bb);
+          }
+      }
 
     // -- Byte streams from channels --
 
@@ -131,7 +151,7 @@ public final class Channels {
                     bb.position(off);
                     this.bb = bb;
                     this.bs = bs;
-                    Channels.write(ch, bb);
+                    Channels.writeFully(ch, bb);
                 }
 
 		public void close() throws IOException {

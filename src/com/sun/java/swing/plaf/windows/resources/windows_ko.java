@@ -15,6 +15,7 @@ public final class windows_ko extends ListResourceBundle {
             { "FileChooser.fileSizeHeaderText", "\uD06C\uAE30" },
             { "FileChooser.fileTypeHeaderText", "\uC885\uB958" },
             { "FileChooser.filesOfTypeLabelText", "\uD30C\uC77C \uC885\uB958:" },
+            { "FileChooser.folderNameLabelText", "\uD3F4\uB354 \uC774\uB984:" },
             { "FileChooser.homeFolderAccessibleName", "\uD648" },
             { "FileChooser.homeFolderToolTipText", "\uD648" },
             { "FileChooser.listViewActionLabelText", "\uBAA9\uB85D" },

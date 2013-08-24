@@ -9,6 +9,7 @@ public final class motif_es extends ListResourceBundle {
             { "FileChooser.cancelButtonText", "Cancelar" },
             { "FileChooser.cancelButtonToolTipText", "Cuadro de di\u00E1logo para cancelar elector de archivo." },
             { "FileChooser.enterFileNameLabelText", "Introducir nombre de archivo:" },
+            { "FileChooser.enterFolderNameLabelText", "Introducir nombre de la carpeta:" },
             { "FileChooser.filesLabelText", "Archivos" },
             { "FileChooser.filterLabelText", "Filtro" },
             { "FileChooser.foldersLabelText", "Carpetas" },

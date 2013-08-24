@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsFileChooserUI.java	1.90 06/03/27
+ * @(#)WindowsFileChooserUI.java	1.92 08/08/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import sun.awt.shell.ShellFolder;
 import sun.swing.*;
@@ -28,7 +30,7 @@ import com.sun.java.swing.SwingUtilities2;
 /**
  * Windows L&F implementation of a FileChooser.
  *
- * @version 1.90 03/27/06
+ * @version 1.92 08/18/08
  * @author Jeff Dinkins
  */
 public class WindowsFileChooserUI extends BasicFileChooserUI {
@@ -90,6 +92,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     private int    fileNameLabelMnemonic = 0;
     private String fileNameLabelText = null;
+    private int    folderNameLabelMnemonic = 0;
+    private String folderNameLabelText = null;
 
     private int    filesOfTypeLabelMnemonic = 0;
     private String filesOfTypeLabelText = null;
@@ -110,6 +114,18 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     private String detailsViewButtonAccessibleName = null;
 
     private BasicFileView fileView = new WindowsFileView();
+
+    private JLabel fileNameLabel;
+
+    private void populateFileNameLabel() {
+        if (getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) {
+            fileNameLabel.setText(folderNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(folderNameLabelMnemonic);
+        } else {
+            fileNameLabel.setText(fileNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(fileNameLabelMnemonic);
+        }
+    }
 
     //
     // ComponentUI Interface Implementation methods
@@ -376,10 +392,10 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.PAGE_AXIS));
         labelPanel.add(Box.createRigidArea(vstrut4));
 
-     	JLabel fnl = new JLabel(fileNameLabelText);
-     	fnl.setDisplayedMnemonic(fileNameLabelMnemonic);
-	fnl.setAlignmentY(0);
-	labelPanel.add(fnl);
+	fileNameLabel = new JLabel();
+        populateFileNameLabel();
+        fileNameLabel.setAlignmentY(0);
+        labelPanel.add(fileNameLabel);
 
 	labelPanel.add(Box.createRigidArea(new Dimension(1,12)));
 
@@ -402,8 +418,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	    }
 	};
 
-	fnl.setLabelFor(filenameTextField);
-        filenameTextField.addFocusListener(
+	fileNameLabel.setLabelFor(filenameTextField);
+	filenameTextField.addFocusListener(
 	    new FocusAdapter() {
 		public void focusGained(FocusEvent e) {
 		    if (!getFileChooser().isMultiSelectionEnabled()) {
@@ -477,16 +493,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	if (prop != null) {
 	    useShellFolder = prop.booleanValue();
 	} else {
-	    // See if FileSystemView.getRoots() returns the desktop folder,
-	    // i.e. the normal Windows hierarchy.
-	    useShellFolder = false;
-	    File[] roots = fc.getFileSystemView().getRoots();
-	    if (roots != null && roots.length == 1) {
-		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
-		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
-		    useShellFolder = true;
-		}
-	    }
+		useShellFolder = fc.getFileSystemView().equals(FileSystemView.getFileSystemView());
 	}
 	if (OS_VERSION.compareTo("4.9") >= 0) {	// Windows Me/2000 and later (4.90/5.0)
 	    if (useShellFolder) {
@@ -530,6 +537,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 	
 	fileNameLabelMnemonic = UIManager.getInt("FileChooser.fileNameLabelMnemonic");  
 	fileNameLabelText = UIManager.getString("FileChooser.fileNameLabelText",l); 
+	folderNameLabelMnemonic = UIManager.getInt("FileChooser.folderNameLabelMnemonic");
+        folderNameLabelText = UIManager.getString("FileChooser.folderNameLabelText",l);
 	
 	filesOfTypeLabelMnemonic = UIManager.getInt("FileChooser.filesOfTypeLabelMnemonic");  
 	filesOfTypeLabelText = UIManager.getString("FileChooser.filesOfTypeLabelText",l); 
@@ -732,6 +741,9 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
     }
 
     private void doFileSelectionModeChanged(PropertyChangeEvent e) {
+	if (fileNameLabel != null) {
+            populateFileNameLabel();
+        }
 	clearIconCache();
 
 	JFileChooser fc = getFileChooser();
@@ -995,7 +1007,11 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
 	    File[] baseFolders;
 	    if (useShellFolder) {
-		baseFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
+		baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
+                    public File[] run() {
+                        return (File[])ShellFolder.get("fileChooserComboBoxFolders");
+                    }
+                });
 	    } else {
 		baseFolders = fsv.getRoots();
 	    }

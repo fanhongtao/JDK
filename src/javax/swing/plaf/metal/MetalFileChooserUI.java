@@ -1,7 +1,7 @@
 /*
- * @(#)MetalFileChooserUI.java	1.83 04/03/30
+ * @(#)MetalFileChooserUI.java	1.85 08/08/18
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,15 +21,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 
 import sun.awt.shell.ShellFolder;
 import sun.swing.*;
-import com.sun.java.swing.SwingUtilities2;
 
 /**
  * Metal L&F implementation of a FileChooser.
  *
- * @version 1.83 03/30/04
+ * @version 1.85 08/18/08
  * @author Jeff Dinkins
  */
 public class MetalFileChooserUI extends BasicFileChooserUI {
@@ -89,6 +91,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
     private int    fileNameLabelMnemonic = 0;
     private String fileNameLabelText = null;
+    private int    folderNameLabelMnemonic = 0;
+    private String folderNameLabelText = null;
 
     private int    filesOfTypeLabelMnemonic = 0;
     private String filesOfTypeLabelText = null;
@@ -107,6 +111,18 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
     private String detailsViewButtonToolTipText = null;
     private String detailsViewButtonAccessibleName = null;
+
+    private AlignedLabel fileNameLabel;
+
+    private void populateFileNameLabel() {
+        if (getFileChooser().getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY) {
+            fileNameLabel.setText(folderNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(folderNameLabelMnemonic);
+        } else {
+            fileNameLabel.setText(fileNameLabelText);
+            fileNameLabel.setDisplayedMnemonic(fileNameLabelMnemonic);
+        }
+    }
 
     //
     // ComponentUI Interface Implementation methods
@@ -342,8 +358,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	bottomPanel.add(fileNamePanel);
 	bottomPanel.add(Box.createRigidArea(vstrut5));
 
-     	AlignedLabel fileNameLabel = new AlignedLabel(fileNameLabelText);
-     	fileNameLabel.setDisplayedMnemonic(fileNameLabelMnemonic);
+	fileNameLabel = new AlignedLabel();
+        populateFileNameLabel();
 	fileNamePanel.add(fileNameLabel);
 
 	fileNameTextField = new JTextField(35) {
@@ -416,16 +432,7 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	if (prop != null) {
 	    useShellFolder = prop.booleanValue();
 	} else {
-	    // See if FileSystemView.getRoots() returns the desktop folder,
-	    // i.e. the normal Windows hierarchy.
-	    useShellFolder = false;
-	    File[] roots = fc.getFileSystemView().getRoots();
-	    if (roots != null && roots.length == 1) {
-		File[] cbFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
-		if (cbFolders != null && cbFolders.length > 0 && roots[0] == cbFolders[0]) {
-		    useShellFolder = true;
-		}
-	    }
+	    useShellFolder = fc.getFileSystemView().equals(FileSystemView.getFileSystemView());
 	}
     }
 
@@ -454,6 +461,8 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 	
 	fileNameLabelMnemonic = UIManager.getInt("FileChooser.fileNameLabelMnemonic");  
 	fileNameLabelText = UIManager.getString("FileChooser.fileNameLabelText",l); 
+	folderNameLabelMnemonic = UIManager.getInt("FileChooser.folderNameLabelMnemonic");  
+        folderNameLabelText = UIManager.getString("FileChooser.folderNameLabelText",l);
 	
 	filesOfTypeLabelMnemonic = UIManager.getInt("FileChooser.filesOfTypeLabelMnemonic");  
 	filesOfTypeLabelText = UIManager.getString("FileChooser.filesOfTypeLabelText",l); 
@@ -651,6 +660,9 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     }
 
     private void doFileSelectionModeChanged(PropertyChangeEvent e) {
+	if (fileNameLabel != null) {
+            populateFileNameLabel();
+        }
 	clearIconCache();
 
 	JFileChooser fc = getFileChooser();
@@ -914,7 +926,11 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
 
 	    File[] baseFolders;
 	    if (useShellFolder) {
-		baseFolders = (File[])ShellFolder.get("fileChooserComboBoxFolders");
+		baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
+                    public File[] run() {
+                        return (File[])ShellFolder.get("fileChooserComboBoxFolders");
+                    }
+                });
 	    } else {
 		baseFolders = fsv.getRoots();
 	    }
@@ -1215,6 +1231,11 @@ public class MetalFileChooserUI extends BasicFileChooserUI {
     private class AlignedLabel extends JLabel {
 	private AlignedLabel[] group;
 	private int maxWidth = 0;
+
+        AlignedLabel() {
+            super();
+            setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        }
 
 	AlignedLabel(String text) {
 	    super(text);

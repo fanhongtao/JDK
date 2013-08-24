@@ -1,7 +1,7 @@
 /*
- * @(#)java.c	1.123 05/08/03
+ * @(#)java.c	1.124 08/09/02
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -866,8 +866,14 @@ SelectVersion(int argc, char **argv, char **main_class)
      * to avoid locating, expanding and parsing the manifest extra
      * times.
      */
-    if (info.main_class != NULL)
-	(void)strcat(env_entry, info.main_class);
+    if (info.main_class != NULL) {
+        if (strlen(info.main_class) <= MAXNAMELEN) {
+            (void)strcat(env_entry, info.main_class);
+        } else {
+            ReportErrorMessage("Error: main-class: attribute exceeds system limits\n", JNI_TRUE);
+            exit(1);
+        }
+    }
     (void)putenv(env_entry);
     ExecJRE(jre, new_argv);
     free_manifest();

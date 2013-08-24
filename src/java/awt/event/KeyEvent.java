@@ -859,6 +859,9 @@ public class KeyEvent extends InputEvent {
 
     //set from native code.
     private transient long rawCode = 0;
+    private transient long primaryLevelUnicode = 0;
+    private transient long primaryLevelKeysym = 0; // for 1.5 only
+    private transient long scancode = 0; // for MS Windows only
 
     /*
      * JDK 1.1 serialVersionUID 
@@ -1497,6 +1500,9 @@ public class KeyEvent extends InputEvent {
             break;
         }
 	str.append(",rawCode=").append(rawCode);
+        str.append(",primaryLevelUnicode=").append(primaryLevelUnicode);
+        str.append(",primaryLevelKeysym=").append(primaryLevelKeysym);
+        str.append(",scancode=").append(scancode);
 
         return str.toString();
     }

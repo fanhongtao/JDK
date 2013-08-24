@@ -1,5 +1,5 @@
 /*
- * @(#)ClientNotifForwarder.java	1.39 05/01/04
+ * @(#)ClientNotifForwarder.java	1.40 08/09/02
  * 
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -272,28 +272,6 @@ public abstract class ClientNotifForwarder {
 
 	infoList.clear();
 
-	if (currentFetchThread == Thread.currentThread()) {
-	    /* we do not need to stop the fetching thread, because this thread is
-	       used to do restarting and it will not be used to do fetching during
-	       the re-registering the listeners.*/
-	    return tmp;
-	}
-
-	while (state == STARTING) {
-	    try {
-		wait();
-	    } catch (InterruptedException ire) {
-		IOException ioe = new IOException(ire.toString());
-		EnvHelp.initCause(ioe, ire);
-
-		throw ioe;
-	    }
-	}
-
-	if (state == STARTED) {
-	    setState(STOPPING);
-	}
-
 	return tmp;
     }
 
@@ -307,16 +285,6 @@ public abstract class ClientNotifForwarder {
 
 	if (state == TERMINATED) {
 	    return;
-	}
-
-	while (state == STOPPING) {
-	    try {
-		wait();
-	    } catch (InterruptedException ire) {
-		IOException ioe = new IOException(ire.toString());
-		EnvHelp.initCause(ioe, ire);
-		throw ioe;
-	    }
 	}
 
 	final boolean trace = logger.traceOn();
@@ -335,8 +303,9 @@ public abstract class ClientNotifForwarder {
 	beingReconnected = false;
 	notifyAll();
 
-	if (currentFetchThread == Thread.currentThread()) {
-	    // no need to init, simply get the id
+	if (currentFetchThread == Thread.currentThread() ||
+	    state == STARTING || state == STARTED) { // doing or waiting reconnection
+	    // only update mbeanRemovedNotifID
 	    try {
 		mbeanRemovedNotifID = addListenerForMBeanRemovedNotif();
 	    } catch (Exception e) {
@@ -348,12 +317,23 @@ public abstract class ClientNotifForwarder {
 		    logger.trace("init", msg, e);
 		}		 
 	    } 
-	} else if (listenerInfos.length > 0) { // old listeners re-registered
-	    init(true);
-	} else if (infoList.size() > 0) {
-	    // but new listeners registered during reconnection
-	    init(false);
-	}
+	} else {
+            while (state == STOPPING) {
+                try {
+                    wait();
+                } catch (InterruptedException ire) {
+                    IOException ioe = new IOException(ire.toString());
+                   EnvHelp.initCause(ioe, ire);
+                    throw ioe;
+                }
+            }
+
+            if (listenerInfos.length > 0) { // old listeners are re-added
+                init(true); // not update clientSequenceNumber
+            } else if (infoList.size() > 0) { // only new listeners added during reconnection
+                init(false); // need update clientSequenceNumber
+            }
+        }
     }
 
     public synchronized void terminate() {
@@ -470,6 +450,12 @@ public abstract class ClientNotifForwarder {
 	    if (nr == null || shouldStop()) {
 		// tell that the thread is REALLY stopped
 		setState(STOPPED);
+
+                try {
+                    removeListenerForMBeanRemovedNotif(mbeanRemovedNotifID);
+                } catch (Exception e) {
+                    // OK
+                }
 	    } else {
 		executor.execute(this);
 	    }

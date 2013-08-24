@@ -9,6 +9,7 @@ public final class motif_ja extends ListResourceBundle {
             { "FileChooser.cancelButtonText", "\u53D6\u6D88\u3057" },
             { "FileChooser.cancelButtonToolTipText", "\u30D5\u30A1\u30A4\u30EB\u30C1\u30E5\u30FC\u30B6\u30C0\u30A4\u30A2\u30ED\u30B0\u3092\u7D42\u4E86" },
             { "FileChooser.enterFileNameLabelText", "\u30D5\u30A1\u30A4\u30EB\u540D\u3092\u5165\u529B:" },
+            { "FileChooser.enterFolderNameLabelText", "\u30D5\u30A9\u30EB\u30C0\u540D\u3092\u5165\u529B:" },
             { "FileChooser.filesLabelText", "\u30D5\u30A1\u30A4\u30EB" },
             { "FileChooser.filterLabelText", "\u30D5\u30A3\u30EB\u30BF" },
             { "FileChooser.foldersLabelText", "\u30D5\u30A9\u30EB\u30C0" },
