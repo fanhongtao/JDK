@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanServerDelegate.java	1.56 04/04/13
+ * @(#)MBeanServerDelegate.java	1.57 06/09/29
  * 
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -122,7 +122,11 @@ public class MBeanServerDelegate implements MBeanServerDelegateMBean,
      * @return the implementation version.
      */    
     public String getImplementationVersion() {
-	return ServiceName.JMX_IMPL_VERSION;
+        try {
+            return System.getProperty("java.runtime.version");
+        } catch (SecurityException e) {
+            return "";
+        }
     }
 
     /**

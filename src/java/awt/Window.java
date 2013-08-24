@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.211 06/04/11
+ * @(#)Window.java	1.212 06/10/05
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -104,7 +104,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.211, 04/11/06
+ * @version 	1.212, 10/05/06
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -1911,6 +1911,7 @@ public class Window extends Container implements Accessible {
 	s.writeObject(null);
     }
 
+
     /**
      * Reads the <code>ObjectInputStream</code> and an optional
      * list of listeners to receive various events fired by
@@ -1928,66 +1929,75 @@ public class Window extends Container implements Accessible {
     private void readObject(ObjectInputStream s)
       throws ClassNotFoundException, IOException, HeadlessException
     {
-      GraphicsEnvironment.checkHeadless();
-      s.defaultReadObject();
+        GraphicsEnvironment.checkHeadless();
+        setWarningString();
+        inputContextLock = new Object();
+        
+        // Deserialized Windows are not yet visible.
+        visible = false;
+        weakThis = new WeakReference(this); 
+        ObjectInputStream.GetField f = s.readFields();
+        
+        syncLWRequests = f.get("syncLWRequests", systemSyncLWRequests);
+        state = f.get("state", 0);
+        focusableWindowState = f.get("focusableWindowState", true);  
+        windowSerializedDataVersion = f.get("windowSerializedDataVersion", 1);
+        locationByPlatform = f.get("locationByPlatform", locationByPlatformProp);
+        // Note: 1.4 (or later) doesn't use focusMgr
+        focusMgr = (FocusManager)f.get("focusMgr", null);
+        boolean aot = f.get("alwaysOnTop", false);
+        if(aot) {
+            setAlwaysOnTop(aot); // since 1.5; subject to permission check
+        }
 
+        ownedWindowList = new Vector();
       if (windowSerializedDataVersion < 2) {
-	  // Translate old-style focus tracking to new model. For 1.4 and
-	  // later releases, we'll rely on the Window's initial focusable
-	  // Component.
-	  if (focusMgr != null) {
-	      if (focusMgr.focusOwner != null) {
-		  KeyboardFocusManager.
-		      setMostRecentFocusOwner(this, focusMgr.focusOwner);
-	      }
-	  }
+          // Translate old-style focus tracking to new model. For 1.4 and
+          // later releases, we'll rely on the Window's initial focusable
+          // Component.
+          if (focusMgr != null) {
+              if (focusMgr.focusOwner != null) {
+                  KeyboardFocusManager.
+                      setMostRecentFocusOwner(this, focusMgr.focusOwner);
+              }
+          }
   
-	  // This field is non-transient and relies on default serialization.
-	  // However, the default value is insufficient, so we need to set
-	  // it explicitly for object data streams prior to 1.4.
-        focusableWindowState = true;
+          // This field is non-transient and relies on default serialization.
+          // However, the default value is insufficient, so we need to set
+          // it explicitly for object data streams prior to 1.4.
+          focusableWindowState = true;
       }
   
-      // 1.4 doesn't use this field, so just null it out.
-      focusMgr = null;
-  
-      ownedWindowList = new Vector();
-
       Object keyOrNull;
       while(null != (keyOrNull = s.readObject())) {
-	  String key = ((String)keyOrNull).intern();
+          String key = ((String)keyOrNull).intern();
 
           if (windowListenerK == key) {
-	      addWindowListener((WindowListener)(s.readObject()));
+              addWindowListener((WindowListener)(s.readObject()));
           } else if (windowFocusListenerK == key) {
               addWindowFocusListener((WindowFocusListener)(s.readObject()));
           } else if (windowStateListenerK == key) {
               addWindowStateListener((WindowStateListener)(s.readObject()));
-	  } else // skip value for unrecognized key
-	      s.readObject();
+          } else // skip value for unrecognized key
+              s.readObject();
       }
 
       try {
-	  while (null != (keyOrNull = s.readObject())) {
-	      String key = ((String)keyOrNull).intern();
+          while (null != (keyOrNull = s.readObject())) {
+              String key = ((String)keyOrNull).intern();
 
-	      if (ownedWindowK == key)
-		  connectOwnedWindow((Window) s.readObject());
+              if (ownedWindowK == key)
+                  connectOwnedWindow((Window) s.readObject());
 
-	      else // skip value for unrecognized key
-		  s.readObject();
-	  }
+              else // skip value for unrecognized key
+                  s.readObject();
+          }
       }
       catch (OptionalDataException e) {
-	  // 1.1 serialized form
-	  // ownedWindowList will be updated by Frame.readObject
+          // 1.1 serialized form
+          // ownedWindowList will be updated by Frame.readObject
       }
 
-      setWarningString();
-      inputContextLock = new Object();
-
-      // Deserialized Windows are not yet visible.
-      visible = false;
     }
 
     /*

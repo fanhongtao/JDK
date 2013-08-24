@@ -1,7 +1,7 @@
 /*
- * @(#)AnyImpl.java	1.65 04/05/18
+ * @(#)AnyImpl.java	1.66 06/10/09
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -556,7 +556,7 @@ public class AnyImpl extends Any
 	    java.lang.Object[] objholder = new java.lang.Object[1];
 	    objholder[0] = object;
 	    long[] longholder = new long[1];
-	    TCUtility.unmarshalIn(in, typeCode, longholder, objholder);
+	    TCUtility.unmarshalIn(in, realType(), longholder, objholder);
 	    value = longholder[0];
 	    object = objholder[0];
 	    stream = null;

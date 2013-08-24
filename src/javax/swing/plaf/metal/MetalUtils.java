@@ -1,5 +1,5 @@
 /*
- * @(#)MetalUtils.java	1.35 04/02/15
+ * @(#)MetalUtils.java	1.36 06/11/24
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -231,7 +231,7 @@ class MetalUtils {
             super(count);
         }
 
-        public synchronized void paint(Component c, Graphics2D g,
+        public void paint(Component c, Graphics2D g,
                           java.util.List gradient, int x, int y, int w,
                           int h, boolean isVertical) {
             int imageWidth;
@@ -244,10 +244,12 @@ class MetalUtils {
                 imageWidth = w;
                 imageHeight = IMAGE_SIZE;
             }
-            this.w = w;
-            this.h = h;
-            paint(c, g, x, y, imageWidth, imageHeight,
-                  gradient, isVertical);
+            synchronized(c.getTreeLock()) { 
+                this.w = w; 
+                this.h = h; 
+                paint(c, g, x, y, imageWidth, imageHeight, 
+                      gradient, isVertical); 
+            } 
         }
 
         protected void paintToImage(Component c, Graphics g,

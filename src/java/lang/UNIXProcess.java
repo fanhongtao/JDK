@@ -1,5 +1,5 @@
 /*
- * @(#)UNIXProcess.java.linux	1.37 04/01/12
+ * @(#)UNIXProcess.java.linux	1.38 06/09/20
  *
  * Copyright 1995-2000 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -176,7 +176,16 @@ final class UNIXProcess extends Process {
 
     private static native void destroyProcess(int pid);
     public void destroy() {
+	// There is a risk that pid will be recycled, causing us to
+	// kill the wrong process!  So we only terminate processes
+	// that appear to still be running.  Even with this check,
+	// there is an unavoidable race condition here, but the window
+	// is very small, and OSes try hard to not recycle pids too
+	// soon, so this is quite safe.
+	synchronized (this) {
+	    if (!hasExited)
 	destroyProcess(pid);
+	}
         try {
             stdin_stream.close();
             stdout_stream.close();

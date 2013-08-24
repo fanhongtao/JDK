@@ -1,5 +1,5 @@
 /*
- * @(#)XPStyle.java	1.25 06/09/02
+ * @(#)XPStyle.java	1.26 06/11/30
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -41,7 +41,7 @@ import sun.swing.CachedPainter;
 /**
  * Implements Windows XP Styles for the Windows Look and Feel.
  *
- * @version 1.25 09/02/06
+ * @version 1.26 11/30/06
  * @author Leif Samuelsson
  */
 class XPStyle {
@@ -405,13 +405,17 @@ class XPStyle {
         }
 
         public Insets getBorderInsets(Component c, Insets insets)       {
+            insets = super.getBorderInsets(c, insets);
+                
             Insets margin = null;
             if (c instanceof AbstractButton) {
                 Insets m = ((AbstractButton)c).getMargin();
                 // if this is a toolbar button then ignore getMargin()
                 // and subtract the padding added by the constructor
-                if(c.getParent() instanceof JToolBar &&
-                        m instanceof InsetsUIResource) {
+                if(c.getParent() instanceof JToolBar 
+                   && ! (c instanceof JRadioButton)
+                   && ! (c instanceof JCheckBox)
+                   && m instanceof InsetsUIResource) {
                     insets.top -= 2;
                     insets.left -= 2;
                     insets.bottom -= 2;
