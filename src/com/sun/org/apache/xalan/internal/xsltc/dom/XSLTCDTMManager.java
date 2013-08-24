@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLTCDTMManager.java,v 1.6 2004/02/23 10:29:36 aruny Exp $
+ * $Id: XSLTCDTMManager.java,v 1.1.2.2 2006/10/03 13:52:11 spericas Exp $
  */
 package com.sun.org.apache.xalan.internal.xsltc.dom;
 
@@ -51,6 +51,9 @@ public class XSLTCDTMManager extends DTMManagerDefault
     private static final String DEFAULT_PROP_NAME =
         "com.sun.org.apache.xalan.internal.xsltc.dom.XSLTCDTMManager";
 
+    private static final String NAMESPACE_PREFIXES_FEATURE =
+        "http://xml.org/sax/features/namespace-prefixes";
+    
     /** Set this to true if you want a dump of the DTM after creation */
     private static final boolean DUMPTREE = false;
   
@@ -379,6 +382,7 @@ public class XSLTCDTMManager extends DTMManagerDefault
 
                 try {
                     reader.setProperty("http://xml.org/sax/properties/lexical-handler", dtm);
+                    reader.setFeature(NAMESPACE_PREFIXES_FEATURE, true);
                 }
                 catch (SAXNotRecognizedException e){}
                 catch (SAXNotSupportedException e){}

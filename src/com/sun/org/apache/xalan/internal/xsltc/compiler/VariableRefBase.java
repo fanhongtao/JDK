@@ -31,7 +31,7 @@ class VariableRefBase extends Expression {
     /**
      * A reference to the associated variable.
      */
-    protected final VariableBase _variable; 
+    protected VariableBase _variable; 
 
     /**
      * A reference to the enclosing expression/instruction for which a
@@ -56,14 +56,34 @@ class VariableRefBase extends Expression {
     }
 
     /**
-     * Returns a reference to any parent variable
+     * If this variable reference is in a top-level element like
+     * another variable, param or key, add a dependency between
+     * that top-level element and the referenced variable. For
+     * example,
+     *
+     *   <xsl:variable name="x" .../>
+     *   <xsl:variable name="y" select="$x + 1"/>
+     * and assuming this class represents "$x", add a reference 
+     * between variable y and variable x. 
      */
-    public VariableBase findParentVariable() {
+    public void addParentDependency() { 
 	SyntaxTreeNode node = this;
-	while (node != null && !(node instanceof VariableBase)) {
+        while (node != null && node instanceof TopLevelElement == false) { 
 	    node = node.getParent();
 	}
-	return (VariableBase) node;
+        TopLevelElement parent = (TopLevelElement) node;
+        if (parent != null) {
+            VariableBase var = _variable;
+            if (_variable._ignore) {
+                if (_variable instanceof Variable) { 
+                    var = parent.getSymbolTable()
+                                .lookupVariable(_variable._name);
+                } else if (_variable instanceof Param) {
+                    var = parent.getSymbolTable().lookupParam(_variable._name);
+                }
+             }
+             parent.addDependency(var);
+         }
     }
 
     /**
@@ -113,21 +133,6 @@ class VariableRefBase extends Expression {
 	    }
 	}
 
-	// Insert a dependency link from one variable to another
-        VariableBase parent = findParentVariable();
-        if (parent != null) {
-            VariableBase var = _variable;
-            if (_variable._ignore) {
-                if (_variable instanceof Variable) {
-                    var = parent.getSymbolTable()
-                                .lookupVariable(_variable._name);
-                } else if (_variable instanceof Param) {
-                    var = parent.getSymbolTable().lookupParam(_variable._name);
-                }
-            }
-            parent.addDependency(var);
-        }
-
         // Attempt to get the cached variable type
         _type = _variable.getType();
 
@@ -137,6 +142,9 @@ class VariableRefBase extends Expression {
             _variable.typeCheck(stable);
             _type = _variable.getType();
         }
+       
+        // If in a top-level element, create dependency to the referenced var
+        addParentDependency();
 
         // Return the type of the referenced variable
         return _type;

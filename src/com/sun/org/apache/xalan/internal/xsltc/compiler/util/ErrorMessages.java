@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: ErrorMessages.java,v 1.24 2004/02/24 17:35:00 igorh Exp $
+ * $Id: ErrorMessages.java,v 1.1.2.1 2006/09/19 01:06:53 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
@@ -927,7 +927,17 @@ public class ErrorMessages extends ListResourceBundle {
          * attribute.
          */
         {ErrorMsg.INVALID_METHOD_IN_OUTPUT,
-        "The method attribute of an <xsl:output> element had the value ''{0}''.  The value must be one of 'xml', 'html', 'text', or qname-but-not-ncname"}
+        "The method attribute of an <xsl:output> element had the value ''{0}''.  The value must be one of 'xml', 'html', 'text', or qname-but-not-ncname"},
+        
+        {ErrorMsg.JAXP_GET_FEATURE_NULL_NAME,
+        "The feature name cannot be null in TransformerFactory.getFeature(String name)."},
+        
+        {ErrorMsg.JAXP_SET_FEATURE_NULL_NAME,
+        "The feature name cannot be null in TransformerFactory.setFeature(String name, boolean value)."},
+
+        {ErrorMsg.JAXP_UNSUPPORTED_FEATURE,
+        "Cannot set the feature ''{0}'' on this TransformerFactory."}
+
     };
 
 

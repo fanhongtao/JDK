@@ -20,7 +20,7 @@ class CurrencyData {
                                     "A\u007f\u007f\u007fM\u008fJO\u007f\u007fQM\u0081\u0089\u007f\u007f\u007f\u0083\u0090\u0081\u007f\u007f\u0083\u007f\u0006\u007f" +
                                     "Q\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f" +
                                     "\u007f\u007f\u007f\u007f\u0081\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u007f\u0091\u007f\u007f\u007f\u007f\u007fA\u007f\u0005\u007f\u007f\u007f" +
-                                    "QCQCJ\u007fCOS\u0086JK\u0081\u0085R\u007f\u007fC\u007fC\u007fB\u007f\u007fOK" +
+                                    "QCQCJ\u007fCO\u0081\u0086JK\u0081\u0085R\u007f\u007fC\u007fC\u007fB\u007f\u007fOK" +
                                     "\u007f\u007f\u0083\u0088\u007f\u0081\u0085A\u007fR\u0089\u0083LcO\u007f\u007f\u0092\u007fC\u007f\u0087C\u007f\u007fR" +
                                     "G\u007f\u007f\u007f\u007f\u007fW\u007f\u007f\u007f\u007f\u007f\u0083\u007f\u007f\u007f\u007f\u007fC\u007f\u007f\u007f\u007f\u007fTR" +
                                     "\u0081\u007f\u0082\u007fA\u007f\u0083\u007f\u0083\u007f\u007f\u007f\u007fC\u007f\u007f\u007f\u007f\u007f\u007f\u0015\u007f\u007f\u007f\u007f\u007f" +
@@ -39,9 +39,9 @@ class CurrencyData {
 
     static final int[] scNewCurrenciesDFD = { 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, };
 
-    static final String otherCurrencies = "ADP-AFA-ATS-AYM-AZM-AZN-BEF-BGL-BOV-BYB-CLF-DEM-ESP-EUR-FIM-FRF-GRD-GWP-IEP-ITL-LUF-MGF-MXV-MZM-MZN-NLG-PTE-ROL-RON-RUR-SRG-TPE-TRL-TRY-USN-USS-XAF-XAG-XAU-XBA-XBB-XBC-XBD-XCD-XDR-XFO-XFU-XOF-XPD-XPF-XPT-XTS-XXX-YUM";
+    static final String otherCurrencies = "ADP-AFA-ATS-AYM-AZM-AZN-BEF-BGL-BOV-BYB-CLF-DEM-ESP-EUR-FIM-FRF-GRD-GWP-IEP-ITL-LUF-MGF-MXV-MZM-MZN-NLG-PTE-ROL-RON-RUR-SIT-SRG-TPE-TRL-TRY-USN-USS-XAF-XAG-XAU-XBA-XBB-XBC-XBD-XCD-XDR-XFO-XFU-XOF-XPD-XPF-XPT-XTS-XXX-YUM";
 
-    static final int[] otherCurrenciesDFD = { 0, 2, 2, 2, 2, 2, 0, 2, 2, 0, 0, 2, 0, 2, 2, 2, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 0, -1, -1, -1, -1, -1, -1, 2, -1, -1, -1, 0, -1, 0, -1, -1, -1, 2, };
+    static final int[] otherCurrenciesDFD = { 0, 2, 2, 2, 2, 2, 0, 2, 2, 0, 0, 2, 0, 2, 2, 2, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 0, -1, -1, -1, -1, -1, -1, 2, -1, -1, -1, 0, -1, 0, -1, -1, -1, 2, };
 
 }
 

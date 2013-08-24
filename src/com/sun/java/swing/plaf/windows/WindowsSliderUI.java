@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsSliderUI.java	1.17 06/03/22
+ * @(#)WindowsSliderUI.java	1.18 06/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,8 @@ import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.*;
+import com.sun.java.swing.plaf.windows.XPStyle.Skin;
 
 
 /**
@@ -40,15 +42,17 @@ public class WindowsSliderUI extends BasicSliderUI
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    boolean vertical = (slider.getOrientation() == JSlider.VERTICAL);
-	    String category = vertical ? "trackbar.trackvert" : "trackbar.track";
-	    XPStyle.Skin skin = xp.getSkin(slider, category);
+            Part part = vertical ? Part.TKP_TRACKVERT : Part.TKP_TRACK;
+            Skin skin = xp.getSkin(slider, part);
 
 	    if (vertical) {
 		int x = (trackRect.width - skin.getWidth()) / 2;
-		skin.paintSkin(g, trackRect.x + x, trackRect.y, skin.getWidth(), trackRect.height, 0);
+                skin.paintSkin(g, trackRect.x + x, trackRect.y,
+                               skin.getWidth(), trackRect.height, null);
 	    } else {
 		int y = (trackRect.height - skin.getHeight()) / 2;
-		skin.paintSkin(g, trackRect.x, trackRect.y + y, trackRect.width, skin.getHeight(), 0);
+                skin.paintSkin(g, trackRect.x, trackRect.y + y,
+                               trackRect.width, skin.getHeight(), null);
 	    }
 	} else {
 	    super.paintTrack(g);
@@ -59,7 +63,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMinorTickForHorizSlider( Graphics g, Rectangle tickBounds, int x ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor(slider, "trackbar.tics", null, "color", Color.black));
+            g.setColor(xp.getColor(slider, Part.TKP_TICS, null, Prop.COLOR, Color.black));
 	}
 	super.paintMinorTickForHorizSlider(g, tickBounds, x);
     }
@@ -67,7 +71,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMajorTickForHorizSlider( Graphics g, Rectangle tickBounds, int x ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor(slider, "trackbar.tics", null, "color", Color.black));
+            g.setColor(xp.getColor(slider, Part.TKP_TICS, null, Prop.COLOR, Color.black));
 	}
 	super.paintMajorTickForHorizSlider(g, tickBounds, x);
     }
@@ -75,7 +79,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMinorTickForVertSlider( Graphics g, Rectangle tickBounds, int y ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor(slider, "trackbar.ticsvert", null, "color", Color.black));
+            g.setColor(xp.getColor(slider, Part.TKP_TICSVERT, null, Prop.COLOR, Color.black));
 	}
 	super.paintMinorTickForVertSlider(g, tickBounds, y);
     }
@@ -83,7 +87,7 @@ public class WindowsSliderUI extends BasicSliderUI
     protected void paintMajorTickForVertSlider( Graphics g, Rectangle tickBounds, int y ) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    g.setColor(xp.getColor(slider, "trackbar.ticsvert", null, "color", Color.black));
+            g.setColor(xp.getColor(slider, Part.TKP_TICSVERT, null, Prop.COLOR, Color.black));
 	}
 	super.paintMajorTickForVertSlider(g, tickBounds, y);
     }
@@ -93,11 +97,9 @@ public class WindowsSliderUI extends BasicSliderUI
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
 	    // Pending: Implement all five states
-            int index = 0;
-            if (!slider.isEnabled()) {
-                index = 4;
-            }
-            getXPThumbSkin().paintSkin(g, thumbRect.x, thumbRect.y, index);
+            Part part = getXPThumbPart();
+            State state = slider.isEnabled() ? State.NORMAL : State.DISABLED;
+            xp.getSkin(slider, part).paintSkin(g, thumbRect.x, thumbRect.y, state);
 	} else {
 	    super.paintThumb(g);
 	}
@@ -107,7 +109,7 @@ public class WindowsSliderUI extends BasicSliderUI
         XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
             Dimension size = new Dimension();
-            XPStyle.Skin s = getXPThumbSkin();
+            Skin s = xp.getSkin(slider, getXPThumbPart());
             size.width = s.getWidth();
             size.height = s.getHeight();
             return size;
@@ -116,22 +118,23 @@ public class WindowsSliderUI extends BasicSliderUI
 	}
     }
 
-    private XPStyle.Skin getXPThumbSkin() {
+    private Part getXPThumbPart() {
 	XPStyle xp = XPStyle.getXP();
-	String category;
+        Part part;
         boolean vertical = (slider.getOrientation() == JSlider.VERTICAL);
 	boolean leftToRight = slider.getComponentOrientation().isLeftToRight();
 	Boolean paintThumbArrowShape =
 		(Boolean)slider.getClientProperty("Slider.paintThumbArrowShape");
 	if ((!slider.getPaintTicks() && paintThumbArrowShape == null) ||
             paintThumbArrowShape == Boolean.FALSE) {
-		category = vertical ? "trackbar.thumbvert"
-				    : "trackbar.thumb";
+            part = vertical ? Part.TKP_THUMBVERT
+                : Part.TKP_THUMB;
 	} else {
-		category = vertical ? (leftToRight ? "trackbar.thumbright" : "trackbar.thumbleft")
-				    : "trackbar.thumbbottom";
+            part = vertical 
+                ? (leftToRight ? Part.TKP_THUMBRIGHT : Part.TKP_THUMBLEFT)
+                : Part.TKP_THUMBBOTTOM;
 	}
-	return xp.getSkin(slider, category);
+        return part;
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)SynthMenuItemUI.java	1.21 04/06/24
+ * @(#)SynthMenuItemUI.java	1.22 06/12/14
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import com.sun.java.swing.SwingUtilities2;
 /**
  * Synth's MenuItemUI.
  *
- * @version 1.21, 06/24/04
+ * @version 1.22, 12/14/06
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -521,13 +521,14 @@ class SynthMenuItemUI extends BasicMenuItemUI implements
         int state;
 
         if (!c.isEnabled()) {
-            return DISABLED;
-        }
-        if (menuItem.isArmed()) {
-            state = MOUSE_OVER;
-        }
-        else {
-            state = SynthLookAndFeel.getComponentState(c);
+            state = DISABLED;
+        } else {
+            if (menuItem.isArmed()) {
+                state = MOUSE_OVER;
+            }
+            else {
+                state = SynthLookAndFeel.getComponentState(c);
+            }
         }
         if (menuItem.isSelected()) {
             state |= SELECTED;

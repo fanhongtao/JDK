@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: TemplatesImpl.java,v 1.34 2004/02/23 10:29:36 aruny Exp $
+ * $Id: TemplatesImpl.java,v 1.1.2.1 2006/09/19 01:07:39 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -26,6 +26,7 @@ import java.io.Serializable;
 import java.util.Properties;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import javax.xml.XMLConstants;
 
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
@@ -369,6 +370,11 @@ public final class TemplatesImpl implements Templates, Serializable {
 	if (_uriResolver != null) {
 	    transformer.setURIResolver(_uriResolver);
 	}
+        
+        if (_tfactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+            transformer.setSecureProcessing(true);
+        }
+
 	return transformer;
     }
 

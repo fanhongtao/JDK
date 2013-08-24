@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsTableHeaderUI.java	1.14 06/03/22
+ * @(#)WindowsTableHeaderUI.java	1.15 06/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,6 +16,8 @@ import javax.swing.border.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.*;
+import com.sun.java.swing.plaf.windows.XPStyle.Skin;
 
 
 public class WindowsTableHeaderUI extends BasicTableHeaderUI {
@@ -99,7 +101,7 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
     }
 
     private class XPDefaultRenderer extends DefaultTableCellRenderer implements UIResource  {
-	XPStyle.Skin skin;
+        Skin skin;
 	boolean isSelected, hasFocus, hasRollover;
 	int column;
 
@@ -117,7 +119,7 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
 	    this.column = column;
 	    this.hasRollover = (column == rolloverColumn);
             if (skin == null || skin.getContentMargin() == null) {
-                skin = XPStyle.getXP().getSkin(header, "header.headeritem");
+                skin = XPStyle.getXP().getSkin(header, Part.HP_HEADERITEM);
             }
 	    setText((value == null) ? "" : value.toString());
 	    setBorder(new EmptyBorder(skin.getContentMargin()));
@@ -137,13 +139,13 @@ public class WindowsTableHeaderUI extends BasicTableHeaderUI {
 
 	public void paint(Graphics g) {
 	    Dimension size = getSize();
-	    int index = 0;
+            State state = State.NORMAL;
 	    if (column == viewIndexForColumn(header.getDraggedColumn())) {
-		index = 2;
+                state = State.PRESSED;
 	    } else if (isSelected || hasFocus || hasRollover) {
-		index = 1;
+                state = State.HOT;
 	    }
-	    skin.paintSkin(g, 0, 0, size.width-1, size.height-1, index);
+            skin.paintSkin(g, 0, 0, size.width-1, size.height-1, state);
 	    super.paint(g);
 	}
     }

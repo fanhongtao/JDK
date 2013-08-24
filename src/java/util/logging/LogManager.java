@@ -1,5 +1,5 @@
 /*
- * @(#)LogManager.java	1.47 06/04/12
+ * @(#)LogManager.java	1.48 07/01/08
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -122,7 +122,7 @@ import sun.security.action.GetPropertyAction;
  * <p> 
  * All methods on the LogManager object are multi-thread safe.
  *
- * @version 1.47, 04/12/06
+ * @version 1.48, 01/08/07
  * @since 1.4
 */
 
@@ -197,6 +197,10 @@ public class LogManager {
     // It does a "reset" to close all open handlers.
     private class Cleaner extends Thread {
 	public void run() {
+	    // This is to ensure the LogManager.<clinit> is completed
+	    // before synchronized block. Otherwise deadlocks are possible.
+	    LogManager mgr = manager;
+ 
 	    // If the global handlers haven't been initialized yet, we
 	    // don't want to initialize them just so we can close them!
 	    synchronized (LogManager.this) {

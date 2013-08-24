@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsToolBarUI.java	1.17 06/09/02
+ * @(#)WindowsToolBarUI.java	1.18 06/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,6 +23,8 @@ import javax.swing.plaf.*;
 
 import javax.swing.plaf.basic.BasicBorders;
 import javax.swing.plaf.basic.BasicToolBarUI;
+
+import com.sun.java.swing.plaf.windows.TMSchema.Part;
 
 public class WindowsToolBarUI extends BasicToolBarUI {
     
@@ -56,9 +58,8 @@ public class WindowsToolBarUI extends BasicToolBarUI {
     public void paint(Graphics g, JComponent c) {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-	    String category = "toolbar";
-	    xp.getSkin(c, category).paintSkin(g, 0, 0,
-                       c.getWidth(), c.getHeight(), 0, true);
+            xp.getSkin(c, Part.TP_TOOLBAR).paintSkin(g, 0, 0, c.getWidth(), 
+                c.getHeight(), null);
 	} else {
 	    super.paint(g, c);
 	}

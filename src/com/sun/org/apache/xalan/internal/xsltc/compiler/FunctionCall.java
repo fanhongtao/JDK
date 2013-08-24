@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: FunctionCall.java,v 1.39 2004/03/16 22:46:03 santiagopg Exp $
+ * $Id: FunctionCall.java,v 1.1.2.1 2006/09/19 01:06:17 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -699,6 +699,7 @@ class FunctionCall extends Expression {
 	final int n = argumentCount();
 	final ConstantPoolGen cpg = classGen.getConstantPool();
 	final InstructionList il = methodGen.getInstructionList();
+	final boolean isSecureProcessing = classGen.getParser().getXSLTC().isSecureProcessing();
 	int index;
 
 	// Translate calls to methods in the BasisLibrary
@@ -742,6 +743,9 @@ class FunctionCall extends Expression {
 	    il.append(new INVOKESTATIC(index));
 	}
 	else if (_isExtConstructor) {
+            if (isSecureProcessing)
+	        translateUnallowedExtension(cpg, il);
+	            
 	    final String clazz = 
 		_chosenConstructor.getDeclaringClass().getName();
 	    Class[] paramTypes = _chosenConstructor.getParameterTypes();
@@ -777,6 +781,9 @@ class FunctionCall extends Expression {
 	}
 	// Invoke function calls that are handled in separate classes
 	else {
+            if (isSecureProcessing)
+	        translateUnallowedExtension(cpg, il);
+
 	    final String clazz = _chosenMethod.getDeclaringClass().getName();
 	    Class[] paramTypes = _chosenMethod.getParameterTypes();
 
@@ -1045,4 +1052,16 @@ class FunctionCall extends Expression {
         return buff.toString();
     }
  	 
+    /**
+     * Translate code to call the BasisLibrary.unallowed_extensionF(String)
+     * method.
+     */
+    private void translateUnallowedExtension(ConstantPoolGen cpg,
+                                             InstructionList il) {
+	int index = cpg.addMethodref(BASIS_LIBRARY_CLASS,
+				     "unallowed_extension_functionF",
+				     "(Ljava/lang/String;)V");
+	il.append(new PUSH(cpg, _fname.toString()));
+	il.append(new INVOKESTATIC(index));   
+    } 	 
 }

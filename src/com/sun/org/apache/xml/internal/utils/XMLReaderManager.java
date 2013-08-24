@@ -151,9 +151,9 @@ public class XMLReaderManager {
      */
     public synchronized void releaseXMLReader(XMLReader reader) {
         // If the reader that's being released is the cached reader
-        // for this thread, mark it as no longer being in use.
-        if (m_readers.get() == reader) {
-            m_inUse.put(reader, Boolean.FALSE);
+        // for this thread, remove it from the m_isUse list.
+        if (m_readers.get() == reader && reader != null) {
+            m_inUse.remove(reader);
         }
     }
 }

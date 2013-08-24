@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.212 06/10/05
+ * @(#)Window.java	1.213 07/01/23
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -104,7 +104,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.212, 10/05/06
+ * @version 	1.213, 01/23/07
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -163,10 +163,11 @@ public class Window extends Container implements Accessible {
      * @since 1.2
      * @see #getOwnedWindows
      */
-    transient Vector ownedWindowList = new Vector();
-    private transient WeakReference weakThis;
+    transient Vector<WeakReference<Window>> ownedWindowList = 
+                                            new Vector<WeakReference<Window>>(); 
+    private transient WeakReference<Window> weakThis;
 
-    private transient boolean showWithParent = false;
+    transient boolean showWithParent;
     
     transient WindowListener windowListener;
     transient WindowStateListener windowStateListener;
@@ -414,7 +415,7 @@ public class Window extends Container implements Accessible {
 	    throw new IllegalArgumentException("null owner window");
 	}	
 	this.parent = owner;
-	this.weakThis = new WeakReference(this);
+	this.weakThis = new WeakReference<Window>(this);
 	owner.addOwnedWindow(weakThis);
         modalExcluded = owner.modalExcluded;
     }
@@ -521,19 +522,33 @@ public class Window extends Container implements Accessible {
 	    super.show();
             locationByPlatform = false;
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
-                Window child = (Window) (((WeakReference)
-                    (ownedWindowList.elementAt(i))).get());
-                        if ((child != null) && child.showWithParent) {
-                            child.show();
-                            child.showWithParent = false;
-                        }       // endif
+                Window child = ownedWindowList.elementAt(i).get();
+                if ((child != null) && child.showWithParent) {
+                    child.show();
+                    child.showWithParent = false;
+                }       // endif
             }   // endfor
+            if (this instanceof Frame || this instanceof Dialog) {
+                updateChildFocusableWindowState(this);
+            }
 	}
         
         // If first time shown, generate WindowOpened event
         if ((state & OPENED) == 0) {
             postWindowEvent(WindowEvent.WINDOW_OPENED);
             state |= OPENED;
+        }
+    }
+
+    static void updateChildFocusableWindowState(Window w) {
+        if (w.getPeer() != null && w.isShowing()) {
+            ((WindowPeer)w.getPeer()).updateFocusableWindowState();
+        }
+        for (int i = 0; i < w.ownedWindowList.size(); i++) {
+            Window child = w.ownedWindowList.elementAt(i).get();
+            if (child != null) {
+                updateChildFocusableWindowState(child); 
+            }
         }
     }
 
@@ -554,8 +569,7 @@ public class Window extends Container implements Accessible {
     public void hide() {
         synchronized(ownedWindowList) {
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
-	        Window child = (Window) (((WeakReference)
-		    (ownedWindowList.elementAt(i))).get());
+	        Window child = ownedWindowList.elementAt(i).get();
 		if ((child != null) && child.visible) {
                     child.hide();
                     child.showWithParent = true;
@@ -872,8 +886,7 @@ public class Window extends Container implements Accessible {
 	    Window fullCopy[] = new Window[fullSize];
 
 	    for (int i = 0; i < fullSize; i++) {
-	        fullCopy[realSize] = (Window) (((WeakReference)
-		    (ownedWindowList.elementAt(i))).get());
+	        fullCopy[realSize] = ownedWindowList.elementAt(i).get();
 
 		if (fullCopy[realSize] != null) {
 		    realSize++;
@@ -1900,8 +1913,7 @@ public class Window extends Container implements Accessible {
 
 	synchronized (ownedWindowList) {
 	    for (int i = 0; i < ownedWindowList.size(); i++) {
-	        Window child = (Window) (((WeakReference)
-	            (ownedWindowList.elementAt(i))).get());
+	        Window child = ownedWindowList.elementAt(i).get();
 		if (child != null) {
 		    s.writeObject(ownedWindowK);
 		    s.writeObject(child);
@@ -1910,7 +1922,6 @@ public class Window extends Container implements Accessible {
 	}
 	s.writeObject(null);
     }
-
 
     /**
      * Reads the <code>ObjectInputStream</code> and an optional

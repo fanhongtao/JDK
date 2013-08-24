@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SerializerBase.java,v 1.10 2004/02/17 04:18:18 minchau Exp $
+ * $Id: SerializerBase.java,v 1.1.2.2 2006/09/27 18:40:59 spericas Exp $
  */
 package com.sun.org.apache.xml.internal.serializer;
 
@@ -34,6 +34,8 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import javax.xml.XMLConstants;
 
 
 /**
@@ -414,6 +416,12 @@ abstract public class SerializerBase
      * Add the given attributes to the currently collected ones. These
      * attributes are always added, regardless of whether on not an element
      * is currently open.
+     *
+     * When the SAX feature http://xml.org/sax/features/namespace-prefixes
+     * is enabled, a SAX parser can report ns decls as attributes in the ""
+     * namespace. Since ns decls are handled via startPrefixMapping and
+     * endPrefixMapping they should be ignored here.
+     *
      * @param atts List of attributes to add to this list
      */
     public void addAttributes(Attributes atts) throws SAXException
@@ -427,6 +435,12 @@ abstract public class SerializerBase
 
             if (null == uri)
                 uri = "";
+            
+            // Ignore ns decls as attributes in the "" namespace (see javadoc)
+            String qname = atts.getQName(i);
+            if (qname.startsWith("xmlns:") && uri.equals(EMPTYSTRING)) {
+                continue;
+            }
 
             addAttributeAlways(
                 uri,

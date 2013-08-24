@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Step.java,v 1.46 2004/02/24 04:21:22 zongaro Exp $
+ * $Id: Step.java,v 1.1.2.2 2006/11/10 22:07:02 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -141,6 +141,13 @@ final class Step extends RelativeLocationPath {
     }
     
     /**
+     * Returns 'true' if this step has a parent location path.
+     */
+    private boolean hasParentLocationPath() {
+	return getParent() instanceof ParentLocationPath;
+    }
+    
+    /**
      * Returns 'true' if this step has any predicates
      */
     private boolean hasPredicates() {
@@ -189,7 +196,7 @@ final class Step extends RelativeLocationPath {
  	//   in the case where '.' has a context such as book/. 
 	//   or .[false()] we can not optimize the nodeset to a single node. 
 	if (isAbbreviatedDot()) {
-	    _type =  (hasParentPattern() || hasPredicates() ) ? 
+	    _type = (hasParentPattern() || hasPredicates() || hasParentLocationPath()) ? 
 		Type.NodeSet : Type.Node;
 	}
 	else {
@@ -250,6 +257,7 @@ final class Step extends RelativeLocationPath {
 		return;
 	    }
 
+	    SyntaxTreeNode parent = getParent();
 	    // Special case for '.'
 	    if (isAbbreviatedDot()) {
 		if (_type == Type.Node) {
@@ -257,19 +265,29 @@ final class Step extends RelativeLocationPath {
 		    il.append(methodGen.loadContextNode());
 		}
 		else {
-		    // Wrap the context node in a singleton iterator if not.
-		    int init = cpg.addMethodref(SINGLETON_ITERATOR,
-						"<init>", "("+NODE_SIG+")V");
-		    il.append(new NEW(cpg.addClass(SINGLETON_ITERATOR)));
-		    il.append(DUP);
-		    il.append(methodGen.loadContextNode());
-		    il.append(new INVOKESPECIAL(init));
+		    if (parent instanceof ParentLocationPath){
+			// Wrap the context node in a singleton iterator if not.
+			int init = cpg.addMethodref(SINGLETON_ITERATOR,
+						    "<init>",
+						    "("+NODE_SIG+")V");
+			il.append(new NEW(cpg.addClass(SINGLETON_ITERATOR)));
+			il.append(DUP);
+			il.append(methodGen.loadContextNode());
+			il.append(new INVOKESPECIAL(init));
+		    } else {
+			// DOM.getAxisIterator(int axis);
+			int git = cpg.addInterfaceMethodref(DOM_INTF,
+						"getAxisIterator",
+						"(I)"+NODE_ITERATOR_SIG);
+			il.append(methodGen.loadDOM());
+			il.append(new PUSH(cpg, _axis));
+			il.append(new INVOKEINTERFACE(git, 2));
+		    }
 		}
 		return;
 	    }
-
+            
 	    // Special case for /foo/*/bar
-	    SyntaxTreeNode parent = getParent();
 	    if ((parent instanceof ParentLocationPath) &&
 		(parent.getParent() instanceof ParentLocationPath)) {
 		if ((_nodeType == NodeTest.ELEMENT) && (!_hadPredicates)) {
@@ -365,7 +383,9 @@ final class Step extends RelativeLocationPath {
 		// Otherwise we create a parent location path with this Step and
 		// the predicates Step, and place the node test on top of that
 		else {
-		    ParentLocationPath path = new ParentLocationPath(this,step);
+		    ParentLocationPath path = new ParentLocationPath(this, step);
+                    _parent = step._parent = path;      // Force re-parenting
+                    
 		    try {
 			path.typeCheck(getParser().getSymbolTable());
 		    }

@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsLookAndFeel.java	1.186 06/08/25
+ * @(#)WindowsLookAndFeel.java	1.189 07/01/18
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,6 +53,12 @@ import sun.swing.SwingLazyValue;
 import sun.swing.BorderProvider;
 import com.sun.java.swing.SwingUtilities2;
 
+import com.sun.java.swing.plaf.windows.TMSchema.*;
+import com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
+import com.sun.java.swing.plaf.windows.WindowsIconFactory
+    .VistaMenuItemCheckIconFactory;
+
 /**
  * Implements the Windows95/98/NT/2000 Look and Feel.
  * UI classes not implemented specifically for Windows will
@@ -65,7 +71,7 @@ import com.sun.java.swing.SwingUtilities2;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.186 08/25/06
+ * @version 1.189 01/18/07
  * @author unattributed
  */
 public class WindowsLookAndFeel extends BasicLookAndFeel
@@ -186,6 +192,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "MenuItemUI", windowsPackageName + "WindowsMenuItemUI",
 	     "MenuBarUI", windowsPackageName + "WindowsMenuBarUI",
 	   "PopupMenuUI", windowsPackageName + "WindowsPopupMenuUI",
+  "PopupMenuSeparatorUI", windowsPackageName + "WindowsPopupMenuSeparatorUI",
 	   "ScrollBarUI", windowsPackageName + "WindowsScrollBarUI",
 	    "RootPaneUI", windowsPackageName + "WindowsRootPaneUI"
         };
@@ -513,12 +520,15 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 							table.get("scrollbar"),
                                                        toolkit);
 
-	Object TextBackground         = new XPColorValue("edit.fillcolor",
-							 WindowBackgroundColor);
-	Object ReadOnlyTextBackground = new XPColorValue("edit.edittext(readonly).fillcolor",
-							 ControlBackgroundColor);
-	Object DisabledTextBackground = new XPColorValue("edit.edittext(disabled).fillcolor",
-							 ControlBackgroundColor);
+        Object TextBackground         = new XPColorValue(
+            Part.EP_EDIT, null, Prop.FILLCOLOR, 
+            WindowBackgroundColor);
+        Object ReadOnlyTextBackground = new XPColorValue(
+            Part.EP_EDITTEXT, State.READONLY, Prop.FILLCOLOR, 
+            ControlBackgroundColor);
+        Object DisabledTextBackground = new XPColorValue(
+            Part.EP_EDITTEXT, State.DISABLED, Prop.FILLCOLOR, 
+            ControlBackgroundColor);
 
         Object MenuFont = dialogPlain12;
         Object FixedControlFont = monospacedPlain12;
@@ -720,9 +730,10 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "FileChooser.homeFolderIcon",  new LazyWindowsIcon(null,
 							       "icons/HomeFolder.gif"),
 	    "FileChooser.listFont", IconFont,
-	    "FileChooser.listViewBackground", new XPColorValue("listview.fillcolor",
-							       WindowBackgroundColor),
-	    "FileChooser.listViewBorder", new XPBorderValue("listview",
+            "FileChooser.listViewBackground", new XPColorValue(
+                Part.LVP_LISTVIEW, null, Prop.FILLCOLOR,
+                WindowBackgroundColor),
+            "FileChooser.listViewBorder", new XPBorderValue(Part.LVP_LISTVIEW,
 						  new SwingLazyValue(
 							"javax.swing.plaf.BorderUIResource",
 							"getLoweredBevelBorderUIResource")),
@@ -1365,7 +1376,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    // *** TitledBorder
             "TitledBorder.font", ControlFont,
             "TitledBorder.titleColor",
-			new XPColorValue("button.groupbox.textcolor",
+                        new XPColorValue(Part.BP_GROUPBOX, null, Prop.TEXTCOLOR,
 					 ControlTextColor),
 
 	    // *** ToggleButton
@@ -1513,8 +1524,152 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 
         table.putDefaults(defaults);
 	table.putDefaults(getLazyValueDefaults());
+        initVistaComponentDefaults(table);
     }
+    
+    static boolean isOnVista() {
+        boolean rv = false;
+        String osName = System.getProperty("os.name");
+        String osVers = System.getProperty("os.version");
+        if (osName != null
+                && osName.startsWith("Windows")
+                && osVers != null
+                && osVers.length() > 0) {
 
+            int p = osVers.indexOf('.');
+            if (p >= 0) {
+                osVers = osVers.substring(0, p);
+            }
+
+            try {
+                rv = (Integer.parseInt(osVers) >= 6);
+            } catch (NumberFormatException nfe) {
+            }
+        }
+        return rv;
+    }
+    private void initVistaComponentDefaults(UIDefaults table) {
+        if (! isOnVista()) {
+            return;
+        }
+        /* START handling menus for Vista */
+        String[] menuClasses = { "MenuItem", "Menu", 
+                "CheckBoxMenuItem", "RadioButtonMenuItem",
+        };
+
+        Object menuDefaults[] = new Object[menuClasses.length * 2];
+
+        /* all the menus need to be non opaque. */
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".opaque";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = 
+                new XPValue(Boolean.FALSE, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* 
+         * acceleratorSelectionForeground color is the same as 
+         * acceleratorForeground 
+         */
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".acceleratorSelectionForeground";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key; 
+            menuDefaults[j++] = 
+                new XPValue(
+                    table.getColor(
+                        menuClasses[i] + ".acceleratorForeground"),
+                        oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* they have the same MenuItemCheckIconFactory */
+        VistaMenuItemCheckIconFactory menuItemCheckIconFactory = 
+            WindowsIconFactory.getMenuItemCheckIconFactory();
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".checkIconFactory";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] =
+                new XPValue(menuItemCheckIconFactory, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+        
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".checkIcon";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] =
+                new XPValue(menuItemCheckIconFactory.getIcon(menuClasses[i]), 
+                    oldValue);
+        }
+        table.putDefaults(menuDefaults);
+        
+
+        /* height can be even */
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".evenHeight";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = new XPValue(Boolean.TRUE, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* no margins */
+        InsetsUIResource insets = new InsetsUIResource(0, 0, 0, 0);
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".margin";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = new XPValue(insets, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* set checkIcon offset */
+        Integer checkIconOffsetInteger = 
+            Integer.valueOf(0);
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".checkIconOffset";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = 
+                new XPValue(checkIconOffsetInteger, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /* text is started after this position */
+        Object minimumTextOffset = new UIDefaults.ActiveValue() {
+            public Object createValue(UIDefaults table) {
+                return VistaMenuItemCheckIconFactory.getIconWidth()
+                + WindowsPopupMenuUI.getSpanBeforeGutter()
+                + WindowsPopupMenuUI.getGutterWidth()
+                + WindowsPopupMenuUI.getSpanAfterGutter(); 
+            }
+        };
+        for (int i = 0, j = 0; i < menuClasses.length; i++) {
+            String key = menuClasses[i] + ".minimumTextOffset";
+            Object oldValue = table.get(key);
+            menuDefaults[j++] = key;
+            menuDefaults[j++] = new XPValue(minimumTextOffset, oldValue);
+        }
+        table.putDefaults(menuDefaults);
+
+        /*  
+         * JPopupMenu has a bit of free space around menu items
+         */
+        String POPUP_MENU_BORDER = "PopupMenu.border";
+        
+        Object popupMenuBorder = new XPBorderValue(Part.MENU,
+                new SwingLazyValue(
+                  "javax.swing.plaf.basic.BasicBorders",
+                  "getInternalFrameBorder"),
+                  BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        table.put(POPUP_MENU_BORDER, popupMenuBorder);
+        /* END handling menus for Vista */
+    }
+    
     /**
      * If we support loading of fonts from the desktop this will return
      * a DesktopProperty representing the font. If the font can't be
@@ -1536,13 +1691,13 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
     private Object[] getLazyValueDefaults() {
 
 	Object buttonBorder =
-	    new XPBorderValue("button.pushbutton",
+            new XPBorderValue(Part.BP_PUSHBUTTON,
 			      new SwingLazyValue(
 			       "javax.swing.plaf.basic.BasicBorders",
 			       "getButtonBorder"));
 
 	Object textFieldBorder =
-	    new XPBorderValue("edit",
+            new XPBorderValue(Part.EP_EDIT,
 			      new SwingLazyValue(
 			       "javax.swing.plaf.basic.BasicBorders", 
 			       "getTextFieldBorder"));
@@ -1553,7 +1708,8 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 
 	Object spinnerBorder = textFieldBorder;
 
-	Object comboBoxBorder = new XPBorderValue("combobox", textFieldBorder);
+        Object comboBoxBorder = 
+            new XPBorderValue(Part.CP_COMBOBOX, textFieldBorder);
 
 	// For focus rectangle for cells and trees.
 	Object focusCellHighlightBorder = new SwingLazyValue(
@@ -1581,7 +1737,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 		"getMenuBarBorder");
 
 
-	Object popupMenuBorder = new XPBorderValue("menu",
+        Object popupMenuBorder = new XPBorderValue(Part.MENU,
 			new SwingLazyValue(
 			  "javax.swing.plaf.basic.BasicBorders",
 			  "getInternalFrameBorder"));
@@ -1596,10 +1752,10 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 			       "getRadioButtonBorder");
 
 	Object scrollPaneBorder =
-	    new XPBorderValue("listbox", textFieldBorder);
+            new XPBorderValue(Part.LBP_LISTBOX, textFieldBorder);
 
 	Object tableScrollPaneBorder =
-	    new XPBorderValue("listbox", loweredBevelBorder);
+            new XPBorderValue(Part.LBP_LISTBOX, loweredBevelBorder);
 
 	Object tableHeaderBorder = new SwingLazyValue(
 			  "com.sun.java.swing.plaf.windows.WindowsBorders",
@@ -1663,7 +1819,7 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
 	    "TextField.border", textFieldBorder,
 	    "TextField.margin", textFieldMargin,
             "TitledBorder.border",
-			new XPBorderValue("button.groupbox", etchedBorder),
+                        new XPBorderValue(Part.BP_GROUPBOX, etchedBorder),
             "ToggleButton.border", radioButtonBorder,
 	    "ToolBar.border", toolBarBorder,
             "ToolTip.border", toolTipBorder,
@@ -2005,22 +2161,46 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
     }
 
     private static class XPBorderValue extends XPValue {
-	XPBorderValue(String xpValue, Object classicValue) {
-	    super(xpValue, classicValue);
+        private final Border extraMargin;
+        
+        XPBorderValue(Part xpValue, Object classicValue) {
+            this(xpValue, classicValue, null);
 	}
 
+        XPBorderValue(Part xpValue, Object classicValue, Border extraMargin) {
+            super(xpValue, classicValue);
+            this.extraMargin = extraMargin;
+        }
+
 	public Object getXPValue(UIDefaults table) {
-	    return XPStyle.getXP().getBorder(null, (String)xpValue);
+            Border xpBorder = XPStyle.getXP().getBorder(null, (Part)xpValue);
+            if (extraMargin != null) {
+                return new BorderUIResource.
+                        CompoundBorderUIResource(xpBorder, extraMargin);
+            } else {
+                return xpBorder;
+            }
 	}
     }
 
     private static class XPColorValue extends XPValue {
-	XPColorValue(String xpValue, Object classicValue) {
-	    super(xpValue, classicValue);
+        XPColorValue(Part part, State state, Prop prop, Object classicValue) {
+            super(new XPColorValueKey(part, state, prop), classicValue);
 	}
 
 	public Object getXPValue(UIDefaults table) {
-	    return XPStyle.getXP().getColor(null, (String)xpValue, null, null, null);
+            XPColorValueKey key = (XPColorValueKey)xpValue; 
+            return XPStyle.getXP().getColor(key.skin, key.prop, null); 
+        }
+        
+        private static class XPColorValueKey { 
+            Skin skin; 
+            Prop prop; 
+ 
+            XPColorValueKey(Part part, State state, Prop prop) { 
+                this.skin = new Skin(part, state); 
+                this.prop = prop; 
+            } 
 	}
     }
 

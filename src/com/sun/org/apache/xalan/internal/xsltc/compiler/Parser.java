@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Parser.java,v 1.66 2004/12/10 18:46:42 santiagopg Exp $
+ * $Id: Parser.java,v 1.1.2.1 2006/09/19 01:06:32 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.sun.java_cup.internal.runtime.Symbol;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -445,7 +446,15 @@ public class Parser implements Constants, ContentHandler {
 	try {
 	    // Create a SAX parser and get the XMLReader object it uses
 	    final SAXParserFactory factory = SAXParserFactory.newInstance();
-	    try {
+            
+	    if (_xsltc.isSecureProcessing()) {
+	        try {
+	            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+	        }
+	        catch (SAXException e) {}
+	    }
+
+            try {
 		factory.setFeature(Constants.NAMESPACE_FEATURE,true);
 	    }
 	    catch (Exception e) {

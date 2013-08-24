@@ -1,5 +1,5 @@
 /*
- * @(#)Dialog.java	1.101 06/07/19
+ * @(#)Dialog.java	1.102 07/01/23
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -68,7 +68,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version 	1.101, 07/19/06
+ * @version 	1.102, 01/23/07
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -459,6 +459,16 @@ public class Dialog extends Window {
                 }
 
                 peer.show(); // now guaranteed never to block
+
+                for (int i = 0; i < ownedWindowList.size(); i++) {
+                    Window child = ownedWindowList.elementAt(i).get();
+                    if ((child != null) && child.showWithParent) {
+                        child.show();
+                        child.showWithParent = false;
+                    }       // endif
+                }   // endfor
+                Window.updateChildFocusableWindowState(this);
+
 		createHierarchyEvents(HierarchyEvent.HIERARCHY_CHANGED,
 				      this, parent,
 				      HierarchyEvent.SHOWING_CHANGED,

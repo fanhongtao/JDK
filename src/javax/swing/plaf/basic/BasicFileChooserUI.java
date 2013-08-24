@@ -314,6 +314,9 @@ public class BasicFileChooserUI extends FileChooserUI {
 
     protected void createModel() {
 	model = new BasicDirectoryModel(getFileChooser());
+	if (model != null) {
+	    model.invalidateFileCache();
+	}
     }
 
     public BasicDirectoryModel getModel() {

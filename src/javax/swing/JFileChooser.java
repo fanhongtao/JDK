@@ -1,5 +1,5 @@
 /*
- * @(#)JFileChooser.java	1.106 04/06/28
+ * @(#)JFileChooser.java	1.108 07/03/16
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -67,7 +67,7 @@ import java.lang.ref.WeakReference;
  *   attribute: isContainer false
  * description: A component which allows for the interactive selection of a file.
  *
- * @version 1.106 06/28/04
+ * @version 1.108 03/16/07
  * @author Jeff Dinkins
  *
  */
@@ -715,6 +715,8 @@ public class JFileChooser extends JComponent implements Accessible {
 	rescanCurrentDirectory();
 
 	dialog.show();
+	firePropertyChange("JFileChooserDialogIsClosingProperty", dialog, null);
+	dialog.removeAll();
 	dialog.dispose();
 	dialog = null;
 	return returnValue;

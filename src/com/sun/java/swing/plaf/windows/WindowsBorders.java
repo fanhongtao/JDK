@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsBorders.java	1.31 06/03/22
+ * @(#)WindowsBorders.java	1.32 06/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -21,10 +21,12 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.io.Serializable;
 
+import com.sun.java.swing.plaf.windows.TMSchema.*;
+import com.sun.java.swing.plaf.windows.XPStyle.Skin;
 
 /**
  * Factory object that can vend Borders appropriate for the Windows 95 L & F.
- * @version 1.31 03/22/06
+ * @version 1.32 12/19/06
  * @author Rich Schiavi
  */
 
@@ -148,7 +150,7 @@ public class WindowsBorders {
 
             XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		Border xpBorder = xp.getBorder(c, "toolbar");
+                Border xpBorder = xp.getBorder(c, Part.TP_TOOLBAR);
 		if (xpBorder != null) {
 		    xpBorder.paintBorder(c, g, 0, 0, width, height);
 		}
@@ -157,8 +159,8 @@ public class WindowsBorders {
 		boolean vertical = ((JToolBar)c).getOrientation() == VERTICAL;
 
 		if (xp != null) {
-		    String category = vertical ? "rebar.grippervert" : "rebar.gripper";
-		    XPStyle.Skin skin = xp.getSkin(c, category);
+                    Part part = vertical ? Part.RP_GRIPPERVERT : Part.RP_GRIPPER;
+                    Skin skin = xp.getSkin(c, part);
 		    int dx, dy, dw, dh;
 		    if (vertical) {
 			dx = 0;
@@ -171,7 +173,7 @@ public class WindowsBorders {
 			dx = c.getComponentOrientation().isLeftToRight() ? 2 : (width-dw-2);
 			dy = 0;
 		    }
-		    skin.paintSkin(g, dx, dy, dw, dh, 0);
+                    skin.paintSkin(g, dx, dy, dw, dh, State.NORMAL);
 
 		} else {
 

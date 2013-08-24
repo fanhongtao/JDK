@@ -1,7 +1,7 @@
 /*
- * @(#)BasicScrollBarUI.java	1.83 04/01/09
+ * @(#)BasicScrollBarUI.java	1.84 07/04/11
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.plaf.basic;
@@ -23,7 +23,7 @@ import javax.swing.plaf.*;
 /**
  * Implementation of ScrollBarUI for the Basic Look and Feel
  *
- * @version 1.83 01/09/04
+ * @version 1.84 04/11/07
  * @author Rich Schiavi
  * @author David Kloba
  * @author Hans Muller
@@ -1478,6 +1478,7 @@ public class BasicScrollBarUI
 	        BoundedRangeModel newModel = (BoundedRangeModel)e.getNewValue();
 		oldModel.removeChangeListener(modelListener);
 		newModel.addChangeListener(modelListener);
+		scrollBarValue = scrollbar.getValue();
 		scrollbar.repaint();
 		scrollbar.revalidate();
 	    } else if ("orientation" == propertyName) {

@@ -19,6 +19,7 @@
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
 
+import java.util.Vector;
 import com.sun.org.apache.bcel.internal.generic.BranchHandle;
 import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
 import com.sun.org.apache.bcel.internal.generic.GOTO;
@@ -82,9 +83,11 @@ final class Key extends TopLevelElement {
             ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
             parser.reportError(Constants.ERROR, err);           
         }
+        // Parse key name and add to symbol table
         _name = parser.getQNameIgnoreDefaultNs(name);
-	_match = parser.parsePattern(this, "match", null);
-	_use = parser.parseExpression(this, "use", null);
+        getSymbolTable().addKey(_name, this);        
+        _match = parser.parsePattern(this, "match", null);
+        _use = parser.parseExpression(this, "use", null);
 
         // Make sure required attribute(s) have been set
         if (_name == null) {

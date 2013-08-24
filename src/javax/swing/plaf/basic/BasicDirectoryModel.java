@@ -1,5 +1,5 @@
 /*
- * @(#)BasicDirectoryModel.java	1.31 04/05/05
+ * @(#)BasicDirectoryModel.java	1.32 07/01/18
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -45,13 +45,29 @@ public class BasicDirectoryModel extends AbstractListModel implements PropertyCh
 	   prop == JFileChooser.FILE_HIDING_CHANGED_PROPERTY ||
 	   prop == JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY) {
 	    validateFileCache();
+	} else if ("UI".equals(prop)) {
+	    Object old = e.getOldValue();
+	    if (old instanceof BasicFileChooserUI) {
+		BasicFileChooserUI ui = (BasicFileChooserUI) old;
+		BasicDirectoryModel model = ui.getModel();
+		if (model != null) {
+		    model.invalidateFileCache();
+		}
+	    }
+	} else if ("JFileChooserDialogIsClosingProperty".equals(prop)) {
+	    invalidateFileCache();
 	}
     }
 
     /**
-     * Obsolete - not used.
+     * This method is used to interrupt file loading thread.
      */
     public void invalidateFileCache() {
+	if (loadThread != null) {
+	    loadThread.interrupt();
+	    loadThread.cancelRunnables();
+	    loadThread = null;
+	}
     }
 
     public Vector<File> getDirectories() {

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 /*
- * $Id: Util.java,v 1.10 2004/02/16 22:57:21 minchau Exp $
+ * $Id: Util.java,v 1.1.2.1 2006/09/19 01:07:41 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
 
 import java.io.InputStream;
 import java.io.Reader;
+import javax.xml.XMLConstants;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -102,6 +103,15 @@ public final class Util {
                                SAXParserFactory parserFactory = 
                                       SAXParserFactory.newInstance();
                                parserFactory.setNamespaceAware(true);
+                               
+                               if (xsltc.isSecureProcessing()) {
+                                  try {
+                                      parserFactory.setFeature(
+                                          XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                                  }
+                                  catch (org.xml.sax.SAXException se) {}
+                               }
+
                                reader = parserFactory.newSAXParser()
                                      .getXMLReader();
 

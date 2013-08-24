@@ -1,5 +1,5 @@
 /*
- * @(#)$Id: SmartTransformerFactoryImpl.java,v 1.9 2003/08/14 16:27:43 ilene Exp $
+ * @(#)$Id: SmartTransformerFactoryImpl.java,v 1.1.2.1 2006/09/19 01:07:39 jeffsuttor Exp $
  *
  * The Apache Software License, Version 1.1
  *
@@ -99,6 +99,11 @@ public class SmartTransformerFactoryImpl extends SAXTransformerFactory
     private URIResolver        _uriresolver = null;
 
     /**
+     * <p>State of secure processing feature.</p>
+     */
+    private boolean featureSecureProcessing = false;
+
+    /**
      * implementation of the SmartTransformerFactory. This factory
      * uses com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactory
      * to return Templates objects; and uses 
@@ -183,6 +188,48 @@ public class SmartTransformerFactoryImpl extends SAXTransformerFactory
     }
 
     /**
+     * <p>Set a feature for this <code>SmartTransformerFactory</code> and <code>Transformer</code>s
+     * or <code>Template</code>s created by this factory.</p>
+     * 
+     * <p>
+     * Feature names are fully qualified {@link java.net.URI}s.
+     * Implementations may define their own features.
+     * An {@link TransformerConfigurationException} is thrown if this <code>TransformerFactory</code> or the
+     * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
+     * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
+     * </p>
+     * 
+     * <p>See {@link javax.xml.transform.TransformerFactory} for full documentation of specific features.</p>
+     * 
+     * @param name Feature name.
+     * @param value Is feature state <code>true</code> or <code>false</code>.
+     *  
+     * @throws TransformerConfigurationException if this <code>TransformerFactory</code>
+     *   or the <code>Transformer</code>s or <code>Template</code>s it creates cannot support this feature.
+     * @throws NullPointerException If the <code>name</code> parameter is null.
+     */
+    public void setFeature(String name, boolean value)
+        throws TransformerConfigurationException {
+
+	// feature name cannot be null
+	if (name == null) {
+            ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_SET_FEATURE_NULL_NAME);
+    	    throw new NullPointerException(err.toString());
+	}
+	// secure processing?
+	else if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+	    featureSecureProcessing = value;		
+	    // all done processing feature
+	    return;
+	}
+	else {
+	    // unknown feature
+            ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_UNSUPPORTED_FEATURE, name);
+            throw new TransformerConfigurationException(err.toString());
+        }
+    }
+
+    /**
      * javax.xml.transform.sax.TransformerFactory implementation.
      * Look up the value of a feature (to see if it is supported).
      * This method must be updated as the various methods and features of this
@@ -205,6 +252,11 @@ public class SmartTransformerFactoryImpl extends SAXTransformerFactory
         // Inefficient, but it really does not matter in a function like this
         for (int i=0; i<features.length; i++) {
             if (name.equals(features[i])) return true;
+	}
+
+	// secure processing?
+	if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+	    return featureSecureProcessing;
 	}
 
         // Feature not supported

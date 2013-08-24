@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: CallTemplate.java,v 1.18 2004/02/24 02:57:28 zongaro Exp $
+ * $Id: CallTemplate.java,v 1.1.2.2 2006/11/10 20:25:17 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -184,17 +184,10 @@ final class CallTemplate extends Instruction {
      * template is not a simple named template.
      */
     public Template getCalleeTemplate() {
-    	Stylesheet stylesheet = getXSLTC().getStylesheet();
-    	Vector templates = stylesheet.getAllValidTemplates();
-        
-    	int size = templates.size();
-    	for (int i = 0; i < size; i++) {
-    	    Template t = (Template)templates.elementAt(i);
-    	    if (t.getName() == _name && t.isSimpleNamedTemplate()) {
-    	    	return t;
-    	    }
-    	}
-    	return null;
+    	Template foundTemplate
+            = getXSLTC().getParser().getSymbolTable().lookupTemplate(_name);
+
+        return foundTemplate.isSimpleNamedTemplate() ? foundTemplate : null;
     }
     
     /**

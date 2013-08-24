@@ -89,7 +89,7 @@ import com.sun.org.apache.xerces.internal.util.URI;
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
- * @version $Id: ElementImpl.java,v 1.64 2004/01/18 17:39:36 elena Exp $
+ * @version $Id: ElementImpl.java,v 1.1.2.2 2006/10/11 19:21:01 spericas Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class ElementImpl
@@ -1017,6 +1017,10 @@ public class ElementImpl
                                     boolean makeId) {
         if (needsSyncData()) {
             synchronizeData();
+        }
+        //if namespace uri is empty string, set it to 'null'
+        if (namespaceURI != null) {
+            namespaceURI = (namespaceURI.length() == 0)? null : namespaceURI;            
         }
         Attr at = getAttributeNodeNS(namespaceURI, localName);
 		

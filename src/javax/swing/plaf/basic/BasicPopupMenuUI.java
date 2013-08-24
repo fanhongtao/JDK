@@ -1,5 +1,5 @@
 /*
- * @(#)BasicPopupMenuUI.java	1.122 05/06/06
+ * @(#)BasicPopupMenuUI.java	1.123 06/12/20
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -36,7 +36,7 @@ import sun.swing.UIAction;
  * A Windows L&F implementation of PopupMenuUI.  This implementation 
  * is a "combined" view/controller.
  *
- * @version 1.122 06/06/05
+ * @version 1.123 12/20/06
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -775,12 +775,21 @@ public class BasicPopupMenuUI extends PopupMenuUI {
 
             case MouseEvent.MOUSE_RELEASED:
                 src = (Component)ev.getSource();
+                if(!(src instanceof MenuElement)) {
+                    // Do not forward event to MSM, let component handle it
+                    break;
+                }
                 if(src instanceof JMenu || !(src instanceof JMenuItem)) {
                     MenuSelectionManager.defaultManager().
                         processMouseEvent((MouseEvent)ev);
                 }
                 break;
             case MouseEvent.MOUSE_DRAGGED:
+                src = (Component)ev.getSource();
+                if(!(src instanceof MenuElement)) {
+                    // Do not forward event to MSM, let component handle it
+                    break;
+                }
                 MenuSelectionManager.defaultManager().
                     processMouseEvent((MouseEvent)ev);
                 break;

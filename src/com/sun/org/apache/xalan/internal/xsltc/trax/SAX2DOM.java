@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: SAX2DOM.java,v 1.18 2004/02/16 22:57:21 minchau Exp $
+ * $Id: SAX2DOM.java,v 1.1.2.3 2006/09/27 18:40:59 spericas Exp $
  */
 
 
@@ -124,17 +124,26 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
 	    _namespaceDecls.clear();
 	}
 
-	// Add attributes to element
-	final int nattrs = attrs.getLength();
-	for (int i = 0; i < nattrs; i++) {
-	    if (attrs.getLocalName(i) == null) {
-		tmp.setAttribute(attrs.getQName(i), attrs.getValue(i));
-	    }
-	    else {
-		tmp.setAttributeNS(attrs.getURI(i), attrs.getQName(i),
-		    attrs.getValue(i));
-	    }
-	}
+        // Add attributes to element
+        final int nattrs = attrs.getLength();
+        for (int i = 0; i < nattrs; i++) {
+            // checking if Namespace processing is being done
+            String attQName = attrs.getQName(i);
+            String attURI = attrs.getURI(i);
+            String attrLocalName = attrs.getLocalName(i);
+            
+            if (attrLocalName == null || attrLocalName.equals(EMPTYSTRING)) {
+                tmp.setAttribute(attQName, attrs.getValue(i));
+                if (attrs.getType(i).equals("ID")) {
+                    tmp.setIdAttribute(attQName, true);
+                }
+            } else {
+                tmp.setAttributeNS(attURI, attQName, attrs.getValue(i));
+                if (attrs.getType(i).equals("ID")) {
+                    tmp.setIdAttributeNS(attURI, attrLocalName, true);
+                }
+            }
+        }
 
 	// Append this new node onto current stack node
 	Node last = (Node)_nodeStk.peek();

@@ -1,5 +1,5 @@
 /*
- * @(#)Component.java	1.390 06/07/27
+ * @(#)Component.java	1.392 07/03/13
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -61,6 +61,8 @@ import sun.awt.WindowClosingSupport;
 import sun.awt.GlobalCursorManager;
 import sun.awt.dnd.SunDropTargetEvent;
 import sun.awt.im.CompositionArea;
+
+import sun.font.FontManager;
 
 /**
  * A <em>component</em> is an object having a graphical representation
@@ -148,7 +150,7 @@ import sun.awt.im.CompositionArea;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version     1.390, 07/27/06
+ * @version     1.392, 03/13/07
  * @author      Arthur van Hoff
  * @author      Sami Shaio
  */
@@ -2491,7 +2493,15 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @since     JDK1.0
      */
     public FontMetrics getFontMetrics(Font font) {
-        FontMetrics result = (FontMetrics) metrics.get(font);
+        boolean altCompFonts = FontManager.maybeUsingAlternateCompositeFonts();
+        FontMetrics result;
+
+        /* No caching when using alternate composite fonts. */
+        if (altCompFonts) {
+            result = null;
+        } else {
+            result = (FontMetrics) metrics.get(font);
+        }
         if (result != null) {
             return result;
         }
@@ -2500,8 +2510,10 @@ public abstract class Component implements ImageObserver, MenuContainer,
             if (peer != null &&
                 !(peer instanceof LightweightPeer)) {
                 result = peer.getFontMetrics(font);
-                metrics.put(font, result);
-                return result;
+				if (!altCompFonts) {
+					metrics.put(font, result);
+                }                
+				return result;
             }
         }
         if (parent != null) {
@@ -2513,7 +2525,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
             if (g != null) {
                 try {
                     result = g.getFontMetrics(font);
-                    metrics.put(font, result);
+                    if (!altCompFonts) {
+                        metrics.put(font, result);
+                    }
                     return result;
                 } finally {
                     g.dispose();
@@ -2522,7 +2536,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
         }
 
         result = getToolkit().getFontMetrics(font);
-        metrics.put(font, result);
+        if (!altCompFonts) {
+            metrics.put(font, result);
+        }
         return result;
     }
 
@@ -6603,6 +6619,10 @@ public abstract class Component implements ImageObserver, MenuContainer,
             return;
         }
 
+        if ( KeyboardFocusManager.hasFocusRequests() ){
+             return;
+        }
+ 
         // the following code will execute only if this Component is the focus
         // owner
 

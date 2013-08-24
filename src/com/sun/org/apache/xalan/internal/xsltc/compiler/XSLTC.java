@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: XSLTC.java,v 1.57 2004/02/16 22:25:33 minchau Exp $
+ * $Id: XSLTC.java,v 1.1.2.1 2006/09/19 01:06:49 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -123,10 +123,29 @@ public final class XSLTC {
     private boolean _templateInlining = false;
 
     /**
+     * State of the secure processing feature.
+     */
+    private boolean _isSecureProcessing = false;
+
+    /**
      * XSLTC compiler constructor
      */
     public XSLTC() {
 	_parser = new Parser(this);
+    }
+
+    /**
+     * Set the state of the secure processing feature.
+     */
+    public void setSecureProcessing(boolean flag) {
+        _isSecureProcessing = flag;
+    }
+    
+    /**
+     * Return the state of the secure processing feature.
+     */
+    public boolean isSecureProcessing() {
+        return _isSecureProcessing;
     }
 
     /**

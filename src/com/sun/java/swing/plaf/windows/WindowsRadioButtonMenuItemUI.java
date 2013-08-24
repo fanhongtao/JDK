@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsRadioButtonMenuItemUI.java	1.16 03/12/19
+ * @(#)WindowsRadioButtonMenuItemUI.java	1.17 07/01/18
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,8 @@ import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.Part;
+import com.sun.java.swing.plaf.windows.TMSchema.State;
 
 /**
  * Windows rendition of the component.
@@ -25,8 +27,33 @@ import javax.swing.plaf.basic.*;
  */
 public class WindowsRadioButtonMenuItemUI extends BasicRadioButtonMenuItemUI {
 
+    final WindowsMenuItemUIAccessor accessor =
+        new WindowsMenuItemUIAccessor() {
+
+           public JMenuItem getMenuItem() {
+               return menuItem;
+           }
+
+           public State getState(JMenuItem menuItem) {
+               return WindowsMenuItemUI.getState(this, menuItem);
+           }
+           
+           public Part getPart(JMenuItem menuItem) {
+               return WindowsMenuItemUI.getPart(this, menuItem);
+           }
+    };
     public static ComponentUI createUI(JComponent b) {
         return new WindowsRadioButtonMenuItemUI();
+    }    
+
+    @Override
+    protected  void paintBackground(Graphics g, JMenuItem menuItem, 
+            Color bgColor) {
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            WindowsMenuItemUI.paintBackground(accessor, g, menuItem, bgColor);
+            return;
+        }
+        super.paintBackground(g, menuItem, bgColor);
     }
 
     /**
@@ -39,8 +66,11 @@ public class WindowsRadioButtonMenuItemUI extends BasicRadioButtonMenuItemUI {
      * @since 1.4
      */
     protected void paintText(Graphics g, JMenuItem menuItem,
-                             Rectangle textRect, String text) {
-
+            Rectangle textRect, String text) {
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            WindowsMenuItemUI.paintText(accessor, g, menuItem, textRect, text);
+            return;
+        }
         ButtonModel model = menuItem.getModel();
         Color oldColor = g.getColor();
 

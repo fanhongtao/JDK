@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsGraphicsUtils.java	1.15 06/09/01
+ * @(#)WindowsGraphicsUtils.java	1.16 06/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,11 +13,13 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.*; 
+
 /**
  * A collection of static utility methods used for rendering the Windows look 
  * and feel.
  * 
- * @version 1.15 09/01/06
+ * @version 1.16 12/19/06
  * @author Mark Davidson
  * @since 1.4
  */
@@ -67,17 +69,18 @@ public class WindowsGraphicsUtils {
 
 	    XPStyle xp = XPStyle.getXP();
 	    if (xp != null) {
-		String part = WindowsButtonUI.getXPButtonType(b);
-		color = xp.getColor(b, part, "disabled", "textcolor", color);
+                Part part = WindowsButtonUI.getXPButtonType(b); 
+                color = xp.getColor(b, part, State.DISABLED, Prop.TEXTCOLOR, 
+                    color);
                 // to work around an apparent bug in Windows, use the pushbutton
                 // color for disabled toolbar buttons if the disabled color is the
                 // same as the enabled color
-                if ("toolbar.button".equals(part)) {
-                    Color enabledColor = xp.getColor(b, part, "normal",
-                        "textcolor", color);
+                if (part == Part.TP_BUTTON) {
+                    Color enabledColor = xp.getColor(b, part, State.NORMAL,
+                        Prop.TEXTCOLOR, color);
                     if (color != null && color.equals(enabledColor)) {
-                        color = xp.getColor(b, "button.pushbutton", "disabled",
-                            "textcolor", color);
+                        color = xp.getColor(b, Part.TP_BUTTON, State.DISABLED,
+                            Prop.TEXTCOLOR, color);
                     }
                 }
 	    } else {

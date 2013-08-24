@@ -43,6 +43,17 @@ final class SymbolTable {
     private Hashtable _aliases = null;
     private Hashtable _excludedURI = null;
     private Hashtable _decimalFormats = null;
+    private Hashtable _keys = null;
+
+    public Key getKey(QName name) {
+        if (_keys == null) return null;
+        return (Key) _keys.get(name);
+    }
+
+    public void addKey(QName name, Key key) {
+        if (_keys == null) _keys = new Hashtable();
+        _keys.put(name, key);
+    }
 
     public DecimalFormatting getDecimalFormatting(QName name) {
 	if (_decimalFormats == null) return null;

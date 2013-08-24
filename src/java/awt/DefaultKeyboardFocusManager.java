@@ -1,5 +1,5 @@
 /*
- * @(#)DefaultKeyboardFocusManager.java	1.35 06/07/19
+ * @(#)DefaultKeyboardFocusManager.java	1.36 07/03/09
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import sun.awt.SunToolkit;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.35, 07/19/06
+ * @version 1.36, 03/09/07
  *
  * @see FocusTraversalPolicy
  * @see Component#setFocusTraversalKeys
@@ -456,7 +456,9 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     // Focus change was rejected. Will happen if
                     // newFocusOwner is not focus traversable.
                     dequeueKeyEvents(-1, newFocusOwner);
-                    restoreFocus(fe, (Window)newFocusedWindow);
+                    if (! disableRestoreFocus ){
+                       restoreFocus(fe, (Window)newFocusedWindow);
+                    }
                     break;
                 }
 
@@ -466,7 +468,9 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
                     if (newFocusOwner != getGlobalPermanentFocusOwner()) {
                         // Focus change was rejected. Unlikely, but possible.
                         dequeueKeyEvents(-1, newFocusOwner);
-                        restoreFocus(fe, (Window)newFocusedWindow);
+                        if (! disableRestoreFocus ){
+                            restoreFocus(fe, (Window)newFocusedWindow);
+                        }	
                         break;
                     }
                 }

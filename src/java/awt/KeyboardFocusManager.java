@@ -1,5 +1,5 @@
 /*
- * @(#)KeyboardFocusManager.java	1.64 06/08/23
+ * @(#)KeyboardFocusManager.java	1.66 07/03/13
  *
  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -67,7 +67,7 @@ import java.security.PrivilegedAction;
  * for more information.
  *
  * @author David Mendenhall
- * @version 1.64, 08/23/06 
+ * @version 1.66, 03/13/07 
  *
  * @see Window
  * @see Frame
@@ -2142,6 +2142,8 @@ public abstract class KeyboardFocusManager
     private static boolean allowSyncFocusRequests = true;
     private static Component newFocusOwner = null;
 
+    static volatile boolean disableRestoreFocus; 
+
     static final int SNFH_FAILURE = 0;
     static final int SNFH_SUCCESS_HANDLED = 1;
     static final int SNFH_SUCCESS_PROCEED = 2;
@@ -2203,23 +2205,32 @@ public abstract class KeyboardFocusManager
         }        
         boolean result = false;
         final boolean clearing = clearingCurrentLightweightRequests;
+
+        Throwable caughtEx = null;
         try {
             clearingCurrentLightweightRequests = false;
             synchronized(Component.LOCK) {
                 if (currentFocusOwnerEvent != null && currentFocusOwner != null) {
                     ((AWTEvent) currentFocusOwnerEvent).isPosted = true;
-                    currentFocusOwner.dispatchEvent(currentFocusOwnerEvent);
+                    caughtEx=dispatchAndCatchException(caughtEx, currentFocusOwner, currentFocusOwnerEvent);
                     result = true;
                 }
                 if (newFocusOwnerEvent != null && descendant != null) {
                     ((AWTEvent) newFocusOwnerEvent).isPosted = true;
-                    descendant.dispatchEvent(newFocusOwnerEvent);
+                    caughtEx=dispatchAndCatchException(caughtEx, descendant, newFocusOwnerEvent);
                     result = true;
                 }        
             }
         } finally {
             clearingCurrentLightweightRequests = clearing;
         }
+
+        if (caughtEx instanceof RuntimeException){
+            throw (RuntimeException) caughtEx;
+        } else if (caughtEx instanceof Error) {
+            throw (Error) caughtEx;
+        }
+
         return result;
     }
 
@@ -2501,6 +2512,40 @@ public abstract class KeyboardFocusManager
         }
         return null;
     }
+	
+   /*
+    * Used to process exceptions in dispatching focus event (in focusLost/focusGained callbacks).
+    * @param ex previously caught exception that may be processed right here, or null
+    * @param comp the component to dispatch the event to
+    * @param event the event to dispatch to the component
+    */
+    static private Throwable dispatchAndCatchException(Throwable ex, Component comp, FocusEvent event) {
+       Throwable retEx = null;
+       try {
+          comp.dispatchEvent(event);
+       } catch (RuntimeException re) {
+          retEx = re;
+       } catch (Error er) {
+          retEx = er;
+       }
+	   if (retEx != null) {
+	     if (ex != null) {
+	         handleException(ex);
+	      }
+	      return retEx;
+	    }
+	    return ex;
+	}
+	
+    static private void handleException(Throwable ex) {
+	         ex.printStackTrace();
+	}
+
+    static boolean hasFocusRequests() {
+         synchronized (heavyweightRequests) {
+             return heavyweightRequests.size() > 0;
+         }
+    }
 
     static void processCurrentLightweightRequests() {
         KeyboardFocusManager manager = getCurrentKeyboardFocusManager();
@@ -2519,6 +2564,7 @@ public abstract class KeyboardFocusManager
         synchronized(heavyweightRequests) {
             if (currentLightweightRequests != null) {
                 clearingCurrentLightweightRequests = true;
+                disableRestoreFocus=true;
                 localLightweightRequests = currentLightweightRequests;
                 allowSyncFocusRequests = (localLightweightRequests.size() < 2);
                 currentLightweightRequests = null;
@@ -2528,44 +2574,68 @@ public abstract class KeyboardFocusManager
             }
         }
 
+        Throwable caughtEx=null;
         try {
             if (localLightweightRequests != null) {
-                for (Iterator iter = localLightweightRequests.iterator();
-                     iter.hasNext(); )
+                Component lastFocusOwner = null;
+                Component currentFocusOwner = null;
+
+                for (Iterator iter = localLightweightRequests.iterator(); iter.hasNext(); )
                 {
-                    Component currentFocusOwner = manager.
-                        getGlobalFocusOwner();
-                    if (currentFocusOwner == null) {
-                        // If this ever happens, a focus change has been
-                        // rejected. Stop generating more focus changes.
-                        break;
+                    currentFocusOwner = manager.getGlobalFocusOwner();
+                    LightweightFocusRequest lwFocusRequest = (LightweightFocusRequest)iter.next();
+				
+                    /*
+                     * WARNING: This is based on DKFM's logic solely!
+                     *
+                     * We allow to trigger restoreFocus() in the dispatching process
+                     * only if we have the last request to dispatch. If the last request
+                     * fails, focus will be restored to either the component of the last
+                     * previously succedded request, or to to the focus owner that was
+                     * before this clearing proccess.
+                     */
+                     if (!iter.hasNext()) {
+                           disableRestoreFocus = false;
+                     }
+                     
+                    FocusEvent currentFocusOwnerEvent = null;
+                    if ( currentFocusOwner != null ){    
+                        currentFocusOwnerEvent = new FocusEvent(currentFocusOwner, 
+                                                                FocusEvent.FOCUS_LOST, 
+                                                                lwFocusRequest.temporary, lwFocusRequest.component);
                     }
 
-                    LightweightFocusRequest lwFocusRequest =
-                        (LightweightFocusRequest)iter.next();
-                    FocusEvent currentFocusOwnerEvent =
-                        new FocusEvent(currentFocusOwner,
-                                       FocusEvent.FOCUS_LOST,
-                                       lwFocusRequest.temporary,
-                                       lwFocusRequest.component);
-                    FocusEvent newFocusOwnerEvent =
-                        new FocusEvent(lwFocusRequest.component,
+                    FocusEvent newFocusOwnerEvent = new FocusEvent(lwFocusRequest.component,
                                        FocusEvent.FOCUS_GAINED,
                                        lwFocusRequest.temporary,
-                                       currentFocusOwner);
+                                       currentFocusOwner == null? lastFocusOwner : currentFocusOwner);
 
-                    ((AWTEvent) currentFocusOwnerEvent).isPosted = true;
-                    currentFocusOwner.dispatchEvent(currentFocusOwnerEvent);
+                    if (currentFocusOwner != null){
+                        ((AWTEvent) currentFocusOwnerEvent).isPosted = true;
+                         caughtEx=dispatchAndCatchException(caughtEx,currentFocusOwner,currentFocusOwnerEvent);
+                     }
+
                     ((AWTEvent) newFocusOwnerEvent).isPosted = true;
-                    lwFocusRequest.component.
-                        dispatchEvent(newFocusOwnerEvent);
+                     caughtEx=dispatchAndCatchException(caughtEx, lwFocusRequest.component, newFocusOwnerEvent);
+
+                     if (manager.getGlobalFocusOwner() == lwFocusRequest.component){
+                        lastFocusOwner = lwFocusRequest.component;
+                     }
                 }
             }
         } finally {
             clearingCurrentLightweightRequests = false;
+            disableRestoreFocus=false;
             localLightweightRequests = null;
             allowSyncFocusRequests = true;
         }
+
+        if (caughtEx instanceof RuntimeException) {
+            throw (RuntimeException)caughtEx;
+        } else if (caughtEx instanceof Error) {
+            throw (Error)caughtEx;
+        }
+
     }
 
     static FocusEvent retargetUnexpectedFocusEvent(FocusEvent fe) {

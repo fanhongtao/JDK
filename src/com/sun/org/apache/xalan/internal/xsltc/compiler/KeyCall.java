@@ -96,7 +96,32 @@ final class KeyCall extends FunctionCall {
 	    break;
 	}
     }
+    /**
+     * If this call to key() is in a top-level element like another variable
+     * or param, add a dependency between that top-level element and the
+     * referenced key. For example,
+     *
+     * <xsl:key name="x" .../>
+     * <xsl:variable name="y" select="key('x', 1)"/>
+     *
+     * and assuming this class represents "key('x', 1)", add a reference
+     * between variable y and key x. Note that if 'x' is unknown statically
+     * in key('x', 1), there's nothing we can do at this point.
+     */
+     public void addParentDependency() {
+        // If name unknown statically, there's nothing we can do
+        if (_resolvedQName == null) return;
 
+ 	SyntaxTreeNode node = this;
+ 	while (node != null && node instanceof TopLevelElement == false) {
+ 	    node = node.getParent();
+ 	}
+ 		
+ 	TopLevelElement parent = (TopLevelElement) node;
+ 	if (parent != null) {
+            parent.addDependency(getSymbolTable().getKey(_resolvedQName));
+ 	}
+    }
     /**
      * Type check the parameters for the id() or key() function.
      * The index name (for key() call only) must be a string or convertable
@@ -135,6 +160,8 @@ final class KeyCall extends FunctionCall {
 	{
 	    _value = new CastExpr(_value, Type.String);
 	}
+        // If in a top-level element, create dependency to the referenced key
+        addParentDependency();
 
 	return returnType;
     }

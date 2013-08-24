@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsSpinnerUI.java	1.13 06/03/22
+ * @(#)WindowsSpinnerUI.java	1.14 06/12/19
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -14,6 +14,8 @@ import javax.swing.plaf.basic.*;
 import javax.swing.plaf.*;
 import javax.swing.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.Part;
+
 
 
 public class WindowsSpinnerUI extends BasicSpinnerUI {
@@ -23,7 +25,7 @@ public class WindowsSpinnerUI extends BasicSpinnerUI {
 
     protected Component createPreviousButton() {
 	if (XPStyle.getXP() != null) {
-	    JButton xpButton = new XPStyle.GlyphButton(spinner, "spin.down");
+            JButton xpButton = new XPStyle.GlyphButton(spinner, Part.SPNP_SPINDOWN);
 	    xpButton.setRequestFocusEnabled(false);
             installPreviousButtonListeners(xpButton);
             return xpButton;
@@ -33,7 +35,7 @@ public class WindowsSpinnerUI extends BasicSpinnerUI {
 
     protected Component createNextButton() {
 	if (XPStyle.getXP() != null) {
-	    JButton xpButton = new XPStyle.GlyphButton(spinner, "spin.up");
+            JButton xpButton = new XPStyle.GlyphButton(spinner, Part.SPNP_SPINUP);
 	    xpButton.setRequestFocusEnabled(false);
             installNextButtonListeners(xpButton);
 	    return xpButton;

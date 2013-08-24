@@ -1,5 +1,5 @@
 /*
- * @(#)BasicMenuItemUI.java	1.128 03/12/19
+ * @(#)BasicMenuItemUI.java	1.129 07/01/18
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -7,6 +7,7 @@
  
 package javax.swing.plaf.basic;
 
+import sun.swing.MenuItemCheckIconFactory;
 import com.sun.java.swing.SwingUtilities2;
 import java.awt.*;
 import java.awt.event.*;
@@ -24,7 +25,7 @@ import sun.swing.UIAction;
 /**
  * BasicMenuItem implementation
  *
- * @version 1.128 12/19/03
+ * @version 1.129 01/18/07
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -150,6 +151,13 @@ public class BasicMenuItemUI extends MenuItemUI
         if (checkIcon == null ||
             checkIcon instanceof UIResource) {
             checkIcon = UIManager.getIcon(prefix + ".checkIcon");
+            MenuItemCheckIconFactory iconFactory = 
+                (MenuItemCheckIconFactory) UIManager.get(prefix 
+                    + ".checkIconFactory");
+            if (iconFactory != null
+                    && iconFactory.isCompatible(checkIcon, prefix)) {
+                checkIcon = iconFactory.getIcon(menuItem);
+            }
         }
     }
 
@@ -349,7 +357,19 @@ public class BasicMenuItemUI extends MenuItemUI
                                                      Icon arrowIcon,
                                                      int defaultTextIconGap) {
         JMenuItem b = (JMenuItem) c;
-        Icon icon = (Icon) b.getIcon(); 
+        
+        Icon icon = null;
+        /* 
+         * in case .checkIconFactory is defined for this UI and the icon is 
+         * compatible with it then the icon is handled by the checkIcon.
+         */
+        MenuItemCheckIconFactory iconFactory = 
+            (MenuItemCheckIconFactory) UIManager.get(getPropertyPrefix() 
+                + ".checkIconFactory");
+        if (iconFactory == null
+                || ! iconFactory.isCompatible(checkIcon, getPropertyPrefix())) {
+           icon = b.getIcon();  
+        }
         String text = b.getText();
         KeyStroke accelerator =  b.getAccelerator();
         String acceleratorText = "";
@@ -390,6 +410,10 @@ public class BasicMenuItemUI extends MenuItemUI
                                         iconRect.width,
                                         iconRect.height,
                                         r);
+        // Find the result height
+        r.height = Math.max(
+            Math.max(r.height, checkIconRect.height),
+            Math.max(arrowIconRect.height, acceleratorRect.height));
         //   r = iconRect.union(textRect);
 
 	
@@ -456,7 +480,9 @@ public class BasicMenuItemUI extends MenuItemUI
 
         // if the height is even, bump it up one. This is critical
         // for the text to center properly
-        if(r.height%2 == 0) {
+        if(r.height%2 == 0 
+                && Boolean.TRUE != 
+                    UIManager.get(getPropertyPrefix() + ".evenHeight")) {
             r.height++;
         }
 /*
@@ -538,10 +564,21 @@ public class BasicMenuItemUI extends MenuItemUI
                 acceleratorText += accelerator.getKeyChar();
             }
         }
-        
+        Icon icon = null;
+        /* 
+         * in case .checkIconFactory is defined for this UI and the icon is 
+         * compatible with it then the icon is handled by the checkIcon.
+         */
+        MenuItemCheckIconFactory iconFactory = 
+            (MenuItemCheckIconFactory) UIManager.get(getPropertyPrefix() 
+                + ".checkIconFactory");
+        if (iconFactory == null
+                || ! iconFactory.isCompatible(checkIcon, getPropertyPrefix())) {
+           icon = b.getIcon();  
+        }
         // layout the text and icon
         String text = layoutMenuItem(
-            fm, b.getText(), fmAccel, acceleratorText, b.getIcon(),
+            fm, b.getText(), fmAccel, acceleratorText, icon,
             checkIcon, arrowIcon,
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
@@ -549,8 +586,7 @@ public class BasicMenuItemUI extends MenuItemUI
             checkIconRect, arrowIconRect,
             b.getText() == null ? 0 : defaultTextIconGap,
             defaultTextIconGap
-        );
-          
+        ); 
         // Paint background
 	paintBackground(g, b, background);
 
@@ -569,8 +605,7 @@ public class BasicMenuItemUI extends MenuItemUI
         }
 
         // Paint the Icon
-        if(b.getIcon() != null) { 
-            Icon icon;
+        if(icon != null ) { 
             if(!model.isEnabled()) {
                 icon = (Icon) b.getDisabledIcon();
             } else if(model.isPressed() && model.isArmed()) {
@@ -804,7 +839,22 @@ public class BasicMenuItemUI extends MenuItemUI
         }
 
         Rectangle labelRect = iconRect.union(textRect);
+
+        int checkIconOffset = menuItemGap;
+        Object checkIconOffsetObject = 
+            UIManager.get(getPropertyPrefix() + ".checkIconOffset");
+        if (checkIconOffsetObject instanceof Integer) {
+            checkIconOffset = (Integer) checkIconOffsetObject;
+        }
         if( BasicGraphicsUtils.isLeftToRight(menuItem) ) {
+            /* get minimum text offset. It is defined for LTR case only. */
+            int minimumTextOffset = 0;
+            Object minimumTextOffsetObject = 
+                UIManager.get(getPropertyPrefix() 
+                    + ".minimumTextOffset");
+            if (minimumTextOffsetObject instanceof Integer) {
+                minimumTextOffset = (Integer) minimumTextOffsetObject;
+            }
             textRect.x += menuItemGap;
             iconRect.x += menuItemGap;
 
@@ -814,9 +864,10 @@ public class BasicMenuItemUI extends MenuItemUI
             
             // Position the Check and Arrow Icons 
             if (useCheckAndArrow()) {
-                checkIconRect.x = viewRect.x + menuItemGap;
-                textRect.x += menuItemGap + checkIconRect.width;
-                iconRect.x += menuItemGap + checkIconRect.width;
+                checkIconRect.x = viewRect.x + checkIconOffset;
+                textRect.x += checkIconOffset + checkIconRect.width;
+                textRect.x = Math.max(textRect.x, minimumTextOffset); 
+                iconRect.x += checkIconOffset + checkIconRect.width;
                 arrowIconRect.x = viewRect.x + viewRect.width - menuItemGap
                                   - arrowIconRect.width;
             }

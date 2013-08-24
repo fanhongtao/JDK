@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 /*
- * $Id: TemplatesHandlerImpl.java,v 1.25 2004/02/16 22:57:21 minchau Exp $
+ * $Id: TemplatesHandlerImpl.java,v 1.1.2.1 2006/09/19 01:07:39 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerException;
@@ -88,6 +89,11 @@ public class TemplatesHandlerImpl
     {
 	_indentNumber = indentNumber;
 	_tfactory = tfactory;
+
+        // Instantiate XSLTC and get reference to parser object
+        XSLTC xsltc = new XSLTC();
+        if (tfactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING))
+            xsltc.setSecureProcessing(true);
 
         // Instantiate XSLTC and get reference to parser object
         _parser = new XSLTC().getParser();

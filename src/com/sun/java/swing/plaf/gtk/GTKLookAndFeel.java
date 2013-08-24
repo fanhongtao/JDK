@@ -1,5 +1,5 @@
 /*
- * @(#)GTKLookAndFeel.java	1.74 05/03/30
+ * @(#)GTKLookAndFeel.java	1.75 06/12/14
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -27,7 +27,7 @@ import java.io.IOException;
 import sun.security.action.GetPropertyAction;
 
 /**
- * @version 1.74, 03/30/05
+ * @version 1.75, 12/14/06
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -149,6 +149,8 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 // PRELIGHT.
                 if ((state & SynthConstants.MOUSE_OVER) != 0) {
                     state = SynthConstants.MOUSE_OVER;
+                } else if ((state & SynthConstants.DISABLED) != 0){
+                    state = SynthConstants.DISABLED;
                 } else {
                     state = SynthConstants.PRESSED;
                 }

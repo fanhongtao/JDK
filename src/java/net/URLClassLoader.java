@@ -1,7 +1,7 @@
 /*
- * @(#)URLClassLoader.java	1.85 04/08/02
+ * @(#)URLClassLoader.java	1.87 07/04/10
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -50,7 +50,7 @@ import sun.security.util.SecurityConstants;
  * access the URLs specified when the URLClassLoader was created.
  *
  * @author  David Connelly
- * @version 1.85, 08/02/04
+ * @version 1.87, 04/10/07
  * @since   1.2
  */
 public class URLClassLoader extends SecureClassLoader {
@@ -469,13 +469,12 @@ public class URLClassLoader extends SecureClassLoader {
 	} else {
 	    URL locUrl = url;
 	    if (urlConnection instanceof JarURLConnection) {
-		locUrl = ((JarURLConnection)urlConnection).getJarFileURL();
+	        locUrl = ((JarURLConnection)urlConnection).getJarFileURL();
 	    }
 	    String host = locUrl.getHost();
-	    if (host == null)
-		host = "localhost";
-	    p = new SocketPermission(host,
-		SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION);
+	    if (host != null && (host.length() > 0))
+	    	p = new SocketPermission(host,
+					 SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION);
 	}
 
 	// make sure the person that created this class loader

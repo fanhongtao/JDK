@@ -1,7 +1,7 @@
 /*
- * @(#)ZipInputStream.java	1.37 04/06/11
+ * @(#)ZipInputStream.java	1.38 06/11/30
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +18,7 @@ import java.io.PushbackInputStream;
  * entries.
  *
  * @author	David Connelly
- * @version	1.37, 06/11/04
+ * @version	1.38, 11/30/06
  */
 public
 class ZipInputStream extends InflaterInputStream implements ZipConstants {
@@ -160,6 +160,11 @@ class ZipInputStream extends InflaterInputStream implements ZipConstants {
 	    }
 	    crc.update(b, off, len);
 	    remaining -= len;
+	    if (remaining == 0 && entry.crc != crc.getValue()) {
+		throw new ZipException(
+		    "invalid entry CRC (expected 0x" + Long.toHexString(entry.crc) +
+		    " but got 0x" + Long.toHexString(crc.getValue()) + ")");
+	    }
 	    return len;
 	default:
 	    throw new InternalError("invalid compression method");

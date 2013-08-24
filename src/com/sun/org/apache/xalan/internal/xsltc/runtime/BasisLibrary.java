@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: BasisLibrary.java,v 1.76 2004/02/27 01:59:31 zongaro Exp $
+ * $Id: BasisLibrary.java,v 1.1.2.1 2006/09/19 01:07:26 jeffsuttor Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
@@ -397,6 +397,22 @@ public final class BasisLibrary implements Operators {
      */
     public static void unresolved_externalF(String name) {
 	runTimeError(EXTERNAL_FUNC_ERR, name);
+    }
+
+    /**
+     * Utility function to throw a runtime error on the use of an extension 
+     * function when the secure processing feature is set to true.
+     */
+    public static void unallowed_extension_functionF(String name) {
+        runTimeError(UNALLOWED_EXTENSION_FUNCTION_ERR, name);
+    }
+
+    /**
+     * Utility function to throw a runtime error on the use of an extension 
+     * element when the secure processing feature is set to true.
+     */
+    public static void unallowed_extension_elementF(String name) {
+        runTimeError(UNALLOWED_EXTENSION_ELEMENT_ERR, name);
     }
 
     /**
@@ -1438,6 +1454,8 @@ public final class BasisLibrary implements Operators {
                                            "UNKNOWN_TRANSLET_VERSION_ERR";
     public static final String INVALID_QNAME_ERR = "INVALID_QNAME_ERR";                                           
     public static final String INVALID_NCNAME_ERR = "INVALID_NCNAME_ERR";
+    public static final String UNALLOWED_EXTENSION_FUNCTION_ERR = "UNALLOWED_EXTENSION_FUNCTION_ERR";
+    public static final String UNALLOWED_EXTENSION_ELEMENT_ERR = "UNALLOWED_EXTENSION_ELEMENT_ERR";
 
     // All error messages are localized and are stored in resource bundles.
     protected static ResourceBundle m_bundle;

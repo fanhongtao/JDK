@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsProgressBarUI.java	1.26 06/03/22
+ * @(#)WindowsProgressBarUI.java	1.28 06/12/21
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -12,6 +12,9 @@ import javax.swing.plaf.*;
 import javax.swing.*;
 import java.awt.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.*;
+import com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
 /**
  * Windows rendition of the component.
  * <p>
@@ -22,7 +25,7 @@ import java.awt.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.26 03/22/06
+ * @version 1.28 12/21/06
  * @author Michael C. Albers
  */
 public class WindowsProgressBarUI extends BasicProgressBarUI
@@ -47,12 +50,13 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
     protected Dimension getPreferredInnerHorizontal() {
 	XPStyle xp = XPStyle.getXP();
 	if (xp != null) {
-            Dimension dim = xp.getDimension(progressBar, "progress.bar", null, "normalsize");
+            Dimension dim = xp.getDimension(progressBar, Part.PP_BAR, null, 
+                Prop.NORMALSIZE);
             if (dim == null) {
                 // if dim null, it's likely that the NORMALSIZE property is missing
                 // from the current XP theme. This will synthesize a replacement
                 // dimension that's close to the real thing.
-                XPStyle.Skin skin = xp.getSkin(progressBar, "progress.bar");
+                XPStyle.Skin skin = xp.getSkin(progressBar, Part.PP_BAR);
                 dim = new Dimension(super.getPreferredInnerHorizontal().width,
                                     skin.getHeight());
             }
@@ -65,12 +69,13 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
     protected Dimension getPreferredInnerVertical() {
         XPStyle xp = XPStyle.getXP();
         if (xp != null) {
-            Dimension dim = xp.getDimension(progressBar, "progress.barvert", null, "normalsize");
+            Dimension dim = xp.getDimension(progressBar, Part.PP_BARVERT, null,
+                Prop.NORMALSIZE);
             if (dim == null) {
                 // if dim null, it's likely that the NORMALSIZE property is missing
                 // from the current XP theme. This will synthesize a replacement
                 // dimension that's close to the real thing.
-                XPStyle.Skin skin = xp.getSkin(progressBar, "progress.barvert");
+                XPStyle.Skin skin = xp.getSkin(progressBar, Part.PP_BARVERT);
                 dim = new Dimension(skin.getWidth(),
                                     super.getPreferredInnerVertical().height);
             }
@@ -119,8 +124,8 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 		}
 
 	    } else {
-		XPStyle.Skin skin =
-		    xp.getSkin(progressBar, vertical ? "progress.chunkvert" : "progress.chunk");
+                Skin skin =
+                    xp.getSkin(progressBar, vertical ? Part.PP_CHUNKVERT :  Part.PP_CHUNK);
 		int thickness;
 		if (vertical) {
 		    thickness = barRectWidth - 5;
@@ -128,8 +133,10 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 		    thickness = barRectHeight - 5;
 		}
 
-		int chunkSize = xp.getInt(progressBar, "progress", null, "progresschunksize", 2);
-		int spaceSize = xp.getInt(progressBar, "progress", null, "progressspacesize", 0);
+                int chunkSize = xp.getInt(progressBar, Part.PP_PROGRESS, null,
+                    Prop.PROGRESSCHUNKSIZE, 2);
+                int spaceSize = xp.getInt(progressBar, Part.PP_PROGRESS, null,
+                    Prop.PROGRESSSPACESIZE, 0);
 		int nChunks = (amountFull-4) / (chunkSize + spaceSize);
 
 		// See if we can squeeze in an extra chunk without spacing after
@@ -141,16 +148,16 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
 		    if (vertical) {
 			skin.paintSkin(g,
 				       3, barRectHeight - i * (chunkSize + spaceSize) - chunkSize - 2,
-				       thickness, chunkSize, 0);
+                                       thickness, chunkSize, null);
 		    } else {
 			if (isLeftToRight) {
 			    skin.paintSkin(g,
 					   4 + i * (chunkSize + spaceSize), 2,
-					   chunkSize, thickness, 0);
+                                           chunkSize, thickness, null);
 			} else {
 			    skin.paintSkin(g,
 					   barRectWidth - (2 + (i+1) * (chunkSize + spaceSize)), 2,
-					   chunkSize, thickness, 0);
+                                           chunkSize, thickness, null);
 			}
 		    }
 		}
@@ -194,11 +201,11 @@ public class WindowsProgressBarUI extends BasicProgressBarUI
     private void paintXPBackground(Graphics g, boolean vertical,
 				   int barRectWidth, int barRectHeight) {
 	XPStyle xp = XPStyle.getXP();
-	String category = vertical ? "progress.barvert" : "progress.bar";
-	XPStyle.Skin skin = xp.getSkin(progressBar, category);
+        Part part = vertical ? Part.PP_BARVERT : Part.PP_BAR;
+        Skin skin = xp.getSkin(progressBar, part);
 
 	// Paint background
-	skin.paintSkin(g, 0, 0, barRectWidth, barRectHeight, 0);
+        skin.paintSkin(g, 0, 0, barRectWidth, barRectHeight, null);
     }
 }
 

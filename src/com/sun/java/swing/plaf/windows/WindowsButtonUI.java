@@ -14,6 +14,9 @@ import javax.swing.*;
 
 import java.awt.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.*;
+import com.sun.java.swing.plaf.windows.XPStyle.Skin;
+
 /**
  * Windows button.
  * <p>
@@ -146,9 +149,9 @@ public class WindowsButtonUI extends BasicButtonUI
 	super.paint(g, c);
     }
 
-    static String getXPButtonType(AbstractButton b) {
+    static Part getXPButtonType(AbstractButton b) { 
         boolean toolbar = (b.getParent() instanceof JToolBar);
-        return toolbar ? "toolbar.button" : "button.pushbutton";
+        return toolbar ? Part.TP_BUTTON : Part.BP_PUSHBUTTON; 
     }
 
     static void paintXPButtonBackground(Graphics g, JComponent c) {
@@ -157,39 +160,39 @@ public class WindowsButtonUI extends BasicButtonUI
 	XPStyle xp = XPStyle.getXP();
 
 	boolean toolbar = (b.getParent() instanceof JToolBar);
-        String category = getXPButtonType(b);
+        Part part = getXPButtonType(b);
 
 	if (b.isContentAreaFilled() && xp != null) {
 
 	    ButtonModel model = b.getModel();
-	    XPStyle.Skin skin = xp.getSkin(b, category);
+            Skin skin = xp.getSkin(b, part); 
 
 	    // normal, rollover/activated/focus, pressed, disabled, default
-	    int index = 0;
+            State state = State.NORMAL; 
 	    if (toolbar) {
-		if (model.isArmed() && model.isPressed()) {
-		    index = 2;
+                if (model.isArmed() && model.isPressed()) {
+                    state = State.PRESSED;
                 } else if (!model.isEnabled()) {
-                    index = 3;
-		} else if (model.isSelected() && model.isRollover()) {
-		    index = 5;
-		} else if (model.isSelected()) {
-		    index = 4;
-		} else if (model.isRollover()) {
-		    index = 1;
-		}
+                    state = State.DISABLED;
+                } else if (model.isSelected() && model.isRollover()) {
+                    state = State.HOTCHECKED;
+                } else if (model.isSelected()) {
+                    state = State.CHECKED;
+                } else if (model.isRollover()) {
+                    state = State.HOT;
+                }
 	    } else {
 		if (model.isArmed() && model.isPressed() || model.isSelected()) {
-		    index = 2;
-		} else if (!model.isEnabled()) {
-		    index = 3;
-		} else if (model.isRollover() || model.isPressed()) {
-		    index = 1;
-		} else if (b instanceof JButton && ((JButton)b).isDefaultButton()) {
-		    index = 4;
-		} else if (c.hasFocus()) {
-		    index = 1;
-		}
+                    state = State.PRESSED;
+                } else if (!model.isEnabled()) {
+                    state = State.DISABLED;
+                } else if (model.isRollover() || model.isPressed()) {
+                    state = State.HOT;
+                } else if (b instanceof JButton && ((JButton)b).isDefaultButton()) {
+                    state = State.DEFAULTED;
+                } else if (c.hasFocus()) {
+                    state = State.HOT;
+                }
 	    }
 	    Dimension d = c.getSize();
 	    int dx = 0;
@@ -215,7 +218,7 @@ public class WindowsButtonUI extends BasicButtonUI
 		dw -= (insets.left + insets.right);
 		dh -= (insets.top + insets.bottom);
 	    }
-	    skin.paintSkin(g, dx, dy, dw, dh, index);
+            skin.paintSkin(g, dx, dy, dw, dh, state);
 	}
     }
 

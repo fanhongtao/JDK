@@ -1,5 +1,5 @@
 /*
- * @(#)WindowsMenuUI.java	1.24 03/12/19
+ * @(#)WindowsMenuUI.java	1.26 07/01/22
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -15,6 +15,9 @@ import javax.swing.plaf.basic.BasicMenuUI;
 import javax.swing.event.MouseInputListener;
 import javax.swing.*;
 
+import com.sun.java.swing.plaf.windows.TMSchema.Part;
+import com.sun.java.swing.plaf.windows.TMSchema.State;
+
 /**
  * Windows rendition of the component.
  * <p>
@@ -27,13 +30,69 @@ import javax.swing.*;
  */
 public class WindowsMenuUI extends BasicMenuUI {
 
+    final WindowsMenuItemUIAccessor accessor = 
+        new WindowsMenuItemUIAccessor() {
+
+            public JMenuItem getMenuItem() {
+                return menuItem;
+            }
+
+            public State getState(JMenuItem menu) {
+                State state = menu.isEnabled() ? State.NORMAL
+                        : State.DISABLED;
+                ButtonModel model = menu.getModel();
+                if (model.isArmed() || model.isSelected()) {
+                    state = (menu.isEnabled()) ? State.PUSHED 
+                            : State.DISABLEDPUSHED;
+                } else if (model.isRollover() 
+                           && ((JMenu) menu).isTopLevelMenu()) {
+                    /* 
+                     * Only paint rollover if no other menu on menubar is 
+                     * selected
+                     */
+                    State stateTmp = state;
+                    state = (menu.isEnabled()) ? State.HOT 
+                            : State.DISABLEDHOT;
+                    for (MenuElement menuElement : 
+                        ((JMenuBar) menu.getParent()).getSubElements()) {
+                        if (((JMenuItem) menuElement).isSelected()) {
+                            state = stateTmp;
+                            break;
+                        }
+                    }
+                }
+
+                //non top level menus have HOT state instead of PUSHED
+                if (!((JMenu) menu).isTopLevelMenu()) {
+                    if (state == State.PUSHED) {
+                        state = State.HOT;
+                    } else if (state == State.DISABLEDPUSHED) {
+                        state = State.DISABLEDHOT;
+                    }
+                }
+
+                /* 
+                 * on Vista top level menu for non active frame looks disabled
+                 */ 
+                if (((JMenu) menu).isTopLevelMenu() && WindowsMenuItemUI.isVistaPainting()) {
+                    if (! WindowsMenuBarUI.isActive(menu)) {
+                        state = State.DISABLED;
+                    }
+                }
+                return state;
+            }
+
+            public Part getPart(JMenuItem menuItem) {
+                return ((JMenu) menuItem).isTopLevelMenu() ? Part.MP_BARITEM 
+                        : Part.MP_POPUPITEM;
+            }
+    };
     public static ComponentUI createUI(JComponent x) {
 	return new WindowsMenuUI();
     }
 
     protected void installDefaults() {
 	super.installDefaults();
-
 	if (!WindowsLookAndFeel.isClassicWindows()) {
 	    menuItem.setRolloverEnabled(true);
 	}
@@ -44,6 +103,11 @@ public class WindowsMenuUI extends BasicMenuUI {
      * @since 1.4
      */
     protected void paintBackground(Graphics g, JMenuItem menuItem, Color bgColor) {
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            WindowsMenuItemUI.paintBackground(accessor, g, menuItem, bgColor);
+            return;
+        } 
+        
 	JMenu menu = (JMenu)menuItem;
 	ButtonModel model = menu.getModel();
 
@@ -119,7 +183,10 @@ public class WindowsMenuUI extends BasicMenuUI {
      */
     protected void paintText(Graphics g, JMenuItem menuItem,
                              Rectangle textRect, String text) {
-
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            WindowsMenuItemUI.paintText(accessor, g, menuItem, textRect, text);
+            return;
+        }
 	JMenu menu = (JMenu)menuItem;
 	ButtonModel model = menuItem.getModel();
         Color oldColor = g.getColor();
