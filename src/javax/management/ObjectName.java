@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectName.java	1.69 05/03/03
+ * @(#)ObjectName.java	1.70 07/10/23
  * 
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1053,9 +1053,19 @@ public class ObjectName implements QueryExp, Serializable {
 	    //
 	    //in.defaultReadObject();
 	    final ObjectInputStream.GetField fields = in.readFields();
-	    cn = (String)fields.get("domain", "default")+
-		":"+
+	    String propListString =
 		(String)fields.get("propertyListString", "");
+
+            // 6616825: take care of property patterns
+            final boolean propPattern = 
+                    fields.get("propertyPattern" , false);
+            if (propPattern) {
+                propListString = 
+                        (propListString.length()==0?"*":(propListString+",*"));
+            }
+             
+            cn = (String)fields.get("domain", "default")+
+                ":"+ propListString;
 	} else {
 	    // Read an object serialized in the new serial form
 	    //
