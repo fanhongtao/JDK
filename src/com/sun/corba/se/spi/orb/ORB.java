@@ -1,5 +1,5 @@
 /*
- * @(#)ORB.java	1.56 08/10/03
+ * @(#)ORB.java	1.57 09/02/04
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -292,6 +292,9 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     // Typecode support: needed in both ORBImpl and ORBSingleton
     public TypeCodeImpl get_primitive_tc(int kind) 
     {
+	synchronized (this) {
+	    checkShutdownState();
+	}
 	try {
 	    return primitiveTypeCodeConstants[kind] ;
 	} catch (Throwable t) {
@@ -301,15 +304,20 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
 
     public synchronized void setTypeCode(String id, TypeCodeImpl code) 
     {
+	checkShutdownState();
         typeCodeMap.put(id, code);
     }
 
     public synchronized TypeCodeImpl getTypeCode(String id) 
     {
+	checkShutdownState();
         return (TypeCodeImpl)typeCodeMap.get(id);
     }
 
     public MonitoringManager getMonitoringManager( ) {
+	synchronized (this) {
+	    checkShutdownState();
+	}
         return monitoringManager;
     }
     
@@ -424,6 +432,9 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
      */
     public Logger getLogger( String domain )  
     {
+	synchronized (this) {
+	    checkShutdownState();
+	}
 	ORBData odata = getORBData() ;
 
 	// Determine the correct ORBId.  There are 3 cases:
@@ -500,6 +511,9 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     //       This method must also be inherited by both ORB and ORBSingleton.
     public ByteBufferPool getByteBufferPool()
     {
+	synchronized (this) {
+	    checkShutdownState();
+	}
         if (byteBufferPool == null)
             byteBufferPool = new ByteBufferPoolImpl(this);
 

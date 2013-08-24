@@ -1,5 +1,5 @@
 /*
- * @(#)JTextPane.java	1.90 03/12/19
+ * @(#)JTextPane.java	1.93 09/03/06
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -158,6 +158,7 @@ public class JTextPane extends JEditorPane {
         if (doc != null) {
             try {
                 Caret caret = getCaret();
+                boolean composedTextSaved = saveComposedText2(this, caret.getDot());
                 int p0 = Math.min(caret.getDot(), caret.getMark());
                 int p1 = Math.max(caret.getDot(), caret.getMark());
 		AttributeSet attr = getInputAttributes().copyAttributes();
@@ -172,6 +173,9 @@ public class JTextPane extends JEditorPane {
                         doc.insertString(p0, content, attr);
                     }
                 }
+                if (composedTextSaved) {
+                   //restoreComposedTest2(this);
+               } 
             } catch (BadLocationException e) {
 	        UIManager.getLookAndFeel().provideErrorFeedback(JTextPane.this);
             }

@@ -1,7 +1,7 @@
 /*
- * @(#)WindowsComboBoxUI.java	1.49 07/01/09
+ * @(#)WindowsComboBoxUI.java	1.50 09/02/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -30,7 +30,7 @@ import sun.swing.DefaultLookup;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.49, 01/09/07
+ * @version 1.50, 02/17/09
  * @author Tom Santos
  * @author Igor Kushnirskiy
  */
@@ -381,7 +381,7 @@ public class WindowsComboBoxUI extends BasicComboBoxUI {
             State rv;
             rv = super.getState(); 
             if (rv != State.DISABLED 
-                && ! comboBox.isEditable()  
+                && comboBox != null && ! comboBox.isEditable()
                 && XPStyle.getXP().isSkinDefined(comboBox, 
                                                  Part.CP_DROPDOWNBUTTONRIGHT)) {
                 /* 

@@ -1,5 +1,5 @@
 /*
- * @(#)IIOPInputStream.java	1.74 04/06/21
+ * @(#)IIOPInputStream.java	1.76 09/02/05
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -557,6 +557,8 @@ public class IIOPInputStream
             // defaultReadObjectFVDMembers for more information.
             if (defaultReadObjectFVDMembers != null &&
                 defaultReadObjectFVDMembers.length > 0) {
+                ValueMember[] valueMembers = defaultReadObjectFVDMembers;
+                defaultReadObjectFVDMembers = null;    
 
                 // WARNING:  Be very careful!  What if some of
                 // these fields actually have to do this, too?
@@ -570,7 +572,7 @@ public class IIOPInputStream
                 inputClassFields(currentObject, 
                                  currentClass, 
                                  currentClassDesc,
-                                 defaultReadObjectFVDMembers,
+                                 valueMembers,
                                  cbSender);
 
             } else {
@@ -996,7 +998,11 @@ public class IIOPInputStream
              * else,
              *  Handle it as a serializable class.
              */
-            if (currentClassDesc.isExternalizable()) {
+            if (Enum.class.isAssignableFrom( clz )) {
+                int ordinal = orbStream.read_long() ;
+                String value = (String)orbStream.read_value( String.class ) ;
+                return Enum.valueOf( clz, value ) ;
+            } else if (currentClassDesc.isExternalizable()) {
                 try {
                     currentObject = (currentClass == null) ?
                         null : currentClassDesc.newInstance();
@@ -2017,6 +2023,7 @@ public class IIOPInputStream
         // Must have this local variable since defaultReadObjectFVDMembers
         // may get mangled by recursion.
         ValueMember fields[] = defaultReadObjectFVDMembers;
+        defaultReadObjectFVDMembers = null;
 
 	try {
 

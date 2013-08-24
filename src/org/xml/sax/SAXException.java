@@ -121,6 +121,14 @@ public class SAXException extends Exception {
 	return exception;
     }
 
+    /**
+    * Return the cause of the exception
+    *
+    * @return Return the cause of the exception
+    */
+    public Throwable getCause() {
+        return exception;
+    }
 
     /**
      * Override toString to pick up any embedded exception.

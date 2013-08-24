@@ -1,5 +1,5 @@
 /*
- * @(#)PipedInputStream.java	1.35 03/12/19
+ * @(#)PipedInputStream.java	1.36 09/04/02
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -23,7 +23,7 @@ package java.io;
  * within limits.
  *
  * @author  James Gosling
- * @version 1.35, 12/19/03
+ * @version 1.36, 04/02/09
  * @see     java.io.PipedOutputStream
  * @since   JDK1.0
  */
@@ -195,9 +195,7 @@ class PipedInputStream extends InputStream {
 
     private void awaitSpace() throws IOException {
 	while (in == out) {
-	    if ((readSide != null) && !readSide.isAlive()) {
-		throw new IOException("Pipe broken");
-	    }
+	    checkStateForReceive(); 
 	    /* full: kick any waiting readers */
 	    notifyAll();
 	    try {

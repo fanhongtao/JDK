@@ -1,5 +1,5 @@
 /*
- * @(#)Window.java	1.213 07/01/23
+ * @(#)Window.java	1.214 09/03/19
  *
  * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -104,7 +104,7 @@ import sun.awt.DebugHelper;
  * Windows are capable of generating the following WindowEvents:
  * WindowOpened, WindowClosed, WindowGainedFocus, WindowLostFocus.
  *
- * @version 	1.213, 01/23/07
+ * @version 	1.214, 03/19/09
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @see WindowEvent
@@ -2367,6 +2367,17 @@ public class Window extends Container implements Accessible {
             super.setBounds(x, y, width, height);
         }
     }
+
+    /**
+     * Determines whether this component will be displayed on the screen.
+     * @return <code>true</code> if the component and all of its ancestors
+     *          until a toplevel window are visible, <code>false</code> otherwise
+     */
+    boolean isRecursivelyVisible() {
+        // 5079694 fix: for a toplevel to be displayed, its parent doesn't have to be visible.
+        // We're overriding isRecursivelyVisible to implement this policy.
+        return visible;
+    }    
 } // class Window
 
 

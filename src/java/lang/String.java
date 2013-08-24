@@ -1,7 +1,7 @@
 /*
- * @(#)String.java	1.189 05/10/21
+ * @(#)String.java	1.190 07/08/07
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -79,7 +79,7 @@ import java.util.regex.PatternSyntaxException;
  *
  * @author  Lee Boynton
  * @author  Arthur van Hoff
- * @version 1.189, 10/21/05
+ * @version 1.190, 08/07/07
  * @see     java.lang.Object#toString()
  * @see     java.lang.StringBuffer
  * @see     java.lang.StringBuilder
@@ -672,7 +672,7 @@ public final class String
 	    throw new IndexOutOfBoundsException();
 	}
 	return Character.offsetByCodePointsImpl(value, offset, count,
-						offset+index, codePointOffset);
+						offset+index, codePointOffset) - offset;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * @(#)PrinterJob.java	1.36 04/01/28
+ * @(#)PrinterJob.java	1.39 09/04/02
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -133,9 +133,11 @@ public abstract class PrinterJob {
     /**
      * Returns the service (printer) for this printer job.
      * Implementations of this class which do not support print services
-     * may return null;
+     * may return null.  null will also be returned if no printers are  
+     * available. 
      * @return the service for this printer job.
      * @see #setPrintService(PrintService)
+     * @see #getPrinterJob()
      * @since     1.4
      */
     public PrintService getPrintService() {

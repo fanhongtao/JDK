@@ -1,7 +1,7 @@
 /*
- * @(#)PNGImageReader.java	1.56 06/04/19
+ * @(#)PNGImageReader.java	1.57 09/04/08
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -592,14 +592,19 @@ public class PNGImageReader extends ImageReader {
     private static String inflate(byte[] b) throws IOException {
         InputStream bais = new ByteArrayInputStream(b);
         InputStream iis = new InflaterInputStream(bais);
+
         StringBuffer sb = new StringBuffer(80);
         int c;
-        while ((c = iis.read()) != -1) {
-            sb.append((char)c);
+        try {
+            while ((c = iis.read()) != -1) {
+                sb.append((char)c);
+            }
+        } finally {
+            iis.close();
         }
         return sb.toString();
     }
-    
+
     private void parse_zTXt_chunk(int chunkLength) throws IOException {
         String keyword = readNullTerminatedString();
         metadata.zTXt_keyword.add(keyword);
@@ -1336,12 +1341,25 @@ public class PNGImageReader extends ImageReader {
             destinationOffset = param.getDestinationOffset();
         }
 
+        Inflater inf = null;
         try {
             stream.seek(imageStartPosition);
 
             Enumeration e = new PNGImageDataEnumeration(stream);
             InputStream is = new SequenceInputStream(e);
-            is = new InflaterInputStream(is, new Inflater());
+
+            // InflaterInputStream uses an Inflater instance which consumes
+            // native (non-GC visible) resources. This is normally implicitly
+            // freed when the stream is closed. However since the
+            // InflaterInputStream wraps a client-supplied input stream,
+            // we cannot close it.
+            // But the app may depend on GC finalization to close the stream.
+            // Therefore to ensure timely freeing of native resources we
+            // explicitly create the Inflater instance and free its resources
+            // when we are done with the InflaterInputStream by calling
+            // inf.end();
+            inf = new Inflater();
+            is = new InflaterInputStream(is, inf);
             is = new BufferedInputStream(is);
             this.pixelStream = new DataInputStream(is);
 
@@ -1356,7 +1374,7 @@ public class PNGImageReader extends ImageReader {
             int colorType = metadata.IHDR_colorType;
             checkReadParamBandSettings(param,
                                        inputBandsForColorType[colorType],
-                                      theImage.getSampleModel().getNumBands());
+                                       theImage.getSampleModel().getNumBands());
 
             processImageStarted(0);
             decodeImage();
@@ -1368,6 +1386,10 @@ public class PNGImageReader extends ImageReader {
         } catch (IOException e) {
             e.printStackTrace();
             throw new IIOException("Error reading PNG image data", e);
+        } finally {
+            if (inf != null) {
+                inf.end();
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 /*
- * @(#)PNGImageWriter.java	1.35 07/09/10
+ * @(#)PNGImageWriter.java	1.36 09/04/08
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -221,13 +221,17 @@ class IDATOutputStream extends ImageOutputStreamImpl {
     }
 
     public void finish() throws IOException {
-	if (!def.finished()) {
-	    def.finish();
-	    while (!def.finished()) {
-		deflate();
-	    }
-	}
-        finishChunk();
+        try {
+            if (!def.finished()) {
+                def.finish();
+                while (!def.finished()) {
+                    deflate();
+                }
+            }
+            finishChunk();
+        } finally {
+            def.end();
+        }
     }
 }
 
@@ -892,23 +896,24 @@ public class PNGImageWriter extends ImageWriter {
     // Use sourceXOffset, etc.
     private void write_IDAT(RenderedImage image) throws IOException {
         IDATOutputStream ios = new IDATOutputStream(stream, 32768);
-
-        if (metadata.IHDR_interlaceMethod == 1) {
-            for (int i = 0; i < 7; i++) {
-                encodePass(ios, image,
-                           PNGImageReader.adam7XOffset[i],
-                           PNGImageReader.adam7YOffset[i],
-                           PNGImageReader.adam7XSubsampling[i],
-                           PNGImageReader.adam7YSubsampling[i]);
-                if (abortRequested()) {
-                    break;
+        try {
+            if (metadata.IHDR_interlaceMethod == 1) {
+                for (int i = 0; i < 7; i++) {
+                    encodePass(ios, image,
+                               PNGImageReader.adam7XOffset[i],
+                               PNGImageReader.adam7YOffset[i],
+                               PNGImageReader.adam7XSubsampling[i],
+                               PNGImageReader.adam7YSubsampling[i]);
+                    if (abortRequested()) {
+                        break;
+                    }
                 }
+            } else {
+                encodePass(ios, image, 0, 0, 1, 1);
             }
-        } else {
-            encodePass(ios, image, 0, 0, 1, 1);
+        } finally {
+            ios.finish();
         }
-
-        ios.finish();
     }
 
     private void writeIEND() throws IOException {

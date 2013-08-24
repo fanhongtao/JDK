@@ -1,7 +1,7 @@
 /*
- * @(#)ObjectInputStream.java	1.157 06/04/05
+ * @(#)ObjectInputStream.java	1.158 09/02/17
  *
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -175,7 +175,7 @@ import static java.io.ObjectStreamClass.processQueue;
  *
  * @author	Mike Warres
  * @author	Roger Riggs
- * @version 1.157, 06/04/05
+ * @version 1.158, 09/02/17
  * @see java.io.DataInput
  * @see java.io.ObjectOutputStream
  * @see java.io.Serializable
@@ -1744,27 +1744,32 @@ public class ObjectInputStream
 	throws IOException 
     {
 	CallbackContext oldContext = curContext;
-	curContext = null;
 
-	boolean blocked = desc.hasBlockExternalData();
-	if (blocked) {
-	    bin.setBlockDataMode(true);
-	}
-	if (obj != null) {
-	    try {
-		obj.readExternal(this);
-	    } catch (ClassNotFoundException ex) {
-		/*
-		 * In most cases, the handle table has already propagated a
-		 * CNFException to passHandle at this point; this mark call is
-		 * included to address cases where the readExternal method has
-		 * cons'ed and thrown a new CNFException of its own.
-		 */
-		handles.markException(passHandle, ex);
+	try {
+	    curContext = null;
+	    boolean blocked = desc.hasBlockExternalData();
+	    if (blocked) {
+	        bin.setBlockDataMode(true);
 	    }
-	}
-	if (blocked) {
-	    skipCustomData();
+	    if (obj != null) {
+	        try {
+		    obj.readExternal(this);
+	        } catch (ClassNotFoundException ex) {
+		    /*
+		     * In most cases, the handle table has already propagated
+		     * a CNFException to passHandle at this point; this mark
+		     * call is included to address cases where the readExternal
+		     * method has cons'ed and thrown a new CNFException of its
+		     * own.
+		     */
+		    handles.markException(passHandle, ex);
+	        }
+	    }
+	    if (blocked) {
+	        skipCustomData();
+	    }
+	} finally {
+	    curContext = oldContext;
 	}
 	
 	/*
@@ -1779,8 +1784,6 @@ public class ObjectInputStream
 	 * externalizable data remains in the stream, a subsequent read will
 	 * most likely throw a StreamCorruptedException.
 	 */
-
-	curContext = oldContext;
     }
     
     /**
@@ -1802,10 +1805,10 @@ public class ObjectInputStream
 		    handles.lookupException(passHandle) == null) 
 		{
 		    CallbackContext oldContext = curContext;
-		    curContext = new CallbackContext(obj, slotDesc);
 
-		    bin.setBlockDataMode(true);
 		    try {
+		        curContext = new CallbackContext(obj, slotDesc);
+		        bin.setBlockDataMode(true);
 			slotDesc.invokeReadObject(obj, this);
 		    } catch (ClassNotFoundException ex) {
 			/*
@@ -1818,10 +1821,9 @@ public class ObjectInputStream
 			handles.markException(passHandle, ex);
 		    } finally {
 			curContext.setUsed();
+			curContext = oldContext;
 		    }
 
-		    curContext = oldContext;
-		    
 		    /*
 		     * defaultDataEnd may have been set indirectly by custom
 		     * readObject() method when calling defaultReadObject() or

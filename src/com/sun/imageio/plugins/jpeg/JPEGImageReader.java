@@ -1,5 +1,5 @@
 /*
- * @(#)JPEGImageReader.java	1.49 04/03/29
+ * @(#)JPEGImageReader.java	1.50 09/03/06
  *
  * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -92,7 +92,13 @@ public class JPEGImageReader extends ImageReader {
      */
     protected static final int WARNING_NO_JFIF_IN_THUMB = 1;
 
-    private static final int MAX_WARNING = WARNING_NO_JFIF_IN_THUMB;
+    /** 
+     * Warning code to be passed to warningOccurred to indicate 
+     * that embedded ICC profile is invalid and will be ignored. 
+     */  
+    protected static final int WARNING_IGNORE_INVALID_ICC = 2; 
+ 
+    private static final int MAX_WARNING = WARNING_IGNORE_INVALID_ICC; 
 
     /**
      * Image index of image for which header information 
@@ -592,9 +598,51 @@ public class JPEGImageReader extends ImageReader {
         this.outColorSpaceCode = outColorSpaceCode;
         this.numComponents = numComponents;
         iccCS = null;
-        if (iccData != null) {
-            iccCS = new ICC_ColorSpace(ICC_Profile.getInstance(iccData));
+
+        if (iccData == null) { 
+            iccCS = null; 
+            return; 
+        } 
+
+        ICC_Profile newProfile = null;
+        try {
+            newProfile = ICC_Profile.getInstance(iccData);
+        } catch (IllegalArgumentException e) {
+            /*
+             * Color profile data seems to be invalid. 
+             * Ignore this profile. 
+             */
+
+            iccCS = null;
+            warningOccurred(WARNING_IGNORE_INVALID_ICC);
+ 
+            return;
         }
+        byte[] newData = newProfile.getData();
+ 
+        ICC_Profile oldProfile = null;
+        if (iccCS instanceof ICC_ColorSpace) {
+            oldProfile = ((ICC_ColorSpace)iccCS).getProfile();
+        }
+        byte[] oldData = null;
+        if (oldProfile != null) {
+            oldData = oldProfile.getData();
+        }
+             
+        /*
+         * At the moment we can't rely on the ColorSpace.equals()
+         * and ICC_Profile.equals() because they do not detect 
+         * the case when two profiles are created from same data.
+         * 
+         * So, we have to do data comparison in order to avoid 
+         * creation of different ColorSpace instances for the same
+         * embedded data.
+         */
+        if (oldData == null ||
+            !java.util.Arrays.equals(oldData, newData))
+        {
+            iccCS = new ICC_ColorSpace(newProfile);               
+        }       
     }
 
     public int getWidth(int imageIndex) throws IOException {
