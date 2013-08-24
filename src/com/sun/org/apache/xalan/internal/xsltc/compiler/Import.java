@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Import.java,v 1.24 2004/02/16 22:24:29 minchau Exp $
+ * $Id: Import.java,v 1.8 2007/04/09 21:30:40 joehw Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -72,6 +72,8 @@ final class Import extends TopLevelElement {
                 if (input != null) {
                     docToLoad = input.getSystemId();
                     reader = xsltc.getXMLReader();
+                } else if (parser.errorsFound()) {
+                    return;
                 }
 	    }
 

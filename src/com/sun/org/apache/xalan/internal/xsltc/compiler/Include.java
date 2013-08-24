@@ -73,6 +73,8 @@ final class Include extends TopLevelElement {
                 if (input != null) {
                     docToLoad = input.getSystemId();
                     reader = xsltc.getXMLReader();
+                } else if (parser.errorsFound()) {
+                    return;
                 }
 	    }
 
